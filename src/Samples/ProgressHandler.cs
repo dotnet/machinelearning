@@ -1,7 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
@@ -19,11 +20,10 @@ namespace Samples
 
         public static void Run()
         {
-            //Create ML Context with seed for repeteable/deterministic results
-            MLContext mlContext = new MLContext(seed: 0);
+            MLContext mlContext = new MLContext();
 
             // STEP 1: Infer columns
-            var columnInference = mlContext.Data.InferColumns(TrainDataPath, LabelColumnName, ',');
+            var columnInference = mlContext.AutoInference().InferColumns(TrainDataPath, LabelColumnName, ',');
 
             // STEP 2: Load data
             TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderArgs);
@@ -31,16 +31,18 @@ namespace Samples
             IDataView testDataView = textLoader.Read(TestDataPath);
 
             // STEP 3: Autofit with a callback configured
-            var autoFitResults = mlContext.Regression.AutoFit(trainDataView, 
-                                                        LabelColumnName, 
-                                                        timeoutInSeconds: 1, 
-                                                        progressCallback: new Progress());
+            var autoFitExperiment = mlContext.AutoInference().CreateRegressionExperiment(new RegressionExperimentSettings()
+            {
+                MaxInferenceTimeInSeconds = 1,
+                ProgressCallback = new Progress()
+            });
+            autoFitExperiment.Execute(trainDataView, new ColumnInformation() { LabelColumn = LabelColumnName });
 
             Console.WriteLine("Press any key to continue..");
             Console.ReadLine();
         }
 
-        class Progress : IProgress<AutoFitRunResult<RegressionMetrics>>
+        class Progress : IProgress<RunResult<RegressionMetrics>>
         {
             int iterationIndex;
             public Progress()
@@ -48,7 +50,7 @@ namespace Samples
                 ConsolePrinter.PrintRegressionMetricsHeader();
             }
 
-            public void Report(AutoFitRunResult<RegressionMetrics> iterationResult)
+            public void Report(RunResult<RegressionMetrics> iterationResult)
             {
                 iterationIndex++;
                 ConsolePrinter.PrintRegressionMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.Metrics);

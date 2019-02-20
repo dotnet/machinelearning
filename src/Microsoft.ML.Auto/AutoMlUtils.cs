@@ -50,9 +50,9 @@ namespace Microsoft.ML.Auto
         }
 
         public static (string, ColumnType, ColumnPurpose, ColumnDimensions)[] GetColumnInfoTuples(MLContext context,
-            IDataView data, string label, IDictionary<string, ColumnPurpose> purposeOverrides)
+            IDataView data, ColumnInformation columnInfo)
         {
-            var purposes = PurposeInference.InferPurposes(context, data, label, purposeOverrides);
+            var purposes = PurposeInference.InferPurposes(context, data, columnInfo);
             var colDimensions = DatasetDimensionsApi.CalcColumnDimensions(data, purposes);
             var cols = new (string, ColumnType, ColumnPurpose, ColumnDimensions)[data.Schema.Count];
             for (var i = 0; i < cols.Length; i++)

@@ -9,13 +9,12 @@ namespace Microsoft.ML.Auto
     internal static class RecipeInference
     {
         /// <summary>
-        /// Given a predictor type & target max num of iterations, return a set of all permissible trainers (with their sweeper params, if defined).
+        /// Given a predictor type, return a set of all permissible trainers (with their sweeper params, if defined).
         /// </summary>
         /// <returns>Array of viable learners.</returns>
-        public static IEnumerable<SuggestedTrainer> AllowedTrainers(MLContext mlContext, TaskKind task,
-            int maxIterations)
+        public static IEnumerable<SuggestedTrainer> AllowedTrainers(MLContext mlContext, TaskKind task)
         {
-            var trainerExtensions = TrainerExtensionCatalog.GetTrainers(task, maxIterations);
+            var trainerExtensions = TrainerExtensionCatalog.GetTrainers(task);
 
             var trainers = new List<SuggestedTrainer>();
             foreach (var trainerExtension in trainerExtensions)

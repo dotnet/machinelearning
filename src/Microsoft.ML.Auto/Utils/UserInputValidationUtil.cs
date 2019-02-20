@@ -9,9 +9,12 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
+// todo: re-write & test user input validation once final API nailed down.
+// Tracked by Github issue: https://github.com/dotnet/machinelearning-automl/issues/159
+
 namespace Microsoft.ML.Auto
 {
-    internal static class UserInputValidationUtil
+    /*internal static class UserInputValidationUtil
     {
         public static void ValidateAutoFitArgs(IDataView trainData, string label, IDataView validationData,
             AutoFitSettings settings, IEnumerable<(string, ColumnPurpose)> purposeOverrides)
@@ -174,5 +177,5 @@ namespace Microsoft.ML.Auto
             var groups = values.GroupBy(v => v);
             return groups.FirstOrDefault(g => g.Count() > 1)?.Key;
         }
-    }
+    }*/
 }

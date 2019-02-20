@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,7 +26,7 @@ namespace Samples
             MLContext mlContext = new MLContext();
 
             // STEP 1: Infer columns
-            var columnInference = mlContext.Data.InferColumns(TrainDataPath, LabelColumnName, '\t');
+            var columnInference = mlContext.AutoInference().InferColumns(TrainDataPath, LabelColumnName);
 
             // STEP 2: Load data
             TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderArgs);
@@ -31,7 +35,9 @@ namespace Samples
 
             // STEP 3: Auto featurize, auto train and auto hyperparameter tuning
             Console.WriteLine($"Invoking MulticlassClassification.AutoFit");
-            var autoFitResults = mlContext.MulticlassClassification.AutoFit(trainDataView, timeoutInSeconds: 60);
+            var autoFitResults = mlContext.AutoInference()
+                .CreateMulticlassClassificationExperiment(60)
+                .Execute(trainDataView);
 
             // STEP 4: Print metric from the best model
             var best = autoFitResults.Best();
@@ -39,7 +45,7 @@ namespace Samples
 
             // STEP 5: Evaluate test data
             IDataView testDataViewWithBestScore = best.Model.Transform(testDataView);
-            var testMetrics = mlContext.MulticlassClassification.Evaluate(testDataViewWithBestScore, label: DefaultColumnNames.Label, DefaultColumnNames.Score);
+            var testMetrics = mlContext.MulticlassClassification.Evaluate(testDataViewWithBestScore, label: LabelColumnName, DefaultColumnNames.Score);
             Console.WriteLine($"AccuracyMacro of best model from test data: {best.Metrics.AccuracyMacro}");
 
             // STEP 6: Save the best model for later deployment and inferencing

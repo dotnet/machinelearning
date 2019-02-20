@@ -17,23 +17,21 @@ namespace Microsoft.ML.Auto
         public static Pipeline GetNextPipeline(IEnumerable<PipelineScore> history,
             (string, ColumnType, ColumnPurpose, ColumnDimensions)[] columns,
             TaskKind task,
-            int iterationsRemaining,
             bool isMaximizingMetric = true)
         {
             var inferredHistory = history.Select(r => SuggestedPipelineResult.FromPipelineRunResult(r));
-            var nextInferredPipeline = GetNextInferredPipeline(inferredHistory, columns, task, iterationsRemaining, isMaximizingMetric);
+            var nextInferredPipeline = GetNextInferredPipeline(inferredHistory, columns, task, isMaximizingMetric);
             return nextInferredPipeline?.ToPipeline();
         }
 
         public static SuggestedPipeline GetNextInferredPipeline(IEnumerable<SuggestedPipelineResult> history,
             (string, ColumnType, ColumnPurpose, ColumnDimensions)[] columns,
             TaskKind task,
-            int iterationsRemaining,
             bool isMaximizingMetric = true)
         {
             var context = new MLContext();
 
-            var availableTrainers = RecipeInference.AllowedTrainers(context, task, history.Count() + iterationsRemaining);
+            var availableTrainers = RecipeInference.AllowedTrainers(context, task);
             var transforms = CalculateTransforms(context, columns, task);
             //var transforms = TransformInferenceApi.InferTransforms(context, columns, task);
 

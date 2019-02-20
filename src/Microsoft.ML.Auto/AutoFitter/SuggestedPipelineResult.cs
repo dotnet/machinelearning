@@ -48,9 +48,9 @@ namespace Microsoft.ML.Auto
             Exception = exception;
         }
 
-        public AutoFitRunResult<T> ToIterationResult()
+        public RunResult<T> ToIterationResult()
         {
-            return new AutoFitRunResult<T>(Model, EvaluatedMetrics, Pipeline.ToPipeline(), Exception, RuntimeInSeconds, PipelineInferenceTimeInSeconds);
+            return new RunResult<T>(Model, EvaluatedMetrics, Pipeline.ToPipeline(), Exception, RuntimeInSeconds, PipelineInferenceTimeInSeconds);
         }
     }
 }

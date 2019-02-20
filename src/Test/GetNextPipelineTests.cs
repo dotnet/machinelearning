@@ -18,10 +18,10 @@ namespace Microsoft.ML.Auto.Test
         {
             var context = new MLContext();
             var uciAdult = DatasetUtil.GetUciAdultDataView();
-            var columns = AutoMlUtils.GetColumnInfoTuples(context, uciAdult, DatasetUtil.UciAdultLabel, null);
+            var columns = AutoMlUtils.GetColumnInfoTuples(context, uciAdult, new ColumnInformation() { LabelColumn = DatasetUtil.UciAdultLabel });
 
             // get next pipeline
-            var pipeline = PipelineSuggester.GetNextPipeline(new List<PipelineScore>(), columns, TaskKind.BinaryClassification, 5);
+            var pipeline = PipelineSuggester.GetNextPipeline(new List<PipelineScore>(), columns, TaskKind.BinaryClassification);
 
             // serialize & deserialize pipeline
             var serialized = JsonConvert.SerializeObject(pipeline);
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Auto.Test
         {
             var context = new MLContext();
             var uciAdult = DatasetUtil.GetUciAdultDataView();
-            var columns = AutoMlUtils.GetColumnInfoTuples(context, uciAdult, DatasetUtil.UciAdultLabel, null);
+            var columns = AutoMlUtils.GetColumnInfoTuples(context, uciAdult, new ColumnInformation() { LabelColumn = DatasetUtil.UciAdultLabel });
 
             // Get next pipeline loop
             var history = new List<PipelineScore>();
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Auto.Test
             for (var i = 0; i < maxIterations; i++)
             {
                 // Get next pipeline
-                var pipeline = PipelineSuggester.GetNextPipeline(history, columns, task, maxIterations - i);
+                var pipeline = PipelineSuggester.GetNextPipeline(history, columns, task);
                 if (pipeline == null)
                 {
                     break;
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Auto.Test
             Assert.AreEqual(maxIterations, history.Count);
 
             // Get all 'Stage 1' and 'Stage 2' runs from Pipeline Suggester
-            var allAvailableTrainers = RecipeInference.AllowedTrainers(context, task, maxIterations);
+            var allAvailableTrainers = RecipeInference.AllowedTrainers(context, task);
             var stage1Runs = history.Take(allAvailableTrainers.Count());
             var stage2Runs = history.Skip(allAvailableTrainers.Count());
 

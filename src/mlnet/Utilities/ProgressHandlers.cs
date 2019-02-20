@@ -10,7 +10,7 @@ namespace Microsoft.ML.CLI.Utilities
 {
     internal class ProgressHandlers
     {
-        internal class RegressionHandler : IProgress<AutoFitRunResult<RegressionMetrics>>
+        internal class RegressionHandler : IProgress<RunResult<RegressionMetrics>>
         {
             int iterationIndex;
             public RegressionHandler()
@@ -18,14 +18,14 @@ namespace Microsoft.ML.CLI.Utilities
                 ConsolePrinter.PrintRegressionMetricsHeader();
             }
 
-            public void Report(AutoFitRunResult<RegressionMetrics> iterationResult)
+            public void Report(RunResult<RegressionMetrics> iterationResult)
             {
                 iterationIndex++;
                 ConsolePrinter.PrintRegressionMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.Metrics);
             }
         }
 
-        internal class BinaryClassificationHandler : IProgress<AutoFitRunResult<BinaryClassificationMetrics>>
+        internal class BinaryClassificationHandler : IProgress<RunResult<BinaryClassificationMetrics>>
         {
             int iterationIndex;
             internal BinaryClassificationHandler()
@@ -33,7 +33,7 @@ namespace Microsoft.ML.CLI.Utilities
                 ConsolePrinter.PrintBinaryClassificationMetricsHeader();
             }
 
-            public void Report(AutoFitRunResult<BinaryClassificationMetrics> iterationResult)
+            public void Report(RunResult<BinaryClassificationMetrics> iterationResult)
             {
                 iterationIndex++;
                 ConsolePrinter.PrintBinaryClassificationMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.Metrics);

@@ -20,9 +20,9 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
     {
         private readonly Pipeline pipeline;
         private readonly CodeGeneratorOptions options;
-        private readonly (Arguments, IEnumerable<(string, ColumnPurpose)>) columnInferenceResult;
+        private readonly ColumnInferenceResults columnInferenceResult;
 
-        internal CodeGenerator(Pipeline pipeline, (Arguments, IEnumerable<(string, ColumnPurpose)>) columnInferenceResult, CodeGeneratorOptions options)
+        internal CodeGenerator(Pipeline pipeline, ColumnInferenceResults columnInferenceResult, CodeGeneratorOptions options)
         {
             this.pipeline = pipeline;
             this.columnInferenceResult = columnInferenceResult;
@@ -97,11 +97,11 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             {
                 Columns = columns,
                 Transforms = transforms,
-                HasHeader = columnInferenceResult.Item1.HasHeader,
-                Separator = columnInferenceResult.Item1.Separators.FirstOrDefault(),
-                AllowQuoting = columnInferenceResult.Item1.AllowQuoting,
-                AllowSparse = columnInferenceResult.Item1.AllowSparse,
-                TrimWhiteSpace = columnInferenceResult.Item1.TrimWhitespace,
+                HasHeader = columnInferenceResult.TextLoaderArgs.HasHeader,
+                Separator = columnInferenceResult.TextLoaderArgs.Separators.FirstOrDefault(),
+                AllowQuoting = columnInferenceResult.TextLoaderArgs.AllowQuoting,
+                AllowSparse = columnInferenceResult.TextLoaderArgs.AllowSparse,
+                TrimWhiteSpace = columnInferenceResult.TextLoaderArgs.TrimWhitespace,
                 Trainer = trainer,
                 ClassLabels = classLabels,
                 GeneratedUsings = usings,
@@ -165,7 +165,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         internal IList<string> GenerateClassLabels()
         {
             IList<string> result = new List<string>();
-            foreach (var column in columnInferenceResult.Item1.Column)
+            foreach (var column in columnInferenceResult.TextLoaderArgs.Column)
             {
                 StringBuilder sb = new StringBuilder();
                 int range = (column.Source[0].Max - column.Source[0].Min).Value;
@@ -224,7 +224,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         internal IList<string> GenerateColumns()
         {
             var result = new List<string>();
-            foreach (var column in columnInferenceResult.Item1.Column)
+            foreach (var column in columnInferenceResult.TextLoaderArgs.Column)
             {
                 result.Add(ConstructColumnDefinition(column));
             }

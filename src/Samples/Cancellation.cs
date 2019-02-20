@@ -1,7 +1,11 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
@@ -19,11 +23,10 @@ namespace Samples
 
         public static void Run()
         {
-            //Create ML Context with seed for repeteable/deterministic results
-            MLContext mlContext = new MLContext(seed: 0);
+            MLContext mlContext = new MLContext();
 
             // STEP 1: Infer columns
-            var columnInference = mlContext.Data.InferColumns(TrainDataPath, LabelColumnName, ',');
+            var columnInference = mlContext.AutoInference().InferColumns(TrainDataPath, LabelColumnName, ',');
 
             // STEP 2: Load data
             TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderArgs);
@@ -38,12 +41,18 @@ namespace Samples
 
             // STEP 3: Autofit with a cancellation token
             Console.WriteLine($"Invoking Regression.AutoFit");
-            var autoFitResults = mlContext.Regression.AutoFit(trainDataView,
-                                                        LabelColumnName,
-                                                        timeoutInSeconds: 1,
-                                                        cancellationToken: cts.Token);
+            var autoFitResults = mlContext.AutoInference()
+                .CreateRegressionExperiment(new RegressionExperimentSettings()
+                {
+                    MaxInferenceTimeInSeconds = 60,
+                    CancellationToken = cts.Token
+                })
+                .Execute(trainDataView, new ColumnInformation()
+                {
+                    LabelColumn = LabelColumnName
+                });
 
-            Console.WriteLine($"{autoFitResults.Count} models were returned after {cancelAfterInSeconds} seconds");
+            Console.WriteLine($"{autoFitResults.Count()} models were returned after {cancelAfterInSeconds} seconds");
 
             Console.WriteLine("Press any key to continue..");
             Console.ReadLine();

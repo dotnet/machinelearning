@@ -31,7 +31,7 @@ namespace Microsoft.ML.CLI.Commands.New
         {
             var context = new MLContext();
             // Infer columns
-            (TextLoader.Arguments TextLoaderArgs, IEnumerable<(string Name, ColumnPurpose Purpose)> ColumnPurpopses) columnInference = InferColumns(context);
+            ColumnInferenceResults columnInference = InferColumns(context);
 
             Array.ForEach(columnInference.TextLoaderArgs.Column, t => t.Name = Sanitize(t.Name));
 
@@ -67,24 +67,24 @@ namespace Microsoft.ML.CLI.Commands.New
             GenerateProject(columnInference, pipeline);
         }
 
-        internal (TextLoader.Arguments TextLoaderArgs, IEnumerable<(string Name, ColumnPurpose Purpose)> ColumnPurpopses) InferColumns(MLContext context)
+        internal ColumnInferenceResults InferColumns(MLContext context)
         {
             //Check what overload method of InferColumns needs to be called.
             logger.Log(LogLevel.Info, Strings.InferColumns);
-            (TextLoader.Arguments TextLoaderArgs, IEnumerable<(string Name, ColumnPurpose Purpose)> ColumnPurpopses) columnInference = default((TextLoader.Arguments TextLoaderArgs, IEnumerable<(string Name, ColumnPurpose Purpose)> ColumnPurpopses));
+            ColumnInferenceResults columnInference = null;
             if (options.LabelName != null)
             {
-                columnInference = context.Data.InferColumns(options.TrainDataset.FullName, options.LabelName, groupColumns: false);
+                columnInference = context.AutoInference().InferColumns(options.TrainDataset.FullName, options.LabelName, groupColumns: false);
             }
             else
             {
-                columnInference = context.Data.InferColumns(options.TrainDataset.FullName, options.LabelIndex, groupColumns: false);
+                columnInference = context.AutoInference().InferColumns(options.TrainDataset.FullName, options.LabelIndex, groupColumns: false);
             }
 
             return columnInference;
         }
 
-        internal void GenerateProject((TextLoader.Arguments TextLoaderArgs, IEnumerable<(string Name, ColumnPurpose Purpose)> ColumnPurpopses) columnInference, Pipeline pipeline)
+        internal void GenerateProject(ColumnInferenceResults columnInference, Pipeline pipeline)
         {
             //Generate code
             logger.Log(LogLevel.Info, Strings.GenerateProject);
@@ -111,7 +111,13 @@ namespace Microsoft.ML.CLI.Commands.New
             if (options.MlTask == TaskKind.BinaryClassification)
             {
                 var progressReporter = new ProgressHandlers.BinaryClassificationHandler();
-                var result = context.BinaryClassification.AutoFit(trainData, label, validationData, options.Timeout, progressCallback: progressReporter);
+                var result = context.AutoInference()
+                    .CreateBinaryClassificationExperiment(new BinaryExperimentSettings()
+                    {
+                        MaxInferenceTimeInSeconds = options.Timeout,
+                        ProgressCallback = progressReporter
+                    })
+                    .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = label });
                 logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
                 var bestIteration = result.Best();
                 pipeline = bestIteration.Pipeline;
@@ -121,7 +127,12 @@ namespace Microsoft.ML.CLI.Commands.New
             if (options.MlTask == TaskKind.Regression)
             {
                 var progressReporter = new ProgressHandlers.RegressionHandler();
-                var result = context.Regression.AutoFit(trainData, label, validationData, options.Timeout, progressCallback: progressReporter);
+                var result = context.AutoInference()
+                    .CreateRegressionExperiment(new RegressionExperimentSettings()
+                    {
+                        MaxInferenceTimeInSeconds = options.Timeout,
+                        ProgressCallback = progressReporter
+                    }).Execute(trainData, validationData, new ColumnInformation() { LabelColumn = label });
                 logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
                 var bestIteration = result.Best();
                 pipeline = bestIteration.Pipeline;

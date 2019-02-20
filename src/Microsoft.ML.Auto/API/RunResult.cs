@@ -8,7 +8,7 @@ using Microsoft.ML.Core.Data;
 
 namespace Microsoft.ML.Auto
 {
-    public class AutoFitRunResult<T>
+    public class RunResult<T>
     {
         public readonly T Metrics;
         public readonly ITransformer Model;
@@ -19,7 +19,7 @@ namespace Microsoft.ML.Auto
         internal readonly Pipeline Pipeline;
         internal readonly int PipelineInferenceTimeInSeconds;
 
-        internal AutoFitRunResult(
+        internal RunResult(
             ITransformer model,
             T metrics,
             Pipeline pipeline,

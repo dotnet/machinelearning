@@ -263,8 +263,8 @@ namespace Microsoft.ML.Auto
         /// <summary>
         /// Auto-detect purpose for the data view columns.
         /// </summary>
-        public static PurposeInference.Column[] InferPurposes(MLContext context, IDataView data, string label,
-            IDictionary<string, ColumnPurpose> columnOverrides = null)
+        public static PurposeInference.Column[] InferPurposes(MLContext context, IDataView data,
+            ColumnInformation columnInfo)
         {
             data = data.Take(MaxRowsToRead);
 
@@ -276,22 +276,22 @@ namespace Microsoft.ML.Auto
                 var column = data.Schema[i];
                 IntermediateColumn intermediateCol;
 
-                if(column.Name == label)
-                {
-                    intermediateCol = new IntermediateColumn(data, i, ColumnPurpose.Label);
-                }
-                else if (column.IsHidden)
+                if(column.IsHidden)
                 {
                     intermediateCol = new IntermediateColumn(data, i, ColumnPurpose.Ignore);
+                    allColumns.Add(intermediateCol);
+                    continue;
                 }
-                else if(columnOverrides != null && columnOverrides.TryGetValue(column.Name, out var columnPurpose))
-                {
-                    intermediateCol = new IntermediateColumn(data, i, columnPurpose);
-                }
-                else
+
+                var columnPurpose = columnInfo.GetColumnPurpose(column.Name);
+                if(columnPurpose == null)
                 {
                     intermediateCol = new IntermediateColumn(data, i);
                     columnsToInfer.Add(intermediateCol);
+                }
+                else
+                {
+                    intermediateCol = new IntermediateColumn(data, i, columnPurpose.Value);
                 }
 
                 allColumns.Add(intermediateCol);

@@ -25,7 +25,7 @@ namespace Microsoft.ML.Auto.Test
             {
                 var context = new MLContext();
                 var uciAdultDataFile = DownloadUciAdultDataset();
-                var columnInferenceResult = context.Data.InferColumns(uciAdultDataFile, UciAdultLabel);
+                var columnInferenceResult = context.AutoInference().InferColumns(uciAdultDataFile, UciAdultLabel);
                 var textLoader = context.Data.CreateTextLoader(columnInferenceResult.TextLoaderArgs);
                 _uciAdultDataView = textLoader.Read(uciAdultDataFile);
             }

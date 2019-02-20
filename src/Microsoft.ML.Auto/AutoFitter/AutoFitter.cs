@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.Data.DataView;
@@ -16,51 +15,48 @@ namespace Microsoft.ML.Auto
 {
     internal class AutoFitter<T> where T : class
     {
-        private readonly IDebugLogger _debugLogger;
         private readonly IList<SuggestedPipelineResult<T>> _history;
-        private readonly string _label;
+        private readonly ColumnInformation _columnInfo;
         private readonly MLContext _context;
         private readonly OptimizingMetricInfo _optimizingMetricInfo;
-        private readonly IDictionary<string, ColumnPurpose> _purposeOverrides;
-        private readonly AutoFitSettings _settings;
         private readonly TaskKind _task;
         private readonly IEstimator<ITransformer> _preFeaturizers;
-        private readonly CancellationToken _cancellationToken;
-        private readonly IProgress<AutoFitRunResult<T>> _progressCallback;
+        private readonly IProgress<RunResult<T>> _progressCallback;
+        private readonly ExperimentSettings _experimentSettings;
 
         private IDataView _trainData;
         private IDataView _validationData;
 
-        List<AutoFitRunResult<T>> iterationResults = new List<AutoFitRunResult<T>>();
+        List<RunResult<T>> iterationResults = new List<RunResult<T>>();
 
-        public AutoFitter(TaskKind task, 
+        public AutoFitter(MLContext context,
+            TaskKind task,
             IDataView trainData,
-            string label,
+            ColumnInformation columnInfo,
             IDataView validationData,
-            AutoFitSettings settings,
             IEstimator<ITransformer> preFeaturizers,
-            IEnumerable<(string, ColumnPurpose)> purposeOverrides,
             OptimizingMetric metric,
-            CancellationToken cancellationToken,
-            IProgress<AutoFitRunResult<T>> progressCallback,
-            IDebugLogger debugLogger)
+            IProgress<RunResult<T>> progressCallback,
+            ExperimentSettings experimentSettings)
         {
-            _debugLogger = debugLogger;
-            _history = new List<SuggestedPipelineResult<T>>();
-            _label = label;
-            _context = new MLContext();
-            _optimizingMetricInfo = new OptimizingMetricInfo(metric);
-            _settings = settings ?? new AutoFitSettings();
-            _purposeOverrides = purposeOverrides?.ToDictionary(p => p.Item1, p => p.Item2);
+            if (validationData == null)
+            {
+                (trainData, validationData) = context.Regression.TestValidateSplit(trainData);
+            }
             _trainData = trainData;
-            _task = task;
             _validationData = validationData;
+
+            _history = new List<SuggestedPipelineResult<T>>();
+            _columnInfo = columnInfo;
+            _context = context;
+            _optimizingMetricInfo = new OptimizingMetricInfo(metric);
+            _task = task;
             _preFeaturizers = preFeaturizers;
-            _cancellationToken = cancellationToken;
             _progressCallback = progressCallback;
+            _experimentSettings = experimentSettings ?? new ExperimentSettings();
         }
 
-        public List<AutoFitRunResult<T>> Fit()
+        public List<RunResult<T>> Fit()
         {
             ITransformer preprocessorTransform = null;
             if (_preFeaturizers != null)
@@ -72,7 +68,7 @@ namespace Microsoft.ML.Auto
             }
 
             var stopwatch = Stopwatch.StartNew();
-            var columns = AutoMlUtils.GetColumnInfoTuples(_context, _trainData, _label, _purposeOverrides);
+            var columns = AutoMlUtils.GetColumnInfoTuples(_context, _trainData, _columnInfo);
 
             do
             {
@@ -85,8 +81,7 @@ namespace Microsoft.ML.Auto
                     var getPiplelineStopwatch = Stopwatch.StartNew();
 
                     // get next pipeline
-                    var iterationsRemaining = (int)_settings.StoppingCriteria.MaxIterations - _history.Count;
-                    pipeline = PipelineSuggester.GetNextInferredPipeline(_history, columns, _task, iterationsRemaining, _optimizingMetricInfo.IsMaximizing);
+                    pipeline = PipelineSuggester.GetNextInferredPipeline(_history, columns, _task, _optimizingMetricInfo.IsMaximizing);
 
                     getPiplelineStopwatch.Stop();
 
@@ -116,14 +111,14 @@ namespace Microsoft.ML.Auto
                 var iterationResult = runResult.ToIterationResult();
                 ReportProgress(iterationResult);
                 iterationResults.Add(iterationResult);
-            } while (!_cancellationToken.IsCancellationRequested &&
-                    _history.Count < _settings.StoppingCriteria.MaxIterations &&
-                    stopwatch.Elapsed.TotalSeconds < _settings.StoppingCriteria.TimeoutInSeconds);
+            } while (_history.Count < _experimentSettings.MaxModels &&
+                    !_experimentSettings.CancellationToken.IsCancellationRequested &&
+                    stopwatch.Elapsed.TotalSeconds < _experimentSettings.MaxInferenceTimeInSeconds);
 
             return iterationResults;
         }
 
-        private void ReportProgress(AutoFitRunResult<T> iterationResult)
+        private void ReportProgress(RunResult<T> iterationResult)
         {
             try
             {
@@ -221,12 +216,12 @@ namespace Microsoft.ML.Auto
 
         private void WriteDebugLog(DebugStream stream, string message)
         {
-            if(_debugLogger == null)
+            if(_experimentSettings?.DebugLogger == null)
             {
                 return;
             }
 
-            _debugLogger.Log(stream, message);
+            _experimentSettings.DebugLogger.Log(stream, message);
         }
     }
 }

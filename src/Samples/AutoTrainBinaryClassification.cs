@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,7 +26,7 @@ namespace Samples
             MLContext mlContext = new MLContext();
 
             // STEP 1: Infer columns
-            var columnInference = mlContext.Data.InferColumns(TrainDataPath, LabelColumnName, '\t');
+            var columnInference = mlContext.AutoInference().InferColumns(TrainDataPath, LabelColumnName);
 
             // STEP 2: Load data
             TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderArgs);
@@ -31,7 +35,12 @@ namespace Samples
 
             // STEP 3: Auto featurize, auto train and auto hyperparameter tuning
             Console.WriteLine($"Invoking BinaryClassification.AutoFit");
-            var autoFitResults = mlContext.BinaryClassification.AutoFit(trainDataView, LabelColumnName, timeoutInSeconds: 60);
+            var autoFitResults = mlContext.AutoInference()
+                .CreateBinaryClassificationExperiment(60)
+                .Execute(trainDataView, new ColumnInformation()
+                {
+                    LabelColumn = LabelColumnName
+                });
 
             // STEP 4: Print metric from the best model
             var best = autoFitResults.Best();

@@ -26,7 +26,7 @@ namespace Microsoft.ML.Auto.Test
             data = normalizer.Fit(data).Transform(data);
 
             // infer purposes
-            var purposes = PurposeInference.InferPurposes(context, data, DefaultColumnNames.Label);
+            var purposes = PurposeInference.InferPurposes(context, data, new ColumnInformation());
 
             Assert.AreEqual(3, purposes.Count());
             Assert.AreEqual(ColumnPurpose.Label, purposes[0].Purpose);

@@ -4,7 +4,7 @@
 
 namespace Microsoft.ML.Auto
 {
-    public enum ColumnPurpose
+    internal enum ColumnPurpose
     {
         Ignore = 0,
         Name = 1,

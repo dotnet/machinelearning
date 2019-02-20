@@ -56,19 +56,19 @@ namespace Microsoft.ML.Auto
             return (ITrainerExtension)Activator.CreateInstance(trainerExtensionType);
         }
 
-        public static IEnumerable<ITrainerExtension> GetTrainers(TaskKind task, int maxIterations)
+        public static IEnumerable<ITrainerExtension> GetTrainers(TaskKind task)
         {
             if(task == TaskKind.BinaryClassification)
             {
-                return GetBinaryLearners(maxIterations);
+                return GetBinaryLearners();
             }
             else if (task == TaskKind.MulticlassClassification)
             {
-                return GetMultiLearners(maxIterations);
+                return GetMultiLearners();
             }
             else if (task == TaskKind.Regression)
             {
-                return GetRegressionLearners(maxIterations);
+                return GetRegressionLearners();
             }
             else
             {
@@ -77,107 +77,52 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        private static IEnumerable<ITrainerExtension> GetBinaryLearners(int maxIterations)
+        private static IEnumerable<ITrainerExtension> GetBinaryLearners()
         {
-            var learners = new List<ITrainerExtension>()
+            return new ITrainerExtension[]
             {
                 new AveragedPerceptronBinaryExtension(),
                 new SdcaBinaryExtension(),
                 new LightGbmBinaryExtension(),
-                new SymSgdBinaryExtension()
-            };
-
-            if(maxIterations < 20)
-            {
-                return learners;
-            }
-
-            learners.AddRange(new ITrainerExtension[] {
+                new SymSgdBinaryExtension(),
                 new LinearSvmBinaryExtension(),
-                new FastTreeBinaryExtension()
-            });
-
-            if(maxIterations < 100)
-            {
-                return learners;
-            }
-
-            learners.AddRange(new ITrainerExtension[] {
+                new FastTreeBinaryExtension(),
                 new LogisticRegressionBinaryExtension(),
                 new FastForestBinaryExtension(),
                 new SgdBinaryExtension()
-            });
-
-            return learners;
+            };
         }
 
-        private static IEnumerable<ITrainerExtension> GetMultiLearners(int maxIterations)
+        private static IEnumerable<ITrainerExtension> GetMultiLearners()
         {
-            var learners = new List<ITrainerExtension>()
+            return new ITrainerExtension[]
             {
                 new AveragedPerceptronOvaExtension(),
                 new SdcaMultiExtension(),
                 new LightGbmMultiExtension(),
-                new SymSgdOvaExtension()
-            };
-
-            if (maxIterations < 20)
-            {
-                return learners;
-            }
-
-            learners.AddRange(new ITrainerExtension[] {
+                new SymSgdOvaExtension(),
                 new FastTreeOvaExtension(),
                 new LinearSvmOvaExtension(),
-                new LogisticRegressionOvaExtension()
-            });
-
-            if (maxIterations < 100)
-            {
-                return learners;
-            }
-
-            learners.AddRange(new ITrainerExtension[] {
+                new LogisticRegressionOvaExtension(),
                 new SgdOvaExtension(),
                 new FastForestOvaExtension(),
-                new LogisticRegressionMultiExtension(),
-            });
-
-            return learners;
+                new LogisticRegressionMultiExtension()
+            };
         }
 
-        private static IEnumerable<ITrainerExtension> GetRegressionLearners(int maxIterations)
+        private static IEnumerable<ITrainerExtension> GetRegressionLearners()
         {
-            var learners = new List<ITrainerExtension>()
+            return new ITrainerExtension[]
             {
                 new SdcaRegressionExtension(),
                 new LightGbmRegressionExtension(),
                 new FastTreeRegressionExtension(),
-            };
-
-            if(maxIterations < 20)
-            {
-                return learners;
-            }
-
-            learners.AddRange(new ITrainerExtension[]
-            {
                 new FastTreeTweedieRegressionExtension(),
                 new FastForestRegressionExtension(),
-            });
-
-            if(maxIterations < 100)
-            {
-                return learners;
-            }
-
-            learners.AddRange(new ITrainerExtension[] {
                 new PoissonRegressionExtension(),
                 new OnlineGradientDescentRegressionExtension(),
-                new OrdinaryLeastSquaresRegressionExtension()
-            });
-
-            return learners;
+                new OrdinaryLeastSquaresRegressionExtension(),
+            };
         }
     }
 }

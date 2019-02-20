@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,7 +26,7 @@ namespace Samples
             MLContext mlContext = new MLContext();
 
             // STEP 1: Common data loading configuration
-            var columnInference = mlContext.Data.InferColumns(TrainDataPath, LabelColumnName, ',');
+            var columnInference = mlContext.AutoInference().InferColumns(TrainDataPath, LabelColumnName);
 
             // STEP 2: Load data
             TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderArgs);
@@ -31,7 +35,11 @@ namespace Samples
 
             // STEP 3: Auto featurize, auto train and auto hyperparameter tuning
             Console.WriteLine($"Invoking Regression.AutoFit");
-            var autoFitResults = mlContext.Regression.AutoFit(trainDataView, LabelColumnName, timeoutInSeconds: 60);
+            var autoFitResults = mlContext.AutoInference()
+                .CreateRegressionExperiment(60)
+                .Execute(trainDataView, new ColumnInformation() {
+                    LabelColumn = LabelColumnName
+                });
             
             // STEP 4: Compare and print actual value vs predicted value for top 5 rows from validation data
             var best = autoFitResults.Best();

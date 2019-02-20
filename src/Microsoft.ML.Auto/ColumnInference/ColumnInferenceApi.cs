@@ -10,7 +10,7 @@ namespace Microsoft.ML.Auto
 {
     internal static class ColumnInferenceApi
     {
-        public static (TextLoader.Arguments, IEnumerable<(string, ColumnPurpose)>) InferColumns(MLContext context, string path, uint labelColumnIndex,
+        public static ColumnInferenceResults InferColumns(MLContext context, string path, uint labelColumnIndex,
             bool hasHeader, char? separatorChar, bool? allowQuotedStrings, bool? supportSparse, bool trimWhitespace, bool groupColumns)
         {
             var sample = TextFileSample.CreateFromFullFile(path);
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Auto
                 hasHeader, splitInference, typeInference, trimWhitespace, groupColumns);
         }
 
-        public static (TextLoader.Arguments, IEnumerable<(string, ColumnPurpose)>) InferColumns(MLContext context, string path, string label,
+        public static ColumnInferenceResults InferColumns(MLContext context, string path, string label,
             char? separatorChar, bool? allowQuotedStrings, bool? supportSparse, bool trimWhitespace, bool groupColumns)
         {
             var sample = TextFileSample.CreateFromFullFile(path);
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Auto
             return InferColumns(context, path, label, true, splitInference, typeInference, trimWhitespace, groupColumns);
         }
 
-        public static (TextLoader.Arguments, IEnumerable<(string, ColumnPurpose)>) InferColumns(MLContext context, string path, string label, bool hasHeader,
+        public static ColumnInferenceResults InferColumns(MLContext context, string path, string label, bool hasHeader,
             TextFileContents.ColumnSplitResult splitInference, ColumnTypeInference.InferenceResult typeInference,
             bool trimWhitespace, bool groupColumns)
         {
@@ -54,7 +54,8 @@ namespace Microsoft.ML.Auto
             var textLoader = context.Data.CreateTextLoader(typedLoaderArgs);
             var dataView = textLoader.Read(path);
 
-            var purposeInferenceResult = PurposeInference.InferPurposes(context, dataView, label);
+            var columnInfo = new ColumnInformation() { LabelColumn = label };
+            var purposeInferenceResult = PurposeInference.InferPurposes(context, dataView, columnInfo);
 
             // start building result objects
             IEnumerable<TextLoader.Column> columnResults = null;
@@ -75,7 +76,7 @@ namespace Microsoft.ML.Auto
                 purposeResults = purposeInferenceResult.Select(p => (dataView.Schema[p.ColumnIndex].Name, p.Purpose));
             }
 
-            return (new TextLoader.Arguments()
+            var textLoaderArgs = new TextLoader.Arguments()
             {
                 Column = columnResults.ToArray(),
                 AllowQuoting = splitInference.AllowQuote,
@@ -83,7 +84,13 @@ namespace Microsoft.ML.Auto
                 Separators = new char[] { splitInference.Separator.Value },
                 HasHeader = hasHeader,
                 TrimWhitespace = trimWhitespace
-            }, purposeResults);
+            };
+
+            return new ColumnInferenceResults()
+            {
+                TextLoaderArgs = textLoaderArgs,
+                ColumnInformation = ColumnInformationUtil.BuildColumnInfo(purposeResults)
+            };
         }
 
         private static TextFileContents.ColumnSplitResult InferSplit(TextFileSample sample, char? separatorChar, bool? allowQuotedStrings, bool? supportSparse)

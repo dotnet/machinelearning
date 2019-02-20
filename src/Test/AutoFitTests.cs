@@ -15,20 +15,14 @@ namespace Microsoft.ML.Auto.Test
         {
             var context = new MLContext();
             var dataPath = DatasetUtil.DownloadUciAdultDataset();
-            var columnInference = context.Data.InferColumns(dataPath, DatasetUtil.UciAdultLabel);
+            var columnInference = context.AutoInference().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
             var trainData = textLoader.Read(dataPath);
             var validationData = trainData.Take(100);
             trainData = trainData.Skip(100);
-            var result = context.BinaryClassification.AutoFit(trainData, DatasetUtil.UciAdultLabel, validationData, settings:
-                new AutoFitSettings()
-                {
-                    StoppingCriteria = new ExperimentStoppingCriteria()
-                    {
-                        MaxIterations = 2,
-                        TimeoutInSeconds = 1000000000
-                    }
-                }, debugLogger: null);
+            var result = context.AutoInference()
+                .CreateBinaryClassificationExperiment(0)
+                .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = DatasetUtil.UciAdultLabel });
 
             Assert.IsTrue(result.Max(i => i.Metrics.Accuracy) > 0.80);
         }
@@ -38,20 +32,14 @@ namespace Microsoft.ML.Auto.Test
         {
             var context = new MLContext();
             var dataPath = DatasetUtil.DownloadTrivialDataset();
-            var columnInference = context.Data.InferColumns(dataPath, DatasetUtil.TrivialDatasetLabel);
+            var columnInference = context.AutoInference().InferColumns(dataPath, DatasetUtil.TrivialDatasetLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
             var trainData = textLoader.Read(dataPath);
             var validationData = trainData.Take(20);
             trainData = trainData.Skip(20);
-            var result = context.MulticlassClassification.AutoFit(trainData, DatasetUtil.TrivialDatasetLabel, validationData, settings:
-                new AutoFitSettings()
-                {
-                    StoppingCriteria = new ExperimentStoppingCriteria()
-                    {
-                        MaxIterations = 1,
-                        TimeoutInSeconds = 1000000000
-                    }
-                }, debugLogger: null);
+            var result = context.AutoInference()
+                .CreateMulticlassClassificationExperiment(0)
+                .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = DatasetUtil.TrivialDatasetLabel });
 
             Assert.IsTrue(result.Max(i => i.Metrics.AccuracyMacro) > 0.80);
         }
@@ -61,22 +49,17 @@ namespace Microsoft.ML.Auto.Test
         {
             var context = new MLContext();
             var dataPath = DatasetUtil.DownloadMlNetGeneratedRegressionDataset();
-            var columnInference = context.Data.InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
+            var columnInference = context.AutoInference().InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
             var trainData = textLoader.Read(dataPath);
             var validationData = trainData.Take(20);
             trainData = trainData.Skip(20);
-            var result = context.Regression.AutoFit(trainData, DatasetUtil.MlNetGeneratedRegressionLabel, validationData, settings:
-                new AutoFitSettings()
-                {
-                    StoppingCriteria = new ExperimentStoppingCriteria()
-                    {
-                        MaxIterations = 1,
-                        TimeoutInSeconds = 1000000000
-                    }
-                }, debugLogger: null);
+            var results = context.AutoInference()
+                .CreateRegressionExperiment(0)
+                .Execute(trainData, validationData,
+                    new ColumnInformation() { LabelColumn = DatasetUtil.MlNetGeneratedRegressionLabel });
 
-            Assert.IsTrue(result.Max(i => i.Metrics.RSquared > 0.9));
+            Assert.IsTrue(results.Max(i => i.Metrics.RSquared > 0.9));
         }
     }
 }

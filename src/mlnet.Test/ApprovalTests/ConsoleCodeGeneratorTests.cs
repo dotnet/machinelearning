@@ -15,14 +15,14 @@ namespace mlnet.Test
     public class ConsoleCodeGeneratorTests
     {
         private Pipeline pipeline;
-        private (TextLoader.Arguments, IEnumerable<(string Name, ColumnPurpose Purpose)>) columnInference = default;
+        private ColumnInferenceResults columnInference = default;
 
         [TestMethod]
         [UseReporter(typeof(DiffReporter))]
         public void GeneratedTrainCodeTest()
         {
             (Pipeline pipeline,
-            (TextLoader.Arguments, IEnumerable<(string Name, ColumnPurpose Purpose)>) columnInference) = GetMockedPipelineAndInference();
+            ColumnInferenceResults columnInference) = GetMockedPipelineAndInference();
 
             var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorOptions()
             {
@@ -45,7 +45,7 @@ namespace mlnet.Test
         public void GeneratedProjectCodeTest()
         {
             (Pipeline pipeline,
-            (TextLoader.Arguments, IEnumerable<(string Name, ColumnPurpose Purpose)>) columnInference) = GetMockedPipelineAndInference();
+            ColumnInferenceResults columnInference) = GetMockedPipelineAndInference();
 
             var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorOptions()
             {
@@ -68,7 +68,7 @@ namespace mlnet.Test
         public void GeneratedHelperCodeTest()
         {
             (Pipeline pipeline,
-            (TextLoader.Arguments, IEnumerable<(string Name, ColumnPurpose Purpose)>) columnInference) = GetMockedPipelineAndInference();
+            ColumnInferenceResults columnInference) = GetMockedPipelineAndInference();
 
             var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorOptions()
             {
@@ -86,7 +86,7 @@ namespace mlnet.Test
 
         }
 
-        private (Pipeline, (TextLoader.Arguments, IEnumerable<(string Name, ColumnPurpose Purpose)>)) GetMockedPipelineAndInference()
+        private (Pipeline, ColumnInferenceResults) GetMockedPipelineAndInference()
         {
             if (pipeline == null)
             {
@@ -118,7 +118,10 @@ namespace mlnet.Test
                     Separators = new[] { ',' }
                 };
 
-                this.columnInference = (textLoaderArgs, null);
+                this.columnInference = new ColumnInferenceResults()
+                {
+                    TextLoaderArgs = textLoaderArgs
+                };
             }
             return (pipeline, columnInference);
         }
