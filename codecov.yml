@@ -12,7 +12,6 @@ coverage:
 
 comment:
   layout: "diff, flags, files"
-  behavior: default
 
 flags:
   production:
