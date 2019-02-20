@@ -78,7 +78,8 @@ namespace Microsoft.ML.Data
             CheckInputColumn(inputSchema, col, srcCol);
         }
 
-        protected virtual void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        [BestFriend]
+        private protected virtual void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             // By default, there are no extra checks.
         }

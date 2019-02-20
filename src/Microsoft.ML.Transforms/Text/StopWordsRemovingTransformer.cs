@@ -187,7 +187,7 @@ namespace Microsoft.ML.Transforms.Text
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
-        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             if (!StopWordsRemovingEstimator.IsColumnTypeValid(type))

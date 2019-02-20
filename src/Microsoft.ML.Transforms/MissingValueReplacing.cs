@@ -194,7 +194,7 @@ namespace Microsoft.ML.Transforms
         // REVIEW: Currently these arrays are constructed on load but could be changed to being constructed lazily.
         private readonly BitArray[] _repIsDefault;
 
-        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             string reason = TestType(type);

@@ -114,7 +114,7 @@ namespace Microsoft.ML.Transforms.Text
 
         }
 
-        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             if (!TextNormalizingEstimator.IsColumnTypeValid(type))
