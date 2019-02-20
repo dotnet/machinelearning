@@ -6,8 +6,8 @@
     <PackAsTool>true</PackAsTool>
     <RootNamespace>Microsoft.ML.CLI</RootNamespace>
     <ToolCommandName>mlnet</ToolCommandName>
-    <PackageId>mlgen</PackageId>
-    <Authors>mlgen</Authors>
+    <PackageId>mlnet</PackageId>
+    <Authors>mlnet</Authors>
   </PropertyGroup>
 
   <ItemGroup>
