@@ -15,7 +15,7 @@ namespace Microsoft.ML.Internal.Internallearn
     /// <summary>
     /// Signature for loading from a file name.
     /// </summary>
-    public delegate void SignaturePredictorFromFile(string fileName);
+    internal delegate void SignaturePredictorFromFile(string fileName);
 
     /// <summary>
     /// A generic interface for models that can average parameters from multiple instance of self

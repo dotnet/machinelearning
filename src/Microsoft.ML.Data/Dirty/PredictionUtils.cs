@@ -16,7 +16,8 @@ namespace Microsoft.ML.Internal.Internallearn
     /// <summary>
     /// Various utilities
     /// </summary>
-    public static class PredictionUtil
+    [BestFriend]
+    internal static class PredictionUtil
     {
         /// <summary>
         /// generic method for parsing arguments using CommandLine. If there's a problem, it throws an InvalidOperationException, with a message giving usage.
