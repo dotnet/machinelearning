@@ -19,7 +19,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="featureColumns">The features, or independent variables.</param>
         /// <param name="labelColumn">The label, or dependent variable.</param>
-        /// <param name="weights">The optional example weights.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -29,11 +29,11 @@ namespace Microsoft.ML
         public static FieldAwareFactorizationMachineTrainer FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string[] featureColumns,
             string labelColumn = DefaultColumnNames.Label,
-            string weights = null)
+            string exampleWeightColumnName = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FieldAwareFactorizationMachineTrainer(env, featureColumns, labelColumn, weights);
+            return new FieldAwareFactorizationMachineTrainer(env, featureColumns, labelColumn, exampleWeightColumnName);
         }
 
         /// <summary>
