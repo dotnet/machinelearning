@@ -130,6 +130,9 @@ namespace Microsoft.ML.Transforms.Text
                 loaderAssemblyName: typeof(StopWordsRemovingTransformer).Assembly.FullName);
         }
 
+        /// <summary>
+        /// Defines the behavior of the transformer.
+        /// </summary>
         public IReadOnlyCollection<StopWordsRemovingEstimator.ColumnInfo> Columns => _columns.AsReadOnly();
 
         private readonly StopWordsRemovingEstimator.ColumnInfo[] _columns;
@@ -184,7 +187,7 @@ namespace Microsoft.ML.Transforms.Text
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
-        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             if (!StopWordsRemovingEstimator.IsColumnTypeValid(type))
@@ -492,9 +495,13 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         public sealed class ColumnInfo
         {
+            /// <summary>Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
             public readonly string Name;
+            /// <summary>Name of the column to transform.</summary>
             public readonly string InputColumnName;
-            public readonly StopWordsRemovingEstimator.Language Language;
+            /// <summary>Language-specific stop words list.</summary>
+            public readonly Language Language;
+            /// <summary>Optional column to use for languages. This overrides language value.</summary>
             public readonly string LanguageColumn;
 
             /// <summary>
@@ -506,7 +513,7 @@ namespace Microsoft.ML.Transforms.Text
             /// <param name="languageColumn">Optional column to use for languages. This overrides language value.</param>
             public ColumnInfo(string name,
                 string inputColumnName = null,
-                StopWordsRemovingEstimator.Language language = StopWordsRemovingEstimator.Defaults.DefaultLanguage,
+                Language language = Defaults.DefaultLanguage,
                 string languageColumn = null)
             {
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
@@ -517,6 +524,7 @@ namespace Microsoft.ML.Transforms.Text
                 LanguageColumn = languageColumn;
             }
         }
+
         /// <summary>
         /// Stopwords language. This enumeration is serialized.
         /// </summary>

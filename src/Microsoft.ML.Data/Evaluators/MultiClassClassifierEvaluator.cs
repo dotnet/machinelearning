@@ -998,16 +998,17 @@ namespace Microsoft.ML.Data
         // Multi-class evaluator adds four per-instance columns: "Assigned", "Top scores", "Top classes" and "Log-loss".
         private protected override IDataView GetPerInstanceMetricsCore(IDataView perInst, RoleMappedSchema schema)
         {
-            // If the label column is a key without key values, convert it to I8, just for saving the per-instance
+            // If the label column is a key without text key values, convert it to I8, just for saving the per-instance
             // text file, since if there are different key counts the columns cannot be appended.
             string labelName = schema.Label.Value.Name;
-            if (!perInst.Schema.TryGetColumnIndex(labelName, out int labelCol))
+            if (!perInst.Schema.TryGetColumnIndex(labelName, out int labelColIndex))
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", labelName);
-            var labelType = perInst.Schema[labelCol].Type;
-            if (labelType is KeyType keyType && (!perInst.Schema[labelCol].HasKeyValues(keyType) || labelType.RawType != typeof(uint)))
+            var labelCol = perInst.Schema[labelColIndex];
+            var labelType = labelCol.Type;
+            if (labelType is KeyType && (!labelCol.HasKeyValues() || labelType.RawType != typeof(uint)))
             {
                 perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, labelName,
-                    labelName, perInst.Schema[labelCol].Type, NumberDataViewType.Double,
+                    labelName, labelCol.Type, NumberDataViewType.Double,
                     (in uint src, ref double dst) => dst = src == 0 ? double.NaN : src - 1);
             }
 
