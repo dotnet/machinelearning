@@ -30,7 +30,8 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// Signature for an IFourierDistributionSampler constructor.
     /// </summary>
-    public delegate void SignatureFourierDistributionSampler(float avgDist);
+    [BestFriend]
+    internal delegate void SignatureFourierDistributionSampler(float avgDist);
 
     public interface IFourierDistributionSampler : ICanSaveModel
     {
@@ -38,7 +39,7 @@ namespace Microsoft.ML.Transforms
     }
 
     [TlcModule.ComponentKind("FourierDistributionSampler")]
-    public interface IFourierDistributionSamplerFactory : IComponentFactory<float, IFourierDistributionSampler>
+    internal interface IFourierDistributionSamplerFactory : IComponentFactory<float, IFourierDistributionSampler>
     {
     }
 
@@ -51,10 +52,11 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "gamma in the kernel definition: exp(-gamma*||x-y||^2 / r^2). r is an estimate of the average intra-example distance", ShortName = "g")]
             public float Gamma = 1;
 
-            public IFourierDistributionSampler CreateComponent(IHostEnvironment env, float avgDist) => new GaussianFourierSampler(env, this, avgDist);
+            IFourierDistributionSampler IComponentFactory<float, IFourierDistributionSampler>.CreateComponent(IHostEnvironment env, float avgDist)
+                => new GaussianFourierSampler(env, this, avgDist);
         }
 
-        public const string LoaderSignature = "RandGaussFourierExec";
+        internal const string LoaderSignature = "RandGaussFourierExec";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -66,7 +68,7 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(GaussianFourierSampler).Assembly.FullName);
         }
 
-        public const string LoadName = "GaussianRandom";
+        internal const string LoadName = "GaussianRandom";
 
         private readonly float _gamma;
 
@@ -79,7 +81,7 @@ namespace Microsoft.ML.Transforms
             _gamma = args.Gamma / avgDist;
         }
 
-        public static GaussianFourierSampler Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static GaussianFourierSampler Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -130,7 +132,8 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "a in the term exp(-a|x| / r). r is an estimate of the average intra-example L1 distance")]
             public float A = 1;
 
-            public IFourierDistributionSampler CreateComponent(IHostEnvironment env, float avgDist) => new LaplacianFourierSampler(env, this, avgDist);
+            IFourierDistributionSampler IComponentFactory<float, IFourierDistributionSampler>.CreateComponent(IHostEnvironment env, float avgDist)
+                => new LaplacianFourierSampler(env, this, avgDist);
         }
 
         private static VersionInfo GetVersionInfo()
@@ -144,8 +147,8 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(LaplacianFourierSampler).Assembly.FullName);
         }
 
-        public const string LoaderSignature = "RandLaplacianFourierExec";
-        public const string RegistrationName = "LaplacianRandom";
+        internal const string LoaderSignature = "RandLaplacianFourierExec";
+        internal const string RegistrationName = "LaplacianRandom";
 
         private readonly IHost _host;
         private readonly float _a;
@@ -159,7 +162,7 @@ namespace Microsoft.ML.Transforms
             _a = args.A / avgDist;
         }
 
-        public static LaplacianFourierSampler Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static LaplacianFourierSampler Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

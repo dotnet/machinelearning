@@ -164,7 +164,7 @@ namespace Microsoft.ML.ImageAnalytics
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             if (!(inputSchema[srcCol].Type is ImageType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, "image", inputSchema[srcCol].Type.ToString());

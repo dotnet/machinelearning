@@ -12,6 +12,9 @@ namespace Microsoft.ML
     using CharTokenizingDefaults = TokenizingByCharactersEstimator.Defaults;
     using TextNormalizeDefaults = TextNormalizingEstimator.Defaults;
 
+    /// <summary>
+    /// The catalog of text related transformations.
+    /// </summary>
     public static class TextCatalog
     {
         /// <summary>
