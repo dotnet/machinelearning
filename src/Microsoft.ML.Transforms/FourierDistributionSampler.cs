@@ -119,7 +119,7 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.Write(_gamma);
         }
 
-        float IFourierDistributionSampler.Next(Random rand)
+        public float Next(Random rand)
         {
             return (float)Stats.SampleFromGaussian(rand) * MathUtils.Sqrt(2 * _gamma);
         }
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.Write(_a);
         }
 
-        float IFourierDistributionSampler.Next(Random rand)
+        public float Next(Random rand)
         {
             return _a * Stats.SampleFromCauchy(rand);
         }

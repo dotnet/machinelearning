@@ -883,7 +883,7 @@ namespace Microsoft.ML.Transforms.Text
             public readonly int NgramLength;
             /// <summary>Maximum number of tokens to skip when constructing an ngram.</summary>
             public readonly int SkipLength;
-            /// <summary>Whether to store all ngram lengths up to ngramLength, or only ngramLength.</summary>
+            /// <summary>Whether to store all ngram lengths up to <see cref="NgramLength"/>, or only <see cref="NgramLength"/>.</summary>
             public readonly bool AllLengths;
             /// <summary>Number of bits to hash into. Must be between 1 and 31, inclusive.</summary>
             public readonly int HashBits;
@@ -893,7 +893,8 @@ namespace Microsoft.ML.Transforms.Text
             public readonly bool Ordered;
             /// <summary>
             /// During hashing we constuct mappings between original values and the produced hash values.
-            /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+            /// Text representation of original values are stored in the slot names of the  metadata for the new column.
+            /// Hashing, as such, can map many initial values to one.
             /// <see cref="InvertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
             /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.
             /// </summary>
@@ -911,12 +912,13 @@ namespace Microsoft.ML.Transforms.Text
             /// <param name="inputColumnNames">Names of the columns to transform. </param>
             /// <param name="ngramLength">Maximum ngram length.</param>
             /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-            /// <param name="allLengths">Whether to store all ngram lengths up to ngramLength, or only ngramLength.</param>
+            /// <param name="allLengths">Whether to store all ngram lengths up to <paramref name="ngramLength"/>, or only <paramref name="ngramLength"/>.</param>
             /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
             /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
             /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
-            /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+            /// Text representation of original values are stored in the slot names of the metadata for the new column.
+            /// Hashing, as such, can map many initial values to one.
             /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
             /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
             /// <param name="rehashUnigrams">Whether to rehash unigrams.</param>
