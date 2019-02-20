@@ -1223,9 +1223,17 @@ namespace Microsoft.ML.Data
 #pragma warning restore 649 // never assigned
         }
 
-        // See if we can extract valid arguments from the first data file.
-        // If so, update options and set cols to the combined set of columns.
-        // If not, set error to true if there was an error condition.
+        /// <summary>
+        /// See if we can extract valid arguments from the first data file. If so, update options and set cols to the combined set of columns.
+        /// If not, set error to true if there was an error condition.
+        /// </summary>
+        /// <remarks>
+        /// Not all arguments are extracted from the data file. There are three arguments that can vary from iteration to iteration and that are set
+        /// directly by the user in the options class. These three arguments are:
+        /// <see cref="Options.UseThreads"/>,
+        /// <see cref="Options.HeaderFile"/>,
+        /// <see cref="Options.MaxRows"/>
+        /// </remarks>
         private static bool TryParseSchema(IHost host, IMultiStreamSource files,
             ref Options options, out Column[] cols, out bool error)
         {
@@ -1237,10 +1245,11 @@ namespace Microsoft.ML.Data
             error = false;
 
             // Verify that the current schema-defining arguments are default.
-            // Get settings just for core arguments, not everything.
+            // Get a string representation of the settings for all the fields of the Options class besides the following three
+            // UseThreads, HeaderFile, MaxRows, which are set by the user directly.
             string tmp = CmdParser.GetSettings(host, options, new Options()
             {
-                // It's fine if the user sets the following three arguments that are not considered core arguments.
+                // It's fine if the user sets the following three arguments, as they are instance specific.
                 // Setting the defaults to the user provided values will avoid these in the output of the call CmdParser.GetSettings.
                 UseThreads = options.UseThreads,
                 HeaderFile = options.HeaderFile,
@@ -1281,11 +1290,11 @@ namespace Microsoft.ML.Data
                     goto LDone;
 
                 var optionsNew = new Options();
-                // Copy the core arguments to the new options.
+                // Set the fields of optionsNew to the arguments parsed from the file.
                 if (!CmdParser.ParseArguments(host, loader.GetSettingsString(), optionsNew, typeof(Options), msg => ch.Error(msg)))
                     goto LDone;
 
-                // Set the non core arguments in the new options.
+                // Overwrite the three arguments that vary from iteration to iteration with the values specified by the user in the options class.
                 optionsNew.UseThreads = options.UseThreads;
                 optionsNew.HeaderFile = options.HeaderFile;
                 optionsNew.MaxRows = options.MaxRows;
