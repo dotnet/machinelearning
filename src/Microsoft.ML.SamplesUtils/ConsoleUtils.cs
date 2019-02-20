@@ -53,7 +53,7 @@ namespace Microsoft.ML.SamplesUtils
         /// Pretty-print RankerMetrics objects.
         /// </summary>
         /// <param name="metrics">Ranker metrics.</param>
-        public static void PrintMetrics(RankerMetrics metrics)
+        public static void PrintMetrics(RankingMetrics metrics)
         {
             Console.WriteLine($"DCG: {string.Join(", ", RoundAndBeautifyRankerMetrics(metrics.Dcg))}");
             Console.WriteLine($"NDCG: {string.Join(", ", RoundAndBeautifyRankerMetrics(metrics.Ndcg))}");

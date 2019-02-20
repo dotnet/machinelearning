@@ -162,9 +162,9 @@ namespace Microsoft.ML.SamplesUtils
             var reader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                 {
-                    new TextLoader.Column("Label", DataKind.R4, 0),
-                    new TextLoader.Column("GroupId", DataKind.TX, 1),
-                    new TextLoader.Column("Features", DataKind.R4, new[] { new TextLoader.Range(2, 138) })
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("GroupId", DataKind.String, 1),
+                    new TextLoader.Column("Features", DataKind.Single, new[] { new TextLoader.Range(2, 138) })
                 }
             );
 
