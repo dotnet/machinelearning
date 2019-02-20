@@ -17,12 +17,12 @@ namespace Microsoft.ML
         /// <summary>
         /// Convert the specified <see cref="ITransformer"/> to ONNX format. Note that ONNX uses Google's Protobuf so the returned value is a Protobuf object.
         /// </summary>
-        /// <param name="catalog">The class that <see cref="ConvertToOnnxProtobufModel(ModelOperationsCatalog, ITransformer, IDataView)"/> attached to.</param>
+        /// <param name="catalog">The class that <see cref="ConvertToOnnxProtobuf(ModelOperationsCatalog, ITransformer, IDataView)"/> attached to.</param>
         /// <param name="transform">The <see cref="ITransformer"/> that will be converted into ONNX format.</param>
         /// <param name="inputData">The input of the specified transform.</param>
         /// <returns>An ONNX model equivalent to the converted ML.NET model.</returns>
         [BestFriend]
-        internal static ModelProto ConvertToOnnxProtobufModel(this ModelOperationsCatalog catalog, ITransformer transform, IDataView inputData)
+        internal static ModelProto ConvertToOnnxProtobuf(this ModelOperationsCatalog catalog, ITransformer transform, IDataView inputData)
         {
             var env = catalog.Environment;
             var ctx = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "machinelearning.dotnet", OnnxVersion.Stable);
@@ -44,6 +44,6 @@ namespace Microsoft.ML
         /// <param name="stream">The stream to write the protobuf model to.</param>
         /// <returns>An ONNX model equivalent to the converted ML.NET model.</returns>
         public static void ConvertToOnnx(this ModelOperationsCatalog catalog, ITransformer transform, IDataView inputData, Stream stream) =>
-            ConvertToOnnxProtobufModel(catalog, transform, inputData).WriteTo(stream);
+            ConvertToOnnxProtobuf(catalog, transform, inputData).WriteTo(stream);
     }
 }

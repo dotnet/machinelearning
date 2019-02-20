@@ -10,5 +10,6 @@
    ```
    protoc.exe -I="E:\protobuf-csharp-port\lib" --csharp_out="E:\protobuf-csharp-port\lib" "E:\protobuf-csharp-port\lib\onnx-ml.proto3"
    ```
+5. Find-Replace `public` with `internal` in `OnnxMl.cs`, wrap the root class in OnnxMl.cs with `internal class OnnxCSharpToProtoWrapper and append '.OnnxCSharpToProtoWrapper` to `Microsoft.ML.UniversalModelFormat.Onnx` namespace prefix whereever there is an error`.
 
 ## The proto3 file is current as of 06/01/2018 and generated from onnx-ml.proto3 based on the following commit https://github.com/onnx/onnx/commit/33e9cd4182fe468675241fba4ae8a16c2f0bd82f

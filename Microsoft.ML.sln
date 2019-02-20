@@ -110,11 +110,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.StaticPipeline
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.TimeSeries", "src\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.csproj", "{5A79C7F0-3D99-4123-B0DA-7C9FFCD13132}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OnnxTransform", "src\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.csproj", "{8C05642D-C3AA-4972-B02C-93681161A6BC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OnnxTransformer", "src\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.csproj", "{8C05642D-C3AA-4972-B02C-93681161A6BC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.DnnAnalyzer", "src\Microsoft.ML.DnnAnalyzer\Microsoft.ML.DnnAnalyzer\Microsoft.ML.DnnAnalyzer.csproj", "{73DAAC82-D308-48CC-8FFE-3B037F8BBCCA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OnnxTransformTest", "test\Microsoft.ML.OnnxTransformTest\Microsoft.ML.OnnxTransformTest.csproj", "{49D03292-8AFE-4B82-823C-D047BF8420F7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OnnxTransformerTest", "test\Microsoft.ML.OnnxTransformerTest\Microsoft.ML.OnnxTransformerTest.csproj", "{49D03292-8AFE-4B82-823C-D047BF8420F7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Benchmarks.Tests", "test\Microsoft.ML.Benchmarks.Tests\Microsoft.ML.Benchmarks.Tests.csproj", "{B6C83F04-A04B-4F00-9E68-1EC411F9317C}"
 EndProject
@@ -144,7 +144,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.TensorFlow.Sta
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.HalLearners.StaticPipe", "src\Microsoft.ML.HalLearners.StaticPipe\Microsoft.ML.HalLearners.StaticPipe.csproj", "{2F25EF6A-C754-45BE-AD9E-7DDF46A1B51A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OnnxTransform.StaticPipe", "src\Microsoft.ML.OnnxTransform.StaticPipe\Microsoft.ML.OnnxTransform.StaticPipe.csproj", "{D1324668-9568-40F4-AA55-30A9A516C230}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OnnxTransformer.StaticPipe", "src\Microsoft.ML.OnnxTransformer.StaticPipe\Microsoft.ML.OnnxTransformer.StaticPipe.csproj", "{D1324668-9568-40F4-AA55-30A9A516C230}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.LightGBM.StaticPipe", "src\Microsoft.ML.LightGBM.StaticPipe\Microsoft.ML.LightGBM.StaticPipe.csproj", "{22C51B08-ACAE-47B2-A312-462DC239A23B}"
 EndProject
@@ -179,10 +179,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.OnnxConverter"
 		pkg\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.symbols.nupkgproj = pkg\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.symbols.nupkgproj
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.OnnxTransform", "Microsoft.ML.OnnxTransform", "{93FF16AA-635E-421D-96C1-008818C143A2}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.OnnxTransformer", "Microsoft.ML.OnnxTransformer", "{93FF16AA-635E-421D-96C1-008818C143A2}"
 	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.nupkgproj = pkg\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.nupkgproj
-		pkg\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.symbols.nupkgproj = pkg\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.symbols.nupkgproj
+		pkg\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.nupkgproj = pkg\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.nupkgproj
+		pkg\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.symbols.nupkgproj = pkg\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.symbols.nupkgproj
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.StaticPipe", "Microsoft.ML.StaticPipe", "{EC9844CE-070A-4313-B3A3-44701AC5F1E1}"
