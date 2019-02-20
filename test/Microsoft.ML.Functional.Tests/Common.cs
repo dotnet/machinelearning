@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Data.Evaluators.Metrics;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Xunit;
 
@@ -158,6 +159,76 @@ namespace Microsoft.ML.Functional.Tests
             Assert.True(testType1.Dt.Equals(testType2.Dt));
             Assert.True(testType1.Dz.Equals(testType2.Dz));
             Assert.True(testType1.Ug.Equals(testType2.Ug));
+        }
+
+        /// <summary>
+        /// Check that a <see cref="AnomalyDetectionMetrics"/> object is valid.
+        /// </summary>
+        /// <remarks>
+        /// TODO #2644: At times, AnomalyDetection.Evaluate will return a set of NaN metrics.
+        /// </remarks>
+        /// <param name="metrics">The metrics object.</param>
+        public static void CheckMetrics(AnomalyDetectionMetrics metrics)
+        {
+            // Perform sanity checks on the metrics.
+            Assert.InRange(metrics.Auc, 0, 1);
+            Assert.InRange(metrics.DrAtK, 0, 1);
+        }
+
+        /// <summary>
+        /// Check that a <see cref="BinaryClassificationMetrics"/> object is valid.
+        /// </summary>
+        /// <param name="metrics">The metrics object.</param>
+        public static void CheckMetrics(BinaryClassificationMetrics metrics)
+        {
+            // Perform sanity checks on the metrics.
+            Assert.InRange(metrics.Accuracy, 0, 1);
+            Assert.InRange(metrics.Auc, 0, 1);
+            Assert.InRange(metrics.Auprc, 0, 1);
+            Assert.InRange(metrics.F1Score, 0, 1);
+            Assert.InRange(metrics.NegativePrecision, 0, 1);
+            Assert.InRange(metrics.NegativeRecall, 0, 1);
+            Assert.InRange(metrics.PositivePrecision, 0, 1);
+            Assert.InRange(metrics.PositiveRecall, 0, 1);
+        }
+
+        /// <summary>
+        /// Check that a <see cref="ClusteringMetrics"/> object is valid.
+        /// </summary>
+        /// <param name="metrics">The metrics object.</param>
+        public static void CheckMetrics(ClusteringMetrics metrics)
+        {
+            // Perform sanity checks on the metrics.
+            Assert.True(metrics.AvgMinScore >= 0);
+            Assert.True(metrics.Dbi >= 0);
+            if (!double.IsNaN(metrics.Nmi))
+                Assert.True(metrics.Nmi >= 0 && metrics.Nmi <= 1);
+        }
+
+        /// <summary>
+        /// Check that a <see cref="MultiClassClassifierMetrics"/> object is valid.
+        /// </summary>
+        /// <param name="metrics">The metrics object.</param>
+        public static void CheckMetrics(MultiClassClassifierMetrics metrics)
+        {
+            // Perform sanity checks on the metrics.
+            Assert.InRange(metrics.AccuracyMacro, 0, 1);
+            Assert.InRange(metrics.AccuracyMicro, 0, 1);
+            Assert.True(metrics.LogLoss >= 0);
+            Assert.InRange(metrics.TopKAccuracy, 0, 1);
+        }
+
+        /// <summary>
+        /// Check that a <see cref="RankerMetrics"/> object is valid.
+        /// </summary>
+        /// <param name="metrics">The metrics object.</param>
+        public static void CheckMetrics(RankerMetrics metrics)
+        {
+            // Perform sanity checks on the metrics.
+            foreach (var dcg in metrics.Dcg)
+                Assert.True(dcg >= 0);
+            foreach (var ndcg in metrics.Ndcg)
+                Assert.InRange(ndcg, 0, 100);
         }
 
         /// <summary>

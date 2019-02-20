@@ -1,0 +1,278 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.ML.Functional.Tests.Datasets;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.KMeans;
+using Microsoft.ML.Trainers.PCA;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace Microsoft.ML.Functional.Tests
+{
+    public class Evaluation : BaseTestClass
+    {
+        public Evaluation(ITestOutputHelper output): base(output)
+        {
+        }
+
+        /// <summary>
+        /// Train and Evaluate: Anomaly Detection.
+        /// </summary>
+        [Fact]
+        public void TrainAndEvaluateAnomalyDetection()
+        {
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            var trainData = mlContext.Data.ReadFromTextFile<MnistOneClass>(GetDataPath(TestDatasets.mnistOneClass.trainFilename),
+                hasHeader: TestDatasets.mnistOneClass.fileHasHeader,
+                separatorChar: TestDatasets.mnistOneClass.fileSeparator);
+            var testData = mlContext.Data.ReadFromTextFile<MnistOneClass>(GetDataPath(TestDatasets.mnistOneClass.testFilename),
+                hasHeader: TestDatasets.mnistOneClass.fileHasHeader,
+                separatorChar: TestDatasets.mnistOneClass.fileSeparator);
+
+            // Create a training pipeline.
+            var pipeline = mlContext.AnomalyDetection.Trainers.RandomizedPca();
+
+            // Train the model.
+            var model = pipeline.Fit(trainData);
+
+            // Evaulate the model.
+            //  Note Issue #2464: Using the train dataset will cause NaN metrics to be returned.
+            var scoredTest = model.Transform(testData);
+            var metrics = mlContext.AnomalyDetection.Evaluate(scoredTest);
+
+            // Check that the metrics returned are valid.
+            Common.CheckMetrics(metrics);
+        }
+
+        /// <summary>
+        /// Train and Evaluate: Binary Classification.
+        /// </summary>
+        [Fact]
+        public void TrainAndEvaluateBinaryClassification()
+        {
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            var data = mlContext.Data.ReadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
+                hasHeader: TestDatasets.Sentiment.fileHasHeader,
+                separatorChar: TestDatasets.Sentiment.fileSeparator);
+
+            // Create a training pipeline.
+            var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
+                .AppendCacheCheckpoint(mlContext)
+                .Append(mlContext.BinaryClassification.Trainers.LogisticRegression(
+                    new LogisticRegression.Options { NumThreads = 1 }));
+
+            // Train the model.
+            var model = pipeline.Fit(data);
+
+            // Evaulate the model.
+            var scoredData = model.Transform(data);
+            var metrics = mlContext.BinaryClassification.Evaluate(scoredData);
+
+            // Check that the metrics returned are valid.
+            Common.CheckMetrics(metrics);
+        }
+
+        /// <summary>
+        /// Train and Evaluate: Clustering.
+        /// </summary>
+        [Fact]
+        public void TrainAndEvaluateClustering()
+        {
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            var data = mlContext.Data.ReadFromTextFile<Iris>(GetDataPath(TestDatasets.iris.trainFilename),
+                hasHeader: TestDatasets.iris.fileHasHeader,
+                separatorChar: TestDatasets.iris.fileSeparator);
+
+            // Create a training pipeline.
+            var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
+                .AppendCacheCheckpoint(mlContext)
+                .Append(mlContext.Clustering.Trainers.KMeans(new KMeansPlusPlusTrainer.Options { NumThreads = 1 }));
+
+            // Train the model.
+            var model = pipeline.Fit(data);
+
+            // Evaulate the model.
+            var scoredData = model.Transform(data);
+            var metrics = mlContext.Clustering.Evaluate(scoredData);
+
+            // Check that the metrics returned are valid.
+            Common.CheckMetrics(metrics);
+        }
+
+        /// <summary>
+        /// Train and Evaluate: Multiclass Classification.
+        /// </summary>
+        [Fact]
+        public void TrainAndEvaluateMulticlassClassification()
+        {
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            var data = mlContext.Data.ReadFromTextFile<Iris>(GetDataPath(TestDatasets.iris.trainFilename),
+                hasHeader: TestDatasets.iris.fileHasHeader,
+                separatorChar: TestDatasets.iris.fileSeparator);
+
+            // Create a training pipeline.
+            var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
+                .AppendCacheCheckpoint(mlContext)
+                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
+                    new SdcaMultiClassTrainer.Options { NumThreads = 1}));
+
+            // Train the model.
+            var model = pipeline.Fit(data);
+
+            // Evaulate the model.
+            var scoredData = model.Transform(data);
+            var metrics = mlContext.MulticlassClassification.Evaluate(scoredData);
+
+            // Check that the metrics returned are valid.
+            Common.CheckMetrics(metrics);
+        }
+
+        /// <summary>
+        /// Train and Evaluate: Ranking.
+        /// </summary>
+        [Fact]
+        public void TrainAndEvaluateRanking()
+        {
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            var data = Iris.LoadAsRankingProblem(mlContext,
+                GetDataPath(TestDatasets.iris.trainFilename),
+                hasHeader: TestDatasets.iris.fileHasHeader,
+                separatorChar: TestDatasets.iris.fileSeparator);
+
+            // Create a training pipeline.
+            var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
+                .Append(mlContext.Ranking.Trainers.FastTree(new FastTreeRankingTrainer.Options { NumThreads = 1 }));
+
+            // Train the model.
+            var model = pipeline.Fit(data);
+
+            // Evaulate the model.
+            var scoredData = model.Transform(data);
+            var metrics = mlContext.Ranking.Evaluate(scoredData, label: "Label", groupId: "GroupId");
+
+            // Check that the metrics returned are valid.
+            Common.CheckMetrics(metrics);
+        }
+
+        /// <summary>
+        /// Train and Evaluate: Recommendation.
+        /// </summary>
+        [Fact]
+        public void TrainAndEvaluateRecommendation()
+        {
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            // Get the dataset.
+            var data = TrivialMatrixFactorization.LoadAndFeaturizeFromTextFile(
+                mlContext,
+                GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename),
+                TestDatasets.trivialMatrixFactorization.fileHasHeader,
+                TestDatasets.trivialMatrixFactorization.fileSeparator);
+
+            // Create a pipeline to train on the sentiment data.
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(
+                new MatrixFactorizationTrainer.Options{
+                    MatrixColumnIndexColumnName = "MatrixColumnIndex",
+                    MatrixRowIndexColumnName = "MatrixRowIndex",
+                    LabelColumnName = "Label",
+                    NumberOfIterations = 3,
+                    NumberOfThreads = 1,
+                    ApproximationRank = 4,
+                });
+
+            // Train the model.
+            var model = pipeline.Fit(data);
+
+            // Evaulate the model.
+            var scoredData = model.Transform(data);
+            var metrics = mlContext.Recommendation().Evaluate(scoredData);
+
+            // Check that the metrics returned are valid.
+            Common.CheckMetrics(metrics);
+        }
+
+        /// <summary>
+        /// Train and Evaluate: Regression.
+        /// </summary>
+        [Fact]
+        public void TrainAndEvaluateRegression()
+        {
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            // Get the dataset.
+            var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(),
+                    hasHeader: TestDatasets.housing.fileHasHeader, separatorChar: TestDatasets.housing.fileSeparator)
+                .Read(GetDataPath(TestDatasets.housing.trainFilename));
+
+            // Create a pipeline to train on the sentiment data.
+            var pipeline = mlContext.Transforms.Concatenate("Features", new string[] {
+                    "CrimesPerCapita", "PercentResidental", "PercentNonRetail", "CharlesRiver", "NitricOxides", "RoomsPerDwelling",
+                    "PercentPre40s", "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio"})
+                .Append(mlContext.Transforms.CopyColumns("Label", "MedianHomeValue"))
+                .Append(mlContext.Regression.Trainers.FastTree(new FastTreeRegressionTrainer.Options { NumThreads = 1 }));
+
+            // Train the model.
+            var model = pipeline.Fit(data);
+
+            // Evaulate the model.
+            var scoredData = model.Transform(data);
+            var metrics = mlContext.Regression.Evaluate(scoredData);
+
+            // Check that the metrics returned are valid.
+            Common.CheckMetrics(metrics);
+        }
+
+        /// <summary>
+        /// Evaluate With Precision-Recall Curves
+        /// </summary>
+        /// <remarks>
+        /// This is currently not possible using the APIs.
+        /// </remarks>
+        [Fact]
+        public void TrainAndEvaluateWithPrecisionRecallCurves()
+        {
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            var data = mlContext.Data.ReadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
+                hasHeader: TestDatasets.Sentiment.fileHasHeader,
+                separatorChar: TestDatasets.Sentiment.fileSeparator);
+
+            // Create a training pipeline.
+            var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
+                .AppendCacheCheckpoint(mlContext)
+                .Append(mlContext.BinaryClassification.Trainers.LogisticRegression(
+                    new LogisticRegression.Options { NumThreads = 1 }));
+
+            // Train the model.
+            var model = pipeline.Fit(data);
+
+            // Evaulate the model.
+            var scoredData = model.Transform(data);
+            var metrics = mlContext.BinaryClassification.Evaluate(scoredData);
+
+            Common.CheckMetrics(metrics);
+
+            // This scenario is not possible with the current set of APIs
+            // There could be two ways imaginable:
+            //  1. Getting a list of (P,R) from the Evaluator (as it has these anyways)
+            //     Not possible.
+            //  2. Manually setting the classifier threshold and calling evaluate many times:
+            //     Not currently possible: Todo #2465: Allow the setting of threshold and thresholdColumn for scoring.
+            // Technically, this is possible using custom mappers like so:
+            //  1. Get a list of all unique probability scores
+            //  2. For each value of probability:
+            //     a. Write a custom mapper to produce PredictedLabel at that probability threshold
+            //     b. Calculate Precision and Recall with these labels
+        }
+    }
+}
