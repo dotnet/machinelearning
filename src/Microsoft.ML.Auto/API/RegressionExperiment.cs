@@ -14,7 +14,7 @@ namespace Microsoft.ML.Auto
     public class RegressionExperimentSettings : ExperimentSettings
     {
         public IProgress<RunResult<RegressionMetrics>> ProgressCallback;
-        public RegressionMetric OptimizingMetric;
+        public RegressionMetric OptimizingMetric = RegressionMetric.RSquared;
         public RegressionTrainer[] WhitelistedTrainers;
     }
 
@@ -28,7 +28,14 @@ namespace Microsoft.ML.Auto
 
     public enum RegressionTrainer
     {
-        LightGbm
+        FastForest,
+        FastTree,
+        FastTreeTweedie,
+        LightGbm,
+        OnlineGradientDescent,
+        OrdinaryLeastSquares,
+        PoissonRegression,
+        StochasticDualCoordinateAscent,
     }
 
     public class RegressionExperiment
@@ -68,8 +75,9 @@ namespace Microsoft.ML.Auto
 
             // run autofit & get all pipelines run in that process
             var autoFitter = new AutoFitter<RegressionMetrics>(context, TaskKind.Regression, trainData, columnInfo, 
-                validationData, preFeaturizers, OptimizingMetric.RSquared, _settings?.ProgressCallback,
-                _settings);
+                validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric), 
+                _settings.ProgressCallback, _settings, new RegressionDataScorer(_settings.OptimizingMetric),
+                TrainerExtensionUtil.GetTrainerNames(_settings.WhitelistedTrainers));
 
             return autoFitter.Fit();
         }

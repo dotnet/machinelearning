@@ -27,11 +27,12 @@ namespace Microsoft.ML.Auto
         public static SuggestedPipeline GetNextInferredPipeline(IEnumerable<SuggestedPipelineResult> history,
             (string, ColumnType, ColumnPurpose, ColumnDimensions)[] columns,
             TaskKind task,
-            bool isMaximizingMetric = true)
+            bool isMaximizingMetric,
+            IEnumerable<TrainerName> trainerWhitelist = null)
         {
             var context = new MLContext();
 
-            var availableTrainers = RecipeInference.AllowedTrainers(context, task);
+            var availableTrainers = RecipeInference.AllowedTrainers(context, task, trainerWhitelist);
             var transforms = CalculateTransforms(context, columns, task);
             //var transforms = TransformInferenceApi.InferTransforms(context, columns, task);
 

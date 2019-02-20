@@ -14,18 +14,31 @@ namespace Microsoft.ML.Auto
     public class MulticlassExperimentSettings : ExperimentSettings
     {
         public IProgress<RunResult<MultiClassClassifierMetrics>> ProgressCallback;
-        public MulticlassClassificationMetric OptimizingMetric;
+        public MulticlassClassificationMetric OptimizingMetric = MulticlassClassificationMetric.AccuracyMicro;
         public MulticlassClassificationTrainer[] WhitelistedTrainers;
     }
 
     public enum MulticlassClassificationMetric
     {
-        Accuracy
+        AccuracyMicro,
+        AccuracyMacro,
+        LogLoss,
+        LogLossReduction,
+        TopKAccuracy,
     }
 
     public enum MulticlassClassificationTrainer
     {
-        LightGbm
+        AveragedPerceptronOVA,
+        FastForestOVA,
+        FastTreeOVA,
+        LightGbm,
+        LinearSupportVectorMachinesOVA,
+        LogisticRegression,
+        LogisticRegressionOVA,
+        StochasticDualCoordinateAscent,
+        StochasticGradientDescentOVA,
+        SymbolicStochasticGradientDescentOVA,
     }
 
     public class MulticlassClassificationExperiment
@@ -65,8 +78,9 @@ namespace Microsoft.ML.Auto
 
             // run autofit & get all pipelines run in that process
             var autoFitter = new AutoFitter<MultiClassClassifierMetrics>(context, TaskKind.MulticlassClassification, trainData, 
-                columnInfo, validationData, preFeaturizers, OptimizingMetric.Accuracy, 
-                _settings?.ProgressCallback, _settings);
+                columnInfo, validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric),
+                _settings.ProgressCallback, _settings, new MultiDataScorer(_settings.OptimizingMetric),
+                TrainerExtensionUtil.GetTrainerNames(_settings.WhitelistedTrainers));
 
             return autoFitter.Fit();
         }

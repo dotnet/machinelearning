@@ -12,9 +12,10 @@ namespace Microsoft.ML.Auto
         /// Given a predictor type, return a set of all permissible trainers (with their sweeper params, if defined).
         /// </summary>
         /// <returns>Array of viable learners.</returns>
-        public static IEnumerable<SuggestedTrainer> AllowedTrainers(MLContext mlContext, TaskKind task)
+        public static IEnumerable<SuggestedTrainer> AllowedTrainers(MLContext mlContext, TaskKind task,
+            IEnumerable<TrainerName> trainerWhitelist)
         {
-            var trainerExtensions = TrainerExtensionCatalog.GetTrainers(task);
+            var trainerExtensions = TrainerExtensionCatalog.GetTrainers(task, trainerWhitelist);
 
             var trainers = new List<SuggestedTrainer>();
             foreach (var trainerExtension in trainerExtensions)

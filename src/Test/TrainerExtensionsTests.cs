@@ -129,5 +129,51 @@ namespace Microsoft.ML.Auto.Test
             Assert.AreEqual(1, sdcaParams.Count);
             Assert.AreEqual("1", sdcaParams["LearningRate"].ValueText);
         }
+
+        [TestMethod]
+        public void PublicToPrivateTrainerNamesBinaryTest()
+        {
+            var publicNames = Enum.GetValues(typeof(BinaryClassificationTrainer)).Cast<BinaryClassificationTrainer>();
+            var internalNames = TrainerExtensionUtil.GetTrainerNames(publicNames);
+            Assert.AreEqual(publicNames.Distinct().Count(), internalNames.Distinct().Count());
+        }
+
+        [TestMethod]
+        public void PublicToPrivateTrainerNamesMultiTest()
+        {
+            var publicNames = Enum.GetValues(typeof(MulticlassClassificationTrainer)).Cast<MulticlassClassificationTrainer>();
+            var internalNames = TrainerExtensionUtil.GetTrainerNames(publicNames);
+            Assert.AreEqual(publicNames.Distinct().Count(), internalNames.Distinct().Count());
+        }
+
+        [TestMethod]
+        public void PublicToPrivateTrainerNamesRegressionTest()
+        {
+            var publicNames = Enum.GetValues(typeof(RegressionTrainer)).Cast<RegressionTrainer>();
+            var internalNames = TrainerExtensionUtil.GetTrainerNames(publicNames);
+            Assert.AreEqual(publicNames.Distinct().Count(), internalNames.Distinct().Count());
+        }
+
+        [TestMethod]
+        public void PublicToPrivateTrainerNamesNullTest()
+        {
+            var internalNames = TrainerExtensionUtil.GetTrainerNames(null as IEnumerable<BinaryClassificationTrainer>);
+            Assert.AreEqual(null, internalNames);
+        }
+
+        [TestMethod]
+        public void AllowedTrainersWhitelistNullTest()
+        {
+            var trainers = RecipeInference.AllowedTrainers(new MLContext(), TaskKind.BinaryClassification, null);
+            Assert.IsTrue(trainers.Any());
+        }
+
+        [TestMethod]
+        public void AllowedTrainersWhitelistTest()
+        {
+            var whitelist = new[] { TrainerName.AveragedPerceptronBinary, TrainerName.FastForestBinary };
+            var trainers = RecipeInference.AllowedTrainers(new MLContext(), TaskKind.BinaryClassification, whitelist);
+            Assert.AreEqual(whitelist.Count(), trainers.Count());
+        }
     }
 }

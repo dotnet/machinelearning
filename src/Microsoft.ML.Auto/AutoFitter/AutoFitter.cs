@@ -6,10 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using System.Threading;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
@@ -23,6 +21,8 @@ namespace Microsoft.ML.Auto
         private readonly IEstimator<ITransformer> _preFeaturizers;
         private readonly IProgress<RunResult<T>> _progressCallback;
         private readonly ExperimentSettings _experimentSettings;
+        private readonly IDataScorer<T> _dataScorer;
+        private readonly IEnumerable<TrainerName> _trainerWhitelist;
 
         private IDataView _trainData;
         private IDataView _validationData;
@@ -35,9 +35,11 @@ namespace Microsoft.ML.Auto
             ColumnInformation columnInfo,
             IDataView validationData,
             IEstimator<ITransformer> preFeaturizers,
-            OptimizingMetric metric,
+            OptimizingMetricInfo metricInfo,
             IProgress<RunResult<T>> progressCallback,
-            ExperimentSettings experimentSettings)
+            ExperimentSettings experimentSettings,
+            IDataScorer<T> dataScorer,
+            IEnumerable<TrainerName> trainerWhitelist)
         {
             if (validationData == null)
             {
@@ -49,11 +51,13 @@ namespace Microsoft.ML.Auto
             _history = new List<SuggestedPipelineResult<T>>();
             _columnInfo = columnInfo;
             _context = context;
-            _optimizingMetricInfo = new OptimizingMetricInfo(metric);
+            _optimizingMetricInfo = metricInfo;
             _task = task;
             _preFeaturizers = preFeaturizers;
             _progressCallback = progressCallback;
-            _experimentSettings = experimentSettings ?? new ExperimentSettings();
+            _experimentSettings = experimentSettings;
+            _dataScorer = dataScorer;
+            _trainerWhitelist = trainerWhitelist;
         }
 
         public List<RunResult<T>> Fit()
@@ -81,7 +85,7 @@ namespace Microsoft.ML.Auto
                     var getPiplelineStopwatch = Stopwatch.StartNew();
 
                     // get next pipeline
-                    pipeline = PipelineSuggester.GetNextInferredPipeline(_history, columns, _task, _optimizingMetricInfo.IsMaximizing);
+                    pipeline = PipelineSuggester.GetNextInferredPipeline(_history, columns, _task, _optimizingMetricInfo.IsMaximizing, _trainerWhitelist);
 
                     getPiplelineStopwatch.Stop();
 
@@ -144,9 +148,9 @@ namespace Microsoft.ML.Auto
             {
                 var pipelineModel = pipeline.Fit(_trainData);
                 var scoredValidationData = pipelineModel.Transform(_validationData);
-                var evaluatedMetrics = GetEvaluatedMetrics(scoredValidationData);
-                var score = GetPipelineScore(evaluatedMetrics);
-                runResult = new SuggestedPipelineResult<T>(evaluatedMetrics, pipelineModel, pipeline, score, null);
+                var metrics = GetEvaluatedMetrics(scoredValidationData);
+                var score = _dataScorer.GetScore(metrics);
+                runResult = new SuggestedPipelineResult<T>(metrics, pipelineModel, pipeline, score, null);
             }
             catch(Exception ex)
             {
@@ -175,26 +179,6 @@ namespace Microsoft.ML.Auto
                 default:
                     throw new InvalidOperationException($"unsupported machine learning task type {_task}");
             }
-        }
-
-        private double GetPipelineScore(object evaluatedMetrics)
-        {
-            var type = evaluatedMetrics.GetType();
-            if(type == typeof(BinaryClassificationMetrics))
-            {
-                return ((BinaryClassificationMetrics)evaluatedMetrics).Accuracy;
-            }
-            if (type == typeof(MultiClassClassifierMetrics))
-            {
-                return ((MultiClassClassifierMetrics)evaluatedMetrics).AccuracyMicro;
-            }
-            if (type == typeof(RegressionMetrics))
-            {
-                return ((RegressionMetrics)evaluatedMetrics).RSquared;
-            }
-            
-            // should not be possible to reach here
-            throw new InvalidOperationException($"unsupported machine learning task type {_task}");
         }
 
         private void WriteIterationLog(SuggestedPipeline pipeline, SuggestedPipelineResult runResult, Stopwatch stopwatch)

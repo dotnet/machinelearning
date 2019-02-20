@@ -177,5 +177,104 @@ namespace Microsoft.ML.Auto
                 }
             }
         }
+
+        public static TrainerName GetTrainerName(BinaryClassificationTrainer binaryTrainer)
+        {
+            switch(binaryTrainer)
+            {
+                case BinaryClassificationTrainer.AveragedPerceptron:
+                    return TrainerName.AveragedPerceptronBinary;
+                case BinaryClassificationTrainer.FastForest:
+                    return TrainerName.FastForestBinary;
+                case BinaryClassificationTrainer.FastTree:
+                    return TrainerName.FastTreeBinary;
+                case BinaryClassificationTrainer.LightGbm:
+                    return TrainerName.LightGbmBinary;
+                case BinaryClassificationTrainer.LinearSupportVectorMachines:
+                    return TrainerName.LinearSvmBinary;
+                case BinaryClassificationTrainer.LogisticRegression:
+                    return TrainerName.LogisticRegressionBinary;
+                case BinaryClassificationTrainer.StochasticDualCoordinateAscent:
+                    return TrainerName.SdcaBinary;
+                case BinaryClassificationTrainer.StochasticGradientDescent:
+                    return TrainerName.StochasticGradientDescentBinary;
+                case BinaryClassificationTrainer.SymbolicStochasticGradientDescent:
+                    return TrainerName.SymSgdBinary;
+            }
+
+            // never expected to reach here
+            throw new NotSupportedException($"{binaryTrainer} not supported");
+        }
+
+        public static TrainerName GetTrainerName(MulticlassClassificationTrainer multiTrainer)
+        {
+            switch (multiTrainer)
+            {
+                case MulticlassClassificationTrainer.AveragedPerceptronOVA:
+                    return TrainerName.AveragedPerceptronOva;
+                case MulticlassClassificationTrainer.FastForestOVA:
+                    return TrainerName.FastForestOva;
+                case MulticlassClassificationTrainer.FastTreeOVA:
+                    return TrainerName.FastTreeOva;
+                case MulticlassClassificationTrainer.LightGbm:
+                    return TrainerName.LightGbmMulti;
+                case MulticlassClassificationTrainer.LinearSupportVectorMachinesOVA:
+                    return TrainerName.LinearSvmOva;
+                case MulticlassClassificationTrainer.LogisticRegression:
+                    return TrainerName.LogisticRegressionMulti;
+                case MulticlassClassificationTrainer.LogisticRegressionOVA:
+                    return TrainerName.LogisticRegressionOva;
+                case MulticlassClassificationTrainer.StochasticDualCoordinateAscent:
+                    return TrainerName.SdcaMulti;
+                case MulticlassClassificationTrainer.StochasticGradientDescentOVA:
+                    return TrainerName.StochasticGradientDescentOva;
+                case MulticlassClassificationTrainer.SymbolicStochasticGradientDescentOVA:
+                    return TrainerName.SymSgdOva;
+            }
+
+            // never expected to reach here
+            throw new NotSupportedException($"{multiTrainer} not supported");
+        }
+
+        public static TrainerName GetTrainerName(RegressionTrainer regressionTrainer)
+        {
+            switch (regressionTrainer)
+            {
+                case RegressionTrainer.FastForest:
+                    return TrainerName.FastForestRegression;
+                case RegressionTrainer.FastTree:
+                    return TrainerName.FastTreeRegression;
+                case RegressionTrainer.FastTreeTweedie:
+                    return TrainerName.FastTreeTweedieRegression;
+                case RegressionTrainer.LightGbm:
+                    return TrainerName.LightGbmRegression;
+                case RegressionTrainer.OnlineGradientDescent:
+                    return TrainerName.OnlineGradientDescentRegression;
+                case RegressionTrainer.OrdinaryLeastSquares:
+                    return TrainerName.OrdinaryLeastSquaresRegression;
+                case RegressionTrainer.PoissonRegression:
+                    return TrainerName.PoissonRegression;
+                case RegressionTrainer.StochasticDualCoordinateAscent:
+                    return TrainerName.SdcaRegression;
+            }
+
+            // never expected to reach here
+            throw new NotSupportedException($"{regressionTrainer} not supported");
+        }
+
+        public static IEnumerable<TrainerName> GetTrainerNames(IEnumerable<BinaryClassificationTrainer> binaryTrainers)
+        {
+            return binaryTrainers?.Select(t => GetTrainerName(t));
+        }
+
+        public static IEnumerable<TrainerName> GetTrainerNames(IEnumerable<MulticlassClassificationTrainer> multiTrainers)
+        {
+            return multiTrainers?.Select(t => GetTrainerName(t));
+        }
+
+        public static IEnumerable<TrainerName> GetTrainerNames(IEnumerable<RegressionTrainer> regressionTrainers)
+        {
+            return regressionTrainers?.Select(t => GetTrainerName(t));
+        }
     }
 }

@@ -14,18 +14,33 @@ namespace Microsoft.ML.Auto
     public class BinaryExperimentSettings : ExperimentSettings
     {
         public IProgress<RunResult<BinaryClassificationMetrics>> ProgressCallback;
-        public BinaryClassificationMetric OptimizingMetric;
+        public BinaryClassificationMetric OptimizingMetric = BinaryClassificationMetric.Accuracy;
         public BinaryClassificationTrainer[] WhitelistedTrainers;
     }
 
     public enum BinaryClassificationMetric
     {
-        Accuracy
+        Accuracy,
+        Auc,
+        Auprc,
+        F1Score,
+        PositivePrecision,
+        PositiveRecall,
+        NegativePrecision,
+        NegativeRecall,
     }
 
     public enum BinaryClassificationTrainer
     {
-        LightGbm
+        AveragedPerceptron,
+        FastForest,
+        FastTree,
+        LightGbm,
+        LinearSupportVectorMachines,
+        LogisticRegression,
+        StochasticDualCoordinateAscent,
+        StochasticGradientDescent,
+        SymbolicStochasticGradientDescent,
     }
 
     public class BinaryClassificationExperiment
@@ -65,8 +80,9 @@ namespace Microsoft.ML.Auto
 
             // run autofit & get all pipelines run in that process
             var autoFitter = new AutoFitter<BinaryClassificationMetrics>(context, TaskKind.BinaryClassification, trainData, columnInfo, 
-                validationData, preFeaturizers, OptimizingMetric.Accuracy, _settings?.ProgressCallback,
-                _settings);
+                validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric), _settings.ProgressCallback, 
+                _settings, new BinaryDataScorer(_settings.OptimizingMetric), 
+                TrainerExtensionUtil.GetTrainerNames(_settings.WhitelistedTrainers));
 
             return autoFitter.Fit();
         }

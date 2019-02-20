@@ -56,25 +56,35 @@ namespace Microsoft.ML.Auto
             return (ITrainerExtension)Activator.CreateInstance(trainerExtensionType);
         }
 
-        public static IEnumerable<ITrainerExtension> GetTrainers(TaskKind task)
+        public static IEnumerable<ITrainerExtension> GetTrainers(TaskKind task,
+            IEnumerable<TrainerName> whitelist)
         {
-            if(task == TaskKind.BinaryClassification)
+            IEnumerable<ITrainerExtension> trainers;
+            if (task == TaskKind.BinaryClassification)
             {
-                return GetBinaryLearners();
+                trainers = GetBinaryLearners();
             }
             else if (task == TaskKind.MulticlassClassification)
             {
-                return GetMultiLearners();
+                trainers = GetMultiLearners();
             }
             else if (task == TaskKind.Regression)
             {
-                return GetRegressionLearners();
+                trainers = GetRegressionLearners();
             }
             else
             {
                 // should not be possible to reach here
                 throw new NotSupportedException($"unsupported machine learning task type {task}");
             }
+
+            if (whitelist != null)
+            {
+                whitelist = new HashSet<TrainerName>(whitelist);
+                trainers = trainers.Where(t => whitelist.Contains(GetTrainerName(t)));
+            }
+
+            return trainers;
         }
 
         private static IEnumerable<ITrainerExtension> GetBinaryLearners()
