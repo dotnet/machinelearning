@@ -191,7 +191,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // calibrator, transform the scores using that.
 
             // REVIEW: Need a way to signal the outside world that we prefer simple sigmoid?
-            return new FastForestClassificationModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs);
+            return new FastForestClassificationModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
         }
 
         private protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)

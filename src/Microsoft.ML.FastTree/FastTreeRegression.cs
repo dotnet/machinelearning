@@ -98,14 +98,14 @@ namespace Microsoft.ML.Trainers.FastTree
                 ConvertData(trainData);
                 TrainCore(ch);
             }
-            return new FastTreeRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs);
+            return new FastTreeRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
         }
 
-        private protected override void CheckArgs(IChannel ch)
+        private protected override void CheckOptions(IChannel ch)
         {
             Contracts.AssertValue(ch);
 
-            base.CheckArgs(ch);
+            base.CheckOptions(ch);
 
             ch.CheckUserArg((FastTreeTrainerOptions.EarlyStoppingRule == null && !FastTreeTrainerOptions.EnablePruning) || (FastTreeTrainerOptions.EarlyStoppingMetrics >= 1 && FastTreeTrainerOptions.EarlyStoppingMetrics <= 2), nameof(FastTreeTrainerOptions.EarlyStoppingMetrics),
                     "earlyStoppingMetrics should be 1 or 2. (1: L1, 2: L2)");

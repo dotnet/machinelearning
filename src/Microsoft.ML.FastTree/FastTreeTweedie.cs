@@ -102,14 +102,14 @@ namespace Microsoft.ML.Trainers.FastTree
                 ConvertData(trainData);
                 TrainCore(ch);
             }
-            return new FastTreeTweedieModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs);
+            return new FastTreeTweedieModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
         }
 
-        private protected override void CheckArgs(IChannel ch)
+        private protected override void CheckOptions(IChannel ch)
         {
             Contracts.AssertValue(ch);
 
-            base.CheckArgs(ch);
+            base.CheckOptions(ch);
 
             // REVIEW: In order to properly support early stopping, the early stopping metric should be a subcomponent, not just
             // a simple integer, because the metric that we might want is parameterized by this floating point "index" parameter. For now

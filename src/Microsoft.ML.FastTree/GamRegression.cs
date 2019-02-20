@@ -76,12 +76,12 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private protected override ObjectiveFunctionBase CreateObjectiveFunction()
         {
-            return new FastTreeRegressionTrainer.ObjectiveImpl(TrainSet, Args);
+            return new FastTreeRegressionTrainer.ObjectiveImpl(TrainSet, GamTrainerOptions);
         }
 
         private protected override void DefinePruningTest()
         {
-            var validTest = new RegressionTest(ValidSetScore, Args.PruningMetrics);
+            var validTest = new RegressionTest(ValidSetScore, GamTrainerOptions.PruningMetrics);
             // Because we specify pruning metrics as L2 by default, the results array will have 1 value
             PruningLossIndex = 0;
             PruningTest = new TestHistory(validTest, PruningLossIndex);

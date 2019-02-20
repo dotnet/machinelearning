@@ -52,7 +52,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Options passed to OVA.
         /// </summary>
-        internal sealed class Options : ArgumentsBase
+        internal sealed class Options : OptionsBase
         {
             /// <summary>
             /// Whether to use probabilities (vs. raw outputs) to identify top-score category.

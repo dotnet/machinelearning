@@ -146,10 +146,10 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public abstract class SdcaTrainerBase<TArgs, TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
+    public abstract class SdcaTrainerBase<TOptions, TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
-        where TArgs : SdcaTrainerBase<TArgs, TTransformer, TModel>.OptionsBase, new()
+        where TOptions : SdcaTrainerBase<TOptions, TTransformer, TModel>.OptionsBase, new()
     {
         // REVIEW: Making it even faster and more accurate:
         // 1. Train with not-too-many threads. nt = 2 or 4 seems to be good enough. Didn't seem additional benefit over more threads.
@@ -239,16 +239,16 @@ namespace Microsoft.ML.Trainers
         // substantial additional benefits in terms of accuracy.
         private const long MaxDualTableSize = 1L << 50;
         private const float L2LowerBound = 1e-09f;
-        private protected readonly TArgs Args;
+        private protected readonly TOptions SdcaTrainerOptions;
         private protected ISupportSdcaLoss Loss;
 
-        private protected override bool ShuffleData => Args.Shuffle;
+        private protected override bool ShuffleData => SdcaTrainerOptions.Shuffle;
 
-        private const string RegisterName = nameof(SdcaTrainerBase<TArgs, TTransformer, TModel>);
+        private const string RegisterName = nameof(SdcaTrainerBase<TOptions, TTransformer, TModel>);
 
-        private static TArgs ArgsInit(string featureColumnName, SchemaShape.Column labelColumn)
+        private static TOptions ArgsInit(string featureColumnName, SchemaShape.Column labelColumn)
         {
-            var args = new TArgs();
+            var args = new TOptions();
 
             args.FeatureColumn = featureColumnName;
             args.LabelColumn = labelColumn.Name;
@@ -262,15 +262,15 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        internal SdcaTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label, SchemaShape.Column weight = default,
+        internal SdcaTrainerBase(IHostEnvironment env, TOptions options, SchemaShape.Column label, SchemaShape.Column weight = default,
             float? l2Const = null, float? l1Threshold = null, int? maxIterations = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, weight)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, weight)
         {
-            Args = args;
-            Args.L2Const = l2Const ?? args.L2Const;
-            Args.L1Threshold = l1Threshold ?? args.L1Threshold;
-            Args.MaxIterations = maxIterations ?? args.MaxIterations;
-            Args.Check(env);
+            SdcaTrainerOptions = options;
+            SdcaTrainerOptions.L2Const = l2Const ?? options.L2Const;
+            SdcaTrainerOptions.L1Threshold = l1Threshold ?? options.L1Threshold;
+            SdcaTrainerOptions.MaxIterations = maxIterations ?? options.MaxIterations;
+            SdcaTrainerOptions.Check(env);
         }
 
         private protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
@@ -292,9 +292,9 @@ namespace Microsoft.ML.Trainers
 
             var cursorFactory = new FloatLabelCursor.Factory(data, cursorOpt);
             int numThreads;
-            if (Args.NumThreads.HasValue)
+            if (SdcaTrainerOptions.NumThreads.HasValue)
             {
-                numThreads = Args.NumThreads.Value;
+                numThreads = SdcaTrainerOptions.NumThreads.Value;
                 Host.CheckUserArg(numThreads > 0, nameof(OptionsBase.NumThreads), "The number of threads must be either null or a positive integer.");
                 if (0 < Host.ConcurrencyFactor && Host.ConcurrencyFactor < numThreads)
                 {
@@ -313,8 +313,8 @@ namespace Microsoft.ML.Trainers
                 ch.Info("Using {0} threads to train.", numThreads);
 
             int checkFrequency = 0;
-            if (Args.CheckFrequency.HasValue)
-                checkFrequency = Args.CheckFrequency.Value;
+            if (SdcaTrainerOptions.CheckFrequency.HasValue)
+                checkFrequency = SdcaTrainerOptions.CheckFrequency.Value;
             else
             {
                 checkFrequency = numThreads;
@@ -414,19 +414,19 @@ namespace Microsoft.ML.Trainers
 
             ch.Check(count > 0, "Training set has 0 instances, aborting training.");
             // Tune the default hyperparameters based on dataset size.
-            if (Args.MaxIterations == null)
-                Args.MaxIterations = TuneDefaultMaxIterations(ch, count, numThreads);
+            if (SdcaTrainerOptions.MaxIterations == null)
+                SdcaTrainerOptions.MaxIterations = TuneDefaultMaxIterations(ch, count, numThreads);
 
-            Contracts.Assert(Args.MaxIterations.HasValue);
-            if (Args.L2Const == null)
-                Args.L2Const = TuneDefaultL2(ch, Args.MaxIterations.Value, count, numThreads);
+            Contracts.Assert(SdcaTrainerOptions.MaxIterations.HasValue);
+            if (SdcaTrainerOptions.L2Const == null)
+                SdcaTrainerOptions.L2Const = TuneDefaultL2(ch, SdcaTrainerOptions.MaxIterations.Value, count, numThreads);
 
-            Contracts.Assert(Args.L2Const.HasValue);
-            if (Args.L1Threshold == null)
-                Args.L1Threshold = TuneDefaultL1(ch, numFeatures);
+            Contracts.Assert(SdcaTrainerOptions.L2Const.HasValue);
+            if (SdcaTrainerOptions.L1Threshold == null)
+                SdcaTrainerOptions.L1Threshold = TuneDefaultL1(ch, numFeatures);
 
-            ch.Assert(Args.L1Threshold.HasValue);
-            var l1Threshold = Args.L1Threshold.Value;
+            ch.Assert(SdcaTrainerOptions.L1Threshold.HasValue);
+            var l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
             var l1ThresholdZero = l1Threshold == 0;
             var weights = new VBuffer<float>[weightSetCount];
             var bestWeights = new VBuffer<float>[weightSetCount];
@@ -455,8 +455,8 @@ namespace Microsoft.ML.Trainers
 
             int bestIter = 0;
             var bestPrimalLoss = double.PositiveInfinity;
-            ch.Assert(Args.L2Const.HasValue);
-            var l2Const = Args.L2Const.Value;
+            ch.Assert(SdcaTrainerOptions.L2Const.HasValue);
+            var l2Const = SdcaTrainerOptions.L2Const.Value;
             float lambdaNInv = 1 / (l2Const * count);
 
             DualsTableBase duals = null;
@@ -519,8 +519,8 @@ namespace Microsoft.ML.Trainers
             ch.AssertValue(metricNames);
             ch.AssertValue(metrics);
             ch.Assert(metricNames.Length == metrics.Length);
-            ch.Assert(Args.MaxIterations.HasValue);
-            var maxIterations = Args.MaxIterations.Value;
+            ch.Assert(SdcaTrainerOptions.MaxIterations.HasValue);
+            var maxIterations = SdcaTrainerOptions.MaxIterations.Value;
 
             var rands = new Random[maxIterations];
             for (int i = 0; i < maxIterations; i++)
@@ -544,7 +544,7 @@ namespace Microsoft.ML.Trainers
                         int idx = (int)longIdx;
                         var features = cursor.Features;
                         var normSquared = VectorUtils.NormSquared(features);
-                        if (Args.BiasLearningRate == 0)
+                        if (SdcaTrainerOptions.BiasLearningRate == 0)
                             normSquared += 1;
 
                         if (featureNormSquared != null)
@@ -755,17 +755,17 @@ namespace Microsoft.ML.Trainers
             VBuffer<float>[] weights, float[] biasUnreg, VBuffer<float>[] l1IntermediateWeights, float[] l1IntermediateBias, float[] featureNormSquared)
         {
             Contracts.AssertValueOrNull(progress);
-            Contracts.Assert(Args.L1Threshold.HasValue);
+            Contracts.Assert(SdcaTrainerOptions.L1Threshold.HasValue);
             Contracts.AssertValueOrNull(idToIdx);
             Contracts.AssertValueOrNull(invariants);
             Contracts.AssertValueOrNull(featureNormSquared);
             int maxUpdateTrials = 2 * numThreads;
-            var l1Threshold = Args.L1Threshold.Value;
+            var l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
             bool l1ThresholdZero = l1Threshold == 0;
-            var lr = Args.BiasLearningRate * Args.L2Const.Value;
+            var lr = SdcaTrainerOptions.BiasLearningRate * SdcaTrainerOptions.L2Const.Value;
             var pch = progress != null ? progress.StartProgressChannel("Dual update") : null;
             using (pch)
-            using (var cursor = Args.Shuffle ? cursorFactory.Create(rand) : cursorFactory.Create())
+            using (var cursor = SdcaTrainerOptions.Shuffle ? cursorFactory.Create(rand) : cursorFactory.Create())
             {
                 long rowCount = 0;
                 if (pch != null)
@@ -784,7 +784,7 @@ namespace Microsoft.ML.Trainers
                     {
                         Contracts.Assert(featureNormSquared == null);
                         var featuresNormSquared = VectorUtils.NormSquared(features);
-                        if (Args.BiasLearningRate == 0)
+                        if (SdcaTrainerOptions.BiasLearningRate == 0)
                             featuresNormSquared += 1;
 
                         invariant = Loss.ComputeDualUpdateInvariant(featuresNormSquared * lambdaNInv * GetInstanceWeight(cursor));
@@ -830,7 +830,7 @@ namespace Microsoft.ML.Trainers
                                 //Thresholding: if |v[j]| < threshold, turn off weights[j]
                                 //If not, shrink: w[j] = v[i] - sign(v[j]) * threshold
                                 l1IntermediateBias[0] += primalUpdate;
-                                if (Args.BiasLearningRate == 0)
+                                if (SdcaTrainerOptions.BiasLearningRate == 0)
                                 {
                                     biasReg[0] = Math.Abs(l1IntermediateBias[0]) - l1Threshold > 0.0
                                     ? l1IntermediateBias[0] - Math.Sign(l1IntermediateBias[0]) * l1Threshold
@@ -950,10 +950,10 @@ namespace Microsoft.ML.Trainers
                 Host.Assert(idToIdx == null || row == duals.Length);
             }
 
-            Contracts.Assert(Args.L2Const.HasValue);
-            Contracts.Assert(Args.L1Threshold.HasValue);
-            Double l2Const = Args.L2Const.Value;
-            Double l1Threshold = Args.L1Threshold.Value;
+            Contracts.Assert(SdcaTrainerOptions.L2Const.HasValue);
+            Contracts.Assert(SdcaTrainerOptions.L1Threshold.HasValue);
+            Double l2Const = SdcaTrainerOptions.L2Const.Value;
+            Double l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
             Double l1Regularizer = l1Threshold * l2Const * (VectorUtils.L1Norm(in weights[0]) + Math.Abs(biasReg[0]));
             var l2Regularizer = l2Const * (VectorUtils.NormSquared(weights[0]) + biasReg[0] * biasReg[0]) * 0.5;
             var newLoss = lossSum.Sum / count + l2Regularizer + l1Regularizer;
@@ -965,9 +965,9 @@ namespace Microsoft.ML.Trainers
             var dualityGap = metrics[(int)MetricKind.DualityGap] = newLoss - newDualLoss;
             metrics[(int)MetricKind.BiasUnreg] = biasUnreg[0];
             metrics[(int)MetricKind.BiasReg] = biasReg[0];
-            metrics[(int)MetricKind.L1Sparsity] = Args.L1Threshold == 0 ? 1 : (Double)firstWeights.GetValues().Count(w => w != 0) / weights.Length;
+            metrics[(int)MetricKind.L1Sparsity] = SdcaTrainerOptions.L1Threshold == 0 ? 1 : (Double)firstWeights.GetValues().Count(w => w != 0) / weights.Length;
 
-            bool converged = dualityGap / newLoss < Args.ConvergenceTolerance;
+            bool converged = dualityGap / newLoss < SdcaTrainerOptions.ConvergenceTolerance;
 
             if (metrics[(int)MetricKind.Loss] < bestPrimalLoss)
             {
@@ -1403,13 +1403,13 @@ namespace Microsoft.ML.Trainers
     /// where <see langword="TSubModel"/> is <see cref="LinearBinaryModelParameters"/> and <see langword="TCalibrator "/> is <see cref="PlattCalibrator"/>.
     /// </summary>
     public abstract class SdcaBinaryTrainerBase<TModelParameters> :
-        SdcaTrainerBase<SdcaBinaryTrainerBase<TModelParameters>.BinaryArgumentBase, BinaryPredictionTransformer<TModelParameters>, TModelParameters>
+        SdcaTrainerBase<SdcaBinaryTrainerBase<TModelParameters>.BinaryOptionsBase, BinaryPredictionTransformer<TModelParameters>, TModelParameters>
         where TModelParameters : class
     {
         private readonly ISupportSdcaClassificationLoss _loss;
         private readonly float _positiveInstanceWeight;
 
-        private protected override bool ShuffleData => Args.Shuffle;
+        private protected override bool ShuffleData => SdcaTrainerOptions.Shuffle;
 
         private readonly SchemaShape.Column[] _outputColumns;
 
@@ -1419,7 +1419,7 @@ namespace Microsoft.ML.Trainers
 
         public override TrainerInfo Info { get; }
 
-        public class BinaryArgumentBase : OptionsBase
+        public class BinaryOptionsBase : OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
             public float PositiveInstanceWeight = 1;
@@ -1458,17 +1458,17 @@ namespace Microsoft.ML.Trainers
             _loss = loss ?? new LogLossFactory().CreateComponent(env);
             Loss = _loss;
             Info = new TrainerInfo(calibration: false);
-            _positiveInstanceWeight = Args.PositiveInstanceWeight;
+            _positiveInstanceWeight = SdcaTrainerOptions.PositiveInstanceWeight;
             _outputColumns = ComputeSdcaBinaryClassifierSchemaShape();
         }
 
-        private protected SdcaBinaryTrainerBase(IHostEnvironment env, BinaryArgumentBase options, ISupportSdcaClassificationLoss loss = null, bool doCalibration = false)
+        private protected SdcaBinaryTrainerBase(IHostEnvironment env, BinaryOptionsBase options, ISupportSdcaClassificationLoss loss = null, bool doCalibration = false)
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
             _loss = loss ?? new LogLossFactory().CreateComponent(env);
             Loss = _loss;
             Info = new TrainerInfo(calibration: doCalibration);
-            _positiveInstanceWeight = Args.PositiveInstanceWeight;
+            _positiveInstanceWeight = SdcaTrainerOptions.PositiveInstanceWeight;
             _outputColumns = ComputeSdcaBinaryClassifierSchemaShape();
         }
 
@@ -1523,7 +1523,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Configuration to training logistic regression using SDCA.
         /// </summary>
-        public sealed class Options : BinaryArgumentBase
+        public sealed class Options : BinaryOptionsBase
         {
         }
 
@@ -1582,7 +1582,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// General Configuration to training linear model using SDCA.
         /// </summary>
-        public sealed class Options : BinaryArgumentBase
+        public sealed class Options : BinaryOptionsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
@@ -1646,7 +1646,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Legacy configuration to SDCA in legacy framework.
         /// </summary>
-        public sealed class Options : BinaryArgumentBase
+        public sealed class Options : BinaryOptionsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
