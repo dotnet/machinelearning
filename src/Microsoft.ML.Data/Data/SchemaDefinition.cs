@@ -17,8 +17,16 @@ namespace Microsoft.ML.Data
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class KeyTypeAttribute : Attribute
     {
+
         /// <summary>
-        /// Specifies expected size of key type.
+        /// Marks member as <see cref="KeyType"/>.
+        /// </summary>
+        public KeyTypeAttribute()
+        {
+
+        }
+        /// <summary>
+        /// Marks member as <see cref="KeyType"/> and specifies <see cref="KeyType"/> cordinality.
         /// </summary>
         /// <param name="count">Size of key type.</param>
         public KeyTypeAttribute(ulong count)
@@ -29,7 +37,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// The key count.
         /// </summary>
-        internal ulong Count { get; }
+        internal ulong? Count { get; }
     }
 
     /// <summary>
@@ -56,14 +64,17 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(size > 0, nameof(size), "Should be positive number, if you want to specify variable size please use " + nameof(VariableVectorTypeAttribute));
             Dims = new int[1] { size };
         }
-
-        public VectorTypeAttribute(params int[] dims)
+        /// <summary>
+        /// Mark member with expected dimensions of array.
+        /// </summary>
+        /// <param name="dimensions">Dimensions of array.</param>
+        public VectorTypeAttribute(params int[] dimensions)
         {
-            foreach (var size in dims)
+            foreach (var size in dimensions)
             {
-                Contracts.CheckParam(size > 0, nameof(dims), "Should contain only positive numbers, if you want to specify variable size please use " + nameof(VariableVectorTypeAttribute));
+                Contracts.CheckParam(size > 0, nameof(dimensions), "Should contain only positive numbers, if you want to specify variable size please use " + nameof(VariableVectorTypeAttribute));
             }
-            Dims = dims;
+            Dims = dimensions;
         }
     }
 
@@ -392,7 +403,10 @@ namespace Microsoft.ML.Data
                 {
                     if (!KeyType.IsValidDataType(dataType))
                         throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", memberInfo.Name);
-                    itemType = new KeyType(dataType, keyAttr.Count);
+                    if (keyAttr.Count == null)
+                        itemType = new KeyType(dataType, dataType.ToMaxInt());
+                    else
+                        itemType = new KeyType(dataType, keyAttr.Count.GetValueOrDefault());
                 }
                 else
                     itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataType);
@@ -401,12 +415,12 @@ namespace Microsoft.ML.Data
                 DataViewType columnType;
                 var vectorAttr = memberInfo.GetCustomAttribute<VectorTypeAttribute>();
                 if (vectorAttr != null && !isVector)
-                    throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with VectorType attribute, but does not appear to be a vector type", memberInfo.Name);
+                    throw Contracts.ExceptParam(nameof(userType), $"Member {memberInfo.Name} marked with {nameof(VectorTypeAttribute)}, but does not appear to be a vector type", memberInfo.Name);
                 var varVectorAttr = memberInfo.GetCustomAttribute<VariableVectorTypeAttribute>();
                 if (varVectorAttr != null && !isVector)
-                    throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with VariableVectorType attribute, but does not appear to be a vector type", memberInfo.Name);
+                    throw Contracts.ExceptParam(nameof(userType), $"Member {memberInfo.Name} marked with {nameof(VariableVectorTypeAttribute)}, but does not appear to be a vector type", memberInfo.Name);
                 if (vectorAttr != null && varVectorAttr != null)
-                    throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with both VariableVectorType and VectorType attribute", memberInfo.Name);
+                    throw Contracts.ExceptParam(nameof(userType), $"Member {memberInfo.Name} marked with both {nameof(VariableVectorTypeAttribute)} and {nameof(VectorTypeAttribute)}", memberInfo.Name);
                 if (isVector)
                 {
                     int[] dims = varVectorAttr != null ? new int[0] : vectorAttr?.Dims;
