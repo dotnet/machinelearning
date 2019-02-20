@@ -320,7 +320,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Trains and returns a <see cref="Transformer"/>.
+        /// Trains and returns a <see cref="ITransformer"/>.
         /// </summary>
         public ITransformer Fit(IDataView input)
         {

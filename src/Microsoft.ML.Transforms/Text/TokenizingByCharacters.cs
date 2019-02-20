@@ -112,6 +112,9 @@ namespace Microsoft.ML.Transforms.Text
             _useMarkerChars = useMarkerCharacters;
         }
 
+        /// <summary>
+        /// The names of the output and input column pairs on which the transformation is applied.
+        /// </summary>
         public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)

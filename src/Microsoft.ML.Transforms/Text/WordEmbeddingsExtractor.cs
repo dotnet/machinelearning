@@ -93,6 +93,10 @@ namespace Microsoft.ML.Transforms.Text
         private readonly int _linesToSkip;
         private readonly Model _currentVocab;
         private static Dictionary<string, WeakReference<Model>> _vocab = new Dictionary<string, WeakReference<Model>>();
+
+        /// <summary>
+        /// The names of the output and input column pairs on which the transformation is applied.
+        /// </summary>
         public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private sealed class Model
@@ -799,6 +803,9 @@ namespace Microsoft.ML.Transforms.Text
             _columns = columns;
         }
 
+        /// <summary>
+        /// Specifies which word embeddings to use.
+        /// </summary>
         public enum PretrainedModelKind
         {
             [TGUI(Label = "GloVe 50D")]
