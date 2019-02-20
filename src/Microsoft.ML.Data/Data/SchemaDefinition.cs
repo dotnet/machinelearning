@@ -67,6 +67,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(size >= 0, nameof(size), "Should be non-negative number");
             Dims = new int[1] { size };
         }
+
         /// <summary>
         /// Mark member with expected dimensions of array.
         /// </summary>
@@ -95,7 +96,7 @@ namespace Microsoft.ML.Data
         internal string Name { get; }
 
         /// <summary>
-        /// Allows one to specify a name to expose this column as, as opposed as opposed to the default
+        /// Allows one to specify a name to expose this column as, as opposed to the default
         /// behavior of using the member name as the column name.
         /// </summary>
         public ColumnNameAttribute(string name)
