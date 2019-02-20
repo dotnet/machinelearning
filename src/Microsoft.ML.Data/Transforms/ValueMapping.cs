@@ -666,7 +666,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        protected static ValueMappingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        private protected static ValueMappingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

@@ -32,7 +32,8 @@ namespace Microsoft.ML.Data
             ColumnPairs = columns;
         }
 
-        protected OneToOneTransformerBase(IHost host, ModelLoadContext ctx) : base(host)
+        [BestFriend]
+        private protected OneToOneTransformerBase(IHost host, ModelLoadContext ctx) : base(host)
         {
             // *** Binary format ***
             // int: number of added columns

@@ -18,16 +18,19 @@ namespace Microsoft.ML.Internal.Internallearn
             "Ignoring integrated normalizer while loading a predictor of type {0}.{1}" +
             "   Please refer to https://aka.ms/MLNetIssue for assistance with converting legacy models.";
 
-        protected readonly IHost Host;
+        [BestFriend]
+        private protected readonly IHost Host;
 
-        protected ModelParametersBase(IHostEnvironment env, string name)
+        [BestFriend]
+        private protected ModelParametersBase(IHostEnvironment env, string name)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(name, nameof(name));
             Host = env.Register(name);
         }
 
-        protected ModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
+        [BestFriend]
+        private protected ModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(name, nameof(name));
