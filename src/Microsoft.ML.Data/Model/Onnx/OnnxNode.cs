@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.ML.Model.Onnx
+namespace Microsoft.ML.Model.OnnxConverter
 {
     /// <summary>
     /// An abstraction for an ONNX node as created by

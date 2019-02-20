@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using Microsoft.Data.DataView;
 
-namespace Microsoft.ML.Model.Onnx
+namespace Microsoft.ML.Model.OnnxConverter
 {
     [BestFriend]
     internal enum OnnxVersion { Stable = 0, Experimental = 1 }

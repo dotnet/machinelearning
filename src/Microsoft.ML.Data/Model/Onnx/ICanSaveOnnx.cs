@@ -5,7 +5,7 @@
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Model.Onnx
+namespace Microsoft.ML.Model.OnnxConverter
 {
     [BestFriend]
     internal interface ICanSaveOnnx
