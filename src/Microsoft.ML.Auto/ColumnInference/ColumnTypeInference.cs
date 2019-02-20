@@ -76,7 +76,8 @@ namespace Microsoft.ML.Auto
             public bool HasAllBooleanValues()
             {
                 if (this.RawData.Skip(1)
-                    .All(x => {
+                    .All(x =>
+                    {
                         bool value;
                         // (note: Conversions.TryParse parses an empty string as a Boolean)
                         return !string.IsNullOrEmpty(x.ToString()) &&
@@ -358,7 +359,7 @@ namespace Microsoft.ML.Auto
             var labelColumn = GetAndValidateLabelColumn(args, cols);
 
             // if label column has all Boolean values, set its type as Boolean
-            if(labelColumn.HasAllBooleanValues())
+            if (labelColumn.HasAllBooleanValues())
             {
                 labelColumn.SuggestedType = BoolType.Instance;
             }
@@ -371,13 +372,7 @@ namespace Microsoft.ML.Auto
         private static string SuggestName(IntermediateColumn column, bool hasHeader)
         {
             var header = column.RawData[0].ToString();
-            return (hasHeader && !string.IsNullOrWhiteSpace(header)) ? Sanitize(header) : string.Format("col{0}", column.ColumnId);
-        }
-
-        private static string Sanitize(string header)
-        {
-            // replace all non-letters and non-digits with '_'.
-            return string.Join("", header.Select(x => Char.IsLetterOrDigit(x) ? x : '_'));
+            return (hasHeader && !string.IsNullOrWhiteSpace(header)) ? header : string.Format("col{0}", column.ColumnId);
         }
 
         private static IntermediateColumn GetAndValidateLabelColumn(Arguments args, IntermediateColumn[] cols)

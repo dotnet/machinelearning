@@ -44,10 +44,10 @@ namespace Microsoft.ML.Auto.Test
             var result = new MLContext().Data.InferColumns(DatasetUtil.DownloadUciAdultDataset(), 14, hasHeader: true);
             Assert.AreEqual(true, result.TextLoaderArgs.HasHeader);
             var labelCol = result.TextLoaderArgs.Column.First(c => c.Source[0].Min == 14 && c.Source[0].Max == 14);
-            Assert.AreEqual("hours_per_week", labelCol.Name);
+            Assert.AreEqual("hours-per-week", labelCol.Name);
             var labelPurposes = result.ColumnPurpopses.Where(c => c.Purpose == ColumnPurpose.Label);
             Assert.AreEqual(1, labelPurposes.Count());
-            Assert.AreEqual("hours_per_week", labelPurposes.First().Name);
+            Assert.AreEqual("hours-per-week", labelPurposes.First().Name);
         }
 
         [TestMethod]

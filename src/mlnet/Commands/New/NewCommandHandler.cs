@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Auto;
 using Microsoft.ML.CLI.CodeGenerator.CSharp;
@@ -32,6 +33,8 @@ namespace Microsoft.ML.CLI.Commands.New
             // Infer columns
             (TextLoader.Arguments TextLoaderArgs, IEnumerable<(string Name, ColumnPurpose Purpose)> ColumnPurpopses) columnInference = InferColumns(context);
 
+            Array.ForEach(columnInference.TextLoaderArgs.Column, t => t.Name = Sanitize(t.Name));
+
             // Load data
             (IDataView trainData, IDataView validationData) = LoadData(context, columnInference.TextLoaderArgs);
 
@@ -45,7 +48,7 @@ namespace Microsoft.ML.CLI.Commands.New
             catch (Exception e)
             {
                 logger.Log(LogLevel.Error, $"{Strings.ExplorePipelineException}:");
-                logger.Log(LogLevel.Error, e.StackTrace);
+                logger.Log(LogLevel.Error, e.ToString());
                 logger.Log(LogLevel.Error, Strings.Exiting);
                 return;
             }
@@ -157,5 +160,9 @@ namespace Microsoft.ML.CLI.Commands.New
                 model.SaveTo(mlContext, fs);
         }
 
+        private static string Sanitize(string name)
+        {
+            return string.Join("", name.Select(x => Char.IsLetterOrDigit(x) ? x : '_'));
+        }
     }
 }
