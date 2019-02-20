@@ -20,7 +20,7 @@ namespace Microsoft.ML.Transforms
     ///    </item>
     /// </list>
     /// </summary>
-    public class TensorFlowModelInfo
+    public sealed class TensorFlowModelInfo
     {
         internal TFSession Session { get; }
         public string ModelPath { get; }
