@@ -52,7 +52,13 @@ namespace Microsoft.ML.Auto
             _settings = settings;
         }
 
-        public IEnumerable<RunResult<MultiClassClassifierMetrics>> Execute(IDataView trainData, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizers = null)
+        public IEnumerable<RunResult<MultiClassClassifierMetrics>> Execute(IDataView trainData, string labelColumn = DefaultColumnNames.Label, IEstimator<ITransformer> preFeaturizers = null)
+        {
+            var columnInformation = new ColumnInformation() { LabelColumn = labelColumn };
+            return Execute(_context, trainData, columnInformation, null, preFeaturizers);
+        }
+
+        public IEnumerable<RunResult<MultiClassClassifierMetrics>> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizers = null)
         {
             return Execute(_context, trainData, columnInformation, null, preFeaturizers);
         }
@@ -79,7 +85,7 @@ namespace Microsoft.ML.Auto
             // run autofit & get all pipelines run in that process
             var autoFitter = new AutoFitter<MultiClassClassifierMetrics>(context, TaskKind.MulticlassClassification, trainData, 
                 columnInfo, validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric),
-                _settings.ProgressCallback, _settings, new MultiDataScorer(_settings.OptimizingMetric),
+                _settings.ProgressCallback, _settings, new MultiMetricsAgent(_settings.OptimizingMetric),
                 TrainerExtensionUtil.GetTrainerNames(_settings.WhitelistedTrainers));
 
             return autoFitter.Fit();
@@ -88,10 +94,11 @@ namespace Microsoft.ML.Auto
 
     public static class MulticlassExperimentResultExtensions
     {
-        public static RunResult<MultiClassClassifierMetrics> Best(this IEnumerable<RunResult<MultiClassClassifierMetrics>> results)
+        public static RunResult<MultiClassClassifierMetrics> Best(this IEnumerable<RunResult<MultiClassClassifierMetrics>> results, MulticlassClassificationMetric metric = MulticlassClassificationMetric.AccuracyMicro)
         {
-            double maxScore = results.Select(r => r.Metrics.AccuracyMicro).Max();
-            return results.First(r => r.Metrics.AccuracyMicro == maxScore);
+            var metricsAgent = new MultiMetricsAgent(metric);
+            double maxScore = results.Select(r => metricsAgent.GetScore(r.Metrics)).Max();
+            return results.First(r => metricsAgent.GetScore(r.Metrics) == maxScore);
         }
     }
 }

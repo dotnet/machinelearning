@@ -7,18 +7,18 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
-    internal class RegressionDataScorer : IDataScorer<RegressionMetrics>
+    internal class RegressionMetricsAgent : IMetricsAgent<RegressionMetrics>
     {
-        private readonly RegressionMetric _metric;
+        private readonly RegressionMetric _optimizingMetric;
 
-        public RegressionDataScorer(RegressionMetric metric)
+        public RegressionMetricsAgent(RegressionMetric optimizingMetric)
         {
-            this._metric = metric;
+            this._optimizingMetric = optimizingMetric;
         }
 
         public double GetScore(RegressionMetrics metrics)
         {
-            switch(_metric)
+            switch(_optimizingMetric)
             {
                 case RegressionMetric.L1:
                     return metrics.L1;
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Auto
             }
 
             // never expected to reach here
-            throw new NotSupportedException($"{_metric} is not a supported sweep metric");
+            throw new NotSupportedException($"{_optimizingMetric} is not a supported sweep metric");
         }
     }
 }

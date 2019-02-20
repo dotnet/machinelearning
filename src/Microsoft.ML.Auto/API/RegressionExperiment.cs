@@ -49,7 +49,13 @@ namespace Microsoft.ML.Auto
             _settings = settings;
         }
 
-        public IEnumerable<RunResult<RegressionMetrics>> Execute(IDataView trainData, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizers = null)
+        public IEnumerable<RunResult<RegressionMetrics>> Execute(IDataView trainData, string labelColumn = DefaultColumnNames.Label, IEstimator<ITransformer> preFeaturizers = null)
+        {
+            var columnInformation = new ColumnInformation() { LabelColumn = labelColumn };
+            return Execute(_context, trainData, columnInformation, null, preFeaturizers);
+        }
+
+        public IEnumerable<RunResult<RegressionMetrics>> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizers = null)
         {
             return Execute(_context, trainData, columnInformation, null, preFeaturizers);
         }
@@ -76,7 +82,7 @@ namespace Microsoft.ML.Auto
             // run autofit & get all pipelines run in that process
             var autoFitter = new AutoFitter<RegressionMetrics>(context, TaskKind.Regression, trainData, columnInfo, 
                 validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric), 
-                _settings.ProgressCallback, _settings, new RegressionDataScorer(_settings.OptimizingMetric),
+                _settings.ProgressCallback, _settings, new RegressionMetricsAgent(_settings.OptimizingMetric),
                 TrainerExtensionUtil.GetTrainerNames(_settings.WhitelistedTrainers));
 
             return autoFitter.Fit();
@@ -85,10 +91,11 @@ namespace Microsoft.ML.Auto
 
     public static class RegressionExperimentResultExtensions
     {
-        public static RunResult<RegressionMetrics> Best(this IEnumerable<RunResult<RegressionMetrics>> results)
+        public static RunResult<RegressionMetrics> Best(this IEnumerable<RunResult<RegressionMetrics>> results, RegressionMetric metric = RegressionMetric.RSquared)
         {
-            double maxScore = results.Select(r => r.Metrics.RSquared).Max();
-            return results.First(r => r.Metrics.RSquared == maxScore);
+            var metricsAgent = new RegressionMetricsAgent(metric);
+            double maxScore = results.Select(r => metricsAgent.GetScore(r.Metrics)).Max();
+            return results.First(r => metricsAgent.GetScore(r.Metrics) == maxScore);
         }
     }
 }

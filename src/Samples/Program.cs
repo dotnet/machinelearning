@@ -26,7 +26,10 @@ namespace Samples
 
                 AutoTrainMulticlassClassification.Run();
                 Console.Clear();
-                
+
+                CustomizeTraining.Run();
+                Console.Clear();
+
                 Console.WriteLine("Done");
             }
             catch (Exception ex)

@@ -4,7 +4,7 @@
 
 namespace Microsoft.ML.Auto
 {
-    internal interface IDataScorer<T>
+    internal interface IMetricsAgent<T>
     {
         double GetScore(T metrics);
     }

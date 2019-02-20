@@ -54,7 +54,13 @@ namespace Microsoft.ML.Auto
             _settings = settings;
         }
 
-        public IEnumerable<RunResult<BinaryClassificationMetrics>> Execute(IDataView trainData, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizers = null)
+        public IEnumerable<RunResult<BinaryClassificationMetrics>> Execute(IDataView trainData, string labelColumn = DefaultColumnNames.Label, IEstimator<ITransformer> preFeaturizers = null)
+        {
+            var columnInformation = new ColumnInformation() { LabelColumn = labelColumn };
+            return Execute(_context, trainData, columnInformation, null, preFeaturizers);
+        }
+
+        public IEnumerable<RunResult<BinaryClassificationMetrics>> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizers = null)
         {
             return Execute(_context, trainData, columnInformation, null, preFeaturizers);
         }
@@ -81,7 +87,7 @@ namespace Microsoft.ML.Auto
             // run autofit & get all pipelines run in that process
             var autoFitter = new AutoFitter<BinaryClassificationMetrics>(context, TaskKind.BinaryClassification, trainData, columnInfo, 
                 validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric), _settings.ProgressCallback, 
-                _settings, new BinaryDataScorer(_settings.OptimizingMetric), 
+                _settings, new BinaryMetricsAgent(_settings.OptimizingMetric), 
                 TrainerExtensionUtil.GetTrainerNames(_settings.WhitelistedTrainers));
 
             return autoFitter.Fit();
@@ -90,10 +96,11 @@ namespace Microsoft.ML.Auto
 
     public static class BinaryExperimentResultExtensions
     {
-        public static RunResult<BinaryClassificationMetrics> Best(this IEnumerable<RunResult<BinaryClassificationMetrics>> results)
+        public static RunResult<BinaryClassificationMetrics> Best(this IEnumerable<RunResult<BinaryClassificationMetrics>> results, BinaryClassificationMetric metric = BinaryClassificationMetric.Accuracy)
         {
-            double maxScore = results.Select(r => r.Metrics.Accuracy).Max();
-            return results.First(r => r.Metrics.Accuracy == maxScore);
+            var metricsAgent = new BinaryMetricsAgent(metric);
+            double maxScore = results.Select(r => metricsAgent.GetScore(r.Metrics)).Max();
+            return results.First(r => metricsAgent.GetScore(r.Metrics) == maxScore);
         }
     }
 }

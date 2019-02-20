@@ -7,18 +7,18 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
-    internal class MultiDataScorer : IDataScorer<MultiClassClassifierMetrics>
+    internal class MultiMetricsAgent : IMetricsAgent<MultiClassClassifierMetrics>
     {
-        private readonly MulticlassClassificationMetric _metric;
+        private readonly MulticlassClassificationMetric _optimizingMetric;
 
-        public MultiDataScorer(MulticlassClassificationMetric metric)
+        public MultiMetricsAgent(MulticlassClassificationMetric optimizingMetric)
         {
-            this._metric = metric;
+            this._optimizingMetric = optimizingMetric;
         }
 
         public double GetScore(MultiClassClassifierMetrics metrics)
         {
-            switch (_metric)
+            switch (_optimizingMetric)
             {
                 case MulticlassClassificationMetric.AccuracyMacro:
                     return metrics.AccuracyMacro;
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Auto
             }
 
             // never expected to reach here
-            throw new NotSupportedException($"{_metric} is not a supported sweep metric");
+            throw new NotSupportedException($"{_optimizingMetric} is not a supported sweep metric");
         }
     }
 }

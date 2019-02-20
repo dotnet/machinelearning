@@ -3,9 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
@@ -13,7 +10,7 @@ using Microsoft.ML.Data;
 
 namespace Samples
 {
-    static class Cancellation
+    static class CustomizeTraining
     {
         private static string BaseDatasetsLocation = @"../../../../src/Samples/Data";
         private static string TrainDataPath = $"{BaseDatasetsLocation}/taxi-fare-train.csv";
@@ -33,23 +30,15 @@ namespace Samples
             IDataView trainDataView = textLoader.Read(TrainDataPath);
             IDataView testDataView = textLoader.Read(TestDataPath);
 
-            int cancelAfterInSeconds = 20;
-            CancellationTokenSource cts = new CancellationTokenSource();
-            cts.CancelAfter(cancelAfterInSeconds * 1000);
-
-            Stopwatch watch = Stopwatch.StartNew();
-
-            // STEP 3: Autofit with a cancellation token
-            Console.WriteLine($"Invoking Regression.AutoFit");
-            var autoFitResults = mlContext.AutoInference()
-                .CreateRegressionExperiment(new RegressionExperimentSettings()
-                {
-                    MaxInferenceTimeInSeconds = 60,
-                    CancellationToken = cts.Token
-                })
-                .Execute(trainDataView, LabelColumnName);
-
-            Console.WriteLine($"{autoFitResults.Count()} models were returned after {cancelAfterInSeconds} seconds");
+            // STEP 3: Autofit with a callback configured
+            var autoFitExperiment = mlContext.AutoInference().CreateRegressionExperiment(new RegressionExperimentSettings()
+            {
+                MaxInferenceTimeInSeconds = 20,
+                OptimizingMetric = RegressionMetric.L2,
+                WhitelistedTrainers = new[] { RegressionTrainer.LightGbm },
+                ProgressCallback = new Progress()
+            });
+            autoFitExperiment.Execute(trainDataView, LabelColumnName);
 
             Console.WriteLine("Press any key to continue..");
             Console.ReadLine();

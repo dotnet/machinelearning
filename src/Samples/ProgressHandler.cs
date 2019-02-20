@@ -36,64 +36,64 @@ namespace Samples
                 MaxInferenceTimeInSeconds = 1,
                 ProgressCallback = new Progress()
             });
-            autoFitExperiment.Execute(trainDataView, new ColumnInformation() { LabelColumn = LabelColumnName });
+            autoFitExperiment.Execute(trainDataView, LabelColumnName);
 
             Console.WriteLine("Press any key to continue..");
             Console.ReadLine();
         }
+    }
 
-        class Progress : IProgress<RunResult<RegressionMetrics>>
+    class Progress : IProgress<RunResult<RegressionMetrics>>
+    {
+        int iterationIndex;
+        public Progress()
         {
-            int iterationIndex;
-            public Progress()
-            {
-                ConsolePrinter.PrintRegressionMetricsHeader();
-            }
-
-            public void Report(RunResult<RegressionMetrics> iterationResult)
-            {
-                iterationIndex++;
-                ConsolePrinter.PrintRegressionMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.Metrics);
-            }
+            ConsolePrinter.PrintRegressionMetricsHeader();
         }
 
-        class ConsolePrinter
+        public void Report(RunResult<RegressionMetrics> iterationResult)
         {
-            public static void PrintRegressionMetrics(int iteration, string trainerName, RegressionMetrics metrics)
-            {
-                Console.WriteLine($"{iteration,-3}{trainerName,-35}{metrics.RSquared,-10:0.###}{metrics.LossFn,-8:0.##}{metrics.L1,-15:#.##}{metrics.L2,-15:#.##}{metrics.Rms,-10:#.##}");
-            }
+            iterationIndex++;
+            ConsolePrinter.PrintRegressionMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.Metrics);
+        }
+    }
 
-            public static void PrintActualVersusPredictedValue(int index, float fareAmount, float score)
-            {
-                Console.WriteLine($"{index,-5}{fareAmount,-20}{score,-20}");
-            }
+    class ConsolePrinter
+    {
+        public static void PrintRegressionMetrics(int iteration, string trainerName, RegressionMetrics metrics)
+        {
+            Console.WriteLine($"{iteration,-3}{trainerName,-35}{metrics.RSquared,-10:0.###}{metrics.LossFn,-8:0.##}{metrics.L1,-15:#.##}{metrics.L2,-15:#.##}{metrics.Rms,-10:#.##}");
+        }
 
-            public static void PrintRegressionMetricsHeader()
-            {
-                Console.WriteLine($"*************************************************");
-                Console.WriteLine($"*       Metrics for regression models     ");
-                Console.WriteLine($"*------------------------------------------------");
-                Console.WriteLine($"{" ",-3}{"Trainer",-35}{"R2-Score",-10}{"LossFn",-8}{"Absolute-loss",-15}{"Squared-loss",-15}{"RMS-loss",-10}");
-                Console.WriteLine();
-            }
+        public static void PrintActualVersusPredictedValue(int index, float fareAmount, float score)
+        {
+            Console.WriteLine($"{index,-5}{fareAmount,-20}{score,-20}");
+        }
 
-            public static void PrintActualVersusPredictedHeader()
-            {
-                Console.WriteLine();
-                Console.WriteLine($"*************************************************");
-                Console.WriteLine($"*       Actual fare Vs predicted fare using the model picked by automl");
-                Console.WriteLine($"*------------------------------------------------");
-                Console.WriteLine($"{"Row",-5}{"Actual",-20}{"Predicted",-20}");
-            }
+        public static void PrintRegressionMetricsHeader()
+        {
+            Console.WriteLine($"*************************************************");
+            Console.WriteLine($"*       Metrics for regression models     ");
+            Console.WriteLine($"*------------------------------------------------");
+            Console.WriteLine($"{" ",-3}{"Trainer",-35}{"R2-Score",-10}{"LossFn",-8}{"Absolute-loss",-15}{"Squared-loss",-15}{"RMS-loss",-10}");
+            Console.WriteLine();
+        }
 
-            public static void PrintBestPipelineHeader()
-            {
-                Console.WriteLine();
-                Console.WriteLine($"*************************************************");
-                Console.WriteLine($"*       Best pipeline      ");
-                Console.WriteLine($"*------------------------------------------------");
-            }
+        public static void PrintActualVersusPredictedHeader()
+        {
+            Console.WriteLine();
+            Console.WriteLine($"*************************************************");
+            Console.WriteLine($"*       Actual fare Vs predicted fare using the model picked by automl");
+            Console.WriteLine($"*------------------------------------------------");
+            Console.WriteLine($"{"Row",-5}{"Actual",-20}{"Predicted",-20}");
+        }
+
+        public static void PrintBestPipelineHeader()
+        {
+            Console.WriteLine();
+            Console.WriteLine($"*************************************************");
+            Console.WriteLine($"*       Best pipeline      ");
+            Console.WriteLine($"*------------------------------------------------");
         }
     }
 }

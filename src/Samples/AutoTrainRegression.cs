@@ -36,10 +36,8 @@ namespace Samples
             // STEP 3: Auto featurize, auto train and auto hyperparameter tuning
             Console.WriteLine($"Invoking Regression.AutoFit");
             var autoFitResults = mlContext.AutoInference()
-                .CreateRegressionExperiment(60)
-                .Execute(trainDataView, new ColumnInformation() {
-                    LabelColumn = LabelColumnName
-                });
+                .CreateRegressionExperiment(0)
+                .Execute(trainDataView, LabelColumnName);
             
             // STEP 4: Compare and print actual value vs predicted value for top 5 rows from validation data
             var best = autoFitResults.Best();

@@ -36,15 +36,8 @@ namespace Samples
             // STEP 3: Auto featurize, auto train and auto hyperparameter tuning
             Console.WriteLine($"Invoking BinaryClassification.AutoFit");
             var autoFitResults = mlContext.AutoInference()
-                .CreateBinaryClassificationExperiment(new BinaryExperimentSettings()
-                {
-                    MaxInferenceTimeInSeconds = 60,
-                    OptimizingMetric = BinaryClassificationMetric.Auc
-                })
-                .Execute(trainDataView, new ColumnInformation()
-                {
-                    LabelColumn = LabelColumnName
-                });
+                .CreateBinaryClassificationExperiment(60)
+                .Execute(trainDataView, LabelColumnName);
 
             // STEP 4: Print metric from the best model
             var best = autoFitResults.Best();

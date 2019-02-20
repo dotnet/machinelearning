@@ -21,7 +21,7 @@ namespace Microsoft.ML.Auto
         private readonly IEstimator<ITransformer> _preFeaturizers;
         private readonly IProgress<RunResult<T>> _progressCallback;
         private readonly ExperimentSettings _experimentSettings;
-        private readonly IDataScorer<T> _dataScorer;
+        private readonly IMetricsAgent<T> _metricsAgent;
         private readonly IEnumerable<TrainerName> _trainerWhitelist;
 
         private IDataView _trainData;
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Auto
             OptimizingMetricInfo metricInfo,
             IProgress<RunResult<T>> progressCallback,
             ExperimentSettings experimentSettings,
-            IDataScorer<T> dataScorer,
+            IMetricsAgent<T> metricsAgent,
             IEnumerable<TrainerName> trainerWhitelist)
         {
             if (validationData == null)
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Auto
             _preFeaturizers = preFeaturizers;
             _progressCallback = progressCallback;
             _experimentSettings = experimentSettings;
-            _dataScorer = dataScorer;
+            _metricsAgent = metricsAgent;
             _trainerWhitelist = trainerWhitelist;
         }
 
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Auto
                 var pipelineModel = pipeline.Fit(_trainData);
                 var scoredValidationData = pipelineModel.Transform(_validationData);
                 var metrics = GetEvaluatedMetrics(scoredValidationData);
-                var score = _dataScorer.GetScore(metrics);
+                var score = _metricsAgent.GetScore(metrics);
                 runResult = new SuggestedPipelineResult<T>(metrics, pipelineModel, pipeline, score, null);
             }
             catch(Exception ex)

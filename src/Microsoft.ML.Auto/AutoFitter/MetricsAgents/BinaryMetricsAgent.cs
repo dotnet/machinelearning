@@ -7,18 +7,18 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
-    internal class BinaryDataScorer : IDataScorer<BinaryClassificationMetrics>
+    internal class BinaryMetricsAgent : IMetricsAgent<BinaryClassificationMetrics>
     {
-        private readonly BinaryClassificationMetric _metric;
+        private readonly BinaryClassificationMetric _optimizingMetric;
 
-        public BinaryDataScorer(BinaryClassificationMetric metric)
+        public BinaryMetricsAgent(BinaryClassificationMetric optimizingMetric)
         {
-            this._metric = metric;
+            this._optimizingMetric = optimizingMetric;
         }
 
         public double GetScore(BinaryClassificationMetrics metrics)
         {
-            switch(_metric)
+            switch(_optimizingMetric)
             {
                 case BinaryClassificationMetric.Accuracy:
                     return metrics.Accuracy;
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Auto
             }
 
             // never expected to reach here
-            throw new NotSupportedException($"{_metric} is not a supported sweep metric");
+            throw new NotSupportedException($"{_optimizingMetric} is not a supported sweep metric");
         }
     }
 }
