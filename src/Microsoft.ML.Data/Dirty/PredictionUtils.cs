@@ -153,16 +153,4 @@ namespace Microsoft.ML.Internal.Internallearn
             }
         }
     }
-
-    /// <summary>
-    /// A generic reverse Comparer (for use in Array.Sort)
-    /// </summary>
-    public sealed class ReverseComparer<T> : IComparer<T>
-        where T : IComparable<T>
-    {
-        public int Compare(T x, T y)
-        {
-            return -x.CompareTo(y);
-        }
-    }
 }
