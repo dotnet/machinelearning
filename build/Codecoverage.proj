@@ -31,14 +31,13 @@
       <_CodecovArgs Include="-t;$(CodeCovToken)" Condition="'$(CodeCovToken)' != ''" />
 
       <_CodecovFlags Include="$(Configuration)" Condition="'$(Configuration)' != ''" />
-      <_CodecovProductionAndTestFlags Include="@(_CodecovFlags)" />
-      <_CodecovProductionAndTestFlags Include="production" />
-      <_CodecovProductionAndTestFlags Include="test" />
+      <_CodecovFlags Include="production" />
+      <_CodecovFlags Include="test" />
     </ItemGroup>
 
     <!-- Upload the coverage file with a 'production' and 'test' flags, which will be filtered by codecov.io to production and test code -->
-    <Message Importance="high" Text="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ') --flag @(_CodecovProductionAndTestFlags, ',')" />
-    <Exec Command="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ') --flag @(_CodecovProductionAndTestFlags, ',')" />
+    <Message Importance="high" Text="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ') --flag @(_CodecovFlags, ',')" />
+    <Exec Command="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ') --flag @(_CodecovFlags, ',')" />
 
   </Target>
 
