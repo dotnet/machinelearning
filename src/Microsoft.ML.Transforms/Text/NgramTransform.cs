@@ -509,7 +509,7 @@ namespace Microsoft.ML.Transforms.Text
 
             private void AddMetadata(int iinfo, MetadataBuilder builder)
             {
-                if (InputSchema[_srcCols[iinfo]].HasKeyValues(_srcTypes[iinfo].GetItemType()))
+                if (InputSchema[_srcCols[iinfo]].HasKeyValues())
                 {
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                     {
@@ -525,7 +525,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 var itemType = _srcTypes[iinfo].GetItemType();
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                Host.Assert(InputSchema[_srcCols[iinfo]].HasKeyValues(itemType));
+                Host.Assert(InputSchema[_srcCols[iinfo]].HasKeyValues());
 
                 var unigramNames = new VBuffer<ReadOnlyMemory<char>>();
 

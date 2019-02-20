@@ -290,17 +290,6 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Returns <c>true</c> if the specified column:
-        ///  * is a vector of length N
-        ///  * has a SlotNames metadata
-        ///  * metadata type is VBuffer&lt;ReadOnlyMemory&lt;char&gt;&gt; of length N
-        /// </summary>
-        public static bool HasSlotNames(this DataViewSchema.Column column)
-            => column.Type is VectorType vectorType
-                && vectorType.Size > 0
-                && column.HasSlotNames(vectorType.Size);
-
-        /// <summary>
-        /// Returns <c>true</c> if the specified column:
         ///  * has a SlotNames metadata
         ///  * metadata type is VBuffer&lt;ReadOnlyMemory&lt;char&gt;&gt; of length <paramref name="vectorSize"/>.
         /// </summary>
@@ -318,12 +307,6 @@ namespace Microsoft.ML.Data
                 && vectorType.ItemType is TextDataViewType;
         }
 
-        public static void GetSlotNames(this DataViewSchema.Column column, ref VBuffer<ReadOnlyMemory<char>> slotNames)
-            => column.Metadata.GetValue(Kinds.SlotNames, ref slotNames);
-
-        public static void GetKeyValues<TValue>(this DataViewSchema.Column column, ref VBuffer<TValue> keyValues)
-            => column.Metadata.GetValue(Kinds.KeyValues, ref keyValues);
-
         [BestFriend]
         internal static void GetSlotNames(RoleMappedSchema schema, RoleMappedSchema.ColumnRole role, int vectorSize, ref VBuffer<ReadOnlyMemory<char>> slotNames)
         {
@@ -338,22 +321,6 @@ namespace Microsoft.ML.Data
         }
 
         [BestFriend]
-        internal static bool HasKeyValues(this DataViewSchema.Column column, DataViewType type)
-        {
-            // False if type is not KeyType because GetKeyCount() returns 0.
-            ulong keyCount = type.GetKeyCount();
-            if (keyCount == 0)
-                return false;
-
-            var metaColumn = column.Metadata.Schema.GetColumnOrNull(Kinds.KeyValues);
-            return
-                metaColumn != null
-                && metaColumn.Value.Type is VectorType vectorType
-                && keyCount == (ulong)vectorType.Size
-                && vectorType.ItemType is TextDataViewType;
-        }
-
-        [BestFriend]
         internal static bool HasKeyValues(this SchemaShape.Column col)
         {
             return col.Metadata.TryFindColumn(Kinds.KeyValues, out var metaCol)
@@ -362,30 +329,16 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Returns true iff <paramref name="column"/> has IsNormalized metadata set to true.
-        /// </summary>
-        public static bool IsNormalized(this DataViewSchema.Column column)
-        {
-            var metaColumn = column.Metadata.Schema.GetColumnOrNull((Kinds.IsNormalized));
-            if (metaColumn == null || !(metaColumn.Value.Type is BooleanDataViewType))
-                return false;
-
-            bool value = default;
-            column.Metadata.GetValue(Kinds.IsNormalized, ref value);
-            return value;
-        }
-
-        /// <summary>
         /// Returns whether a column has the <see cref="Kinds.IsNormalized"/> metadata indicated by
         /// the schema shape.
         /// </summary>
-        /// <param name="col">The schema shape column to query</param>
+        /// <param name="column">The schema shape column to query</param>
         /// <returns>True if and only if the column has the <see cref="Kinds.IsNormalized"/> metadata
         /// of a scalar <see cref="BooleanDataViewType"/> type, which we assume, if set, should be <c>true</c>.</returns>
-        public static bool IsNormalized(this SchemaShape.Column col)
+        public static bool IsNormalized(this SchemaShape.Column column)
         {
-            Contracts.CheckParam(col.IsValid, nameof(col), "struct not initialized properly");
-            return col.Metadata.TryFindColumn(Kinds.IsNormalized, out var metaCol)
+            Contracts.CheckParam(column.IsValid, nameof(column), "struct not initialized properly");
+            return column.Metadata.TryFindColumn(Kinds.IsNormalized, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Scalar && !metaCol.IsKey
                 && metaCol.ItemType == BooleanDataViewType.Instance;
         }
