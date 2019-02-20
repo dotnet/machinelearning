@@ -135,7 +135,8 @@ namespace Microsoft.ML.Model
         /// <see cref="Done"/> is called.
         /// </summary>
         /// <param name="ver"></param>
-        public void SetVersionInfo(VersionInfo ver)
+        [BestFriend]
+        internal void SetVersionInfo(VersionInfo ver)
         {
             ModelHeader.SetVersionInfo(ref Header, ver);
             _loaderAssemblyName = ver.LoaderAssemblyName;
