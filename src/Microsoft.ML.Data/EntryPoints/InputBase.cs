@@ -16,7 +16,7 @@ namespace Microsoft.ML.EntryPoints
     /// The base class for all transform inputs.
     /// </summary>
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITransformInput))]
-    internal abstract class TransformInputBase
+    public abstract class TransformInputBase
     {
         /// <summary>
         /// The input dataset. Used only in entry-point methods, since the normal API mechanism for feeding in a dataset to

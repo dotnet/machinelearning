@@ -107,7 +107,7 @@ namespace Microsoft.ML.Samples.Dynamic
             /// Variable length vectors are produced by applying operations such as 'TokenizeWords' on strings
             /// resulting in vectors of tokens of variable lengths.
             /// </summary>
-            [VariableVectorType]
+            [VectorType(0)]
             public int[] VariableLenghtFeatures { get; set; }
         }
 

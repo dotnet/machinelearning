@@ -12,41 +12,44 @@ using Microsoft.ML.Internal.Utilities;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Attach to a member of a class to indicate that the item type should be of class key.
+    /// Allow member to be marked as a <see cref="KeyType"/>.
     /// </summary>
+    /// <remarks>
+    /// Can be applied only for member of following types: <see cref="byte"/>, <see cref="ushort"/>, <see cref="uint"/>, <see cref="ulong"/>
+    /// </remarks>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class KeyTypeAttribute : Attribute
     {
-
         /// <summary>
         /// Marks member as <see cref="KeyType"/>.
         /// </summary>
+        /// <remarks>
+        /// Cardinality of <see cref="KeyType"/> would be maximum legal value of member type.
+        /// </remarks>
         public KeyTypeAttribute()
         {
 
         }
+
         /// <summary>
-        /// Marks member as <see cref="KeyType"/> and specifies <see cref="KeyType"/> cordinality.
+        /// Marks member as <see cref="KeyType"/> and specifies <see cref="KeyType"/> cardinality.
         /// </summary>
         /// <param name="count">Size of key type.</param>
         public KeyTypeAttribute(ulong count)
         {
-            Count = count;
+            Count = new KeyCount(count);
         }
 
         /// <summary>
         /// The key count.
         /// </summary>
-        internal ulong? Count { get; }
+        internal KeyCount Count { get; }
     }
 
     /// <summary>
-    /// Allows a member to be marked as a vector valued field, primarily allowing one to set
+    /// Allows a member to be marked as a <see cref="VectorType"/>, primarily allowing one to set
     /// the dimensionality of the resulting array.
     /// </summary>
-    /// <remarks>
-    /// For vector with variable size use <see cref="VariableVectorTypeAttribute"/>.
-    /// </remarks>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class VectorTypeAttribute : Attribute
     {
@@ -58,39 +61,29 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Mark member with expected size of array.
         /// </summary>
-        /// <param name="size">Expected size of array.</param>
+        /// <param name="size">Expected size of array. A zero value indicates that the vector type is considered to have unknown length.</param>
         public VectorTypeAttribute(int size)
         {
-            Contracts.CheckParam(size > 0, nameof(size), "Should be positive number, if you want to specify variable size please use " + nameof(VariableVectorTypeAttribute));
+            Contracts.CheckParam(size >= 0, nameof(size), "Should be non-negative number");
             Dims = new int[1] { size };
         }
         /// <summary>
         /// Mark member with expected dimensions of array.
         /// </summary>
-        /// <param name="dimensions">Dimensions of array.</param>
+        /// <param name="dimensions">Dimensions of array. All values should be non-negative.
+        /// A zero value indicates that the vector type is considered to have unknown length along that dimension.</param>
         public VectorTypeAttribute(params int[] dimensions)
         {
             foreach (var size in dimensions)
             {
-                Contracts.CheckParam(size > 0, nameof(dimensions), "Should contain only positive numbers, if you want to specify variable size please use " + nameof(VariableVectorTypeAttribute));
+                Contracts.CheckParam(size >= 0, nameof(dimensions), "Should contain only non-negative values");
             }
             Dims = dimensions;
         }
     }
 
     /// <summary>
-    /// Marks member as variable vector.
-    /// </summary>
-    /// <remarks>
-    /// For vector with permanent size use <see cref="VectorTypeAttribute"/>.
-    /// </remarks>
-    public sealed class VariableVectorTypeAttribute : Attribute
-    {
-
-    }
-
-    /// <summary>
-    /// Allows a member to specify its column name directly, as opposed to the default
+    /// Allows a member to specify <see cref="IDataView"/> column name directly, as opposed to the default
     /// behavior of using the member name as the column name.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
@@ -102,8 +95,8 @@ namespace Microsoft.ML.Data
         internal string Name { get; }
 
         /// <summary>
-        /// Allows one to specify a name to expose this column as, as opposed to simply
-        /// the field name.
+        /// Allows one to specify a name to expose this column as, as opposed as opposed to the default
+        /// behavior of using the member name as the column name.
         /// </summary>
         public ColumnNameAttribute(string name)
         {
@@ -112,7 +105,7 @@ namespace Microsoft.ML.Data
     }
 
     /// <summary>
-    /// Mark this member as not being exposed as a column in the schema.
+    /// Mark this member as not being exposed as a <see cref="IDataView"/> column in the <see cref="DataViewSchema"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class NoColumnAttribute : Attribute
@@ -406,7 +399,7 @@ namespace Microsoft.ML.Data
                     if (keyAttr.Count == null)
                         itemType = new KeyType(dataType, dataType.ToMaxInt());
                     else
-                        itemType = new KeyType(dataType, keyAttr.Count.GetValueOrDefault());
+                        itemType = new KeyType(dataType, keyAttr.Count.Count.GetValueOrDefault());
                 }
                 else
                     itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataType);
@@ -416,14 +409,9 @@ namespace Microsoft.ML.Data
                 var vectorAttr = memberInfo.GetCustomAttribute<VectorTypeAttribute>();
                 if (vectorAttr != null && !isVector)
                     throw Contracts.ExceptParam(nameof(userType), $"Member {memberInfo.Name} marked with {nameof(VectorTypeAttribute)}, but does not appear to be a vector type", memberInfo.Name);
-                var varVectorAttr = memberInfo.GetCustomAttribute<VariableVectorTypeAttribute>();
-                if (varVectorAttr != null && !isVector)
-                    throw Contracts.ExceptParam(nameof(userType), $"Member {memberInfo.Name} marked with {nameof(VariableVectorTypeAttribute)}, but does not appear to be a vector type", memberInfo.Name);
-                if (vectorAttr != null && varVectorAttr != null)
-                    throw Contracts.ExceptParam(nameof(userType), $"Member {memberInfo.Name} marked with both {nameof(VariableVectorTypeAttribute)} and {nameof(VectorTypeAttribute)}", memberInfo.Name);
                 if (isVector)
                 {
-                    int[] dims = varVectorAttr != null ? new int[0] : vectorAttr?.Dims;
+                    int[] dims = vectorAttr?.Dims;
                     if (dims != null && dims.Any(d => d < 0))
                         throw Contracts.ExceptParam(nameof(userType), "Some of member {0}'s dimension lengths are negative");
                     if (Utils.Size(dims) == 0)
