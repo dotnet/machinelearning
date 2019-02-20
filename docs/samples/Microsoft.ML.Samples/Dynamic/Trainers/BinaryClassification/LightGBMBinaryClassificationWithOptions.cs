@@ -1,5 +1,4 @@
 ﻿using Microsoft.ML.LightGBM;
-using Microsoft.ML.Transforms.Categorical;
 using static Microsoft.ML.LightGBM.Options;
 
 namespace Microsoft.ML.Samples.Dynamic
