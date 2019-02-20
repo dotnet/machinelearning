@@ -52,7 +52,7 @@ namespace Microsoft.ML.Auto
             return Execute(_context, trainData, columnInformation, validationData, preFeaturizers);
         }
 
-        internal RunResult<RegressionMetrics> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizers = null)
+        internal IEnumerable<RunResult<RegressionMetrics>> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizers = null)
         {
             throw new NotImplementedException();
         }

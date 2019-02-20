@@ -9,7 +9,7 @@ namespace Microsoft.ML.Auto.Test
     public class ColumnInferenceTests
     {
         [TestMethod]
-        public void UnGroupColumnsTest()
+        public void UnGroupReturnsMoreColumnsThanGroup()
         {
             var dataPath = DatasetUtil.DownloadUciAdultDataset();
             var context = new MLContext();
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Auto.Test
         }
 
         [TestMethod]
-        public void IncorrectLabelColumnTest()
+        public void IncorrectLabelColumnThrows()
         {
             var dataPath = DatasetUtil.DownloadUciAdultDataset();
             var context = new MLContext();
@@ -33,13 +33,13 @@ namespace Microsoft.ML.Auto.Test
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
-        public void InferColumnsLabelIndexOutOfBounds()
+        public void LabelIndexOutOfBoundsThrows()
         {
             new MLContext().AutoInference().InferColumns(DatasetUtil.DownloadUciAdultDataset(), 100);
         }
 
         [TestMethod]
-        public void InferColumnsLabelIndex()
+        public void IdentifyLabelColumnThroughIndexWithHeader()
         {
             var result = new MLContext().AutoInference().InferColumns(DatasetUtil.DownloadUciAdultDataset(), 14, hasHeader: true);
             Assert.AreEqual(true, result.TextLoaderArgs.HasHeader);
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Auto.Test
         }
 
         [TestMethod]
-        public void InferColumnsLabelIndexNoHeaders()
+        public void IdentifyLabelColumnThroughIndexWithoutHeader()
         {
             var result = new MLContext().AutoInference().InferColumns(DatasetUtil.DownloadIrisDataset(), DatasetUtil.IrisDatasetLabelColIndex);
             Assert.AreEqual(false, result.TextLoaderArgs.HasHeader);
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Auto.Test
         }
 
         [TestMethod]
-        public void InferColumnsWithDatasetWithEmptyColumn()
+        public void DatasetWithEmptyColumn()
         {
             var result = new MLContext().AutoInference().InferColumns(@".\TestData\DatasetWithEmptyColumn.txt", DefaultColumnNames.Label);
             var emptyColumn = result.TextLoaderArgs.Column.First(c => c.Name == "Empty");
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Auto.Test
         }
 
         [TestMethod]
-        public void InferColumnsWithDatasetWithBoolColumn()
+        public void DatasetWithBoolColumn()
         {
             var result = new MLContext().AutoInference().InferColumns(@".\TestData\BinaryDatasetWithBoolColumn.txt", DefaultColumnNames.Label);
             Assert.AreEqual(2, result.TextLoaderArgs.Column.Count());
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Auto.Test
         }
 
         [TestMethod]
-        public void InferColumnsWhereNameColumnIsOnlyFeature()
+        public void WhereNameColumnIsOnlyFeature()
         {
             var result = new MLContext().AutoInference().InferColumns(@".\TestData\NameColumnIsOnlyFeatureDataset.txt", DefaultColumnNames.Label);
             Assert.AreEqual(2, result.TextLoaderArgs.Column.Count());
@@ -99,6 +99,18 @@ namespace Microsoft.ML.Auto.Test
             Assert.AreEqual(1, result.ColumnInformation.TextColumns.Count());
             Assert.AreEqual("Username", result.ColumnInformation.TextColumns.First());
             Assert.AreEqual(DefaultColumnNames.Label, result.ColumnInformation.LabelColumn);
+        }
+
+        [TestMethod]
+        public void DefaultColumnNamesInferredCorrectly()
+        {
+            var result = new MLContext().AutoInference().InferColumns(@".\TestData\DatasetWithDefaultColumnNames.txt", DefaultColumnNames.Label, groupColumns : false);
+
+            Assert.AreEqual(DefaultColumnNames.Label, result.ColumnInformation.LabelColumn);
+            Assert.AreEqual(DefaultColumnNames.Name, result.ColumnInformation.NameColumn);
+            Assert.AreEqual(DefaultColumnNames.Weight, result.ColumnInformation.WeightColumn);
+            Assert.AreEqual(DefaultColumnNames.GroupId, result.ColumnInformation.GroupIdColumn);
+            Assert.AreEqual(result.ColumnInformation.NumericColumns.Count(), 3);
         }
     }
 }
