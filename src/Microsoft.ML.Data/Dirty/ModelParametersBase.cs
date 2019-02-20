@@ -14,7 +14,7 @@ namespace Microsoft.ML.Internal.Internallearn
     /// </summary>
     public abstract class ModelParametersBase<TOutput> : ICanSaveModel, IPredictorProducing<TOutput>
     {
-        public const string NormalizerWarningFormat =
+        private const string NormalizerWarningFormat =
             "Ignoring integrated normalizer while loading a predictor of type {0}.{1}" +
             "   Please refer to https://aka.ms/MLNetIssue for assistance with converting legacy models.";
 
