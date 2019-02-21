@@ -227,7 +227,7 @@ namespace Microsoft.ML.Training
             Contracts.AssertValueOrNull(extraCols);
 
             var columns = extraCols == null ?
-                new List<DataViewSchema.Column>() :
+                new List<Schema.Column>() :
                 data.Data.Schema.Where(c => extraCols.Contains(c.Index)).ToList();
 
             if ((opt & CursOpt.Label) != 0 && data.Schema.Label.HasValue)

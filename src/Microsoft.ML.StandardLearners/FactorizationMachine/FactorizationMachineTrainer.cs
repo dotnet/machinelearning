@@ -275,7 +275,7 @@ namespace Microsoft.ML.FactorizationMachine
             badExampleCount = 0;
             int count = 0;
 
-            var columns = new List<DataViewSchema.Column>(featureColumns);
+            var columns = new List<Schema.Column>(featureColumns);
             columns.Add(data.Schema.Label.Value);
             if (data.Schema.Weight != null)
                 columns.Add(data.Schema.Weight.Value);
