@@ -10,8 +10,8 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Trainers.Ensemble.SubsetSelector
 {
-    internal abstract class BaseSubsetSelector<TArgs> : ISubsetSelector
-        where TArgs : BaseSubsetSelector<TArgs>.ArgumentsBase
+    internal abstract class BaseSubsetSelector<TOptions> : ISubsetSelector
+        where TOptions : BaseSubsetSelector<TOptions>.ArgumentsBase
     {
         public abstract class ArgumentsBase
         {
@@ -20,7 +20,7 @@ namespace Microsoft.ML.Trainers.Ensemble.SubsetSelector
         }
 
         protected readonly IHost Host;
-        protected readonly TArgs Args;
+        protected readonly TOptions BaseSubsetSelectorOptions;
         protected readonly IFeatureSelector FeatureSelector;
 
         protected int Size;
@@ -28,15 +28,15 @@ namespace Microsoft.ML.Trainers.Ensemble.SubsetSelector
         protected int BatchSize;
         protected Single ValidationDatasetProportion;
 
-        protected BaseSubsetSelector(TArgs args, IHostEnvironment env, string name)
+        protected BaseSubsetSelector(TOptions options, IHostEnvironment env, string name)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckNonWhiteSpace(name, nameof(name));
 
             Host = env.Register(name);
-            Args = args;
-            FeatureSelector = Args.FeatureSelector.CreateComponent(Host);
+            BaseSubsetSelectorOptions = options;
+            FeatureSelector = BaseSubsetSelectorOptions.FeatureSelector.CreateComponent(Host);
         }
 
         public void Initialize(RoleMappedData data, int size, int batchSize, Single validationDatasetProportion)

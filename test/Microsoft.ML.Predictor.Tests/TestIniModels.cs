@@ -522,7 +522,7 @@ namespace Microsoft.ML.RunTests
         {
             var mlContext = new MLContext(seed: 0);
             var idv = mlContext.Data.CreateTextLoader(
-                    new TextLoader.Arguments()
+                    new TextLoader.Options()
                     {
                         HasHeader = false,
                         Columns = new[]
@@ -561,7 +561,7 @@ namespace Microsoft.ML.RunTests
         {
             var mlContext = new MLContext(seed: 0);
             var idv = mlContext.Data.CreateTextLoader(
-                    new TextLoader.Arguments()
+                    new TextLoader.Options()
                     {
                         HasHeader = false,
                         Columns = new[]

@@ -64,7 +64,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Options passed to PKPD.
         /// </summary>
-        internal sealed class Options : ArgumentsBase
+        internal sealed class Options : OptionsBase
         {
         }
         /// <summary>
@@ -243,7 +243,7 @@ namespace Microsoft.ML.Trainers
         private readonly IValueMapperDist[] _mappers;
 
         /// <summary> Return the type of prediction task.</summary>
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
         private readonly VectorType _inputType;
         private readonly DataViewType _outputType;
         DataViewType IValueMapper.InputType => _inputType;

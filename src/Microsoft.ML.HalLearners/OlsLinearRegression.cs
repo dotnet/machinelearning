@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -35,6 +35,7 @@ namespace Microsoft.ML.Trainers.HalLearners
     /// <include file='doc.xml' path='doc/members/member[@name="OLS"]/*' />
     public sealed class OlsLinearRegressionTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OlsLinearRegressionModelParameters>, OlsLinearRegressionModelParameters>
     {
+        ///<summary> Advanced options for trainer.</summary>
         public sealed class Options : LearnerInputBaseWithWeight
         {
             // Adding L2 regularization turns this into a form of ridge regression,
@@ -65,10 +66,11 @@ namespace Microsoft.ML.Trainers.HalLearners
         private readonly float _l2Weight;
         private readonly bool _perParameterSignificance;
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         // The training performs two passes, only. Probably not worth caching.
         private static readonly TrainerInfo _info = new TrainerInfo(caching: false);
+
         public override TrainerInfo Info => _info;
 
         /// <summary>
@@ -84,13 +86,10 @@ namespace Microsoft.ML.Trainers.HalLearners
             _perParameterSignificance = options.PerParameterSignificance;
         }
 
-        protected override RegressionPredictionTransformer<OlsLinearRegressionModelParameters> MakeTransformer(OlsLinearRegressionModelParameters model, DataViewSchema trainSchema)
+        private protected override RegressionPredictionTransformer<OlsLinearRegressionModelParameters> MakeTransformer(OlsLinearRegressionModelParameters model, DataViewSchema trainSchema)
              => new RegressionPredictionTransformer<OlsLinearRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<OlsLinearRegressionModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)
-            => TrainTransformer(trainData, initPredictor: initialPredictor);
-
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
@@ -105,8 +104,7 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// </summary>
         /// <param name="p">The quantity that should be clamped from 0 to 1</param>
         /// <returns>Either p, or 0 or 1 if it was outside the range 0 to 1</returns>
-        private static Double ProbClamp(Double p)
-            => Math.Max(0, Math.Min(p, 1));
+        private static Double ProbClamp(Double p) => Math.Max(0, Math.Min(p, 1));
 
         private protected override OlsLinearRegressionModelParameters TrainModelCore(TrainContext context)
         {
@@ -531,24 +529,16 @@ namespace Microsoft.ML.Trainers.HalLearners
                 loaderAssemblyName: typeof(OlsLinearRegressionModelParameters).Assembly.FullName);
         }
 
-        // The following will be null iff RSquaredAdjusted is NaN.
-        private readonly Double[] _standardErrors;
-        private readonly Double[] _tValues;
-        private readonly Double[] _pValues;
-        private readonly Double _rSquared;
-        private readonly Double _rSquaredAdjusted;
-
         /// <summary>
         /// The coefficient of determination.
         /// </summary>
-        public Double RSquared => _rSquared;
-
+        public readonly double RSquared;
         /// <summary>
         /// The adjusted coefficient of determination. It is only possible to produce
         /// an adjusted R-squared if there are more examples than parameters in the model
         /// plus one. If this condition is not met, this value will be <c>NaN</c>.
         /// </summary>
-        public Double RSquaredAdjusted => _rSquaredAdjusted;
+        public readonly double RSquaredAdjusted;
 
         /// <summary>
         /// Whether the model has per parameter statistics. This is false iff
@@ -559,26 +549,32 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// <see cref="OlsLinearRegressionTrainer.Options.PerParameterSignificance"/>
         /// to false.
         /// </summary>
-        public bool HasStatistics => _standardErrors != null;
+        public bool HasStatistics => StandardErrors != null;
 
         /// <summary>
         /// The standard error per model parameter, where the first corresponds to the bias,
         /// and all subsequent correspond to each weight in turn. This is <c>null</c> if and
         /// only if <see cref="HasStatistics"/> is <c>false</c>.
         /// </summary>
-        public IReadOnlyCollection<Double> StandardErrors => _standardErrors.AsReadOnly();
+        public IReadOnlyList<double> StandardErrors => _standardErrors;
+
+        private readonly double[] _standardErrors;
 
         /// <summary>
         /// t-Statistic values corresponding to each of the model standard errors. This is
         /// <c>null</c> if and only if <see cref="HasStatistics"/> is <c>false</c>.
         /// </summary>
-        public IReadOnlyCollection<Double> TValues => _tValues.AsReadOnly();
+        public IReadOnlyList<double> TValues => _tValues;
+
+        private readonly double[] _tValues;
 
         /// <summary>
         /// p-values corresponding to each of the model standard errors. This is <c>null</c>
         /// if and only if <see cref="HasStatistics"/> is <c>false</c>.
         /// </summary>
-        public IReadOnlyCollection<Double> PValues => _pValues.AsReadOnly();
+        public IReadOnlyList<double> PValues => _pValues;
+
+        private readonly double[] _pValues;
 
         /// <summary>
         /// Constructs a new OLS regression model parameters from trained model.
@@ -592,7 +588,7 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// <param name="pValues">Optional: The p-values of the weights and bias.</param>
         /// <param name="rSquared">The coefficient of determination.</param>
         /// <param name="rSquaredAdjusted">The adjusted coefficient of determination.</param>
-        public OlsLinearRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias,
+        internal OlsLinearRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias,
             Double[] standardErrors = null, Double[] tValues = null, Double[] pValues = null, Double rSquared = 1, Double rSquaredAdjusted = float.NaN)
             : base(env, RegistrationName, in weights, bias)
         {
@@ -625,8 +621,8 @@ namespace Microsoft.ML.Trainers.HalLearners
             _standardErrors = standardErrors;
             _tValues = tValues;
             _pValues = pValues;
-            _rSquared = rSquared;
-            _rSquaredAdjusted = rSquaredAdjusted;
+            RSquared = rSquared;
+            RSquaredAdjusted = rSquaredAdjusted;
         }
 
         private OlsLinearRegressionModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -643,9 +639,9 @@ namespace Microsoft.ML.Trainers.HalLearners
             Host.CheckDecode(Weight.IsDense);
             int m = Weight.Length + 1;
 
-            _rSquared = ctx.Reader.ReadDouble();
+            RSquared = ctx.Reader.ReadDouble();
             ProbCheckDecode(RSquared);
-            _rSquaredAdjusted = ctx.Reader.ReadDouble();
+            RSquaredAdjusted = ctx.Reader.ReadDouble();
             if (!Double.IsNaN(RSquaredAdjusted))
                 ProbCheckDecode(RSquaredAdjusted);
             bool hasStats = ctx.Reader.ReadBoolByte();
@@ -684,11 +680,11 @@ namespace Microsoft.ML.Trainers.HalLearners
             //     double[#parameters]: t-statistics per parameter
             //     double[#parameters]: p-values per parameter
 
-            Contracts.Assert(0 <= _rSquared & _rSquared <= 1);
-            ctx.Writer.Write(_rSquared);
-            Contracts.Assert(Double.IsNaN(_rSquaredAdjusted) | (0 <= _rSquaredAdjusted & _rSquaredAdjusted <= 1));
-            ctx.Writer.Write(_rSquaredAdjusted);
-            Contracts.Assert(!Double.IsNaN(_rSquaredAdjusted) | !HasStatistics);
+            Contracts.Assert(0 <= RSquared & RSquared <= 1);
+            ctx.Writer.Write(RSquared);
+            Contracts.Assert(Double.IsNaN(RSquaredAdjusted) | (0 <= RSquaredAdjusted && RSquaredAdjusted <= 1));
+            ctx.Writer.Write(RSquaredAdjusted);
+            Contracts.Assert(!Double.IsNaN(RSquaredAdjusted) | !HasStatistics);
             ctx.Writer.WriteBoolByte(HasStatistics);
             if (!HasStatistics)
             {
@@ -698,9 +694,9 @@ namespace Microsoft.ML.Trainers.HalLearners
             Contracts.Assert(Weight.Length + 1 == _standardErrors.Length);
             Contracts.Assert(Weight.Length + 1 == _tValues.Length);
             Contracts.Assert(Weight.Length + 1 == _pValues.Length);
-            ctx.Writer.WriteDoublesNoCount(_standardErrors.AsSpan(0, m));
-            ctx.Writer.WriteDoublesNoCount(_tValues.AsSpan(0, m));
-            ctx.Writer.WriteDoublesNoCount(_pValues.AsSpan(0, m));
+            ctx.Writer.WriteDoublesNoCount(_standardErrors);
+            ctx.Writer.WriteDoublesNoCount(_tValues);
+            ctx.Writer.WriteDoublesNoCount(_pValues);
         }
 
         private static void TValueCheckDecode(Double param, Double tvalue)
@@ -759,26 +755,6 @@ namespace Microsoft.ML.Trainers.HalLearners
                     writer.WriteLine(format, i, name.IsEmpty ? $"f{i}" : name.ToString(), coeffs[i]);
                 }
             }
-        }
-
-        public override void GetFeatureWeights(ref VBuffer<float> weights)
-        {
-            if (_pValues == null)
-            {
-                base.GetFeatureWeights(ref weights);
-                return;
-            }
-
-            var size = _pValues.Length - 1;
-            var editor = VBufferEditor.Create(ref weights, size);
-            for (int i = 0; i < size; i++)
-            {
-                var score = -(float)Math.Log(_pValues[i + 1]);
-                if (score > float.MaxValue)
-                    score = float.MaxValue;
-                editor.Values[i] = score;
-            }
-            weights = editor.Commit();
         }
     }
 }

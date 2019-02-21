@@ -55,7 +55,7 @@ namespace Microsoft.ML
             /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
             /// <param name="approximationRank">Rank of approximation matrixes.</param>
             /// <param name="learningRate">Initial learning rate. It specifies the speed of the training algorithm.</param>
-            /// <param name="numIterations">Number of training iterations.</param>
+            /// <param name="numberOfIterations">Number of training iterations.</param>
             /// <example>
             /// <format type="text/markdown">
             /// <![CDATA[
@@ -68,9 +68,9 @@ namespace Microsoft.ML
                 string matrixRowIndexColumnName,
                 int approximationRank = MatrixFactorizationTrainer.Defaults.ApproximationRank,
                 double learningRate = MatrixFactorizationTrainer.Defaults.LearningRate,
-                int numIterations = MatrixFactorizationTrainer.Defaults.NumIterations)
+                int numberOfIterations = MatrixFactorizationTrainer.Defaults.NumIterations)
                     => new MatrixFactorizationTrainer(Owner.Environment, labelColumn, matrixColumnIndexColumnName, matrixRowIndexColumnName,
-                        approximationRank, learningRate, numIterations);
+                        approximationRank, learningRate, numberOfIterations);
 
             /// <summary>
             /// Train a matrix factorization model. It factorizes the training matrix into the product of two low-rank matrices.

@@ -24,6 +24,33 @@ namespace Microsoft.ML
     }
 
     /// <summary>
+    /// Utility class for IHostEnvironment
+    /// </summary>
+    [BestFriend]
+    internal static class HostEnvironmentExtensions
+    {
+        /// <summary>
+        /// Return a file handle for an input "file".
+        /// </summary>
+        public static IFileHandle OpenInputFile(this IHostEnvironment env, string path)
+        {
+            Contracts.AssertValue(env);
+            Contracts.CheckNonWhiteSpace(path, nameof(path));
+            return new SimpleFileHandle(env, path, needsWrite: false, autoDelete: false);
+        }
+
+        /// <summary>
+        /// Create an output "file" and return a handle to it.
+        /// </summary>
+        public static IFileHandle CreateOutputFile(this IHostEnvironment env, string path)
+        {
+            Contracts.AssertValue(env);
+            Contracts.CheckNonWhiteSpace(path, nameof(path));
+            return new SimpleFileHandle(env, path, needsWrite: true, autoDelete: false);
+        }
+    }
+
+    /// <summary>
     /// The host environment interface creates hosts for components. Note that the methods of
     /// this interface should be called from the main thread for the environment. To get an environment
     /// to service another thread, call Fork and pass the return result to that thread.
@@ -51,16 +78,6 @@ namespace Microsoft.ML
         /// The catalog of loadable components (<see cref="LoadableClassAttribute"/>) that are available in this host.
         /// </summary>
         ComponentCatalog ComponentCatalog { get; }
-
-        /// <summary>
-        /// Return a file handle for an input "file".
-        /// </summary>
-        IFileHandle OpenInputFile(string path);
-
-        /// <summary>
-        /// Create an output "file" and return a handle to it.
-        /// </summary>
-        IFileHandle CreateOutputFile(string path);
 
         /// <summary>
         /// Create a temporary "file" and return a handle to it. Generally temp files are expected to be

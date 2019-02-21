@@ -24,7 +24,7 @@ namespace Microsoft.ML.FactorizationMachine
     public sealed class FieldAwareFactorizationMachineModelParameters : ModelParametersBase<float>, ISchemaBindableMapper
     {
         internal const string LoaderSignature = "FieldAwareFactMacPredict";
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         private bool _norm;
         internal int FieldCount { get; }
         internal int FeatureCount { get; }
@@ -290,12 +290,12 @@ namespace Microsoft.ML.FactorizationMachine
         /// <summary>
         /// The name of the feature column used by the prediction transformer.
         /// </summary>
-        internal IReadOnlyList<string> FeatureColumns { get; }
+        private IReadOnlyList<string> FeatureColumns { get; }
 
         /// <summary>
         /// The type of the feature columns.
         /// </summary>
-        internal IReadOnlyList<DataViewType> FeatureColumnTypes { get; }
+        private IReadOnlyList<DataViewType> FeatureColumnTypes { get; }
 
         private readonly string _thresholdColumn;
         private readonly float _threshold;

@@ -10,7 +10,7 @@ namespace Microsoft.ML.Trainers.FastTree
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
-    public enum TimerEvent
+    internal enum TimerEvent
     {
         TotalInitialization,
         TotalTrain,
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
     }
 
-    public enum CountEvent
+    internal enum CountEvent
     {
         NetworkSend,
         NetworkReceive,
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// Static class for timing events.
     /// </summary>
-    public static class Timer
+    internal static class Timer
     {
         private static TimerState _state;
 

@@ -228,17 +228,17 @@ namespace Microsoft.ML.Training
             Contracts.AssertValueOrNull(extraCols);
 
             var columns = extraCols == null ?
-                Enumerable.Empty<DataViewSchema.Column>() :
-                data.Data.Schema.Where(c => extraCols.Contains(c.Index));
+                new List<DataViewSchema.Column>() :
+                data.Data.Schema.Where(c => extraCols.Contains(c.Index)).ToList();
 
             if ((opt & CursOpt.Label) != 0 && data.Schema.Label.HasValue)
-                columns = columns.Append(data.Schema.Label.Value);
+                columns.Add(data.Schema.Label.Value);
             if ((opt & CursOpt.Features) != 0 && data.Schema.Feature.HasValue)
-                columns = columns.Append(data.Schema.Feature.Value);
+                columns.Add(data.Schema.Feature.Value);
             if ((opt & CursOpt.Weight) != 0 && data.Schema.Weight.HasValue)
-                columns = columns.Append(data.Schema.Weight.Value);
+                columns.Add(data.Schema.Weight.Value);
             if ((opt & CursOpt.Group) != 0 && data.Schema.Group.HasValue)
-                columns = columns.Append(data.Schema.Group.Value);
+                columns.Add(data.Schema.Group.Value);
             return columns;
         }
 

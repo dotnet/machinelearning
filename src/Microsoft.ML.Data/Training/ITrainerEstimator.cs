@@ -9,7 +9,5 @@ namespace Microsoft.ML.Training
         where TPredictor : class
     {
         TrainerInfo Info { get; }
-
-        PredictionKind PredictionKind { get; }
     }
 }

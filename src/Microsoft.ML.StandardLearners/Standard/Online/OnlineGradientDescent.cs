@@ -34,7 +34,7 @@ namespace Microsoft.ML.Trainers.Online
             + "In the TLC implementation of OGD, it is for linear regression.";
         internal const string ShortName = "ogd";
 
-        public sealed class Options : AveragedLinearArguments
+        public sealed class Options : AveragedLinearOptions
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             [TGUI(Label = "Loss Function")]
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Trainers.Online
             internal override IComponentFactory<IScalarOutputLoss> LossFunctionFactory => LossFunction;
 
             [BestFriend]
-            internal class OgdDefaultArgs : AveragedDefaultArgs
+            internal class OgdDefaultArgs : AveragedDefault
             {
                 public new const float LearningRate = 0.1f;
                 public new const bool DecreaseLearningRate = true;
@@ -137,9 +137,9 @@ namespace Microsoft.ML.Trainers.Online
             LossFunction = options.LossFunction.CreateComponent(env);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Trainers.Online
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }
 
-        protected override RegressionPredictionTransformer<LinearRegressionModelParameters> MakeTransformer(LinearRegressionModelParameters model, DataViewSchema trainSchema)
+        private protected override RegressionPredictionTransformer<LinearRegressionModelParameters> MakeTransformer(LinearRegressionModelParameters model, DataViewSchema trainSchema)
         => new RegressionPredictionTransformer<LinearRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
     }
 }

@@ -77,7 +77,7 @@ namespace Microsoft.ML.Benchmarks
         public void TrainSentiment()
         {
             // Pipeline
-            var arguments = new TextLoader.Arguments()
+            var arguments = new TextLoader.Options()
             {
                 Columns = new TextLoader.Column[]
                 {

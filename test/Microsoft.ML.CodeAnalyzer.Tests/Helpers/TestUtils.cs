@@ -6,23 +6,11 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
 {
     internal static class TestUtils
     {
-        public static DiagnosticResult CreateDiagnosticResult(this DiagnosticDescriptor desc, int line, int column, params object[] formatArgs)
-        {
-            return new DiagnosticResult
-            {
-                Id = desc.Id,
-                Message = string.Format(desc.MessageFormat.ToString(), formatArgs),
-                Severity = desc.DefaultSeverity,
-                Location = new DiagnosticResultLocation("Test0.cs", line, column),
-            };
-        }
-
         public static ref string EnsureSourceLoaded(ref string source, string resourceName)
         {
             if (source == null)

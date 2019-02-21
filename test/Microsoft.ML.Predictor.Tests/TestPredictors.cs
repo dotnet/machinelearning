@@ -647,9 +647,9 @@ namespace Microsoft.ML.RunTests
 
         private void CombineAndTestTreeEnsembles(IDataView idv, PredictorModel[] fastTrees)
         {
-            var combiner = new TreeEnsembleCombiner(Env, PredictionKind.BinaryClassification);
+            IModelCombiner combiner = new TreeEnsembleCombiner(Env, PredictionKind.BinaryClassification);
 
-            var fastTree = combiner.CombineModels(fastTrees.Select(pm => pm.Predictor as IPredictorProducing<float>));
+            var fastTree = combiner.CombineModels(fastTrees.Select(pm => (IPredictorProducing<float>)pm.Predictor));
 
             var data = new RoleMappedData(idv, label: null, feature: "Features");
             var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModelImpl(Env, data, idv, fastTree) }).ScoredData;
@@ -1806,7 +1806,7 @@ output Out [3] from H all;
         {
             using (var env = new LocalEnvironment(1, conc: 1))
             {
-                IDataView trainView = new TextLoader(env, new TextLoader.Arguments(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.trainFilename)));
+                IDataView trainView = new TextLoader(env, new TextLoader.Options(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.trainFilename)));
                 trainView =
                     NormalizeTransform.Create(env,
                         new NormalizeTransform.MinMaxArguments()
@@ -1815,7 +1815,7 @@ output Out [3] from H all;
                         },
                      trainView);
                 var trainData = new RoleMappedData(trainView, "Label", "Features");
-                IDataView testView = new TextLoader(env, new TextLoader.Arguments(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.testFilename)));
+                IDataView testView = new TextLoader(env, new TextLoader.Options(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.testFilename)));
                 ApplyTransformUtils.ApplyAllTransformsToData(env, trainView, testView);
                 var testData = new RoleMappedData(testView, "Label", "Features");
 

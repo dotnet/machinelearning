@@ -37,8 +37,8 @@ namespace Microsoft.ML.ImageAnalytics
     /// </summary>
     /// <remarks>
     /// Calling <see cref="ITransformer.Transform(IDataView)"/> resizes the images to a new height and width.
-    /// <seealso cref = "ImageEstimatorsCatalog.Resize(TransformsCatalog, ImageResizingEstimator.ColumnInfo[])" />
-    /// <seealso cref = "ImageEstimatorsCatalog.Resize(TransformsCatalog, string, int, int, string, ImageResizingEstimator.ResizingKind, ImageResizingEstimator.Anchor)" />
+    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, ImageResizingEstimator.ColumnInfo[])" />
+    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, string, int, int, string, ImageResizingEstimator.ResizingKind, ImageResizingEstimator.Anchor)" />
     /// <seealso cref = "ImageEstimatorsCatalog" />
     /// </remarks >
     public sealed class ImageResizingTransformer : OneToOneTransformerBase
@@ -265,7 +265,7 @@ namespace Microsoft.ML.ImageAnalytics
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             if (!(inputSchema[srcCol].Type is ImageType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _columns[col].InputColumnName, "image", inputSchema[srcCol].Type.ToString());
@@ -415,8 +415,8 @@ namespace Microsoft.ML.ImageAnalytics
     /// </summary>
     /// <remarks>
     /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="ImageResizingTransformer"/>.
-    /// <seealso cref = "ImageEstimatorsCatalog.Resize(TransformsCatalog, ImageResizingEstimator.ColumnInfo[])" />
-    /// <seealso cref = "ImageEstimatorsCatalog.Resize(TransformsCatalog, string, int, int, string, ResizingKind, Anchor)" />
+    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, ImageResizingEstimator.ColumnInfo[])" />
+    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, string, int, int, string, ResizingKind, Anchor)" />
     /// <seealso cref = "ImageEstimatorsCatalog" />
     /// </remarks >
     public sealed class ImageResizingEstimator : TrivialEstimator<ImageResizingTransformer>

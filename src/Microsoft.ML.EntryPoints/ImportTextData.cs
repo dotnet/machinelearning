@@ -49,7 +49,7 @@ namespace Microsoft.ML.EntryPoints
             public IFileHandle InputFile;
 
             [Argument(ArgumentType.Required, ShortName = "args", HelpText = "Arguments", SortOrder = 2)]
-            public TextLoader.Arguments Arguments = new TextLoader.Arguments();
+            public TextLoader.Options Arguments = new TextLoader.Options();
         }
 
         [TlcModule.EntryPoint(Name = "Data.TextLoader", Desc = "Import a dataset from a text file")]

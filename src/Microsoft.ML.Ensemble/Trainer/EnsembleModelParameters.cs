@@ -21,7 +21,7 @@ namespace Microsoft.ML.Trainers.Ensemble
     /// <summary>
     /// A class for artifacts of ensembled models.
     /// </summary>
-    public sealed class EnsembleModelParameters : EnsembleModelParametersBase<Single>, IValueMapper
+    internal sealed class EnsembleModelParameters : EnsembleModelParametersBase<Single>, IValueMapper
     {
         internal const string UserName = "Ensemble Executor";
         internal const string LoaderSignature = "EnsembleFloatExec";
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         private readonly VectorType _inputType;
         DataViewType IValueMapper.InputType => _inputType;
         DataViewType IValueMapper.OutputType => NumberDataViewType.Single;
-        public override PredictionKind PredictionKind { get; }
+        private protected override PredictionKind PredictionKind { get; }
 
         /// <summary>
         /// Instantiate new ensemble model from existing sub-models.

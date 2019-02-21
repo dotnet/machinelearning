@@ -7,7 +7,8 @@ using Microsoft.Data.DataView;
 
 namespace Microsoft.ML.Data
 {
-    public static class MetadataBuilderExtensions
+    [BestFriend]
+    internal static class MetadataBuilderExtensions
     {
         /// <summary>
         /// Add slot names metadata.

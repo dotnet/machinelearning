@@ -13,10 +13,10 @@ namespace Microsoft.ML.Trainers.FastTree
     // defined for the tuple
     // It also hides the fact that node can be either leaf on an interior node behind the hood.
     // The caller can treat interior node (entire subtree) in a same fashion as a leaf node.
-    public class RegressionTreeNodeDocuments
+    internal class RegressionTreeNodeDocuments
     {
         internal readonly InternalRegressionTree Tree;
-        public readonly DocumentPartitioning Partitioning;
+        internal readonly DocumentPartitioning Partitioning;
         public readonly int NodeIndex; //Index to a node or leaf within the tree
         private int _documentCount;
         public bool IsLeaf => NodeIndex < 0;
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Trainers.FastTree
     //
     //Curently only used for smoothing and defines operations defined in recursive fashion
     //GetWeightedOutput and SmoothLeafOutputs used for smoothing the trees
-    public class RecursiveRegressionTree : RegressionTreeNodeDocuments
+    internal class RecursiveRegressionTree : RegressionTreeNodeDocuments
     {
         //Left and right children on a regression tree
         public readonly RecursiveRegressionTree LteNode;
