@@ -52,7 +52,8 @@ namespace Microsoft.ML.Data
     /// Data type specifier used in command line. <see cref="DataKind"/> is the underlying version of <see cref="ScalarType"/>
     /// used for command line and entry point BC.
     /// </summary>
-    public enum DataKind : byte
+    [BestFriend]
+    internal enum DataKind : byte
     {
         // Notes:
         // * These values are serialized, so changing them breaks binary formats.
@@ -118,9 +119,22 @@ namespace Microsoft.ML.Data
             return (DataKind)(index + (int)KindMin);
         }
 
+        /// <summary>
+        /// This function converts <paramref name="scalarType"/> to <see cref="DataKind"/>.
+        /// Because <see cref="ScalarType"/> is a subset of <see cref="DataKind"/>, the conversion is straightforward.
+        /// </summary>
         public static DataKind ToDataKind(this ScalarType scalarType) => (DataKind)scalarType;
 
-        public static ScalarType ToScalarType(this DataKind kind) => (ScalarType)kind;
+        /// <summary>
+        /// This function converts <paramref name="kind"/> to <see cref="ScalarType"/>.
+        /// Because <see cref="ScalarType"/> is a subset of <see cref="DataKind"/>, we should check if <paramref name="kind"/>
+        /// can be found in <see cref="ScalarType"/>.
+        /// </summary>
+        public static ScalarType ToScalarType(this DataKind kind)
+        {
+            Contracts.Check(kind != DataKind.UG);
+            return (ScalarType)kind;
+        }
 
         /// <summary>
         /// For integer DataKinds, this returns the maximum legal value. For un-supported kinds,
