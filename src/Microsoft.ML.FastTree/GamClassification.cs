@@ -112,29 +112,29 @@ namespace Microsoft.ML.Trainers.FastTree
             return new ValueMapperCalibratedModelParameters<BinaryClassificationGamModelParameters, PlattCalibrator>(Host, predictor, calibrator);
         }
 
-        protected override ObjectiveFunctionBase CreateObjectiveFunction()
+        private protected override ObjectiveFunctionBase CreateObjectiveFunction()
         {
             return new FastTreeBinaryClassificationTrainer.ObjectiveImpl(
                 TrainSet,
                 ConvertTargetsToBool(TrainSet.Targets),
-                Args.LearningRates,
+                GamTrainerOptions.LearningRates,
                 0,
                 _sigmoidParameter,
-                Args.UnbalancedSets,
-                Args.MaxOutput,
-                Args.GetDerivativesSampleRate,
+                GamTrainerOptions.UnbalancedSets,
+                GamTrainerOptions.MaxOutput,
+                GamTrainerOptions.GetDerivativesSampleRate,
                 false,
-                Args.RngSeed,
+                GamTrainerOptions.RngSeed,
                 ParallelTraining
             );
         }
 
-        protected override void DefinePruningTest()
+        private protected override void DefinePruningTest()
         {
             var validTest = new BinaryClassificationTest(ValidSetScore,
                 ConvertTargetsToBool(ValidSet.Targets), _sigmoidParameter);
             // As per FastTreeClassification.ConstructOptimizationAlgorithm()
-            PruningLossIndex = Args.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/;
+            PruningLossIndex = GamTrainerOptions.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/;
             PruningTest = new TestHistory(validTest, PruningLossIndex);
         }
 

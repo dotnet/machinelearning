@@ -9,16 +9,16 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public abstract class BoostingFastTreeTrainerBase<TArgs, TTransformer, TModel> : FastTreeTrainerBase<TArgs, TTransformer, TModel>
+    public abstract class BoostingFastTreeTrainerBase<TOptions, TTransformer, TModel> : FastTreeTrainerBase<TOptions, TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
-        where TArgs : BoostedTreeArgs, new()
+        where TOptions : BoostedTreeOptions, new()
         where TModel : class
     {
-        protected BoostingFastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label) : base(env, args, label)
+        private protected BoostingFastTreeTrainerBase(IHostEnvironment env, TOptions options, SchemaShape.Column label) : base(env, options, label)
         {
         }
 
-        protected BoostingFastTreeTrainerBase(IHostEnvironment env,
+        private protected BoostingFastTreeTrainerBase(IHostEnvironment env,
             SchemaShape.Column label,
             string featureColumn,
             string weightColumn,
@@ -32,11 +32,11 @@ namespace Microsoft.ML.Trainers.FastTree
             FastTreeTrainerOptions.LearningRates = learningRate;
         }
 
-        protected override void CheckArgs(IChannel ch)
+        private protected override void CheckOptions(IChannel ch)
         {
-            if (FastTreeTrainerOptions.OptimizationAlgorithm == BoostedTreeArgs.OptimizationAlgorithmType.AcceleratedGradientDescent)
+            if (FastTreeTrainerOptions.OptimizationAlgorithm == BoostedTreeOptions.OptimizationAlgorithmType.AcceleratedGradientDescent)
                 FastTreeTrainerOptions.UseLineSearch = true;
-            if (FastTreeTrainerOptions.OptimizationAlgorithm == BoostedTreeArgs.OptimizationAlgorithmType.ConjugateGradientDescent)
+            if (FastTreeTrainerOptions.OptimizationAlgorithm == BoostedTreeOptions.OptimizationAlgorithmType.ConjugateGradientDescent)
                 FastTreeTrainerOptions.UseLineSearch = true;
 
             if (FastTreeTrainerOptions.CompressEnsemble && FastTreeTrainerOptions.WriteLastEnsemble)
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Trainers.FastTree
             if (FastTreeTrainerOptions.UseTolerantPruning && (!FastTreeTrainerOptions.EnablePruning || !HasValidSet))
                 throw ch.Except("Cannot perform tolerant pruning (prtol) without pruning (pruning) and a validation set (valid)");
 
-            base.CheckArgs(ch);
+            base.CheckOptions(ch);
         }
 
         private protected override TreeLearner ConstructTreeLearner(IChannel ch)
@@ -79,13 +79,13 @@ namespace Microsoft.ML.Trainers.FastTree
 
             switch (FastTreeTrainerOptions.OptimizationAlgorithm)
             {
-                case BoostedTreeArgs.OptimizationAlgorithmType.GradientDescent:
+                case BoostedTreeOptions.OptimizationAlgorithmType.GradientDescent:
                     optimizationAlgorithm = new GradientDescent(Ensemble, TrainSet, InitTrainScores, gradientWrapper);
                     break;
-                case BoostedTreeArgs.OptimizationAlgorithmType.AcceleratedGradientDescent:
+                case BoostedTreeOptions.OptimizationAlgorithmType.AcceleratedGradientDescent:
                     optimizationAlgorithm = new AcceleratedGradientDescent(Ensemble, TrainSet, InitTrainScores, gradientWrapper);
                     break;
-                case BoostedTreeArgs.OptimizationAlgorithmType.ConjugateGradientDescent:
+                case BoostedTreeOptions.OptimizationAlgorithmType.ConjugateGradientDescent:
                     optimizationAlgorithm = new ConjugateGradientDescent(Ensemble, TrainSet, InitTrainScores, gradientWrapper);
                     break;
                 default:
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return optimizationAlgorithm;
         }
 
-        protected override IGradientAdjuster MakeGradientWrapper(IChannel ch)
+        private protected override IGradientAdjuster MakeGradientWrapper(IChannel ch)
         {
             if (!FastTreeTrainerOptions.BestStepRankingRegressionTrees)
                 return base.MakeGradientWrapper(ch);
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 return new BestStepRegressionGradientWrapper();
         }
 
-        protected override bool ShouldStop(IChannel ch, ref IEarlyStoppingCriterion earlyStoppingRule, ref int bestIteration)
+        private protected override bool ShouldStop(IChannel ch, ref IEarlyStoppingCriterion earlyStoppingRule, ref int bestIteration)
         {
             if (FastTreeTrainerOptions.EarlyStoppingRule == null)
                 return false;
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return shouldStop;
         }
 
-        protected override int GetBestIteration(IChannel ch)
+        private protected override int GetBestIteration(IChannel ch)
         {
             int bestIteration = Ensemble.NumTrees;
             if (!FastTreeTrainerOptions.WriteLastEnsemble && PruningTest != null)
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Retrieves max tree output if best regression step option is active or returns negative value otherwise.
         /// </summary>
-        protected double BsrMaxTreeOutput()
+        private protected double BsrMaxTreeOutput()
         {
             if (FastTreeTrainerOptions.BestStepRankingRegressionTrees)
                 return FastTreeTrainerOptions.MaxTreeOutput;
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 return -1;
         }
 
-        protected override bool ShouldRandomStartOptimizer()
+        private protected override bool ShouldRandomStartOptimizer()
         {
             return FastTreeTrainerOptions.RandomStart;
         }

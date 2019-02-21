@@ -49,9 +49,9 @@ namespace Microsoft.ML.Trainers.FastTree
     /// ]]>
     /// </format>
     /// </example>
-    public abstract partial class GamTrainerBase<TArgs, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
+    public abstract partial class GamTrainerBase<TOptions, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
         where TTransformer: ISingleFeaturePredictionTransformer<TPredictor>
-        where TArgs : GamTrainerBase<TArgs, TTransformer, TPredictor>.OptionsBase, new()
+        where TOptions : GamTrainerBase<TOptions, TTransformer, TPredictor>.OptionsBase, new()
         where TPredictor : class
     {
         public abstract class OptionsBase : LearnerInputBaseWithWeight
@@ -110,22 +110,22 @@ namespace Microsoft.ML.Trainers.FastTree
         private const string RegisterName = "GamTraining";
 
         //Parameters of training
-        protected readonly TArgs Args;
+        private protected readonly TOptions GamTrainerOptions;
         private readonly double _gainConfidenceInSquaredStandardDeviations;
         private readonly double _entropyCoefficient;
 
         //Dataset information
-        protected Dataset TrainSet;
-        protected Dataset ValidSet;
+        private protected Dataset TrainSet;
+        private protected Dataset ValidSet;
         /// <summary>
         /// Whether a validation set was passed in
         /// </summary>
-        protected bool HasValidSet => ValidSet != null;
-        protected ScoreTracker TrainSetScore;
-        protected ScoreTracker ValidSetScore;
-        protected TestHistory PruningTest;
-        protected int PruningLossIndex;
-        protected int InputLength;
+        private protected bool HasValidSet => ValidSet != null;
+        private protected ScoreTracker TrainSetScore;
+        private protected ScoreTracker ValidSetScore;
+        private protected TestHistory PruningTest;
+        private protected int PruningLossIndex;
+        private protected int InputLength;
         private LeastSquaresRegressionTreeLearner.LeafSplitCandidates _leafSplitCandidates;
         private SufficientStatsBase[] _histogram;
         private ILeafSplitStatisticsCalculator _leafSplitHelper;
@@ -136,10 +136,10 @@ namespace Microsoft.ML.Trainers.FastTree
         private SubGraph _subGraph;
 
         //Results of training
-        protected double MeanEffect;
-        protected double[][] BinEffects;
-        protected double[][] BinUpperBounds;
-        protected int[] FeatureMap;
+        private protected double MeanEffect;
+        private protected double[][] BinEffects;
+        private protected double[][] BinUpperBounds;
+        private protected int[] FeatureMap;
 
         public override TrainerInfo Info { get; }
         private protected virtual bool NeedCalibration => false;
@@ -156,44 +156,44 @@ namespace Microsoft.ML.Trainers.FastTree
             int maxBins)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
-            Args = new TArgs();
-            Args.NumIterations = numIterations;
-            Args.LearningRates = learningRate;
-            Args.MaxBins = maxBins;
+            GamTrainerOptions = new TOptions();
+            GamTrainerOptions.NumIterations = numIterations;
+            GamTrainerOptions.LearningRates = learningRate;
+            GamTrainerOptions.MaxBins = maxBins;
 
-            Args.LabelColumn = label.Name;
-            Args.FeatureColumn = featureColumn;
+            GamTrainerOptions.LabelColumn = label.Name;
+            GamTrainerOptions.FeatureColumn = featureColumn;
 
             if (weightColumn != null)
-                Args.WeightColumn = weightColumn;
+                GamTrainerOptions.WeightColumn = weightColumn;
 
             Info = new TrainerInfo(normalization: false, calibration: NeedCalibration, caching: false, supportValid: true);
-            _gainConfidenceInSquaredStandardDeviations = Math.Pow(ProbabilityFunctions.Probit(1 - (1 - Args.GainConfidenceLevel) * 0.5), 2);
-            _entropyCoefficient = Args.EntropyCoefficient * 1e-6;
+            _gainConfidenceInSquaredStandardDeviations = Math.Pow(ProbabilityFunctions.Probit(1 - (1 - GamTrainerOptions.GainConfidenceLevel) * 0.5), 2);
+            _entropyCoefficient = GamTrainerOptions.EntropyCoefficient * 1e-6;
 
             InitializeThreads();
         }
 
-        private protected GamTrainerBase(IHostEnvironment env, TArgs args, string name, SchemaShape.Column label)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
+        private protected GamTrainerBase(IHostEnvironment env, TOptions options, string name, SchemaShape.Column label)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumn),
+                  label, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
         {
             Contracts.CheckValue(env, nameof(env));
-            Host.CheckValue(args, nameof(args));
+            Host.CheckValue(options, nameof(options));
 
-            Host.CheckParam(args.LearningRates > 0, nameof(args.LearningRates), "Must be positive.");
-            Host.CheckParam(args.NumThreads == null || args.NumThreads > 0, nameof(args.NumThreads), "Must be positive.");
-            Host.CheckParam(0 <= args.EntropyCoefficient && args.EntropyCoefficient <= 1, nameof(args.EntropyCoefficient), "Must be in [0, 1].");
-            Host.CheckParam(0 <= args.GainConfidenceLevel && args.GainConfidenceLevel < 1, nameof(args.GainConfidenceLevel), "Must be in [0, 1).");
-            Host.CheckParam(0 < args.MaxBins, nameof(args.MaxBins), "Must be posittive.");
-            Host.CheckParam(0 < args.NumIterations, nameof(args.NumIterations), "Must be positive.");
-            Host.CheckParam(0 < args.MinDocuments, nameof(args.MinDocuments), "Must be positive.");
+            Host.CheckParam(options.LearningRates > 0, nameof(options.LearningRates), "Must be positive.");
+            Host.CheckParam(options.NumThreads == null || options.NumThreads > 0, nameof(options.NumThreads), "Must be positive.");
+            Host.CheckParam(0 <= options.EntropyCoefficient && options.EntropyCoefficient <= 1, nameof(options.EntropyCoefficient), "Must be in [0, 1].");
+            Host.CheckParam(0 <= options.GainConfidenceLevel && options.GainConfidenceLevel < 1, nameof(options.GainConfidenceLevel), "Must be in [0, 1).");
+            Host.CheckParam(0 < options.MaxBins, nameof(options.MaxBins), "Must be posittive.");
+            Host.CheckParam(0 < options.NumIterations, nameof(options.NumIterations), "Must be positive.");
+            Host.CheckParam(0 < options.MinDocuments, nameof(options.MinDocuments), "Must be positive.");
 
-            Args = args;
+            GamTrainerOptions = options;
 
             Info = new TrainerInfo(normalization: false, calibration: NeedCalibration, caching: false, supportValid: true);
-            _gainConfidenceInSquaredStandardDeviations = Math.Pow(ProbabilityFunctions.Probit(1 - (1 - Args.GainConfidenceLevel) * 0.5), 2);
-            _entropyCoefficient = Args.EntropyCoefficient * 1e-6;
+            _gainConfidenceInSquaredStandardDeviations = Math.Pow(ProbabilityFunctions.Probit(1 - (1 - GamTrainerOptions.GainConfidenceLevel) * 0.5), 2);
+            _entropyCoefficient = GamTrainerOptions.EntropyCoefficient * 1e-6;
 
             InitializeThreads();
         }
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 ValidSetScore = new ScoreTracker("valid", ValidSet, null);
         }
 
-        protected abstract void DefinePruningTest();
+        private protected abstract void DefinePruningTest();
 
         private protected abstract void CheckLabel(RoleMappedData data);
 
@@ -234,8 +234,8 @@ namespace Microsoft.ML.Trainers.FastTree
             trainData.CheckOptFloatWeight();
             CheckLabel(trainData);
 
-            var useTranspose = UseTranspose(Args.DiskTranspose, trainData);
-            var instanceConverter = new ExamplesToFastTreeBins(Host, Args.MaxBins, useTranspose, !Args.FeatureFlocks, Args.MinDocuments, float.PositiveInfinity);
+            var useTranspose = UseTranspose(GamTrainerOptions.DiskTranspose, trainData);
+            var instanceConverter = new ExamplesToFastTreeBins(Host, GamTrainerOptions.MaxBins, useTranspose, !GamTrainerOptions.FeatureFlocks, GamTrainerOptions.MinDocuments, float.PositiveInfinity);
 
             ParallelTraining.InitEnvironment();
             TrainSet = instanceConverter.FindBinsAndReturnDataset(trainData, PredictionKind, ParallelTraining, null, false);
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private void TrainMainEffectsModel(IChannel ch)
         {
             Contracts.AssertValue(ch);
-            int iterations = Args.NumIterations;
+            int iterations = GamTrainerOptions.NumIterations;
 
             ch.Info("Starting to train ...");
 
@@ -341,7 +341,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // Compute the split for the feature
             _histogram[flockIndex].FindBestSplitForFeature(_leafSplitHelper, _leafSplitCandidates,
                 _leafSplitCandidates.Targets.Length, sumTargets, sumWeights,
-                globalFeatureIndex, flockIndex, subFeatureIndex, Args.MinDocuments, HasWeights,
+                globalFeatureIndex, flockIndex, subFeatureIndex, GamTrainerOptions.MinDocuments, HasWeights,
                 _gainConfidenceInSquaredStandardDeviations, _entropyCoefficient,
                 TrainSet.Flocks[flockIndex].Trust(subFeatureIndex), 0);
 
@@ -404,8 +404,8 @@ namespace Microsoft.ML.Trainers.FastTree
         private void CombineGraphs(IChannel ch)
         {
             // Prune backwards to the best iteration
-            int bestIteration = Args.NumIterations;
-            if (Args.EnablePruning && PruningTest != null)
+            int bestIteration = GamTrainerOptions.NumIterations;
+            if (GamTrainerOptions.EnablePruning && PruningTest != null)
             {
                 ch.Info("Pruning");
                 var finalResult = PruningTest.ComputeTests().ToArray()[PruningLossIndex];
@@ -416,8 +416,8 @@ namespace Microsoft.ML.Trainers.FastTree
                     bestIteration = PruningTest.BestIteration;
                     bestLoss = PruningTest.BestResult.FinalValue;
                 }
-                if (bestIteration != Args.NumIterations)
-                    ch.Info($"Best Iteration ({lossFunctionName}): {bestIteration} @ {bestLoss:G6} (vs {Args.NumIterations} @ {finalResult.FinalValue:G6}).");
+                if (bestIteration != GamTrainerOptions.NumIterations)
+                    ch.Info($"Best Iteration ({lossFunctionName}): {bestIteration} @ {bestLoss:G6} (vs {GamTrainerOptions.NumIterations} @ {finalResult.FinalValue:G6}).");
                 else
                     ch.Info("No pruning necessary. More iterations may be necessary.");
             }
@@ -520,7 +520,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Process bins such that only bin upper bounds and bin effects remain where
         /// the effect changes.
         /// </summary>
-        protected void CreateEfficientBinning()
+        private protected void CreateEfficientBinning()
         {
             BinUpperBounds = new double[TrainSet.NumFeatures][];
             var newBinEffects = new List<double>();
@@ -557,8 +557,8 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             SplitInfo splitinfo = _leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex];
             _subGraph.Splits[globalFeatureIndex][iteration].SplitPoint = splitinfo.Threshold;
-            _subGraph.Splits[globalFeatureIndex][iteration].LteValue = Args.LearningRates * splitinfo.LteOutput;
-            _subGraph.Splits[globalFeatureIndex][iteration].GtValue = Args.LearningRates * splitinfo.GTOutput;
+            _subGraph.Splits[globalFeatureIndex][iteration].LteValue = GamTrainerOptions.LearningRates * splitinfo.LteOutput;
+            _subGraph.Splits[globalFeatureIndex][iteration].GtValue = GamTrainerOptions.LearningRates * splitinfo.GTOutput;
         }
 
         private void InitializeGamHistograms()
@@ -573,7 +573,7 @@ namespace Microsoft.ML.Trainers.FastTree
             using (Timer.Time(TimerEvent.InitializeTraining))
             {
                 InitializeGamHistograms();
-                _subGraph = new SubGraph(TrainSet.NumFeatures, Args.NumIterations);
+                _subGraph = new SubGraph(TrainSet.NumFeatures, GamTrainerOptions.NumIterations);
                 _leafSplitCandidates = new LeastSquaresRegressionTreeLearner.LeafSplitCandidates(TrainSet);
                 _leafSplitHelper = new LeafSplitHelper(HasWeights);
             }
@@ -583,7 +583,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             ParallelTraining = new SingleTrainer();
 
-            int numThreads = Args.NumThreads ?? Environment.ProcessorCount;
+            int numThreads = GamTrainerOptions.NumThreads ?? Environment.ProcessorCount;
             if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
                 using (var ch = Host.Start("GamTrainer"))
                 {
@@ -595,7 +595,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ThreadTaskManager.Initialize(numThreads);
         }
 
-        protected abstract ObjectiveFunctionBase CreateObjectiveFunction();
+        private protected abstract ObjectiveFunctionBase CreateObjectiveFunction();
 
         private class LeafSplitHelper : ILeafSplitStatisticsCalculator
         {

@@ -73,7 +73,7 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            _loss = loss ?? Args.LossFunction.CreateComponent(env);
+            _loss = loss ?? SdcaTrainerOptions.LossFunction.CreateComponent(env);
             Loss = _loss;
         }
 

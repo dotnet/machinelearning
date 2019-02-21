@@ -63,9 +63,9 @@ namespace Microsoft.ML.Data
         public TestCommand(IHostEnvironment env, Arguments args)
             : base(env, args, nameof(TestCommand))
         {
-            Host.CheckUserArg(!string.IsNullOrEmpty(Args.InputModelFile), nameof(Args.InputModelFile), "The input model file is required.");
-            Utils.CheckOptionalUserDirectory(Args.SummaryFilename, nameof(Args.SummaryFilename));
-            Utils.CheckOptionalUserDirectory(Args.OutputDataFile, nameof(Args.OutputDataFile));
+            Host.CheckUserArg(!string.IsNullOrEmpty(ImplOptions.InputModelFile), nameof(ImplOptions.InputModelFile), "The input model file is required.");
+            Utils.CheckOptionalUserDirectory(ImplOptions.SummaryFilename, nameof(ImplOptions.SummaryFilename));
+            Utils.CheckOptionalUserDirectory(ImplOptions.OutputDataFile, nameof(ImplOptions.OutputDataFile));
         }
 
         public override void Run()
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Data
             using (var ch = Host.Start(command))
             using (var server = InitServer(ch))
             {
-                var settings = CmdParser.GetSettings(Host, Args, new Arguments());
+                var settings = CmdParser.GetSettings(Host, ImplOptions, new Arguments());
                 ch.Info("maml.exe {0} {1}", command, settings);
 
                 SendTelemetry(Host);
@@ -98,25 +98,25 @@ namespace Microsoft.ML.Data
 
             ch.Trace("Binding columns");
             var schema = loader.Schema;
-            string label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Args.LabelColumn),
-                Args.LabelColumn, DefaultColumnNames.Label);
-            string features = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Args.FeatureColumn),
-                Args.FeatureColumn, DefaultColumnNames.Features);
-            string group = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Args.GroupColumn),
-                Args.GroupColumn, DefaultColumnNames.GroupId);
-            string weight = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Args.WeightColumn),
-                Args.WeightColumn, DefaultColumnNames.Weight);
-            string name = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Args.NameColumn),
-                Args.NameColumn, DefaultColumnNames.Name);
-            var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumns);
+            string label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(ImplOptions.LabelColumn),
+                ImplOptions.LabelColumn, DefaultColumnNames.Label);
+            string features = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(ImplOptions.FeatureColumn),
+                ImplOptions.FeatureColumn, DefaultColumnNames.Features);
+            string group = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(ImplOptions.GroupColumn),
+                ImplOptions.GroupColumn, DefaultColumnNames.GroupId);
+            string weight = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(ImplOptions.WeightColumn),
+                ImplOptions.WeightColumn, DefaultColumnNames.Weight);
+            string name = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(ImplOptions.NameColumn),
+                ImplOptions.NameColumn, DefaultColumnNames.Name);
+            var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, ImplOptions.CustomColumns);
 
             // Score.
             ch.Trace("Scoring and evaluating");
-            ch.Assert(Args.Scorer == null || Args.Scorer is ICommandLineComponentFactory, "TestCommand should only be used from the command line.");
-            IDataScorerTransform scorePipe = ScoreUtils.GetScorer(Args.Scorer, predictor, loader, features, group, customCols, Host, trainSchema);
+            ch.Assert(ImplOptions.Scorer == null || ImplOptions.Scorer is ICommandLineComponentFactory, "TestCommand should only be used from the command line.");
+            IDataScorerTransform scorePipe = ScoreUtils.GetScorer(ImplOptions.Scorer, predictor, loader, features, group, customCols, Host, trainSchema);
 
             // Evaluate.
-            var evaluator = Args.Evaluator?.CreateComponent(Host) ??
+            var evaluator = ImplOptions.Evaluator?.CreateComponent(Host) ??
                 EvaluateUtils.GetEvaluator(Host, scorePipe.Schema);
             var data = new RoleMappedData(scorePipe, label, null, group, weight, name, customCols);
             var metrics = evaluator.Evaluate(data);
@@ -125,16 +125,16 @@ namespace Microsoft.ML.Data
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out var overall))
                 throw ch.Except("No overall metrics found");
             overall = evaluator.GetOverallResults(overall);
-            MetricWriter.PrintOverallMetrics(Host, ch, Args.SummaryFilename, overall, 1);
+            MetricWriter.PrintOverallMetrics(Host, ch, ImplOptions.SummaryFilename, overall, 1);
             evaluator.PrintAdditionalMetrics(ch, metrics);
             Dictionary<string, IDataView>[] metricValues = { metrics };
             SendTelemetryMetric(metricValues);
-            if (!string.IsNullOrWhiteSpace(Args.OutputDataFile))
+            if (!string.IsNullOrWhiteSpace(ImplOptions.OutputDataFile))
             {
                 var perInst = evaluator.GetPerInstanceMetrics(data);
                 var perInstData = new RoleMappedData(perInst, label, null, group, weight, name, customCols);
                 var idv = evaluator.GetPerInstanceDataViewToSave(perInstData);
-                MetricWriter.SavePerInstance(Host, ch, Args.OutputDataFile, idv);
+                MetricWriter.SavePerInstance(Host, ch, ImplOptions.OutputDataFile, idv);
             }
         }
     }

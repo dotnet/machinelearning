@@ -12,6 +12,9 @@ namespace Microsoft.ML
     using CharTokenizingDefaults = TokenizingByCharactersEstimator.Defaults;
     using TextNormalizeDefaults = TextNormalizingEstimator.Defaults;
 
+    /// <summary>
+    /// The catalog of text related transformations.
+    /// </summary>
     public static class TextCatalog
     {
         /// <summary>
@@ -70,8 +73,8 @@ namespace Microsoft.ML
 
         public static TokenizingByCharactersEstimator TokenizeCharacters(this TransformsCatalog.TextTransforms catalog,
             bool useMarkerCharacters = CharTokenizingDefaults.UseMarkerCharacters,
-            params (string outputColumnName, string inputColumnName)[] columns)
-            => new TokenizingByCharactersEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), useMarkerCharacters, columns);
+            params SimpleColumnInfo[] columns)
+            => new TokenizingByCharactersEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), useMarkerCharacters, SimpleColumnInfo.ConvertToValueTuples(columns));
 
         /// <summary>
         /// Normalizes incoming text in <paramref name="inputColumnName"/> by changing case, removing diacritical marks, punctuation marks and/or numbers

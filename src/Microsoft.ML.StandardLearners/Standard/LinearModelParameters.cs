@@ -15,7 +15,7 @@ using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers;
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Trainers
                 _weightsDenseLock = new object();
         }
 
-        protected LinearModelParameters(IHostEnvironment env, string name, ModelLoadContext ctx)
+        private protected LinearModelParameters(IHostEnvironment env, string name, ModelLoadContext ctx)
             : base(env, name, ctx)
         {
             // *** Binary format ***
@@ -547,12 +547,14 @@ namespace Microsoft.ML.Trainers
 
     public abstract class RegressionModelParameters : LinearModelParameters
     {
-        public RegressionModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
+        [BestFriend]
+        private protected RegressionModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
              : base(env, name, in weights, bias)
         {
         }
 
-        protected RegressionModelParameters(IHostEnvironment env, string name, ModelLoadContext ctx)
+        [BestFriend]
+        private protected RegressionModelParameters(IHostEnvironment env, string name, ModelLoadContext ctx)
             : base(env, name, ctx)
         {
         }

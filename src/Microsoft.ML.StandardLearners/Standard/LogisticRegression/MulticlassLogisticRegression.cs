@@ -14,7 +14,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers;
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
-            ShowTrainingStats = Args.ShowTrainingStats;
+            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStats;
         }
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Trainers
         internal MulticlassLogisticRegression(IHostEnvironment env, Options options)
             : base(env, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumn))
         {
-            ShowTrainingStats = Args.ShowTrainingStats;
+            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStats;
         }
 
         private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;

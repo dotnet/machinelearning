@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public class ScoreTracker
+    internal class ScoreTracker
     {
         public string DatasetName;
         public Dataset Dataset;
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Trainers.FastTree
     }
 
     //Accelerated gradient descent score tracker
-    public class AgdScoreTracker : ScoreTracker
+    internal class AgdScoreTracker : ScoreTracker
     {
         private int _k;
         public double[] YK;

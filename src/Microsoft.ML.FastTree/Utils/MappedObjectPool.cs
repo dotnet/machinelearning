@@ -10,7 +10,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// Implements a paging mechanism on indexed objects.
     /// </summary>
-    public class MappedObjectPool<T> where T : class
+    internal class MappedObjectPool<T> where T : class
     {
         private T[] _pool;
         private int[] _map;

@@ -86,8 +86,8 @@ namespace Microsoft.ML
         ///  [!code-csharp[KeyToValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
         /// ]]></format>
         /// </example>
-        public static KeyToValueMappingEstimator MapKeyToValue(this TransformsCatalog.ConversionTransforms catalog, params (string outputColumnName, string inputColumnName)[] columns)
-             => new KeyToValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+        public static KeyToValueMappingEstimator MapKeyToValue(this TransformsCatalog.ConversionTransforms catalog, params SimpleColumnInfo[] columns)
+             => new KeyToValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), SimpleColumnInfo.ConvertToValueTuples(columns));
 
         /// <summary>
         /// Convert the key types back to their original vectors.
@@ -175,8 +175,8 @@ namespace Microsoft.ML
             this TransformsCatalog.ConversionTransforms catalog,
             IEnumerable<TInputType> keys,
             IEnumerable<TOutputType> values,
-            params (string outputColumnName, string inputColumnName)[] columns)
-            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, columns);
+            params SimpleColumnInfo[] columns)
+            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, SimpleColumnInfo.ConvertToValueTuples(columns));
 
         /// <summary>
         /// <see cref="ValueMappingEstimator"/>
@@ -201,8 +201,9 @@ namespace Microsoft.ML
             IEnumerable<TInputType> keys,
             IEnumerable<TOutputType> values,
             bool treatValuesAsKeyType,
-            params (string outputColumnName, string inputColumnName)[] columns)
-            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, treatValuesAsKeyType, columns);
+            params SimpleColumnInfo[] columns)
+            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, treatValuesAsKeyType,
+                SimpleColumnInfo.ConvertToValueTuples(columns));
 
         /// <summary>
         /// <see cref="ValueMappingEstimator"/>
@@ -228,8 +229,9 @@ namespace Microsoft.ML
             this TransformsCatalog.ConversionTransforms catalog,
             IEnumerable<TInputType> keys,
             IEnumerable<TOutputType[]> values,
-            params (string outputColumnName, string inputColumnName)[] columns)
-            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, columns);
+            params SimpleColumnInfo[] columns)
+            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values,
+                SimpleColumnInfo.ConvertToValueTuples(columns));
 
         /// <summary>
         /// <see cref="ValueMappingEstimator"/>
@@ -251,7 +253,8 @@ namespace Microsoft.ML
         /// </example>
         public static ValueMappingEstimator ValueMap(
             this TransformsCatalog.ConversionTransforms catalog,
-            IDataView lookupMap, string keyColumn, string valueColumn, params (string outputColumnName, string inputColumnName)[] columns)
-            => new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumn, valueColumn, columns);
+            IDataView lookupMap, string keyColumn, string valueColumn, params SimpleColumnInfo[] columns)
+            => new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumn, valueColumn,
+                SimpleColumnInfo.ConvertToValueTuples(columns));
     }
 }
