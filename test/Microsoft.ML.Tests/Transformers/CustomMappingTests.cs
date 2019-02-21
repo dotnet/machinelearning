@@ -30,15 +30,15 @@ namespace Microsoft.ML.Tests.Transformers
             public string Together { get; set; }
         }
 
-        [CustomMappingTransformerFactory("MyLambda")]
-        public class MyLambda : CustomMappingTransformerFactory<MyInput, MyOutput>
+        [CustomMappingFactoryAttribute("MyLambda")]
+        public class MyLambda : CustomMappingFactory<MyInput, MyOutput>
         {
             public static void MyAction(MyInput input, MyOutput output)
             {
                 output.Together = $"{input.Float1} + {string.Join(", ", input.Float4)}";
             }
 
-            public override Action<MyInput, MyOutput> GetTransformer()
+            public override Action<MyInput, MyOutput> GetMapping()
             {
                 return MyAction;
             }

@@ -492,17 +492,17 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         /// <summary>
         /// One class that contains the custom mapping functionality that we need for our model.
         /// 
-        /// It has a <see cref="CustomMappingTransformerFactoryAttribute"/> on it and
-        /// derives from <see cref="CustomMappingTransformerFactory{TSrc, TDst}"/>.
+        /// It has a <see cref="CustomMappingFactoryAttributeAttribute"/> on it and
+        /// derives from <see cref="CustomMappingFactory{TSrc, TDst}"/>.
         /// </summary>
-        [CustomMappingTransformerFactory(nameof(CustomMappings.IncomeMapping))]
-        public class CustomMappings : CustomMappingTransformerFactory<InputRow, OutputRow>
+        [CustomMappingFactoryAttribute(nameof(CustomMappings.IncomeMapping))]
+        public class CustomMappings : CustomMappingFactory<InputRow, OutputRow>
         {
             // This is the custom mapping. We now separate it into a method, so that we can use it both in training and in loading.
             public static void IncomeMapping(InputRow input, OutputRow output) => output.Label = input.Income > 50000;
 
             // This factory method will be called when loading the model to get the mapping operation.
-            public override Action<InputRow, OutputRow> GetTransformer()
+            public override Action<InputRow, OutputRow> GetMapping()
             {
                 return IncomeMapping;
             }
