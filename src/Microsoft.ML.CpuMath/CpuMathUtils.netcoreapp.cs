@@ -163,14 +163,14 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(destination);
 
-            if (destination.Length < MinInputSize || (!Avx.IsSupported && !Sse.IsSupported))
+            if (destination.Length < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
             {
                 for (int i = 0; i < destination.Length; i++)
                 {
                     destination[i] += value;
                 }
             }
-            if (Avx.IsSupported)
+            else if (Avx.IsSupported)
             {
                 AvxIntrinsics.AddScalarU(value, destination);
             }
@@ -190,20 +190,20 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(destination);
 
-            if (Avx.IsSupported)
-            {
-                AvxIntrinsics.Scale(value, destination);
-            }
-            else if (Sse.IsSupported)
-            {
-                SseIntrinsics.Scale(value, destination);
-            }
-            else
+            if (destination.Length < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
             {
                 for (int i = 0; i < destination.Length; i++)
                 {
                     destination[i] *= value;
                 }
+            }
+            else if (Avx.IsSupported)
+            {
+                AvxIntrinsics.Scale(value, destination);
+            }
+            else
+            {
+                SseIntrinsics.Scale(value, destination);
             }
         }
 
@@ -491,15 +491,7 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.Sum(source);
-            }
-            else if (Sse.IsSupported)
-            {
-                return SseIntrinsics.Sum(source);
-            }
-            else
+            if (source.Length < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
             {
                 float sum = 0;
                 for (int i = 0; i < source.Length; i++)
@@ -507,6 +499,14 @@ namespace Microsoft.ML.Internal.CpuMath
                     sum += source[i];
                 }
                 return sum;
+            }
+            else if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.Sum(source);
+            }
+            else
+            {
+                return SseIntrinsics.Sum(source);
             }
         }
 
