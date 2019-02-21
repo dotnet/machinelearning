@@ -65,10 +65,7 @@ namespace Microsoft.ML.Functional.Tests.Datasets
         [LoadColumn(14)]
         public DateTimeOffset Dz { get; set; }
 
-        [LoadColumn(15)]
-        public DataViewRowId Ug { get; set; }
-
-        [LoadColumn(16, 16 + _numFeatures - 1), VectorType(_numFeatures)]
+        [LoadColumn(15, 15 + _numFeatures - 1), VectorType(_numFeatures)]
         public float[] Features { get; set; }
 
 
@@ -82,23 +79,22 @@ namespace Microsoft.ML.Functional.Tests.Datasets
         {
             return mlContext.Data.CreateTextLoader(
                     new[] {
-                        new TextLoader.Column("Label", DataKind.Bool, 0),
-                        new TextLoader.Column("I1", DataKind.I1, 1),
-                        new TextLoader.Column("U1", DataKind.U1, 2),
-                        new TextLoader.Column("I2", DataKind.I2, 3),
-                        new TextLoader.Column("U2", DataKind.U2, 4),
-                        new TextLoader.Column("I4", DataKind.I4, 5),
-                        new TextLoader.Column("U4", DataKind.U4, 6),
-                        new TextLoader.Column("I8", DataKind.I8, 7),
-                        new TextLoader.Column("U8", DataKind.U8, 8),
-                        new TextLoader.Column("R4", DataKind.R4, 9),
-                        new TextLoader.Column("R8", DataKind.R8, 10),
-                        new TextLoader.Column("Tx", DataKind.TX, 11),
-                        new TextLoader.Column("Ts", DataKind.TS, 12),
-                        new TextLoader.Column("Dt", DataKind.DT, 13),
-                        new TextLoader.Column("Dz", DataKind.DZ, 14),
-                        new TextLoader.Column("Ug", DataKind.UG, 15),
-                        new TextLoader.Column("Features", DataKind.R4, 16, 16 + _numFeatures-1),
+                        new TextLoader.Column("Label", ScalarType.Boolean, 0),
+                        new TextLoader.Column("I1", ScalarType.SByte, 1),
+                        new TextLoader.Column("U1", ScalarType.Byte, 2),
+                        new TextLoader.Column("I2", ScalarType.Int16, 3),
+                        new TextLoader.Column("U2", ScalarType.UInt16, 4),
+                        new TextLoader.Column("I4", ScalarType.Int32, 5),
+                        new TextLoader.Column("U4", ScalarType.UInt32, 6),
+                        new TextLoader.Column("I8", ScalarType.Int64, 7),
+                        new TextLoader.Column("U8", ScalarType.UInt64, 8),
+                        new TextLoader.Column("R4", ScalarType.Single, 9),
+                        new TextLoader.Column("R8", ScalarType.Double, 10),
+                        new TextLoader.Column("Tx", ScalarType.String, 11),
+                        new TextLoader.Column("Ts", ScalarType.TimeSpan, 12),
+                        new TextLoader.Column("Dt", ScalarType.DateTime, 13),
+                        new TextLoader.Column("Dz", ScalarType.DateTimeOffset, 14),
+                        new TextLoader.Column("Features", ScalarType.Single, 15, 15 + _numFeatures - 1),
                     },
                     separatorChar: separator,
                     hasHeader: true,
@@ -147,7 +143,6 @@ namespace Microsoft.ML.Functional.Tests.Datasets
                 Ts = TimeSpan.FromSeconds(rng.NextDouble() * (1 + rng.Next())),
                 Dt = DateTime.FromOADate(rng.Next(657435, 2958465)),
                 Dz = DateTimeOffset.FromUnixTimeSeconds((long)(rng.NextDouble() * (1 + rng.Next()))),
-                Ug = new DataViewRowId((ulong)rng.Next(), (ulong)rng.Next()),
                 Features = GetRandomFloatArray(rng, _numFeatures),
             };
         }

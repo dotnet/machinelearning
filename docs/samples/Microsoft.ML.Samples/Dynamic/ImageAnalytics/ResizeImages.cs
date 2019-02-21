@@ -27,8 +27,8 @@ namespace Microsoft.ML.Samples.Dynamic
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", ScalarType.String, 0),
+                        new TextLoader.Column("Name", ScalarType.String, 1),
                 }
             }).Read(imagesDataFile);
 

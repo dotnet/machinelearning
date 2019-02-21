@@ -158,7 +158,6 @@ namespace Microsoft.ML.Functional.Tests
             Assert.True(testType1.Ts.Equals(testType2.Ts));
             Assert.True(testType1.Dt.Equals(testType2.Dt));
             Assert.True(testType1.Dz.Equals(testType2.Dz));
-            Assert.True(testType1.Ug.Equals(testType2.Ug));
         }
 
         /// <summary>

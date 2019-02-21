@@ -490,14 +490,14 @@ namespace Microsoft.ML.Transforms.Conversions
                 }
             }
 
-            TextLoader.Column valueColumn = new TextLoader.Column(valueColumnName, DataKind.U4, 1);
+            TextLoader.Column valueColumn = new TextLoader.Column(valueColumnName, ScalarType.UInt32, 1);
             if (keyMax < int.MaxValue)
                 valueColumn.KeyCount = new KeyCount(keyMax + 1);
             else if (keyMax < uint.MaxValue)
                 valueColumn.KeyCount = new KeyCount();
             else
             {
-                valueColumn.Type = DataKind.U8;
+                valueColumn.Type = ScalarType.UInt64.ToDataKind();
                 valueColumn.KeyCount = new KeyCount();
             }
 
@@ -598,8 +598,8 @@ namespace Microsoft.ML.Transforms.Conversions
                     // types unless ValueAsKeyType is specified.
                     if (options.ValuesAsKeyType)
                     {
-                        keyColumn = new TextLoader.Column(keyColumnName, DataKind.TXT, 0);
-                        valueColumn = new TextLoader.Column(valueColumnName, DataKind.TXT, 1);
+                        keyColumn = new TextLoader.Column(keyColumnName, ScalarType.String, 0);
+                        valueColumn = new TextLoader.Column(valueColumnName, ScalarType.String, 1);
                         var txtArgs = new TextLoader.Options()
                         {
                             Columns = new TextLoader.Column[]
@@ -621,8 +621,8 @@ namespace Microsoft.ML.Transforms.Conversions
                     }
                     else
                     {
-                        keyColumn = new TextLoader.Column(keyColumnName, DataKind.TXT, 0);
-                        valueColumn = new TextLoader.Column(valueColumnName, DataKind.R4, 1);
+                        keyColumn = new TextLoader.Column(keyColumnName, ScalarType.String, 0);
+                        valueColumn = new TextLoader.Column(valueColumnName, ScalarType.Single, 1);
                     }
 
                     loader = TextLoader.Create(

@@ -56,11 +56,11 @@ namespace Microsoft.ML.Benchmarks
             var reader = new TextLoader(mlContext,
                 columns: new[]
                     {
-                            new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("SepalLength", DataKind.R4, 1),
-                            new TextLoader.Column("SepalWidth", DataKind.R4, 2),
-                            new TextLoader.Column("PetalLength", DataKind.R4, 3),
-                            new TextLoader.Column("PetalWidth", DataKind.R4, 4),
+                            new TextLoader.Column("Label", ScalarType.Single, 0),
+                            new TextLoader.Column("SepalLength", ScalarType.Single, 1),
+                            new TextLoader.Column("SepalWidth", ScalarType.Single, 2),
+                            new TextLoader.Column("PetalLength", ScalarType.Single, 3),
+                            new TextLoader.Column("PetalWidth", ScalarType.Single, 4),
                     },
                 hasHeader: true
                 );
@@ -81,19 +81,8 @@ namespace Microsoft.ML.Benchmarks
             {
                 Columns = new TextLoader.Column[]
                 {
-                    new TextLoader.Column()
-                    {
-                        Name = "Label",
-                        Source = new[] { new TextLoader.Range() { Min = 0, Max = 0 } },
-                        Type = DataKind.Num
-                    },
-
-                    new TextLoader.Column()
-                    {
-                        Name = "SentimentText",
-                        Source = new[] { new TextLoader.Range() { Min = 1, Max = 1 } },
-                        Type = DataKind.Text
-                    }
+                    new TextLoader.Column("Label", ScalarType.Single, new[] { new TextLoader.Range() { Min = 0, Max = 0 } }),
+                    new TextLoader.Column("SentimentText", ScalarType.String, new[] { new TextLoader.Range() { Min = 1, Max = 1 } })
                 },
                 HasHeader = true,
                 AllowQuoting = false,
@@ -130,11 +119,11 @@ namespace Microsoft.ML.Benchmarks
             var reader = new TextLoader(mlContext,
                 columns: new[]
                     {
-                            new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("SepalLength", DataKind.R4, 1),
-                            new TextLoader.Column("SepalWidth", DataKind.R4, 2),
-                            new TextLoader.Column("PetalLength", DataKind.R4, 3),
-                            new TextLoader.Column("PetalWidth", DataKind.R4, 4),
+                            new TextLoader.Column("Label", ScalarType.Single, 0),
+                            new TextLoader.Column("SepalLength", ScalarType.Single, 1),
+                            new TextLoader.Column("SepalWidth", ScalarType.Single, 2),
+                            new TextLoader.Column("PetalLength", ScalarType.Single, 3),
+                            new TextLoader.Column("PetalWidth", ScalarType.Single, 4),
                     },
                 hasHeader: true
                 );

@@ -28,8 +28,8 @@ namespace Microsoft.ML.Samples.Dynamic
                 HasHeader = true,
                 Columns = new[]
                {
-                    new TextLoader.Column("Label", DataKind.R4, 0),
-                    new TextLoader.Column("Features", DataKind.R4, 1, 6)
+                    new TextLoader.Column("Label", ScalarType.Single, 0),
+                    new TextLoader.Column("Features", ScalarType.Single, 1, 6)
                 }
             });
 

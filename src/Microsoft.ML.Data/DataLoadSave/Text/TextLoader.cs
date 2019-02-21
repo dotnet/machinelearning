@@ -49,20 +49,27 @@ namespace Microsoft.ML.Data
             /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="type"><see cref="DataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.</param>
+            /// <param name="type"><see cref="ScalarType"/> of the items in the column.</param>
             /// <param name="index">Index of the column.</param>
-            public Column(string name, DataKind? type, int index)
-               : this(name, type, new[] { new Range(index) }) { }
+            public Column(string name, ScalarType type, int index)
+                : this(name, type.ToDataKind(), new[] { new Range(index) })
+            {
+            }
 
             /// <summary>
             /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="type"><see cref="DataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.</param>
+            /// <param name="type"><see cref="ScalarType"/> of the items in the column.</param>
             /// <param name="minIndex">The minimum inclusive index of the column.</param>
             /// <param name="maxIndex">The maximum-inclusive index of the column.</param>
-            public Column(string name, DataKind? type, int minIndex, int maxIndex)
-                : this(name, type, new[] { new Range(minIndex, maxIndex) })
+            public Column(string name, ScalarType type, int minIndex, int maxIndex)
+                : this(name, type.ToDataKind(), new[] { new Range(minIndex, maxIndex) })
+            {
+            }
+
+            public Column(string name, ScalarType type, Range[] source, KeyCount keyCount = null)
+                : this(name, type.ToDataKind(), source, keyCount)
             {
             }
 
@@ -73,7 +80,7 @@ namespace Microsoft.ML.Data
             /// <param name="type"><see cref="DataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.</param>
             /// <param name="source">Source index range(s) of the column.</param>
             /// <param name="keyCount">For a key column, this defines the range of values.</param>
-            public Column(string name, DataKind? type, Range[] source, KeyCount keyCount = null)
+            private Column(string name, DataKind? type, Range[] source, KeyCount keyCount = null)
             {
                 Contracts.CheckValue(name, nameof(name));
                 Contracts.CheckValue(source, nameof(source));
@@ -92,9 +99,17 @@ namespace Microsoft.ML.Data
 
             /// <summary>
             /// <see cref="DataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.
+            /// Although <see cref="DataKind"/> is internal, <see cref="Type"/>'s information can be publically accessed by <see cref="ItemType"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Type of the items in the column")]
-            public DataKind? Type;
+            [BestFriend]
+            internal DataKind? Type;
+
+            /// <summary>
+            /// <see cref="ScalarType"/> of the items in the column.
+            /// </summary>
+            /// It's a public interface to access the information in an internal DataKind.
+            public ScalarType ItemType => Type.HasValue ? Type.Value.ToScalarType() : ScalarType.Single;
 
             /// <summary>
             /// Source index range(s) of the column.
