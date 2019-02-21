@@ -71,8 +71,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 if (type == typeof(string))
                 {
                     var val = kv.Value.ToString();
-                    if (val == "auto" || val == "<auto>" || val == "< auto >")
-                        continue;
+                    if (val == "<Auto>")
+                        continue; // This is temporary fix and needs to be fixed in AutoML SDK
 
                     // string to "string"
                     value = "\"" + val + "\"";

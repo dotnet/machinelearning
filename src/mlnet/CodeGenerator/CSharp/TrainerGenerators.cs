@@ -432,7 +432,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             internal override string MethodName => "SymbolicStochasticGradientDescent";
 
             //ClassName of the options to trainer
-            internal override string OptionsName => "SymbolicStochasticGradientDescent.Options";
+            internal override string OptionsName => "SymSgdClassificationTrainer.Options";
 
             //The named parameters to the trainer.
             internal override IDictionary<string, string> NamedParameters
