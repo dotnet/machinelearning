@@ -164,13 +164,38 @@ namespace Microsoft.ML.Functional.Tests
         /// Check that a <see cref="RegressionMetrics"/> object is valid.
         /// </summary>
         /// <param name="metrics">The metrics object.</param>
-        public static void CheckMetrics(RegressionMetrics metrics)
+        public static void AssertMetrics(RegressionMetrics metrics)
         {
             // Perform sanity checks on the metrics.
             Assert.True(metrics.Rms >= 0);
             Assert.True(metrics.L1 >= 0);
             Assert.True(metrics.L2 >= 0);
             Assert.True(metrics.RSquared <= 1);
+        }
+
+        /// <summary>
+        /// Check that a <see cref="MetricStatistics"/> object is valid.
+        /// </summary>
+        /// <param name="metric">The <see cref="MetricStatistics"/> object.</param>
+        public static void AssertMetricStatistics(MetricStatistics metric)
+        {
+            // Perform sanity checks on the metrics.
+            Assert.True(metric.StandardDeviation >= 0);
+            Assert.True(metric.StandardError >= 0);
+        }
+
+        /// <summary>
+        /// Check that a <see cref="RegressionMetricsStatistics"/> object is valid.
+        /// </summary>
+        /// <param name="metrics">The metrics object.</param>
+        public static void AssertMetricsStatistics(RegressionMetricsStatistics metrics)
+        {
+            // The mean can be any float; the standard deviation and error must be >=0.
+            AssertMetricStatistics(metrics.Rms);
+            AssertMetricStatistics(metrics.L1);
+            AssertMetricStatistics(metrics.L2);
+            AssertMetricStatistics(metrics.RSquared);
+            AssertMetricStatistics(metrics.LossFn);
         }
     }
 }

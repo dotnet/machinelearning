@@ -38,7 +38,7 @@ namespace Microsoft.ML.Functional.Tests
             var scoredTest = model.Transform(split.TestSet);
             var metrics = mlContext.Regression.Evaluate(scoredTest);
 
-            Common.CheckMetrics(metrics);
+            Common.AssertMetrics(metrics);
 
             // Todo #2465: Allow the setting of threshold and thresholdColumn for scoring.
             // This is no longer possible in the API
