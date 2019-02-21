@@ -25,6 +25,7 @@ namespace Microsoft.ML.Data
         private readonly IHost _host;
         private readonly IDataView _xf;
         private readonly bool _allowSave;
+        private readonly bool _isRowToRowMapper;
 
         public TransformWrapper(IHostEnvironment env, IDataView xf, bool allowSave = false)
         {
@@ -33,6 +34,7 @@ namespace Microsoft.ML.Data
             _host.CheckValue(xf, nameof(xf));
             _xf = xf;
             _allowSave = allowSave;
+            _isRowToRowMapper = IsChainRowToRowMapper(_xf);
         }
 
         public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
@@ -107,6 +109,7 @@ namespace Microsoft.ML.Data
             }
 
             _xf = data;
+            _isRowToRowMapper = IsChainRowToRowMapper(_xf);
         }
 
         public IDataView Transform(IDataView input) => ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input);
@@ -121,7 +124,7 @@ namespace Microsoft.ML.Data
             return true;
         }
 
-        bool ITransformer.IsRowToRowMapper => IsChainRowToRowMapper(_xf);
+        bool ITransformer.IsRowToRowMapper => _isRowToRowMapper;
 
         IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
         {
