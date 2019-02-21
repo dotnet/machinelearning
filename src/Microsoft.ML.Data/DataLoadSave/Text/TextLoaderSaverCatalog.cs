@@ -21,8 +21,8 @@ namespace Microsoft.ML
         /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
         public static TextLoader CreateTextLoader(this DataOperationsCatalog catalog,
             TextLoader.Column[] columns,
-            bool hasHeader = TextLoader.DefaultArguments.HasHeader,
-            char separatorChar = TextLoader.DefaultArguments.Separator,
+            bool hasHeader = TextLoader.Defaults.HasHeader,
+            char separatorChar = TextLoader.Defaults.Separator,
             IMultiStreamSource dataSample = null)
             => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, hasHeader, separatorChar, dataSample);
 
@@ -53,11 +53,11 @@ namespace Microsoft.ML
         /// except for 3rd and 5th columns which have values 6 and 3</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
         public static TextLoader CreateTextLoader<TInput>(this DataOperationsCatalog catalog,
-            bool hasHeader = TextLoader.DefaultArguments.HasHeader,
-            char separatorChar = TextLoader.DefaultArguments.Separator,
-            bool allowQuotedStrings = TextLoader.DefaultArguments.AllowQuoting,
-            bool supportSparse = TextLoader.DefaultArguments.AllowSparse,
-            bool trimWhitespace = TextLoader.DefaultArguments.TrimWhitespace)
+            bool hasHeader = TextLoader.Defaults.HasHeader,
+            char separatorChar = TextLoader.Defaults.Separator,
+            bool allowQuotedStrings = TextLoader.Defaults.AllowQuoting,
+            bool supportSparse = TextLoader.Defaults.AllowSparse,
+            bool trimWhitespace = TextLoader.Defaults.TrimWhitespace)
             => TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar, allowQuotedStrings, supportSparse, trimWhitespace);
 
         /// <summary>
@@ -72,8 +72,8 @@ namespace Microsoft.ML
         public static IDataView ReadFromTextFile(this DataOperationsCatalog catalog,
             string path,
             TextLoader.Column[] columns,
-            bool hasHeader = TextLoader.DefaultArguments.HasHeader,
-            char separatorChar = TextLoader.DefaultArguments.Separator)
+            bool hasHeader = TextLoader.Defaults.HasHeader,
+            char separatorChar = TextLoader.Defaults.Separator)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
@@ -104,11 +104,11 @@ namespace Microsoft.ML
         /// <returns>The data view.</returns>
         public static IDataView ReadFromTextFile<TInput>(this DataOperationsCatalog catalog,
             string path,
-            bool hasHeader = TextLoader.DefaultArguments.HasHeader,
-            char separatorChar = TextLoader.DefaultArguments.Separator,
-            bool allowQuotedStrings = TextLoader.DefaultArguments.AllowQuoting,
-            bool supportSparse = TextLoader.DefaultArguments.AllowSparse,
-            bool trimWhitespace = TextLoader.DefaultArguments.TrimWhitespace)
+            bool hasHeader = TextLoader.Defaults.HasHeader,
+            char separatorChar = TextLoader.Defaults.Separator,
+            bool allowQuotedStrings = TextLoader.Defaults.AllowQuoting,
+            bool supportSparse = TextLoader.Defaults.AllowSparse,
+            bool trimWhitespace = TextLoader.Defaults.TrimWhitespace)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
@@ -147,8 +147,8 @@ namespace Microsoft.ML
         public static void SaveAsText(this DataOperationsCatalog catalog,
             IDataView data,
             Stream stream,
-            char separatorChar = TextLoader.DefaultArguments.Separator,
-            bool headerRow = TextLoader.DefaultArguments.HasHeader,
+            char separatorChar = TextLoader.Defaults.Separator,
+            bool headerRow = TextLoader.Defaults.HasHeader,
             bool schema = true,
             bool keepHidden = false)
         {

@@ -8,17 +8,17 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.UniversalModelFormat.Onnx;
 
-namespace Microsoft.ML.Model.Onnx
+namespace Microsoft.ML.Model.OnnxConverter
 {
     /// <summary>
     /// A context for defining a ONNX output.
     /// </summary>
     internal sealed class OnnxContextImpl : OnnxContext
     {
-        private readonly List<NodeProto> _nodes;
+        private readonly List<OnnxCSharpToProtoWrapper.NodeProto> _nodes;
         private readonly List<OnnxUtils.ModelArgs> _inputs;
         // The map from IDataView column names to variable names.
-        private readonly List<TensorProto> _initializers;
+        private readonly List<OnnxCSharpToProtoWrapper.TensorProto> _initializers;
         private readonly List<OnnxUtils.ModelArgs> _intermediateValues;
         private readonly List<OnnxUtils.ModelArgs> _outputs;
         private readonly Dictionary<string, string> _columnNameMap;
@@ -42,10 +42,10 @@ namespace Microsoft.ML.Model.Onnx
             _host.CheckValue(name, nameof(name));
             _host.CheckValue(name, nameof(domain));
 
-            _nodes = new List<NodeProto>();
+            _nodes = new List<OnnxCSharpToProtoWrapper.NodeProto>();
             _intermediateValues = new List<OnnxUtils.ModelArgs>();
             _inputs = new List<OnnxUtils.ModelArgs>();
-            _initializers = new List<TensorProto>();
+            _initializers = new List<OnnxCSharpToProtoWrapper.TensorProto>();
             _outputs = new List<OnnxUtils.ModelArgs>();
             _columnNameMap = new Dictionary<string, string>();
             _variableNames = new HashSet<string>();
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Model.Onnx
         /// Adds a node to the node list of the graph.
         /// </summary>
         /// <param name="node"></param>
-        private void AddNode(NodeProto node)
+        private void AddNode(OnnxCSharpToProtoWrapper.NodeProto node)
         {
             _host.CheckValue(node, nameof(node));
             _host.Assert(!_nodeNames.Contains(node.Name));
@@ -327,7 +327,7 @@ namespace Microsoft.ML.Model.Onnx
         /// <summary>
         /// Makes the ONNX model based on the context.
         /// </summary>
-        public ModelProto MakeModel()
+        public OnnxCSharpToProtoWrapper.ModelProto MakeModel()
             => OnnxUtils.MakeModel(_nodes, _producerName, _name, _domain, _producerVersion, _modelVersion, _inputs, _outputs, _intermediateValues, _initializers);
 
         /// <summary>

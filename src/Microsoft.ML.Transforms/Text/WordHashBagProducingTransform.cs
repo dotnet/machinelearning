@@ -161,7 +161,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     internal static class NgramHashExtractingTransformer
     {
-        public abstract class ColumnBase : ManyToOneColumn
+        internal abstract class ColumnBase : ManyToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Ngram length (stores all lengths up to the specified Ngram length)", ShortName = "ngram")]
             public int? NgramLength;

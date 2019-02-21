@@ -98,7 +98,7 @@ namespace Microsoft.ML.Data
             using (var ch = Host.Start(LoadName))
             using (var server = InitServer(ch))
             {
-                var settings = CmdParser.GetSettings(Host, Args, new Arguments());
+                var settings = CmdParser.GetSettings(Host, ImplOptions, new Arguments());
                 string cmd = string.Format("maml.exe {0} {1}", LoadName, settings);
                 ch.Info(cmd);
 
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Data
 
         protected override void SendTelemetryCore(IPipe<TelemetryMessage> pipe)
         {
-            SendTelemetryComponent(pipe, Args.Trainer);
+            SendTelemetryComponent(pipe, ImplOptions.Trainer);
             base.SendTelemetryCore(pipe);
         }
 
@@ -123,10 +123,10 @@ namespace Microsoft.ML.Data
             Host.AssertNonEmpty(cmd);
 
             ch.Trace("Constructing trainer");
-            ITrainer trainer = Args.Trainer.CreateComponent(Host);
+            ITrainer trainer = ImplOptions.Trainer.CreateComponent(Host);
 
             IPredictor inputPredictor = null;
-            if (Args.ContinueTrain && !TrainUtils.TryLoadPredictor(ch, Host, Args.InputModelFile, out inputPredictor))
+            if (ImplOptions.ContinueTrain && !TrainUtils.TryLoadPredictor(ch, Host, ImplOptions.InputModelFile, out inputPredictor))
                 ch.Warning("No input model file specified or model file did not contain a predictor. The model state cannot be initialized.");
 
             ch.Trace("Constructing the training pipeline");
@@ -134,24 +134,24 @@ namespace Microsoft.ML.Data
 
             var schema = trainPipe.Schema;
             string label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.LabelColumn),
-                Args.LabelColumn, DefaultColumnNames.Label);
+                ImplOptions.LabelColumn, DefaultColumnNames.Label);
             string features = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.FeatureColumn),
-                Args.FeatureColumn, DefaultColumnNames.Features);
+                ImplOptions.FeatureColumn, DefaultColumnNames.Features);
             string group = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.GroupColumn),
-                Args.GroupColumn, DefaultColumnNames.GroupId);
+                ImplOptions.GroupColumn, DefaultColumnNames.GroupId);
             string weight = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.WeightColumn),
-                Args.WeightColumn, DefaultColumnNames.Weight);
+                ImplOptions.WeightColumn, DefaultColumnNames.Weight);
             string name = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.NameColumn),
-                Args.NameColumn, DefaultColumnNames.Name);
+                ImplOptions.NameColumn, DefaultColumnNames.Name);
 
-            TrainUtils.AddNormalizerIfNeeded(Host, ch, trainer, ref trainPipe, features, Args.NormalizeFeatures);
+            TrainUtils.AddNormalizerIfNeeded(Host, ch, trainer, ref trainPipe, features, ImplOptions.NormalizeFeatures);
 
             ch.Trace("Binding columns");
-            var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumns);
+            var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, ImplOptions.CustomColumns);
             var data = new RoleMappedData(trainPipe, label, features, group, weight, name, customCols);
 
             RoleMappedData validData = null;
-            if (!string.IsNullOrWhiteSpace(Args.ValidationFile))
+            if (!string.IsNullOrWhiteSpace(ImplOptions.ValidationFile))
             {
                 if (!trainer.Info.SupportsValidation)
                 {
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Data
                 else
                 {
                     ch.Trace("Constructing the validation pipeline");
-                    IDataView validPipe = CreateRawLoader(dataFile: Args.ValidationFile);
+                    IDataView validPipe = CreateRawLoader(dataFile: ImplOptions.ValidationFile);
                     validPipe = ApplyTransformUtils.ApplyAllTransformsToData(Host, trainPipe, validPipe);
                     validData = new RoleMappedData(validPipe, data.Schema.GetColumnRoleNames());
                 }
@@ -171,42 +171,42 @@ namespace Microsoft.ML.Data
             // indirectly use validation set to improve the model but the learned model should totally independent of test set.
             // Similar to validation set, the trainer can report the scores computed using test set.
             RoleMappedData testDataUsedInTrainer = null;
-            if (!string.IsNullOrWhiteSpace(Args.TestFile))
+            if (!string.IsNullOrWhiteSpace(ImplOptions.TestFile))
             {
                 // In contrast to the if-else block for validation above, we do not throw a warning if test file is provided
                 // because this is TrainTest command.
                 if (trainer.Info.SupportsTest)
                 {
                     ch.Trace("Constructing the test pipeline");
-                    IDataView testPipeUsedInTrainer = CreateRawLoader(dataFile: Args.TestFile);
+                    IDataView testPipeUsedInTrainer = CreateRawLoader(dataFile: ImplOptions.TestFile);
                     testPipeUsedInTrainer = ApplyTransformUtils.ApplyAllTransformsToData(Host, trainPipe, testPipeUsedInTrainer);
                     testDataUsedInTrainer = new RoleMappedData(testPipeUsedInTrainer, data.Schema.GetColumnRoleNames());
                 }
             }
 
             var predictor = TrainUtils.Train(Host, ch, data, trainer, validData,
-                Args.Calibrator, Args.MaxCalibrationExamples, Args.CacheData, inputPredictor, testDataUsedInTrainer);
+                ImplOptions.Calibrator, ImplOptions.MaxCalibrationExamples, ImplOptions.CacheData, inputPredictor, testDataUsedInTrainer);
 
             IDataLoader testPipe;
-            bool hasOutfile = !string.IsNullOrEmpty(Args.OutputModelFile);
+            bool hasOutfile = !string.IsNullOrEmpty(ImplOptions.OutputModelFile);
             var tempFilePath = hasOutfile ? null : Path.GetTempFileName();
 
-            using (var file = new SimpleFileHandle(ch, hasOutfile ? Args.OutputModelFile : tempFilePath, true, !hasOutfile))
+            using (var file = new SimpleFileHandle(ch, hasOutfile ? ImplOptions.OutputModelFile : tempFilePath, true, !hasOutfile))
             {
                 TrainUtils.SaveModel(Host, ch, file, predictor, data, cmd);
                 ch.Trace("Constructing the testing pipeline");
                 using (var stream = file.OpenReadStream())
                 using (var rep = RepositoryReader.Open(stream, ch))
-                    testPipe = LoadLoader(rep, Args.TestFile, true);
+                    testPipe = LoadLoader(rep, ImplOptions.TestFile, true);
             }
 
             // Score.
             ch.Trace("Scoring and evaluating");
-            ch.Assert(Args.Scorer == null || Args.Scorer is ICommandLineComponentFactory, "TrainTestCommand should only be used from the command line.");
-            IDataScorerTransform scorePipe = ScoreUtils.GetScorer(Args.Scorer, predictor, testPipe, features, group, customCols, Host, data.Schema);
+            ch.Assert(ImplOptions.Scorer == null || ImplOptions.Scorer is ICommandLineComponentFactory, "TrainTestCommand should only be used from the command line.");
+            IDataScorerTransform scorePipe = ScoreUtils.GetScorer(ImplOptions.Scorer, predictor, testPipe, features, group, customCols, Host, data.Schema);
 
             // Evaluate.
-            var evaluator = Args.Evaluator?.CreateComponent(Host) ??
+            var evaluator = ImplOptions.Evaluator?.CreateComponent(Host) ??
                 EvaluateUtils.GetEvaluator(Host, scorePipe.Schema);
             var dataEval = new RoleMappedData(scorePipe, label, features,
                 group, weight, name, customCols, opt: true);
@@ -216,16 +216,16 @@ namespace Microsoft.ML.Data
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out var overall))
                 throw ch.Except("No overall metrics found");
             overall = evaluator.GetOverallResults(overall);
-            MetricWriter.PrintOverallMetrics(Host, ch, Args.SummaryFilename, overall, 1);
+            MetricWriter.PrintOverallMetrics(Host, ch, ImplOptions.SummaryFilename, overall, 1);
             evaluator.PrintAdditionalMetrics(ch, metrics);
             Dictionary<string, IDataView>[] metricValues = { metrics };
             SendTelemetryMetric(metricValues);
-            if (!string.IsNullOrWhiteSpace(Args.OutputDataFile))
+            if (!string.IsNullOrWhiteSpace(ImplOptions.OutputDataFile))
             {
                 var perInst = evaluator.GetPerInstanceMetrics(dataEval);
                 var perInstData = new RoleMappedData(perInst, label, null, group, weight, name, customCols);
                 var idv = evaluator.GetPerInstanceDataViewToSave(perInstData);
-                MetricWriter.SavePerInstance(Host, ch, Args.OutputDataFile, idv);
+                MetricWriter.SavePerInstance(Host, ch, ImplOptions.OutputDataFile, idv);
             }
         }
     }

@@ -12,16 +12,16 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model.Onnx;
-using Microsoft.ML.UniversalModelFormat.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Newtonsoft.Json;
+using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
 
 [assembly: LoadableClass(SaveOnnxCommand.Summary, typeof(SaveOnnxCommand), typeof(SaveOnnxCommand.Arguments), typeof(SignatureCommand),
     "Save ONNX", "SaveOnnx", DocName = "command/SaveOnnx.md")]
 
 [assembly: LoadableClass(typeof(void), typeof(SaveOnnxCommand), null, typeof(SignatureEntryPointModule), "SaveOnnx")]
 
-namespace Microsoft.ML.Model.Onnx
+namespace Microsoft.ML.Model.OnnxConverter
 {
     internal sealed class SaveOnnxCommand : DataCommand.ImplBase<SaveOnnxCommand.Arguments>
     {
@@ -200,13 +200,13 @@ namespace Microsoft.ML.Model.Onnx
 
             if (_model == null)
             {
-                if (string.IsNullOrEmpty(Args.InputModelFile))
+                if (string.IsNullOrEmpty(ImplOptions.InputModelFile))
                 {
                     loader = CreateLoader();
                     rawPred = null;
                     trainSchema = null;
-                    Host.CheckUserArg(Args.LoadPredictor != true, nameof(Args.LoadPredictor),
-                        "Cannot be set to true unless " + nameof(Args.InputModelFile) + " is also specifified.");
+                    Host.CheckUserArg(ImplOptions.LoadPredictor != true, nameof(ImplOptions.LoadPredictor),
+                        "Cannot be set to true unless " + nameof(ImplOptions.InputModelFile) + " is also specifified.");
                 }
                 else
                     LoadModelObjects(ch, _loadPredictor, out rawPred, true, out trainSchema, out loader);
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Model.Onnx
             var assembly = System.Reflection.Assembly.GetExecutingAssembly();
             var versionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
             var ctx = new OnnxContextImpl(Host, _name, ProducerName, versionInfo.FileVersion,
-                ModelVersion, _domain, Args.OnnxVersion);
+                ModelVersion, _domain, ImplOptions.OnnxVersion);
 
             // Get the transform chain.
             IDataView source;
@@ -281,13 +281,13 @@ namespace Microsoft.ML.Model.Onnx
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(Args.OutputModelFile))
+            if (!string.IsNullOrWhiteSpace(ImplOptions.OutputModelFile))
             {
                 Contracts.Assert(loader != null);
 
                 ch.Trace("Saving the data pipe");
                 // Should probably include "end"?
-                SaveLoader(loader, Args.OutputModelFile);
+                SaveLoader(loader, ImplOptions.OutputModelFile);
             }
         }
 

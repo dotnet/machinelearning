@@ -1016,8 +1016,8 @@ namespace Microsoft.ML.Data
                                 }
                                 var spanT = Fields.Spans[Fields.Count - 1];
 
-                                int csrc = 0;
-                                if (!Conversions.Instance.TryConvert(in spanT, ref csrc) || csrc <= 0)
+                                int csrc;
+                                if (!Conversions.Instance.TryParse(in spanT, out csrc) || csrc <= 0)
                                 {
                                     _stats.LogBadFmt(ref scan, "Bad dimensionality or ambiguous sparse item. Use sparse=- for non-sparse file, and/or quote the value.");
                                     break;

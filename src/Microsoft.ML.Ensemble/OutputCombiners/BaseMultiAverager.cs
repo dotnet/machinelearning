@@ -12,8 +12,8 @@ namespace Microsoft.ML.Trainers.Ensemble
 {
     internal abstract class BaseMultiAverager : BaseMultiCombiner
     {
-        private protected BaseMultiAverager(IHostEnvironment env, string name, OptionsBase args)
-            : base(env, name, args)
+        private protected BaseMultiAverager(IHostEnvironment env, string name, OptionsBase options)
+            : base(env, name, options)
         {
         }
 

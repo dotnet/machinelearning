@@ -11,7 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.KMeans;
 using Float = System.Single;

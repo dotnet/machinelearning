@@ -24,14 +24,14 @@ namespace Microsoft.ML.Trainers.Ensemble
 
         protected readonly bool Normalize;
 
-        internal BaseMultiCombiner(IHostEnvironment env, string name, OptionsBase args)
+        internal BaseMultiCombiner(IHostEnvironment env, string name, OptionsBase options)
         {
             Contracts.AssertValue(env);
             env.AssertNonWhiteSpace(name);
             Host = env.Register(name);
-            Host.CheckValue(args, nameof(args));
+            Host.CheckValue(options, nameof(options));
 
-            Normalize = args.Normalize;
+            Normalize = options.Normalize;
         }
 
         internal BaseMultiCombiner(IHostEnvironment env, string name, ModelLoadContext ctx)
