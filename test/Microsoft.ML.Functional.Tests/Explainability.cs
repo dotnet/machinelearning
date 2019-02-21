@@ -63,7 +63,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            // Get the dataset
+            // Get the dataset.
             var data = mlContext.Data.ReadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create a pipeline to train on the housing data.
@@ -152,7 +152,7 @@ namespace Microsoft.ML.Functional.Tests
             var model = pipeline.Fit(data);
             var scoredData = model.Transform(data);
 
-            // Create a Feature Contribution Calculator
+            // Create a Feature Contribution Calculator.
             var predictor = model.LastTransformer;
             var featureContributions = mlContext.Model.Explainability.FeatureContributionCalculation(predictor.Model, predictor.FeatureColumn, normalize: false);
 
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// LocalFeatureImportance: Per-row feature importance can be computed through FeatureContributionCalculator for a FastTree model.
+        /// LocalFeatureImportance: Per-row feature importance can be computed through FeatureContributionCalculator for a <see cref="FastTree"/> model.
         /// </summary>
         [Fact]
         public void LocalFeatureImportanceForFastTreeModel()
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Functional.Tests
             var model = pipeline.Fit(data);
             var scoredData = model.Transform(data);
 
-            // Create a Feature Contribution Calculator
+            // Create a Feature Contribution Calculator.
             var predictor = model.LastTransformer;
             var featureContributions = mlContext.Model.Explainability.FeatureContributionCalculation(predictor.Model, predictor.FeatureColumn, normalize: false);
 
@@ -208,7 +208,7 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// LocalFeatureImportance: Per-row feature importance can be computed through FeatureContributionCalculator for a FastForest model.
+        /// LocalFeatureImportance: Per-row feature importance can be computed through FeatureContributionCalculator for a <see cref="FastForest"/>model.
         /// </summary>
         [Fact]
         public void LocalFeatureImportanceForFastForestModel()
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Functional.Tests
             var model = pipeline.Fit(data);
             var scoredData = model.Transform(data);
 
-            // Create a Feature Contribution Calculator
+            // Create a Feature Contribution Calculator.
             var predictor = model.LastTransformer;
             var featureContributions = mlContext.Model.Explainability.FeatureContributionCalculation(predictor.Model, predictor.FeatureColumn, normalize: false);
 
@@ -245,7 +245,8 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// LocalFeatureImportance: Per-row feature importance can be computed through FeatureContributionCalculator for a Generalized Additive Models model.
+        /// LocalFeatureImportance: Per-row feature importance can be computed through FeatureContributionCalculator for a <see cref="GamModelParametersBase" />
+        /// (Generalized Additive Model) model.
         /// </summary>
         [Fact]
         public void LocalFeatureImportanceForGamModel()
@@ -263,7 +264,7 @@ namespace Microsoft.ML.Functional.Tests
             var model = pipeline.Fit(data);
             var scoredData = model.Transform(data);
 
-            // Create a Feature Contribution Calculator
+            // Create a Feature Contribution Calculator.
             var predictor = model.LastTransformer;
             var featureContributions = mlContext.Model.Explainability.FeatureContributionCalculation(predictor.Model, predictor.FeatureColumn, normalize: false);
 

@@ -7,7 +7,7 @@ using Microsoft.ML.Data;
 namespace Microsoft.ML.Functional.Tests.Datasets
 {
     /// <summary>
-    /// A schematized class for loading the HousingRegression dataset.
+    /// A class to hold the output of FeatureContributionCalculator
     /// </summary>
     internal sealed class FeatureContributionOutput
     {
