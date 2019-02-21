@@ -33,7 +33,7 @@ namespace Microsoft.ML.Sweeper
         public abstract class OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Command pattern for the sweeps", ShortName = "pattern")]
-            public string ArgsPattern;
+            public string OptionsPattern;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "output folder for the outputs of the sweeps", ShortName = "outfolder")]
             public string OutputFolderName;
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Sweeper
         }
 
         protected string Exe;
-        protected readonly string ArgsPattern;
+        protected readonly string OptionsPattern;
         protected readonly string OutputFolder;
         protected readonly string Prefix;
         protected readonly ISweepResultEvaluator<string> ResultProcessor;
@@ -63,17 +63,17 @@ namespace Microsoft.ML.Sweeper
 
         private readonly bool _calledFromUnitTestSuite;
 
-        protected ExeConfigRunnerBase(OptionsBase args, IHostEnvironment env, string registrationName)
+        protected ExeConfigRunnerBase(OptionsBase options, IHostEnvironment env, string registrationName)
         {
             Contracts.AssertValue(env);
             Host = env.Register(registrationName);
-            Host.CheckUserArg(!string.IsNullOrEmpty(args.ArgsPattern), nameof(args.ArgsPattern), "The command pattern is missing");
-            Host.CheckUserArg(!string.IsNullOrEmpty(args.OutputFolderName), nameof(args.OutputFolderName), "Please specify an output folder");
-            ArgsPattern = args.ArgsPattern;
-            OutputFolder = GetOutputFolderPath(args.OutputFolderName);
-            Prefix = string.IsNullOrEmpty(args.Prefix) ? "" : args.Prefix;
-            ResultProcessor = args.ResultProcessor.CreateComponent(Host);
-            _calledFromUnitTestSuite = args.CalledFromUnitTestSuite;
+            Host.CheckUserArg(!string.IsNullOrEmpty(options.OptionsPattern), nameof(options.OptionsPattern), "The command pattern is missing");
+            Host.CheckUserArg(!string.IsNullOrEmpty(options.OutputFolderName), nameof(options.OutputFolderName), "Please specify an output folder");
+            OptionsPattern = options.OptionsPattern;
+            OutputFolder = GetOutputFolderPath(options.OutputFolderName);
+            Prefix = string.IsNullOrEmpty(options.Prefix) ? "" : options.Prefix;
+            ResultProcessor = options.ResultProcessor.CreateComponent(Host);
+            _calledFromUnitTestSuite = options.CalledFromUnitTestSuite;
             RunNums = new List<int>();
         }
 
@@ -151,10 +151,10 @@ namespace Microsoft.ML.Sweeper
         // you get lr=$ only as argument because $LR is variable and empty.
         protected string GetCommandLine(ParameterSet sweep)
         {
-            var arguments = ArgsPattern;
+            var options = OptionsPattern;
             foreach (var parameterValue in sweep)
-                arguments = arguments.Replace("$" + parameterValue.Name + "$", parameterValue.ValueText);
-            return arguments;
+                options = options.Replace("$" + parameterValue.Name + "$", parameterValue.ValueText);
+            return options;
         }
 
         public IEnumerable<IRunResult> RunConfigs(ParameterSet[] sweeps, int min)

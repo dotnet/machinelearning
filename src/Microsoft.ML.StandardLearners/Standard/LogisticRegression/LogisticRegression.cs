@@ -92,7 +92,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
             _posWeight = 0;
-            ShowTrainingStats = Args.ShowTrainingStats;
+            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStats;
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Trainers
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
             _posWeight = 0;
-            ShowTrainingStats = Args.ShowTrainingStats;
+            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStats;
         }
 
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -355,11 +355,11 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            if (Args.StdComputer == null)
+            if (LbfgsTrainerOptions.StdComputer == null)
                 _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
             else
             {
-                var std = Args.StdComputer.ComputeStd(hessian, weightIndices, numParams, CurrentWeights.Length, ch, L2Weight);
+                var std = LbfgsTrainerOptions.StdComputer.ComputeStd(hessian, weightIndices, numParams, CurrentWeights.Length, ch, L2Weight);
                 _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance, std);
             }
         }

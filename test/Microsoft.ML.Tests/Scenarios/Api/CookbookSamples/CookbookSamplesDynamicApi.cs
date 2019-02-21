@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using Microsoft.Data.DataView;
@@ -13,6 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.Text;
@@ -491,22 +490,22 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         }
 
         /// <summary>
-        /// One class that contains all custom mappings that we need for our model.
+        /// One class that contains the custom mapping functionality that we need for our model.
+        /// 
+        /// It has a <see cref="CustomMappingFactoryAttributeAttribute"/> on it and
+        /// derives from <see cref="CustomMappingFactory{TSrc, TDst}"/>.
         /// </summary>
-        public class CustomMappings
+        [CustomMappingFactoryAttribute(nameof(CustomMappings.IncomeMapping))]
+        public class CustomMappings : CustomMappingFactory<InputRow, OutputRow>
         {
             // This is the custom mapping. We now separate it into a method, so that we can use it both in training and in loading.
             public static void IncomeMapping(InputRow input, OutputRow output) => output.Label = input.Income > 50000;
 
-            // MLContext is needed to create a new transformer. We are using 'Import' to have ML.NET populate
-            // this property.
-            [Import]
-            public MLContext MLContext { get; set; }
-
-            // We are exporting the custom transformer by the name 'IncomeMapping'.
-            [Export(nameof(IncomeMapping))]
-            public ITransformer MyCustomTransformer 
-                => MLContext.Transforms.CustomMappingTransformer<InputRow, OutputRow>(IncomeMapping, nameof(IncomeMapping));
+            // This factory method will be called when loading the model to get the mapping operation.
+            public override Action<InputRow, OutputRow> GetMapping()
+            {
+                return IncomeMapping;
+            }
         }
 
         private static void RunEndToEnd(MLContext mlContext, IDataView trainData, string modelPath)
@@ -530,8 +529,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Now pretend we are in a different process.
             var newContext = new MLContext();
 
-            // Create a custom composition container for all our custom mapping actions.
-            newContext.CompositionContainer = new CompositionContainer(new TypeCatalog(typeof(CustomMappings)));
+            // Register the assembly that contains 'CustomMappings' with the ComponentCatalog
+            // so it can be found when loading the model.
+            newContext.ComponentCatalog.RegisterAssembly(typeof(CustomMappings).Assembly);
 
             // Now we can load the model.
             ITransformer loadedModel;

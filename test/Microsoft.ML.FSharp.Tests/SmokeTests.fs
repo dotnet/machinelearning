@@ -38,7 +38,6 @@
 #r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/xunit.core.dll" 
 #r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/xunit.assert.dll" 
 #r "System" 
-#r "System.ComponentModel.Composition" 
 #r "System.Core" 
 #r "System.Xml.Linq" 
 

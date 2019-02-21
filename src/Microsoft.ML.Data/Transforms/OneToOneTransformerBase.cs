@@ -32,7 +32,8 @@ namespace Microsoft.ML.Data
             ColumnPairs = columns;
         }
 
-        protected OneToOneTransformerBase(IHost host, ModelLoadContext ctx) : base(host)
+        [BestFriend]
+        private protected OneToOneTransformerBase(IHost host, ModelLoadContext ctx) : base(host)
         {
             // *** Binary format ***
             // int: number of added columns
@@ -78,7 +79,8 @@ namespace Microsoft.ML.Data
             CheckInputColumn(inputSchema, col, srcCol);
         }
 
-        protected virtual void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        [BestFriend]
+        private protected virtual void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             // By default, there are no extra checks.
         }

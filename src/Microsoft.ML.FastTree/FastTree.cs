@@ -95,7 +95,7 @@ namespace Microsoft.ML.Trainers.FastTree
         // random for active features selection
         private Random _featureSelectionRandom;
 
-        private protected string InnerArgs => CmdParser.GetSettings(Host, FastTreeTrainerOptions, new TOptions());
+        private protected string InnerOptions => CmdParser.GetSettings(Host, FastTreeTrainerOptions, new TOptions());
 
         public override TrainerInfo Info { get; }
 
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Trainers.FastTree
             {
                 using (Timer.Time(TimerEvent.TotalInitialization))
                 {
-                    CheckArgs(ch);
+                    CheckOptions(ch);
                     PrintPrologInfo(ch);
 
                     Initialize(ch);
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ch.Info("Execution time breakdown:\n{0}", Timer.GetString());
         }
 
-        private protected virtual void CheckArgs(IChannel ch)
+        private protected virtual void CheckOptions(IChannel ch)
         {
             FastTreeTrainerOptions.Check(ch);
 
@@ -2814,7 +2814,7 @@ namespace Microsoft.ML.Trainers.FastTree
         int ITreeEnsemble.NumTrees => TrainedEnsemble.NumTrees;
 
         // Inner args is used only for documentation purposes when saving comments to INI files.
-        private protected readonly string InnerArgs;
+        private protected readonly string InnerOptions;
 
         // The total number of features used in training (takes the value of zero if the
         // written version of the loaded model is less than VerNumFeaturesSerialized)
@@ -2865,7 +2865,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // the trained ensemble to, for instance, resize arrays so that they are of the length
             // the actual number of leaves/nodes, or remove unnecessary arrays, and so forth.
             TrainedEnsemble = trainedEnsemble;
-            InnerArgs = innerArgs;
+            InnerOptions = innerArgs;
             NumFeatures = numFeatures;
 
             MaxSplitFeatIdx = trainedEnsemble.GetMaxFeatureIndex();
@@ -2895,7 +2895,7 @@ namespace Microsoft.ML.Trainers.FastTree
             TrainedEnsemble = new InternalTreeEnsemble(ctx, usingDefaultValues, categoricalSplits);
             MaxSplitFeatIdx = TrainedEnsemble.GetMaxFeatureIndex();
 
-            InnerArgs = ctx.LoadStringOrNull();
+            InnerOptions = ctx.LoadStringOrNull();
             if (ctx.Header.ModelVerWritten >= VerNumFeaturesSerialized)
             {
                 NumFeatures = ctx.Reader.ReadInt32();
@@ -2924,7 +2924,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // int: Number of features (VerNumFeaturesSerialized)
             // <PredictionKind> specific stuff
             TrainedEnsemble.Save(ctx);
-            ctx.SaveStringOrNull(InnerArgs);
+            ctx.SaveStringOrNull(InnerOptions);
             Host.Assert(NumFeatures >= 0);
             ctx.Writer.Write(NumFeatures);
         }
@@ -3003,7 +3003,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             Host.CheckValue(writer, nameof(writer));
             var ensembleIni = FastTreeIniFileUtils.TreeEnsembleToIni(Host, TrainedEnsemble, schema, calibrator,
-                InnerArgs, appendFeatureGain: true, includeZeroGainFeatures: false);
+                InnerOptions, appendFeatureGain: true, includeZeroGainFeatures: false);
             writer.WriteLine(ensembleIni);
         }
 

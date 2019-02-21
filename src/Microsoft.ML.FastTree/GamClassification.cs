@@ -117,14 +117,14 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FastTreeBinaryClassificationTrainer.ObjectiveImpl(
                 TrainSet,
                 ConvertTargetsToBool(TrainSet.Targets),
-                Args.LearningRates,
+                GamTrainerOptions.LearningRates,
                 0,
                 _sigmoidParameter,
-                Args.UnbalancedSets,
-                Args.MaxOutput,
-                Args.GetDerivativesSampleRate,
+                GamTrainerOptions.UnbalancedSets,
+                GamTrainerOptions.MaxOutput,
+                GamTrainerOptions.GetDerivativesSampleRate,
                 false,
-                Args.RngSeed,
+                GamTrainerOptions.RngSeed,
                 ParallelTraining
             );
         }
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Trainers.FastTree
             var validTest = new BinaryClassificationTest(ValidSetScore,
                 ConvertTargetsToBool(ValidSet.Targets), _sigmoidParameter);
             // As per FastTreeClassification.ConstructOptimizationAlgorithm()
-            PruningLossIndex = Args.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/;
+            PruningLossIndex = GamTrainerOptions.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/;
             PruningTest = new TestHistory(validTest, PruningLossIndex);
         }
 

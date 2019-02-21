@@ -23212,8 +23212,8 @@
           "Desc": "Offset (pre-scale)",
           "Required": false,
           "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null
+          "IsNullable": false,
+          "Default": 0.0
         },
         {
           "Name": "Scale",
@@ -23221,8 +23221,8 @@
           "Desc": "Scale factor",
           "Required": false,
           "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null
+          "IsNullable": false,
+          "Default": 1.0
         }
       ],
       "Outputs": [
