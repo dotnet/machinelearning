@@ -166,9 +166,9 @@ namespace Microsoft.ML.Transforms.Categorical
 
         void ICanSaveModel.Save(ModelSaveContext ctx) => (_transformer as ICanSaveModel).Save(ctx);
 
-        public bool IsRowToRowMapper => _transformer.IsRowToRowMapper;
+        bool ITransformer.IsRowToRowMapper => ((ITransformer)_transformer).IsRowToRowMapper;
 
-        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema) => _transformer.GetRowToRowMapper(inputSchema);
+        IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema) => ((ITransformer)_transformer).GetRowToRowMapper(inputSchema);
     }
     /// <summary>
     /// Estimator which takes set of columns and produce for each column indicator array.

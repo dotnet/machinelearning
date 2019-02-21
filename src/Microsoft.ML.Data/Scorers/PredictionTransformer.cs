@@ -55,10 +55,10 @@ namespace Microsoft.ML.Data
         protected DataViewSchema TrainSchema;
 
         /// <summary>
-        /// Whether a call to <see cref="GetRowToRowMapper(DataViewSchema)"/> should succeed, on an
+        /// Whether a call to <see cref="ITransformer.GetRowToRowMapper(DataViewSchema)"/> should succeed, on an
         /// appropriate schema.
         /// </summary>
-        public bool IsRowToRowMapper => true;
+        bool ITransformer.IsRowToRowMapper => true;
 
         /// <summary>
         /// This class is more or less a thin wrapper over the <see cref="IDataScorerTransform"/> implementing
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="inputSchema"></param>
         /// <returns></returns>
-        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
+        IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             return (IRowToRowMapper)Scorer.ApplyToData(Host, new EmptyDataView(Host, inputSchema));
