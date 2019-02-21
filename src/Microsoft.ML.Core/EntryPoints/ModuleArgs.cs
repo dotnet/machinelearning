@@ -133,8 +133,7 @@ namespace Microsoft.ML.EntryPoints
         /// A node can be run without optional input fields.
         /// </summary>
         [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-        [BestFriend]
-        internal sealed class OptionalInputAttribute : Attribute { }
+        public sealed class OptionalInputAttribute : Attribute { }
 
         /// <summary>
         /// An attribute used to annotate the valid range of a numeric input.
