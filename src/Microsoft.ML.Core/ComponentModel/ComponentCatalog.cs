@@ -35,6 +35,8 @@ namespace Microsoft.ML
             _entryPointMap = new Dictionary<string, EntryPointInfo>();
             _componentMap = new Dictionary<string, ComponentInfo>();
             _components = new List<ComponentInfo>();
+
+            _extensionsMap = new Dictionary<(Type AttributeType, string ContractName), Type>();
         }
 
         /// <summary>
@@ -404,6 +406,8 @@ namespace Microsoft.ML
         private readonly List<ComponentInfo> _components;
         private readonly Dictionary<string, ComponentInfo> _componentMap;
 
+        private readonly Dictionary<(Type AttributeType, string ContractName), Type> _extensionsMap;
+
         private static bool TryGetIniters(Type instType, Type loaderType, Type[] parmTypes,
             out MethodInfo getter, out ConstructorInfo ctor, out MethodInfo create, out bool requireEnvironment)
         {
@@ -618,6 +622,8 @@ namespace Microsoft.ML
 
                         AddClass(info, attr.LoadNames, throwOnError);
                     }
+
+                    LoadExtensions(assembly, throwOnError);
                 }
             }
         }
@@ -979,6 +985,76 @@ namespace Microsoft.ML
 
             if (errorMsg != null)
                 throw Contracts.Except(errorMsg);
+        }
+
+        private void LoadExtensions(Assembly assembly, bool throwOnError)
+        {
+            // don't waste time looking through all the types of an assembly
+            // that can't contain extensions
+            if (CanContainExtensions(assembly))
+            {
+                foreach (Type type in assembly.GetTypes())
+                {
+                    if (type.IsClass)
+                    {
+                        foreach (ExtensionBaseAttribute attribute in type.GetCustomAttributes(typeof(ExtensionBaseAttribute)))
+                        {
+                            var key = (AttributeType: attribute.GetType(), attribute.ContractName);
+                            if (_extensionsMap.TryGetValue(key, out var existingType))
+                            {
+                                if (throwOnError)
+                                {
+                                    throw Contracts.Except($"An extension for '{key.AttributeType.Name}' with contract '{key.ContractName}' has already been registered in the ComponentCatalog.");
+                                }
+                            }
+                            else
+                            {
+                                _extensionsMap.Add(key, type);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether <paramref name="assembly"/> can contain extensions.
+        /// </summary>
+        /// <remarks>
+        /// All ML.NET product assemblies won't contain extensions.
+        /// </remarks>
+        private static bool CanContainExtensions(Assembly assembly)
+        {
+            if (assembly.FullName.StartsWith("Microsoft.ML.", StringComparison.Ordinal)
+                && HasMLNetPublicKey(assembly))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool HasMLNetPublicKey(Assembly assembly)
+        {
+            return assembly.GetName().GetPublicKey().SequenceEqual(
+                typeof(ComponentCatalog).Assembly.GetName().GetPublicKey());
+        }
+
+        [BestFriend]
+        internal object GetExtensionValue(IHostEnvironment env, Type attributeType, string contractName)
+        {
+            object exportedValue = null;
+            if (_extensionsMap.TryGetValue((attributeType, contractName), out Type extensionType))
+            {
+                exportedValue = Activator.CreateInstance(extensionType);
+            }
+
+            if (exportedValue == null)
+            {
+                throw env.Except($"Unable to locate an extension for the contract '{contractName}'. Ensure you have called {nameof(ComponentCatalog)}.{nameof(ComponentCatalog.RegisterAssembly)} with the Assembly that contains a class decorated with a '{attributeType.FullName}'.");
+            }
+
+            return exportedValue;
         }
     }
 }
