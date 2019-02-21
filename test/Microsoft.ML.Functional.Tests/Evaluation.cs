@@ -233,7 +233,7 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// Evaluate With Precision-Recall Curves
+        /// Evaluate With Precision-Recall Curves.
         /// </summary>
         /// <remarks>
         /// This is currently not possible using the APIs.
@@ -262,17 +262,19 @@ namespace Microsoft.ML.Functional.Tests
 
             Common.CheckMetrics(metrics);
 
-            // This scenario is not possible with the current set of APIs
+            // This scenario is not possible with the current set of APIs.
             // There could be two ways imaginable:
-            //  1. Getting a list of (P,R) from the Evaluator (as it has these anyways)
-            //     Not possible.
+            //  1. Getting a list of (P,R) from the Evaluator (as it calculates most of the information already).
+            //     Not currently possible.
             //  2. Manually setting the classifier threshold and calling evaluate many times:
             //     Not currently possible: Todo #2465: Allow the setting of threshold and thresholdColumn for scoring.
-            // Technically, this is possible using custom mappers like so:
-            //  1. Get a list of all unique probability scores
+            // Technically, this scenario is possible using custom mappers like so:
+            //  1. Get a list of all unique probability scores.
+            //     e.g. By reading the IDataView as an IEnumerable, and keeping a hash of known probabilities up to some precision.
             //  2. For each value of probability:
-            //     a. Write a custom mapper to produce PredictedLabel at that probability threshold
-            //     b. Calculate Precision and Recall with these labels
+            //     a. Write a custom mapper to produce PredictedLabel at that probability threshold.
+            //     b. Calculate Precision and Recall with these labels.
+            //     c. Append the Precision and Recall to an IList.
         }
     }
 }
