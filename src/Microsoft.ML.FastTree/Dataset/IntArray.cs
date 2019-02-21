@@ -13,13 +13,13 @@ namespace Microsoft.ML.Trainers.FastTree
 #else
 #endif
 
-    public enum IntArrayType { Dense, Sparse, Repeat, Segmented, Current };
-    public enum IntArrayBits { Bits32 = 32, Bits16 = 16, Bits10 = 10, Bits8 = 8, Bits4 = 4, Bits1 = 1, Bits0 = 0 };
+    internal enum IntArrayType { Dense, Sparse, Repeat, Segmented, Current };
+    internal enum IntArrayBits { Bits32 = 32, Bits16 = 16, Bits10 = 10, Bits8 = 8, Bits4 = 4, Bits1 = 1, Bits0 = 0 };
 
     /// <summary>
     /// An object representing an array of integers
     /// </summary>
-    public abstract class IntArray : IEnumerable<int>
+    internal abstract class IntArray : IEnumerable<int>
     {
         // The level of compression to use with features.
         // 0x1 - Use 10 bit.
@@ -360,7 +360,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// Interface for objects that can index into an <see cref="IntArray"/>, but only with a non-decreasing sequence of indices.
     /// </summary>
-    public interface IIntArrayForwardIndexer
+    internal interface IIntArrayForwardIndexer
     {
         /// <summary>
         /// Gets the element at the given index.

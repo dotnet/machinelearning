@@ -70,7 +70,7 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
             };
 
             var engine = mlContext.Transforms.Text.TokenizeWords("TokenizedWords", "Sentiment_Text")
-                .Append(mlContext.Transforms.Conversion.ValueMap(lookupMap, "Words", "Ids", new[] { ("VariableLenghtFeatures", "TokenizedWords") }))
+                .Append(mlContext.Transforms.Conversion.ValueMap(lookupMap, "Words", "Ids", new SimpleColumnInfo[] { ("VariableLenghtFeatures", "TokenizedWords") }))
                 .Append(mlContext.Transforms.CustomMapping(ResizeFeaturesAction, "Resize"))
                 .Append(mlContext.Transforms.ScoreTensorFlowModel(modelInfo, new[] { "Prediction/Softmax" }, new[] { "Features" }))
                 .Append(mlContext.Transforms.CopyColumns(("Prediction", "Prediction/Softmax")))

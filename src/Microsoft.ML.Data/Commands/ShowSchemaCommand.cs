@@ -69,7 +69,7 @@ namespace Microsoft.ML.Data
             IDataLoader loader = CreateAndSaveLoader();
             using (var schemaWriter = new StringWriter())
             {
-                RunOnData(schemaWriter, Args, loader);
+                RunOnData(schemaWriter, ImplOptions, loader);
                 var str = schemaWriter.ToString();
                 ch.AssertNonEmpty(str);
                 ch.Info(str);

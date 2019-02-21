@@ -837,7 +837,7 @@ namespace Microsoft.ML.Data
                     {
                         if (dvNumber == 0)
                         {
-                            if (dv.Schema[i].HasKeyValues(type.GetItemType()))
+                            if (dv.Schema[i].HasKeyValues())
                                 firstDvVectorKeyColumns.Add(name);
                             // Store the slot names of the 1st idv and use them as baseline.
                             if (dv.Schema[i].HasSlotNames(vectorType.Size))
@@ -866,9 +866,9 @@ namespace Microsoft.ML.Data
                         // The label column can be a key. Reconcile the key values, and wrap with a KeyToValue transform.
                         labelColKeyValuesType = dv.Schema[i].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     }
-                    else if (dvNumber == 0 && dv.Schema[i].HasKeyValues(type))
+                    else if (dvNumber == 0 && dv.Schema[i].HasKeyValues())
                         firstDvKeyWithNamesColumns.Add(name);
-                    else if (type.GetKeyCount() > 0 && name != labelColName && !dv.Schema[i].HasKeyValues(type))
+                    else if (type.GetKeyCount() > 0 && name != labelColName && !dv.Schema[i].HasKeyValues())
                     {
                         // For any other key column (such as GroupId) we do not reconcile the key values, we only convert to U4.
                         if (!firstDvKeyNoNamesColumns.ContainsKey(name))
@@ -1334,7 +1334,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public static class MetricWriter
+    internal static class MetricWriter
     {
         /// <summary>
         /// Get the confusion tables as strings to be printed to the Console.
@@ -1757,7 +1757,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// This is a list of string constants denoting 'standard' metric kinds.
     /// </summary>
-    public static class MetricKinds
+    [BestFriend]
+    internal static class MetricKinds
     {
         /// <summary>
         /// This data view contains the confusion matrix for N-class classification. It has N rows, and each row has

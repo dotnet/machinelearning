@@ -12,7 +12,8 @@ namespace Microsoft.ML.Internal.Internallearn
     /// <summary>
     /// Drops slots from a fixed or variable sized column based on slot ranges.
     /// </summary>
-    public sealed class SlotDropper
+    [BestFriend]
+    internal sealed class SlotDropper
     {
         private readonly int[] _lengthReduction;
 

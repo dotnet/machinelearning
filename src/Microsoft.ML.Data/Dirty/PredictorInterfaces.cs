@@ -11,12 +11,6 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Internal.Internallearn
 {
-
-    /// <summary>
-    /// Signature for loading from a file name.
-    /// </summary>
-    public delegate void SignaturePredictorFromFile(string fileName);
-
     /// <summary>
     /// A generic interface for models that can average parameters from multiple instance of self
     /// </summary>
@@ -66,22 +60,6 @@ namespace Microsoft.ML.Internal.Internallearn
     internal interface IQuantileValueMapper
     {
         ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper(float[] quantiles);
-    }
-
-    /// <summary>
-    /// Interface for quantile distribution
-    /// </summary>
-    /// <typeparam name="TResult">Type of statistics result</typeparam>
-    [BestFriend]
-    internal interface IQuantileDistribution<TResult> : IDistribution<TResult>, ISampleableDistribution<TResult>
-    {
-        TResult Median { get; }
-
-        /// <summary>
-        /// Returns an estimate of the p-th quantile, the data value where proportionately p of the data has value
-        /// less than or equal to the returned value.
-        /// </summary>
-        TResult GetQuantile(float p);
     }
 
     [BestFriend]
@@ -162,7 +140,8 @@ namespace Microsoft.ML.Internal.Internallearn
     /// <summary>
     /// Signature for trainers that produce predictors that in turn can be use to score features.
     /// </summary>
-    public delegate void SignatureFeatureScorerTrainer();
+    [BestFriend]
+    internal delegate void SignatureFeatureScorerTrainer();
 
     /// <summary>
     /// Interface implemented by components that can assign weights to features.

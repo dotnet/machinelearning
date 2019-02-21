@@ -26,8 +26,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index. Here nameof(...) is used to extract field
             // names' in MatrixElement class.
-            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(nameof(MatrixElement.MatrixColumnIndex),
-                nameof(MatrixElement.MatrixRowIndex), nameof(MatrixElement.Value), 10, 0.2, 10);
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(nameof(MatrixElement.Value), nameof(MatrixElement.MatrixColumnIndex),
+                nameof(MatrixElement.MatrixRowIndex), 10, 0.2, 10);
 
             // Train a matrix factorization model.
             var model = pipeline.Fit(dataView);

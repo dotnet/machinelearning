@@ -350,17 +350,17 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="MatrixFactorizationTrainer"/>.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
         /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="approximationRank">Rank of approximation matrixes.</param>
         /// <param name="learningRate">Initial learning rate. It specifies the speed of the training algorithm.</param>
         /// <param name="numIterations">Number of training iterations.</param>
         [BestFriend]
         internal MatrixFactorizationTrainer(IHostEnvironment env,
+            string labelColumnName,
             string matrixColumnIndexColumnName,
             string matrixRowIndexColumnName,
-            string labelColumn = DefaultColumnNames.Label,
             int approximationRank = Defaults.ApproximationRank,
             double learningRate = Defaults.LearningRate,
             int numIterations = Defaults.NumIterations)
@@ -383,7 +383,7 @@ namespace Microsoft.ML.Trainers
 
             _info = new TrainerInfo(normalization: false, caching: false);
 
-            LabelName = labelColumn;
+            LabelName = labelColumnName;
             MatrixColumnIndexName = matrixColumnIndexColumnName;
             MatrixRowIndexName = matrixRowIndexColumnName;
         }

@@ -9,14 +9,12 @@ namespace Microsoft.ML
 {
     public static class DataReaderExtensions
     {
-        public static IDataView Read(this IDataReader<IMultiStreamSource> reader, string path)
-        {
-            return reader.Read(new MultiFileSource(path));
-        }
-
+        /// <summary>
+        /// Reads data from one or more file <paramref name="path"/> into an <see cref="IDataView"/>.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
+        /// <param name="path">One or more paths from which to load data.</param>
         public static IDataView Read(this IDataReader<IMultiStreamSource> reader, params string[] path)
-        {
-            return reader.Read(new MultiFileSource(path));
-        }
+            => reader.Read(new MultiFileSource(path));
     }
 }

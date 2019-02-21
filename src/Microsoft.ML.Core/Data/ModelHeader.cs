@@ -621,7 +621,8 @@ namespace Microsoft.ML.Model
     /// This is used to simplify version checking boiler-plate code. It is an optional
     /// utility type.
     /// </summary>
-    public readonly struct VersionInfo
+    [BestFriend]
+    internal readonly struct VersionInfo
     {
         public readonly ulong ModelSignature;
         public readonly uint VerWrittenCur;

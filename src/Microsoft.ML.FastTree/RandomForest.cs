@@ -4,8 +4,8 @@
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public abstract class RandomForestTrainerBase<TArgs, TTransformer, TModel> : FastTreeTrainerBase<TArgs, TTransformer, TModel>
-        where TArgs : FastForestOptionsBase, new()
+    public abstract class RandomForestTrainerBase<TOptions, TTransformer, TModel> : FastTreeTrainerBase<TOptions, TTransformer, TModel>
+        where TOptions : FastForestOptionsBase, new()
         where TModel : class
         where TTransformer: ISingleFeaturePredictionTransformer<TModel>
     {
@@ -14,8 +14,8 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Constructor invoked by the maml code-path.
         /// </summary>
-        protected RandomForestTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label, bool quantileEnabled = false)
-            : base(env, args, label)
+        private protected RandomForestTrainerBase(IHostEnvironment env, TOptions options, SchemaShape.Column label, bool quantileEnabled = false)
+            : base(env, options, label)
         {
             _quantileEnabled = quantileEnabled;
         }
@@ -23,7 +23,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Constructor invoked by the API code-path.
         /// </summary>
-        protected RandomForestTrainerBase(IHostEnvironment env,
+        private protected RandomForestTrainerBase(IHostEnvironment env,
             SchemaShape.Column label,
             string featureColumn,
             string weightColumn,
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return optimizationAlgorithm;
         }
 
-        protected override void InitializeTests()
+        private protected override void InitializeTests()
         {
         }
 
@@ -70,16 +70,16 @@ namespace Microsoft.ML.Trainers.FastTree
                        FastTreeTrainerOptions.MinDocsPercentageForCategoricalSplit, FastTreeTrainerOptions.Bundling, FastTreeTrainerOptions.MinDocsForCategoricalSplit, FastTreeTrainerOptions.Bias);
         }
 
-        public abstract class RandomForestObjectiveFunction : ObjectiveFunctionBase
+        internal abstract class RandomForestObjectiveFunction : ObjectiveFunctionBase
         {
-            protected RandomForestObjectiveFunction(Dataset trainData, TArgs args, double maxStepSize)
+            protected RandomForestObjectiveFunction(Dataset trainData, TOptions options, double maxStepSize)
                 : base(trainData,
                     1, // No learning rate in random forests.
                     1, // No shrinkage in random forests.
                     maxStepSize,
                     1, // No derivative sampling in random forests.
                     false, // Improvements to quasi-newton step not relevant to RF.
-                    args.RngSeed)
+                    options.RngSeed)
             {
             }
         }

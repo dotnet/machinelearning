@@ -184,9 +184,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("FeatureSelect", "VectorFloat", slotsInOutput: 1, labelColumn: "Label")
                 .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation(labelColumn: "Label", slotsInOutput: 2, numBins: 100,
-                    columns: new[] {
-                        (name: "out1", source: "VectorFloat"),
-                        (name: "out2", source: "VectorDouble")
+                    columns: new SimpleColumnInfo[] {
+                        ("out1", "VectorFloat"),
+                        ("out2", "VectorDouble")
                     }));
             TestEstimatorCore(est, data);
 

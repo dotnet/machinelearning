@@ -24,7 +24,7 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastTreeBinaryClassificationTrainer
     {
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
-        public sealed class Options : BoostedTreeArgs, IFastTreeTrainerFactory
+        public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
         {
             /// <summary>
             /// Option for using derivatives optimized for unbalanced sets.
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastTreeRegressionTrainer
     {
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
-        public sealed class Options : BoostedTreeArgs, IFastTreeTrainerFactory
+        public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
         {
             public Options()
             {
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastTreeTweedieTrainer
     {
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
-        public sealed class Options : BoostedTreeArgs, IFastTreeTrainerFactory
+        public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
         {
             // REVIEW: It is possible to estimate this index parameter from the distribution of data, using
             // a combination of univariate optimization and grid search, following section 4.2 of the paper. However
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastTreeRankingTrainer
     {
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
-        public sealed class Options : BoostedTreeArgs, IFastTreeTrainerFactory
+        public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Comma seperated list of gains associated to each relevance label.", ShortName = "gains")]
             [TGUI(NoSweep = true)]
@@ -442,7 +442,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public abstract class BoostedTreeArgs : TreeOptions
+    public abstract class BoostedTreeOptions : TreeOptions
     {
         // REVIEW: TLC FR likes to call it bestStepRegressionTrees which might be more appropriate.
         //Use the second derivative for split gains (not just outputs). Use MaxTreeOutput to "clip" cases where the second derivative is too close to zero.
