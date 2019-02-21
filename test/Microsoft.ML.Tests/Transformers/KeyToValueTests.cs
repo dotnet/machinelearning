@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dataPath = GetDataPath("iris.txt");
 
-            var reader = new TextLoader(Env, new TextLoader.Arguments
+            var reader = new TextLoader(Env, new TextLoader.Options
             {
                 Columns = new[]
                 {

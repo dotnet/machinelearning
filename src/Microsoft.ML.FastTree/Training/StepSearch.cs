@@ -12,7 +12,7 @@ namespace Microsoft.ML.Trainers.FastTree
         void AdjustTreeOutputs(IChannel ch, InternalRegressionTree tree, DocumentPartitioning partitioning, ScoreTracker trainingScores);
     }
 
-    public sealed class LineSearch : IStepSearch, IFastTrainingScoresUpdate
+    internal sealed class LineSearch : IStepSearch, IFastTrainingScoresUpdate
     {
         private double _historicStepSize;
         private int _numPostbracketSteps;

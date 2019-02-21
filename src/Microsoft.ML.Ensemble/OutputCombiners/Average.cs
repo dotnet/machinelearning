@@ -12,7 +12,7 @@ using Microsoft.ML.Trainers.Ensemble;
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
-    public sealed class Average : BaseAverager, IRegressionOutputCombiner
+    internal sealed class Average : BaseAverager, IRegressionOutputCombiner
     {
         public const string UserName = "Average";
         public const string LoadName = "Average";

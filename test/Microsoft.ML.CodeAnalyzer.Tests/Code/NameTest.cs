@@ -2,31 +2,32 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
+using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
+    Microsoft.ML.InternalCodeAnalyzer.NameAnalyzer,
+    Microsoft.ML.InternalCodeAnalyzer.NameFixProvider>;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
-    public sealed class NameTest : DiagnosticVerifier<NameAnalyzer>
+    public sealed class NameTest
     {
         [Fact]
-        public void PrivateFieldName()
+        public async Task PrivateFieldName()
         {
-            var analyzer = GetCSharpDiagnosticAnalyzer();
-            var diag = analyzer.SupportedDiagnostics[0];
-
             var expected = new DiagnosticResult[] {
-                diag.CreateDiagnosticResult(5, 21, "foo"),
-                diag.CreateDiagnosticResult(7, 24, "_Bubba"),
-                diag.CreateDiagnosticResult(8, 22, "_shouldParseHTML"),
-                diag.CreateDiagnosticResult(11, 23, "BillyClub"),
-                diag.CreateDiagnosticResult(13, 30, "bob"),
-                diag.CreateDiagnosticResult(14, 30, "CHAZ"),
-                diag.CreateDiagnosticResult(17, 21, "_liveFromNYC"),
-                diag.CreateDiagnosticResult(19, 28, "nice"),
+                VerifyCS.Diagnostic(NameAnalyzer.PrivateFieldName.Rule).WithLocation(6, 21).WithArguments("foo"),
+                VerifyCS.Diagnostic(NameAnalyzer.PrivateFieldName.Rule).WithLocation(8, 24).WithArguments("_Bubba"),
+                VerifyCS.Diagnostic(NameAnalyzer.PrivateFieldName.Rule).WithLocation(9, 22).WithArguments("_shouldParseHTML"),
+                VerifyCS.Diagnostic(NameAnalyzer.PrivateFieldName.Rule).WithLocation(12, 23).WithArguments("BillyClub"),
+                VerifyCS.Diagnostic(NameAnalyzer.PrivateFieldName.Rule).WithLocation(14, 30).WithArguments("bob"),
+                VerifyCS.Diagnostic(NameAnalyzer.PrivateFieldName.Rule).WithLocation(15, 30).WithArguments("CHAZ"),
+                VerifyCS.Diagnostic(NameAnalyzer.PrivateFieldName.Rule).WithLocation(18, 21).WithArguments("_liveFromNYC"),
+                VerifyCS.Diagnostic(NameAnalyzer.PrivateFieldName.Rule).WithLocation(20, 28).WithArguments("nice"),
             };
 
-            VerifyCSharpDiagnostic(PrivateTestSource, expected);
+            await VerifyCS.VerifyAnalyzerAsync(PrivateTestSource, expected);
         }
 
         internal const string PrivateTestSource = @"
@@ -53,35 +54,39 @@ namespace TestNamespace
 }";
 
         [Fact]
-        public void MoreNameTests()
+        public async Task MoreNameTests()
         {
-            var analyzer = GetCSharpDiagnosticAnalyzer();
-            var diagP = analyzer.SupportedDiagnostics[0];
-            var diagG = analyzer.SupportedDiagnostics[1];
-
             var expected = new DiagnosticResult[] {
-                diagG.CreateDiagnosticResult(6, 11, "CLASS"),
-                diagG.CreateDiagnosticResult(8, 20, "alice"),
-                diagG.CreateDiagnosticResult(9, 21, "_bob"),
-                diagG.CreateDiagnosticResult(10, 22, "_chaz"),
-                diagG.CreateDiagnosticResult(11, 30, "emily"),
-                diagG.CreateDiagnosticResult(11, 37, "_francis"),
-                diagG.CreateDiagnosticResult(16, 21, "this_is_not_python"),
-                diagG.CreateDiagnosticResult(17, 21, "thisIsNotJava"),
-                diagP.CreateDiagnosticResult(21, 30, "BadEvent"),
-                diagG.CreateDiagnosticResult(22, 29, "bad_event"),
-                diagG.CreateDiagnosticResult(25, 30, "_badEv"),
-                diagG.CreateDiagnosticResult(27, 29, "one"),
-                diagG.CreateDiagnosticResult(27, 39, "three"),
-                diagG.CreateDiagnosticResult(28, 22, "enumb"),
-                diagG.CreateDiagnosticResult(28, 35, "Two_Two"),
-                diagG.CreateDiagnosticResult(28, 44, "_three"),
-                diagG.CreateDiagnosticResult(30, 25, "_m2"),
-                diagG.CreateDiagnosticResult(37, 12, "marco"),
-                diagG.CreateDiagnosticResult(37, 31, "polo"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(7, 11).WithArguments("CLASS"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(9, 20).WithArguments("alice"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(10, 21).WithArguments("_bob"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(11, 22).WithArguments("_chaz"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(12, 30).WithArguments("emily"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(12, 37).WithArguments("_francis"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(17, 21).WithArguments("this_is_not_python"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(18, 21).WithArguments("thisIsNotJava"),
+                VerifyCS.Diagnostic(NameAnalyzer.PrivateFieldName.Rule).WithLocation(22, 30).WithArguments("BadEvent"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(23, 29).WithArguments("bad_event"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(26, 30).WithArguments("_badEv"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(28, 29).WithArguments("one"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(28, 39).WithArguments("three"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(29, 22).WithArguments("enumb"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(29, 35).WithArguments("Two_Two"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(29, 44).WithArguments("_three"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(31, 25).WithArguments("_m2"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(38, 12).WithArguments("marco"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(38, 31).WithArguments("polo"),
             };
 
-            VerifyCSharpDiagnostic(TestSource, expected);
+            var test = new VerifyCS.Test
+            {
+                TestCode = TestSource,
+                FixedCode = FixedTestSource,
+                NumberOfFixAllIterations = 2,
+            };
+
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
         }
 
         internal const string TestSource = @"
@@ -124,12 +129,8 @@ namespace foo.bar.Biz
     struct marco { public int polo; }
 }";
         [Fact]
-        public void ExternName()
+        public async Task ExternName()
         {
-            var analyzer = GetCSharpDiagnosticAnalyzer();
-            var diagP = analyzer.SupportedDiagnostics[0];
-            var diagG = analyzer.SupportedDiagnostics[1];
-
             const string source = @"
 using System;
 using System.Runtime.InteropServices;
@@ -148,23 +149,15 @@ namespace TestNamespace
 ";
 
             var expected = new DiagnosticResult[] {
-                diagG.CreateDiagnosticResult(6, 11, "CLASS"),
-                diagG.CreateDiagnosticResult(12, 21, "masterBlaster"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(7, 11).WithArguments("CLASS"),
+                VerifyCS.Diagnostic(NameAnalyzer.GeneralName.Rule).WithLocation(13, 21).WithArguments("masterBlaster"),
             };
 
-            VerifyCSharpDiagnostic(source, expected);
-        }
-    }
-
-    public sealed class NameFixTest : CodeFixVerifier<NameAnalyzer, NameFixProvider>
-    {
-        [Fact]
-        public void NameFix()
-        {
-            VerifyCSharpFix(NameTest.TestSource, FixedTestSource);
+            await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }
 
-        private const string FixedTestSource = @"using System;
+        private const string FixedTestSource = @"
+using System;
 namespace silly { }
 namespace NotSilly { }
 namespace foo.bar.Biz

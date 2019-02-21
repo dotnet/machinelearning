@@ -10,10 +10,10 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(typeof(GaussianFourierSampler), typeof(GaussianFourierSampler.Arguments), typeof(SignatureFourierDistributionSampler),
+[assembly: LoadableClass(typeof(GaussianFourierSampler), typeof(GaussianFourierSampler.Options), typeof(SignatureFourierDistributionSampler),
     "Gaussian Kernel", GaussianFourierSampler.LoadName, "Gaussian")]
 
-[assembly: LoadableClass(typeof(LaplacianFourierSampler), typeof(LaplacianFourierSampler.Arguments), typeof(SignatureFourierDistributionSampler),
+[assembly: LoadableClass(typeof(LaplacianFourierSampler), typeof(LaplacianFourierSampler.Options), typeof(SignatureFourierDistributionSampler),
     "Laplacian Kernel", LaplacianFourierSampler.RegistrationName, "Laplacian")]
 
 // This is for deserialization from a binary model file.
@@ -30,7 +30,8 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// Signature for an IFourierDistributionSampler constructor.
     /// </summary>
-    public delegate void SignatureFourierDistributionSampler(float avgDist);
+    [BestFriend]
+    internal delegate void SignatureFourierDistributionSampler(float avgDist);
 
     public interface IFourierDistributionSampler : ICanSaveModel
     {
@@ -38,7 +39,7 @@ namespace Microsoft.ML.Transforms
     }
 
     [TlcModule.ComponentKind("FourierDistributionSampler")]
-    public interface IFourierDistributionSamplerFactory : IComponentFactory<float, IFourierDistributionSampler>
+    internal interface IFourierDistributionSamplerFactory : IComponentFactory<float, IFourierDistributionSampler>
     {
     }
 
@@ -46,15 +47,16 @@ namespace Microsoft.ML.Transforms
     {
         private readonly IHost _host;
 
-        public class Arguments : IFourierDistributionSamplerFactory
+        public sealed class Options : IFourierDistributionSamplerFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "gamma in the kernel definition: exp(-gamma*||x-y||^2 / r^2). r is an estimate of the average intra-example distance", ShortName = "g")]
             public float Gamma = 1;
 
-            public IFourierDistributionSampler CreateComponent(IHostEnvironment env, float avgDist) => new GaussianFourierSampler(env, this, avgDist);
+            IFourierDistributionSampler IComponentFactory<float, IFourierDistributionSampler>.CreateComponent(IHostEnvironment env, float avgDist)
+                => new GaussianFourierSampler(env, this, avgDist);
         }
 
-        public const string LoaderSignature = "RandGaussFourierExec";
+        internal const string LoaderSignature = "RandGaussFourierExec";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -66,20 +68,20 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(GaussianFourierSampler).Assembly.FullName);
         }
 
-        public const string LoadName = "GaussianRandom";
+        internal const string LoadName = "GaussianRandom";
 
         private readonly float _gamma;
 
-        public GaussianFourierSampler(IHostEnvironment env, Arguments args, float avgDist)
+        public GaussianFourierSampler(IHostEnvironment env, Options options, float avgDist)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoadName);
-            _host.CheckValue(args, nameof(args));
+            _host.CheckValue(options, nameof(options));
 
-            _gamma = args.Gamma / avgDist;
+            _gamma = options.Gamma / avgDist;
         }
 
-        public static GaussianFourierSampler Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static GaussianFourierSampler Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -125,12 +127,13 @@ namespace Microsoft.ML.Transforms
 
     public sealed class LaplacianFourierSampler : IFourierDistributionSampler
     {
-        public class Arguments : IFourierDistributionSamplerFactory
+        public sealed class Options : IFourierDistributionSamplerFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "a in the term exp(-a|x| / r). r is an estimate of the average intra-example L1 distance")]
             public float A = 1;
 
-            public IFourierDistributionSampler CreateComponent(IHostEnvironment env, float avgDist) => new LaplacianFourierSampler(env, this, avgDist);
+            IFourierDistributionSampler IComponentFactory<float, IFourierDistributionSampler>.CreateComponent(IHostEnvironment env, float avgDist)
+                => new LaplacianFourierSampler(env, this, avgDist);
         }
 
         private static VersionInfo GetVersionInfo()
@@ -144,22 +147,22 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(LaplacianFourierSampler).Assembly.FullName);
         }
 
-        public const string LoaderSignature = "RandLaplacianFourierExec";
-        public const string RegistrationName = "LaplacianRandom";
+        internal const string LoaderSignature = "RandLaplacianFourierExec";
+        internal const string RegistrationName = "LaplacianRandom";
 
         private readonly IHost _host;
         private readonly float _a;
 
-        public LaplacianFourierSampler(IHostEnvironment env, Arguments args, float avgDist)
+        public LaplacianFourierSampler(IHostEnvironment env, Options options, float avgDist)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
-            _host.CheckValue(args, nameof(args));
+            _host.CheckValue(options, nameof(options));
 
-            _a = args.A / avgDist;
+            _a = options.A / avgDist;
         }
 
-        public static LaplacianFourierSampler Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static LaplacianFourierSampler Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

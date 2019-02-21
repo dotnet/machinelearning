@@ -21,7 +21,7 @@ namespace Microsoft.ML.Trainers
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
     {
-        public abstract class ArgumentsBase
+        public abstract class OptionsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor", ShortName = "p", SortOrder = 4, SignatureType = typeof(SignatureBinaryClassifierTrainer))]
             [TGUI(Label = "Predictor Type", Description = "Type of underlying binary predictor")]
@@ -42,32 +42,33 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         public readonly SchemaShape.Column LabelColumn;
 
-        private protected readonly ArgumentsBase Args;
+        private protected readonly OptionsBase Args;
         private protected readonly IHost Host;
         private protected readonly ICalibratorTrainer Calibrator;
         private protected readonly TScalarTrainer Trainer;
 
-        public PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        PredictionKind ITrainer.PredictionKind => PredictionKind;
+        private protected PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         private protected SchemaShape.Column[] OutputColumns;
 
         public TrainerInfo Info { get; }
 
         /// <summary>
-        /// Initializes the <see cref="MetaMulticlassTrainer{TTransformer, TModel}"/> from the <see cref="ArgumentsBase"/> class.
+        /// Initializes the <see cref="MetaMulticlassTrainer{TTransformer, TModel}"/> from the <see cref="OptionsBase"/> class.
         /// </summary>
         /// <param name="env">The private instance of the <see cref="IHostEnvironment"/>.</param>
-        /// <param name="args">The legacy arguments <see cref="ArgumentsBase"/>class.</param>
+        /// <param name="options">The legacy arguments <see cref="OptionsBase"/>class.</param>
         /// <param name="name">The component name.</param>
         /// <param name="labelColumn">The label column for the metalinear trainer and the binary trainer.</param>
         /// <param name="singleEstimator">The binary estimator.</param>
         /// <param name="calibrator">The calibrator. If a calibrator is not explicitly provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
-        internal MetaMulticlassTrainer(IHostEnvironment env, ArgumentsBase args, string name, string labelColumn = null,
+        internal MetaMulticlassTrainer(IHostEnvironment env, OptionsBase options, string name, string labelColumn = null,
             TScalarTrainer singleEstimator = null, ICalibratorTrainer calibrator = null)
         {
             Host = Contracts.CheckRef(env, nameof(env)).Register(name);
-            Host.CheckValue(args, nameof(args));
-            Args = args;
+            Host.CheckValue(options, nameof(options));
+            Args = options;
 
             if (labelColumn != null)
                 LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true);
@@ -75,8 +76,8 @@ namespace Microsoft.ML.Trainers
             Trainer = singleEstimator ?? CreateTrainer();
 
             Calibrator = calibrator ?? new PlattCalibratorTrainer(env);
-            if (args.Calibrator != null)
-                Calibrator = args.Calibrator.CreateComponent(Host);
+            if (options.Calibrator != null)
+                Calibrator = options.Calibrator.CreateComponent(Host);
 
             // Regarding caching, no matter what the internal predictor, we're performing many passes
             // simply by virtue of this being a meta-trainer, so we will still cache.

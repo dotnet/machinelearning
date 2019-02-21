@@ -355,7 +355,7 @@ var pipeline =
     // once so adding a caching step before it is not helpful.
     .AppendCacheCheckpoint(mlContext)
     // Add the SDCA regression trainer.
-    .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(label: "Target", features: "FeatureVector"));
+    .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumnName: "Target", featureColumnName: "FeatureVector"));
 
 // Step three. Fit the pipeline to the training data.
 var model = pipeline.Fit(trainData);

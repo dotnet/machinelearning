@@ -10,7 +10,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// Loads training/validation/test sets from file
     /// </summary>
-    public static class DatasetUtils
+    internal static class DatasetUtils
     {
         private const string DefaultTransformFormat = "Name={0}\nTransform=Linear\nSlope=1\nIntercept=0";
 

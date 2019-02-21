@@ -105,6 +105,7 @@ namespace Microsoft.ML.Transforms.Text
             _weighting = weighting;
         }
 
+        /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
         public override TransformWrapper Fit(IDataView input)
         {
             // Create arguments.
@@ -242,6 +243,7 @@ namespace Microsoft.ML.Transforms.Text
             _invertHash = invertHash;
         }
 
+        /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
         public override TransformWrapper Fit(IDataView input)
         {
             // Create arguments.

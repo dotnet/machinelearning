@@ -20,7 +20,7 @@ using Microsoft.ML.Trainers.Ensemble;
 namespace Microsoft.ML.Trainers.Ensemble
 {
     [TlcModule.Component(Name = Average.LoadName, FriendlyName = Average.UserName)]
-    public sealed class AverageFactory : ISupportBinaryOutputCombinerFactory, ISupportRegressionOutputCombinerFactory
+    internal sealed class AverageFactory : ISupportBinaryOutputCombinerFactory, ISupportRegressionOutputCombinerFactory
     {
         public IRegressionOutputCombiner CreateComponent(IHostEnvironment env) => new Average(env);
 
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Trainers.Ensemble
     }
 
     [TlcModule.Component(Name = Median.LoadName, FriendlyName = Median.UserName)]
-    public sealed class MedianFactory : ISupportBinaryOutputCombinerFactory, ISupportRegressionOutputCombinerFactory
+    internal sealed class MedianFactory : ISupportBinaryOutputCombinerFactory, ISupportRegressionOutputCombinerFactory
     {
         public IRegressionOutputCombiner CreateComponent(IHostEnvironment env) => new Median(env);
 
@@ -36,13 +36,13 @@ namespace Microsoft.ML.Trainers.Ensemble
     }
 
     [TlcModule.Component(Name = Voting.LoadName, FriendlyName = Voting.UserName)]
-    public sealed class VotingFactory : ISupportBinaryOutputCombinerFactory
+    internal sealed class VotingFactory : ISupportBinaryOutputCombinerFactory
     {
         IBinaryOutputCombiner IComponentFactory<IBinaryOutputCombiner>.CreateComponent(IHostEnvironment env) => new Voting(env);
     }
 
     [TlcModule.Component(Name = MultiVoting.LoadName, FriendlyName = Voting.UserName)]
-    public sealed class MultiVotingFactory : ISupportMulticlassOutputCombinerFactory
+    internal sealed class MultiVotingFactory : ISupportMulticlassOutputCombinerFactory
     {
         public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiVoting(env);
     }

@@ -25,7 +25,7 @@ namespace Microsoft.ML.Data
         /// <param name="env">The host environment to use.</param>
         /// <param name="sources">A non-empty collection of data views to zip together.</param>
         /// <returns>The resulting data view.</returns>
-        public static IDataView Zip(this IHostEnvironment env, IEnumerable<IDataView> sources)
+        internal static IDataView Zip(this IHostEnvironment env, IEnumerable<IDataView> sources)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(sources, nameof(sources));
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Data
         /// <param name="modelStream">The model stream to load from.</param>
         /// <param name="data">The data to apply transforms to.</param>
         /// <returns>The transformed data.</returns>
-        public static IDataView LoadTransforms(this IHostEnvironment env, Stream modelStream, IDataView data)
+        internal static IDataView LoadTransforms(this IHostEnvironment env, Stream modelStream, IDataView data)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(modelStream, nameof(modelStream));
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="env">The host environment to use.</param>
         /// <param name="modelStream">The model stream.</param>
-        public static IPredictor LoadPredictorOrNull(this IHostEnvironment env, Stream modelStream)
+        internal static IPredictor LoadPredictorOrNull(this IHostEnvironment env, Stream modelStream)
         {
             Contracts.CheckValue(modelStream, nameof(modelStream));
             return ModelFileUtils.LoadPredictorOrNull(env, modelStream);

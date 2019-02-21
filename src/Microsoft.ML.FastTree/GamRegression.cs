@@ -26,7 +26,7 @@ namespace Microsoft.ML.Trainers.FastTree
 {
     public sealed class RegressionGamTrainer : GamTrainerBase<RegressionGamTrainer.Options, RegressionPredictionTransformer<RegressionGamModelParameters>, RegressionGamModelParameters>
     {
-        public partial class Options : ArgumentsBase
+        public partial class Options : OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2)", ShortName = "pmetric")]
             [TGUI(Description = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2")]
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Trainers.FastTree
         internal const string UserNameValue = "Generalized Additive Model for Regression";
         internal const string ShortName = "gamr";
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         internal RegressionGamTrainer(IHostEnvironment env, Options options)
              : base(env, options, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(options.LabelColumn)) { }
@@ -74,20 +74,20 @@ namespace Microsoft.ML.Trainers.FastTree
             return new RegressionGamModelParameters(Host, BinUpperBounds, BinEffects, MeanEffect, InputLength, FeatureMap);
         }
 
-        protected override ObjectiveFunctionBase CreateObjectiveFunction()
+        private protected override ObjectiveFunctionBase CreateObjectiveFunction()
         {
-            return new FastTreeRegressionTrainer.ObjectiveImpl(TrainSet, Args);
+            return new FastTreeRegressionTrainer.ObjectiveImpl(TrainSet, GamTrainerOptions);
         }
 
-        protected override void DefinePruningTest()
+        private protected override void DefinePruningTest()
         {
-            var validTest = new RegressionTest(ValidSetScore, Args.PruningMetrics);
+            var validTest = new RegressionTest(ValidSetScore, GamTrainerOptions.PruningMetrics);
             // Because we specify pruning metrics as L2 by default, the results array will have 1 value
             PruningLossIndex = 0;
             PruningTest = new TestHistory(validTest, PruningLossIndex);
         }
 
-        protected override RegressionPredictionTransformer<RegressionGamModelParameters> MakeTransformer(RegressionGamModelParameters model, DataViewSchema trainSchema)
+        private protected override RegressionPredictionTransformer<RegressionGamModelParameters> MakeTransformer(RegressionGamModelParameters model, DataViewSchema trainSchema)
             => new RegressionPredictionTransformer<RegressionGamModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public RegressionPredictionTransformer<RegressionGamModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed class RegressionGamModelParameters : GamModelParametersBase
     {
         internal const string LoaderSignature = "RegressionGamPredictor";
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         /// <summary>
         /// Construct a new Regression GAM with the defined properties.

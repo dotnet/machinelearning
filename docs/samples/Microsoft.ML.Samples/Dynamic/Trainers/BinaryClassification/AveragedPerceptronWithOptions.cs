@@ -24,7 +24,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             // Define the trainer options.
             var options = new AveragedPerceptronTrainer.Options()
             {
-                LossFunction = new SmoothedHingeLoss.Arguments(),
+                LossFunction = new SmoothedHingeLoss.Options(),
                 LearningRate = 0.1f,
                 DoLazyUpdates = false,
                 RecencyGain = 0.1f,

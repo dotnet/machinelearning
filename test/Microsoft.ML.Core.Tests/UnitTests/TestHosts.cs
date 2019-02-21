@@ -84,7 +84,7 @@ namespace Microsoft.ML.RunTests
 
             // create a dummy text reader to trigger log messages
             env.Data.CreateTextLoader(
-                new TextLoader.Arguments {Columns = new[] {new TextLoader.Column("TestColumn", null, 0)}});
+                new TextLoader.Options {Columns = new[] {new TextLoader.Column("TestColumn", null, 0)}});
 
             Assert.True(messages.Count > 0);
         }

@@ -107,21 +107,21 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Constructor corresponding to SignatureDataTransform.
         /// </summary>
-        public RowShufflingTransformer(IHostEnvironment env, Options args, IDataView input)
+        public RowShufflingTransformer(IHostEnvironment env, Options options, IDataView input)
             : base(env, RegistrationName, input)
         {
-            Host.CheckValue(args, nameof(args));
+            Host.CheckValue(options, nameof(options));
 
-            Host.CheckUserArg(args.PoolRows > 0, nameof(args.PoolRows), "pool size must be positive");
-            _poolRows = args.PoolRows;
-            _poolOnly = args.PoolOnly;
-            _forceShuffle = args.ForceShuffle;
-            _forceShuffleSource = args.ForceShuffleSource ?? (!_poolOnly && _forceShuffle);
+            Host.CheckUserArg(options.PoolRows > 0, nameof(options.PoolRows), "pool size must be positive");
+            _poolRows = options.PoolRows;
+            _poolOnly = options.PoolOnly;
+            _forceShuffle = options.ForceShuffle;
+            _forceShuffleSource = options.ForceShuffleSource ?? (!_poolOnly && _forceShuffle);
             Host.CheckUserArg(!(_poolOnly && _forceShuffleSource),
-                nameof(args.ForceShuffleSource), "Cannot set both poolOnly and forceShuffleSource");
+                nameof(options.ForceShuffleSource), "Cannot set both poolOnly and forceShuffleSource");
 
             if (_forceShuffle || _forceShuffleSource)
-                _forceShuffleSeed = args.ForceShuffleSeed ?? Host.Rand.NextSigned();
+                _forceShuffleSeed = options.ForceShuffleSeed ?? Host.Rand.NextSigned();
 
             _subsetInput = SelectCachableColumns(input, env);
         }

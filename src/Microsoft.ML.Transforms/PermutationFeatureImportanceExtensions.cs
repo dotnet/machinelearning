@@ -55,9 +55,9 @@ namespace Microsoft.ML
         /// <param name="permutationCount">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<RegressionMetricsStatistics>
-            PermutationFeatureImportance(
+            PermutationFeatureImportance<TModel>(
                 this RegressionCatalog catalog,
-                IPredictionTransformer<IPredictor> model,
+                IPredictionTransformer<TModel> model,
                 IDataView data,
                 string label = DefaultColumnNames.Label,
                 string features = DefaultColumnNames.Features,
@@ -65,7 +65,7 @@ namespace Microsoft.ML
                 int? topExamples = null,
                 int permutationCount = 1)
         {
-            return PermutationFeatureImportance<RegressionMetrics, RegressionMetricsStatistics>.GetImportanceMetricsMatrix(
+            return PermutationFeatureImportance<TModel, RegressionMetrics, RegressionMetricsStatistics>.GetImportanceMetricsMatrix(
                             CatalogUtils.GetEnvironment(catalog),
                             model,
                             data,
@@ -132,9 +132,9 @@ namespace Microsoft.ML
         /// <param name="permutationCount">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<BinaryClassificationMetricsStatistics>
-            PermutationFeatureImportance(
+            PermutationFeatureImportance<TModel>(
                 this BinaryClassificationCatalog catalog,
-                IPredictionTransformer<IPredictor> model,
+                IPredictionTransformer<TModel> model,
                 IDataView data,
                 string label = DefaultColumnNames.Label,
                 string features = DefaultColumnNames.Features,
@@ -142,7 +142,7 @@ namespace Microsoft.ML
                 int? topExamples = null,
                 int permutationCount = 1)
         {
-            return PermutationFeatureImportance<BinaryClassificationMetrics, BinaryClassificationMetricsStatistics>.GetImportanceMetricsMatrix(
+            return PermutationFeatureImportance<TModel, BinaryClassificationMetrics, BinaryClassificationMetricsStatistics>.GetImportanceMetricsMatrix(
                             CatalogUtils.GetEnvironment(catalog),
                             model,
                             data,
@@ -206,9 +206,9 @@ namespace Microsoft.ML
         /// <param name="permutationCount">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<MultiClassClassifierMetricsStatistics>
-            PermutationFeatureImportance(
+            PermutationFeatureImportance<TModel>(
                 this MulticlassClassificationCatalog catalog,
-                IPredictionTransformer<IPredictor> model,
+                IPredictionTransformer<TModel> model,
                 IDataView data,
                 string label = DefaultColumnNames.Label,
                 string features = DefaultColumnNames.Features,
@@ -216,7 +216,7 @@ namespace Microsoft.ML
                 int? topExamples = null,
                 int permutationCount = 1)
         {
-            return PermutationFeatureImportance<MultiClassClassifierMetrics, MultiClassClassifierMetricsStatistics>.GetImportanceMetricsMatrix(
+            return PermutationFeatureImportance<TModel, MultiClassClassifierMetrics, MultiClassClassifierMetricsStatistics>.GetImportanceMetricsMatrix(
                             CatalogUtils.GetEnvironment(catalog),
                             model,
                             data,
@@ -286,9 +286,9 @@ namespace Microsoft.ML
         /// <param name="permutationCount">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<RankerMetricsStatistics>
-            PermutationFeatureImportance(
+            PermutationFeatureImportance<TModel>(
                 this RankingCatalog catalog,
-                IPredictionTransformer<IPredictor> model,
+                IPredictionTransformer<TModel> model,
                 IDataView data,
                 string label = DefaultColumnNames.Label,
                 string groupId = DefaultColumnNames.GroupId,
@@ -297,7 +297,7 @@ namespace Microsoft.ML
                 int? topExamples = null,
                 int permutationCount = 1)
         {
-            return PermutationFeatureImportance<RankerMetrics, RankerMetricsStatistics>.GetImportanceMetricsMatrix(
+            return PermutationFeatureImportance<TModel, RankerMetrics, RankerMetricsStatistics>.GetImportanceMetricsMatrix(
                             CatalogUtils.GetEnvironment(catalog),
                             model,
                             data,

@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
 
-            var loader = new TextLoader(Env, new TextLoader.Arguments
+            var loader = new TextLoader(Env, new TextLoader.Options
             {
                 Columns = new[] {
                     new TextLoader.Column("float1", DataKind.R4, 1),
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dataPath = GetDataPath("iris.txt");
 
-            var loader = new TextLoader(Env, new TextLoader.Arguments
+            var loader = new TextLoader(Env, new TextLoader.Options
             {
                 Columns = new[] {
                     new TextLoader.Column("float1", DataKind.R4, 1),
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
 
-            var loader = new TextLoader(Env, new TextLoader.Arguments
+            var loader = new TextLoader(Env, new TextLoader.Options
             {
                 Columns = new[] {
                     new TextLoader.Column("Label", DataKind.R4, 0),
@@ -479,7 +479,7 @@ namespace Microsoft.ML.Tests.Transformers
         void TestNormalizeBackCompatibility()
         {
             var dataFile = GetDataPath("breast-cancer.txt");
-            var dataView = TextLoader.Create(ML, new TextLoader.Arguments(), new MultiFileSource(dataFile));
+            var dataView = TextLoader.Create(ML, new TextLoader.Options(), new MultiFileSource(dataFile));
             string chooseModelPath = GetDataPath("backcompat/ap_with_norm.zip");
             using (FileStream fs = File.OpenRead(chooseModelPath))
             {

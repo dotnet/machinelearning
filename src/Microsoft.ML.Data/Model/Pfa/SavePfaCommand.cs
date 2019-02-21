@@ -124,13 +124,13 @@ namespace Microsoft.ML.Model.Pfa
             IPredictor rawPred;
             RoleMappedSchema trainSchema;
 
-            if (string.IsNullOrEmpty(Args.InputModelFile))
+            if (string.IsNullOrEmpty(ImplOptions.InputModelFile))
             {
                 loader = CreateLoader();
                 rawPred = null;
                 trainSchema = null;
-                Host.CheckUserArg(Args.LoadPredictor != true, nameof(Args.LoadPredictor),
-                    "Cannot be set to true unless " + nameof(Args.InputModelFile) + " is also specifified.");
+                Host.CheckUserArg(ImplOptions.LoadPredictor != true, nameof(ImplOptions.LoadPredictor),
+                    "Cannot be set to true unless " + nameof(ImplOptions.InputModelFile) + " is also specifified.");
             }
             else
                 LoadModelObjects(ch, _loadPredictor, out rawPred, true, out trainSchema, out loader);
@@ -209,11 +209,11 @@ namespace Microsoft.ML.Model.Pfa
                     writer.Write(pfaDoc.ToString(_formatting));
             }
 
-            if (!string.IsNullOrWhiteSpace(Args.OutputModelFile))
+            if (!string.IsNullOrWhiteSpace(ImplOptions.OutputModelFile))
             {
                 ch.Trace("Saving the data pipe");
                 // Should probably include "end"?
-                SaveLoader(loader, Args.OutputModelFile);
+                SaveLoader(loader, ImplOptions.OutputModelFile);
             }
         }
     }

@@ -14,20 +14,23 @@ namespace Microsoft.ML.Internal.Internallearn
     /// </summary>
     public abstract class ModelParametersBase<TOutput> : ICanSaveModel, IPredictorProducing<TOutput>
     {
-        public const string NormalizerWarningFormat =
+        private const string NormalizerWarningFormat =
             "Ignoring integrated normalizer while loading a predictor of type {0}.{1}" +
             "   Please refer to https://aka.ms/MLNetIssue for assistance with converting legacy models.";
 
-        protected readonly IHost Host;
+        [BestFriend]
+        private protected readonly IHost Host;
 
-        protected ModelParametersBase(IHostEnvironment env, string name)
+        [BestFriend]
+        private protected ModelParametersBase(IHostEnvironment env, string name)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(name, nameof(name));
             Host = env.Register(name);
         }
 
-        protected ModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
+        [BestFriend]
+        private protected ModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(name, nameof(name));
@@ -64,7 +67,10 @@ namespace Microsoft.ML.Internal.Internallearn
             ctx.Writer.Write(sizeof(float));
         }
 
-        public abstract PredictionKind PredictionKind { get; }
+        PredictionKind IPredictor.PredictionKind => PredictionKind;
+
+        [BestFriend]
+        private protected abstract PredictionKind PredictionKind { get; }
 
         /// <summary>
         /// This emits a warning if there is Normalizer sub-model.

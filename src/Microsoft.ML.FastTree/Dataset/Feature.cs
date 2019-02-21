@@ -10,7 +10,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// Represents a binned feature
     /// </summary>
-    public abstract class Feature
+    internal abstract class Feature
     {
         private IntArray _bins;
 
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public sealed class TsvFeature : Feature
+    internal sealed class TsvFeature : Feature
     {
         private readonly uint[] _valueMap;
         private string _name;

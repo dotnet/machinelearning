@@ -32,7 +32,8 @@ namespace Microsoft.ML.Data
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public abstract class RowCursor<TRow> : DataViewRowCursor, IRowReadableAs<TRow>
+    [BestFriend]
+    internal abstract class RowCursor<TRow> : DataViewRowCursor, IRowReadableAs<TRow>
         where TRow : class
     {
         public abstract void FillValues(TRow row);
@@ -42,7 +43,8 @@ namespace Microsoft.ML.Data
     /// This interface allows to create strongly typed cursors over a <see cref="IDataView"/>.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public interface ICursorable<TRow>
+    [BestFriend]
+    internal interface ICursorable<TRow>
         where TRow : class
     {
         /// <summary>

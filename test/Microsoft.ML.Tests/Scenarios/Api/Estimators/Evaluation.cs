@@ -15,7 +15,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// Evaluation: Similar to the simple train scenario, except instead of having some 
         /// predictive structure, be able to score another "test" data file, run the result 
         /// through an evaluator and get metrics like AUC, accuracy, PR curves, and whatnot. 
-        /// Getting metrics out of this shoudl be as straightforward and unannoying as possible.
+        /// Getting metrics out of this should be as straightforward and unannoying as possible.
         /// </summary>
         [Fact]
         public void Evaluation()

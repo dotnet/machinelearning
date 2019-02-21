@@ -52,7 +52,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Options passed to OVA.
         /// </summary>
-        internal sealed class Options : ArgumentsBase
+        internal sealed class Options : OptionsBase
         {
             /// <summary>
             /// Whether to use probabilities (vs. raw outputs) to identify top-score category.
@@ -232,7 +232,7 @@ namespace Microsoft.ML.Trainers
         public ImmutableArray<object> SubModelParameters => _impl.Predictors.Cast<object>().ToImmutableArray();
 
         /// <summary> Return the type of prediction task.</summary>
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         /// <summary>
         /// Function applied to output of predictors. Assume that we have n predictors (one per class) and for the i-th predictor,

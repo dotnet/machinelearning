@@ -47,7 +47,10 @@ namespace Microsoft.ML.Training
         /// </summary>
         public abstract TrainerInfo Info { get; }
 
-        public abstract PredictionKind PredictionKind { get; }
+        PredictionKind ITrainer.PredictionKind => PredictionKind;
+
+        [BestFriend]
+        private protected abstract PredictionKind PredictionKind { get; }
 
         [BestFriend]
         private protected TrainerEstimatorBase(IHost host,
@@ -87,7 +90,7 @@ namespace Microsoft.ML.Training
         /// <summary>
         /// The columns that will be created by the fitted transformer.
         /// </summary>
-        protected abstract SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema);
+        private protected abstract SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema);
 
         IPredictor ITrainer<IPredictor>.Train(TrainContext context)
         {
@@ -125,7 +128,7 @@ namespace Microsoft.ML.Training
             }
         }
 
-        protected virtual void CheckLabelCompatible(SchemaShape.Column labelCol)
+        private protected virtual void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
             Contracts.CheckParam(labelCol.IsValid, nameof(labelCol), "not initialized properly");
             Host.Assert(LabelColumn.IsValid);
@@ -135,7 +138,8 @@ namespace Microsoft.ML.Training
                     LabelColumn.GetTypeString(), labelCol.GetTypeString());
         }
 
-        protected TTransformer TrainTransformer(IDataView trainSet,
+        [BestFriend]
+        private protected TTransformer TrainTransformer(IDataView trainSet,
             IDataView validationSet = null, IPredictor initPredictor = null)
         {
             var trainRoleMapped = MakeRoles(trainSet);
@@ -147,7 +151,7 @@ namespace Microsoft.ML.Training
 
         private protected abstract TModel TrainModelCore(TrainContext trainContext);
 
-        protected abstract TTransformer MakeTransformer(TModel model, DataViewSchema trainSchema);
+        private protected abstract TTransformer MakeTransformer(TModel model, DataViewSchema trainSchema);
 
         private protected virtual RoleMappedData MakeRoles(IDataView data) =>
             new RoleMappedData(data, label: LabelColumn.Name, feature: FeatureColumn.Name, weight: WeightColumn.Name);

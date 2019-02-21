@@ -7,6 +7,9 @@ using Microsoft.ML.Transforms.Projections;
 
 namespace Microsoft.ML
 {
+    /// <summary>
+    /// The catalog of projection transformations.
+    /// </summary>
     public static class ProjectionCatalog
     {
         /// <summary>

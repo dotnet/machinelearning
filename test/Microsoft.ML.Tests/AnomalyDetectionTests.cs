@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
             string featureColumn = "NumericFeatures";
 
-            var reader = new TextLoader(Env, new TextLoader.Arguments()
+            var reader = new TextLoader(Env, new TextLoader.Options()
             {
                 HasHeader = true,
                 Separator = "\t",

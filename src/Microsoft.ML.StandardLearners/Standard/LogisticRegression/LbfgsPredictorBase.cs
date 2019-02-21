@@ -15,12 +15,12 @@ using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Trainers
 {
-    public abstract class LbfgsTrainerBase<TArgs, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
+    public abstract class LbfgsTrainerBase<TOptions, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
       where TTransformer : ISingleFeaturePredictionTransformer<TModel>
       where TModel : class
-      where TArgs : LbfgsTrainerBase<TArgs, TTransformer, TModel>.ArgumentsBase, new ()
+      where TOptions : LbfgsTrainerBase<TOptions, TTransformer, TModel>.OptionsBase, new ()
     {
-        public abstract class ArgumentsBase : LearnerInputBaseWithWeight
+        public abstract class OptionsBase : LearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization weight", ShortName = "l2", SortOrder = 50)]
             [TGUI(Label = "L2 Weight", Description = "Weight of L2 regularizer term", SuggestedSweeps = "0,0.1,1")]
@@ -103,30 +103,30 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        private const string RegisterName = nameof(LbfgsTrainerBase<TArgs, TTransformer, TModel>);
+        private const string RegisterName = nameof(LbfgsTrainerBase<TOptions, TTransformer, TModel>);
 
-        protected int NumFeatures;
-        protected VBuffer<float> CurrentWeights;
-        protected long NumGoodRows;
-        protected Double WeightSum;
-        protected bool ShowTrainingStats;
+        private protected int NumFeatures;
+        private protected VBuffer<float> CurrentWeights;
+        private protected long NumGoodRows;
+        private protected Double WeightSum;
+        private protected bool ShowTrainingStats;
 
-        private TModel _srcPredictor;
+        private IPredictor _srcPredictor;
 
-        protected readonly TArgs Args;
-        protected readonly float L2Weight;
-        protected readonly float L1Weight;
-        protected readonly float OptTol;
-        protected readonly int MemorySize;
-        protected readonly int MaxIterations;
-        protected readonly float SgdInitializationTolerance;
-        protected readonly bool Quiet;
-        protected readonly float InitWtsDiameter;
-        protected readonly bool UseThreads;
-        protected readonly int? NumThreads;
-        protected readonly bool DenseOptimizer;
-        protected readonly long MaxNormalizationExamples;
-        protected readonly bool EnforceNonNegativity;
+        private protected readonly TOptions LbfgsTrainerOptions;
+        private protected readonly float L2Weight;
+        private protected readonly float L1Weight;
+        private protected readonly float OptTol;
+        private protected readonly int MemorySize;
+        private protected readonly int MaxIterations;
+        private protected readonly float SgdInitializationTolerance;
+        private protected readonly bool Quiet;
+        private protected readonly float InitWtsDiameter;
+        private protected readonly bool UseThreads;
+        private protected readonly int? NumThreads;
+        private protected readonly bool DenseOptimizer;
+        private protected readonly long MaxNormalizationExamples;
+        private protected readonly bool EnforceNonNegativity;
 
         // The training data, when NOT using multiple threads.
         private RoleMappedData _data;
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Trainers
             float optimizationTolerance,
             int memorySize,
             bool enforceNoNegativity)
-            : this(env, new TArgs
+            : this(env, new TOptions
                         {
                             FeatureColumn = featureColumn,
                             LabelColumn = labelColumn.Name,
@@ -176,48 +176,48 @@ namespace Microsoft.ML.Trainers
         }
 
         internal LbfgsTrainerBase(IHostEnvironment env,
-            TArgs args,
+            TOptions options,
             SchemaShape.Column labelColumn,
-            Action<TArgs> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  labelColumn, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
+            Action<TOptions> advancedSettings = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumn),
+                  labelColumn, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
         {
-            Host.CheckValue(args, nameof(args));
-            Args = args;
+            Host.CheckValue(options, nameof(options));
+            LbfgsTrainerOptions = options;
 
             // Apply the advanced args, if the user supplied any.
-            advancedSettings?.Invoke(args);
+            advancedSettings?.Invoke(options);
 
-            args.FeatureColumn = FeatureColumn.Name;
-            args.LabelColumn = LabelColumn.Name;
-            args.WeightColumn = WeightColumn.Name;
-            Host.CheckUserArg(!Args.UseThreads || Args.NumThreads > 0 || Args.NumThreads == null,
-              nameof(Args.NumThreads), "numThreads must be positive (or empty for default)");
-            Host.CheckUserArg(Args.L2Weight >= 0, nameof(Args.L2Weight), "Must be non-negative");
-            Host.CheckUserArg(Args.L1Weight >= 0, nameof(Args.L1Weight), "Must be non-negative");
-            Host.CheckUserArg(Args.OptTol > 0, nameof(Args.OptTol), "Must be positive");
-            Host.CheckUserArg(Args.MemorySize > 0, nameof(Args.MemorySize), "Must be positive");
-            Host.CheckUserArg(Args.MaxIterations > 0, nameof(Args.MaxIterations), "Must be positive");
-            Host.CheckUserArg(Args.SgdInitializationTolerance >= 0, nameof(Args.SgdInitializationTolerance), "Must be non-negative");
-            Host.CheckUserArg(Args.NumThreads == null || Args.NumThreads.Value >= 0, nameof(Args.NumThreads), "Must be non-negative");
+            options.FeatureColumn = FeatureColumn.Name;
+            options.LabelColumn = LabelColumn.Name;
+            options.WeightColumn = WeightColumn.Name;
+            Host.CheckUserArg(!LbfgsTrainerOptions.UseThreads || LbfgsTrainerOptions.NumThreads > 0 || LbfgsTrainerOptions.NumThreads == null,
+              nameof(LbfgsTrainerOptions.NumThreads), "numThreads must be positive (or empty for default)");
+            Host.CheckUserArg(LbfgsTrainerOptions.L2Weight >= 0, nameof(LbfgsTrainerOptions.L2Weight), "Must be non-negative");
+            Host.CheckUserArg(LbfgsTrainerOptions.L1Weight >= 0, nameof(LbfgsTrainerOptions.L1Weight), "Must be non-negative");
+            Host.CheckUserArg(LbfgsTrainerOptions.OptTol > 0, nameof(LbfgsTrainerOptions.OptTol), "Must be positive");
+            Host.CheckUserArg(LbfgsTrainerOptions.MemorySize > 0, nameof(LbfgsTrainerOptions.MemorySize), "Must be positive");
+            Host.CheckUserArg(LbfgsTrainerOptions.MaxIterations > 0, nameof(LbfgsTrainerOptions.MaxIterations), "Must be positive");
+            Host.CheckUserArg(LbfgsTrainerOptions.SgdInitializationTolerance >= 0, nameof(LbfgsTrainerOptions.SgdInitializationTolerance), "Must be non-negative");
+            Host.CheckUserArg(LbfgsTrainerOptions.NumThreads == null || LbfgsTrainerOptions.NumThreads.Value >= 0, nameof(LbfgsTrainerOptions.NumThreads), "Must be non-negative");
 
-            Host.CheckParam(!(Args.L2Weight < 0), nameof(Args.L2Weight), "Must be non-negative, if provided.");
-            Host.CheckParam(!(Args.L1Weight < 0), nameof(Args.L1Weight), "Must be non-negative, if provided");
-            Host.CheckParam(!(Args.OptTol <= 0), nameof(Args.OptTol), "Must be positive, if provided.");
-            Host.CheckParam(!(Args.MemorySize <= 0), nameof(Args.MemorySize), "Must be positive, if provided.");
+            Host.CheckParam(!(LbfgsTrainerOptions.L2Weight < 0), nameof(LbfgsTrainerOptions.L2Weight), "Must be non-negative, if provided.");
+            Host.CheckParam(!(LbfgsTrainerOptions.L1Weight < 0), nameof(LbfgsTrainerOptions.L1Weight), "Must be non-negative, if provided");
+            Host.CheckParam(!(LbfgsTrainerOptions.OptTol <= 0), nameof(LbfgsTrainerOptions.OptTol), "Must be positive, if provided.");
+            Host.CheckParam(!(LbfgsTrainerOptions.MemorySize <= 0), nameof(LbfgsTrainerOptions.MemorySize), "Must be positive, if provided.");
 
-            L2Weight = Args.L2Weight;
-            L1Weight = Args.L1Weight;
-            OptTol = Args.OptTol;
-            MemorySize =Args.MemorySize;
-            MaxIterations = Args.MaxIterations;
-            SgdInitializationTolerance = Args.SgdInitializationTolerance;
-            Quiet = Args.Quiet;
-            InitWtsDiameter = Args.InitWtsDiameter;
-            UseThreads = Args.UseThreads;
-            NumThreads = Args.NumThreads;
-            DenseOptimizer = Args.DenseOptimizer;
-            EnforceNonNegativity = Args.EnforceNonNegativity;
+            L2Weight = LbfgsTrainerOptions.L2Weight;
+            L1Weight = LbfgsTrainerOptions.L1Weight;
+            OptTol = LbfgsTrainerOptions.OptTol;
+            MemorySize =LbfgsTrainerOptions.MemorySize;
+            MaxIterations = LbfgsTrainerOptions.MaxIterations;
+            SgdInitializationTolerance = LbfgsTrainerOptions.SgdInitializationTolerance;
+            Quiet = LbfgsTrainerOptions.Quiet;
+            InitWtsDiameter = LbfgsTrainerOptions.InitWtsDiameter;
+            UseThreads = LbfgsTrainerOptions.UseThreads;
+            NumThreads = LbfgsTrainerOptions.NumThreads;
+            DenseOptimizer = LbfgsTrainerOptions.DenseOptimizer;
+            EnforceNonNegativity = LbfgsTrainerOptions.EnforceNonNegativity;
 
             if (EnforceNonNegativity && ShowTrainingStats)
             {
@@ -232,7 +232,7 @@ namespace Microsoft.ML.Trainers
             _srcPredictor = default;
         }
 
-        private static TArgs ArgsInit(string featureColumn, SchemaShape.Column labelColumn,
+        private static TOptions ArgsInit(string featureColumn, SchemaShape.Column labelColumn,
                 string weightColumn,
                 float l1Weight,
                 float l2Weight,
@@ -240,7 +240,7 @@ namespace Microsoft.ML.Trainers
                 int memorySize,
                 bool enforceNoNegativity)
         {
-            var args = new TArgs
+            var args = new TOptions
             {
                 FeatureColumn = featureColumn,
                 LabelColumn = labelColumn.Name,
@@ -256,9 +256,9 @@ namespace Microsoft.ML.Trainers
             return args;
         }
 
-        protected virtual int ClassCount => 1;
-        protected int BiasCount => ClassCount;
-        protected int WeightCount => ClassCount * NumFeatures;
+        private protected virtual int ClassCount => 1;
+        private protected int BiasCount => ClassCount;
+        private protected int WeightCount => ClassCount * NumFeatures;
         private protected virtual Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
             out VBuffer<float> init, out ITerminationCriterion terminationCriterion)
         {
@@ -364,15 +364,15 @@ namespace Microsoft.ML.Trainers
             return result;
         }
 
-        protected abstract VBuffer<float> InitializeWeightsFromPredictor(TModel srcPredictor);
+        private protected abstract VBuffer<float> InitializeWeightsFromPredictor(IPredictor srcPredictor);
 
         private protected abstract void CheckLabel(RoleMappedData data);
 
-        protected virtual void PreTrainingProcessInstance(float label, in VBuffer<float> feat, float weight)
+        private protected virtual void PreTrainingProcessInstance(float label, in VBuffer<float> feat, float weight)
         {
         }
 
-        protected abstract TModel CreatePredictor();
+        private protected abstract TModel CreatePredictor();
 
         /// <summary>
         /// The basic training calls the optimizer
@@ -380,10 +380,10 @@ namespace Microsoft.ML.Trainers
         private protected override TModel TrainModelCore(TrainContext context)
         {
             Contracts.CheckValue(context, nameof(context));
-            Host.CheckParam(context.InitialPredictor == null || context.InitialPredictor is TModel, nameof(context.InitialPredictor));
+            Host.CheckParam(context.InitialPredictor == null || context.InitialPredictor is IPredictor, nameof(context.InitialPredictor));
 
             if (context.InitialPredictor != null)
-                _srcPredictor = (TModel)context.InitialPredictor;
+                _srcPredictor = context.InitialPredictor;
 
             var data = context.TrainingSet;
             data.CheckFeatureFloatVector(out NumFeatures);
@@ -570,7 +570,7 @@ namespace Microsoft.ML.Trainers
 
         // Ensure that the bias portion of vec is represented in vec.
         // REVIEW: Is this really necessary?
-        protected void EnsureBiases(ref VBuffer<float> vec)
+        private protected void EnsureBiases(ref VBuffer<float> vec)
         {
             // REVIEW: Consider promoting this "densify first n entries" to a general purpose utility,
             // if we ever encounter other situations where this becomes useful.
@@ -578,16 +578,16 @@ namespace Microsoft.ML.Trainers
             VBufferUtils.DensifyFirst(ref vec, BiasCount);
         }
 
-        protected abstract float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
+        private protected abstract float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
             in VBuffer<float> xDense, ref VBuffer<float> grad, ref float[] scratch);
 
         private protected abstract void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams);
 
-        protected abstract void ProcessPriorDistribution(float label, float weight);
+        private protected abstract void ProcessPriorDistribution(float label, float weight);
         /// <summary>
         /// The gradient being used by the optimizer
         /// </summary>
-        protected virtual float DifferentiableFunction(in VBuffer<float> x, ref VBuffer<float> gradient,
+        private protected virtual float DifferentiableFunction(in VBuffer<float> x, ref VBuffer<float> gradient,
             IProgressChannelProvider progress)
         {
             Contracts.Assert((_numChunks == 0) != (_data == null));
@@ -647,7 +647,7 @@ namespace Microsoft.ML.Trainers
         /// REVIEW: consider getting rid of multithread-targeted members
         /// Using TPL, the distinction between Multithreaded and Sequential implementations is unnecessary
         /// </remarks>
-        protected virtual float DifferentiableFunctionMultithreaded(in VBuffer<float> xDense, ref VBuffer<float> gradient, IProgressChannel pch)
+        private protected virtual float DifferentiableFunctionMultithreaded(in VBuffer<float> xDense, ref VBuffer<float> gradient, IProgressChannel pch)
         {
             Contracts.Assert(_data == null);
             Contracts.Assert(_cursorFactory == null);
@@ -679,7 +679,7 @@ namespace Microsoft.ML.Trainers
             return loss;
         }
 
-        protected float DifferentiableFunctionComputeChunk(int ichk, in VBuffer<float> xDense, ref VBuffer<float> grad, IProgressChannel pch)
+        private protected float DifferentiableFunctionComputeChunk(int ichk, in VBuffer<float> xDense, ref VBuffer<float> grad, IProgressChannel pch)
         {
             Contracts.Assert(0 <= ichk && ichk < _numChunks);
             Contracts.AssertValueOrNull(pch);
@@ -733,7 +733,7 @@ namespace Microsoft.ML.Trainers
             return (float)loss;
         }
 
-        protected VBuffer<float> InitializeWeights(IEnumerable<float> weights, IEnumerable<float> biases)
+        private protected VBuffer<float> InitializeWeights(IEnumerable<float> weights, IEnumerable<float> biases)
         {
             Contracts.AssertValue(biases);
             Contracts.AssertValue(weights);

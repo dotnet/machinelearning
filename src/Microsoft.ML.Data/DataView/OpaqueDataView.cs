@@ -12,7 +12,8 @@ namespace Microsoft.ML.Data
     /// Opaque IDataView implementation to provide a barrier for data pipe optimizations.
     /// Used in cross validatation to generate the train/test pipelines for each fold.
     /// </summary>
-    public sealed class OpaqueDataView : IDataView
+    [BestFriend]
+    internal sealed class OpaqueDataView : IDataView
     {
         private readonly IDataView _source;
         public bool CanShuffle => _source.CanShuffle;
