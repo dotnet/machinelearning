@@ -275,9 +275,10 @@ namespace Microsoft.ML.FactorizationMachine
             badExampleCount = 0;
             int count = 0;
 
-            var columns = featureColumns.Append(data.Schema.Label.Value);
+            var columns = new List<Schema.Column>(featureColumns);
+            columns.Add(data.Schema.Label.Value);
             if (data.Schema.Weight != null)
-                columns.Append(data.Schema.Weight.Value);
+                columns.Add(data.Schema.Weight.Value);
 
             using (var cursor = data.Data.GetRowCursor(columns))
             {
