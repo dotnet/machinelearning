@@ -180,7 +180,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             InternalTransform.Host.CheckDecode(InternalTransform.IsAdaptive == false);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             InternalTransform.Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             // *** Binary format ***
             // <base>
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
         }
 
         // Factory method for SignatureLoadRowMapper.

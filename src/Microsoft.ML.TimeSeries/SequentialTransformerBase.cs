@@ -269,7 +269,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         internal readonly string OutputColumnName;
         private protected DataViewType OutputColumnType;
 
-        public bool IsRowToRowMapper => false;
+        bool ITransformer.IsRowToRowMapper => false;
 
         internal TState StateRef { get; set; }
 
