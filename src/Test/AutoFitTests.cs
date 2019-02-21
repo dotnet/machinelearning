@@ -18,8 +18,8 @@ namespace Microsoft.ML.Auto.Test
             var columnInference = context.AutoInference().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
             var trainData = textLoader.Read(dataPath);
-            var validationData = trainData.Take(100);
-            trainData = trainData.Skip(100);
+            var validationData = trainData.Take(context, 100);
+            trainData = trainData.Skip(context, 100);
             var result = context.AutoInference()
                 .CreateBinaryClassificationExperiment(0)
                 .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = DatasetUtil.UciAdultLabel });
@@ -35,8 +35,8 @@ namespace Microsoft.ML.Auto.Test
             var columnInference = context.AutoInference().InferColumns(dataPath, DatasetUtil.TrivialDatasetLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
             var trainData = textLoader.Read(dataPath);
-            var validationData = trainData.Take(20);
-            trainData = trainData.Skip(20);
+            var validationData = trainData.Take(context, 20);
+            trainData = trainData.Skip(context, 20);
             var result = context.AutoInference()
                 .CreateMulticlassClassificationExperiment(0)
                 .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = DatasetUtil.TrivialDatasetLabel });
@@ -52,8 +52,8 @@ namespace Microsoft.ML.Auto.Test
             var columnInference = context.AutoInference().InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
             var trainData = textLoader.Read(dataPath);
-            var validationData = trainData.Take(20);
-            trainData = trainData.Skip(20);
+            var validationData = trainData.Take(context, 20);
+            trainData = trainData.Skip(context, 20);
             var results = context.AutoInference()
                 .CreateRegressionExperiment(0)
                 .Execute(trainData, validationData,

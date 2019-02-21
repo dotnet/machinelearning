@@ -46,7 +46,7 @@ namespace Microsoft.ML.Auto
         /// and this number of columns is more than 1.
         /// We sweep on separator, allow sparse and allow quote parameter.
         /// </summary>
-        public static ColumnSplitResult TrySplitColumns(IMultiStreamSource source, char[] separatorCandidates)
+        public static ColumnSplitResult TrySplitColumns(MLContext context, IMultiStreamSource source, char[] separatorCandidates)
         {
             var sparse = new[] { true, false };
             var quote = new[] { true, false };
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Auto
                     AllowSparse = perm._allowSparse
                 };
 
-                if (TryParseFile(args, source, out result))
+                if (TryParseFile(context, args, source, out result))
                 {
                     foundAny = true;
                     break;
@@ -78,15 +78,16 @@ namespace Microsoft.ML.Auto
             return foundAny ? result : new ColumnSplitResult(false, null, true, true, 0);
         }
 
-        private static bool TryParseFile(TextLoader.Arguments args, IMultiStreamSource source, out ColumnSplitResult result)
+        private static bool TryParseFile(MLContext context, TextLoader.Arguments args, IMultiStreamSource source, 
+            out ColumnSplitResult result)
         {
             result = null;
             // try to instantiate data view with swept arguments
             try
             {
 
-                var textLoader = new TextLoader(new MLContext(), args, source);
-                var idv = textLoader.Read(source).Take(1000);
+                var textLoader = new TextLoader(context, args, source);
+                var idv = textLoader.Read(source).Take(context, 1000);
                 var columnCounts = new List<int>();
                 var column = idv.Schema["C"];
                 var columnIndex = column.Index;

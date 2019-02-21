@@ -20,9 +20,9 @@ namespace Microsoft.ML.Auto
             RunSucceded = runSucceeded;
         }
 
-        public static SuggestedPipelineResult FromPipelineRunResult(PipelineScore pipelineRunResult)
+        public static SuggestedPipelineResult FromPipelineRunResult(MLContext context, PipelineScore pipelineRunResult)
         {
-            return new SuggestedPipelineResult(SuggestedPipeline.FromPipeline(pipelineRunResult.Pipeline), pipelineRunResult.Score, pipelineRunResult.RunSucceded);
+            return new SuggestedPipelineResult(SuggestedPipeline.FromPipeline(context, pipelineRunResult.Pipeline), pipelineRunResult.Score, pipelineRunResult.RunSucceded);
         }
 
         public IRunResult ToRunResult(bool isMetricMaximizing)

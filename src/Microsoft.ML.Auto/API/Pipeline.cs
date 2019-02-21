@@ -21,9 +21,9 @@ namespace Microsoft.ML.Auto
         {
         }
         
-        public IEstimator<ITransformer> ToEstimator()
+        public IEstimator<ITransformer> ToEstimator(MLContext context)
         {
-            var inferredPipeline = SuggestedPipeline.FromPipeline(this);
+            var inferredPipeline = SuggestedPipeline.FromPipeline(context, this);
             return inferredPipeline.ToEstimator();
         }
     }

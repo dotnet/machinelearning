@@ -266,7 +266,7 @@ namespace Microsoft.ML.Auto
         public static PurposeInference.Column[] InferPurposes(MLContext context, IDataView data,
             ColumnInformation columnInfo)
         {
-            data = data.Take(MaxRowsToRead);
+            data = data.Take(context, MaxRowsToRead);
 
             var allColumns = new List<IntermediateColumn>();
             var columnsToInfer = new List<IntermediateColumn>();

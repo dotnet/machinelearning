@@ -10,9 +10,9 @@ namespace Microsoft.ML.Auto
     {
         private const int MaxRowsToRead = 1000;
 
-        public static ColumnDimensions[] CalcColumnDimensions(IDataView data, PurposeInference.Column[] purposes)
+        public static ColumnDimensions[] CalcColumnDimensions(MLContext context, IDataView data, PurposeInference.Column[] purposes)
         {
-            data = data.Take(MaxRowsToRead);
+            data = data.Take(context, MaxRowsToRead);
 
             var colDimensions = new ColumnDimensions[data.Schema.Count];
 

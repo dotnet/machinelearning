@@ -15,11 +15,12 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TextColumnDimensionsTest()
         {
-            var dataBuilder = new ArrayDataViewBuilder(new MLContext());
+            var context = new MLContext();
+            var dataBuilder = new ArrayDataViewBuilder(context);
             dataBuilder.AddColumn("categorical", new string[] { "0", "1", "0", "1", "0", "1", "2", "2", "0", "1" });
             dataBuilder.AddColumn("text", new string[] { "0", "1", "0", "1", "0", "1", "2", "2", "0", "1" });
             var data = dataBuilder.GetDataView();
-            var dimensions = DatasetDimensionsApi.CalcColumnDimensions(data, new[] {
+            var dimensions = DatasetDimensionsApi.CalcColumnDimensions(context, data, new[] {
                 new PurposeInference.Column(0, ColumnPurpose.CategoricalFeature),
                 new PurposeInference.Column(0, ColumnPurpose.TextFeature),
             });
@@ -34,11 +35,12 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void FloatColumnDimensionsTest()
         {
-            var dataBuilder = new ArrayDataViewBuilder(new MLContext());
+            var context = new MLContext();
+            var dataBuilder = new ArrayDataViewBuilder(context);
             dataBuilder.AddColumn("NoNan", NumberType.R4, new float[] { 0, 1, 0, 1, 0 });
             dataBuilder.AddColumn("Nan", NumberType.R4, new float[] { 0, 1, 0, 1, float.NaN });
             var data = dataBuilder.GetDataView();
-            var dimensions = DatasetDimensionsApi.CalcColumnDimensions(data, new[] {
+            var dimensions = DatasetDimensionsApi.CalcColumnDimensions(context, data, new[] {
                 new PurposeInference.Column(0, ColumnPurpose.NumericFeature),
                 new PurposeInference.Column(1, ColumnPurpose.NumericFeature),
             });
@@ -53,8 +55,8 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void FloatVectorColumnHasNanTest()
         {
-            var x = new MLContext();
-            var dataBuilder = new ArrayDataViewBuilder(new MLContext());
+            var context = new MLContext();
+            var dataBuilder = new ArrayDataViewBuilder(context);
             var slotNames = new[] { "Col1", "Col2" };
             var colValues = new float[][]
             {
@@ -69,7 +71,7 @@ namespace Microsoft.ML.Auto.Test
             };
             dataBuilder.AddColumn("Nan", GetKeyValueGetter(slotNames), NumberType.R4, colValues);
             var data = dataBuilder.GetDataView();
-            var dimensions = DatasetDimensionsApi.CalcColumnDimensions(data, new[] {
+            var dimensions = DatasetDimensionsApi.CalcColumnDimensions(context, data, new[] {
                 new PurposeInference.Column(0, ColumnPurpose.NumericFeature),
                 new PurposeInference.Column(1, ColumnPurpose.NumericFeature),
             });

@@ -43,7 +43,7 @@ namespace Microsoft.ML.Auto
         {
             if (validationData == null)
             {
-                (trainData, validationData) = context.Regression.TestValidateSplit(trainData);
+                (trainData, validationData) = context.Regression.TestValidateSplit(context, trainData);
             }
             _trainData = trainData;
             _validationData = validationData;
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Auto
                     var getPiplelineStopwatch = Stopwatch.StartNew();
 
                     // get next pipeline
-                    pipeline = PipelineSuggester.GetNextInferredPipeline(_history, columns, _task, _optimizingMetricInfo.IsMaximizing, _trainerWhitelist);
+                    pipeline = PipelineSuggester.GetNextInferredPipeline(_context, _history, columns, _task, _optimizingMetricInfo.IsMaximizing, _trainerWhitelist);
 
                     getPiplelineStopwatch.Stop();
 

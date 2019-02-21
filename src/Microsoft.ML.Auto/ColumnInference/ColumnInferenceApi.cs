@@ -14,7 +14,7 @@ namespace Microsoft.ML.Auto
             bool hasHeader, char? separatorChar, bool? allowQuotedStrings, bool? supportSparse, bool trimWhitespace, bool groupColumns)
         {
             var sample = TextFileSample.CreateFromFullFile(path);
-            var splitInference = InferSplit(sample, separatorChar, allowQuotedStrings, supportSparse);
+            var splitInference = InferSplit(context, sample, separatorChar, allowQuotedStrings, supportSparse);
             var typeInference = InferColumnTypes(context, sample, splitInference, hasHeader, labelColumnIndex, null);
 
             // if no column is named label,
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Auto
             char? separatorChar, bool? allowQuotedStrings, bool? supportSparse, bool trimWhitespace, bool groupColumns)
         {
             var sample = TextFileSample.CreateFromFullFile(path);
-            var splitInference = InferSplit(sample, separatorChar, allowQuotedStrings, supportSparse);
+            var splitInference = InferSplit(context, sample, separatorChar, allowQuotedStrings, supportSparse);
             var typeInference = InferColumnTypes(context, sample, splitInference, true, null, label);
             return InferColumns(context, path, label, true, splitInference, typeInference, trimWhitespace, groupColumns);
         }
@@ -93,10 +93,10 @@ namespace Microsoft.ML.Auto
             };
         }
 
-        private static TextFileContents.ColumnSplitResult InferSplit(TextFileSample sample, char? separatorChar, bool? allowQuotedStrings, bool? supportSparse)
+        private static TextFileContents.ColumnSplitResult InferSplit(MLContext context, TextFileSample sample, char? separatorChar, bool? allowQuotedStrings, bool? supportSparse)
         {
             var separatorCandidates = separatorChar == null ? TextFileContents.DefaultSeparators : new char[] { separatorChar.Value };
-            var splitInference = TextFileContents.TrySplitColumns(sample, separatorCandidates);
+            var splitInference = TextFileContents.TrySplitColumns(context, sample, separatorCandidates);
 
             // respect passed-in overrides
             if (allowQuotedStrings != null)

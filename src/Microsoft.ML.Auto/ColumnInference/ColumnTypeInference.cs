@@ -236,12 +236,12 @@ namespace Microsoft.ML.Auto
         /// <summary>
         /// Auto-detect column types of the file.
         /// </summary>
-        public static InferenceResult InferTextFileColumnTypes(MLContext env, IMultiStreamSource fileSource, Arguments args)
+        public static InferenceResult InferTextFileColumnTypes(MLContext context, IMultiStreamSource fileSource, Arguments args)
         {
-            return InferTextFileColumnTypesCore(env, fileSource, args);
+            return InferTextFileColumnTypesCore(context, fileSource, args);
         }
 
-        private static InferenceResult InferTextFileColumnTypesCore(MLContext env, IMultiStreamSource fileSource, Arguments args)
+        private static InferenceResult InferTextFileColumnTypesCore(MLContext context, IMultiStreamSource fileSource, Arguments args)
         {
             if (args.ColumnCount == 0)
             {
@@ -263,9 +263,9 @@ namespace Microsoft.ML.Auto
                 AllowSparse = args.AllowSparse,
                 AllowQuoting = args.AllowQuote,
             };
-            var textLoader = new TextLoader(env, textLoaderArgs);
+            var textLoader = new TextLoader(context, textLoaderArgs);
             var idv = textLoader.Read(fileSource);
-            idv = idv.Take(args.MaxRowsToRead);
+            idv = idv.Take(context, args.MaxRowsToRead);
 
             // read all the data into memory.
             // list items are rows of the dataset.

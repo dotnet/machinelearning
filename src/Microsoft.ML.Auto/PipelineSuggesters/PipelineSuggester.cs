@@ -14,24 +14,24 @@ namespace Microsoft.ML.Auto
     {
         private const int TopKTrainers = 3;
 
-        public static Pipeline GetNextPipeline(IEnumerable<PipelineScore> history,
+        public static Pipeline GetNextPipeline(MLContext context,
+            IEnumerable<PipelineScore> history,
             (string, ColumnType, ColumnPurpose, ColumnDimensions)[] columns,
             TaskKind task,
             bool isMaximizingMetric = true)
         {
-            var inferredHistory = history.Select(r => SuggestedPipelineResult.FromPipelineRunResult(r));
-            var nextInferredPipeline = GetNextInferredPipeline(inferredHistory, columns, task, isMaximizingMetric);
+            var inferredHistory = history.Select(r => SuggestedPipelineResult.FromPipelineRunResult(context, r));
+            var nextInferredPipeline = GetNextInferredPipeline(context, inferredHistory, columns, task, isMaximizingMetric);
             return nextInferredPipeline?.ToPipeline();
         }
 
-        public static SuggestedPipeline GetNextInferredPipeline(IEnumerable<SuggestedPipelineResult> history,
+        public static SuggestedPipeline GetNextInferredPipeline(MLContext context,
+            IEnumerable<SuggestedPipelineResult> history,
             (string, ColumnType, ColumnPurpose, ColumnDimensions)[] columns,
             TaskKind task,
             bool isMaximizingMetric,
             IEnumerable<TrainerName> trainerWhitelist = null)
         {
-            var context = new MLContext();
-
             var availableTrainers = RecipeInference.AllowedTrainers(context, task, trainerWhitelist);
             var transforms = CalculateTransforms(context, columns, task);
             //var transforms = TransformInferenceApi.InferTransforms(context, columns, task);
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Auto
             // if we haven't run all pipelines once
             if (history.Count() < availableTrainers.Count())
             {
-                return GetNextFirstStagePipeline(history, availableTrainers, transforms);
+                return GetNextFirstStagePipeline(context, history, availableTrainers, transforms);
             }
 
             // get top trainers from stage 1 runs
@@ -63,14 +63,14 @@ namespace Microsoft.ML.Auto
                 do
                 {
                     // sample new hyperparameters for the learner
-                    if (!SampleHyperparameters(newTrainer, history, isMaximizingMetric))
+                    if (!SampleHyperparameters(context, newTrainer, history, isMaximizingMetric))
                     {
                         // if unable to sample new hyperparameters for the learner
                         // (ie SMAC returned 0 suggestions), break
                         break;
                     }
 
-                    var suggestedPipeline = new SuggestedPipeline(transforms, newTrainer);
+                    var suggestedPipeline = new SuggestedPipeline(transforms, newTrainer, context);
 
                     // make sure we have not seen pipeline before
                     if (!visitedPipelines.Contains(suggestedPipeline))
@@ -113,12 +113,13 @@ namespace Microsoft.ML.Auto
                 .Select(x => x.First().Pipeline.Trainer);
         }
 
-        private static SuggestedPipeline GetNextFirstStagePipeline(IEnumerable<SuggestedPipelineResult> history,
+        private static SuggestedPipeline GetNextFirstStagePipeline(MLContext context,
+            IEnumerable<SuggestedPipelineResult> history,
             IEnumerable<SuggestedTrainer> availableTrainers,
             IEnumerable<SuggestedTransform> transforms)
         {
             var trainer = availableTrainers.ElementAt(history.Count());
-            return new SuggestedPipeline(transforms, trainer);
+            return new SuggestedPipeline(transforms, trainer, context);
         }
 
         private static IValueGenerator[] ConvertToValueGenerators(IEnumerable<SweepableParam> hps)
@@ -184,10 +185,10 @@ namespace Microsoft.ML.Auto
         /// Samples new hyperparameters for the trainer, and sets them.
         /// Returns true if success (new hyperparams were suggested and set). Else, returns false.
         /// </summary>
-        private static bool SampleHyperparameters(SuggestedTrainer trainer, IEnumerable<SuggestedPipelineResult> history, bool isMaximizingMetric)
+        private static bool SampleHyperparameters(MLContext context, SuggestedTrainer trainer, IEnumerable<SuggestedPipelineResult> history, bool isMaximizingMetric)
         {
             var sps = ConvertToValueGenerators(trainer.SweepParams);
-            var sweeper = new SmacSweeper(
+            var sweeper = new SmacSweeper(context,
                 new SmacSweeper.Arguments
                 {
                     SweptParameters = sps

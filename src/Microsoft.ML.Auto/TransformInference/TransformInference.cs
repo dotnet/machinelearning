@@ -127,45 +127,49 @@ namespace Microsoft.ML.Auto
 
             protected readonly MLContext Context;
 
-            public TransformInferenceExpertBase()
+            public TransformInferenceExpertBase(MLContext context)
             {
-                Context = new MLContext();
+                Context = context;
             }
         }
 
-        private static IEnumerable<ITransformInferenceExpert> GetExperts()
+        private static IEnumerable<ITransformInferenceExpert> GetExperts(MLContext context)
         {
             // The expert work independently of each other, the sequence is irrelevant
             // (it only determines the sequence of resulting transforms).
 
             // For text labels, convert to categories.
-            yield return new Experts.AutoLabel();
+            yield return new Experts.AutoLabel(context);
 
             // For group ID column, rename to GroupId and hash, if text.
             // REVIEW: this is only sufficient if we discard the possibility of hash collisions, and don't care
             // about the group Id cardinality (we don't for ranking).
-            yield return new Experts.GroupIdHashRename();
+            yield return new Experts.GroupIdHashRename(context);
 
             // For name column, rename to Name (or, if multiple and text, concat and rename to Name).
-            yield return new Experts.NameColumnConcatRename();
+            yield return new Experts.NameColumnConcatRename(context);
 
             // For boolean columns use convert transform
-            yield return new Experts.Boolean();
+            yield return new Experts.Boolean(context);
 
             // For categorical columns, use Cat transform.
-            yield return new Experts.Categorical();
+            yield return new Experts.Categorical(context);
 
             // For text columns, use TextTransform.
-            yield return new Experts.Text();
+            yield return new Experts.Text(context);
 
             // If numeric column has missing values, use Missing transform.
-            yield return new Experts.NumericMissing();
+            yield return new Experts.NumericMissing(context);
         }
 
         internal static class Experts
         {
             internal sealed class AutoLabel : TransformInferenceExpertBase
             {
+                public AutoLabel(MLContext context) : base(context)
+                {
+                }
+
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
                 {
                     var lastLabelColId = Array.FindLastIndex(columns, x => x.Purpose == ColumnPurpose.Label);
@@ -187,6 +191,10 @@ namespace Microsoft.ML.Auto
 
             internal sealed class GroupIdHashRename : TransformInferenceExpertBase
             {
+                public GroupIdHashRename(MLContext context) : base(context)
+                {
+                }
+
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
                 {
                     var firstGroupColId = Array.FindIndex(columns, x => x.Purpose == ColumnPurpose.Group);
@@ -209,6 +217,10 @@ namespace Microsoft.ML.Auto
 
             internal sealed class Categorical : TransformInferenceExpertBase
             {
+                public Categorical(MLContext context) : base(context)
+                {
+                }
+
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
                 {
                     bool foundCat = false;
@@ -255,6 +267,10 @@ namespace Microsoft.ML.Auto
 
             internal sealed class Boolean : TransformInferenceExpertBase
             {
+                public Boolean(MLContext context) : base(context)
+                {
+                }
+
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
                 {
                     var newColumns = new List<string>();
@@ -279,6 +295,10 @@ namespace Microsoft.ML.Auto
 
             internal sealed class Text : TransformInferenceExpertBase
             {
+                public Text(MLContext context) : base(context)
+                {
+                }
+
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
                 {
                     var featureCols = new List<string>();
@@ -301,6 +321,10 @@ namespace Microsoft.ML.Auto
 
             internal sealed class NumericMissing : TransformInferenceExpertBase
             {
+                public NumericMissing(MLContext context) : base(context)
+                {
+                }
+
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
                 {
                     var columnsWithMissing = new List<string>();
@@ -326,6 +350,10 @@ namespace Microsoft.ML.Auto
             
             internal sealed class NameColumnConcatRename : TransformInferenceExpertBase
             {
+                public NameColumnConcatRename(MLContext context) : base(context)
+                {
+                }
+
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
                 {
                     int count = 0;
@@ -385,7 +413,7 @@ namespace Microsoft.ML.Auto
                 .ToArray();
 
             var suggestedTransforms = new List<SuggestedTransform>();
-            foreach (var expert in GetExperts())
+            foreach (var expert in GetExperts(context))
             {
                 SuggestedTransform[] suggestions = expert.Apply(intermediateCols).ToArray();
                 suggestedTransforms.AddRange(suggestions);

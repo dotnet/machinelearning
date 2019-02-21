@@ -23,29 +23,28 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        public static IDataView Take(this IDataView data, int count)
+        public static IDataView Take(this IDataView data, MLContext context, int count)
         {
-            var context = new MLContext();
             return TakeFilter.Create(context, data, count);
         }
 
-        public static IDataView DropLastColumn(this IDataView data)
+        public static IDataView DropLastColumn(this IDataView data, MLContext context)
         {
-            return new MLContext().Transforms.DropColumns(data.Schema[data.Schema.Count - 1].Name).Fit(data).Transform(data);
+            return context.Transforms.DropColumns(data.Schema[data.Schema.Count - 1].Name).Fit(data).Transform(data);
         }
 
-        public static (IDataView testData, IDataView validationData) TestValidateSplit(this TrainCatalogBase catalog, IDataView trainData)
+        public static (IDataView testData, IDataView validationData) TestValidateSplit(this TrainCatalogBase catalog, 
+            MLContext context, IDataView trainData)
         {
             IDataView validationData;
             (trainData, validationData) = catalog.TrainTestSplit(trainData);
-            trainData = trainData.DropLastColumn();
-            validationData = validationData.DropLastColumn();
+            trainData = trainData.DropLastColumn(context);
+            validationData = validationData.DropLastColumn(context);
             return (trainData, validationData);
         }
 
-        public static IDataView Skip(this IDataView data, int count)
+        public static IDataView Skip(this IDataView data, MLContext context, int count)
         {
-            var context = new MLContext();
             return SkipFilter.Create(context, data, count);
         }
 
@@ -53,7 +52,7 @@ namespace Microsoft.ML.Auto
             IDataView data, ColumnInformation columnInfo)
         {
             var purposes = PurposeInference.InferPurposes(context, data, columnInfo);
-            var colDimensions = DatasetDimensionsApi.CalcColumnDimensions(data, purposes);
+            var colDimensions = DatasetDimensionsApi.CalcColumnDimensions(context, data, purposes);
             var cols = new (string, ColumnType, ColumnPurpose, ColumnDimensions)[data.Schema.Count];
             for (var i = 0; i < cols.Length; i++)
             {

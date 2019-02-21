@@ -23,12 +23,12 @@ namespace Microsoft.ML.Auto
 
         public SuggestedPipeline(IEnumerable<SuggestedTransform> transforms,
             SuggestedTrainer trainer,
-            MLContext context = null,
+            MLContext context,
             bool autoNormalize = true)
         {
             Transforms = transforms.Select(t => t.Clone()).ToList();
             Trainer = trainer.Clone();
-            _context = context ?? new MLContext();
+            _context = context;
 
             if(autoNormalize)
             {
@@ -64,10 +64,8 @@ namespace Microsoft.ML.Auto
             return new Pipeline(pipelineElements.ToArray());
         }
 
-        public static SuggestedPipeline FromPipeline(Pipeline pipeline)
+        public static SuggestedPipeline FromPipeline(MLContext context, Pipeline pipeline)
         {
-            var context = new MLContext();
-
             var transforms = new List<SuggestedTransform>();
             SuggestedTrainer trainer = null;
 
@@ -84,13 +82,13 @@ namespace Microsoft.ML.Auto
                 {
                     var estimatorName = (EstimatorName)Enum.Parse(typeof(EstimatorName), pipelineNode.Name);
                     var estimatorExtension = EstimatorExtensionCatalog.GetExtension(estimatorName);
-                    var estimator = estimatorExtension.CreateInstance(new MLContext(), pipelineNode);
+                    var estimator = estimatorExtension.CreateInstance(context, pipelineNode);
                     var transform = new SuggestedTransform(pipelineNode, estimator);
                     transforms.Add(transform);
                 }
             }
 
-            return new SuggestedPipeline(transforms, trainer, null, false);
+            return new SuggestedPipeline(transforms, trainer, context, false);
         }
 
         public IEstimator<ITransformer> ToEstimator()
