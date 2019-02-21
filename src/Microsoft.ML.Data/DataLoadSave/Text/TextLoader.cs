@@ -1071,7 +1071,9 @@ namespace Microsoft.ML.Data
         /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
         /// <param name="allowQuoting">Whether the file can contain numerical vectors in sparse format.</param>
-        internal TextLoader(IHostEnvironment env, Column[] columns, bool hasHeader = false, char separatorChar = '\t', IMultiStreamSource dataSample = null, bool allowSparse = false, bool allowQuoting = false)
+        internal TextLoader(IHostEnvironment env, Column[] columns, bool hasHeader = Defaults.HasHeader,
+            char separatorChar = Defaults.Separator, IMultiStreamSource dataSample = null,
+            bool allowSparse = Defaults.AllowSparse, bool allowQuoting = Defaults.AllowQuoting)
             : this(env, MakeArgs(columns, hasHeader, new[] { separatorChar }, allowSparse, allowQuoting), dataSample)
         {
         }

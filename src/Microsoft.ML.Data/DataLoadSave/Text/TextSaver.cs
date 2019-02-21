@@ -24,7 +24,7 @@ namespace Microsoft.ML.Data.IO
     {
         internal static class DefaultArguments
         {
-            internal const char Separator = '\t';
+            internal const string Separator = "tab";
             internal const bool ForceDense = false;
             internal const bool OutputSchema = true;
             internal const bool OutputHeader = true;
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Data.IO
         public sealed class Arguments
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Separator", ShortName = "sep")]
-            public string Separator = DefaultArguments.Separator.ToString();
+            public string Separator = DefaultArguments.Separator;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Force dense format", ShortName = "dense")]
             public bool Dense = DefaultArguments.ForceDense;
