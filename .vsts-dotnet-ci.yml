@@ -32,11 +32,11 @@ phases:
     name: Centos
     buildScript: ./build.sh
     customMatrixes:
-      Build_Debug_netfx:
+      Build_Debug_Intrinsics:
         _configuration: Debug-Intrinsics
         _config_short: DI
         _includeBenchmarkData: false
-      Build_Release_netfx:
+      Build_Release:
         _configuration: Release
         _config_short: R
         _includeBenchmarkData: true
@@ -49,11 +49,11 @@ phases:
     name: Ubuntu
     buildScript: ./build.sh
     customMatrixes:
-      Build_Debug_netfx:
+      Build_Debug:
         _configuration: Debug
         _config_short: D
         _includeBenchmarkData: false
-      Build_Release_netfx:
+      Build_Release_Intrinsics:
         _configuration: Release-Intrinsics
         _config_short: RI
         _includeBenchmarkData: true
