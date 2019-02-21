@@ -69,7 +69,8 @@ namespace Microsoft.ML.Trainers.Online
             /// Column to use for example weight.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
+            [BestFriend]
+            internal Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
         }
 
         private sealed class TrainState : TrainStateBase

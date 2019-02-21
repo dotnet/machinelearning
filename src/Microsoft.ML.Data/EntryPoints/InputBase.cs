@@ -98,7 +98,8 @@ namespace Microsoft.ML.EntryPoints
         /// Column to use for example weight.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
+        [BestFriend]
+        internal Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
     }
 
     /// <summary>
@@ -111,7 +112,8 @@ namespace Microsoft.ML.EntryPoints
         /// Column to use for example weight.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
+        [BestFriend]
+        internal Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
     }
 
     /// <summary>
@@ -134,7 +136,8 @@ namespace Microsoft.ML.EntryPoints
         /// Column to use for example groupId.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example groupId", ShortName = "groupId", SortOrder = 5, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public Optional<string> GroupIdColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
+        [BestFriend]
+        internal Optional<string> GroupIdColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
     }
 
     [BestFriend]

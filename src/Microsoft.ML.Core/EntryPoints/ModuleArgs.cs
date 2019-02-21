@@ -133,7 +133,8 @@ namespace Microsoft.ML.EntryPoints
         /// A node can be run without optional input fields.
         /// </summary>
         [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-        public sealed class OptionalInputAttribute : Attribute { }
+        [BestFriend]
+        internal sealed class OptionalInputAttribute : Attribute { }
 
         /// <summary>
         /// An attribute used to annotate the valid range of a numeric input.
@@ -650,7 +651,8 @@ namespace Microsoft.ML.EntryPoints
     /// <summary>
     /// The untyped base class for 'maybe'.
     /// </summary>
-    public abstract class Optional
+    [BestFriend]
+    internal abstract class Optional
     {
         /// <summary>
         /// Whether the value was set 'explicitly', or 'implicitly'.
@@ -674,7 +676,8 @@ namespace Microsoft.ML.EntryPoints
     /// the weight column to be 'Weight', we need to actually enforce the presence of the column.
     /// </summary>
     /// <typeparam name="T">The type of the value</typeparam>
-    public sealed class Optional<T> : Optional
+    [BestFriend]
+    internal sealed class Optional<T> : Optional
     {
         public readonly T Value;
 
