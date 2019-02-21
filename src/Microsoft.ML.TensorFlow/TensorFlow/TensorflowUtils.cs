@@ -300,10 +300,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// <param name="env">The environment to use.</param>
         /// <param name="modelPath">The model to load.</param>
         /// <returns></returns>
-        internal static TensorFlowModelInfo LoadTensorFlowModel(IHostEnvironment env, string modelPath)
+        internal static TensorFlowModel LoadTensorFlowModel(IHostEnvironment env, string modelPath)
         {
             var session = GetSession(env, modelPath);
-            return new TensorFlowModelInfo(session, modelPath);
+            return new TensorFlowModel(env, session, modelPath);
         }
 
         internal static TFSession GetSession(IHostEnvironment env, string modelPath)

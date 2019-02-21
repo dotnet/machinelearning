@@ -20,7 +20,7 @@ namespace Microsoft.ML.Transforms.StaticPipe
                 Input = input;
             }
 
-            public OutColumn(Vector<float> input, TensorFlowModelInfo tensorFlowModel)
+            public OutColumn(Vector<float> input, TensorFlowModel tensorFlowModel)
                 : base(new Reconciler(tensorFlowModel), input)
             {
                 Input = input;
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Transforms.StaticPipe
         private sealed class Reconciler : EstimatorReconciler
         {
             private readonly string _modelFile;
-            private readonly TensorFlowModelInfo _tensorFlowModel;
+            private readonly TensorFlowModel _tensorFlowModel;
 
             public Reconciler(string modelFile)
             {
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Transforms.StaticPipe
                 _tensorFlowModel = null;
             }
 
-            public Reconciler(TensorFlowModelInfo tensorFlowModel)
+            public Reconciler(TensorFlowModel tensorFlowModel)
             {
                 Contracts.CheckValue(tensorFlowModel, nameof(tensorFlowModel));
 
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Transforms.StaticPipe
         /// Run a TensorFlow model provided through <paramref name="tensorFlowModel"/> on the input column and extract one output column.
         /// The inputs and outputs are matched to TensorFlow graph nodes by name.
         /// </summary>
-        public static Vector<float> ApplyTensorFlowGraph(this Vector<float> input, TensorFlowModelInfo tensorFlowModel)
+        public static Vector<float> ApplyTensorFlowGraph(this Vector<float> input, TensorFlowModel tensorFlowModel)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValue(tensorFlowModel, nameof(tensorFlowModel));

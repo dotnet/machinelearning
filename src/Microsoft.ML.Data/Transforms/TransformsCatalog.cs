@@ -37,11 +37,6 @@ namespace Microsoft.ML
         /// </summary>
         public FeatureSelectionTransforms FeatureSelection { get; }
 
-        /// <summary>
-        /// List of operations for using TensorFlow model.
-        /// </summary>
-        public TensorFlowTransforms TensorFlow { get; }
-
         internal TransformsCatalog(IHostEnvironment env)
         {
             Contracts.AssertValue(env);
@@ -52,7 +47,6 @@ namespace Microsoft.ML
             Text = new TextTransforms(this);
             Projection = new ProjectionTransforms(this);
             FeatureSelection = new FeatureSelectionTransforms(this);
-            TensorFlow = new TensorFlowTransforms(this);
         }
 
         public abstract class SubCatalogBase
@@ -112,16 +106,6 @@ namespace Microsoft.ML
         public sealed class FeatureSelectionTransforms : SubCatalogBase
         {
             internal FeatureSelectionTransforms(TransformsCatalog owner) : base(owner)
-            {
-            }
-        }
-
-        /// <summary>
-        /// The catalog of TensorFlow operations.
-        /// </summary>
-        public sealed class TensorFlowTransforms : SubCatalogBase
-        {
-            internal TensorFlowTransforms(TransformsCatalog owner) : base(owner)
             {
             }
         }

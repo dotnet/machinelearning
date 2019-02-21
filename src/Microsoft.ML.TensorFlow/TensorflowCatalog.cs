@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
@@ -27,7 +26,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static TensorFlowEstimator ScoreTensorFlowModel(this TransformsCatalog.TensorFlowTransforms catalog,
+        public static TensorFlowEstimator ScoreTensorFlowModel(this TransformsCatalog catalog,
             string modelLocation,
             string outputColumnName,
             string inputColumnName)
@@ -47,7 +46,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static TensorFlowEstimator ScoreTensorFlowModel(this TransformsCatalog.TensorFlowTransforms catalog,
+        public static TensorFlowEstimator ScoreTensorFlowModel(this TransformsCatalog catalog,
             string modelLocation,
             string[] outputColumnNames,
             string[] inputColumnNames)
@@ -60,8 +59,8 @@ namespace Microsoft.ML
         /// <param name="tensorFlowModel">The pre-loaded TensorFlow model.</param>
         /// <param name="inputColumnName"> The name of the model input.</param>
         /// <param name="outputColumnName">The name of the requested model output.</param>
-        public static TensorFlowEstimator ScoreTensorFlowModel(this TransformsCatalog.TensorFlowTransforms catalog,
-            TensorFlowModelInfo tensorFlowModel,
+        public static TensorFlowEstimator ScoreTensorFlowModel(this TransformsCatalog catalog,
+            TensorFlowModel tensorFlowModel,
             string outputColumnName,
             string inputColumnName)
             => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), new[] { outputColumnName }, new[] { inputColumnName }, tensorFlowModel);
@@ -80,8 +79,8 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static TensorFlowEstimator ScoreTensorFlowModel(this TransformsCatalog.TensorFlowTransforms catalog,
-            TensorFlowModelInfo tensorFlowModel,
+        public static TensorFlowEstimator ScoreTensorFlowModel(this TransformsCatalog catalog,
+            TensorFlowModel tensorFlowModel,
             string[] outputColumnNames,
             string[] inputColumnNames)
             => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnNames, inputColumnNames, tensorFlowModel);
@@ -92,7 +91,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="options">The <see cref="TensorFlowEstimator.Options"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
-        public static TensorFlowEstimator TensorFlow(this TransformsCatalog.TensorFlowTransforms catalog,
+        public static TensorFlowEstimator TensorFlow(this TransformsCatalog catalog,
             TensorFlowEstimator.Options options)
             => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), options);
 
@@ -102,41 +101,18 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="options">The <see cref="TensorFlowEstimator.Options"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
         /// <param name="tensorFlowModel">The pre-loaded TensorFlow model.</param>
-        public static TensorFlowEstimator TensorFlow(this TransformsCatalog.TensorFlowTransforms catalog,
+        public static TensorFlowEstimator TensorFlow(this TransformsCatalog catalog,
             TensorFlowEstimator.Options options,
-            TensorFlowModelInfo tensorFlowModel)
+            TensorFlowModel tensorFlowModel)
             => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), options, tensorFlowModel);
 
         /// <summary>
-        /// This method retrieves the information about the graph nodes of a TensorFlow model as an <see cref="DataViewSchema"/>.
-        /// For every node in the graph that has an output type that is compatible with the types supported by
-        /// <see cref="TensorFlowEstimator"/>, the output schema contains a column with the name of that node, and the
-        /// type of its output (including the item type and the shape, if it is known). Every column also contains metadata
-        /// of kind <see cref="TensorFlowUtils.TensorflowOperatorTypeKind"/>, indicating the operation type of the node, and if that node has inputs in the graph,
-        /// it contains metadata of kind <see cref="TensorFlowUtils.TensorflowUpstreamOperatorsKind"/>, indicating the names of the input nodes.
-        /// </summary>
-        /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="tensorFlowModel">The pre-loaded TensorFlow model. Please see <see cref="LoadTensorFlowModel(TransformsCatalog.TensorFlowTransforms, string)"/> to know more about loading model into memory.</param>
-        public static DataViewSchema GetModelSchema(this TransformsCatalog.TensorFlowTransforms catalog, TensorFlowModelInfo tensorFlowModel)
-            => TensorFlowUtils.GetModelSchema(CatalogUtils.GetEnvironment(catalog), tensorFlowModel.Session.Graph);
-
-        /// <summary>
-        /// This method retrieves the information about the input graph nodes of a TensorFlow model as an <see cref="DataViewSchema"/>.
-        /// The nodes with OpType as "Placeholder" are classified as input nodes. This is the convenience method to inspect only input nodes.
-        /// For retrieving complete information please see <see cref="GetModelSchema(TransformsCatalog.TensorFlowTransforms, TensorFlowModelInfo)"/>
-        /// </summary>
-        /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="tensorFlowModel">The pre-loaded TensorFlow model. Please see <see cref="LoadTensorFlowModel(TransformsCatalog.TensorFlowTransforms, string)"/> to know more about loading model into memory.</param>
-        public static DataViewSchema GetInputSchema(this TransformsCatalog.TensorFlowTransforms catalog, TensorFlowModelInfo tensorFlowModel)
-            => TensorFlowUtils.GetModelSchema(CatalogUtils.GetEnvironment(catalog), tensorFlowModel.Session.Graph, "Placeholder");
-
-        /// <summary>
         /// Load TensorFlow model into memory. This is the convenience method that allows the model to be loaded once and subsequently use it for querying schema and creation of
-        /// <see cref="TensorFlowEstimator"/> using <see cref="TensorFlow(TransformsCatalog.TensorFlowTransforms, TensorFlowEstimator.Options, TensorFlowModelInfo)"/>.
+        /// <see cref="TensorFlowEstimator"/> using <see cref="TensorFlow(TransformsCatalog, TensorFlowEstimator.Options, TensorFlowModel)"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelLocation">Location of the TensorFlow model.</param>
-        public static TensorFlowModelInfo LoadTensorFlowModel(this TransformsCatalog.TensorFlowTransforms catalog, string modelLocation)
+        public static TensorFlowModel LoadTensorFlowModel(this TransformsCatalog catalog, string modelLocation)
             => TensorFlowUtils.LoadTensorFlowModel(CatalogUtils.GetEnvironment(catalog), modelLocation);
     }
 }

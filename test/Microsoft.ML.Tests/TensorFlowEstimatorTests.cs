@@ -77,7 +77,7 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[4], B = new float[4] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { a = new string[4], b = new string[4] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { a = new float[2], b = new float[2] } };
-            var pipe = ML.Transforms.TensorFlow.ScoreTensorFlowModel(modelFile, new[] { "c" }, new[] { "a", "b" });
+            var pipe = ML.Transforms.ScoreTensorFlowModel(modelFile, new[] { "c" }, new[] { "a", "b" });
 
             var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.ReadFromEnumerable( stringData);
@@ -118,7 +118,7 @@ namespace Microsoft.ML.Tests
                         b = new[] { 10.0f, 8.0f, 6.0f, 6.0f }
                     }
                 }));
-            var est = ML.Transforms.TensorFlow.ScoreTensorFlowModel(modelFile, new[] { "c" }, new[] { "a", "b" });
+            var est = ML.Transforms.ScoreTensorFlowModel(modelFile, new[] { "c" }, new[] { "a", "b" });
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -187,8 +187,8 @@ namespace Microsoft.ML.Tests
             const string modelLocation = "cifar_model/frozen_model.pb";
 
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var tensorFlowModel = mlContext.Transforms.TensorFlow.LoadTensorFlowModel(modelLocation);
-            var schema = mlContext.Transforms.TensorFlow.GetInputSchema(tensorFlowModel);
+            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
+            var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
             var type = (VectorType)schema[column].Type;
             var imageHeight = type.Dimensions[0];
