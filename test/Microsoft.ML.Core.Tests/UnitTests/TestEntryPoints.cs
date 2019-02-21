@@ -5097,7 +5097,7 @@ namespace Microsoft.ML.RunTests
                         },
                         'StratificationColumn': null,
                         'NumFolds': 2,
-                        'Kind': 'SignatureRankingTrainer',
+                        'Kind': 'SignatureRankerTrainer',
                         'LabelColumn': 'Label1',
                         'WeightColumn': null,
                         'GroupColumn': {

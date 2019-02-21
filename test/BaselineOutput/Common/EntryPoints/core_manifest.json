@@ -1312,7 +1312,7 @@
             "Values": [
               "SignatureBinaryClassifierTrainer",
               "SignatureMultiClassClassifierTrainer",
-              "SignatureRankingTrainer",
+              "SignatureRankerTrainer",
               "SignatureRegressorTrainer",
               "SignatureMultiOutputRegressorTrainer",
               "SignatureAnomalyDetectorTrainer",
@@ -1503,7 +1503,7 @@
             "Values": [
               "SignatureBinaryClassifierTrainer",
               "SignatureMultiClassClassifierTrainer",
-              "SignatureRankingTrainer",
+              "SignatureRankerTrainer",
               "SignatureRegressorTrainer",
               "SignatureMultiOutputRegressorTrainer",
               "SignatureAnomalyDetectorTrainer",
@@ -3180,7 +3180,7 @@
             "Values": [
               "SignatureBinaryClassifierTrainer",
               "SignatureMultiClassClassifierTrainer",
-              "SignatureRankingTrainer",
+              "SignatureRankerTrainer",
               "SignatureRegressorTrainer",
               "SignatureMultiOutputRegressorTrainer",
               "SignatureAnomalyDetectorTrainer",

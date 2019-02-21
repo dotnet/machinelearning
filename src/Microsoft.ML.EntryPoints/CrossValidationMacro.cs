@@ -429,7 +429,7 @@ namespace Microsoft.ML.EntryPoints
                 return new MultiClassMamlEvaluator(env, new MultiClassMamlEvaluator.Arguments());
             case MacroUtils.TrainerKinds.SignatureRegressorTrainer:
                 return new RegressionMamlEvaluator(env, new RegressionMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureRankingTrainer:
+            case MacroUtils.TrainerKinds.SignatureRankerTrainer:
                 return new RankingMamlEvaluator(env, new RankingMamlEvaluator.Arguments());
             case MacroUtils.TrainerKinds.SignatureAnomalyDetectorTrainer:
                 return new AnomalyDetectionMamlEvaluator(env, new AnomalyDetectionMamlEvaluator.Arguments());

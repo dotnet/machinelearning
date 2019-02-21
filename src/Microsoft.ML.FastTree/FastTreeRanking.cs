@@ -20,7 +20,7 @@ using Microsoft.ML.Training;
 
 // REVIEW: Do we really need all these names?
 [assembly: LoadableClass(FastTreeRankingTrainer.Summary, typeof(FastTreeRankingTrainer), typeof(FastTreeRankingTrainer.Options),
-    new[] { typeof(SignatureRankingTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
+    new[] { typeof(SignatureRankerTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
     FastTreeRankingTrainer.UserNameValue,
     FastTreeRankingTrainer.LoadNameValue,
     FastTreeRankingTrainer.ShortName,
