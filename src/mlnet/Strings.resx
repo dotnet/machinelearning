@@ -135,6 +135,9 @@
   <data name="GenerateProject" xml:space="preserve">
     <value>Generating a console project for the best pipeline ...</value>
   </data>
+  <data name="InferColumnError" xml:space="preserve">
+    <value>An Error occured during inferring columns</value>
+  </data>
   <data name="InferColumns" xml:space="preserve">
     <value>Inferring Columns ...</value>
   </data>

@@ -25,9 +25,18 @@ namespace Microsoft.ML.CLI.Templates.Console
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("\r\nusing System;\r\nusing System.IO;\r\nusing System.Linq;\r\nusing Microsoft.ML;\r\nusing" +
-                    " Microsoft.ML.Core.Data;\r\nusing Microsoft.ML.Data;\r\nusing Microsoft.Data.DataVie" +
-                    "w;\r\n");
+            this.Write(@"// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.IO;
+using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.Data.DataView;
+");
             this.Write(this.ToStringHelper.ToStringWithCulture(GeneratedUsings));
             this.Write("\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
@@ -97,11 +106,11 @@ if(!string.IsNullOrEmpty(TestPath)){
  for(int i=0;i<Transforms.Count;i++) 
                                          { 
                                              if(i>0)
-                                             { Write("\n                                      .Append(");
+                                             { Write("\r\n                                      .Append(");
                                              }
                                              Write("mlContext.Transforms."+Transforms[i]);
                                              if(i>0)
-                                             { Write(")");
+                                             { Write(")\r\n");
                                              }
                                          }
             this.Write(";\r\n");
@@ -112,7 +121,7 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write(".Trainers.");
             this.Write(this.ToStringHelper.ToStringWithCulture(Trainer));
             this.Write(";\r\n");
- if (Transforms.Count > 0) {
+ if(Transforms.Count >0 ) {
             this.Write("            var trainingPipeline = dataProcessPipeline.Append(trainer);\r\n");
  }
 else{
@@ -203,7 +212,7 @@ if("Regression".Equals(TaskType)){
             var resultprediction = predEngine.Predict(sample);
 
             Console.WriteLine($""=============== Single Prediction  ==============="");
-            Console.WriteLine($""Input: {sample} | Prediction: {resultprediction.");
+            Console.WriteLine($""Actual value: {sample.Label} | Predicted value: {resultprediction.");
 if("BinaryClassification".Equals(TaskType)){ 
             this.Write("Prediction");
 }else{

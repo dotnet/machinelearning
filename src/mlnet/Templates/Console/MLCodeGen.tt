@@ -3,6 +3,9 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -66,11 +69,11 @@ namespace <#= Namespace #>
             var dataProcessPipeline = <# for(int i=0;i<Transforms.Count;i++) 
                                          { 
                                              if(i>0)
-                                             { Write("\n                                      .Append(");
+                                             { Write("\r\n                                      .Append(");
                                              }
                                              Write("mlContext.Transforms."+Transforms[i]);
                                              if(i>0)
-                                             { Write(")");
+                                             { Write(")\r\n");
                                              }
                                          }#>;
 <#}#>
@@ -149,7 +152,7 @@ else{#>
             var resultprediction = predEngine.Predict(sample);
 
             Console.WriteLine($"=============== Single Prediction  ===============");
-            Console.WriteLine($"Input: {sample} | Prediction: {resultprediction.<#if("BinaryClassification".Equals(TaskType)){ #>Prediction<#}else{#>Score<#}#>}");
+            Console.WriteLine($"Actual value: {sample.Label} | Predicted value: {resultprediction.<#if("BinaryClassification".Equals(TaskType)){ #>Prediction<#}else{#>Score<#}#>}");
             Console.WriteLine($"==================================================");
         }
 

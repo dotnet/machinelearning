@@ -115,6 +115,15 @@ namespace Microsoft.ML.CLI {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An Error occured during inferring columns.
+        /// </summary>
+        internal static string InferColumnError {
+            get {
+                return ResourceManager.GetString("InferColumnError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Inferring Columns ....
         /// </summary>
         internal static string InferColumns {

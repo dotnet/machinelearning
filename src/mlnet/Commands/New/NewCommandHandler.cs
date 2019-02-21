@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Auto;
 using Microsoft.ML.CLI.CodeGenerator.CSharp;
@@ -21,19 +19,34 @@ namespace Microsoft.ML.CLI.Commands.New
     {
         private NewCommandOptions options;
         private static Logger logger = LogManager.GetCurrentClassLogger();
+        private TaskKind taskKind;
 
         internal NewCommand(NewCommandOptions options)
         {
             this.options = options;
+            this.taskKind = Utils.GetTaskKind(options.MlTask);
         }
 
         public void Execute()
         {
             var context = new MLContext();
-            // Infer columns
-            ColumnInferenceResults columnInference = InferColumns(context);
 
-            Array.ForEach(columnInference.TextLoaderArgs.Column, t => t.Name = Sanitize(t.Name));
+            // Infer columns
+            ColumnInferenceResults columnInference = null;
+            try
+            {
+                columnInference = InferColumns(context);
+            }
+            catch (Exception e)
+            {
+                logger.Log(LogLevel.Error, $"{Strings.InferColumnError}");
+                logger.Log(LogLevel.Error, e.Message);
+                logger.Log(LogLevel.Debug, e.ToString());
+                logger.Log(LogLevel.Error, Strings.Exiting);
+            }
+
+            // Sanitize columns
+            Array.ForEach(columnInference.TextLoaderArgs.Column, t => t.Name = Utils.Sanitize(t.Name));
 
             // Load data
             (IDataView trainData, IDataView validationData) = LoadData(context, columnInference.TextLoaderArgs);
@@ -48,7 +61,8 @@ namespace Microsoft.ML.CLI.Commands.New
             catch (Exception e)
             {
                 logger.Log(LogLevel.Error, $"{Strings.ExplorePipelineException}:");
-                logger.Log(LogLevel.Error, e.ToString());
+                logger.Log(LogLevel.Error, e.Message);
+                logger.Log(LogLevel.Debug, e.ToString());
                 logger.Log(LogLevel.Error, Strings.Exiting);
                 return;
             }
@@ -60,8 +74,8 @@ namespace Microsoft.ML.CLI.Commands.New
 
             // Save the model
             logger.Log(LogLevel.Info, Strings.SavingBestModel);
-            var modelPath = Path.Combine(@options.OutputBaseDir, options.OutputName);
-            SaveModel(model, modelPath, $"{options.OutputName}_model.zip", context);
+            var modelPath = Path.Combine(@options.OutputPath.FullName, options.Name);
+            Utils.SaveModel(model, modelPath, $"{options.Name}_model.zip", context);
 
             // Generate the Project
             GenerateProject(columnInference, pipeline);
@@ -72,13 +86,14 @@ namespace Microsoft.ML.CLI.Commands.New
             //Check what overload method of InferColumns needs to be called.
             logger.Log(LogLevel.Info, Strings.InferColumns);
             ColumnInferenceResults columnInference = null;
-            if (options.LabelName != null)
+            var dataset = options.TrainDataset?.FullName ?? options.Dataset?.FullName;
+            if (options.LabelColumnName != null)
             {
-                columnInference = context.AutoInference().InferColumns(options.TrainDataset.FullName, options.LabelName, groupColumns: false);
+                columnInference = context.AutoInference().InferColumns(dataset, options.LabelColumnName, groupColumns: false);
             }
             else
             {
-                columnInference = context.AutoInference().InferColumns(options.TrainDataset.FullName, options.LabelIndex, groupColumns: false);
+                columnInference = context.AutoInference().InferColumns(dataset, options.LabelColumnIndex, groupColumns: false);
             }
 
             return columnInference;
@@ -94,10 +109,10 @@ namespace Microsoft.ML.CLI.Commands.New
                 new CodeGeneratorOptions()
                 {
                     TrainDataset = options.TrainDataset,
-                    MlTask = options.MlTask,
+                    MlTask = taskKind,
                     TestDataset = options.TestDataset,
-                    OutputName = options.OutputName,
-                    OutputBaseDir = options.OutputBaseDir
+                    OutputName = options.Name,
+                    OutputBaseDir = options.OutputPath.FullName
                 });
             codeGenerator.GenerateOutput();
         }
@@ -105,16 +120,16 @@ namespace Microsoft.ML.CLI.Commands.New
         internal (Pipeline, ITransformer) ExploreModels(MLContext context, IDataView trainData, IDataView validationData)
         {
             ITransformer model = null;
-            string label = options.LabelName ?? "Label"; // It is guaranteed training dataview to have Label column
+            string label = options.LabelColumnName ?? "Label"; // It is guaranteed training dataview to have Label column
             Pipeline pipeline = null;
 
-            if (options.MlTask == TaskKind.BinaryClassification)
+            if (taskKind == TaskKind.BinaryClassification)
             {
                 var progressReporter = new ProgressHandlers.BinaryClassificationHandler();
                 var result = context.AutoInference()
                     .CreateBinaryClassificationExperiment(new BinaryExperimentSettings()
                     {
-                        MaxInferenceTimeInSeconds = options.Timeout,
+                        MaxInferenceTimeInSeconds = options.MaxExplorationTime,
                         ProgressCallback = progressReporter
                     })
                     .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = label });
@@ -124,13 +139,13 @@ namespace Microsoft.ML.CLI.Commands.New
                 model = bestIteration.Model;
             }
 
-            if (options.MlTask == TaskKind.Regression)
+            if (taskKind == TaskKind.Regression)
             {
                 var progressReporter = new ProgressHandlers.RegressionHandler();
                 var result = context.AutoInference()
                     .CreateRegressionExperiment(new RegressionExperimentSettings()
                     {
-                        MaxInferenceTimeInSeconds = options.Timeout,
+                        MaxInferenceTimeInSeconds = options.MaxExplorationTime,
                         ProgressCallback = progressReporter
                     }).Execute(trainData, validationData, new ColumnInformation() { LabelColumn = label });
                 logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
@@ -139,7 +154,7 @@ namespace Microsoft.ML.CLI.Commands.New
                 model = bestIteration.Model;
             }
 
-            if (options.MlTask == TaskKind.MulticlassClassification)
+            if (taskKind == TaskKind.MulticlassClassification)
             {
                 throw new NotImplementedException();
             }
@@ -154,26 +169,10 @@ namespace Microsoft.ML.CLI.Commands.New
             var textLoader = context.Data.CreateTextLoader(textLoaderArgs);
 
             logger.Log(LogLevel.Info, Strings.LoadData);
-            var trainData = textLoader.Read(options.TrainDataset.FullName);
+            var trainData = textLoader.Read(options.TrainDataset?.FullName ?? options.Dataset?.FullName);
             var validationData = options.ValidationDataset == null ? null : textLoader.Read(options.ValidationDataset.FullName);
 
             return (trainData, validationData);
-        }
-
-        internal static void SaveModel(ITransformer model, string ModelPath, string modelName, MLContext mlContext)
-        {
-            if (!Directory.Exists(ModelPath))
-            {
-                Directory.CreateDirectory(ModelPath);
-            }
-            ModelPath = Path.Combine(ModelPath, modelName);
-            using (var fs = File.Create(ModelPath))
-                model.SaveTo(mlContext, fs);
-        }
-
-        private static string Sanitize(string name)
-        {
-            return string.Join("", name.Select(x => Char.IsLetterOrDigit(x) ? x : '_'));
         }
     }
 }

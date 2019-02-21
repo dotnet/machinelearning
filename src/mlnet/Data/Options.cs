@@ -7,29 +7,29 @@ using Microsoft.ML.Auto;
 
 namespace Microsoft.ML.CLI.Data
 {
-    internal class NewCommandOptions
+    public class NewCommandOptions
     {
-        internal string OutputName { get; set; }
+        public string Name { get; set; }
 
-        internal string Name { get; set; }
+        public FileInfo Dataset { get; set; }
 
-        internal FileInfo Dataset { get; set; }
+        public FileInfo ValidationDataset { get; set; }
 
-        internal FileInfo ValidationDataset { get; set; }
+        public FileInfo TrainDataset { get; set; }
 
-        internal FileInfo TrainDataset { get; set; }
+        public FileInfo TestDataset { get; set; }
 
-        internal FileInfo TestDataset { get; set; }
+        public string LabelColumnName { get; set; }
 
-        internal string LabelName { get; set; }
+        public string Verbosity { get; set; }
 
-        internal uint LabelIndex { get; set; }
+        public uint LabelColumnIndex { get; set; }
 
-        internal TaskKind MlTask { get; set; }
+        public string MlTask { get; set; }
 
-        internal uint Timeout { get; set; }
+        public uint MaxExplorationTime { get; set; }
 
-        internal string OutputBaseDir { get; set; }
+        public DirectoryInfo OutputPath { get; set; }
 
     }
 }

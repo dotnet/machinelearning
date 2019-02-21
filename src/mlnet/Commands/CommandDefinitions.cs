@@ -19,7 +19,7 @@ namespace Microsoft.ML.CLI.Commands
         {
             var newCommand = new System.CommandLine.Command("new", "ML.NET CLI tool for code generation", handler: handler)
             {
-                                //Dataset(), 
+                                Dataset(),
                                 TrainDataset(),
                                 ValidationDataset(),
                                 TestDataset(),
@@ -29,14 +29,22 @@ namespace Microsoft.ML.CLI.Commands
                                 LabelColumnIndex(),
                                 Verbosity(),
                                 Name(),
-                                OutputBaseDir()
+                                OutputPath()
             };
 
             newCommand.Argument.AddValidator((sym) =>
             {
-                if (sym.Children["--train-dataset"] == null)
+                if (sym.Children["--dataset"] == null && sym.Children["--train-dataset"] == null)
                 {
-                    return "Option required : --train-dataset";
+                    return "Option required : --dataset";
+                }
+                if (sym.Children["--dataset"] != null && sym.Children["--train-dataset"] != null)
+                {
+                    return "The following options are mutually exclusive please provide only one : --data-set, --train-dataset";
+                }
+                if (sym.Children["--train-dataset"] != null && sym.Children["--test-dataset"] == null)
+                {
+                    return "Option required : --test-dataset";
                 }
                 if (sym.Children["--ml-task"] == null)
                 {
@@ -46,14 +54,19 @@ namespace Microsoft.ML.CLI.Commands
                 {
                     return "Option required : --label-column-name or --label-column-index";
                 }
+                if (sym.Children["--label-column-name"] != null && sym.Children["--label-column-index"] != null)
+                {
+                    return "The following options are mutually exclusive please provide only one : --label-column-name, --label-column-index";
+                }
+
                 return null;
             });
 
             return newCommand;
 
-            /*Option Dataset() =>
+            Option Dataset() =>
                new Option("--dataset", "Dataset file path.",
-                          new Argument<FileInfo>().ExistingOnly()); */
+                          new Argument<FileInfo>().ExistingOnly());
 
             Option TrainDataset() =>
                new Option("--train-dataset", "Train dataset file path.",
@@ -69,7 +82,7 @@ namespace Microsoft.ML.CLI.Commands
 
             Option MlTask() =>
                new Option("--ml-task", "Type of ML task.",
-                          new Argument<TaskKind>().WithSuggestions(GetMlTaskSuggestions()));
+                          new Argument<string>().FromAmong(GetMlTaskSuggestions()));
 
             Option LabelName() =>
                new Option("--label-column-name", "Name of the label column.",
@@ -85,21 +98,21 @@ namespace Microsoft.ML.CLI.Commands
 
             Option Verbosity() =>
               new Option(new List<string>() { "--verbosity" }, "Verbosity of the output to be shown by the tool.",
-                         new Argument<string>(defaultValue: "m").WithSuggestions(GetVerbositySuggestions()));
+                         new Argument<string>(defaultValue: "m").FromAmong(GetVerbositySuggestions()));
 
             Option Name() =>
               new Option(new List<string>() { "--name" }, "Name of the output files(project and folder).",
                          new Argument<string>(defaultValue: "Sample"));
 
-            Option OutputBaseDir() =>
-              new Option(new List<string>() { "--output" }, "Output folder path.",
-             new Argument<string>(defaultValue: ".\\Sample"));
+            Option OutputPath() =>
+              new Option(new List<string>() { "--output-path" }, "Output folder path.",
+             new Argument<DirectoryInfo>(defaultValue: new DirectoryInfo(".\\Sample")));
 
         }
 
         private static string[] GetMlTaskSuggestions()
         {
-            return Enum.GetValues(typeof(TaskKind)).Cast<TaskKind>().Select(v => v.ToString()).ToArray();
+            return new[] { "binary-classification", "regression" };
         }
 
         private static string[] GetVerbositySuggestions()

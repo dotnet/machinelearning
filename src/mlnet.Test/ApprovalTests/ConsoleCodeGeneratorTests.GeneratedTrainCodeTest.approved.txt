@@ -1,4 +1,7 @@
-﻿
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System;
 using System.IO;
 using System.Linq;
@@ -105,7 +108,7 @@ namespace MyNamespace
             var resultprediction = predEngine.Predict(sample);
 
             Console.WriteLine($"=============== Single Prediction  ===============");
-            Console.WriteLine($"Input: {sample} | Prediction: {resultprediction.Prediction}");
+            Console.WriteLine($"Actual value: {sample.Label} | Predicted value: {resultprediction.Prediction}");
             Console.WriteLine($"==================================================");
         }
 
