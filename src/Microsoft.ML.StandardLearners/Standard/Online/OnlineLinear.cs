@@ -24,7 +24,7 @@ namespace Microsoft.ML.Trainers.Online
         /// <summary>
         /// Number of passes through the training dataset.
         /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter, numIterations", SortOrder = 50)]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter,numIterations", SortOrder = 50)]
         [TGUI(Label = "Number of Iterations", Description = "Number of training iterations through data", SuggestedSweeps = "1,10,100")]
         [TlcModule.SweepableLongParamAttribute("NumIterations", 1, 100, stepSize: 10, isLogScale: true)]
         public int NumberOfIterations = OnlineDefault.NumIterations;
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Trainers.Online
         /// This property is only used if the provided value is positive and <see cref="InitialWeights"/> is not specified.
         /// The weights and bias will be randomly selected from InitialWeights * [-0.5,0.5] interval with uniform distribution.
         /// </value>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Init weights diameter", ShortName = "initwts, initWtsDiameter", SortOrder = 140)]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Init weights diameter", ShortName = "initwts,initWtsDiameter", SortOrder = 140)]
         [TGUI(Label = "Initial Weights Scale", SuggestedSweeps = "0,0.1,0.5,1")]
         [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0.0f, 1.0f, numSteps: 5)]
         public float InitialWeightsDiameter = 0;

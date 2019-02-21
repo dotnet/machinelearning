@@ -19,7 +19,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         ///  Predict a target using logistic regression trained with the <see cref="SgdBinaryTrainer"/> trainer.
         /// </summary>
-        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The name of the label column.</param>
         /// <param name="features">The name of the feature column.</param>
         /// <param name="weights">The name for the example weight column.</param>
@@ -59,7 +59,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         ///  Predict a target using logistic regression trained with the <see cref="SgdBinaryTrainer"/> trainer.
         /// </summary>
-        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The name of the label column.</param>
         /// <param name="features">The name of the feature column.</param>
         /// <param name="weights">The name for the example weight column.</param>
@@ -99,7 +99,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         ///  Predict a target using a linear classification model trained with the <see cref="SgdNonCalibratedBinaryTrainer"/> trainer.
         /// </summary>
-        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The name of the label column.</param>
         /// <param name="features">The name of the feature column.</param>
         /// <param name="weights">The name for the example weight column.</param>
@@ -142,7 +142,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         ///  Predict a target using a linear classification model trained with the <see cref="SgdNonCalibratedBinaryTrainer"/> trainer.
         /// </summary>
-        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The name of the label column.</param>
         /// <param name="features">The name of the feature column.</param>
         /// <param name="weights">The name for the example weight column.</param>

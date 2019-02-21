@@ -54,7 +54,7 @@ namespace Microsoft.ML.Trainers.Online
         private readonly Options _args;
 
         /// <summary>
-        /// Options for the averaged perceptron trainer.
+        /// Options for the <see cref="AveragedPerceptronTrainer"/>.
         /// </summary>
         public sealed class Options : AveragedLinearOptions
         {
