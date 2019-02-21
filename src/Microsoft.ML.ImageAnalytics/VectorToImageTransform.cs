@@ -252,7 +252,7 @@ namespace Microsoft.ML.ImageAnalytics
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var inputColName = _columns[col].InputColumnName;
             var vectorType = inputSchema[srcCol].Type as VectorType;
@@ -443,7 +443,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.CheckUserArg(FloatUtils.IsFiniteNonZero(Scale), nameof(item.Scale));
             }
 
-            public ColumnInfo(string outputColumnName, string inputColumnName, ModelLoadContext ctx)
+            internal ColumnInfo(string outputColumnName, string inputColumnName, ModelLoadContext ctx)
             {
                 Contracts.AssertNonEmpty(outputColumnName);
                 Contracts.AssertNonEmpty(inputColumnName);
