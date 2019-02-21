@@ -573,7 +573,6 @@ namespace Microsoft.ML.Transforms.Conversions
                                 if (key >= (uint)size)
                                     continue;
                                 editor.Values[count] = 1;
-                                editor.Indices[count++] = slot * size + (int)key;
                             }
                         }
                         else
