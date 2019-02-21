@@ -164,9 +164,6 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Check that a <see cref="AnomalyDetectionMetrics"/> object is valid.
         /// </summary>
-        /// <remarks>
-        /// TODO #2644: At times, AnomalyDetection.Evaluate will return a set of NaN metrics.
-        /// </remarks>
         /// <param name="metrics">The metrics object.</param>
         public static void CheckMetrics(AnomalyDetectionMetrics metrics)
         {

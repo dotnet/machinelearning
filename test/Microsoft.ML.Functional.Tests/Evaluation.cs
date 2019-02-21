@@ -8,7 +8,6 @@ using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.KMeans;
-using Microsoft.ML.Trainers.PCA;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -41,8 +40,8 @@ namespace Microsoft.ML.Functional.Tests
             // Train the model.
             var model = pipeline.Fit(trainData);
 
-            // Evaulate the model.
-            //  Note Issue #2464: Using the train dataset will cause NaN metrics to be returned.
+            // Evaluate the model.
+            //  TODO #2464: Using the train dataset will cause NaN metrics to be returned.
             var scoredTest = model.Transform(testData);
             var metrics = mlContext.AnomalyDetection.Evaluate(scoredTest);
 
@@ -71,7 +70,7 @@ namespace Microsoft.ML.Functional.Tests
             // Train the model.
             var model = pipeline.Fit(data);
 
-            // Evaulate the model.
+            // Evaluate the model.
             var scoredData = model.Transform(data);
             var metrics = mlContext.BinaryClassification.Evaluate(scoredData);
 
@@ -99,7 +98,7 @@ namespace Microsoft.ML.Functional.Tests
             // Train the model.
             var model = pipeline.Fit(data);
 
-            // Evaulate the model.
+            // Evaluate the model.
             var scoredData = model.Transform(data);
             var metrics = mlContext.Clustering.Evaluate(scoredData);
 
@@ -128,7 +127,7 @@ namespace Microsoft.ML.Functional.Tests
             // Train the model.
             var model = pipeline.Fit(data);
 
-            // Evaulate the model.
+            // Evaluate the model.
             var scoredData = model.Transform(data);
             var metrics = mlContext.MulticlassClassification.Evaluate(scoredData);
 
@@ -156,7 +155,7 @@ namespace Microsoft.ML.Functional.Tests
             // Train the model.
             var model = pipeline.Fit(data);
 
-            // Evaulate the model.
+            // Evaluate the model.
             var scoredData = model.Transform(data);
             var metrics = mlContext.Ranking.Evaluate(scoredData, label: "Label", groupId: "GroupId");
 
@@ -193,7 +192,7 @@ namespace Microsoft.ML.Functional.Tests
             // Train the model.
             var model = pipeline.Fit(data);
 
-            // Evaulate the model.
+            // Evaluate the model.
             var scoredData = model.Transform(data);
             var metrics = mlContext.Recommendation().Evaluate(scoredData);
 
@@ -224,7 +223,7 @@ namespace Microsoft.ML.Functional.Tests
             // Train the model.
             var model = pipeline.Fit(data);
 
-            // Evaulate the model.
+            // Evaluate the model.
             var scoredData = model.Transform(data);
             var metrics = mlContext.Regression.Evaluate(scoredData);
 
@@ -256,7 +255,7 @@ namespace Microsoft.ML.Functional.Tests
             // Train the model.
             var model = pipeline.Fit(data);
 
-            // Evaulate the model.
+            // Evaluate the model.
             var scoredData = model.Transform(data);
             var metrics = mlContext.BinaryClassification.Evaluate(scoredData);
 
