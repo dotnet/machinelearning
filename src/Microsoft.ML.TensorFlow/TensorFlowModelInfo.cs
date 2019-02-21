@@ -11,50 +11,21 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// This class holds the information related to TensorFlow model and session.
     /// It provides a convenient way to query model schema as follows.
-    /// <list type="bullet">
-    ///    <item>
-    ///      <description>Get complete schema by calling <see cref="GetModelSchema()"/>.</description>
-    ///    </item>
-    ///    <item>
-    ///      <description>Get schema related to model input(s) by calling <see cref="GetInputSchema()"/>.</description>
-    ///    </item>
-    /// </list>
     /// </summary>
     public sealed class TensorFlowModelInfo
     {
         internal TFSession Session { get; }
         public string ModelPath { get; }
 
-        private readonly IHostEnvironment _env;
-
         /// <summary>
         /// Instantiates <see cref="TensorFlowModelInfo"/>.
         /// </summary>
-        /// <param name="env">An <see cref="IHostEnvironment"/> object.</param>
         /// <param name="session">TensorFlow session object.</param>
         /// <param name="modelLocation">Location of the model from where <paramref name="session"/> was loaded.</param>
-        internal TensorFlowModelInfo(IHostEnvironment env, TFSession session, string modelLocation)
+        internal TensorFlowModelInfo(TFSession session, string modelLocation)
         {
             Session = session;
             ModelPath = modelLocation;
-            _env = env;
-        }
-
-        /// <summary>
-        /// Get <see cref="DataViewSchema"/> for complete model. Every node in the TensorFlow model will be included in the <see cref="DataViewSchema"/> object.
-        /// </summary>
-        public DataViewSchema GetModelSchema()
-        {
-            return TensorFlowUtils.GetModelSchema(_env, Session.Graph);
-        }
-
-        /// <summary>
-        /// Get <see cref="DataViewSchema"/> for only those nodes which are marked "Placeholder" in the TensorFlow model.
-        /// This method is convenient for exploring the model input(s) in case TensorFlow graph is very large.
-        /// </summary>
-        public DataViewSchema GetInputSchema()
-        {
-            return TensorFlowUtils.GetModelSchema(_env, Session.Graph, "Placeholder");
         }
     }
 }

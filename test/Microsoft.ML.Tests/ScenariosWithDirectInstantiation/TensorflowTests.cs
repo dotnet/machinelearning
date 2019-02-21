@@ -841,8 +841,8 @@ namespace Microsoft.ML.Scenarios
             var modelLocation = "cifar_model/frozen_model.pb";
 
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
-            var schema = tensorFlowModel.GetInputSchema();
+            var tensorFlowModel = mlContext.Transforms.TensorFlow.LoadTensorFlowModel(modelLocation);
+            var schema = mlContext.Transforms.TensorFlow.GetInputSchema(tensorFlowModel);
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
             var type = (VectorType)schema[column].Type;
             var imageHeight = type.Dimensions[0];
@@ -886,8 +886,8 @@ namespace Microsoft.ML.Scenarios
         {
             var modelLocation = "cifar_saved_model";
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
-            var schema = tensorFlowModel.GetInputSchema();
+            var tensorFlowModel = mlContext.Transforms.TensorFlow.LoadTensorFlowModel(modelLocation);
+            var schema = mlContext.Transforms.TensorFlow.GetInputSchema(tensorFlowModel);
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
             var type = (VectorType)schema[column].Type;
             var imageHeight = type.Dimensions[0];
@@ -1047,8 +1047,8 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowStringTest()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var model = TensorFlowUtils.LoadTensorFlowModel(mlContext, @"model_string_test");
-            var schema = model.GetModelSchema();
+            var model = mlContext.Transforms.TensorFlow.LoadTensorFlowModel(@"model_string_test");
+            var schema = mlContext.Transforms.TensorFlow.GetInputSchema(model);
             Assert.True(schema.TryGetColumnIndex("A", out var colIndex));
             Assert.True(schema.TryGetColumnIndex("B", out colIndex));
 

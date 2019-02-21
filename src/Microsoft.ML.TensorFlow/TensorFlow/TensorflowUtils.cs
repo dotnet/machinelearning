@@ -100,44 +100,6 @@ namespace Microsoft.ML.Transforms.TensorFlow
             return GetModelSchema(env, model.Session.Graph);
         }
 
-        /// <summary>
-        /// This is a convenience method for iterating over the nodes of a TensorFlow model graph. It
-        /// iterates over the columns of the <see cref="DataViewSchema"/> returned by <see cref="GetModelSchema(IHostEnvironment, string)"/>,
-        /// and for each one it returns a tuple containing the name, operation type, column type and an array of input node names.
-        /// This method is convenient for filtering nodes based on certain criteria, for example, by the operation type.
-        /// </summary>
-        /// <param name="env">The environment to use.</param>
-        /// <param name="modelPath">Model to load.</param>
-        /// <returns></returns>
-        internal static IEnumerable<(string, string, DataViewType, string[])> GetModelNodes(IHostEnvironment env, string modelPath)
-        {
-            var schema = GetModelSchema(env, modelPath);
-
-            for (int i = 0; i < schema.Count; i++)
-            {
-                var name = schema[i].Name;
-                var type = schema[i].Type;
-
-                var metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorflowOperatorTypeKind)?.Type;
-                Contracts.Assert(metadataType != null && metadataType is TextDataViewType);
-                ReadOnlyMemory<char> opType = default;
-                schema[i].Metadata.GetValue(TensorflowOperatorTypeKind, ref opType);
-                metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorflowUpstreamOperatorsKind)?.Type;
-                VBuffer<ReadOnlyMemory<char>> inputOps = default;
-                if (metadataType != null)
-                {
-                    Contracts.Assert(metadataType.IsKnownSizeVector() && metadataType.GetItemType() is TextDataViewType);
-                    schema[i].Metadata.GetValue(TensorflowUpstreamOperatorsKind, ref inputOps);
-                }
-
-                string[] inputOpsResult = inputOps.DenseValues()
-                    .Select(input => input.ToString())
-                    .ToArray();
-
-                yield return (name, opType.ToString(), type, inputOpsResult);
-            }
-        }
-
         internal static PrimitiveDataViewType Tf2MlNetType(TFDataType type)
         {
             var mlNetType = Tf2MlNetTypeOrNull(type);
@@ -341,7 +303,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         internal static TensorFlowModelInfo LoadTensorFlowModel(IHostEnvironment env, string modelPath)
         {
             var session = GetSession(env, modelPath);
-            return new TensorFlowModelInfo(env, session, modelPath);
+            return new TensorFlowModelInfo(session, modelPath);
         }
 
         internal static TFSession GetSession(IHostEnvironment env, string modelPath)

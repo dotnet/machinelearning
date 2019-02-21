@@ -187,8 +187,8 @@ namespace Microsoft.ML.Tests
             const string modelLocation = "cifar_model/frozen_model.pb";
 
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
-            var schema = tensorFlowModel.GetInputSchema();
+            var tensorFlowModel = mlContext.Transforms.TensorFlow.LoadTensorFlowModel(modelLocation);
+            var schema = mlContext.Transforms.TensorFlow.GetInputSchema(tensorFlowModel);
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
             var type = (VectorType)schema[column].Type;
             var imageHeight = type.Dimensions[0];

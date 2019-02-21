@@ -116,20 +116,19 @@ namespace Microsoft.ML
         /// it contains metadata of kind <see cref="TensorFlowUtils.TensorflowUpstreamOperatorsKind"/>, indicating the names of the input nodes.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="modelLocation">Location of the TensorFlow model.</param>
-        public static DataViewSchema GetModelSchema(this TransformsCatalog.TensorFlowTransforms catalog, string modelLocation)
-            => TensorFlowUtils.GetModelSchema(CatalogUtils.GetEnvironment(catalog), modelLocation);
+        /// <param name="tensorFlowModel">The pre-loaded TensorFlow model. Please see <see cref="LoadTensorFlowModel(TransformsCatalog.TensorFlowTransforms, string)"/> to know more about loading model into memory.</param>
+        public static DataViewSchema GetModelSchema(this TransformsCatalog.TensorFlowTransforms catalog, TensorFlowModelInfo tensorFlowModel)
+            => TensorFlowUtils.GetModelSchema(CatalogUtils.GetEnvironment(catalog), tensorFlowModel.Session.Graph);
 
         /// <summary>
-        /// This is a convenience method for iterating over the nodes of a TensorFlow model graph. It
-        /// iterates over the columns of the <see cref="DataViewSchema"/> returned by <see cref="GetModelSchema(TransformsCatalog.TensorFlowTransforms, string)"/>,
-        /// and for each one it returns a tuple containing the name, operation type, column type and an array of input node names.
-        /// This method is convenient for filtering nodes based on certain criteria, for example, by the operation type.
+        /// This method retrieves the information about the input graph nodes of a TensorFlow model as an <see cref="DataViewSchema"/>.
+        /// The nodes with OpType as "Placeholder" are classified as input nodes. This is the convenience method to inspect only input nodes.
+        /// For retrieving complete information please see <see cref="GetModelSchema(TransformsCatalog.TensorFlowTransforms, TensorFlowModelInfo)"/>
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="modelLocation">Location of the TensorFlow model.</param>
-        public static IEnumerable<(string, string, DataViewType, string[])> GetModelNodes(this TransformsCatalog.TensorFlowTransforms catalog, string modelLocation)
-            => TensorFlowUtils.GetModelNodes(CatalogUtils.GetEnvironment(catalog), modelLocation);
+        /// <param name="tensorFlowModel">The pre-loaded TensorFlow model. Please see <see cref="LoadTensorFlowModel(TransformsCatalog.TensorFlowTransforms, string)"/> to know more about loading model into memory.</param>
+        public static DataViewSchema GetInputSchema(this TransformsCatalog.TensorFlowTransforms catalog, TensorFlowModelInfo tensorFlowModel)
+            => TensorFlowUtils.GetModelSchema(CatalogUtils.GetEnvironment(catalog), tensorFlowModel.Session.Graph, "Placeholder");
 
         /// <summary>
         /// Load TensorFlow model into memory. This is the convenience method that allows the model to be loaded once and subsequently use it for querying schema and creation of
