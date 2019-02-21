@@ -189,10 +189,10 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="env">Host Environment.</param>
         /// <param name="outputColumnName">Name of the output column.</param>
         /// <param name="inputColumnName">Name of the column to be transformed. If this is null '<paramref name="outputColumnName"/>' will be used.</param>
-        /// <param name="outputKind">The expected type of the converted column.</param>
+        /// <param name="outputType">The expected type of the converted column.</param>
         /// <param name="outputKeyCount">New key count if we work with key type.</param>
-        internal TypeConvertingTransformer(IHostEnvironment env, string outputColumnName, DataKind outputKind, string inputColumnName = null, KeyCount outputKeyCount = null)
-            : this(env, new TypeConvertingEstimator.ColumnInfo(outputColumnName, outputKind, inputColumnName ?? outputColumnName, outputKeyCount))
+        internal TypeConvertingTransformer(IHostEnvironment env, string outputColumnName, ScalarType outputType, string inputColumnName = null, KeyCount outputKeyCount = null)
+            : this(env, new TypeConvertingEstimator.ColumnInfo(outputColumnName, outputType, inputColumnName ?? outputColumnName, outputKeyCount))
         {
         }
 
@@ -221,16 +221,16 @@ namespace Microsoft.ML.Transforms.Conversions
 
             for (int i = 0; i < _columns.Length; i++)
             {
-                Host.Assert((DataKind)(byte)_columns[i].OutputKind == _columns[i].OutputKind);
+                Host.Assert((DataKind)(byte)_columns[i].OutputType.ToDataKind() == _columns[i].OutputType.ToDataKind());
                 if (_columns[i].OutputKeyCount != null)
                 {
-                    byte b = (byte)_columns[i].OutputKind;
+                    byte b = (byte)_columns[i].OutputType;
                     b |= 0x80;
                     ctx.Writer.Write(b);
-                    ctx.Writer.Write(_columns[i].OutputKeyCount.Count ?? _columns[i].OutputKind.ToMaxInt());
+                    ctx.Writer.Write(_columns[i].OutputKeyCount.Count ?? _columns[i].OutputType.ToDataKind().ToMaxInt());
                 }
                 else
-                    ctx.Writer.Write((byte)_columns[i].OutputKind);
+                    ctx.Writer.Write((byte)_columns[i].OutputType);
             }
         }
 
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     keyCount = new KeyCount(count);
 
                 }
-                _columns[i] = new TypeConvertingEstimator.ColumnInfo(ColumnPairs[i].outputColumnName, kind, ColumnPairs[i].inputColumnName, keyCount);
+                _columns[i] = new TypeConvertingEstimator.ColumnInfo(ColumnPairs[i].outputColumnName, kind.ToScalarType(), ColumnPairs[i].inputColumnName, keyCount);
             }
         }
 
@@ -337,7 +337,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     kind = tempResultType.Value;
                 }
-                cols[i] = new TypeConvertingEstimator.ColumnInfo(item.Name, kind, item.Source ?? item.Name, keyCount);
+                cols[i] = new TypeConvertingEstimator.ColumnInfo(item.Name, kind.ToScalarType(), item.Source ?? item.Name, keyCount);
             };
             return new TypeConvertingTransformer(env, cols).MakeDataTransform(input);
         }
@@ -401,7 +401,8 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
-                    if (!CanConvertToType(Host, srcCol.Type, _parent._columns[i].OutputKind, _parent._columns[i].OutputKeyCount, out PrimitiveDataViewType itemType, out _types[i]))
+                    if (!CanConvertToType(Host, srcCol.Type, _parent._columns[i].OutputType.ToDataKind(), _parent._columns[i].OutputKeyCount,
+                        out PrimitiveDataViewType itemType, out _types[i]))
                     {
                         throw Host.ExceptParam(nameof(inputSchema),
                         "source column '{0}' with item type '{1}' is not compatible with destination type '{2}'",
@@ -501,7 +502,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 var opType = "CSharp";
                 var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
                 node.AddAttribute("type", LoaderSignature);
-                node.AddAttribute("to", (byte)_parent._columns[iinfo].OutputKind);
+                node.AddAttribute("to", (byte)_parent._columns[iinfo].OutputType);
                 if (_parent._columns[iinfo].OutputKeyCount != null)
                 {
                     var key = (KeyType)_types[iinfo].GetItemType();
@@ -520,7 +521,7 @@ namespace Microsoft.ML.Transforms.Conversions
     {
         internal sealed class Defaults
         {
-            public const DataKind DefaultOutputKind = DataKind.R4;
+            public const ScalarType DefaultOutputKind = ScalarType.Single;
         }
 
         /// <summary>
@@ -539,7 +540,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <summary>
             /// The expected kind of the converted column.
             /// </summary>
-            public readonly DataKind OutputKind;
+            internal readonly ScalarType OutputType;
             /// <summary>
             /// New key count, if we work with key type.
             /// </summary>
@@ -549,14 +550,14 @@ namespace Microsoft.ML.Transforms.Conversions
             /// Describes how the transformer handles one column pair.
             /// </summary>
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-            /// <param name="outputKind">The expected kind of the converted column.</param>
+            /// <param name="outputType">The expected kind of the converted column.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="outputKeyCount">New key count, if we work with key type.</param>
-            public ColumnInfo(string name, DataKind outputKind, string inputColumnName, KeyCount outputKeyCount = null)
+            public ColumnInfo(string name, ScalarType outputType, string inputColumnName, KeyCount outputKeyCount = null)
             {
                 Name = name;
                 InputColumnName = inputColumnName ?? name;
-                OutputKind = outputKind;
+                OutputType = outputType;
                 OutputKeyCount = outputKeyCount;
             }
 
@@ -571,8 +572,9 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 Name = name;
                 InputColumnName = inputColumnName ?? name;
-                if (!type.TryGetDataKind(out OutputKind))
+                if (!type.TryGetDataKind(out DataKind OutputKind))
                     throw Contracts.ExceptUserArg(nameof(type), $"Unsupported type {type}.");
+                OutputType = OutputKind.ToScalarType();
                 OutputKeyCount = outputKeyCount;
             }
         }
@@ -583,11 +585,11 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="env">Host Environment.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="outputKind">The expected type of the converted column.</param>
+        /// <param name="outputType">The expected type of the converted column.</param>
         internal TypeConvertingEstimator(IHostEnvironment env,
             string outputColumnName, string inputColumnName = null,
-            DataKind outputKind = Defaults.DefaultOutputKind)
-            : this(env, new ColumnInfo(outputColumnName, outputKind, inputColumnName ?? outputColumnName))
+            ScalarType outputType = Defaults.DefaultOutputKind)
+            : this(env, new ColumnInfo(outputColumnName, outputType, inputColumnName ?? outputColumnName))
         {
         }
 
@@ -611,7 +613,7 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
-                if (!TypeConvertingTransformer.GetNewType(Host, col.ItemType, colInfo.OutputKind, colInfo.OutputKeyCount, out PrimitiveDataViewType newType))
+                if (!TypeConvertingTransformer.GetNewType(Host, col.ItemType, colInfo.OutputType.ToDataKind(), colInfo.OutputKeyCount, out PrimitiveDataViewType newType))
                     throw Host.ExceptParam(nameof(inputSchema), $"Can't convert {colInfo.InputColumnName} into {newType.ToString()}");
                 if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(col.ItemType, newType, out Delegate del, out bool identity))
                     throw Host.ExceptParam(nameof(inputSchema), $"Don't know how to convert {colInfo.InputColumnName} into {newType.ToString()}");

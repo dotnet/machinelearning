@@ -8,7 +8,49 @@ using Microsoft.Data.DataView;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Data type specifier.
+    /// Data type specifier used in text loader and type converters.
+    /// </summary>
+    /// <remarks>
+    /// <list type="bullet">
+    /// <item><description><see cref="SByte"/>: 1-byte integer, type of <see cref="System.SByte"/>.</description></item>
+    /// <item><description><see cref="Byte"/>: 1-byte unsigned integer, type of <see cref="System.Byte"/>.</description></item>
+    /// <item><description><see cref="Int16"/>: 2-byte integer, type of <see cref="System.Int16"/>.</description></item>
+    /// <item><description><see cref="UInt16"/>: 2-byte usigned integer, type of <see cref="System.UInt16"/>.</description></item>
+    /// <item><description><see cref="Int32"/>: 4-byte integer, type of <see cref="System.Int32"/>.</description></item>
+    /// <item><description><see cref="UInt32"/>: 4-byte usigned integer, type of <see cref="System.UInt32"/>.</description></item>
+    /// <item><description><see cref="Int64"/>: 8-byte integer, type of <see cref="System.Int64"/>.</description></item>
+    /// <item><description><see cref="UInt64"/>: 8-byte usigned integer, type of <see cref="System.UInt64"/>.</description></item>
+    /// <item><description><see cref="Single"/>: 4-byte floating-point number, type of <see cref="System.Single"/>.</description></item>
+    /// <item><description><see cref="Double"/>: 8-byte floating-point number, type of <see cref="System.Double"/>.</description></item>
+    /// <item><description><see cref="String"/>: string, type of <see cref="System.String"/>.</description></item>
+    /// <item><description><see cref="Boolean"/>: boolean variable type, type of <see cref="System.Boolean"/>.</description></item>
+    /// <item><description><see cref="TimeSpan"/>: type of <see cref="System.TimeSpan"/>.</description></item>
+    /// <item><description><see cref="DateTime"/>: type of <see cref="System.DateTime"/>.</description></item>
+    /// <item><description><see cref="DateTimeOffset"/>: type of <see cref="System.DateTimeOffset"/>.</description></item>
+    /// </list>
+    /// </remarks>
+    public enum ScalarType : byte
+    {
+        SByte = 1,
+        Byte = 2,
+        Int16 = 3,
+        UInt16 = 4,
+        Int32 = 5,
+        UInt32 = 6,
+        Int64 = 7,
+        UInt64 = 8,
+        Single = 9,
+        Double = 10,
+        String = 11,
+        Boolean = 12,
+        TimeSpan = 13,
+        DateTime = 14,
+        DateTimeOffset = 15,
+    }
+
+    /// <summary>
+    /// Data type specifier used in command line. <see cref="DataKind"/> is the underlying version of <see cref="ScalarType"/>
+    /// used for command line and entry point BC.
     /// </summary>
     public enum DataKind : byte
     {
@@ -17,31 +59,31 @@ namespace Microsoft.ML.Data
         // * We intentionally skip zero.
         // * Some code depends on sizeof(DataKind) == sizeof(byte).
 
-        I1 = 1,
-        U1 = 2,
-        I2 = 3,
-        U2 = 4,
-        I4 = 5,
-        U4 = 6,
-        I8 = 7,
-        U8 = 8,
-        R4 = 9,
-        R8 = 10,
+        I1 = ScalarType.SByte,
+        U1 = ScalarType.Byte,
+        I2 = ScalarType.Int16,
+        U2 = ScalarType.UInt16,
+        I4 = ScalarType.Int32,
+        U4 = ScalarType.UInt32,
+        I8 = ScalarType.Int64,
+        U8 = ScalarType.UInt64,
+        R4 = ScalarType.Single,
+        R8 = ScalarType.Double,
         Num = R4,
 
-        TX = 11,
+        TX = ScalarType.String,
 #pragma warning disable MSML_GeneralName // The data kind enum has its own logic, independent of C# naming conventions.
         TXT = TX,
         Text = TX,
 
-        BL = 12,
+        BL = ScalarType.Boolean,
         Bool = BL,
 
-        TS = 13,
+        TS = ScalarType.TimeSpan,
         TimeSpan = TS,
-        DT = 14,
+        DT = ScalarType.DateTime,
         DateTime = DT,
-        DZ = 15,
+        DZ = ScalarType.DateTimeOffset,
         DateTimeZone = DZ,
 
         UG = 16, // Unsigned 16-byte integer.
@@ -75,6 +117,10 @@ namespace Microsoft.ML.Data
             Contracts.Check(0 <= index && index < KindCount);
             return (DataKind)(index + (int)KindMin);
         }
+
+        public static DataKind ToDataKind(this ScalarType scalarType) => (DataKind)scalarType;
+
+        public static ScalarType ToScalarType(this DataKind kind) => (ScalarType)kind;
 
         /// <summary>
         /// For integer DataKinds, this returns the maximum legal value. For un-supported kinds,
