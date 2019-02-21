@@ -211,7 +211,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="groupId">The index delegate for the groupId column. </param>
         /// <param name="score">The index delegate for predicted score column.</param>
         /// <returns>The evaluation metrics.</returns>
-        public static RankerMetrics Evaluate<T, TVal>(
+        public static RankingMetrics Evaluate<T, TVal>(
             this RankingCatalog catalog,
             DataView<T> data,
             Func<T, Scalar<float>> label,
@@ -230,9 +230,9 @@ namespace Microsoft.ML.StaticPipe
             string scoreName = indexer.Get(score(indexer.Indices));
             string groupIdName = indexer.Get(groupId(indexer.Indices));
 
-            var args = new RankerEvaluator.Arguments() { };
+            var args = new RankingEvaluator.Arguments() { };
 
-            return new RankerEvaluator(env, args).Evaluate(data.AsDynamic, labelName, groupIdName, scoreName);
+            return new RankingEvaluator(env, args).Evaluate(data.AsDynamic, labelName, groupIdName, scoreName);
         }
     }
 }

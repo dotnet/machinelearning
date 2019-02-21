@@ -6,7 +6,7 @@ using Microsoft.Data.DataView;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class RankerMetrics
+    public sealed class RankingMetrics
     {
         /// <summary>
         /// Array of normalized discounted cumulative gains where i-th element represent NDCG@i.
@@ -32,15 +32,15 @@ namespace Microsoft.ML.Data
             return val;
         }
 
-        internal RankerMetrics(IExceptionContext ectx, DataViewRow overallResult)
+        internal RankingMetrics(IExceptionContext ectx, DataViewRow overallResult)
         {
             VBuffer<double> Fetch(string name) => Fetch<VBuffer<double>>(ectx, overallResult, name);
 
-            Dcg = Fetch(RankerEvaluator.Dcg).GetValues().ToArray();
-            Ndcg = Fetch(RankerEvaluator.Ndcg).GetValues().ToArray();
+            Dcg = Fetch(RankingEvaluator.Dcg).GetValues().ToArray();
+            Ndcg = Fetch(RankingEvaluator.Ndcg).GetValues().ToArray();
         }
 
-        internal RankerMetrics(double[] dcg, double[] ndcg)
+        internal RankingMetrics(double[] dcg, double[] ndcg)
         {
             Dcg = new double[dcg.Length];
             dcg.CopyTo(Dcg, 0);

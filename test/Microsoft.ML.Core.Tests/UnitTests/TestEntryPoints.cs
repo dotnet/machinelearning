@@ -1897,7 +1897,7 @@ namespace Microsoft.ML.RunTests
                         }
                       },";
 
-            RunTrainScoreEvaluate("Trainers.FastTreeRanker", "Models.RankerEvaluator",
+            RunTrainScoreEvaluate("Trainers.FastTreeRanker", "Models.RankingEvaluator",
                 dataPath, warningsPath, overallMetricsPath, instanceMetricsPath,
                 splitterInput: "output_data3", transforms: transforms);
 
@@ -5097,7 +5097,7 @@ namespace Microsoft.ML.RunTests
                         },
                         'StratificationColumn': null,
                         'NumFolds': 2,
-                        'Kind': 'SignatureRankerTrainer',
+                        'Kind': 'SignatureRankingTrainer',
                         'LabelColumn': 'Label1',
                         'WeightColumn': null,
                         'GroupColumn': {

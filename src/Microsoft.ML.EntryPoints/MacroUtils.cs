@@ -22,7 +22,7 @@ namespace Microsoft.ML.EntryPoints
         {
             SignatureBinaryClassifierTrainer,
             SignatureMultiClassClassifierTrainer,
-            SignatureRankerTrainer,
+            SignatureRankingTrainer,
             SignatureRegressorTrainer,
             SignatureMultiOutputRegressorTrainer,
             SignatureAnomalyDetectorTrainer,
@@ -53,9 +53,9 @@ namespace Microsoft.ML.EntryPoints
             case TrainerKinds.SignatureMultiClassClassifierTrainer:
                 entryPointName = "Models.ClassificationEvaluator";
                 return new MultiClassMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
-            case TrainerKinds.SignatureRankerTrainer:
-                entryPointName = "Models.RankerEvaluator";
-                return new RankerMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn, GroupIdColumn = settings.GroupColumn };
+            case TrainerKinds.SignatureRankingTrainer:
+                entryPointName = "Models.RankingEvaluator";
+                return new RankingMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn, GroupIdColumn = settings.GroupColumn };
             case TrainerKinds.SignatureRegressorTrainer:
                 entryPointName = "Models.RegressionEvaluator";
                 return new RegressionMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };

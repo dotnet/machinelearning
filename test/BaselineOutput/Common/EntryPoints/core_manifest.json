@@ -1312,7 +1312,7 @@
             "Values": [
               "SignatureBinaryClassifierTrainer",
               "SignatureMultiClassClassifierTrainer",
-              "SignatureRankerTrainer",
+              "SignatureRankingTrainer",
               "SignatureRegressorTrainer",
               "SignatureMultiOutputRegressorTrainer",
               "SignatureAnomalyDetectorTrainer",
@@ -1503,7 +1503,7 @@
             "Values": [
               "SignatureBinaryClassifierTrainer",
               "SignatureMultiClassClassifierTrainer",
-              "SignatureRankerTrainer",
+              "SignatureRankingTrainer",
               "SignatureRegressorTrainer",
               "SignatureMultiOutputRegressorTrainer",
               "SignatureAnomalyDetectorTrainer",
@@ -2677,7 +2677,7 @@
       ]
     },
     {
-      "Name": "Models.RankerEvaluator",
+      "Name": "Models.RankingEvaluator",
       "Desc": "Evaluates a ranking scored dataset.",
       "FriendlyName": null,
       "ShortName": null,
@@ -3180,7 +3180,7 @@
             "Values": [
               "SignatureBinaryClassifierTrainer",
               "SignatureMultiClassClassifierTrainer",
-              "SignatureRankerTrainer",
+              "SignatureRankingTrainer",
               "SignatureRegressorTrainer",
               "SignatureMultiOutputRegressorTrainer",
               "SignatureAnomalyDetectorTrainer",

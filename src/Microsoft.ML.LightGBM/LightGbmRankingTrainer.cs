@@ -13,7 +13,7 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Training;
 
 [assembly: LoadableClass(LightGbmRankingTrainer.UserName, typeof(LightGbmRankingTrainer), typeof(Options),
-    new[] { typeof(SignatureRankerTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
+    new[] { typeof(SignatureRankingTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
     "LightGBM Ranking", LightGbmRankingTrainer.LoadNameValue, LightGbmRankingTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
 [assembly: LoadableClass(typeof(LightGbmRankingModelParameters), null, typeof(SignatureLoadModel),
