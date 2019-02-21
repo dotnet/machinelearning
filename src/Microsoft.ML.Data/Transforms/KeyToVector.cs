@@ -560,7 +560,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         int lenDst = checked(size * lenSrc);
                         var values = src.GetValues();
                         int cntSrc = values.Length;
-                        var editor = VBufferEditor.Create(ref dst, lenDst, cntSrc);
+                        var editor = VBufferEditor.Create(ref dst, lenDst, valuesCount: cntSrc, requireIndicesOnDense: true);
 
                         int count = 0;
                         if (src.IsDense)
@@ -573,6 +573,7 @@ namespace Microsoft.ML.Transforms.Conversions
                                 if (key >= (uint)size)
                                     continue;
                                 editor.Values[count] = 1;
+                                editor.Indices[count++] = slot * size + (int)key;
                             }
                         }
                         else
@@ -793,7 +794,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))
-                    if (col.Kind != SchemaShape.Column.VectorKind.VariableVector && keyMeta.ItemType is TextDataViewType)
+                    if (((colInfo.Bag && col.IsKey) || col.Kind != SchemaShape.Column.VectorKind.VariableVector) && keyMeta.ItemType is TextDataViewType)
                         metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
                 if (!colInfo.Bag && (col.Kind == SchemaShape.Column.VectorKind.Scalar || col.Kind == SchemaShape.Column.VectorKind.Vector))
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.CategoricalSlotRanges, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Int32, false));

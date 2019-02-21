@@ -1,0 +1,23 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=A:I4:0
+#@   col=B:I4:1-2
+#@   col=CatA:U4[2]:3
+#@   col=CatA:R4:4-5
+#@   col=CatB:U4[2]:6
+#@   col=CatB:R4:7-9
+#@   col=CatC:U4[2]:10
+#@   col=CatC:R4:11-12
+#@   col=CatD:U4[2]:13
+#@   col=CatVA:U4[3]:14-15
+#@   col=CatVA:R4:16-18
+#@   col=CatVB:U4[3]:19-20
+#@   col=CatVB:R4:21-26
+#@   col=CatVC:U4[3]:27-28
+#@   col=CatVC:R4:29-34
+#@   col=CatVD:U4[3]:35-36
+#@ }
+A	""	""	CatA	1	4	CatB	Bit2	Bit1	Bit0	CatC	1	4	CatD	""	""	2	3	4	""	""	[0].Bit2	[0].Bit1	[0].Bit0	[1].Bit2	[1].Bit1	[1].Bit0	""	""	[0].2	[0].3	[0].4	[1].2	[1].3	[1].4	""	""
+1	2	3	0	1	0	0	0	0	0	0	1	0	0	0	1	1	1	0	0	1	0	0	0	0	0	1	0	1	1	0	0	0	1	0	0	1
+4	2	4	1	0	1	1	0	0	1	1	0	1	1	0	2	1	0	1	0	2	0	0	0	0	1	0	0	2	1	0	0	0	0	1	0	2

@@ -28,8 +28,8 @@ namespace Microsoft.ML.Tests.Transformers
         private sealed class TestClass
         {
             public int A;
-            public int B;
-            public int C;
+            [VectorType(2)]
+            public int[] B;
         }
 
         private sealed class TestMeta
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void CategoricalWorkout()
         {
-            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+            var data = new[] { new TestClass() { A = 1, B = new int[2] { 2, 3 } }, new TestClass() { A = 4, B = new int[2] { 2, 4 } } };
 
             var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = ML.Transforms.Categorical.OneHotEncoding(new[]{
@@ -64,33 +64,28 @@ namespace Microsoft.ML.Tests.Transformers
                     new OneHotEncodingEstimator.ColumnInfo("CatB", "A", OneHotEncodingTransformer.OutputKind.Bin),
                     new OneHotEncodingEstimator.ColumnInfo("CatC", "A", OneHotEncodingTransformer.OutputKind.Ind),
                     new OneHotEncodingEstimator.ColumnInfo("CatD", "A", OneHotEncodingTransformer.OutputKind.Key),
+                    new OneHotEncodingEstimator.ColumnInfo("CatVA", "B", OneHotEncodingTransformer.OutputKind.Bag),
+                    new OneHotEncodingEstimator.ColumnInfo("CatVB", "B", OneHotEncodingTransformer.OutputKind.Bin),
+                    new OneHotEncodingEstimator.ColumnInfo("CatVC", "B", OneHotEncodingTransformer.OutputKind.Ind),
+                    new OneHotEncodingEstimator.ColumnInfo("CatVD", "B", OneHotEncodingTransformer.OutputKind.Key),
                 });
 
             TestEstimatorCore(pipe, dataView);
+            var outputPath = GetOutputPath("Categorical", "oneHot.tsv");
+            var savedData = pipe.Fit(dataView).Transform(dataView);
+
+            using (var fs = File.Create(outputPath))
+                ML.Data.SaveAsText(savedData, fs, headerRow: true, keepHidden: true);
+            CheckEquality("Categorical", "oneHot.tsv");
             Done();
         }
 
-        [Fact]
-        public void CategoricalOneHotHashEncoding()
-        {
-            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-
-            var mlContext = new MLContext();
-            var dataView = mlContext.Data.ReadFromEnumerable(data);
-
-            var pipe = mlContext.Transforms.Categorical.OneHotHashEncoding("CatA", "A", 3, 0, OneHotEncodingTransformer.OutputKind.Bag)
-                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CatB", "A", 2, 0, OneHotEncodingTransformer.OutputKind.Key))
-                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CatC", "A", 3, 0, OneHotEncodingTransformer.OutputKind.Ind))
-                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CatD", "A", 2, 0, OneHotEncodingTransformer.OutputKind.Bin));
-
-            TestEstimatorCore(pipe, dataView);
-            Done();
-        }
+      
 
         [Fact]
         public void CategoricalOneHotEncoding()
         {
-            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+            var data = new[] { new TestClass() { A = 1, B = new int[2] { 2, 3 } }, new TestClass() { A = 4, B = new int[2] { 2, 4 } } };
 
             var mlContext = new MLContext();
             var dataView = mlContext.Data.ReadFromEnumerable(data);
@@ -145,7 +140,7 @@ namespace Microsoft.ML.Tests.Transformers
                 ScalarString: ctx.LoadText(1),
                 VectorString: ctx.LoadText(1, 4)));
             var data = reader.Read(dataPath);
-            var wrongCollection = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+            var wrongCollection = new[] { new TestClass() { A = 1, B = new int[2] { 2, 3 } }, new TestClass() { A = 4, B = new int[2] { 2, 4 } } };
 
             var invalidData = ML.Data.ReadFromEnumerable(wrongCollection);
             var est = data.MakeNewEstimator().
@@ -300,12 +295,11 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestOldSavingAndLoading()
         {
-            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+            var data = new[] { new TestClass() { A = 1, B = new int[2] { 2, 3 } }, new TestClass() { A = 4, B = new int[2] { 2, 4 } } };
             var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = ML.Transforms.Categorical.OneHotEncoding(new[]{
                     new OneHotEncodingEstimator.ColumnInfo("TermA", "A"),
                     new OneHotEncodingEstimator.ColumnInfo("TermB", "B"),
-                    new OneHotEncodingEstimator.ColumnInfo("TermC", "C")
             });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
