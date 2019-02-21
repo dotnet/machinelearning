@@ -11,7 +11,7 @@ using Microsoft.ML.Core.Data;
 
 namespace Microsoft.ML.Auto
 {
-    internal class AutoFitter<T> where T : class
+    internal class Experiment<T> where T : class
     {
         private readonly IList<SuggestedPipelineResult<T>> _history;
         private readonly ColumnInformation _columnInfo;
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Auto
 
         List<RunResult<T>> iterationResults = new List<RunResult<T>>();
 
-        public AutoFitter(MLContext context,
+        public Experiment(MLContext context,
             TaskKind task,
             IDataView trainData,
             ColumnInformation columnInfo,
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Auto
             _trainerWhitelist = trainerWhitelist;
         }
 
-        public List<RunResult<T>> Fit()
+        public List<RunResult<T>> Execute()
         {
             ITransformer preprocessorTransform = null;
             if (_preFeaturizers != null)

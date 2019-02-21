@@ -85,12 +85,12 @@ namespace Microsoft.ML.Auto
             //UserInputValidationUtil.ValidateAutoFitArgs(trainData, labelColunName, validationData, settings, columnPurposes)
 
             // run autofit & get all pipelines run in that process
-            var autoFitter = new AutoFitter<BinaryClassificationMetrics>(context, TaskKind.BinaryClassification, trainData, columnInfo, 
+            var experiment = new Experiment<BinaryClassificationMetrics>(context, TaskKind.BinaryClassification, trainData, columnInfo, 
                 validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric), _settings.ProgressCallback, 
                 _settings, new BinaryMetricsAgent(_settings.OptimizingMetric), 
                 TrainerExtensionUtil.GetTrainerNames(_settings.WhitelistedTrainers));
 
-            return autoFitter.Fit();
+            return experiment.Execute();
         }
     }
 

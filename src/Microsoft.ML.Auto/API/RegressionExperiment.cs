@@ -80,12 +80,12 @@ namespace Microsoft.ML.Auto
             //UserInputValidationUtil.ValidateAutoFitArgs(trainData, labelColunName, validationData, settings, columnPurposes);
 
             // run autofit & get all pipelines run in that process
-            var autoFitter = new AutoFitter<RegressionMetrics>(context, TaskKind.Regression, trainData, columnInfo, 
+            var experiment = new Experiment<RegressionMetrics>(context, TaskKind.Regression, trainData, columnInfo, 
                 validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric), 
                 _settings.ProgressCallback, _settings, new RegressionMetricsAgent(_settings.OptimizingMetric),
                 TrainerExtensionUtil.GetTrainerNames(_settings.WhitelistedTrainers));
 
-            return autoFitter.Fit();
+            return experiment.Execute();
         }
     }
 
