@@ -24,20 +24,28 @@ namespace Microsoft.ML.Auto
                 typeInference.Columns[labelColumnIndex].SuggestedName = DefaultColumnNames.Label;
             }
 
-            return InferColumns(context, path, typeInference.Columns[labelColumnIndex].SuggestedName,
-                hasHeader, splitInference, typeInference, trimWhitespace, groupColumns);
+            var columnInfo = new ColumnInformation() { LabelColumn = typeInference.Columns[labelColumnIndex].SuggestedName };
+
+            return InferColumns(context, path, columnInfo, hasHeader, splitInference, typeInference, trimWhitespace, groupColumns);
         }
 
-        public static ColumnInferenceResults InferColumns(MLContext context, string path, string label,
+        public static ColumnInferenceResults InferColumns(MLContext context, string path, string labelColumn,
+            char? separatorChar, bool? allowQuotedStrings, bool? supportSparse, bool trimWhitespace, bool groupColumns)
+        {
+            var columnInfo = new ColumnInformation() { LabelColumn = labelColumn };
+            return InferColumns(context, path, columnInfo, separatorChar, allowQuotedStrings, supportSparse, trimWhitespace, groupColumns);
+        }
+
+        public static ColumnInferenceResults InferColumns(MLContext context, string path, ColumnInformation columnInfo,
             char? separatorChar, bool? allowQuotedStrings, bool? supportSparse, bool trimWhitespace, bool groupColumns)
         {
             var sample = TextFileSample.CreateFromFullFile(path);
             var splitInference = InferSplit(context, sample, separatorChar, allowQuotedStrings, supportSparse);
-            var typeInference = InferColumnTypes(context, sample, splitInference, true, null, label);
-            return InferColumns(context, path, label, true, splitInference, typeInference, trimWhitespace, groupColumns);
+            var typeInference = InferColumnTypes(context, sample, splitInference, true, null, columnInfo.LabelColumn);
+            return InferColumns(context, path, columnInfo, true, splitInference, typeInference, trimWhitespace, groupColumns);
         }
 
-        public static ColumnInferenceResults InferColumns(MLContext context, string path, string label, bool hasHeader,
+        public static ColumnInferenceResults InferColumns(MLContext context, string path, ColumnInformation columnInfo, bool hasHeader,
             TextFileContents.ColumnSplitResult splitInference, ColumnTypeInference.InferenceResult typeInference,
             bool trimWhitespace, bool groupColumns)
         {
@@ -54,7 +62,6 @@ namespace Microsoft.ML.Auto
             var textLoader = context.Data.CreateTextLoader(typedLoaderArgs);
             var dataView = textLoader.Read(path);
 
-            var columnInfo = new ColumnInformation() { LabelColumn = label };
             var purposeInferenceResult = PurposeInference.InferPurposes(context, dataView, columnInfo);
 
             // start building result objects

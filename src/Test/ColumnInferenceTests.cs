@@ -112,5 +112,18 @@ namespace Microsoft.ML.Auto.Test
             Assert.AreEqual(DefaultColumnNames.GroupId, result.ColumnInformation.GroupIdColumn);
             Assert.AreEqual(result.ColumnInformation.NumericColumns.Count(), 3);
         }
+
+        [TestMethod]
+        public void InferColumnsColumnInfoParam()
+        {
+            var columnInfo = new ColumnInformation() { LabelColumn = DatasetUtil.MlNetGeneratedRegressionLabel };
+            var result = new MLContext().AutoInference().InferColumns(DatasetUtil.DownloadMlNetGeneratedRegressionDataset(), 
+                columnInfo);
+            var labelCol = result.TextLoaderArgs.Column.First(c => c.Name == DatasetUtil.MlNetGeneratedRegressionLabel);
+            Assert.AreEqual(DataKind.R4, labelCol.Type);
+            Assert.AreEqual(DatasetUtil.MlNetGeneratedRegressionLabel, result.ColumnInformation.LabelColumn);
+            Assert.AreEqual(1, result.ColumnInformation.NumericColumns.Count());
+            Assert.AreEqual(DefaultColumnNames.Features, result.ColumnInformation.NumericColumns.First());
+        }
     }
 }

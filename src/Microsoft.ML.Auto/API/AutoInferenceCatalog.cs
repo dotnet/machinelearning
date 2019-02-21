@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
+
 namespace Microsoft.ML.Auto
 {
     public class AutoInferenceCatalog
@@ -52,11 +54,18 @@ namespace Microsoft.ML.Auto
             return new MulticlassClassificationExperiment(_context, experimentSettings);
         }
 
-        public ColumnInferenceResults InferColumns(string path, string label,char? separatorChar = null, bool? allowQuotedStrings = null, 
+        public ColumnInferenceResults InferColumns(string path, string labelColumn = DefaultColumnNames.Label, char? separatorChar = null, bool? allowQuotedStrings = null, 
             bool? supportSparse = null, bool trimWhitespace = false, bool groupColumns = true)
         {
             //UserInputValidationUtil.ValidateInferColumnsArgs(path, label);
-            return ColumnInferenceApi.InferColumns(_context, path, label, separatorChar, allowQuotedStrings, supportSparse, trimWhitespace, groupColumns);
+            return ColumnInferenceApi.InferColumns(_context, path, labelColumn, separatorChar, allowQuotedStrings, supportSparse, trimWhitespace, groupColumns);
+        }
+
+        public ColumnInferenceResults InferColumns(string path, ColumnInformation columnInformation, char? separatorChar = null, bool? allowQuotedStrings = null,
+            bool? supportSparse = null, bool trimWhitespace = false, bool groupColumns = true)
+        {
+            //UserInputValidationUtil.ValidateInferColumnsArgs(path, label);
+            return ColumnInferenceApi.InferColumns(_context, path, columnInformation, separatorChar, allowQuotedStrings, supportSparse, trimWhitespace, groupColumns);
         }
 
         public ColumnInferenceResults InferColumns(string path, uint labelColumnIndex, bool hasHeader = false, char? separatorChar = null, 
