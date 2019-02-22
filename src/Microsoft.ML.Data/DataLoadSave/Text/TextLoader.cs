@@ -7,14 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Float = System.Single;
 
 [assembly: LoadableClass(TextLoader.Summary, typeof(IDataLoader), typeof(TextLoader), typeof(TextLoader.Options), typeof(SignatureDataLoader),
     "Text Loader", "TextLoader", "Text", DocName = "loader/TextLoader.md")]
@@ -1070,7 +1068,7 @@ namespace Microsoft.ML.Data
         /// <param name="separatorChar"> The character used as separator between data points in a row. By default the tab character is used as separator.</param>
         /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
-        /// <param name="allowQuoting">Whether the file can contain numerical vectors in sparse format.</param>
+        /// <param name="allowQuoting">Whether the content of a column can be parsed from a string starting and ending with quote.</param>
         internal TextLoader(IHostEnvironment env, Column[] columns, bool hasHeader = Defaults.HasHeader,
             char separatorChar = Defaults.Separator, IMultiStreamSource dataSample = null,
             bool allowSparse = Defaults.AllowSparse, bool allowQuoting = Defaults.AllowQuoting)
@@ -1350,7 +1348,7 @@ namespace Microsoft.ML.Data
             // char[]: separators
             // bindings
             int cbFloat = ctx.Reader.ReadInt32();
-            host.CheckDecode(cbFloat == sizeof(Float));
+            host.CheckDecode(cbFloat == sizeof(float));
             _maxRows = ctx.Reader.ReadInt64();
             host.CheckDecode(_maxRows > 0);
             _flags = (OptionFlags)ctx.Reader.ReadUInt32();
@@ -1413,7 +1411,7 @@ namespace Microsoft.ML.Data
             // int: number of separators
             // char[]: separators
             // bindings
-            ctx.Writer.Write(sizeof(Float));
+            ctx.Writer.Write(sizeof(float));
             ctx.Writer.Write(_maxRows);
             _host.Assert((_flags & ~OptionFlags.All) == 0);
             ctx.Writer.Write((uint)_flags);

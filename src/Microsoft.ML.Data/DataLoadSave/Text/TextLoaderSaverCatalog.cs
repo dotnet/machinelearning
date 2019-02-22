@@ -47,22 +47,22 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="hasHeader">Does the file contains header?</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
-        /// <param name="allowQuotedStrings">Whether the input may include quoted values,
+        /// <param name="allowQuoting">Whether the input may include quoted values,
         /// which can contain separator characters, colons,
         /// and distinguish empty values from missing values. When true, consecutive separators
         /// denote a missing value and an empty value is denoted by \"\".
         /// When false, consecutive separators denote an empty value.</param>
-        /// <param name="supportSparse">Whether the input may include sparse representations for example,
+        /// <param name="allowSparse">Whether the input may include sparse representations for example,
         /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero
         /// except for 3rd and 5th columns which have values 6 and 3</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
         public static TextLoader CreateTextLoader<TInput>(this DataOperationsCatalog catalog,
             bool hasHeader = TextLoader.Defaults.HasHeader,
             char separatorChar = TextLoader.Defaults.Separator,
-            bool allowQuotedStrings = TextLoader.Defaults.AllowQuoting,
-            bool supportSparse = TextLoader.Defaults.AllowSparse,
+            bool allowQuoting = TextLoader.Defaults.AllowQuoting,
+            bool allowSparse = TextLoader.Defaults.AllowSparse,
             bool trimWhitespace = TextLoader.Defaults.TrimWhitespace)
-            => TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar, allowQuotedStrings, supportSparse, trimWhitespace);
+            => TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar, allowQuoting, allowSparse, trimWhitespace);
 
         /// <summary>
         /// Read a data view from a text file using <see cref="TextLoader"/>.
@@ -95,12 +95,12 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="hasHeader">Does the file contains header?</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
-        /// <param name="allowQuotedStrings">Whether the input may include quoted values,
+        /// <param name="allowQuoting">Whether the input may include quoted values,
         /// which can contain separator characters, colons,
         /// and distinguish empty values from missing values. When true, consecutive separators
         /// denote a missing value and an empty value is denoted by \"\".
         /// When false, consecutive separators denote an empty value.</param>
-        /// <param name="supportSparse">Whether the input may include sparse representations for example,
+        /// <param name="allowSparse">Whether the input may include sparse representations for example,
         /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero
         /// except for 3rd and 5th columns which have values 6 and 3</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
@@ -110,15 +110,15 @@ namespace Microsoft.ML
             string path,
             bool hasHeader = TextLoader.Defaults.HasHeader,
             char separatorChar = TextLoader.Defaults.Separator,
-            bool allowQuotedStrings = TextLoader.Defaults.AllowQuoting,
-            bool supportSparse = TextLoader.Defaults.AllowSparse,
+            bool allowQuoting = TextLoader.Defaults.AllowQuoting,
+            bool allowSparse = TextLoader.Defaults.AllowSparse,
             bool trimWhitespace = TextLoader.Defaults.TrimWhitespace)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
             // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
             // Therefore, we are going to disallow data sample.
-            return TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar, allowQuotedStrings, supportSparse, trimWhitespace)
+            return TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar, allowQuoting, allowSparse, trimWhitespace)
                              .Read(new MultiFileSource(path));
         }
 

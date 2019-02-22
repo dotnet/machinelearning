@@ -1,6 +1,5 @@
 #@ TextLoader{
 #@   header+
-#@   sparse+
 #@   sep=tab
 #@   col=Label:R4:0
 #@   col=Workclass:TX:1
