@@ -8,39 +8,40 @@ using Microsoft.Data.DataView;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Data type specifiers used in text loader and type converters.
+    /// Specifies a simple data type.
     /// </summary>
+    // Data type specifiers mainly used in creating text loader and type converter.
     public enum DataKind : byte
     {
-        /// <summary><see cref="SByte"/>: 1-byte integer, type of <see cref="System.SByte"/>.</summary>
+        /// <summary>1-byte integer, type of <see cref="System.SByte"/>.</summary>
         SByte = 1,
-        /// <summary><see cref="Byte"/>: 1-byte unsigned integer, type of <see cref="System.Byte"/>.</summary>
+        /// <summary>1-byte unsigned integer, type of <see cref="System.Byte"/>.</summary>
         Byte = 2,
-        /// <summary><see cref="Int16"/>: 2-byte integer, type of <see cref="System.Int16"/>.</summary>
+        /// <summary>2-byte integer, type of <see cref="System.Int16"/>.</summary>
         Int16 = 3,
-        /// <summary><see cref="UInt16"/>: 2-byte usigned integer, type of <see cref="System.UInt16"/>.</summary>
+        /// <summary>2-byte usigned integer, type of <see cref="System.UInt16"/>.</summary>
         UInt16 = 4,
-        /// <summary><see cref="Int32"/>: 4-byte integer, type of <see cref="System.Int32"/>.</summary>
+        /// <summary>4-byte integer, type of <see cref="System.Int32"/>.</summary>
         Int32 = 5,
-        /// <summary><see cref="UInt32"/>: 4-byte usigned integer, type of <see cref="System.UInt32"/>.</summary>
+        /// <summary>4-byte usigned integer, type of <see cref="System.UInt32"/>.</summary>
         UInt32 = 6,
-        /// <summary><see cref="Int64"/>: 8-byte integer, type of <see cref="System.Int64"/>.</summary>
+        /// <summary>8-byte integer, type of <see cref="System.Int64"/>.</summary>
         Int64 = 7,
-        /// <summary><see cref="UInt64"/>: 8-byte usigned integer, type of <see cref="System.UInt64"/>.</summary>
+        /// <summary>8-byte usigned integer, type of <see cref="System.UInt64"/>.</summary>
         UInt64 = 8,
-        /// <summary><see cref="Single"/>: 4-byte floating-point number, type of <see cref="System.Single"/>.</summary>
+        /// <summary>4-byte floating-point number, type of <see cref="System.Single"/>.</summary>
         Single = 9,
-        /// <summary><see cref="Double"/>: 8-byte floating-point number, type of <see cref="System.Double"/>.</summary>
+        /// <summary>8-byte floating-point number, type of <see cref="System.Double"/>.</summary>
         Double = 10,
-        /// <summary><see cref="String"/>: string, type of <see cref="System.String"/>.</summary>
+        /// <summary>string, type of <see cref="System.String"/>.</summary>
         String = 11,
-        /// <summary><see cref="Boolean"/>: boolean variable type, type of <see cref="System.Boolean"/>.</summary>
+        /// <summary>boolean variable type, type of <see cref="System.Boolean"/>.</summary>
         Boolean = 12,
-        /// <summary><see cref="TimeSpan"/>: type of <see cref="System.TimeSpan"/>.</summary>
+        /// <summary>type of <see cref="System.TimeSpan"/>.</summary>
         TimeSpan = 13,
-        /// <summary><see cref="DateTime"/>: type of <see cref="System.DateTime"/>.</summary>
+        /// <summary>type of <see cref="System.DateTime"/>.</summary>
         DateTime = 14,
-        /// <summary><see cref="DateTimeOffset"/>: type of <see cref="System.DateTimeOffset"/>.</summary>
+        /// <summary>type of <see cref="System.DateTimeOffset"/>.</summary>
         DateTimeOffset = 15,
     }
 
