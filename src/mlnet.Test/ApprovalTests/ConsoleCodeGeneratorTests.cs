@@ -124,7 +124,8 @@ namespace mlnet.Test
 
                 this.columnInference = new ColumnInferenceResults()
                 {
-                    TextLoaderArgs = textLoaderArgs
+                    TextLoaderArgs = textLoaderArgs,
+                    ColumnInformation = new ColumnInformation() { LabelColumn = "Label" }
                 };
             }
             return (pipeline, columnInference);

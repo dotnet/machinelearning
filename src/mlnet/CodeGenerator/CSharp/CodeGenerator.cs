@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.ML.Auto;
 using Microsoft.ML.CLI.Templates.Console;
+using Microsoft.ML.CLI.Utilities;
 using static Microsoft.ML.Data.TextLoader;
 
 namespace Microsoft.ML.CLI.CodeGenerator.CSharp
@@ -69,14 +70,13 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal void WriteOutputToFiles(string trainScoreCode, string projectSourceCode, string consoleHelperCode)
         {
-            var outputFolder = Path.Combine(options.OutputBaseDir, options.OutputName);
-            if (!Directory.Exists(outputFolder))
+            if (!Directory.Exists(options.OutputBaseDir))
             {
-                Directory.CreateDirectory(outputFolder);
+                Directory.CreateDirectory(options.OutputBaseDir);
             }
-            File.WriteAllText($"{outputFolder}/Train.cs", trainScoreCode);
-            File.WriteAllText($"{outputFolder}/{options.OutputName}.csproj", projectSourceCode);
-            File.WriteAllText($"{outputFolder}/ConsoleHelper.cs", consoleHelperCode);
+            File.WriteAllText($"{options.OutputBaseDir}/Program.cs", trainScoreCode);
+            File.WriteAllText($"{options.OutputBaseDir}/{options.OutputName}.csproj", projectSourceCode);
+            File.WriteAllText($"{options.OutputBaseDir}/ConsoleHelper.cs", consoleHelperCode);
         }
 
         internal static string GenerateConsoleHelper(string namespaceValue)
@@ -165,6 +165,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         internal IList<string> GenerateClassLabels()
         {
             IList<string> result = new List<string>();
+            var label_column = Utils.Sanitize(columnInferenceResult.ColumnInformation.LabelColumn);
             foreach (var column in columnInferenceResult.TextLoaderArgs.Column)
             {
                 StringBuilder sb = new StringBuilder();
@@ -213,7 +214,15 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     result.Add($"[ColumnName(\"{column.Name}\"), LoadColumn({column.Source[0].Min})]");
                 }
                 sb.Append(" ");
-                sb.Append(Normalize(column.Name));
+                if (column.Name.Equals(label_column))
+                {
+                    sb.Append("Label");
+                }
+                else
+                {
+                    sb.Append(Normalize(column.Name));
+                }
+
                 sb.Append("{get; set;}");
                 result.Add(sb.ToString());
                 result.Add("\r\n");

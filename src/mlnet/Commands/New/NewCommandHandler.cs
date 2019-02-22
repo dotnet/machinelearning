@@ -74,8 +74,7 @@ namespace Microsoft.ML.CLI.Commands.New
 
             // Save the model
             logger.Log(LogLevel.Info, Strings.SavingBestModel);
-            var modelPath = Path.Combine(@options.OutputPath.FullName, options.Name);
-            Utils.SaveModel(model, modelPath, $"{options.Name}_model.zip", context);
+            Utils.SaveModel(model, options.OutputPath.FullName, $"{options.Name}_model.zip", context);
 
             // Generate the Project
             GenerateProject(columnInference, pipeline);
@@ -120,7 +119,13 @@ namespace Microsoft.ML.CLI.Commands.New
         internal (Pipeline, ITransformer) ExploreModels(MLContext context, IDataView trainData, IDataView validationData)
         {
             ITransformer model = null;
-            string label = options.LabelColumnName ?? "Label"; // It is guaranteed training dataview to have Label column
+            string label = "Label";
+
+            if (options.LabelColumnName != null)
+            {
+                label = Utils.Sanitize(options.LabelColumnName);
+            }
+
             Pipeline pipeline = null;
 
             if (taskKind == TaskKind.BinaryClassification)

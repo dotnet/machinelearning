@@ -33,7 +33,7 @@ namespace Microsoft.ML.CLI.Templates.Console
     <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include=""Train.cs"" />
+    <Compile Include=""Program.cs"" />
     <Compile Include=""ConsoleHelper.cs"" />
   </ItemGroup>
   <ItemGroup>
