@@ -20,7 +20,6 @@ namespace Microsoft.ML.CLI.Commands
             var newCommand = new System.CommandLine.Command("new", "ML.NET CLI tool for code generation", handler: handler)
             {
                                 Dataset(),
-                                TrainDataset(),
                                 ValidationDataset(),
                                 TestDataset(),
                                 MlTask(),
@@ -29,22 +28,19 @@ namespace Microsoft.ML.CLI.Commands
                                 LabelColumnIndex(),
                                 Verbosity(),
                                 Name(),
-                                OutputPath()
+                                OutputPath(),
+                                HasHeader(),
             };
+
+            var list = new System.CommandLine.Command("--list-ml-tasks", argument: new Argument<string>().FromAmong("a", "b", "c"));
+
+            newCommand.Add(list);
 
             newCommand.Argument.AddValidator((sym) =>
             {
-                if (sym.Children["--dataset"] == null && sym.Children["--train-dataset"] == null)
+                if (sym.Children["--dataset"] == null)
                 {
                     return "Option required : --dataset";
-                }
-                if (sym.Children["--dataset"] != null && sym.Children["--train-dataset"] != null)
-                {
-                    return "The following options are mutually exclusive please provide only one : --data-set, --train-dataset";
-                }
-                if (sym.Children["--train-dataset"] != null && sym.Children["--test-dataset"] == null)
-                {
-                    return "Option required : --test-dataset";
                 }
                 if (sym.Children["--ml-task"] == null)
                 {
@@ -58,7 +54,6 @@ namespace Microsoft.ML.CLI.Commands
                 {
                     return "The following options are mutually exclusive please provide only one : --label-column-name, --label-column-index";
                 }
-
                 return null;
             });
 
@@ -68,12 +63,8 @@ namespace Microsoft.ML.CLI.Commands
                new Option("--dataset", "Dataset file path.",
                           new Argument<FileInfo>().ExistingOnly());
 
-            Option TrainDataset() =>
-               new Option("--train-dataset", "Train dataset file path.",
-                          new Argument<FileInfo>().ExistingOnly());
-
             Option ValidationDataset() =>
-               new Option("--validation-dataset", "Validation dataset file path.",
+               new Option("--validation-dataset", "Validation dataset file path. Used for model exploration.",
                           new Argument<FileInfo>(defaultValue: default(FileInfo)).ExistingOnly());
 
             Option TestDataset() =>
@@ -107,6 +98,10 @@ namespace Microsoft.ML.CLI.Commands
             Option OutputPath() =>
               new Option(new List<string>() { "--output-path" }, "Output folder path.",
              new Argument<DirectoryInfo>(defaultValue: new DirectoryInfo(".\\Sample")));
+
+            Option HasHeader() =>
+             new Option(new List<string>() { "--has-header" }, "Specifies if the dataset has header or not.",
+            new Argument<bool>(defaultValue: true));
 
         }
 

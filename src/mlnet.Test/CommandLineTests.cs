@@ -15,7 +15,7 @@ namespace mlnet.Test
     public class CommandLineTests
     {
         [TestMethod]
-        public void TestCommandLineArgs()
+        public void TestMinimumCommandLineArgs()
         {
             bool parsingSuccessful = false;
 
@@ -34,7 +34,7 @@ namespace mlnet.Test
 
             var trainDataset = Path.GetTempFileName();
             var testDataset = Path.GetTempFileName();
-            string[] args = new[] { "new", "--ml-task", "binary-classification", "--train-dataset", trainDataset, "--test-dataset", testDataset, "--label-column-name", "Label" };
+            string[] args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", "Label" };
             parser.InvokeAsync(args).Wait();
             File.Delete(trainDataset);
             File.Delete(testDataset);
@@ -97,6 +97,7 @@ namespace mlnet.Test
             var labelName = "Label";
             var name = "testname";
             var outputPath = ".";
+            var falseString = "false";
 
             // Create handler outside so that commandline and the handler is decoupled and testable.
             var handler = CommandHandler.Create<NewCommandOptions>(
@@ -104,13 +105,14 @@ namespace mlnet.Test
                 {
                     parsingSuccessful = true;
                     Assert.AreEqual(opt.MlTask, "binary-classification");
-                    Assert.AreEqual(opt.TrainDataset, trainDataset);
+                    Assert.AreEqual(opt.Dataset, trainDataset);
                     Assert.AreEqual(opt.TestDataset, testDataset);
                     Assert.AreEqual(opt.ValidationDataset, validDataset);
                     Assert.AreEqual(opt.LabelColumnName, labelName);
                     Assert.AreEqual(opt.MaxExplorationTime, 5);
                     Assert.AreEqual(opt.Name, name);
                     Assert.AreEqual(opt.OutputPath, outputPath);
+                    Assert.AreEqual(opt.HasHeader, bool.Parse(falseString));
                 });
 
             var parser = new CommandLineBuilder()
@@ -120,7 +122,7 @@ namespace mlnet.Test
                         .Build();
 
             // Incorrect mltask test
-            string[] args = new[] { "new", "--ml-task", "binary-classification", "--train-dataset", trainDataset, "--label-column-name", labelName, "--validation-dataset", validDataset, "--test-dataset", testDataset, "--max-exploration-time", "5", "--name", name, "--output-path", outputPath };
+            string[] args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--validation-dataset", validDataset, "--test-dataset", testDataset, "--max-exploration-time", "5", "--name", name, "--output-path", outputPath, "--has-header", falseString };
             parser.InvokeAsync(args).Wait();
             File.Delete(trainDataset);
             File.Delete(testDataset);

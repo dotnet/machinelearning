@@ -133,7 +133,7 @@
     <value>Exception occured while exploring pipelines</value>
   </data>
   <data name="GenerateProject" xml:space="preserve">
-    <value>Generating a console project for the best pipeline ...</value>
+    <value>Generating a console project for the best pipeline at location </value>
   </data>
   <data name="InferColumnError" xml:space="preserve">
     <value>An Error occured during inferring columns</value>

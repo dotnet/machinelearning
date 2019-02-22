@@ -106,7 +106,7 @@ namespace Microsoft.ML.CLI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generating a console project for the best pipeline ....
+        ///   Looks up a localized string similar to Generating a console project for the best pipeline at location .
         /// </summary>
         internal static string GenerateProject {
             get {

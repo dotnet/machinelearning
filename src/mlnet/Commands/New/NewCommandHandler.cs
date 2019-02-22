@@ -86,14 +86,14 @@ namespace Microsoft.ML.CLI.Commands.New
             //Check what overload method of InferColumns needs to be called.
             logger.Log(LogLevel.Info, Strings.InferColumns);
             ColumnInferenceResults columnInference = null;
-            var dataset = options.TrainDataset?.FullName ?? options.Dataset?.FullName;
+            var dataset = options.Dataset.FullName;
             if (options.LabelColumnName != null)
             {
                 columnInference = context.AutoInference().InferColumns(dataset, options.LabelColumnName, groupColumns: false);
             }
             else
             {
-                columnInference = context.AutoInference().InferColumns(dataset, options.LabelColumnIndex, groupColumns: false);
+                columnInference = context.AutoInference().InferColumns(dataset, options.LabelColumnIndex, hasHeader: options.HasHeader, groupColumns: false);
             }
 
             return columnInference;
@@ -102,13 +102,13 @@ namespace Microsoft.ML.CLI.Commands.New
         internal void GenerateProject(ColumnInferenceResults columnInference, Pipeline pipeline)
         {
             //Generate code
-            logger.Log(LogLevel.Info, Strings.GenerateProject);
+            logger.Log(LogLevel.Info, $"{Strings.GenerateProject} : {options.OutputPath.FullName}");
             var codeGenerator = new CodeGenerator.CSharp.CodeGenerator(
                 pipeline,
                 columnInference,
                 new CodeGeneratorOptions()
                 {
-                    TrainDataset = options.TrainDataset,
+                    TrainDataset = options.Dataset,
                     MlTask = taskKind,
                     TestDataset = options.TestDataset,
                     OutputName = options.Name,
@@ -169,7 +169,7 @@ namespace Microsoft.ML.CLI.Commands.New
             var textLoader = context.Data.CreateTextLoader(textLoaderArgs);
 
             logger.Log(LogLevel.Info, Strings.LoadData);
-            var trainData = textLoader.Read(options.TrainDataset?.FullName ?? options.Dataset?.FullName);
+            var trainData = textLoader.Read(options.Dataset.FullName);
             var validationData = options.ValidationDataset == null ? null : textLoader.Read(options.ValidationDataset.FullName);
 
             return (trainData, validationData);

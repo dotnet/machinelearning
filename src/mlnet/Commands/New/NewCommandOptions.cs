@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using Microsoft.ML.Auto;
 
 namespace Microsoft.ML.CLI.Data
 {
@@ -14,8 +13,6 @@ namespace Microsoft.ML.CLI.Data
         public FileInfo Dataset { get; set; }
 
         public FileInfo ValidationDataset { get; set; }
-
-        public FileInfo TrainDataset { get; set; }
 
         public FileInfo TestDataset { get; set; }
 
@@ -30,6 +27,8 @@ namespace Microsoft.ML.CLI.Data
         public uint MaxExplorationTime { get; set; }
 
         public DirectoryInfo OutputPath { get; set; }
+
+        public bool HasHeader { get; set; }
 
     }
 }
