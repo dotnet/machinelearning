@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel.Composition.Hosting;
 using System.IO;
 
 namespace Microsoft.ML.Data
@@ -632,7 +631,5 @@ namespace Microsoft.ML.Data
             else if (!removeLastNewLine)
                 writer.WriteLine();
         }
-
-        public virtual CompositionContainer GetCompositionContainer() => new CompositionContainer();
     }
 }

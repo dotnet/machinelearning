@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Composition.Hosting;
 
 namespace Microsoft.ML
 {
@@ -92,12 +91,6 @@ namespace Microsoft.ML
         [Obsolete("The host environment is not disposable, so it is inappropriate to use this method. " +
             "Please handle your own temporary files within the component yourself, including their proper disposal and deletion.")]
         IFileHandle CreateTempFile(string suffix = null, string prefix = null);
-
-        /// <summary>
-        /// Get the MEF composition container. This can be used to instantiate user-provided 'parts' when the model
-        /// is being loaded, or the components are otherwise created via dependency injection.
-        /// </summary>
-        CompositionContainer GetCompositionContainer();
     }
 
     /// <summary>

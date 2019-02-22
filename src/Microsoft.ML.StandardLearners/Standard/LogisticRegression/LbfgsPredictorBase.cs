@@ -164,7 +164,7 @@ namespace Microsoft.ML.Trainers
                         {
                             FeatureColumn = featureColumn,
                             LabelColumn = labelColumn.Name,
-                            WeightColumn = weightColumn != null ? Optional<string>.Explicit(weightColumn) : Optional<string>.Implicit(DefaultColumnNames.Weight),
+                            WeightColumn = weightColumn,
                             L1Weight = l1Weight,
                             L2Weight = l2Weight,
                             OptTol = optimizationTolerance,
@@ -244,7 +244,7 @@ namespace Microsoft.ML.Trainers
             {
                 FeatureColumn = featureColumn,
                 LabelColumn = labelColumn.Name,
-                WeightColumn = weightColumn ?? Optional<string>.Explicit(weightColumn),
+                WeightColumn = weightColumn,
                 L1Weight = l1Weight,
                 L2Weight = l2Weight,
                 OptTol = optimizationTolerance,

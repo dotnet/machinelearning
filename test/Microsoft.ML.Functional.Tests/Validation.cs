@@ -48,7 +48,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // And validate the metrics.
             foreach (var result in cvResult)
-                Common.CheckMetrics(result.Metrics);
+                Common.AssertMetrics(result.Metrics);
         }
 
         /// <summary>
@@ -96,8 +96,8 @@ namespace Microsoft.ML.Functional.Tests
             var trainMetrics = mlContext.Regression.Evaluate(scoredTrainData);
             var validMetrics = mlContext.Regression.Evaluate(scoredValidData);
 
-            Common.CheckMetrics(trainMetrics);
-            Common.CheckMetrics(validMetrics);
+            Common.AssertMetrics(trainMetrics);
+            Common.AssertMetrics(validMetrics);
         }
     }
 }

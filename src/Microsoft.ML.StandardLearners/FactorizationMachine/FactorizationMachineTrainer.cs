@@ -147,7 +147,7 @@ namespace Microsoft.ML.FactorizationMachine
                 FeatureColumns[i + 1] = new SchemaShape.Column(options.ExtraFeatureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
             LabelColumn = new SchemaShape.Column(options.LabelColumn, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false);
-            WeightColumn = options.WeightColumn.IsExplicit ? new SchemaShape.Column(options.WeightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false) : default;
+            WeightColumn = options.WeightColumn != null ? new SchemaShape.Column(options.WeightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false) : default;
         }
 
         /// <summary>

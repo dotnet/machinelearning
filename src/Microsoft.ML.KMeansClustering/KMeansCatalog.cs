@@ -38,7 +38,7 @@ namespace Microsoft.ML
             var options = new KMeansPlusPlusTrainer.Options
             {
                 FeatureColumn = featureColumn,
-                WeightColumn = weights != null ? Optional<string>.Explicit(weights) : Optional<string>.Implicit(DefaultColumnNames.Weight),
+                WeightColumn = weights,
                 ClustersCount = clustersCount
             };
             return new KMeansPlusPlusTrainer(env, options);
