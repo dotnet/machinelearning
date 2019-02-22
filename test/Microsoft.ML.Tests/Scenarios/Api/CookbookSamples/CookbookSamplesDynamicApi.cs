@@ -78,11 +78,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Step one: read the data as an IDataView.
             // Read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var trainData = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
-                // First line of the file is a header, not a data row.
-                hasHeader: true,
                 // Default separator is tab, but we need a semicolon.
                 separatorChar: ';'
-            );
+,
+                // First line of the file is a header, not a data row.
+                hasHeader: true);
 
             // Sometime, caching data in-memory after its first access can save some loading time when the data is going to be used
             // several times somewhere. The caching mechanism is also lazy; it only caches things after being used.
@@ -114,11 +114,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Read the test dataset.
             var testData = mlContext.Data.ReadFromTextFile<AdultData>(testDataPath,
-                // First line of the file is a header, not a data row.
-                hasHeader: true,
                 // Default separator is tab, but we need a semicolon.
                 separatorChar: ';'
-            );
+,
+                // First line of the file is a header, not a data row.
+                hasHeader: true);
 
             // Calculate metrics of the model on the test data.
             var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: "Target");
@@ -277,7 +277,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextLoader(new[] 
+            var reader = mlContext.Data.CreateTextLoader(new[]
                 {
                     new TextLoader.Column("IsToxic", DataKind.BL, 0),
                     new TextLoader.Column("Message", DataKind.TX, 1),
@@ -344,7 +344,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextLoader(new[] 
+            var reader = mlContext.Data.CreateTextLoader(new[]
                 {
                     new TextLoader.Column("Label", DataKind.BL, 0),
                     // We will load all the categorical features into one vector column of size 8.
@@ -458,7 +458,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var reader = mlContext.Data.ReadFromTextFile<AdultData>(dataPath,
                 // Default separator is tab, but we need a comma.
-                separatorChar: ',' );
+                separatorChar: ',');
         }
 
         // Define a class for all the input columns that we intend to consume.

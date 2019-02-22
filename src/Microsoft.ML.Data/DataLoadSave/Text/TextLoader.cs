@@ -1064,14 +1064,14 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">Defines a mapping between input columns in the file and IDataView columns.</param>
-        /// <param name="hasHeader">Whether the file has a header.</param>
         /// <param name="separatorChar"> The character used as separator between data points in a row. By default the tab character is used as separator.</param>
-        /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
+        /// <param name="hasHeader">Whether the file has a header.</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
         /// <param name="allowQuoting">Whether the content of a column can be parsed from a string starting and ending with quote.</param>
-        internal TextLoader(IHostEnvironment env, Column[] columns, bool hasHeader = Defaults.HasHeader,
-            char separatorChar = Defaults.Separator, IMultiStreamSource dataSample = null,
-            bool allowSparse = Defaults.AllowSparse, bool allowQuoting = Defaults.AllowQuoting)
+        /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
+        internal TextLoader(IHostEnvironment env, Column[] columns, char separatorChar = Defaults.Separator,
+            bool hasHeader = Defaults.HasHeader, bool allowSparse = Defaults.AllowSparse,
+            bool allowQuoting = Defaults.AllowQuoting, IMultiStreamSource dataSample = null)
             : this(env, MakeArgs(columns, hasHeader, new[] { separatorChar }, allowSparse, allowQuoting), dataSample)
         {
         }
