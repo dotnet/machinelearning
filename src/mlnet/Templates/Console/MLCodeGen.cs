@@ -150,8 +150,9 @@ if("Regression".Equals(TaskType)){
                     "rics(trainer.ToString(), crossValidationResults);\r\n");
 }
 } 
-            this.Write("\r\n            // Train the model fitting to the DataSet\r\n            var trainedM" +
-                    "odel = trainingPipeline.Fit(trainingDataView);\r\n\r\n");
+            this.Write("\r\n            // Train the model fitting to the DataSet\r\n            Console.Writ" +
+                    "eLine(\"=============== Training the model ===============\");\r\n            var tr" +
+                    "ainedModel = trainingPipeline.Fit(trainingDataView);\r\n\r\n");
  if(!string.IsNullOrEmpty(TestPath)){ 
             this.Write("            // Evaluate the model and show accuracy stats\r\n            Console.Wr" +
                     "iteLine(\"===== Evaluating Model\'s accuracy with Test data =====\");\r\n            " +
@@ -171,6 +172,7 @@ if("Regression".Equals(TaskType)){
  } 
             this.Write(@"
             // Save/persist the trained model to a .ZIP file
+            Console.WriteLine($""=============== Saving the model  ==============="");
             using (var fs = new FileStream(ModelPath, FileMode.Create, FileAccess.Write, FileShare.Write))
                 mlContext.Model.Save(trainedModel, fs);
 

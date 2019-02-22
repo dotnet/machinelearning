@@ -64,6 +64,7 @@ namespace MyNamespace
             var trainingPipeline = dataProcessPipeline.Append(trainer);
 
             // Train the model fitting to the DataSet
+            Console.WriteLine("=============== Training the model ===============");
             var trainedModel = trainingPipeline.Fit(trainingDataView);
 
             // Evaluate the model and show accuracy stats
@@ -73,6 +74,7 @@ namespace MyNamespace
             ConsoleHelper.PrintBinaryClassificationMetrics(trainer.ToString(), metrics);
 
             // Save/persist the trained model to a .ZIP file
+            Console.WriteLine($"=============== Saving the model  ===============");
             using (var fs = new FileStream(ModelPath, FileMode.Create, FileAccess.Write, FileShare.Write))
                 mlContext.Model.Save(trainedModel, fs);
 
