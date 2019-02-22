@@ -391,17 +391,14 @@ namespace Microsoft.ML.RunTests
             Assert.True(weightType.Equals(typeof(string)));
 
             var instance = ib1.GetInstance() as LogisticRegression.Options;
-            Assert.True(!instance.WeightColumn.IsExplicit);
-            Assert.True(instance.WeightColumn.Value == DefaultColumnNames.Weight);
+            Assert.True(instance.WeightColumn == null);
 
             ib1.TrySetValue("WeightColumn", "OtherWeight");
-            Assert.True(instance.WeightColumn.IsExplicit);
-            Assert.Equal("OtherWeight", instance.WeightColumn.Value);
+            Assert.Equal("OtherWeight", instance.WeightColumn);
 
             var tok = (JToken)JValue.CreateString("AnotherWeight");
             ib1.TrySetValueJson("WeightColumn", tok);
-            Assert.True(instance.WeightColumn.IsExplicit);
-            Assert.Equal("AnotherWeight", instance.WeightColumn.Value);
+            Assert.Equal("AnotherWeight", instance.WeightColumn);
         }
 
         [Fact]
@@ -4171,10 +4168,7 @@ namespace Microsoft.ML.RunTests
                                         'NumThreads': 1,
                                         'DenseOptimizer': false,
                                         'EnforceNonNegativity': false,
-                                        'WeightColumn': {
-                                            'Value': 'Weight1',
-                                            'IsExplicit': true
-                                        },
+                                        'WeightColumn': 'Weight1',
                                         'LabelColumn': 'Label',
                                         'TrainingData': '$Var_8b36a1e70c9f4504973140ad15eac72f',
                                         'FeatureColumn': 'Features',
@@ -4208,10 +4202,7 @@ namespace Microsoft.ML.RunTests
                             'NumFolds': 2,
                             'Kind': 'SignatureRegressorTrainer',
                             'LabelColumn': 'Label',
-                            'WeightColumn': {
-                                'Value': 'Weight1',
-                                'IsExplicit': true
-                            },
+                            'WeightColumn': 'Weight1',
                             'GroupColumn': null,
                             'NameColumn': null
                         },
@@ -5062,10 +5053,7 @@ namespace Microsoft.ML.RunTests
                                     'PrintTestGraph': false,
                                     'PrintTrainValidGraph': false,
                                     'TestFrequency': 2147483647,
-                                    'GroupIdColumn': {
-                                        'Value': 'GroupId1',
-                                        'IsExplicit': true
-                                    },
+                                    'GroupIdColumn': 'GroupId1',
                                     'WeightColumn': null,
                                     'LabelColumn': 'Label1',
                                     'TrainingData': '$Var_8f51ed90f5b642b2a80eeb628d67a5b3',

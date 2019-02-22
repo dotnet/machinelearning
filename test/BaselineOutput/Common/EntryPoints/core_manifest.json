@@ -2139,7 +2139,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -2370,7 +2370,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -5203,7 +5203,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -5215,7 +5215,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -5854,7 +5854,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -5866,7 +5866,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -6497,7 +6497,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -6509,7 +6509,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -7409,7 +7409,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -7421,7 +7421,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -8402,7 +8402,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -8414,7 +8414,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -9302,7 +9302,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -9314,7 +9314,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -10204,7 +10204,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "LambdaLatent",
@@ -10459,7 +10459,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -10760,7 +10760,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -10991,7 +10991,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -11283,7 +11283,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -11295,7 +11295,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -11787,7 +11787,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -11799,7 +11799,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -12291,7 +12291,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -12303,7 +12303,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -12795,7 +12795,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -12807,7 +12807,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -13204,7 +13204,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -13473,7 +13473,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -13785,7 +13785,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -14509,7 +14509,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -14640,7 +14640,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -14819,7 +14819,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -15964,7 +15964,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -25124,7 +25124,7 @@
               "Required": false,
               "SortOrder": 4.0,
               "IsNullable": false,
-              "Default": "Weight"
+              "Default": null
             },
             {
               "Name": "GroupIdColumn",
@@ -25136,7 +25136,7 @@
               "Required": false,
               "SortOrder": 5.0,
               "IsNullable": false,
-              "Default": "GroupId"
+              "Default": null
             },
             {
               "Name": "NormalizeFeatures",
@@ -26018,7 +26018,7 @@
               "Required": false,
               "SortOrder": 4.0,
               "IsNullable": false,
-              "Default": "Weight"
+              "Default": null
             },
             {
               "Name": "GroupIdColumn",
@@ -26030,7 +26030,7 @@
               "Required": false,
               "SortOrder": 5.0,
               "IsNullable": false,
-              "Default": "GroupId"
+              "Default": null
             },
             {
               "Name": "NormalizeFeatures",
@@ -26993,7 +26993,7 @@
               "Required": false,
               "SortOrder": 4.0,
               "IsNullable": false,
-              "Default": "Weight"
+              "Default": null
             },
             {
               "Name": "GroupIdColumn",
@@ -27005,7 +27005,7 @@
               "Required": false,
               "SortOrder": 5.0,
               "IsNullable": false,
-              "Default": "GroupId"
+              "Default": null
             },
             {
               "Name": "NormalizeFeatures",
@@ -27875,7 +27875,7 @@
               "Required": false,
               "SortOrder": 4.0,
               "IsNullable": false,
-              "Default": "Weight"
+              "Default": null
             },
             {
               "Name": "GroupIdColumn",
@@ -27887,7 +27887,7 @@
               "Required": false,
               "SortOrder": 5.0,
               "IsNullable": false,
-              "Default": "GroupId"
+              "Default": null
             },
             {
               "Name": "NormalizeFeatures",
