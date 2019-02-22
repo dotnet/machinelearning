@@ -198,7 +198,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="colors">What colors to extract.</param>
         /// <param name="order">In which order extract colors presented in array.</param>
         /// <param name="interleave">Whether the pixels are interleaved, meaning whether they are in <paramref name="order"/> order, or separated in the planar form, where the colors are specified one by one
-        /// alpha, red, green, blue for all the pixels of the image. </param>
+        /// for all the pixels of the image. </param>
         /// <param name="scale">Scale color pixel value by this amount.</param>
         /// <param name="offset">Offset color pixel value by this amount.</param>
         /// <param name="defaultAlpha">Default value for alpha color, would be overriden if <paramref name="colors"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Alpha"/>.</param>
