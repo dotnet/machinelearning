@@ -218,11 +218,32 @@ namespace Microsoft.ML.Auto.Test
         }
 
         [TestMethod]
-        public void TransformInferenceFeatCol()
+        public void TransformInferenceFeatColScalar()
         {
             TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
                 {
                     (DefaultColumnNames.Features, NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                }, @"[
+  {
+    ""Name"": ""ColumnConcatenating"",
+    ""NodeType"": ""Transform"",
+    ""InColumns"": [
+      ""Features""
+    ],
+    ""OutColumns"": [
+      ""Features""
+    ],
+    ""Properties"": {}
+  }
+]");
+        }
+
+        [TestMethod]
+        public void TransformInferenceFeatColVector()
+        {
+            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+                {
+                    (DefaultColumnNames.Features, new VectorType(NumberType.R4), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[]");
         }
 
@@ -239,6 +260,48 @@ namespace Microsoft.ML.Auto.Test
     ""NodeType"": ""Transform"",
     ""InColumns"": [
       ""Features"",
+      ""Numeric""
+    ],
+    ""OutColumns"": [
+      ""Features""
+    ],
+    ""Properties"": {}
+  }
+]");
+        }
+
+        [TestMethod]
+        public void NumericScalarCol()
+        {
+            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+                {
+                    ("Numeric", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                }, @"[
+  {
+    ""Name"": ""ColumnConcatenating"",
+    ""NodeType"": ""Transform"",
+    ""InColumns"": [
+      ""Numeric""
+    ],
+    ""OutColumns"": [
+      ""Features""
+    ],
+    ""Properties"": {}
+  }
+]");
+        }
+
+        [TestMethod]
+        public void NumericVectorCol()
+        {
+            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+                {
+                    ("Numeric", new VectorType(NumberType.R4), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                }, @"[
+  {
+    ""Name"": ""ColumnCopying"",
+    ""NodeType"": ""Transform"",
+    ""InColumns"": [
       ""Numeric""
     ],
     ""OutColumns"": [
@@ -268,7 +331,7 @@ namespace Microsoft.ML.Auto.Test
     ""Properties"": {}
   },
   {
-    ""Name"": ""ColumnConcatenating"",
+    ""Name"": ""ColumnCopying"",
     ""NodeType"": ""Transform"",
     ""InColumns"": [
       ""Text_tf""
@@ -566,7 +629,7 @@ namespace Microsoft.ML.Auto.Test
         {
             TransformInferenceTestCore(new(string, ColumnType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    (DefaultColumnNames.Features, new VectorType(NumberType.R4), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                     (DefaultColumnNames.Label, NumberType.R4, ColumnPurpose.Label, new ColumnDimensions(null, null)),
                 }, @"[]");
         }
@@ -576,7 +639,7 @@ namespace Microsoft.ML.Auto.Test
         {
             TransformInferenceTestCore(new(string, ColumnType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    (DefaultColumnNames.Features, new VectorType(NumberType.R4), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                     ("CustomLabel", NumberType.R4, ColumnPurpose.Label, new ColumnDimensions(null, null)),
                 }, @"[
   {
@@ -598,7 +661,7 @@ namespace Microsoft.ML.Auto.Test
         {
             TransformInferenceTestCore(new(string, ColumnType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    (DefaultColumnNames.Features, new VectorType(NumberType.R4), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                     (DefaultColumnNames.GroupId, NumberType.R4, ColumnPurpose.Group, new ColumnDimensions(null, null)),
                 }, @"[]");
         }
@@ -608,7 +671,7 @@ namespace Microsoft.ML.Auto.Test
         {
             TransformInferenceTestCore(new(string, ColumnType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    (DefaultColumnNames.Features, new VectorType(NumberType.R4), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                     ("CustomGroupId", NumberType.R4, ColumnPurpose.Group, new ColumnDimensions(null, null)),
                 }, @"[
   {
@@ -709,6 +772,7 @@ namespace Microsoft.ML.Auto.Test
             // assert Features column of type 'R4' exists
             var featuresCol = data.Schema.GetColumnOrNull(DefaultColumnNames.Features);
             Assert.IsNotNull(featuresCol);
+            Assert.AreEqual(true, featuresCol.Value.Type.IsVector());
             Assert.AreEqual(NumberType.R4, featuresCol.Value.Type.GetItemType());
         }
 
@@ -734,6 +798,11 @@ namespace Microsoft.ML.Auto.Test
                 else if (column.type == TextType.Instance)
                 {
                     dataBuilder.AddColumn(column.name, new string[] { "a" });
+                }
+                else if (column.type.IsVector() && column.type.GetItemType() == NumberType.R4)
+                {
+                    dataBuilder.AddColumn(column.name, Util.GetKeyValueGetter(new[] { "1", "2" }), 
+                        NumberType.R4, new float[] { 0, 0 });
                 }
             }
             return dataBuilder.GetDataView();

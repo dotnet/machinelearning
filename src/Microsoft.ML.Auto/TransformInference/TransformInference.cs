@@ -447,7 +447,7 @@ namespace Microsoft.ML.Auto
             foreach(var intermediateCol in intermediateCols)
             {
                 if (intermediateCol.Purpose == ColumnPurpose.NumericFeature &&
-                    intermediateCol.Type == NumberType.R4)
+                    intermediateCol.Type.GetItemType() == NumberType.R4)
                 {
                     concatColNames.Add(intermediateCol.ColumnName);
                 }
@@ -458,15 +458,22 @@ namespace Microsoft.ML.Auto
             concatColNames.Remove(DefaultColumnNames.GroupId);
             concatColNames.Remove(DefaultColumnNames.Name);
 
-            if (!concatColNames.Any() || (concatColNames.Count == 1 && concatColNames[0] == DefaultColumnNames.Features))
+            intermediateCols = intermediateCols.Where(c => c.Purpose == ColumnPurpose.NumericFeature ||
+                c.Purpose == ColumnPurpose.CategoricalFeature || c.Purpose == ColumnPurpose.TextFeature);
+
+            if (!concatColNames.Any() || (concatColNames.Count == 1 &&
+                concatColNames[0] == DefaultColumnNames.Features &&
+                intermediateCols.First().Type.IsVector()))
             {
                 return null;
             }
 
-            // If Features column exists in original dataset, add it to concatColumnNames
-            if (intermediateCols.Any(c => c.ColumnName == DefaultColumnNames.Features))
+            if (concatColNames.Count() == 1 &&
+                (intermediateCols.First().Type.IsVector() ||
+                intermediateCols.First().Purpose == ColumnPurpose.CategoricalFeature ||
+                intermediateCols.First().Purpose == ColumnPurpose.TextFeature))
             {
-                concatColNames.Add(DefaultColumnNames.Features);
+                return ColumnCopyingExtension.CreateSuggestedTransform(context, concatColNames.First(), DefaultColumnNames.Features);
             }
 
             return ColumnConcatenatingExtension.CreateSuggestedTransform(context, concatColNames.Distinct().ToArray(), DefaultColumnNames.Features);

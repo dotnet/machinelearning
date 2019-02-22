@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Data.DataView;
+﻿using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -63,13 +60,13 @@ namespace Microsoft.ML.Auto.Test
                 new float[] { 0, 0 },
                 new float[] { 1, 1 },
             };
-            dataBuilder.AddColumn("NoNan", GetKeyValueGetter(slotNames), NumberType.R4, colValues);
+            dataBuilder.AddColumn("NoNan", Util.GetKeyValueGetter(slotNames), NumberType.R4, colValues);
             colValues = new float[][]
             {
                 new float[] { 0, 0 },
                 new float[] { 1, float.NaN },
             };
-            dataBuilder.AddColumn("Nan", GetKeyValueGetter(slotNames), NumberType.R4, colValues);
+            dataBuilder.AddColumn("Nan", Util.GetKeyValueGetter(slotNames), NumberType.R4, colValues);
             var data = dataBuilder.GetDataView();
             var dimensions = DatasetDimensionsApi.CalcColumnDimensions(context, data, new[] {
                 new PurposeInference.Column(0, ColumnPurpose.NumericFeature),
@@ -81,19 +78,6 @@ namespace Microsoft.ML.Auto.Test
             Assert.AreEqual(null, dimensions[1].Cardinality);
             Assert.AreEqual(false, dimensions[0].HasMissing);
             Assert.AreEqual(true, dimensions[1].HasMissing);
-        }
-
-        private static ValueGetter<VBuffer<ReadOnlyMemory<char>>> GetKeyValueGetter(IEnumerable<string> colNames)
-        {
-            return (ref VBuffer<ReadOnlyMemory<char>> dst) =>
-            {
-                var editor = VBufferEditor.Create(ref dst, colNames.Count());
-                for (int i = 0; i < colNames.Count(); i++)
-                {
-                    editor.Values[i] = colNames.ElementAt(i).AsMemory();
-                }
-                dst = editor.Commit();
-            };
         }
     }
 }

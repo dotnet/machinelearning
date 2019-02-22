@@ -2,6 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -15,6 +20,19 @@ namespace Microsoft.ML.Auto.Test
             var actualJson = JsonConvert.SerializeObject(obj, 
                 Formatting.Indented, new JsonConverter[] { new StringEnumConverter() });
             Assert.AreEqual(expectedJson, actualJson);
+        }
+
+        public static ValueGetter<VBuffer<ReadOnlyMemory<char>>> GetKeyValueGetter(IEnumerable<string> colNames)
+        {
+            return (ref VBuffer<ReadOnlyMemory<char>> dst) =>
+            {
+                var editor = VBufferEditor.Create(ref dst, colNames.Count());
+                for (int i = 0; i < colNames.Count(); i++)
+                {
+                    editor.Values[i] = colNames.ElementAt(i).AsMemory();
+                }
+                dst = editor.Commit();
+            };
         }
     }
 }
