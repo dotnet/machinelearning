@@ -4167,10 +4167,7 @@ namespace Microsoft.ML.RunTests
                                         'NumThreads': 1,
                                         'DenseOptimizer': false,
                                         'EnforceNonNegativity': false,
-                                        'WeightColumn': {
-                                            'Value': 'Weight1',
-                                            'IsExplicit': true
-                                        },
+                                        'WeightColumn': 'Weight1',
                                         'LabelColumn': 'Label',
                                         'TrainingData': '$Var_8b36a1e70c9f4504973140ad15eac72f',
                                         'FeatureColumn': 'Features',
@@ -4204,10 +4201,7 @@ namespace Microsoft.ML.RunTests
                             'NumFolds': 2,
                             'Kind': 'SignatureRegressorTrainer',
                             'LabelColumn': 'Label',
-                            'WeightColumn': {
-                                'Value': 'Weight1',
-                                'IsExplicit': true
-                            },
+                            'WeightColumn': 'Weight1',
                             'GroupColumn': null,
                             'NameColumn': null
                         },
@@ -5058,10 +5052,7 @@ namespace Microsoft.ML.RunTests
                                     'PrintTestGraph': false,
                                     'PrintTrainValidGraph': false,
                                     'TestFrequency': 2147483647,
-                                    'GroupIdColumn': {
-                                        'Value': 'GroupId1',
-                                        'IsExplicit': true
-                                    },
+                                    'GroupIdColumn': 'GroupId1',
                                     'WeightColumn': null,
                                     'LabelColumn': 'Label1',
                                     'TrainingData': '$Var_8f51ed90f5b642b2a80eeb628d67a5b3',
