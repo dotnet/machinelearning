@@ -391,17 +391,14 @@ namespace Microsoft.ML.RunTests
             Assert.True(weightType.Equals(typeof(string)));
 
             var instance = ib1.GetInstance() as LogisticRegression.Options;
-            Assert.True(!instance.WeightColumn.IsExplicit);
-            Assert.True(instance.WeightColumn.Value == DefaultColumnNames.Weight);
+            Assert.True(instance.WeightColumn == null);
 
             ib1.TrySetValue("WeightColumn", "OtherWeight");
-            Assert.True(instance.WeightColumn.IsExplicit);
-            Assert.Equal("OtherWeight", instance.WeightColumn.Value);
+            Assert.Equal("OtherWeight", instance.WeightColumn);
 
             var tok = (JToken)JValue.CreateString("AnotherWeight");
             ib1.TrySetValueJson("WeightColumn", tok);
-            Assert.True(instance.WeightColumn.IsExplicit);
-            Assert.Equal("AnotherWeight", instance.WeightColumn.Value);
+            Assert.Equal("AnotherWeight", instance.WeightColumn);
         }
 
         [Fact]
