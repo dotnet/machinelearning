@@ -45,7 +45,7 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
             // Load the TensorFlow model once.
             //      - Use it for quering the schema for input and output in the model
             //      - Use it for prediction in the pipeline.
-            var modelInfo = mlContext.Transforms.LoadTensorFlowModel(modelLocation);
+            var modelInfo = mlContext.Model.LoadTensorFlowModel(modelLocation);
             var schema = modelInfo.GetModelSchema();
             var featuresType = (VectorType)schema["Features"].Type;
             Console.WriteLine("Name: {0}, Type: {1}, Shape: (-1, {2})", "Features", featuresType.ItemType.RawType, featuresType.Dimensions[0]);

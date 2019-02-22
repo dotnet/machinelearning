@@ -112,7 +112,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelLocation">Location of the TensorFlow model.</param>
-        public static TensorFlowModel LoadTensorFlowModel(this TransformsCatalog catalog, string modelLocation)
+        public static TensorFlowModel LoadTensorFlowModel(this ModelOperationsCatalog catalog, string modelLocation)
             => TensorFlowUtils.LoadTensorFlowModel(CatalogUtils.GetEnvironment(catalog), modelLocation);
     }
 }

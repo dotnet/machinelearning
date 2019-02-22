@@ -30,7 +30,7 @@ namespace Microsoft.ML.DnnAnalyzer
         private static IEnumerable<(string, string, DataViewType, string[])> GetModelNodes(string modelPath)
         {
             var mlContext = new MLContext();
-            var tensorFlowModel = mlContext.Transforms.LoadTensorFlowModel(modelPath);
+            var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelPath);
             var schema = tensorFlowModel.GetModelSchema();
 
             for (int i = 0; i < schema.Count; i++)
