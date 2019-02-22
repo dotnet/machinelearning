@@ -128,7 +128,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             const int bits = 10;
 
-            var builder = new MetadataBuilder();
+            var builder = new DataViewSchema.Metadata.Builder();
             builder.AddPrimitiveValue("Foo", type, val);
             var inRow = MetadataUtils.MetadataAsRow(builder.GetMetadata());
 
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Tests.Transformers
             // at least in the first position, and in the unordered case, the last position.
             const int vecLen = 5;
             var denseVec = new VBuffer<T>(vecLen, Utils.CreateArray(vecLen, val));
-            builder = new MetadataBuilder();
+            builder = new DataViewSchema.Metadata.Builder();
             builder.Add("Foo", new VectorType(type, vecLen), (ref VBuffer<T> dst) => denseVec.CopyTo(ref dst));
             inRow = MetadataUtils.MetadataAsRow(builder.GetMetadata());
 
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Let's now do a sparse vector.
             var sparseVec = new VBuffer<T>(10, 3, Utils.CreateArray(3, val), new[] { 0, 3, 7 });
-            builder = new MetadataBuilder();
+            builder = new DataViewSchema.Metadata.Builder();
             builder.Add("Foo", new VectorType(type, vecLen), (ref VBuffer<T> dst) => sparseVec.CopyTo(ref dst));
             inRow = MetadataUtils.MetadataAsRow(builder.GetMetadata());
 

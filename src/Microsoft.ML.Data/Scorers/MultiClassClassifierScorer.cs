@@ -308,7 +308,7 @@ namespace Microsoft.ML.Data
                     // that computes score column.
                     for (int i = 0; i < partialSchema.Count; ++i)
                     {
-                        var meta = new MetadataBuilder();
+                        var meta = new DataViewSchema.Metadata.Builder();
                         if (i == scoreColumnIndex)
                         {
                             // Add label names for score column.

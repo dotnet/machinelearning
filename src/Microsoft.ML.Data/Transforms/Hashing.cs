@@ -817,7 +817,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
-                    var meta = new MetadataBuilder();
+                    var meta = new DataViewSchema.Metadata.Builder();
 
                     meta.Add(InputSchema[colIndex].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
 
@@ -827,7 +827,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 }
                 return result;
             }
-            private void AddMetaKeyValues(int i, MetadataBuilder builder)
+            private void AddMetaKeyValues(int i, DataViewSchema.Metadata.Builder builder)
             {
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {

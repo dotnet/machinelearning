@@ -62,7 +62,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 //     these values are names of some upstream operators which should be evaluated before executing
                 //     the current operator. It's possible that one operator doesn't need any input, so this field
                 //     can be missing.
-                var metadataBuilder = new MetadataBuilder();
+                var metadataBuilder = new DataViewSchema.Metadata.Builder();
                 // Create the first metadata field.
                 metadataBuilder.Add(TensorflowOperatorTypeKind, TextDataViewType.Instance, (ref ReadOnlyMemory<char> value) => value = op.OpType.AsMemory());
                 if (op.NumInputs > 0)

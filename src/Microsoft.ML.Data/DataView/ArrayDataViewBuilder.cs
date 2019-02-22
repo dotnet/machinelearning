@@ -218,7 +218,7 @@ namespace Microsoft.ML.Data
                 var schemaBuilder = new SchemaBuilder();
                 for(int i=0; i< _columns.Length; i++)
                 {
-                    var meta = new MetadataBuilder();
+                    var meta = new DataViewSchema.Metadata.Builder();
 
                     if (builder._getSlotNames.TryGetValue(builder._names[i], out var slotNamesGetter))
                         meta.AddSlotNames(_columns[i].Type.GetVectorSize(), slotNamesGetter);

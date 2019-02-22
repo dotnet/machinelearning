@@ -24,7 +24,7 @@ namespace Microsoft.ML.Data.DataLoadSave
 
             for (int i = 0; i < shape.Count; ++i)
             {
-                var metaBuilder = new MetadataBuilder();
+                var metaBuilder = new DataViewSchema.Metadata.Builder();
                 var partialMetadata = shape[i].Metadata;
                 for (int j = 0; j < partialMetadata.Count; ++j)
                 {

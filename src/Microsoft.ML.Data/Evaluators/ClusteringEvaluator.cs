@@ -724,11 +724,11 @@ namespace Microsoft.ML.Data
 
             var slotNamesType = new VectorType(TextDataViewType.Instance, _numClusters);
 
-            var sortedClusters = new MetadataBuilder();
+            var sortedClusters = new DataViewSchema.Metadata.Builder();
             int vectorSize = slotNamesType.GetVectorSize();
             sortedClusters.AddSlotNames(vectorSize, CreateSlotNamesGetter(_numClusters, "Cluster"));
 
-            var builder = new MetadataBuilder();
+            var builder = new DataViewSchema.Metadata.Builder();
             builder.AddSlotNames(vectorSize, CreateSlotNamesGetter(_numClusters, "Score"));
 
             infos[SortedClusterCol] = new DataViewSchema.DetachedColumn(SortedClusters, _types[SortedClusterCol], sortedClusters.GetMetadata());

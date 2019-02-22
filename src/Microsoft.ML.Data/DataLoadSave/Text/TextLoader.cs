@@ -981,7 +981,7 @@ namespace Microsoft.ML.Data
                     if (names.Length > 0)
                     {
                         // Slot names present! Let's add them.
-                        var metadataBuilder = new MetadataBuilder();
+                        var metadataBuilder = new DataViewSchema.Metadata.Builder();
                         metadataBuilder.AddSlotNames(names.Length, (ref VBuffer<ReadOnlyMemory<char>> value) => names.CopyTo(ref value));
                         schemaBuilder.AddColumn(info.Name, info.ColType, metadataBuilder.GetMetadata());
                     }

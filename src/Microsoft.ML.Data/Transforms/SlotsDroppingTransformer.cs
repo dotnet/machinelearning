@@ -826,7 +826,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new MetadataBuilder();
+                    var builder = new DataViewSchema.Metadata.Builder();
 
                     // Add SlotNames metadata.
                     if (_srcTypes[iinfo] is VectorType vectorType && vectorType.IsKnownSize)

@@ -289,7 +289,7 @@ namespace Microsoft.ML.Transforms
                 foreach (var groupValueColumnName in _keepColumns)
                 {
                     // Prepare column's metadata.
-                    var metadataBuilder = new MetadataBuilder();
+                    var metadataBuilder = new DataViewSchema.Metadata.Builder();
                     metadataBuilder.Add(sourceSchema[groupValueColumnName].Metadata,
                         s => s == MetadataUtils.Kinds.IsNormalized || s == MetadataUtils.Kinds.KeyValues);
 

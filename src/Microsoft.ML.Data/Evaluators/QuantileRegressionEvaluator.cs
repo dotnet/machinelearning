@@ -354,10 +354,10 @@ namespace Microsoft.ML.Data
             var infos = new DataViewSchema.DetachedColumn[2];
 
             var slotNamesType = new VectorType(TextDataViewType.Instance, _scoreSize);
-            var l1Metadata = new MetadataBuilder();
+            var l1Metadata = new DataViewSchema.Metadata.Builder();
             l1Metadata.AddSlotNames(_scoreSize, CreateSlotNamesGetter(L1));
 
-            var l2Metadata = new MetadataBuilder();
+            var l2Metadata = new DataViewSchema.Metadata.Builder();
             l2Metadata.AddSlotNames(_scoreSize, CreateSlotNamesGetter(L2));
 
             infos[L1Col] = new DataViewSchema.DetachedColumn(L1, _outputType, l1Metadata.GetMetadata());

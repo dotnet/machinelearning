@@ -301,7 +301,7 @@ namespace Microsoft.ML.Transforms
                     else
                     {
                         // i-th input column is a pivot column. Let's calculate proper type and metadata for it.
-                        var metadataBuilder = new MetadataBuilder();
+                        var metadataBuilder = new DataViewSchema.Metadata.Builder();
                         metadataBuilder.Add(inputSchema[i].Metadata, metadataName => ShouldPreserveMetadata(metadataName));
                         // To explain the output type of pivot columns, let's consider a row
                         //   Age UserID

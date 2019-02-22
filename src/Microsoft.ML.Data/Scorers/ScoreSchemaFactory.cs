@@ -28,7 +28,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckNonEmpty(scoreColumnKindValue, nameof(scoreColumnKindValue));
 
             // Two metadata fields. One can set up by caller of this function while the other one is a constant.
-            var metadataBuilder = new MetadataBuilder();
+            var metadataBuilder = new DataViewSchema.Metadata.Builder();
             metadataBuilder.Add(MetadataUtils.Kinds.ScoreColumnKind, TextDataViewType.Instance,
                 (ref ReadOnlyMemory<char> value) => { value = scoreColumnKindValue.AsMemory(); });
             metadataBuilder.Add(MetadataUtils.Kinds.ScoreValueKind, TextDataViewType.Instance,
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Data
             schemaBuilder.AddColumn(partialSchema[0].Name, partialSchema[0].Type, partialSchema[0].Metadata);
 
             // Create Probability column's metadata.
-            var probabilityMetadataBuilder = new MetadataBuilder();
+            var probabilityMetadataBuilder = new DataViewSchema.Metadata.Builder();
             probabilityMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ref bool value) => { value = true; });
             probabilityMetadataBuilder.Add(MetadataUtils.Kinds.ScoreColumnKind, TextDataViewType.Instance,
                 (ref ReadOnlyMemory<char> value) => { value = MetadataUtils.Const.ScoreColumnKind.BinaryClassification.AsMemory(); });
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Data
             // Create a schema using standard function. The produced schema will be modified by adding one metadata column.
             var partialSchema = Create(new VectorType(scoreType as PrimitiveDataViewType, quantiles.Length), MetadataUtils.Const.ScoreColumnKind.QuantileRegression);
 
-            var metadataBuilder = new MetadataBuilder();
+            var metadataBuilder = new DataViewSchema.Metadata.Builder();
             // Add the extra metadata.
             metadataBuilder.AddSlotNames(quantiles.Length, (ref VBuffer<ReadOnlyMemory<char>> value) =>
                 {
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(scoreType, nameof(scoreType));
             Contracts.CheckValue(scoreColumnKindValue, nameof(scoreColumnKindValue));
 
-            var metadataBuilder = new MetadataBuilder();
+            var metadataBuilder = new DataViewSchema.Metadata.Builder();
             // Add metadata columns including their getters. We starts with key names of predicted keys if they exist.
             if (keyNames.Length > 0)
                 metadataBuilder.AddKeyValues(keyNames.Length, TextDataViewType.Instance,

@@ -653,7 +653,7 @@ namespace Microsoft.ML.Data.IO
                 if (Utils.Size(metadataArray) > 0)
                 {
                     // We got some metadata fields here.
-                    var metadataBuilder = new MetadataBuilder();
+                    var metadataBuilder = new DataViewSchema.Metadata.Builder();
                     foreach(var loadedMetadataColumn in metadataArray)
                     {
                         var metadataGetter = loadedMetadataColumn.GetGetter();

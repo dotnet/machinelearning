@@ -418,7 +418,7 @@ namespace Microsoft.ML.Trainers
             _env.AssertValueOrNull(parent);
             _env.AssertValue(schema);
 
-            var builder = new MetadataBuilder();
+            var builder = new DataViewSchema.Metadata.Builder();
 
             builder.AddPrimitiveValue("Count of training examples", NumberDataViewType.Int64, _trainingExampleCount);
             builder.AddPrimitiveValue("Residual Deviance", NumberDataViewType.Single, _deviance);
@@ -446,7 +446,7 @@ namespace Microsoft.ML.Trainers
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames;
             GetUnorderedCoefficientStatistics(parent.Statistics, in weights, in names, ref estimate, ref stdErr, ref zScore, ref pValue, out getSlotNames);
 
-            var subMetaBuilder = new MetadataBuilder();
+            var subMetaBuilder = new DataViewSchema.Metadata.Builder();
             subMetaBuilder.AddSlotNames(stdErr.Length, getSlotNames);
             var subMeta = subMetaBuilder.GetMetadata();
             var colType = new VectorType(NumberDataViewType.Single, stdErr.Length);

@@ -604,7 +604,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             private DataViewSchema.Metadata MakeMetadata(int iinfo)
             {
                 var colInfo = _parent.Columns[iinfo];
-                var builder = new MetadataBuilder();
+                var builder = new DataViewSchema.Metadata.Builder();
 
                 builder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ValueGetter<bool>)IsNormalizedGetter);
                 builder.Add(InputSchema[ColMapNewToOld[iinfo]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);

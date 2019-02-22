@@ -111,14 +111,14 @@ namespace Microsoft.ML.Data
                 var schemaBuilder = new SchemaBuilder();
 
                 // Metadata of tree values.
-                var treeIdMetadataBuilder = new MetadataBuilder();
+                var treeIdMetadataBuilder = new DataViewSchema.Metadata.Builder();
                 treeIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(treeValueType.Size),
                     (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetTreeSlotNames);
                 // Add the column of trees' output values
                 schemaBuilder.AddColumn(OutputColumnNames.Trees, treeValueType, treeIdMetadataBuilder.GetMetadata());
 
                 // Metadata of leaf IDs.
-                var leafIdMetadataBuilder = new MetadataBuilder();
+                var leafIdMetadataBuilder = new DataViewSchema.Metadata.Builder();
                 leafIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(leafIdType.Size),
                     (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetLeafSlotNames);
                 leafIdMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ref bool value) => value = true);
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Data
                 schemaBuilder.AddColumn(OutputColumnNames.Leaves, leafIdType, leafIdMetadataBuilder.GetMetadata());
 
                 // Metadata of path IDs.
-                var pathIdMetadataBuilder = new MetadataBuilder();
+                var pathIdMetadataBuilder = new DataViewSchema.Metadata.Builder();
                 pathIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(pathIdType.Size),
                     (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetPathSlotNames);
                 pathIdMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ref bool value) => value = true);

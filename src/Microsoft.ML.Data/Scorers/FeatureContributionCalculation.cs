@@ -333,7 +333,7 @@ namespace Microsoft.ML.Data
                 }
                 else
                 {
-                    var metadataBuilder = new MetadataBuilder();
+                    var metadataBuilder = new DataViewSchema.Metadata.Builder();
                     if (InputSchema[FeatureColumn.Index].HasSlotNames(featureSize))
                         metadataBuilder.AddSlotNames(featureSize, (ref VBuffer<ReadOnlyMemory<char>> value) =>
                             FeatureColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref value));

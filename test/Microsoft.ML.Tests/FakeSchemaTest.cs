@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         void SimpleTest()
         {
-            var metadataBuilder = new MetadataBuilder();
+            var metadataBuilder = new DataViewSchema.Metadata.Builder();
             metadataBuilder.Add("M", NumberDataViewType.Single, (ref float v) => v = 484f);
             var schemaBuilder = new SchemaBuilder();
             schemaBuilder.AddColumn("A", new VectorType(NumberDataViewType.Single, 94));

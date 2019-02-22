@@ -573,7 +573,7 @@ namespace Microsoft.ML.Data
                         return new DataViewSchema.DetachedColumn(_columnInfo.Name, inputCol.Type, inputCol.Metadata);
                     }
 
-                    var metadata = new MetadataBuilder();
+                    var metadata = new DataViewSchema.Metadata.Builder();
                     if (_isNormalized)
                         metadata.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ValueGetter<bool>)GetIsNormalized);
                     if (_hasSlotNames)

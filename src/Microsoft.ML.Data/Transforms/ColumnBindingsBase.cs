@@ -277,7 +277,7 @@ namespace Microsoft.ML.Data
             var builder = new SchemaBuilder();
             for (int i = 0; i < inputBindings.ColumnCount; i++)
             {
-                var meta = new MetadataBuilder();
+                var meta = new DataViewSchema.Metadata.Builder();
                 foreach (var kvp in inputBindings.GetMetadataTypes(i))
                 {
                     var getter = Utils.MarshalInvoke(GetMetadataGetterDelegate<int>, kvp.Value.RawType, inputBindings, i, kvp.Key);
