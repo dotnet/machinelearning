@@ -31,7 +31,6 @@ namespace Microsoft.ML.Trainers.FastTree
             int numLeaves,
             int numTrees,
             int minDatapointsInLeaves,
-            double learningRate,
             bool quantileEnabled = false)
             : base(env, label, featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves)
         {
