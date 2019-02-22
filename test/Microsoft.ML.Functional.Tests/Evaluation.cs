@@ -50,10 +50,39 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// Train and Evaluate: Binary Classification.
+        /// Train and Evaluate: Binary Classification with no calibration.
         /// </summary>
         [Fact]
         public void TrainAndEvaluateBinaryClassification()
+        {
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            var data = mlContext.Data.ReadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
+                hasHeader: TestDatasets.Sentiment.fileHasHeader,
+                separatorChar: TestDatasets.Sentiment.fileSeparator);
+
+            // Create a training pipeline.
+            var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
+                .AppendCacheCheckpoint(mlContext)
+                .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+                    new SdcaNonCalibratedBinaryTrainer.Options { NumThreads = 1 }));
+
+            // Train the model.
+            var model = pipeline.Fit(data);
+
+            // Evaluate the model.
+            var scoredData = model.Transform(data);
+            var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(scoredData);
+
+            // Check that the metrics returned are valid.
+            Common.AssertMetrics(metrics);
+        }
+
+        /// <summary>
+        /// Train and Evaluate: Binary Classification with a calibrated predictor.
+        /// </summary>
+        [Fact]
+        public void TrainAndEvaluateBinaryClassificationWithCalibration()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 

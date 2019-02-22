@@ -45,7 +45,7 @@ namespace Microsoft.ML.Functional.Tests.Datasets
             {
                 output.Label = input.Label;
                 // The standard set used in tests has 150 rows
-                output.GroupId = (ushort)rng.Next(0, 30);
+                output.GroupId = rng.Next(0, 30);
                 output.PetalLength = input.PetalLength;
                 output.PetalWidth = input.PetalWidth;
                 output.SepalLength = input.SepalLength;
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Functional.Tests.Datasets
     internal sealed class IrisWithGroup
     {
         public float Label { get; set; }
-        public ushort GroupId { get; set; }
+        public int GroupId { get; set; }
         public float SepalLength { get; set; }
         public float SepalWidth { get; set; }
         public float PetalLength { get; set; }
