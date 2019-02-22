@@ -2124,9 +2124,9 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     /// <remarks>
     /// The Stochastic Gradient Descent (SGD) is one of the popular stochastic optimization procedures that can be integrated
-    /// into several machine learning tasks to achieve state-of-the-art performance. This trainer implements SGD for binary classification
-    /// that supports multi-threading without any locking. If the associated optimization problem is sparse, it achieves a nearly optimal
-    /// rate of convergence. For more details, please refer to http://arxiv.org/pdf/1106.5730v2.pdf.
+    /// into several machine learning tasks to achieve state-of-the-art performance. This trainer implements the Hogwild SGD for binary classification
+    /// that supports multi-threading without any locking. If the associated optimization problem is sparse, Hogwild SGD achieves a nearly optimal
+    /// rate of convergence. For more details about Hogwild SGD, please refer to http://arxiv.org/pdf/1106.5730v2.pdf.
     /// </remarks>
     public sealed class SgdBinaryTrainer :
         SgdBinaryTrainerBase<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
