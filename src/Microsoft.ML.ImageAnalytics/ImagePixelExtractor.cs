@@ -780,7 +780,7 @@ namespace Microsoft.ML.ImageAnalytics
             float scale = Defaults.Scale,
             bool asFloat = Defaults.Convert)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)),
-                  new ImagePixelExtractingTransformer(env, outputColumnName, inputColumnName, colors, order, interleave, scale, offset, asFloat))
+                  new ImagePixelExtractingTransformer(env, outputColumnName, inputColumnName, colors, order, interleave,  offset, scale, asFloat))
         {
         }
 
