@@ -33,11 +33,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
         static CpuMathUtilsUnitTests()
         {
             // Padded array whose length is a multiple of 4
-            float[] testArray1 = new float[16] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f, 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f };
+            float[] testArray1 = new float[32] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f, 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f, 1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 15f, 16f };
             // Unpadded array whose length is not a multiple of 4.
-            float[] testArray2 = new float[15] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f, 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f };
+            float[] testArray2 = new float[30] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f, 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 15f };
             _testArrays = new float[][] { testArray1, testArray2 };
-            _testIndexArray = new int[9] { 0, 2, 5, 6, 8, 11, 12, 13, 14 };
+            _testIndexArray = new int[18] { 0, 2, 5, 6, 8, 11, 12, 13, 14, 16, 18, 21, 22, 24, 26, 27, 28, 29};
             _comparer = new FloatEqualityComparer();
             _matMulComparer = new FloatEqualityComparerForMatMul();
 
@@ -474,15 +474,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 int[] idx = _testIndexArray;
                 float[] expected = (float[])dst.Clone();
 
-                expected[0] = 3.92f;
-                expected[2] = -12.14f;
-                expected[5] = -36.69f;
-                expected[6] = 46.29f;
-                expected[8] = -104.41f;
-                expected[11] = -13.09f;
-                expected[12] = -73.92f;
-                expected[13] = -23.64f;
-                expected[14] = 34.41f;
+                for (int i = 0; i < idx.Length; i++)
+                {
+                    int index = idx[i];
+                    expected[index] += src[i];
+                }
 
                 CpuMathUtils.Add(src, idx, dst, idx.Length);
                 var actual = dst;
@@ -579,7 +575,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                     expected += (src[i] - defaultScale) * (src[i] - defaultScale);
                 }
 
-                Assert.Equal(expected, actual, 2);
+                Assert.Equal(expected, actual, 1);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, scale, new RemoteInvokeOptions(environmentVariables));
         }
