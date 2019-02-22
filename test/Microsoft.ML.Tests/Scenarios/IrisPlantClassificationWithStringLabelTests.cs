@@ -23,7 +23,7 @@ namespace Microsoft.ML.Scenarios
                     new TextLoader.Column("PetalWidth", DataKind.R4, 3),
                     new TextLoader.Column("IrisPlantType", DataKind.TX, 4),
                 },
-                separatorChar: new[] { ',' }
+                separators: new[] { ',' }
             );
 
             // Read training and test data sets

@@ -16,19 +16,19 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="columns">Array of columns <see cref="TextLoader.Column"/> defining the schema.</param>
-        /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
+        /// <param name="separators">The characters used as separators between data points in a row. {'\t'} will be used if not specified.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
         /// <param name="allowQuoting">Whether the file can contain column defined by a quoted string.</param>
         /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
         public static TextLoader CreateTextLoader(this DataOperationsCatalog catalog,
             TextLoader.Column[] columns,
-            char[] separatorChar = null,
+            char[] separators = null,
             bool hasHeader = TextLoader.Defaults.HasHeader,
             bool allowSparse = TextLoader.Defaults.AllowSparse,
             bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             IMultiStreamSource dataSample = null)
-            => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, separatorChar ?? TextLoader.Defaults.Separator, hasHeader, allowSparse, allowQuoting, dataSample);
+            => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, separators ?? TextLoader.Defaults.Separators, hasHeader, allowSparse, allowQuoting, dataSample);
 
         /// <summary>
         /// Create a text loader <see cref="TextLoader"/>.
@@ -45,7 +45,7 @@ namespace Microsoft.ML
         /// Create a text loader <see cref="TextLoader"/> by inferencing the dataset schema from a data model type.
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
-        /// <param name="separatorChar">Column separator character. Default is '\t'</param>
+        /// <param name="separators">Column separator characters. {'\t'} will be used if not specified.</param>
         /// <param name="hasHeader">Does the file contains header?</param>
         /// <param name="allowQuoting">Whether the input may include quoted values,
         /// which can contain separator characters, colons,
@@ -57,12 +57,12 @@ namespace Microsoft.ML
         /// except for 3rd and 5th columns which have values 6 and 3</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
         public static TextLoader CreateTextLoader<TInput>(this DataOperationsCatalog catalog,
-            char[] separatorChar = null,
+            char[] separators = null,
             bool hasHeader = TextLoader.Defaults.HasHeader,
             bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool allowSparse = TextLoader.Defaults.AllowSparse,
             bool trimWhitespace = TextLoader.Defaults.TrimWhitespace)
-            => TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar ?? TextLoader.Defaults.Separator, allowQuoting, allowSparse, trimWhitespace);
+            => TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separators ?? TextLoader.Defaults.Separators, allowQuoting, allowSparse, trimWhitespace);
 
         /// <summary>
         /// Read a data view from a text file using <see cref="TextLoader"/>.
@@ -70,13 +70,13 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="columns">The columns of the schema.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
+        /// <param name="separators">The characters used as separators between data points in a row. {'\t'} will be used if not specified.</param>
         /// <param name="path">The path to the file.</param>
         /// <returns>The data view.</returns>
         public static IDataView ReadFromTextFile(this DataOperationsCatalog catalog,
             string path,
             TextLoader.Column[] columns,
-            char[] separatorChar = null,
+            char[] separators = null,
             bool hasHeader = TextLoader.Defaults.HasHeader)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
@@ -85,7 +85,7 @@ namespace Microsoft.ML
 
             // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
             // Therefore, we are going to disallow data sample.
-            var reader = new TextLoader(env, columns, separatorChar ?? TextLoader.Defaults.Separator, hasHeader, dataSample: null);
+            var reader = new TextLoader(env, columns, separators ?? TextLoader.Defaults.Separators, hasHeader, dataSample: null);
             return reader.Read(new MultiFileSource(path));
         }
 
@@ -94,7 +94,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="hasHeader">Does the file contains header?</param>
-        /// <param name="separatorChar">Column separator character. Default is '\t'</param>
+        /// <param name="separators">The characters used as separators between data points in a row. {'\t'} will be used if not specified.</param>
         /// <param name="allowQuoting">Whether the input may include quoted values,
         /// which can contain separator characters, colons,
         /// and distinguish empty values from missing values. When true, consecutive separators
@@ -108,7 +108,7 @@ namespace Microsoft.ML
         /// <returns>The data view.</returns>
         public static IDataView ReadFromTextFile<TInput>(this DataOperationsCatalog catalog,
             string path,
-            char[] separatorChar = null,
+            char[] separators = null,
             bool hasHeader = TextLoader.Defaults.HasHeader,
             bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool allowSparse = TextLoader.Defaults.AllowSparse,
@@ -119,7 +119,7 @@ namespace Microsoft.ML
             // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
             // Therefore, we are going to disallow data sample.
             return TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader,
-                separatorChar ?? TextLoader.Defaults.Separator, allowQuoting, allowSparse, trimWhitespace).Read(new MultiFileSource(path));
+                separators ?? TextLoader.Defaults.Separators, allowQuoting, allowSparse, trimWhitespace).Read(new MultiFileSource(path));
         }
 
         /// <summary>

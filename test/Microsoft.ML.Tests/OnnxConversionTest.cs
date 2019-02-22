@@ -51,7 +51,7 @@ namespace Microsoft.ML.Tests
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var mlContext = new MLContext(seed: 1, conc: 1);
             var data = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
-                separatorChar: new[] { ';' },
+                separators: new[] { ';' },
                 hasHeader: true);
             var cachedTrainData = mlContext.Data.Cache(data);
             var dynamicPipeline =
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Tests
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var data = mlContext.Data.ReadFromTextFile<BreastCancerFeatureVector>(dataPath,
-                separatorChar: new[] { '\t' },
+                separators: new[] { '\t' },
                 hasHeader: true);
 
             var pipeline = mlContext.Transforms.Normalize("Features").
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Tests
             string dataPath = GetDataPath("breast-cancer.txt");
 
             var data = mlContext.Data.ReadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
-                separatorChar: new[] { '\t' },
+                separators: new[] { '\t' },
                 hasHeader: true);
 
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.Categorical.OneHotEncodingTransformer.OutputKind.Bag)
@@ -304,7 +304,7 @@ namespace Microsoft.ML.Tests
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var mlContext = new MLContext(seed: 1, conc: 1);
             var data = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
-                separatorChar: new[] { ';' },
+                separators: new[] { ';' },
                 hasHeader: true);
             var cachedTrainData = mlContext.Data.Cache(data);
             var dynamicPipeline =
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Tests
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var mlContext = new MLContext(seed: 1, conc: 1);
             var data = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
-                separatorChar: new[] { ';' },
+                separators: new[] { ';' },
                 hasHeader: true);
             var cachedTrainData = mlContext.Data.Cache(data);
             var dynamicPipeline =
@@ -368,7 +368,7 @@ namespace Microsoft.ML.Tests
 
             string dataPath = GetDataPath("breast-cancer.txt");
             var data = mlContext.Data.ReadFromTextFile<BreastCancerMulticlassExample>(dataPath,
-                separatorChar: new[] { '\t' },
+                separators: new[] { '\t' },
                 hasHeader: true);
 
             var pipeline = mlContext.Transforms.Normalize("Features").
@@ -398,7 +398,7 @@ namespace Microsoft.ML.Tests
 
             string dataPath = GetDataPath("breast-cancer.txt");
             var data = mlContext.Data.ReadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
-                separatorChar: new[] { '\t' },
+                separators: new[] { '\t' },
                 hasHeader: true);
 
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.Categorical.OneHotEncodingTransformer.OutputKind.Bag)
@@ -449,7 +449,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
             var dataPath = GetDataPath(@"small-sentiment-test.tsv");
             var embedNetworkPath = GetDataPath(@"shortsentiment.emd");
-            var data = mlContext.Data.ReadFromTextFile<SmallSentimentExample>(dataPath, separatorChar: new[] { '\t' }, hasHeader: false);
+            var data = mlContext.Data.ReadFromTextFile<SmallSentimentExample>(dataPath, separators: new[] { '\t' }, hasHeader: false);
 
             var pipeline = mlContext.Transforms.Text.ExtractWordEmbeddings("Embed", embedNetworkPath, "Tokens");
             var model = pipeline.Fit(data);

@@ -428,13 +428,13 @@ namespace Microsoft.ML.Data
 
             [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Source column separator. Options: tab, space, comma, single character", ShortName = "sep")]
             // this is internal as it only serves the command line interface
-            internal string Separator = "\t";
+            internal string Separator = Defaults.Separator;
 
             /// <summary>
             /// The characters that should be used as separators column separator.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, Name = nameof(Separator), Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Source column separator.", ShortName = "sep")]
-            public char[] Separators = Defaults.Separator;
+            public char[] Separators = Defaults.Separators;
 
             /// <summary>
             /// Specifies the input columns that should be mapped to <see cref="IDataView"/> columns.
@@ -488,7 +488,8 @@ namespace Microsoft.ML.Data
         {
             internal const bool AllowQuoting = false;
             internal const bool AllowSparse = false;
-            internal static char[] Separator => new[] { '\t' };
+            internal static char[] Separators => new[] { '\t' };
+            internal const string Separator = "\t";
             internal const bool HasHeader = false;
             internal const bool TrimWhitespace = false;
         }
@@ -1064,15 +1065,15 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">Defines a mapping between input columns in the file and IDataView columns.</param>
-        /// <param name="separatorChar"> The character used as separator between data points in a row. By default the tab character is used as separator.</param>
+        /// <param name="separators"> The character used as separator between data points in a row. {'\t'} will be used if not specified.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
         /// <param name="allowQuoting">Whether the content of a column can be parsed from a string starting and ending with quote.</param>
         /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
-        internal TextLoader(IHostEnvironment env, Column[] columns, char[] separatorChar = null,
+        internal TextLoader(IHostEnvironment env, Column[] columns, char[] separators = null,
             bool hasHeader = Defaults.HasHeader, bool allowSparse = Defaults.AllowSparse,
             bool allowQuoting = Defaults.AllowQuoting, IMultiStreamSource dataSample = null)
-            : this(env, MakeArgs(columns, hasHeader,  separatorChar ?? Defaults.Separator, allowSparse, allowQuoting), dataSample)
+            : this(env, MakeArgs(columns, hasHeader,  separators ?? Defaults.Separators, allowSparse, allowQuoting), dataSample)
         {
         }
 
@@ -1441,7 +1442,7 @@ namespace Microsoft.ML.Data
            bool supportSparse = Defaults.AllowSparse,
            bool trimWhitespace = Defaults.TrimWhitespace)
         {
-            separator = separator ?? Defaults.Separator;
+            separator = separator ?? Defaults.Separators;
             var userType = typeof(TInput);
 
             var fieldInfos = userType.GetFields(BindingFlags.Public | BindingFlags.Instance);

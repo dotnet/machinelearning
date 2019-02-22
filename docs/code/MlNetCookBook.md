@@ -198,8 +198,8 @@ var reader = mlContext.Data.CreateTextReader(new[] {
         // Separately, read the target variable.
         new TextLoader.Column("Target", DataKind.R4, 11)
     },
-    // Default separator is tab, but we need a comma.
-    separatorChar: ',');
+    // Default separator list only contains a tab, but we need a comma.
+    separators: new[] { ',' });
 
 // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
 var data = reader.Read(dataPath);
@@ -219,8 +219,8 @@ private class AdultData
 
 // Read the data into a data view.
 var trainData = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
-                // Default separator is tab, but we need a semicolon.
-                separatorChar: ';',
+                // Default separator list only contains a tab, but we need a semicolon.
+                separators: new[] { ';' },
                 // First line of the file is a header, not a data row.
                 hasHeader: true
 );		
@@ -328,8 +328,8 @@ In the file above, the last column (12th) is label that we predict, and all the 
 // First, we define the reader: specify the data columns and where to find them in the text file.
 // Read the data into a data view. Remember though, readers are lazy, so the actual reading will happen when the data is accessed.
 var trainData = mlContext.Data.ReadFromTextFile<AdultData>(dataPath,
-    // Default separator is tab, but the dataset has comma.
-    separatorChar: ','
+    // Default separator list only contains a tab, but the dataset has comma.
+    separators: new[] { ',' }
 );
 
 // Sometime, caching data in-memory after its first access can save some loading time when the data is going to be used
@@ -372,8 +372,8 @@ Assuming the example above was used to train the model, here's how you calculate
 ```csharp
 // Read the test dataset.
 var testData = mlContext.Data.ReadFromTextFile<AdultData>(testDataPath,
-    // Default separator is tab, but the dataset has comma.
-    separatorChar: ','
+    // Default separator list only contains a tab, but the dataset has comma.
+    separators: new[] { ',' }
 );
 // Calculate metrics of the model on the test data.
 var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: "Target");
@@ -410,8 +410,8 @@ Here is the full example. Let's imagine that we have built a model for the famou
 // Step one: read the data as an IDataView.
  //  Retrieve the training data.
 var trainData = mlContext.Data.ReadFromTextFile<IrisInput>(irisDataPath,
-    // Default separator is tab, but the dataset has comma.
-    separatorChar: ','
+    // Default separator list only contains a tab, but the dataset has comma.
+    separators: new[] { ',' }
 );
 
 // Build the training pipeline.
@@ -534,8 +534,8 @@ This is how we can extract the learned parameters out of the model that we train
 // Step one: read the data as an IDataView.
 //  Retrieve the training data.
 var trainData = mlContext.Data.ReadFromTextFile<IrisInput>(irisDataPath,
-    // Default separator is tab, but the dataset has comma.
-    separatorChar: ','
+    // Default separator list only contains a tab, but the dataset has comma.
+    separators: new[] { ',' }
 );
 
 // Build the training pipeline.
@@ -622,8 +622,8 @@ Here's a snippet of code that demonstrates normalization in learning pipelines. 
 
 // Read the training data.
 var trainData = mlContext.Data.ReadFromTextFile<IrisInputAllFeatures>(dataPath,
-    // Default separator is tab, but the dataset has comma.
-    separatorChar: ','
+    // Default separator list only contains a tab, but the dataset has comma.
+    separators: new[] { ',' }
 );
 
 // Apply all kinds of standard ML.NET normalization to the raw features.
@@ -807,8 +807,8 @@ Here's an example of training on Iris dataset using randomized 90/10 train-test 
 ```csharp
 // Step one: read the data as an IDataView.
 var data = mlContext.Data.ReadFromTextFile<IrisInput>(dataPath,
-    // Default separator is tab, but the dataset has comma.
-    separatorChar: ','
+    // Default separator list only contains a tab, but the dataset has comma.
+    separators: ','
 );
 
 // Build the training pipeline.
@@ -863,8 +863,8 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
         // Label: kind of iris.
         Label: ctx.LoadText(4)
     ),
-    // Default separator is tab, but the dataset has comma.
-    separatorChar: ',');
+    // Default separator list only contains a tab, but the dataset has comma.
+    separators: new[] { ',' });
 
 // Read the data.
 var data = reader.Read(dataPath);

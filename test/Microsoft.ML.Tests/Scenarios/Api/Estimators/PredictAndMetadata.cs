@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
             var ml = new MLContext();
 
-            var data = ml.Data.ReadFromTextFile<IrisData>(dataPath, separatorChar: new[] { ',' });
+            var data = ml.Data.ReadFromTextFile<IrisData>(dataPath, separators: new[] { ',' });
 
             var pipeline = ml.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(ml.Transforms.Conversion.MapValueToKey("Label"), TransformerScope.TrainTest)
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
             var engine = model.CreatePredictionEngine<IrisDataNoLabel, IrisPredictionNotCasted>(ml);
 
-            var testLoader = ml.Data.ReadFromTextFile(dataPath, TestDatasets.irisData.GetLoaderColumns(), separatorChar: new[] { ',' }, hasHeader: true);
+            var testLoader = ml.Data.ReadFromTextFile(dataPath, TestDatasets.irisData.GetLoaderColumns(), separators: new[] { ',' }, hasHeader: true);
             var testData = ml.CreateEnumerable<IrisData>(testLoader, false);
             
             // During prediction we will get Score column with 3 float values.

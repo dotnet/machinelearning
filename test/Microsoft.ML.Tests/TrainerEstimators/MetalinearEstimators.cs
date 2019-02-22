@@ -74,7 +74,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void MetacomponentsFeaturesRenamed()
         {
-            var data = new TextLoader(Env, TestDatasets.irisData.GetLoaderColumns(), separatorChar: new[] { ',' })
+            var data = new TextLoader(Env, TestDatasets.irisData.GetLoaderColumns(), separators: new[] { ',' })
                 .Read(GetDataPath(TestDatasets.irisData.trainFilename));
 
             var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
