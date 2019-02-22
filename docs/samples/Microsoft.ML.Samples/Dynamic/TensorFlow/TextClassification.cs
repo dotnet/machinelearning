@@ -103,11 +103,11 @@ namespace Microsoft.ML.Samples.Dynamic
             public string Sentiment_Text { get; set; }
 
             /// <summary>
-            /// This is a variable length vector designated by VectorType(0) attribute.
+            /// This is a variable length vector designated by VectorType attribute.
             /// Variable length vectors are produced by applying operations such as 'TokenizeWords' on strings
             /// resulting in vectors of tokens of variable lengths.
             /// </summary>
-            [VectorType(0)]
+            [VectorType]
             public int[] VariableLenghtFeatures { get; set; }
         }
 

@@ -34,16 +34,16 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Marks member as <see cref="KeyType"/> and specifies <see cref="KeyType"/> cardinality.
         /// </summary>
-        /// <param name="count">Size of key type.</param>
+        /// <param name="count">Cardinality of key type.</param>
         public KeyTypeAttribute(ulong count)
         {
-            Count = new KeyCount(count);
+            KeyCount = new KeyCount(count);
         }
 
         /// <summary>
         /// The key count.
         /// </summary>
-        internal KeyCount Count { get; }
+        internal KeyCount KeyCount { get; }
     }
 
     /// <summary>
@@ -59,7 +59,14 @@ namespace Microsoft.ML.Data
         internal int[] Dims { get; }
 
         /// <summary>
-        /// Mark member with expected size of array.
+        /// Mark member as single-dimensional array with unknown size.
+        /// </summary>
+        public VectorTypeAttribute()
+        {
+
+        }
+        /// <summary>
+        /// Mark member as single-dimensional array with specified size.
         /// </summary>
         /// <param name="size">Expected size of array. A zero value indicates that the vector type is considered to have unknown length.</param>
         public VectorTypeAttribute(int size)
@@ -397,10 +404,10 @@ namespace Microsoft.ML.Data
                 {
                     if (!KeyType.IsValidDataType(dataType))
                         throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", memberInfo.Name);
-                    if (keyAttr.Count == null)
+                    if (keyAttr.KeyCount == null)
                         itemType = new KeyType(dataType, dataType.ToMaxInt());
                     else
-                        itemType = new KeyType(dataType, keyAttr.Count.Count.GetValueOrDefault());
+                        itemType = new KeyType(dataType, keyAttr.KeyCount.Count.GetValueOrDefault());
                 }
                 else
                     itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataType);
