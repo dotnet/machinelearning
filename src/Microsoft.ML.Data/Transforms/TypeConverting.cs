@@ -221,13 +221,13 @@ namespace Microsoft.ML.Transforms.Conversions
 
             for (int i = 0; i < _columns.Length; i++)
             {
-                Host.Assert((InternalDataKind)(byte)_columns[i].OutputKind.ToDataKind() == _columns[i].OutputKind.ToDataKind());
+                Host.Assert((InternalDataKind)(byte)_columns[i].OutputKind.ToInternalDataKind() == _columns[i].OutputKind.ToInternalDataKind());
                 if (_columns[i].OutputKeyCount != null)
                 {
                     byte b = (byte)_columns[i].OutputKind;
                     b |= 0x80;
                     ctx.Writer.Write(b);
-                    ctx.Writer.Write(_columns[i].OutputKeyCount.Count ?? _columns[i].OutputKind.ToDataKind().ToMaxInt());
+                    ctx.Writer.Write(_columns[i].OutputKeyCount.Count ?? _columns[i].OutputKind.ToInternalDataKind().ToMaxInt());
                 }
                 else
                     ctx.Writer.Write((byte)_columns[i].OutputKind);
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     keyCount = new KeyCount(count);
 
                 }
-                _columns[i] = new TypeConvertingEstimator.ColumnInfo(ColumnPairs[i].outputColumnName, kind.ToScalarType(), ColumnPairs[i].inputColumnName, keyCount);
+                _columns[i] = new TypeConvertingEstimator.ColumnInfo(ColumnPairs[i].outputColumnName, kind.ToDataKind(), ColumnPairs[i].inputColumnName, keyCount);
             }
         }
 
@@ -337,7 +337,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     kind = tempResultType.Value;
                 }
-                cols[i] = new TypeConvertingEstimator.ColumnInfo(item.Name, kind.ToScalarType(), item.Source ?? item.Name, keyCount);
+                cols[i] = new TypeConvertingEstimator.ColumnInfo(item.Name, kind.ToDataKind(), item.Source ?? item.Name, keyCount);
             };
             return new TypeConvertingTransformer(env, cols).MakeDataTransform(input);
         }
@@ -401,7 +401,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
-                    if (!CanConvertToType(Host, srcCol.Type, _parent._columns[i].OutputKind.ToDataKind(), _parent._columns[i].OutputKeyCount,
+                    if (!CanConvertToType(Host, srcCol.Type, _parent._columns[i].OutputKind.ToInternalDataKind(), _parent._columns[i].OutputKeyCount,
                         out PrimitiveDataViewType itemType, out _types[i]))
                     {
                         throw Host.ExceptParam(nameof(inputSchema),
@@ -540,7 +540,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <summary>
             /// The expected kind of the converted column.
             /// </summary>
-            internal readonly DataKind OutputKind;
+            public readonly DataKind OutputKind;
             /// <summary>
             /// New key count, if we work with key type.
             /// </summary>
@@ -574,7 +574,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 InputColumnName = inputColumnName ?? name;
                 if (!type.TryGetDataKind(out InternalDataKind OutputKind))
                     throw Contracts.ExceptUserArg(nameof(type), $"Unsupported type {type}.");
-                this.OutputKind = OutputKind.ToScalarType();
+                this.OutputKind = OutputKind.ToDataKind();
                 OutputKeyCount = outputKeyCount;
             }
         }
@@ -613,7 +613,7 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
-                if (!TypeConvertingTransformer.GetNewType(Host, col.ItemType, colInfo.OutputKind.ToDataKind(), colInfo.OutputKeyCount, out PrimitiveDataViewType newType))
+                if (!TypeConvertingTransformer.GetNewType(Host, col.ItemType, colInfo.OutputKind.ToInternalDataKind(), colInfo.OutputKeyCount, out PrimitiveDataViewType newType))
                     throw Host.ExceptParam(nameof(inputSchema), $"Can't convert {colInfo.InputColumnName} into {newType.ToString()}");
                 if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(col.ItemType, newType, out Delegate del, out bool identity))
                     throw Host.ExceptParam(nameof(inputSchema), $"Don't know how to convert {colInfo.InputColumnName} into {newType.ToString()}");

@@ -8,43 +8,39 @@ using Microsoft.Data.DataView;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Data type specifier used in text loader and type converters.
+    /// Data type specifiers used in text loader and type converters.
     /// </summary>
-    /// <remarks>
-    /// <list type="bullet">
-    /// <item><description><see cref="SByte"/>: 1-byte integer, type of <see cref="System.SByte"/>.</description></item>
-    /// <item><description><see cref="Byte"/>: 1-byte unsigned integer, type of <see cref="System.Byte"/>.</description></item>
-    /// <item><description><see cref="Int16"/>: 2-byte integer, type of <see cref="System.Int16"/>.</description></item>
-    /// <item><description><see cref="UInt16"/>: 2-byte usigned integer, type of <see cref="System.UInt16"/>.</description></item>
-    /// <item><description><see cref="Int32"/>: 4-byte integer, type of <see cref="System.Int32"/>.</description></item>
-    /// <item><description><see cref="UInt32"/>: 4-byte usigned integer, type of <see cref="System.UInt32"/>.</description></item>
-    /// <item><description><see cref="Int64"/>: 8-byte integer, type of <see cref="System.Int64"/>.</description></item>
-    /// <item><description><see cref="UInt64"/>: 8-byte usigned integer, type of <see cref="System.UInt64"/>.</description></item>
-    /// <item><description><see cref="Single"/>: 4-byte floating-point number, type of <see cref="System.Single"/>.</description></item>
-    /// <item><description><see cref="Double"/>: 8-byte floating-point number, type of <see cref="System.Double"/>.</description></item>
-    /// <item><description><see cref="String"/>: string, type of <see cref="System.String"/>.</description></item>
-    /// <item><description><see cref="Boolean"/>: boolean variable type, type of <see cref="System.Boolean"/>.</description></item>
-    /// <item><description><see cref="TimeSpan"/>: type of <see cref="System.TimeSpan"/>.</description></item>
-    /// <item><description><see cref="DateTime"/>: type of <see cref="System.DateTime"/>.</description></item>
-    /// <item><description><see cref="DateTimeOffset"/>: type of <see cref="System.DateTimeOffset"/>.</description></item>
-    /// </list>
-    /// </remarks>
     public enum DataKind : byte
     {
+        /// <summary><see cref="SByte"/>: 1-byte integer, type of <see cref="System.SByte"/>.</summary>
         SByte = 1,
+        /// <summary><see cref="Byte"/>: 1-byte unsigned integer, type of <see cref="System.Byte"/>.</summary>
         Byte = 2,
+        /// <summary><see cref="Int16"/>: 2-byte integer, type of <see cref="System.Int16"/>.</summary>
         Int16 = 3,
+        /// <summary><see cref="UInt16"/>: 2-byte usigned integer, type of <see cref="System.UInt16"/>.</summary>
         UInt16 = 4,
+        /// <summary><see cref="Int32"/>: 4-byte integer, type of <see cref="System.Int32"/>.</summary>
         Int32 = 5,
+        /// <summary><see cref="UInt32"/>: 4-byte usigned integer, type of <see cref="System.UInt32"/>.</summary>
         UInt32 = 6,
+        /// <summary><see cref="Int64"/>: 8-byte integer, type of <see cref="System.Int64"/>.</summary>
         Int64 = 7,
+        /// <summary><see cref="UInt64"/>: 8-byte usigned integer, type of <see cref="System.UInt64"/>.</summary>
         UInt64 = 8,
+        /// <summary><see cref="Single"/>: 4-byte floating-point number, type of <see cref="System.Single"/>.</summary>
         Single = 9,
+        /// <summary><see cref="Double"/>: 8-byte floating-point number, type of <see cref="System.Double"/>.</summary>
         Double = 10,
+        /// <summary><see cref="String"/>: string, type of <see cref="System.String"/>.</summary>
         String = 11,
+        /// <summary><see cref="Boolean"/>: boolean variable type, type of <see cref="System.Boolean"/>.</summary>
         Boolean = 12,
+        /// <summary><see cref="TimeSpan"/>: type of <see cref="System.TimeSpan"/>.</summary>
         TimeSpan = 13,
+        /// <summary><see cref="DateTime"/>: type of <see cref="System.DateTime"/>.</summary>
         DateTime = 14,
+        /// <summary><see cref="DateTimeOffset"/>: type of <see cref="System.DateTimeOffset"/>.</summary>
         DateTimeOffset = 15,
     }
 
@@ -123,14 +119,14 @@ namespace Microsoft.ML.Data
         /// This function converts <paramref name="dataKind"/> to <see cref="InternalDataKind"/>.
         /// Because <see cref="DataKind"/> is a subset of <see cref="InternalDataKind"/>, the conversion is straightforward.
         /// </summary>
-        public static InternalDataKind ToDataKind(this DataKind dataKind) => (InternalDataKind)dataKind;
+        public static InternalDataKind ToInternalDataKind(this DataKind dataKind) => (InternalDataKind)dataKind;
 
         /// <summary>
         /// This function converts <paramref name="kind"/> to <see cref="DataKind"/>.
         /// Because <see cref="DataKind"/> is a subset of <see cref="InternalDataKind"/>, we should check if <paramref name="kind"/>
         /// can be found in <see cref="DataKind"/>.
         /// </summary>
-        public static DataKind ToScalarType(this InternalDataKind kind)
+        public static DataKind ToDataKind(this InternalDataKind kind)
         {
             Contracts.Check(kind != InternalDataKind.UG);
             return (DataKind)kind;

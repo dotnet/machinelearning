@@ -52,7 +52,7 @@ namespace Microsoft.ML.Data
             /// <param name="dataKind"><see cref="DataKind"/> of the items in the column.</param>
             /// <param name="index">Index of the column.</param>
             public Column(string name, DataKind dataKind, int index)
-                : this(name, dataKind.ToDataKind(), new[] { new Range(index) })
+                : this(name, dataKind.ToInternalDataKind(), new[] { new Range(index) })
             {
             }
 
@@ -64,12 +64,19 @@ namespace Microsoft.ML.Data
             /// <param name="minIndex">The minimum inclusive index of the column.</param>
             /// <param name="maxIndex">The maximum-inclusive index of the column.</param>
             public Column(string name, DataKind dataKind, int minIndex, int maxIndex)
-                : this(name, dataKind.ToDataKind(), new[] { new Range(minIndex, maxIndex) })
+                : this(name, dataKind.ToInternalDataKind(), new[] { new Range(minIndex, maxIndex) })
             {
             }
 
+            /// <summary>
+            /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
+            /// </summary>
+            /// <param name="name">Name of the column.</param>
+            /// <param name="dataKind"><see cref="DataKind"/> of the items in the column.</param>
+            /// <param name="source">Source index range(s) of the column.</param>
+            /// <param name="keyCount">For a key column, this defines the range of values.</param>
             public Column(string name, DataKind dataKind, Range[] source, KeyCount keyCount = null)
-                : this(name, dataKind.ToDataKind(), source, keyCount)
+                : this(name, dataKind.ToInternalDataKind(), source, keyCount)
             {
             }
 
@@ -109,7 +116,7 @@ namespace Microsoft.ML.Data
             /// <see cref="DataKind"/> of the items in the column.
             /// </summary>
             /// It's a public interface to access the information in an internal DataKind.
-            public DataKind ItemType => Type.HasValue ? Type.Value.ToScalarType() : DataKind.Single;
+            public DataKind ItemType => Type.HasValue ? Type.Value.ToDataKind() : DataKind.Single;
 
             /// <summary>
             /// Source index range(s) of the column.

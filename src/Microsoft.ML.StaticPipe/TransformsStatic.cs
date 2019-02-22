@@ -936,7 +936,7 @@ namespace Microsoft.ML.StaticPipe
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IConvertCol)toOutput[i];
-                    infos[i] = new TypeConvertingEstimator.ColumnInfo(outputNames[toOutput[i]], tcol.Kind.ToScalarType(), inputNames[tcol.Input]);
+                    infos[i] = new TypeConvertingEstimator.ColumnInfo(outputNames[toOutput[i]], tcol.Kind.ToDataKind(), inputNames[tcol.Input]);
                 }
                 return new TypeConvertingEstimator(env, infos);
             }

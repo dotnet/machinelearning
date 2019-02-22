@@ -185,7 +185,7 @@ namespace Microsoft.ML.Transforms
                     {
                         throw h.Except("Cannot get a DataKind for type '{0}'", replaceItemType.RawType);
                     }
-                    naConvCols.Add(new TypeConvertingEstimator.ColumnInfo(tmpIsMissingColName, replaceItemTypeKind.ToScalarType(), tmpIsMissingColName));
+                    naConvCols.Add(new TypeConvertingEstimator.ColumnInfo(tmpIsMissingColName, replaceItemTypeKind.ToDataKind(), tmpIsMissingColName));
                 }
 
                 // Add the NAReplaceTransform column.

@@ -497,7 +497,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 valueColumn.KeyCount = new KeyCount();
             else
             {
-                valueColumn.Type = DataKind.UInt64.ToDataKind();
+                valueColumn.Type = DataKind.UInt64.ToInternalDataKind();
                 valueColumn.KeyCount = new KeyCount();
             }
 

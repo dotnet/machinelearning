@@ -243,7 +243,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             // Model generated using the following command before the change removing Min and Count from KeyType.
             // ML.Transforms.Conversion.ConvertType(new[] { new TypeConvertingEstimator.ColumnInfo("key", "convertedKey",
-            //      ScalarType.Ulong, new KeyCount(4)) }).Fit(dataView);
+            //      DataKind.UInt64, new KeyCount(4)) }).Fit(dataView);
             var dataArray = new[]
             {
                 new SimpleSchemaUIntColumn() { key = 0 },
