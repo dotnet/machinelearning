@@ -239,9 +239,9 @@ namespace Microsoft.ML.Functional.Tests
         /// <param name="metrics">The metrics object.</param>
         public static void AssertMetrics(RegressionMetrics metrics)
         {
-            Assert.True(metrics.Rms >= 0);
-            Assert.True(metrics.L1 >= 0);
-            Assert.True(metrics.L2 >= 0);
+
+            Assert.True(metrics.AbsoluteLoss >= 0);
+            Assert.True(metrics.SquaredLoss >= 0);
             Assert.True(metrics.RSquared <= 1);
         }
 

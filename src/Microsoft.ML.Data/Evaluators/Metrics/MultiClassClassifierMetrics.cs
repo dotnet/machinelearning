@@ -17,7 +17,7 @@ namespace Microsoft.ML.Data
         /// The micro-average metric weighs each class according to the number of instances that belong
         /// to it in the dataset.
         /// </remarks>
-        public double AccuracyMicro { get; }
+        public double MicroAccuracy { get; }
 
         /// <summary>
         /// Gets the macro-average accuracy of the model.
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Data
         /// The macro-average metric gives the same weight to each class, no matter how many instances from
         /// that class the dataset contains.
         /// </remarks>
-        public double AccuracyMacro { get; }
+        public double MacroAccuracy { get; }
 
         /// <summary>
         /// Gets the average log-loss of the classifier.
@@ -83,8 +83,8 @@ namespace Microsoft.ML.Data
         internal MultiClassClassifierMetrics(IExceptionContext ectx, DataViewRow overallResult, int topK)
         {
             double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
-            AccuracyMicro = FetchDouble(MultiClassClassifierEvaluator.AccuracyMicro);
-            AccuracyMacro = FetchDouble(MultiClassClassifierEvaluator.AccuracyMacro);
+            MicroAccuracy = FetchDouble(MultiClassClassifierEvaluator.AccuracyMicro);
+            MacroAccuracy = FetchDouble(MultiClassClassifierEvaluator.AccuracyMacro);
             LogLoss = FetchDouble(MultiClassClassifierEvaluator.LogLoss);
             LogLossReduction = FetchDouble(MultiClassClassifierEvaluator.LogLossReduction);
             TopK = topK;
@@ -99,8 +99,8 @@ namespace Microsoft.ML.Data
         internal MultiClassClassifierMetrics(double accuracyMicro, double accuracyMacro, double logLoss, double logLossReduction,
             int topK, double topKAccuracy, double[] perClassLogLoss)
         {
-            AccuracyMicro = accuracyMicro;
-            AccuracyMacro = accuracyMacro;
+            MicroAccuracy = accuracyMicro;
+            MacroAccuracy = accuracyMacro;
             LogLoss = logLoss;
             LogLossReduction = logLossReduction;
             TopK = topK;

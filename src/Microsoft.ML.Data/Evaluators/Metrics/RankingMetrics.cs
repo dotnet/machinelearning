@@ -12,7 +12,7 @@ namespace Microsoft.ML.Data
         /// Array of normalized discounted cumulative gains where i-th element represent NDCG@i.
         /// <image src="https://github.com/dotnet/machinelearning/tree/master/docs/images/NDCG.png"></image>
         /// </summary>
-        public double[] Ndcg { get; }
+        public double[] NormalizedDiscountedCumulativeGains { get; }
 
         /// <summary>
         /// Array of discounted cumulative gains where i-th element represent DCG@i.
@@ -21,7 +21,7 @@ namespace Microsoft.ML.Data
         /// Note that unlike the Wikipedia article, ML.NET uses the natural logarithm.
         /// <image src="https://github.com/dotnet/machinelearning/tree/master/docs/images/DCG.png"></image>
         /// </summary>
-        public double[] Dcg { get; }
+        public double[] DiscountedCumulativeGains { get; }
 
         private static T Fetch<T>(IExceptionContext ectx, DataViewRow row, string name)
         {
@@ -36,16 +36,16 @@ namespace Microsoft.ML.Data
         {
             VBuffer<double> Fetch(string name) => Fetch<VBuffer<double>>(ectx, overallResult, name);
 
-            Dcg = Fetch(RankingEvaluator.Dcg).GetValues().ToArray();
-            Ndcg = Fetch(RankingEvaluator.Ndcg).GetValues().ToArray();
+            DiscountedCumulativeGains = Fetch(RankerEvaluator.Dcg).GetValues().ToArray();
+            NormalizedDiscountedCumulativeGains = Fetch(RankerEvaluator.Ndcg).GetValues().ToArray();
         }
 
         internal RankingMetrics(double[] dcg, double[] ndcg)
         {
-            Dcg = new double[dcg.Length];
-            dcg.CopyTo(Dcg, 0);
-            Ndcg = new double[ndcg.Length];
-            ndcg.CopyTo(Ndcg, 0);
+            DiscountedCumulativeGains = new double[dcg.Length];
+            dcg.CopyTo(DiscountedCumulativeGains, 0);
+            NormalizedDiscountedCumulativeGains = new double[ndcg.Length];
+            ndcg.CopyTo(NormalizedDiscountedCumulativeGains, 0);
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Microsoft.ML.Data
         /// y'i are the predicted labels for each instance.
         /// yi are the correct labels of each instance.
         /// </remarks>
-        public double L1 { get; }
+        public double AbsoluteLoss { get; }
 
         /// <summary>
         /// Gets the squared loss of the model.
@@ -30,12 +30,12 @@ namespace Microsoft.ML.Data
         /// y'i are the predicted labels for each instance.
         /// yi are the correct labels of each instance.
         /// </remarks>
-        public double L2 { get; }
+        public double SquaredLoss { get; }
 
         /// <summary>
         /// Gets the root mean square loss (or RMS) which is the square root of the L2 loss.
         /// </summary>
-        public double Rms { get; }
+        public double RootMeanSquareLoss { get; }
 
         /// <summary>
         /// Gets the result of user defined loss function.
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Data
         /// This is the average of a loss function defined by the user,
         /// computed over all the instances in the test set.
         /// </remarks>
-        public double LossFn { get; }
+        public double LossFunction { get; }
 
         /// <summary>
         /// Gets the R squared value of the model, which is also known as
@@ -55,20 +55,20 @@ namespace Microsoft.ML.Data
         internal RegressionMetrics(IExceptionContext ectx, DataViewRow overallResult)
         {
             double Fetch(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
-            L1 = Fetch(RegressionEvaluator.L1);
-            L2 = Fetch(RegressionEvaluator.L2);
-            Rms = Fetch(RegressionEvaluator.Rms);
-            LossFn = Fetch(RegressionEvaluator.Loss);
+            AbsoluteLoss = Fetch(RegressionEvaluator.L1);
+            SquaredLoss = Fetch(RegressionEvaluator.L2);
+            RootMeanSquareLoss = Fetch(RegressionEvaluator.Rms);
+            LossFunction = Fetch(RegressionEvaluator.Loss);
             RSquared = Fetch(RegressionEvaluator.RSquared);
         }
 
         [BestFriend]
         internal RegressionMetrics(double l1, double l2, double rms, double lossFunction, double rSquared)
         {
-            L1 = l1;
-            L2 = l2;
-            Rms = rms;
-            LossFn = lossFunction;
+            AbsoluteLoss = l1;
+            SquaredLoss = l2;
+            RootMeanSquareLoss = rms;
+            LossFunction = lossFunction;
             RSquared = rSquared;
         }
     }

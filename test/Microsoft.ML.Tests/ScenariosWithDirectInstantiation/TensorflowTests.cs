@@ -510,8 +510,8 @@ namespace Microsoft.ML.Scenarios
             var predicted = trainedModel.Transform(testData);
             var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
 
-            Assert.Equal(0.99, metrics.AccuracyMicro, 2);
-            Assert.Equal(1.0, metrics.AccuracyMacro, 2);
+            Assert.Equal(0.99, metrics.MicroAccuracy, 2);
+            Assert.Equal(1.0, metrics.MacroAccuracy, 2);
 
             var oneSample = GetOneMNISTExample();
 
@@ -566,8 +566,8 @@ namespace Microsoft.ML.Scenarios
                 var trainedModel = pipe.Fit(trainData);
                 var predicted = trainedModel.Transform(testData);
                 var metrics = mlContext.MulticlassClassification.Evaluate(predicted, label: "KeyLabel");
-                Assert.InRange(metrics.AccuracyMicro, expectedMicroAccuracy, 1);
-                Assert.InRange(metrics.AccuracyMacro, expectedMacroAccruacy, 1);
+                Assert.InRange(metrics.MicroAccuracy, expectedMicroAccuracy, 1);
+                Assert.InRange(metrics.MacroAccuracy, expectedMacroAccruacy, 1);
                 var predictionFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
 
                 var oneSample = GetOneMNISTExample();
@@ -692,8 +692,8 @@ namespace Microsoft.ML.Scenarios
                 var trainedModel = pipe.Fit(preprocessedTrainData);
                 var predicted = trainedModel.Transform(preprocessedTestData);
                 var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
-                Assert.InRange(metrics.AccuracyMicro, expectedMicroAccuracy - 0.1, expectedMicroAccuracy + 0.1);
-                Assert.InRange(metrics.AccuracyMacro, expectedMacroAccuracy - 0.1, expectedMacroAccuracy + 0.1);
+                Assert.InRange(metrics.MicroAccuracy, expectedMicroAccuracy - 0.1, expectedMicroAccuracy + 0.1);
+                Assert.InRange(metrics.MacroAccuracy, expectedMacroAccuracy - 0.1, expectedMacroAccuracy + 0.1);
 
                 // Create prediction function and test prediction
                 var predictFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
@@ -742,8 +742,8 @@ namespace Microsoft.ML.Scenarios
             var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
 
             // First group of checks
-            Assert.Equal(0.99, metrics.AccuracyMicro, 2);
-            Assert.Equal(1.0, metrics.AccuracyMacro, 2);
+            Assert.Equal(0.99, metrics.MicroAccuracy, 2);
+            Assert.Equal(1.0, metrics.MacroAccuracy, 2);
 
             // An in-memory example. Its label is predicted below.
             var oneSample = GetOneMNISTExample();

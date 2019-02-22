@@ -17,7 +17,7 @@ namespace Microsoft.ML.Data
         /// <a href="http://en.wikipedia.org/wiki/Mutual_information#Normalized_variants">Normalized variants</a> work on data that already has cluster labels.
         /// Its value ranged from 0 to 1, where higher numbers are better.
         /// </summary>
-        public double Nmi { get; }
+        public double NormalizedMutualInformation { get; }
 
         /// <summary>
         /// Average Score. For the K-Means algorithm, the &apos;score&apos; is the distance from the centroid to the example.
@@ -26,30 +26,30 @@ namespace Microsoft.ML.Data
         /// Note however, that this metric will only decrease if the number of clusters is increased,
         /// and in the extreme case (where each distinct example is its own cluster) it will be equal to zero.
         /// </summary>
-        public double AvgMinScore { get; }
+        public double AverageMinimumScore { get; }
 
         /// <summary>
         /// <a href="https://en.wikipedia.org/wiki/Davies%E2%80%93Bouldin_index">Davies-Bouldin Index</a>
         /// DBI is a measure of the how much scatter is in the cluster and the cluster separation.
         /// </summary>
-        public double Dbi { get; }
+        public double DaviesBouldinIndex { get; }
 
         internal ClusteringMetrics(IExceptionContext ectx, DataViewRow overallResult, bool calculateDbi)
         {
             double Fetch(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
 
-            Nmi = Fetch(ClusteringEvaluator.Nmi);
-            AvgMinScore = Fetch(ClusteringEvaluator.AvgMinScore);
+            NormalizedMutualInformation = Fetch(ClusteringEvaluator.Nmi);
+            AverageMinimumScore = Fetch(ClusteringEvaluator.AvgMinScore);
 
             if (calculateDbi)
-                Dbi = Fetch(ClusteringEvaluator.Dbi);
+                DaviesBouldinIndex = Fetch(ClusteringEvaluator.Dbi);
         }
 
         internal ClusteringMetrics(double nmi, double avgMinScore, double dbi)
         {
-            Nmi = nmi;
-            AvgMinScore = avgMinScore;
-            Dbi = dbi;
+            NormalizedMutualInformation = nmi;
+            AverageMinimumScore = avgMinScore;
+            DaviesBouldinIndex = dbi;
         }
     }
 }
