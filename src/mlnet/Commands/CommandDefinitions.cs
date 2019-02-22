@@ -32,10 +32,6 @@ namespace Microsoft.ML.CLI.Commands
                                 HasHeader(),
             };
 
-            var list = new System.CommandLine.Command("--list-ml-tasks", argument: new Argument<string>().FromAmong("a", "b", "c"));
-
-            newCommand.Add(list);
-
             newCommand.Argument.AddValidator((sym) =>
             {
                 if (sym.Children["--dataset"] == null)
