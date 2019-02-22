@@ -112,6 +112,8 @@ namespace Microsoft.ML.Data
                 }
 
                 Contracts.Check(PosSample != null && NegSample != null, "Must call Finish() before computing AUC");
+                Contracts.CheckNonEmpty(PosSample.ToList(), nameof(PosSample), "AUC is not definied when there is no positive class in the data");
+                Contracts.CheckNonEmpty(NegSample.ToList(), nameof(NegSample), "AUC is not definied when there is no negative class in the data");
                 return ComputeWeightedAucCore(out unweighted);
             }
 
