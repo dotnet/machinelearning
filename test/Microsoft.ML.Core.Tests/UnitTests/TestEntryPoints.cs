@@ -3859,8 +3859,8 @@ namespace Microsoft.ML.RunTests
                                 'UseThreads': true,
                                 'HeaderFile': null,
                                 'MaxRows': null,
-                                'AllowQuoting': true,
-                                'AllowSparse': true,
+                                'AllowQuoting': false,
+                                'AllowSparse': false,
                                 'InputSize': null,
                                 'Separator': [
                                     '\t'
@@ -3922,8 +3922,8 @@ namespace Microsoft.ML.RunTests
                                 'UseThreads': true,
                                 'HeaderFile': null,
                                 'MaxRows': null,
-                                'AllowQuoting': true,
-                                'AllowSparse': true,
+                                'AllowQuoting': false,
+                                'AllowSparse': false,
                                 'InputSize': null,
                                 'Separator': [
                                     '\t'

@@ -1260,7 +1260,6 @@ namespace Microsoft.ML.Data
                 HeaderFile = options.HeaderFile,
                 MaxRows = options.MaxRows
             });
-            tmp = Regex.Replace(tmp, @"[(sparse=\+)|(quote\+)]", "");
 
             // Try to get the schema information from the file.
             string str = Cursor.GetEmbeddedArgs(files);
