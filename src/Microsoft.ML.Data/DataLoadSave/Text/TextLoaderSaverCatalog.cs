@@ -152,7 +152,7 @@ namespace Microsoft.ML
         public static void SaveAsText(this DataOperationsCatalog catalog,
             IDataView data,
             Stream stream,
-            char separatorChar = TextLoader.Defaults.Separator,
+            char separatorChar = TextSaver.Defaults.Separator,
             bool headerRow = TextSaver.Defaults.OutputHeader,
             bool schema = TextSaver.Defaults.OutputSchema,
             bool keepHidden = false,
