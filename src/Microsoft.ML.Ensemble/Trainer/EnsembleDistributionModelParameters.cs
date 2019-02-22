@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         DataViewType IValueMapper.OutputType => NumberDataViewType.Single;
         DataViewType IValueMapperDist.DistType => NumberDataViewType.Single;
 
-        public override PredictionKind PredictionKind { get; }
+        private protected override PredictionKind PredictionKind { get; }
 
         /// <summary>
         /// Instantiate new ensemble model from existing sub-models.

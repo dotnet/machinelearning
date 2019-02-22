@@ -47,7 +47,7 @@ namespace Microsoft.ML.Data
 
             bool identity;
             // Second choice: if key, utilize the KeyValues metadata for that key, if it has one and is text.
-            if (schema[col].HasKeyValues(keyType))
+            if (schema[col].HasKeyValues())
             {
                 // REVIEW: Non-textual KeyValues are certainly possible. Should we handle them?
                 // Get the key names.
@@ -321,7 +321,8 @@ namespace Microsoft.ML.Data
     /// Simple utility class for saving a <see cref="VBuffer{T}"/> of ReadOnlyMemory
     /// as a model, both in a binary and more easily human readable form.
     /// </summary>
-    public static class TextModelHelper
+    [BestFriend]
+    internal static class TextModelHelper
     {
         private const string LoaderSignature = "TextSpanBuffer";
 

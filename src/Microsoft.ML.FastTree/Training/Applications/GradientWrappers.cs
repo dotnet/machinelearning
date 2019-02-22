@@ -7,7 +7,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// Trivial weights wrapper. Creates proxy class holding the targets.
     /// </summary>
-    public class TrivialGradientWrapper : IGradientAdjuster
+    internal class TrivialGradientWrapper : IGradientAdjuster
     {
         public string TargetWeightsSetName => "";
 
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// Provides weights used when best regression step option is on.
     /// </summary>
     /// Second-derivatives used as weights in a leaf when one makes Newton-Raphson step (taken in account when regression tree is trained).
-    public class BestStepRegressionGradientWrapper : IGradientAdjuster
+    internal class BestStepRegressionGradientWrapper : IGradientAdjuster
     {
         public BestStepRegressionGradientWrapper() { }
 
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// Wraps targets with query weights. Regression tree is built for weighted data, and weights are used for mean
     /// calculation at Newton-Raphson step.
     /// </summary>
-    public class QueryWeightsGradientWrapper : IGradientAdjuster
+    internal class QueryWeightsGradientWrapper : IGradientAdjuster
     {
         public QueryWeightsGradientWrapper()
         {
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// Wraps targets whan both query weights and best step regression options are active.
     /// </summary>
-    public class QueryWeightsBestResressionStepGradientWrapper : IGradientAdjuster
+    internal class QueryWeightsBestResressionStepGradientWrapper : IGradientAdjuster
     {
         public QueryWeightsBestResressionStepGradientWrapper()
         {

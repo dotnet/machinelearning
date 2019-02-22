@@ -11,7 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.KMeans;
 using Float = System.Single;
@@ -50,8 +50,7 @@ namespace Microsoft.ML.Trainers.KMeans
                 loaderAssemblyName: typeof(KMeansModelParameters).Assembly.FullName);
         }
 
-        // REVIEW: Leaving this public for now until we figure out the correct way to remove it.
-        public override PredictionKind PredictionKind => PredictionKind.Clustering;
+        private protected override PredictionKind PredictionKind => PredictionKind.Clustering;
 
         private readonly DataViewType _inputType;
         private readonly DataViewType _outputType;

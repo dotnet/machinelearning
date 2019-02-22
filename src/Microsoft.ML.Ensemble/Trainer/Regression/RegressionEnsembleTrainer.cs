@@ -77,7 +77,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             Host.CheckParam(predictionKind == PredictionKind.Regression, nameof(PredictionKind));
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<float>> models)
         {

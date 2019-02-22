@@ -153,7 +153,7 @@ namespace Microsoft.ML.Calibrator
         private TICalibrator _calibrator;
         private readonly string _loaderSignature;
 
-        internal CalibratorTransformer(IHostEnvironment env, TICalibrator calibrator, string loaderSignature)
+        private protected CalibratorTransformer(IHostEnvironment env, TICalibrator calibrator, string loaderSignature)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CalibratorTransformer<TICalibrator>)))
         {
             _loaderSignature = loaderSignature;
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Calibrator
         }
 
         // Factory method for SignatureLoadModel.
-        internal CalibratorTransformer(IHostEnvironment env, ModelLoadContext ctx, string loaderSignature)
+        private protected CalibratorTransformer(IHostEnvironment env, ModelLoadContext ctx, string loaderSignature)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CalibratorTransformer<TICalibrator>)))
         {
             Contracts.AssertValue(ctx);
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Calibrator
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper<TICalibrator>(this, _calibrator, schema);
 
-        protected VersionInfo GetVersionInfo()
+        private protected VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
                 modelSignature: "CALTRANS",

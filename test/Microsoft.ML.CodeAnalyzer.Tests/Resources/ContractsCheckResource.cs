@@ -65,7 +65,17 @@ namespace Microsoft.ML
     internal enum MessageSensitivity
     {
         None = 0,
-        Unknown = ~None
+        Unknown = ~None,
+        UserData,
+        Schema
     }
-    internal interface IHostEnvironment : IExceptionContext { }
+    internal interface IHostEnvironment : IExceptionContext
+    {
+        bool IsCancelled { get; }
+    }
+}
+
+namespace Microsoft.ML.Model
+{
+    public sealed class ModelLoadContext { }
 }

@@ -13,7 +13,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// 4) a work item knows the index of the thread it is running on - this can be used if the threads share \
     ///    common resources
     /// </summary>
-    public static class BlockingThreadPool
+    internal static class BlockingThreadPool
     {
         private static int _numThreads;
 

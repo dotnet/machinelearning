@@ -13,7 +13,7 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Base class for handling the schema metadata API.
     /// </summary>
-    public abstract class MetadataDispatcherBase
+    internal abstract class MetadataDispatcherBase
     {
         private bool _sealed;
 
@@ -304,7 +304,8 @@ namespace Microsoft.ML.Data
     /// a builder for a particular column. Wrap the return in a using statement. Disposing the builder
     /// records the metadata for the column. Call Seal() once all metadata is constructed.
     /// </summary>
-    public sealed class MetadataDispatcher : MetadataDispatcherBase
+    [BestFriend]
+    internal sealed class MetadataDispatcher : MetadataDispatcherBase
     {
         public MetadataDispatcher(int colCount)
             : base(colCount)

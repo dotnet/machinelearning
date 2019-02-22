@@ -103,7 +103,7 @@ namespace Microsoft.ML.Transforms
         private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(Column[] columns)
             => columns.Select(c => (c.Name, c.Source ?? c.Name)).ToArray();
 
-        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var inType = inputSchema[srcCol].Type;
             if (!(inType is VectorType))

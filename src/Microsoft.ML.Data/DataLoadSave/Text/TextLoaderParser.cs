@@ -1016,18 +1016,8 @@ namespace Microsoft.ML.Data
                                 }
                                 var spanT = Fields.Spans[Fields.Count - 1];
 
-                                // Note that Convert throws exception the text is unparsable.
-                                int csrc = default;
-                                try
-                                {
-                                    Conversions.Instance.Convert(in spanT, ref csrc);
-                                }
-                                catch
-                                {
-                                    Contracts.Assert(csrc == default);
-                                }
-
-                                if (csrc <= 0)
+                                int csrc;
+                                if (!Conversions.Instance.TryParse(in spanT, out csrc) || csrc <= 0)
                                 {
                                     _stats.LogBadFmt(ref scan, "Bad dimensionality or ambiguous sparse item. Use sparse=- for non-sparse file, and/or quote the value.");
                                     break;

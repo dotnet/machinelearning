@@ -144,7 +144,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// Interface for wrapping with weights of gradient target values
     /// </summary>
-    public interface IGradientAdjuster
+    internal interface IGradientAdjuster
     {
         /// <summary>
         /// Create wrapping of gradient target values

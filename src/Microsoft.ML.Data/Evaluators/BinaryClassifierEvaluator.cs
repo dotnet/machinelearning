@@ -1559,8 +1559,9 @@ namespace Microsoft.ML.Data
             IDataView warnings;
             if (!metrics.TryGetValue(MetricKinds.Warnings, out warnings))
             {
-                warnings = new EmptyDataView(host, SimpleSchemaUtils.Create(host,
-                    new KeyValuePair<string, DataViewType>(MetricKinds.ColumnNames.WarningText, TextDataViewType.Instance)));
+                var schemaBuilder = new SchemaBuilder();
+                schemaBuilder.AddColumn(MetricKinds.ColumnNames.WarningText, TextDataViewType.Instance);
+                warnings = new EmptyDataView(host, schemaBuilder.GetSchema());
             }
 
             return warnings;
@@ -1571,11 +1572,11 @@ namespace Microsoft.ML.Data
             IDataView overallMetrics;
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out overallMetrics))
             {
-                overallMetrics = new EmptyDataView(host,
-                    SimpleSchemaUtils.Create(host,
-                        evaluator.GetOverallMetricColumns()
-                            .Select(mc => new KeyValuePair<string, DataViewType>(mc.LoadName, NumberDataViewType.Double))
-                            .ToArray()));
+                var schemaBuilder = new SchemaBuilder();
+                foreach (var mc in evaluator.GetOverallMetricColumns())
+                    schemaBuilder.AddColumn(mc.LoadName, NumberDataViewType.Double);
+
+                overallMetrics = new EmptyDataView(host, schemaBuilder.GetSchema());
             }
 
             return overallMetrics;
@@ -1586,8 +1587,9 @@ namespace Microsoft.ML.Data
             IDataView confusionMatrix;
             if (!metrics.TryGetValue(MetricKinds.ConfusionMatrix, out confusionMatrix))
             {
-                confusionMatrix = new EmptyDataView(host,
-                    SimpleSchemaUtils.Create(host, new KeyValuePair<string, DataViewType>(MetricKinds.ColumnNames.Count, NumberDataViewType.Double)));
+                var schemaBuilder = new SchemaBuilder();
+                schemaBuilder.AddColumn(MetricKinds.ColumnNames.Count, NumberDataViewType.Double);
+                confusionMatrix = new EmptyDataView(host, schemaBuilder.GetSchema());
             }
 
             return confusionMatrix;

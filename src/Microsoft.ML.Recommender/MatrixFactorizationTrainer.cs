@@ -86,7 +86,7 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </example>
-    public sealed class MatrixFactorizationTrainer : TrainerBase<MatrixFactorizationModelParameters>,
+    public sealed class MatrixFactorizationTrainer : ITrainer<MatrixFactorizationModelParameters>,
         IEstimator<MatrixFactorizationPredictionTransformer>
     {
         /// <summary>
@@ -259,6 +259,8 @@ namespace Microsoft.ML.Trainers
             + "using a low-rank matrix factorization. This technique is often used in recommender system, where the row and column indices indicate users and items, "
             + "and the values of the matrix are ratings. ";
 
+        private readonly IHost _host;
+
         // LIBMF's parameter
         private readonly int _fun;
         private readonly double _lambda;
@@ -271,7 +273,7 @@ namespace Microsoft.ML.Trainers
         private readonly bool _quiet;
         private readonly bool _doNmf;
 
-        public override PredictionKind PredictionKind => PredictionKind.Recommendation;
+        PredictionKind ITrainer.PredictionKind => PredictionKind.Recommendation;
 
         internal const string LoadNameValue = "MatrixFactorization";
 
@@ -302,7 +304,9 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// The <see cref="TrainerInfo"/> contains general parameters for this trainer.
         /// </summary>
-        public override TrainerInfo Info { get; }
+        TrainerInfo ITrainer.Info => _info;
+
+        private readonly TrainerInfo _info;
 
         /// <summary>
         /// Initializes a new instance of <see cref="MatrixFactorizationTrainer"/> through the <see cref="Options"/> class.
@@ -310,16 +314,19 @@ namespace Microsoft.ML.Trainers
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="options">An instance of <see cref="Options"/> to apply advanced parameters to the algorithm.</param>
         [BestFriend]
-        internal MatrixFactorizationTrainer(IHostEnvironment env, Options options) : base(env, LoadNameValue)
+        internal MatrixFactorizationTrainer(IHostEnvironment env, Options options)
         {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(LoadNameValue);
+
             const string posError = "Parameter must be positive";
-            Host.CheckValue(options, nameof(options));
-            Host.CheckUserArg(options.ApproximationRank > 0, nameof(options.ApproximationRank), posError);
-            Host.CheckUserArg(!options.NumberOfThreads.HasValue || options.NumberOfThreads > 0, nameof(options.NumberOfThreads), posError);
-            Host.CheckUserArg(options.NumberOfIterations > 0, nameof(options.NumberOfIterations), posError);
-            Host.CheckUserArg(options.Lambda > 0, nameof(options.Lambda), posError);
-            Host.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), posError);
-            Host.CheckUserArg(options.Alpha > 0, nameof(options.Alpha), posError);
+            _host.CheckValue(options, nameof(options));
+            _host.CheckUserArg(options.ApproximationRank > 0, nameof(options.ApproximationRank), posError);
+            _host.CheckUserArg(!options.NumberOfThreads.HasValue || options.NumberOfThreads > 0, nameof(options.NumberOfThreads), posError);
+            _host.CheckUserArg(options.NumberOfIterations > 0, nameof(options.NumberOfIterations), posError);
+            _host.CheckUserArg(options.Lambda > 0, nameof(options.Lambda), posError);
+            _host.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), posError);
+            _host.CheckUserArg(options.Alpha > 0, nameof(options.Alpha), posError);
 
             _fun = (int)options.LossFunction;
             _lambda = options.Lambda;
@@ -332,7 +339,7 @@ namespace Microsoft.ML.Trainers
             _quiet = options.Quiet;
             _doNmf = options.NonNegative;
 
-            Info = new TrainerInfo(normalization: false, caching: false);
+            _info = new TrainerInfo(normalization: false, caching: false);
 
             LabelName = options.LabelColumnName;
             MatrixColumnIndexName = options.MatrixColumnIndexColumnName;
@@ -343,22 +350,24 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="MatrixFactorizationTrainer"/>.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
         /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="approximationRank">Rank of approximation matrixes.</param>
         /// <param name="learningRate">Initial learning rate. It specifies the speed of the training algorithm.</param>
         /// <param name="numIterations">Number of training iterations.</param>
         [BestFriend]
         internal MatrixFactorizationTrainer(IHostEnvironment env,
+            string labelColumnName,
             string matrixColumnIndexColumnName,
             string matrixRowIndexColumnName,
-            string labelColumn = DefaultColumnNames.Label,
             int approximationRank = Defaults.ApproximationRank,
             double learningRate = Defaults.LearningRate,
             int numIterations = Defaults.NumIterations)
-            : base(env, LoadNameValue)
         {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(LoadNameValue);
+
             var args = new Options();
 
             _fun = (int)args.LossFunction;
@@ -372,9 +381,9 @@ namespace Microsoft.ML.Trainers
             _quiet = args.Quiet;
             _doNmf = args.NonNegative;
 
-            Info = new TrainerInfo(normalization: false, caching: false);
+            _info = new TrainerInfo(normalization: false, caching: false);
 
-            LabelName = labelColumn;
+            LabelName = labelColumnName;
             MatrixColumnIndexName = matrixColumnIndexColumnName;
             MatrixRowIndexName = matrixRowIndexColumnName;
         }
@@ -383,18 +392,21 @@ namespace Microsoft.ML.Trainers
         /// Train a matrix factorization model based on training data, validation data, and so on in the given context.
         /// </summary>
         /// <param name="context">The information collection needed for training. <see cref="TrainContext"/> for details.</param>
-        private protected override MatrixFactorizationModelParameters Train(TrainContext context)
+        private MatrixFactorizationModelParameters Train(TrainContext context)
         {
-            Host.CheckValue(context, nameof(context));
-            using (var ch = Host.Start("Training"))
+            _host.CheckValue(context, nameof(context));
+            using (var ch = _host.Start("Training"))
             {
                 return TrainCore(ch, context.TrainingSet, context.ValidationSet);
             }
         }
 
+        IPredictor ITrainer.Train(TrainContext context) => Train(context);
+        MatrixFactorizationModelParameters ITrainer<MatrixFactorizationModelParameters>.Train(TrainContext context) => Train(context);
+
         private MatrixFactorizationModelParameters TrainCore(IChannel ch, RoleMappedData data, RoleMappedData validData = null)
         {
-            Host.AssertValue(ch);
+            _host.AssertValue(ch);
             ch.AssertValue(data);
             ch.AssertValueOrNull(validData);
 
@@ -425,8 +437,8 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            int colCount = matrixColumnIndexColInfo.Type.GetKeyCountAsInt32(Host);
-            int rowCount = matrixRowIndexColInfo.Type.GetKeyCountAsInt32(Host);
+            int colCount = matrixColumnIndexColInfo.Type.GetKeyCountAsInt32(_host);
+            int rowCount = matrixRowIndexColInfo.Type.GetKeyCountAsInt32(_host);
             ch.Assert(rowCount > 0);
             ch.Assert(colCount > 0);
 
@@ -444,7 +456,7 @@ namespace Microsoft.ML.Trainers
                     using (var buffer = PrepareBuffer())
                     {
                         buffer.Train(ch, rowCount, colCount, cursor, labGetter, matrixRowIndexGetter, matrixColumnIndexGetter);
-                        predictor = new MatrixFactorizationModelParameters(Host, buffer, (KeyType)matrixColumnIndexColInfo.Type, (KeyType)matrixRowIndexColInfo.Type);
+                        predictor = new MatrixFactorizationModelParameters(_host, buffer, (KeyType)matrixColumnIndexColInfo.Type, (KeyType)matrixRowIndexColInfo.Type);
                     }
                 }
                 else
@@ -462,7 +474,7 @@ namespace Microsoft.ML.Trainers
                             buffer.TrainWithValidation(ch, rowCount, colCount,
                                 cursor, labGetter, matrixRowIndexGetter, matrixColumnIndexGetter,
                                 validCursor, validLabelGetter, validMatrixRowIndexGetter, validMatrixColumnIndexGetter);
-                            predictor = new MatrixFactorizationModelParameters(Host, buffer, (KeyType)matrixColumnIndexColInfo.Type, (KeyType)matrixRowIndexColInfo.Type);
+                            predictor = new MatrixFactorizationModelParameters(_host, buffer, (KeyType)matrixColumnIndexColInfo.Type, (KeyType)matrixRowIndexColInfo.Type);
                         }
                     }
                 }
@@ -473,7 +485,7 @@ namespace Microsoft.ML.Trainers
 
         private SafeTrainingAndModelBuffer PrepareBuffer()
         {
-            return new SafeTrainingAndModelBuffer(Host, _fun, _k, _threads, Math.Max(20, 2 * _threads),
+            return new SafeTrainingAndModelBuffer(_host, _fun, _k, _threads, Math.Max(20, 2 * _threads),
                 _iter, _lambda, _eta, _alpha, _c, _doNmf, _quiet, copyData: false);
         }
 
@@ -493,12 +505,12 @@ namespace Microsoft.ML.Trainers
 
             var trainingData = new RoleMappedData(trainData, roles);
             var validData = validationData == null ? null : new RoleMappedData(validationData, roles);
-            using (var ch = Host.Start("Training"))
+            using (var ch = _host.Start("Training"))
             {
                 model = TrainCore(ch, trainingData, validData);
             }
 
-            return new MatrixFactorizationPredictionTransformer(Host, model, trainData.Schema, MatrixColumnIndexName, MatrixRowIndexName);
+            return new MatrixFactorizationPredictionTransformer(_host, model, trainData.Schema, MatrixColumnIndexName, MatrixRowIndexName);
         }
 
         /// <summary>
@@ -513,15 +525,15 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
+            _host.CheckValue(inputSchema, nameof(inputSchema));
 
             void CheckColumnsCompatible(SchemaShape.Column cachedColumn, string columnRole)
             {
                 if (!inputSchema.TryFindColumn(cachedColumn.Name, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(col), columnRole, cachedColumn.Name);
+                    throw _host.ExceptSchemaMismatch(nameof(col), columnRole, cachedColumn.Name);
 
                 if (!cachedColumn.IsCompatibleWith(col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), columnRole, cachedColumn.Name,
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), columnRole, cachedColumn.Name,
                         cachedColumn.GetTypeString(), col.GetTypeString());
             }
 

@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.CpuMath", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Data", "src\Microsoft.ML.Data\Microsoft.ML.Data.csproj", "{AD92D96B-0E96-4F22-8DCE-892E13B1F282}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Onnx", "src\Microsoft.ML.Onnx\Microsoft.ML.Onnx.csproj", "{65D0603E-B96C-4DFC-BDD1-705891B88C18}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OnnxConverter", "src\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.csproj", "{65D0603E-B96C-4DFC-BDD1-705891B88C18}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.StandardLearners", "src\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj", "{707BB22C-7E5F-497A-8C2F-74578F675705}"
 EndProject
@@ -110,11 +110,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.StaticPipeline
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.TimeSeries", "src\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.csproj", "{5A79C7F0-3D99-4123-B0DA-7C9FFCD13132}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OnnxTransform", "src\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.csproj", "{8C05642D-C3AA-4972-B02C-93681161A6BC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OnnxTransformer", "src\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.csproj", "{8C05642D-C3AA-4972-B02C-93681161A6BC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.DnnAnalyzer", "src\Microsoft.ML.DnnAnalyzer\Microsoft.ML.DnnAnalyzer\Microsoft.ML.DnnAnalyzer.csproj", "{73DAAC82-D308-48CC-8FFE-3B037F8BBCCA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OnnxTransformTest", "test\Microsoft.ML.OnnxTransformTest\Microsoft.ML.OnnxTransformTest.csproj", "{49D03292-8AFE-4B82-823C-D047BF8420F7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OnnxTransformerTest", "test\Microsoft.ML.OnnxTransformerTest\Microsoft.ML.OnnxTransformerTest.csproj", "{49D03292-8AFE-4B82-823C-D047BF8420F7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Benchmarks.Tests", "test\Microsoft.ML.Benchmarks.Tests\Microsoft.ML.Benchmarks.Tests.csproj", "{B6C83F04-A04B-4F00-9E68-1EC411F9317C}"
 EndProject
@@ -144,7 +144,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.TensorFlow.Sta
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.HalLearners.StaticPipe", "src\Microsoft.ML.HalLearners.StaticPipe\Microsoft.ML.HalLearners.StaticPipe.csproj", "{2F25EF6A-C754-45BE-AD9E-7DDF46A1B51A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OnnxTransform.StaticPipe", "src\Microsoft.ML.OnnxTransform.StaticPipe\Microsoft.ML.OnnxTransform.StaticPipe.csproj", "{D1324668-9568-40F4-AA55-30A9A516C230}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OnnxTransformer.StaticPipe", "src\Microsoft.ML.OnnxTransformer.StaticPipe\Microsoft.ML.OnnxTransformer.StaticPipe.csproj", "{D1324668-9568-40F4-AA55-30A9A516C230}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.LightGBM.StaticPipe", "src\Microsoft.ML.LightGBM.StaticPipe\Microsoft.ML.LightGBM.StaticPipe.csproj", "{22C51B08-ACAE-47B2-A312-462DC239A23B}"
 EndProject
@@ -173,16 +173,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Mkl.Redist", "
 		pkg\Microsoft.ML.Mkl.Redist\Microsoft.ML.Mkl.Redist.nupkgproj = pkg\Microsoft.ML.Mkl.Redist\Microsoft.ML.Mkl.Redist.nupkgproj
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Onnx", "Microsoft.ML.Onnx", "{19AC192B-75FE-45D5-B219-898E401D5904}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.OnnxConverter", "Microsoft.ML.OnnxConverter", "{19AC192B-75FE-45D5-B219-898E401D5904}"
 	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.Onnx\Microsoft.ML.Onnx.nupkgproj = pkg\Microsoft.ML.Onnx\Microsoft.ML.Onnx.nupkgproj
-		pkg\Microsoft.ML.Onnx\Microsoft.ML.Onnx.symbols.nupkgproj = pkg\Microsoft.ML.Onnx\Microsoft.ML.Onnx.symbols.nupkgproj
+		pkg\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.nupkgproj = pkg\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.nupkgproj
+		pkg\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.symbols.nupkgproj = pkg\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.symbols.nupkgproj
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.OnnxTransform", "Microsoft.ML.OnnxTransform", "{93FF16AA-635E-421D-96C1-008818C143A2}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.OnnxTransformer", "Microsoft.ML.OnnxTransformer", "{93FF16AA-635E-421D-96C1-008818C143A2}"
 	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.nupkgproj = pkg\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.nupkgproj
-		pkg\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.symbols.nupkgproj = pkg\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.symbols.nupkgproj
+		pkg\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.nupkgproj = pkg\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.nupkgproj
+		pkg\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.symbols.nupkgproj = pkg\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.symbols.nupkgproj
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.StaticPipe", "Microsoft.ML.StaticPipe", "{EC9844CE-070A-4313-B3A3-44701AC5F1E1}"
@@ -414,6 +414,18 @@ Global
 		{6B047E09-39C9-4583-96F3-685D84CA4117}.Release-Intrinsics|Any CPU.Build.0 = Release-Intrinsics|Any CPU
 		{6B047E09-39C9-4583-96F3-685D84CA4117}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
 		{6B047E09-39C9-4583-96F3-685D84CA4117}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug-Intrinsics|Any CPU.ActiveCfg = Debug-Intrinsics|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug-Intrinsics|Any CPU.Build.0 = Debug-Intrinsics|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug-netfx|Any CPU.ActiveCfg = Debug-netfx|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug-netfx|Any CPU.Build.0 = Debug-netfx|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release-Intrinsics|Any CPU.ActiveCfg = Release-Intrinsics|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release-Intrinsics|Any CPU.Build.0 = Release-Intrinsics|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
 		{3769FCC3-9AFF-4C37-97E9-6854324681DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3769FCC3-9AFF-4C37-97E9-6854324681DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3769FCC3-9AFF-4C37-97E9-6854324681DF}.Debug-Intrinsics|Any CPU.ActiveCfg = Debug-Intrinsics|Any CPU
@@ -930,18 +942,6 @@ Global
 		{5E920CAC-5A28-42FB-936E-49C472130953}.Release-Intrinsics|Any CPU.Build.0 = Release-Intrinsics|Any CPU
 		{5E920CAC-5A28-42FB-936E-49C472130953}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
 		{5E920CAC-5A28-42FB-936E-49C472130953}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
-		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug-Intrinsics|Any CPU.ActiveCfg = Debug-Intrinsics|Any CPU
-		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug-Intrinsics|Any CPU.Build.0 = Debug-Intrinsics|Any CPU
-		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug-netfx|Any CPU.ActiveCfg = Debug-netfx|Any CPU
-		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug-netfx|Any CPU.Build.0 = Debug-netfx|Any CPU
-		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release-Intrinsics|Any CPU.ActiveCfg = Release-Intrinsics|Any CPU
-		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release-Intrinsics|Any CPU.Build.0 = Release-Intrinsics|Any CPU
-		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
-		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -959,6 +959,7 @@ Global
 		{64BC22D3-1E76-41EF-94D8-C79E471FF2DD} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 		{B5989C06-4FFA-46C1-9D85-9366B34AB0A2} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 		{6B047E09-39C9-4583-96F3-685D84CA4117} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 		{3769FCC3-9AFF-4C37-97E9-6854324681DF} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{B7B593C5-FB8C-4ADA-A638-5B53B47D087E} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{16BB1454-2108-40E5-B3A6-594654005303} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
@@ -1025,7 +1026,6 @@ Global
 		{85D0CAFD-2FE8-496A-88C7-585D35B94243} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{31D38B21-102B-41C0-9E0A-2FE0BF68D123} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{5E920CAC-5A28-42FB-936E-49C472130953} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
-		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}

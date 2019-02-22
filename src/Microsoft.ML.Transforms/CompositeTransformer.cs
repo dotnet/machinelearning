@@ -16,7 +16,7 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Transforms
 {
-    public static class CompositeTransformer
+    internal static class CompositeTransformer
     {
         private const string RegistrationName = "CompositeTransform";
 

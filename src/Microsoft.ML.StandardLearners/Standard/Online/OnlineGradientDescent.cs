@@ -137,7 +137,7 @@ namespace Microsoft.ML.Trainers.Online
             LossFunction = options.LossFunction.CreateComponent(env);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {

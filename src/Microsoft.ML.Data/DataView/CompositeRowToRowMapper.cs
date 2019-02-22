@@ -11,7 +11,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// A row-to-row mapper that is the result of a chained application of multiple mappers.
     /// </summary>
-    public sealed class CompositeRowToRowMapper : IRowToRowMapper
+    [BestFriend]
+    internal sealed class CompositeRowToRowMapper : IRowToRowMapper
     {
         [BestFriend]
         internal IRowToRowMapper[] InnerMappers { get; }

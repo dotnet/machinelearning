@@ -18,7 +18,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
-    internal abstract class EnsembleTrainerBase<TOutput, TPredictor, TSelector, TCombiner> : TrainerBase<TPredictor>
+    internal abstract class EnsembleTrainerBase<TOutput, TPredictor, TSelector, TCombiner> : ITrainer<TPredictor>
          where TPredictor : class, IPredictorProducing<TOutput>
          where TSelector : class, ISubModelSelector<TOutput>
          where TCombiner : class, IOutputCombiner<TOutput>
@@ -60,6 +60,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         /// <summary> Command-line arguments </summary>
         private protected readonly ArgumentsBase Args;
         private protected readonly int NumModels;
+        private protected readonly IHost Host;
 
         /// <summary> Ensemble members </summary>
         private protected readonly ITrainer<IPredictorProducing<TOutput>>[] Trainers;
@@ -68,11 +69,16 @@ namespace Microsoft.ML.Trainers.Ensemble
         private protected ISubModelSelector<TOutput> SubModelSelector;
         private protected IOutputCombiner<TOutput> Combiner;
 
-        public override TrainerInfo Info { get; }
+        public TrainerInfo Info { get; }
+
+        PredictionKind ITrainer.PredictionKind => PredictionKind;
+        private protected abstract PredictionKind PredictionKind { get; }
 
         private protected EnsembleTrainerBase(ArgumentsBase args, IHostEnvironment env, string name)
-            : base(env, name)
         {
+            Contracts.CheckValue(env, nameof(env));
+            Host = env.Register(name);
+
             Args = args;
 
             using (var ch = Host.Start("Init"))
@@ -101,7 +107,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             }
         }
 
-        private protected sealed override TPredictor Train(TrainContext context)
+        TPredictor ITrainer<TPredictor>.Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
 
@@ -110,6 +116,9 @@ namespace Microsoft.ML.Trainers.Ensemble
                 return TrainCore(ch, context.TrainingSet);
             }
         }
+
+        IPredictor ITrainer.Train(TrainContext context)
+            => ((ITrainer<TPredictor>)this).Train(context);
 
         private TPredictor TrainCore(IChannel ch, RoleMappedData data)
         {

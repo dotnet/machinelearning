@@ -10,13 +10,14 @@ namespace Microsoft.ML.Data
 {
     // REVIEW: Need better names for these and possibly a distinct namespace. These are too
     // specialized to have such prominent fully qualified names.
-    public abstract class Combiner<T>
+    internal abstract class Combiner<T>
     {
         public abstract bool IsDefault(T value);
         public abstract void Combine(ref T dst, T src);
     }
 
-    public sealed class TextCombiner : Combiner<ReadOnlyMemory<char>>
+    [BestFriend]
+    internal sealed class TextCombiner : Combiner<ReadOnlyMemory<char>>
     {
         private static volatile TextCombiner _instance;
         public static TextCombiner Instance
@@ -41,7 +42,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class FloatAdder : Combiner<Float>
+    [BestFriend]
+    internal sealed class FloatAdder : Combiner<Float>
     {
         private static volatile FloatAdder _instance;
         public static FloatAdder Instance
@@ -62,7 +64,8 @@ namespace Microsoft.ML.Data
         public override void Combine(ref Float dst, Float src) { dst += src; }
     }
 
-    public sealed class R4Adder : Combiner<Single>
+    [BestFriend]
+    internal sealed class R4Adder : Combiner<Single>
     {
         private static volatile R4Adder _instance;
         public static R4Adder Instance
@@ -83,7 +86,8 @@ namespace Microsoft.ML.Data
         public override void Combine(ref Single dst, Single src) { dst += src; }
     }
 
-    public sealed class R8Adder : Combiner<Double>
+    [BestFriend]
+    internal sealed class R8Adder : Combiner<Double>
     {
         private static volatile R8Adder _instance;
         public static R8Adder Instance
@@ -105,7 +109,8 @@ namespace Microsoft.ML.Data
     }
 
     // REVIEW: Delete this!
-    public sealed class U4Adder : Combiner<uint>
+    [BestFriend]
+    internal sealed class U4Adder : Combiner<uint>
     {
         private static volatile U4Adder _instance;
         public static U4Adder Instance

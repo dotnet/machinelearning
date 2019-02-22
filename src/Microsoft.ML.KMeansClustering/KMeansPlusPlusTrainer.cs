@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers.KMeans
         private readonly string _featureColumn;
 
         public override TrainerInfo Info { get; }
-        public override PredictionKind PredictionKind => PredictionKind.Clustering;
+        private protected override PredictionKind PredictionKind => PredictionKind.Clustering;
 
         /// <summary>
         /// Initializes a new instance of <see cref="KMeansPlusPlusTrainer"/>

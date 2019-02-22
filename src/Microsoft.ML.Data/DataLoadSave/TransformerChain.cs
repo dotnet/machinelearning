@@ -239,7 +239,7 @@ namespace Microsoft.ML.Data
     {
         public const string LoaderSignature = "TransformerChain";
 
-        public static TransformerChain<ITransformer> Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static TransformerChain<ITransformer> Create(IHostEnvironment env, ModelLoadContext ctx)
             => new TransformerChain<ITransformer>(env, ctx);
 
         /// <summary>

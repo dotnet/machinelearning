@@ -75,7 +75,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         private protected override void CheckLabel(RoleMappedData data)
         {

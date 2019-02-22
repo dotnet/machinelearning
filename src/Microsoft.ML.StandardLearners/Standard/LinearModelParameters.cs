@@ -15,7 +15,7 @@ using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers;
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Trainers
         /// Used to determine the contribution of each feature to the score of an example by <see cref="FeatureContributionCalculatingTransformer"/>.
         /// For linear models, the contribution of a given feature is equal to the product of feature value times the corresponding weight.
         /// </summary>
-        public FeatureContributionCalculator FeatureContributionCalculator => new FeatureContributionCalculator(this);
+        FeatureContributionCalculator ICalculateFeatureContribution.FeatureContributionCalculator => new FeatureContributionCalculator(this);
 
         /// <summary>
         /// Constructs a new linear predictor.
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Trainers
                 _weightsDenseLock = new object();
         }
 
-        protected LinearModelParameters(IHostEnvironment env, string name, ModelLoadContext ctx)
+        private protected LinearModelParameters(IHostEnvironment env, string name, ModelLoadContext ctx)
             : base(env, name, ctx)
         {
             // *** Binary format ***
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Trainers
                 ctx.SaveModel(_stats, ModelStatsSubModelFilename);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
@@ -547,20 +547,19 @@ namespace Microsoft.ML.Trainers
 
     public abstract class RegressionModelParameters : LinearModelParameters
     {
-        public RegressionModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
+        [BestFriend]
+        private protected RegressionModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
              : base(env, name, in weights, bias)
         {
         }
 
-        protected RegressionModelParameters(IHostEnvironment env, string name, ModelLoadContext ctx)
+        [BestFriend]
+        private protected RegressionModelParameters(IHostEnvironment env, string name, ModelLoadContext ctx)
             : base(env, name, ctx)
         {
         }
 
-        public override PredictionKind PredictionKind
-        {
-            get { return PredictionKind.Regression; }
-        }
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         /// <summary>
         /// Output the INI model to a given writer

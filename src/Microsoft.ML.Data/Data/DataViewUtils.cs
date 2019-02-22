@@ -16,7 +16,8 @@ using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
 {
-    public static class DataViewUtils
+    [BestFriend]
+    internal static class DataViewUtils
     {
         /// <summary>
         /// Generate a unique temporary column name for the given schema.
