@@ -34,7 +34,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Marks member as <see cref="KeyType"/> and specifies <see cref="KeyType"/> cardinality.
         /// </summary>
-        /// <param name="count">Cardinality of key type.</param>
+        /// <param name="count">Cardinality of <see cref="KeyType"/>.</param>
         public KeyTypeAttribute(ulong count)
         {
             KeyCount = new KeyCount(count);
