@@ -165,9 +165,8 @@ namespace Microsoft.ML.Functional.Tests
         /// Check that a <see cref="AnomalyDetectionMetrics"/> object is valid.
         /// </summary>
         /// <param name="metrics">The metrics object.</param>
-        public static void CheckMetrics(AnomalyDetectionMetrics metrics)
+        public static void AssertMetrics(AnomalyDetectionMetrics metrics)
         {
-            // Perform sanity checks on the metrics.
             Assert.InRange(metrics.Auc, 0, 1);
             Assert.InRange(metrics.DrAtK, 0, 1);
         }
@@ -176,9 +175,8 @@ namespace Microsoft.ML.Functional.Tests
         /// Check that a <see cref="BinaryClassificationMetrics"/> object is valid.
         /// </summary>
         /// <param name="metrics">The metrics object.</param>
-        public static void CheckMetrics(BinaryClassificationMetrics metrics)
+        public static void AssertMetrics(BinaryClassificationMetrics metrics)
         {
-            // Perform sanity checks on the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
             Assert.InRange(metrics.Auc, 0, 1);
             Assert.InRange(metrics.Auprc, 0, 1);
@@ -193,21 +191,20 @@ namespace Microsoft.ML.Functional.Tests
         /// Check that a <see cref="CalibratedBinaryClassificationMetrics"/> object is valid.
         /// </summary>
         /// <param name="metrics">The metrics object.</param>
-        public static void CheckMetrics(CalibratedBinaryClassificationMetrics metrics)
+        public static void AssertMetrics(CalibratedBinaryClassificationMetrics metrics)
         {
             Assert.InRange(metrics.Entropy, double.NegativeInfinity, 1);
             Assert.InRange(metrics.LogLoss, double.NegativeInfinity, 1);
             Assert.InRange(metrics.LogLossReduction, double.NegativeInfinity, 100);
-            CheckMetrics(metrics as BinaryClassificationMetrics);
+            AssertMetrics(metrics as BinaryClassificationMetrics);
         }
 
         /// <summary>
         /// Check that a <see cref="ClusteringMetrics"/> object is valid.
         /// </summary>
         /// <param name="metrics">The metrics object.</param>
-        public static void CheckMetrics(ClusteringMetrics metrics)
+        public static void AssertMetrics(ClusteringMetrics metrics)
         {
-            // Perform sanity checks on the metrics.
             Assert.True(metrics.AvgMinScore >= 0);
             Assert.True(metrics.Dbi >= 0);
             if (!double.IsNaN(metrics.Nmi))
@@ -218,9 +215,8 @@ namespace Microsoft.ML.Functional.Tests
         /// Check that a <see cref="MultiClassClassifierMetrics"/> object is valid.
         /// </summary>
         /// <param name="metrics">The metrics object.</param>
-        public static void CheckMetrics(MultiClassClassifierMetrics metrics)
+        public static void AssertMetrics(MultiClassClassifierMetrics metrics)
         {
-            // Perform sanity checks on the metrics.
             Assert.InRange(metrics.AccuracyMacro, 0, 1);
             Assert.InRange(metrics.AccuracyMicro, 0, 1);
             Assert.True(metrics.LogLoss >= 0);
@@ -231,9 +227,8 @@ namespace Microsoft.ML.Functional.Tests
         /// Check that a <see cref="RankerMetrics"/> object is valid.
         /// </summary>
         /// <param name="metrics">The metrics object.</param>
-        public static void CheckMetrics(RankerMetrics metrics)
+        public static void AssertMetrics(RankerMetrics metrics)
         {
-            // Perform sanity checks on the metrics.
             foreach (var dcg in metrics.Dcg)
                 Assert.True(dcg >= 0);
             foreach (var ndcg in metrics.Ndcg)
@@ -246,7 +241,6 @@ namespace Microsoft.ML.Functional.Tests
         /// <param name="metrics">The metrics object.</param>
         public static void AssertMetrics(RegressionMetrics metrics)
         {
-            // Perform sanity checks on the metrics.
             Assert.True(metrics.Rms >= 0);
             Assert.True(metrics.L1 >= 0);
             Assert.True(metrics.L2 >= 0);
@@ -259,7 +253,6 @@ namespace Microsoft.ML.Functional.Tests
         /// <param name="metric">The <see cref="MetricStatistics"/> object.</param>
         public static void AssertMetricStatistics(MetricStatistics metric)
         {
-            // Perform sanity checks on the metrics.
             Assert.True(metric.StandardDeviation >= 0);
             Assert.True(metric.StandardError >= 0);
         }
@@ -270,7 +263,6 @@ namespace Microsoft.ML.Functional.Tests
         /// <param name="metrics">The metrics object.</param>
         public static void AssertMetricsStatistics(RegressionMetricsStatistics metrics)
         {
-            // The mean can be any float; the standard deviation and error must be >=0.
             AssertMetricStatistics(metrics.Rms);
             AssertMetricStatistics(metrics.L1);
             AssertMetricStatistics(metrics.L2);

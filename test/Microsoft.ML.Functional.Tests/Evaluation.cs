@@ -46,7 +46,7 @@ namespace Microsoft.ML.Functional.Tests
             var metrics = mlContext.AnomalyDetection.Evaluate(scoredTest);
 
             // Check that the metrics returned are valid.
-            Common.CheckMetrics(metrics);
+            Common.AssertMetrics(metrics);
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Functional.Tests
             var metrics = mlContext.BinaryClassification.Evaluate(scoredData);
 
             // Check that the metrics returned are valid.
-            Common.CheckMetrics(metrics);
+            Common.AssertMetrics(metrics);
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Functional.Tests
             var metrics = mlContext.Clustering.Evaluate(scoredData);
 
             // Check that the metrics returned are valid.
-            Common.CheckMetrics(metrics);
+            Common.AssertMetrics(metrics);
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Functional.Tests
             var metrics = mlContext.MulticlassClassification.Evaluate(scoredData);
 
             // Check that the metrics returned are valid.
-            Common.CheckMetrics(metrics);
+            Common.AssertMetrics(metrics);
         }
 
         /// <summary>
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Functional.Tests
             var metrics = mlContext.Ranking.Evaluate(scoredData, label: "Label", groupId: "GroupId");
 
             // Check that the metrics returned are valid.
-            Common.CheckMetrics(metrics);
+            Common.AssertMetrics(metrics);
         }
 
         /// <summary>
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Functional.Tests
             var metrics = mlContext.Recommendation().Evaluate(scoredData);
 
             // Check that the metrics returned are valid.
-            Common.CheckMetrics(metrics);
+            Common.AssertMetrics(metrics);
         }
 
         /// <summary>
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Functional.Tests
             var metrics = mlContext.Regression.Evaluate(scoredData);
 
             // Check that the metrics returned are valid.
-            Common.CheckMetrics(metrics);
+            Common.AssertMetrics(metrics);
         }
 
         /// <summary>
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Functional.Tests
             var scoredData = model.Transform(data);
             var metrics = mlContext.BinaryClassification.Evaluate(scoredData);
 
-            Common.CheckMetrics(metrics);
+            Common.AssertMetrics(metrics);
 
             // This scenario is not possible with the current set of APIs.
             // There could be two ways imaginable:
