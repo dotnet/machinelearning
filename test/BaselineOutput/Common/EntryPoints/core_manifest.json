@@ -326,7 +326,7 @@
                 "Required": false,
                 "SortOrder": 150.0,
                 "IsNullable": false,
-                "Default": true
+                "Default": false
               },
               {
                 "Name": "AllowSparse",
@@ -338,7 +338,7 @@
                 "Required": false,
                 "SortOrder": 150.0,
                 "IsNullable": false,
-                "Default": true
+                "Default": false
               },
               {
                 "Name": "InputSize",

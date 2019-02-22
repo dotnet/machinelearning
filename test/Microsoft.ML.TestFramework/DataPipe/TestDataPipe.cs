@@ -175,7 +175,7 @@ namespace Microsoft.ML.RunTests
             string pathData = GetDataPath("adult.tiny.with-schema.txt");
             TestCore(pathData, false,
                 new[] {
-                    "loader=Text{header+ col=Label:0 col=Age:9 col=Gender:TX:7 col=Mar:TX:3 col=Race:TX:6 col=Num:10-14 col=Txt:TX:~}",
+                    "loader=Text{sparse+ header+ col=Label:0 col=Age:9 col=Gender:TX:7 col=Mar:TX:3 col=Race:TX:6 col=Num:10-14 col=Txt:TX:~}",
                     "xf=Cat{col=Race2:Key:Race data={" + pathTerms + "} termCol=Whatever}",
                     "xf=Cat{col=Gender2:Gender terms=Male,Female}",
                     "xf=Cat{col=Mar2:Mar col={name=Race3 src=Race terms=Other,White,Black,Asian-Pac-Islander,Amer-Indian-Inuit}}",
@@ -198,7 +198,7 @@ namespace Microsoft.ML.RunTests
             string pathData = GetDataPath("adult.tiny.with-schema.txt");
             TestCore(pathData, true,
                 new[] {
-                    "loader=Text{header+ col=Mar:TX:3 col=Race:TX:6 col=Gen:TX:7~8}",
+                    "loader=Text{sparse+ header+ col=Mar:TX:3 col=Race:TX:6 col=Gen:TX:7~8}",
                     "xf=Concat{col=Comb:Race,Gen,Race}",
                     "xf=Cat{kind=Key col=MarKey:Mar}",
                     "xf=Cat{kind=Key col={name=CombKey src=Comb} data={" + pathTerms + "}}",
@@ -254,7 +254,7 @@ namespace Microsoft.ML.RunTests
 
             TestCore(pathData, true,
                 new[] {
-                    "loader=Text{col=Known:I4:0-2 col=Single:I4:3 col=Text:TX:4 col=Unknown:I4:~** sep=comma}",
+                    "loader=Text{sparse+ col=Known:I4:0-2 col=Single:I4:3 col=Text:TX:4 col=Unknown:I4:~** sep=comma}",
                     // Tokenize Text, then run it through Categorical to get key values, then through KeyToVector.
                     // Then convert everything to R8 and concatenate it all.
                     "xf=WordToken{col=Tokens:Text}",
@@ -274,7 +274,7 @@ namespace Microsoft.ML.RunTests
         {
             TestCore(null, true,
                 new[] {
-                    "loader=Text{col=Label:Num:0 col=Text:TX:1-9}",
+                    "loader=Text{quote+ sparse+ col=Label:Num:0 col=Text:TX:1-9}",
                     "xf=Cat{max=5 col={name=Key src=Text kind=key}}",
                     "xf=Ngram{ngram=3 skips=1 col={name=Ngrams1 src=Key max=10}}",
                     "xf=Ngram{skips=2 col={name=Ngrams2 src=Key ngram=4 max=10:20:30} col={name=Ngrams3 src=Key ngram=3 max=10:15}}",
@@ -301,7 +301,7 @@ namespace Microsoft.ML.RunTests
 
             TestCore(pathData, true,
                 new[] {
-                    "loader=Text{col=Text:TX:0-20}",
+                    "loader=Text{quote+ sparse+ col=Text:TX:0-20}",
                     "xf=Cat{col={name=Key src=Text kind=key}}",
                     "xf=Ngram{ngram=3 skips=2 col={name=Ngrams src=Key max=100}}",
                 });
@@ -412,7 +412,7 @@ namespace Microsoft.ML.RunTests
         {
             TestCore(null, false,
                 new[] {
-                    "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
+                    "loader=Text{quote+ sparse+ col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
                     "xf=Cat{max=5 col={name=Bag src=Text kind=bag} col=One:ind:OneText}",
                     "xf=Cat{max=7 col=Hot:Text}",
                     "xf=Cat{max=8 col=Key:kEY:Text col=KeyOne:KeY:OneText}",
@@ -435,7 +435,7 @@ namespace Microsoft.ML.RunTests
 
             TestCore(pathData, true,
                 new[] {
-                    "loader=Text{col=Text:TX:0-2 col=CatU1:U1[0-2]:0-2 col=CatU2:U2[0-4]:0-2 col=CatU8:U8[]:0-2 col=OneU1:U1[]:0 col=OneU2:U2[]:1 col=OneU4:U4[]:1 col=OneU8:U8[]:2 col=Single:TX:0 col=VarU1:U1[]:3-** col=VarU2:U2[]:3-** col=VarU4:U4[]:3-** col=VarU8:U8[]:3-** col=Variable:TX:3-**}",
+                    "loader=Text{sparse+ col=Text:TX:0-2 col=CatU1:U1[0-2]:0-2 col=CatU2:U2[0-4]:0-2 col=CatU8:U8[]:0-2 col=OneU1:U1[]:0 col=OneU2:U2[]:1 col=OneU4:U4[]:1 col=OneU8:U8[]:2 col=Single:TX:0 col=VarU1:U1[]:3-** col=VarU2:U2[]:3-** col=VarU4:U4[]:3-** col=VarU8:U8[]:3-** col=Variable:TX:3-**}",
                     "xf=Cat{col=Cat:Key:Text col=VarCat:Key:Variable}",
                     "xf=Hash{bits=6 ordered+ col={name=Hash0 src=Text bits=4} col={name=Hash1 src=Text ord- bits=4} col={name=Hash2 src=Cat} col=Hash3:CatU8}",
                     "xf=Hash{col={name=Hash4 bits=5 src=CatU1} col={name=Hash5 src=CatU2 bits=6 ord+} col={name=Hash6 src=CatU2 bits=6} col={name=Hash7 src=CatU8 bits=6} col={name=Hash8 src=Cat bits=6}}",
@@ -455,7 +455,7 @@ namespace Microsoft.ML.RunTests
         {
             TestCore(null, false,
                 new[] {
-                    "loader=Text{col=One:TX:1 col=Num:R4:2-* col=Key:U1[0-10]:1}",
+                    "loader=Text{quote+ sparse+ col=One:TX:1 col=Num:R4:2-* col=Key:U1[0-10]:1}",
                     // Create a lot of unused slots.
                     "xf=CatHash{col=OneInd:One bits=10}",
                     // One is for the non-vector case and OneInd is reduced to a small size.
@@ -515,7 +515,7 @@ namespace Microsoft.ML.RunTests
             string pathData = GetDataPath("lm.sample.txt");
             TestCore(pathData, true,
                 new[] {
-                    "loader=Text{header+ col=Label:TX:0 col=Attrs:TX:1-2 col=TextFeatures:TX:3-4 rows=100}",
+                    "loader=Text{sparse+ header+ col=Label:TX:0 col=Attrs:TX:1-2 col=TextFeatures:TX:3-4 rows=100}",
                     "xf=WordToken{col={name=Tokens src=TextFeatures}}",
                     "xf=Cat{max=10 col={name=Cat src=Tokens kind=key}}",
                     "xf=Hash{col={name=Hash src=Tokens bits=10} col={name=HashBig src=Tokens bits=31}}",
@@ -559,7 +559,7 @@ namespace Microsoft.ML.RunTests
             string pathData = GetDataPath(@"lm.sample.txt");
             TestCore(pathData, true,
                 new[] {
-                    "loader=Text{header+ col=One:TX:4 col=Two:TX:3 rows=101}",
+                    "loader=Text{sparse+ header+ col=One:TX:4 col=Two:TX:3 rows=101}",
                     "xf=WordHashBag{bits=5",
                     "  col=F11:5:One col={name=F12 src=One ngram=4} col={name=F13 src=Two ngram=3 skips=2 bits=15}",
                     "  col=F21:Two,One col={name=F22 src=Two src=One ngram=4} col={name=F23 src=Two src=One bits=15 ngram=3 skips=2}",
@@ -609,7 +609,7 @@ namespace Microsoft.ML.RunTests
             string pathData = GetDataPath(@"lm.sample.txt");
             TestCore(pathData, true,
                 new[] {
-                    "loader=Text{header+ col=One:TX:4 col=Two:TX:3 rows=101}",
+                    "loader=Text{sparse+ header+ col=One:TX:4 col=Two:TX:3 rows=101}",
                     "xf=WordHashBag{bits=5 ord=- col=F1:One col=F2:One,One}",
                     "xf=SelectColumns{keepcol=F1 keepcol=F2}",
                 },
@@ -661,7 +661,7 @@ namespace Microsoft.ML.RunTests
                     "an angry ant\t3\t3\t\tbob bowled badly",
                     "\t10\t\t\t\"\""
                 });
-            const string loader = "loader=Text{col=A:TX:0 col=K:U4[11]:1-2 col=KS:U4[11]:2 col=B:TX:4 col=E:TX:3}";
+            const string loader = "loader=Text{quote+ sparse+ col=A:TX:0 col=K:U4[11]:1-2 col=KS:U4[11]:2 col=B:TX:4 col=E:TX:3}";
             TestCore(pathData, true,
                 new[] {
                     loader,
@@ -720,7 +720,7 @@ namespace Microsoft.ML.RunTests
             string pathData = GetDataPath(@"lm.sample.txt");
             TestCore(pathData, true,
                 new[] {
-                    "loader=Text{header+ col=Label:TX:0 col=One:TX:4 col=Vec:TX:3,4 rows=101}",
+                    "loader=Text{sparse+ header+ col=Label:TX:0 col=One:TX:4 col=Vec:TX:3,4 rows=101}",
                     "xf=AutoLabel{col=Label}",
                     "xf=WordBag{max=10",
                     "  col=F11:One col={name=F12 src=One ngram=4 max=3 max=4 max=5} col={name=F13 src=One ngram=3 skips=2}",
@@ -749,7 +749,7 @@ namespace Microsoft.ML.RunTests
 
             TestCore(pathData, true,
                 new[] {
-                    "loader=Text{header=+ col=Text:TX:0}",
+                    "loader=Text{sparse+ header=+ col=Text:TX:0}",
                     "xf=WordBag{col={name=TfIdf src=Text max=5 ngram=3 weighting=TfIdf}}",
                     "xf=SelectColumns{keepCol=TfIdf}",
                 });
@@ -763,7 +763,7 @@ namespace Microsoft.ML.RunTests
             string pathData = GetDataPath(@"lm.sample.txt");
             TestCore(pathData, true,
                 new[] {
-                    "loader=Text{header+ col=One:TX:4 col=Vec:TX:3,4 rows=101}",
+                    "loader=Text{sparse+ header+ col=One:TX:4 col=Vec:TX:3,4 rows=101}",
                     "xf=WordBag{col={name=WB1 src=One max=10 ngram=3 skips=2} col={name=WB2 src=One src=One max=10 ngram=3 skips=2}}",
                     "xf=SelectColumns{keepCol=WB1 keepCol=WB2}"
                 },
@@ -1016,7 +1016,7 @@ namespace Microsoft.ML.RunTests
             RunMTAThread(() => TestCore(null, false,
                 new[]
                 {
-                    "loader=Text",
+                    "loader=Text{sparse+}",
                     "xf=TrainScore{tr=FT scorer=fcc{top=4 bottom=2 str+}}",
                     "xf=Copy{col=ContributionsStr:FeatureContributions}",
                     "xf=TrainScore{tr=FT scorer=fcc{top=3 bottom=3}}"
@@ -1032,7 +1032,7 @@ namespace Microsoft.ML.RunTests
             TestCore(null, false,
                 new[]
                 {
-                    "loader=Text xf=TrainScore{tr=AP{shuf-} scorer=fcc{str+}}"
+                    "loader=Text{sparse+} xf=TrainScore{tr=AP{shuf-} scorer=fcc{str+}}"
                 }, digitsOfPrecision: 5);
 
             Done();

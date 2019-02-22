@@ -13,7 +13,6 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Float = System.Single;
 
 [assembly: LoadableClass(TextLoader.Summary, typeof(IDataLoader), typeof(TextLoader), typeof(TextLoader.Options), typeof(SignatureDataLoader),
     "Text Loader", "TextLoader", "Text", DocName = "loader/TextLoader.md")]
@@ -487,8 +486,8 @@ namespace Microsoft.ML.Data
 
         internal static class Defaults
         {
-            internal const bool AllowQuoting = true;
-            internal const bool AllowSparse = true;
+            internal const bool AllowQuoting = false;
+            internal const bool AllowSparse = false;
             internal const char Separator = '\t';
             internal const bool HasHeader = false;
             internal const bool TrimWhitespace = false;
@@ -1065,18 +1064,22 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">Defines a mapping between input columns in the file and IDataView columns.</param>
-        /// <param name="hasHeader">Whether the file has a header.</param>
         /// <param name="separatorChar"> The character used as separator between data points in a row. By default the tab character is used as separator.</param>
+        /// <param name="hasHeader">Whether the file has a header.</param>
+        /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
+        /// <param name="allowQuoting">Whether the content of a column can be parsed from a string starting and ending with quote.</param>
         /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
-        internal TextLoader(IHostEnvironment env, Column[] columns, bool hasHeader = false, char separatorChar = '\t', IMultiStreamSource dataSample = null)
-            : this(env, MakeArgs(columns, hasHeader, new[] { separatorChar }), dataSample)
+        internal TextLoader(IHostEnvironment env, Column[] columns, char separatorChar = Defaults.Separator,
+            bool hasHeader = Defaults.HasHeader, bool allowSparse = Defaults.AllowSparse,
+            bool allowQuoting = Defaults.AllowQuoting, IMultiStreamSource dataSample = null)
+            : this(env, MakeArgs(columns, hasHeader, new[] { separatorChar }, allowSparse, allowQuoting), dataSample)
         {
         }
 
-        private static Options MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars)
+        private static Options MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars, bool allowSparse, bool allowQuoting)
         {
             Contracts.AssertValue(separatorChars);
-            var result = new Options { Columns = columns, HasHeader = hasHeader, Separators = separatorChars};
+            var result = new Options { Columns = columns, HasHeader = hasHeader, Separators = separatorChars, AllowSparse = allowSparse, AllowQuoting = allowQuoting };
             return result;
         }
 
@@ -1345,7 +1348,7 @@ namespace Microsoft.ML.Data
             // char[]: separators
             // bindings
             int cbFloat = ctx.Reader.ReadInt32();
-            host.CheckDecode(cbFloat == sizeof(Float));
+            host.CheckDecode(cbFloat == sizeof(float));
             _maxRows = ctx.Reader.ReadInt64();
             host.CheckDecode(_maxRows > 0);
             _flags = (OptionFlags)ctx.Reader.ReadUInt32();
@@ -1408,7 +1411,7 @@ namespace Microsoft.ML.Data
             // int: number of separators
             // char[]: separators
             // bindings
-            ctx.Writer.Write(sizeof(Float));
+            ctx.Writer.Write(sizeof(float));
             ctx.Writer.Write(_maxRows);
             _host.Assert((_flags & ~OptionFlags.All) == 0);
             ctx.Writer.Write((uint)_flags);

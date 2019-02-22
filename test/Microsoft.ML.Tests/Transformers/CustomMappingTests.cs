@@ -93,7 +93,7 @@ namespace Microsoft.ML.Tests.Transformers
                     new TextLoader.Column("Float1", DataKind.R4, 0),
                     new TextLoader.Column("Float4", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
                     new TextLoader.Column("Text1", DataKind.Text, 0)
-            }, hasHeader: true, separatorChar: ',' );
+            }, separatorChar: ',', hasHeader: true);
 
             var data = loader.Read(source);
 

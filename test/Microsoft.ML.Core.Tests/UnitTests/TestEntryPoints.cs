@@ -2411,7 +2411,7 @@ namespace Microsoft.ML.RunTests
                     'model' : '{1}'
                   }}
                 }}", EscapePath(dataPath), EscapePath(outputPath), trainerName,
-                string.IsNullOrWhiteSpace(loader) ? "" : string.Format(",'CustomSchema': '{0}'", loader),
+                string.IsNullOrWhiteSpace(loader) ? "" : string.Format(",'CustomSchema': 'sparse+ {0}'", loader),
                 string.IsNullOrWhiteSpace(trainerArgs) ? "" : trainerArgs
                 );
 
@@ -3403,6 +3403,7 @@ namespace Microsoft.ML.RunTests
                 {
                     Arguments =
                 {
+                    AllowSparse = true,
                     Separators = new []{'\t' },
                     HasHeader = false,
                     Columns = new[]
@@ -3858,8 +3859,8 @@ namespace Microsoft.ML.RunTests
                                 'UseThreads': true,
                                 'HeaderFile': null,
                                 'MaxRows': null,
-                                'AllowQuoting': true,
-                                'AllowSparse': true,
+                                'AllowQuoting': false,
+                                'AllowSparse': false,
                                 'InputSize': null,
                                 'Separator': [
                                     '\t'
@@ -3921,8 +3922,8 @@ namespace Microsoft.ML.RunTests
                                 'UseThreads': true,
                                 'HeaderFile': null,
                                 'MaxRows': null,
-                                'AllowQuoting': true,
-                                'AllowSparse': true,
+                                'AllowQuoting': false,
+                                'AllowSparse': false,
                                 'InputSize': null,
                                 'Separator': [
                                     '\t'

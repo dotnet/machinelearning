@@ -36,7 +36,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             var data = TestCore(pathData, true,
                 new[] {
-                "loader=Text{col=DvInt1:I1:0 col=DvInt2:I2:1 col=DvInt4:I4:2 col=DvInt8:I8:3 sep=comma}",
+                "loader=Text{quote+ col=DvInt1:I1:0 col=DvInt2:I2:1 col=DvInt4:I4:2 col=DvInt8:I8:3 sep=comma}",
                 }, logCurs: true);
 
             using (var cursor = data.GetRowCursorForAllColumns())
@@ -149,9 +149,9 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt"));
             Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: true));
             Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false));
-            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, supportSparse: false, trimWhitespace: false));
-            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, supportSparse: false));
-            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowQuotedStrings: false));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowSparse: false, trimWhitespace: false));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowSparse: false));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowQuoting: false));
             Assert.NotNull(mlContext.Data.ReadFromTextFile<InputWithUnderscore>("fakeFile.txt"));
         }
 
