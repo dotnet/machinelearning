@@ -428,13 +428,13 @@ namespace Microsoft.ML.Data
 
             [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Source column separator. Options: tab, space, comma, single character", ShortName = "sep")]
             // this is internal as it only serves the command line interface
-            internal string Separator = Defaults.Separator.ToString();
+            internal string Separator = "\t";
 
             /// <summary>
             /// The characters that should be used as separators column separator.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, Name = nameof(Separator), Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Source column separator.", ShortName = "sep")]
-            public char[] Separators = new[] { Defaults.Separator };
+            public char[] Separators = Defaults.Separator;
 
             /// <summary>
             /// Specifies the input columns that should be mapped to <see cref="IDataView"/> columns.
@@ -488,7 +488,7 @@ namespace Microsoft.ML.Data
         {
             internal const bool AllowQuoting = false;
             internal const bool AllowSparse = false;
-            internal const char Separator = '\t';
+            internal static char[] Separator => new[] { '\t' };
             internal const bool HasHeader = false;
             internal const bool TrimWhitespace = false;
         }
@@ -1069,10 +1069,10 @@ namespace Microsoft.ML.Data
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
         /// <param name="allowQuoting">Whether the content of a column can be parsed from a string starting and ending with quote.</param>
         /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
-        internal TextLoader(IHostEnvironment env, Column[] columns, char separatorChar = Defaults.Separator,
+        internal TextLoader(IHostEnvironment env, Column[] columns, char[] separatorChar = null,
             bool hasHeader = Defaults.HasHeader, bool allowSparse = Defaults.AllowSparse,
             bool allowQuoting = Defaults.AllowQuoting, IMultiStreamSource dataSample = null)
-            : this(env, MakeArgs(columns, hasHeader, new[] { separatorChar }, allowSparse, allowQuoting), dataSample)
+            : this(env, MakeArgs(columns, hasHeader,  separatorChar ?? Defaults.Separator, allowSparse, allowQuoting), dataSample)
         {
         }
 
@@ -1145,10 +1145,11 @@ namespace Microsoft.ML.Data
 
             _host.CheckNonEmpty(options.Separator, nameof(options.Separator), "Must specify a separator");
 
-            //Default arg.Separator is tab and default options. Separators is also a '\t'.
-            //At a time only one default can be different and whichever is different that will
-            //be used.
-            if (options.Separators.Length > 1 || options.Separators[0] != '\t')
+            // Default options.Separator is "\t"  while default options.Separators is {'\t'}.
+            // We use options.Separators only if options.Separator is default and choose options.Seperators otherwise.
+            // The logic behind is that options.Separators has higher priority because it's a public API arguments, but
+            // options.Seperator is only for command line tool and entry points.
+            if (options.Separator == "\t")
             {
                 var separators = new HashSet<char>();
                 foreach (char c in options.Separators)
@@ -1435,11 +1436,12 @@ namespace Microsoft.ML.Data
 
         internal static TextLoader CreateTextReader<TInput>(IHostEnvironment host,
            bool hasHeader = Defaults.HasHeader,
-           char separator = Defaults.Separator,
+           char[] separator = null,
            bool allowQuotedStrings = Defaults.AllowQuoting,
            bool supportSparse = Defaults.AllowSparse,
            bool trimWhitespace = Defaults.TrimWhitespace)
         {
+            separator = separator ?? Defaults.Separator;
             var userType = typeof(TInput);
 
             var fieldInfos = userType.GetFields(BindingFlags.Public | BindingFlags.Instance);
@@ -1492,7 +1494,7 @@ namespace Microsoft.ML.Data
             Options options = new Options
             {
                 HasHeader = hasHeader,
-                Separators = new[] { separator },
+                Separators = separator,
                 AllowQuoting = allowQuotedStrings,
                 AllowSparse = supportSparse,
                 TrimWhitespace = trimWhitespace,

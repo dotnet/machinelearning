@@ -998,7 +998,7 @@ namespace Microsoft.ML.Scenarios
                         new TextLoader.Column("Words", DataKind.TX, 0),
                         new TextLoader.Column("Ids", DataKind.I4, 1),
                    },
-                separatorChar: ','
+                separatorChar: new[] { ',' }
                );
 
             // We cannot resize variable length vector to fixed length vector in ML.NET

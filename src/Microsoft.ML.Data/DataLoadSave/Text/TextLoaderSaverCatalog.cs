@@ -23,12 +23,12 @@ namespace Microsoft.ML
         /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
         public static TextLoader CreateTextLoader(this DataOperationsCatalog catalog,
             TextLoader.Column[] columns,
-            char separatorChar = TextLoader.Defaults.Separator,
+            char[] separatorChar = null,
             bool hasHeader = TextLoader.Defaults.HasHeader,
             bool allowSparse = TextLoader.Defaults.AllowSparse,
             bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             IMultiStreamSource dataSample = null)
-            => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, separatorChar, hasHeader, allowSparse, allowQuoting, dataSample);
+            => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, separatorChar ?? TextLoader.Defaults.Separator, hasHeader, allowSparse, allowQuoting, dataSample);
 
         /// <summary>
         /// Create a text loader <see cref="TextLoader"/>.
@@ -57,12 +57,12 @@ namespace Microsoft.ML
         /// except for 3rd and 5th columns which have values 6 and 3</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
         public static TextLoader CreateTextLoader<TInput>(this DataOperationsCatalog catalog,
-            char separatorChar = TextLoader.Defaults.Separator,
+            char[] separatorChar = null,
             bool hasHeader = TextLoader.Defaults.HasHeader,
             bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool allowSparse = TextLoader.Defaults.AllowSparse,
             bool trimWhitespace = TextLoader.Defaults.TrimWhitespace)
-            => TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar, allowQuoting, allowSparse, trimWhitespace);
+            => TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar ?? TextLoader.Defaults.Separator, allowQuoting, allowSparse, trimWhitespace);
 
         /// <summary>
         /// Read a data view from a text file using <see cref="TextLoader"/>.
@@ -76,7 +76,7 @@ namespace Microsoft.ML
         public static IDataView ReadFromTextFile(this DataOperationsCatalog catalog,
             string path,
             TextLoader.Column[] columns,
-            char separatorChar = TextLoader.Defaults.Separator,
+            char[] separatorChar = null,
             bool hasHeader = TextLoader.Defaults.HasHeader)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
@@ -85,7 +85,7 @@ namespace Microsoft.ML
 
             // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
             // Therefore, we are going to disallow data sample.
-            var reader = new TextLoader(env, columns, separatorChar, hasHeader, dataSample: null);
+            var reader = new TextLoader(env, columns, separatorChar ?? TextLoader.Defaults.Separator, hasHeader, dataSample: null);
             return reader.Read(new MultiFileSource(path));
         }
 
@@ -108,7 +108,7 @@ namespace Microsoft.ML
         /// <returns>The data view.</returns>
         public static IDataView ReadFromTextFile<TInput>(this DataOperationsCatalog catalog,
             string path,
-            char separatorChar = TextLoader.Defaults.Separator,
+            char[] separatorChar = null,
             bool hasHeader = TextLoader.Defaults.HasHeader,
             bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool allowSparse = TextLoader.Defaults.AllowSparse,
@@ -118,8 +118,8 @@ namespace Microsoft.ML
 
             // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
             // Therefore, we are going to disallow data sample.
-            return TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar, allowQuoting, allowSparse, trimWhitespace)
-                             .Read(new MultiFileSource(path));
+            return TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader,
+                separatorChar ?? TextLoader.Defaults.Separator, allowQuoting, allowSparse, trimWhitespace).Read(new MultiFileSource(path));
         }
 
         /// <summary>

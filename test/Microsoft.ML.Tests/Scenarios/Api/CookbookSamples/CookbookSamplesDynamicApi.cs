@@ -79,8 +79,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var trainData = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
                 // Default separator is tab, but we need a semicolon.
-                separatorChar: ';'
-,
+                separatorChar: new[] { ';' },
                 // First line of the file is a header, not a data row.
                 hasHeader: true);
 
@@ -115,8 +114,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Read the test dataset.
             var testData = mlContext.Data.ReadFromTextFile<AdultData>(testDataPath,
                 // Default separator is tab, but we need a semicolon.
-                separatorChar: ';'
-,
+                separatorChar: new[] { ';' },
                 // First line of the file is a header, not a data row.
                 hasHeader: true);
 
@@ -152,7 +150,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             //  Retrieve the training data.
             var trainData = mlContext.Data.ReadFromTextFile<IrisInput>(irisDataPath,
                 // Default separator is tab, but the dataset has comma.
-                separatorChar: ','
+                separatorChar: new[] { ',' }
             );
 
             //Preview the data
@@ -237,7 +235,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Read the training data.
             var trainData = mlContext.Data.ReadFromTextFile<IrisInputAllFeatures>(dataPath,
                 // Default separator is tab, but the dataset has comma.
-                separatorChar: ','
+                separatorChar: new[] { ',' }
             );
 
             // Apply all kinds of standard ML.NET normalization to the raw features.
@@ -409,7 +407,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Step one: read the data as an IDataView.
             var data = mlContext.Data.ReadFromTextFile<IrisInput>(dataPath,
                 // Default separator is tab, but the dataset has comma.
-                separatorChar: ','
+                separatorChar: new[] { ',' }
             );
 
             // Build the training pipeline.
@@ -458,7 +456,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var reader = mlContext.Data.ReadFromTextFile<AdultData>(dataPath,
                 // Default separator is tab, but we need a comma.
-                separatorChar: ',');
+                separatorChar: new[] { ',' });
         }
 
         // Define a class for all the input columns that we intend to consume.

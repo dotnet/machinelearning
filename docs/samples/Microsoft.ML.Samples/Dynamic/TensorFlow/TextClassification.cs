@@ -39,7 +39,7 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
                         new TextLoader.Column("Words", DataKind.TX, 0),
                         new TextLoader.Column("Ids", DataKind.I4, 1),
                    },
-                separatorChar: ','
+                separatorChar: new[] { ',' }
                );
 
             // Load the TensorFlow model once.

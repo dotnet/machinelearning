@@ -120,7 +120,7 @@ namespace Microsoft.ML.SamplesUtils
                         new TextLoader.Column("native-country", DataKind.R4, 13),
                         new TextLoader.Column("IsOver50K", DataKind.BL, 14),
                     },
-                separatorChar: ',',
+                separatorChar: new[] { ',' },
                 hasHeader: true
             );
 
