@@ -10,7 +10,7 @@ using Microsoft.ML.Data;
 namespace Microsoft.ML.Functional.Tests.Datasets
 {
     /// <summary>
-    /// A class containing one property per <see cref="DataKind"/>.
+    /// A class containing one property per <see cref="ScalarType"/>.
     /// </summary>
     /// <remarks>
     /// This class has annotations for automatic deserialization from a file, and contains helper methods

@@ -61,7 +61,7 @@ namespace Microsoft.ML.Transforms.Conversions
         internal class Column : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The result type", ShortName = "type")]
-            public DataKind? ResultType;
+            public InternalDataKind? ResultType;
 
             [Argument(ArgumentType.Multiple, HelpText = "For a key column, this defines the cardinality/count of valid key values", ShortName = "key", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public KeyCount KeyCount;
@@ -88,9 +88,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (extra == null)
                     return true;
 
-                if (!TypeParsingUtils.TryParseDataKind(extra, out DataKind kind, out KeyCount))
+                if (!TypeParsingUtils.TryParseDataKind(extra, out InternalDataKind kind, out KeyCount))
                     return false;
-                ResultType = kind == default ? default(DataKind?) : kind;
+                ResultType = kind == default ? default(InternalDataKind?) : kind;
                 return true;
             }
 
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Transforms.Conversions
             public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The result type", ShortName = "type", SortOrder = 2)]
-            public DataKind? ResultType;
+            public InternalDataKind? ResultType;
 
             [Argument(ArgumentType.Multiple, HelpText = "For a key column, this defines the range of values", ShortName = "key", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public KeyCount KeyCount;
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             for (int i = 0; i < _columns.Length; i++)
             {
-                Host.Assert((DataKind)(byte)_columns[i].OutputType.ToDataKind() == _columns[i].OutputType.ToDataKind());
+                Host.Assert((InternalDataKind)(byte)_columns[i].OutputType.ToDataKind() == _columns[i].OutputType.ToDataKind());
                 if (_columns[i].OutputKeyCount != null)
                 {
                     byte b = (byte)_columns[i].OutputType;
@@ -264,8 +264,8 @@ namespace Microsoft.ML.Transforms.Conversions
             for (int i = 0; i < columnsLength; i++)
             {
                 byte b = ctx.Reader.ReadByte();
-                var kind = (DataKind)(b & 0x7F);
-                Host.CheckDecode(Enum.IsDefined(typeof(DataKind), kind));
+                var kind = (InternalDataKind)(b & 0x7F);
+                Host.CheckDecode(Enum.IsDefined(typeof(InternalDataKind), kind));
                 KeyCount keyCount = null;
                 ulong count = 0;
                 if ((b & 0x80) != 0)
@@ -322,15 +322,15 @@ namespace Microsoft.ML.Transforms.Conversions
                         keyCount = KeyCount.Parse(options.Range);
                 }
 
-                DataKind kind;
+                InternalDataKind kind;
                 if (tempResultType == null)
                 {
                     if (keyCount == null)
-                        kind = DataKind.Num;
+                        kind = InternalDataKind.Num;
                     else
                     {
                         var srcType = input.Schema[item.Source ?? item.Name].Type;
-                        kind = srcType is KeyType ? srcType.GetRawKind() : DataKind.U8;
+                        kind = srcType is KeyType ? srcType.GetRawKind() : InternalDataKind.U8;
                     }
                 }
                 else
@@ -352,7 +352,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        internal static bool GetNewType(IExceptionContext ectx, DataViewType srcType, DataKind kind, KeyCount keyCount, out PrimitiveDataViewType itemType)
+        internal static bool GetNewType(IExceptionContext ectx, DataViewType srcType, InternalDataKind kind, KeyCount keyCount, out PrimitiveDataViewType itemType)
         {
             if (keyCount != null)
             {
@@ -411,11 +411,11 @@ namespace Microsoft.ML.Transforms.Conversions
                 }
             }
 
-            private static bool CanConvertToType(IExceptionContext ectx, DataViewType srcType, DataKind kind, KeyCount keyCount,
+            private static bool CanConvertToType(IExceptionContext ectx, DataViewType srcType, InternalDataKind kind, KeyCount keyCount,
                 out PrimitiveDataViewType itemType, out DataViewType typeDst)
             {
                 ectx.AssertValue(srcType);
-                ectx.Assert(Enum.IsDefined(typeof(DataKind), kind));
+                ectx.Assert(Enum.IsDefined(typeof(InternalDataKind), kind));
 
                 typeDst = null;
                 if (!GetNewType(ectx, srcType, kind, keyCount, out itemType))
@@ -572,7 +572,7 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 Name = name;
                 InputColumnName = inputColumnName ?? name;
-                if (!type.TryGetDataKind(out DataKind OutputKind))
+                if (!type.TryGetDataKind(out InternalDataKind OutputKind))
                     throw Contracts.ExceptUserArg(nameof(type), $"Unsupported type {type}.");
                 OutputType = OutputKind.ToScalarType();
                 OutputKeyCount = outputKeyCount;

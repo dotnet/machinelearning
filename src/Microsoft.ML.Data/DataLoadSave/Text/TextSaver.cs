@@ -503,7 +503,7 @@ namespace Microsoft.ML.Data.IO
             if (itemType is KeyType key)
                 keyCount = new KeyCount(key.Count);
 
-            DataKind kind = itemType.GetRawKind();
+            InternalDataKind kind = itemType.GetRawKind();
 
             TextLoader.Range[] source = null;
             TextLoader.Range range = null;

@@ -168,7 +168,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 isVectorType = true;
             }
 
-            if (!type.TryGetDataKind(out DataKind kind))
+            if (!type.TryGetDataKind(out InternalDataKind kind))
                 throw new InvalidOperationException($"Unsupported type {type} used in mapping.");
 
             return ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
@@ -733,7 +733,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 isVectorType = true;
             }
 
-            if (!type.TryGetDataKind(out DataKind kind))
+            if (!type.TryGetDataKind(out InternalDataKind kind))
                 throw Contracts.Except($"Unsupported type {type} used in mapping.");
 
             return ColumnTypeExtensions.PrimitiveTypeFromKind(kind);

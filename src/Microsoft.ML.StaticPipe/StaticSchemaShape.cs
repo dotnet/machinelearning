@@ -324,7 +324,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
         /// <summary>
         /// Note that this can return a different type than the actual physical representation type, for example, for
-        /// <see cref="DataKind.Text"/> the return type is <see cref="string"/>, even though we do not use that
+        /// <see cref="InternalDataKind.Text"/> the return type is <see cref="string"/>, even though we do not use that
         /// type for communicating text.
         /// </summary>
         /// <returns>The basic type used to represent an item type in the static pipeline</returns>

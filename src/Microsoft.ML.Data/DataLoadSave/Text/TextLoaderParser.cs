@@ -103,14 +103,14 @@ namespace Microsoft.ML.Data
                 return (Func<RowSet, ColumnPipe>)meth.Invoke(this, new object[] { key });
             }
 
-            public Func<RowSet, ColumnPipe> GetCreatorOne(DataKind kind)
+            public Func<RowSet, ColumnPipe> GetCreatorOne(InternalDataKind kind)
             {
                 int index = kind.ToIndex();
                 Contracts.Assert(0 <= index & index < _creatorsOne.Length);
                 return _creatorsOne[index];
             }
 
-            public Func<RowSet, ColumnPipe> GetCreatorVec(DataKind kind)
+            public Func<RowSet, ColumnPipe> GetCreatorVec(InternalDataKind kind)
             {
                 int index = kind.ToIndex();
                 Contracts.Assert(0 <= index & index < _creatorsOne.Length);
@@ -654,8 +654,8 @@ namespace Microsoft.ML.Data
                 _infos = parent._bindings.Infos;
                 _creator = new Func<RowSet, ColumnPipe>[_infos.Length];
                 var cache = ValueCreatorCache.Instance;
-                var mapOne = new Dictionary<DataKind, Func<RowSet, ColumnPipe>>();
-                var mapVec = new Dictionary<DataKind, Func<RowSet, ColumnPipe>>();
+                var mapOne = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();
+                var mapVec = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();
                 for (int i = 0; i < _creator.Length; i++)
                 {
                     var info = _infos[i];

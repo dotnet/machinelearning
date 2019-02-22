@@ -181,7 +181,7 @@ namespace Microsoft.ML.Transforms
                 // Add a ConvertTransform column if necessary.
                 if (!identity)
                 {
-                    if (!replaceItemType.RawType.TryGetDataKind(out DataKind replaceItemTypeKind))
+                    if (!replaceItemType.RawType.TryGetDataKind(out InternalDataKind replaceItemTypeKind))
                     {
                         throw h.Except("Cannot get a DataKind for type '{0}'", replaceItemType.RawType);
                     }

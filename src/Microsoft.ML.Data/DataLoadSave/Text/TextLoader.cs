@@ -77,10 +77,10 @@ namespace Microsoft.ML.Data
             /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="type"><see cref="DataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.</param>
+            /// <param name="type"><see cref="InternalDataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.</param>
             /// <param name="source">Source index range(s) of the column.</param>
             /// <param name="keyCount">For a key column, this defines the range of values.</param>
-            private Column(string name, DataKind? type, Range[] source, KeyCount keyCount = null)
+            private Column(string name, InternalDataKind? type, Range[] source, KeyCount keyCount = null)
             {
                 Contracts.CheckValue(name, nameof(name));
                 Contracts.CheckValue(source, nameof(source));
@@ -98,12 +98,12 @@ namespace Microsoft.ML.Data
             public string Name;
 
             /// <summary>
-            /// <see cref="DataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.
-            /// Although <see cref="DataKind"/> is internal, <see cref="Type"/>'s information can be publically accessed by <see cref="ItemType"/>.
+            /// <see cref="InternalDataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.
+            /// Although <see cref="InternalDataKind"/> is internal, <see cref="Type"/>'s information can be publically accessed by <see cref="ItemType"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Type of the items in the column")]
             [BestFriend]
-            internal DataKind? Type;
+            internal InternalDataKind? Type;
 
             /// <summary>
             /// <see cref="ScalarType"/> of the items in the column.
@@ -147,10 +147,10 @@ namespace Microsoft.ML.Data
                     return false;
                 if (rgstr.Length == 3)
                 {
-                    DataKind kind;
+                    InternalDataKind kind;
                     if (!TypeParsingUtils.TryParseDataKind(rgstr[istr++], out kind, out KeyCount))
                         return false;
-                    Type = kind == default ? default(DataKind?) : kind;
+                    Type = kind == default ? default(InternalDataKind?) : kind;
                 }
 
                 return TryParseSource(rgstr[istr++]);
@@ -551,7 +551,7 @@ namespace Microsoft.ML.Data
         {
             public readonly string Name;
             // REVIEW: Fix this for keys.
-            public readonly DataKind Kind;
+            public readonly InternalDataKind Kind;
             public readonly DataViewType ColType;
             public readonly Segment[] Segments;
 
@@ -711,15 +711,15 @@ namespace Microsoft.ML.Data
                             ch.Info("Duplicate name(s) specified - later columns will hide earlier ones");
 
                         PrimitiveDataViewType itemType;
-                        DataKind kind;
+                        InternalDataKind kind;
                         if (col.KeyCount != null)
                         {
                             itemType = TypeParsingUtils.ConstructKeyType(col.Type, col.KeyCount);
                         }
                         else
                         {
-                            kind = col.Type ?? DataKind.Num;
-                            ch.CheckUserArg(Enum.IsDefined(typeof(DataKind), kind), nameof(Column.Type), "Bad item type");
+                            kind = col.Type ?? InternalDataKind.Num;
+                            ch.CheckUserArg(Enum.IsDefined(typeof(InternalDataKind), kind), nameof(Column.Type), "Bad item type");
                             itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                         }
 
@@ -876,8 +876,8 @@ namespace Microsoft.ML.Data
                     string name = ctx.LoadNonEmptyString();
 
                     PrimitiveDataViewType itemType;
-                    var kind = (DataKind)ctx.Reader.ReadByte();
-                    Contracts.CheckDecode(Enum.IsDefined(typeof(DataKind), kind));
+                    var kind = (InternalDataKind)ctx.Reader.ReadByte();
+                    Contracts.CheckDecode(Enum.IsDefined(typeof(InternalDataKind), kind));
                     bool isKey = ctx.Reader.ReadBoolByte();
                     if (isKey)
                     {
@@ -963,8 +963,8 @@ namespace Microsoft.ML.Data
                     var info = Infos[iinfo];
                     ctx.SaveNonEmptyString(info.Name);
                     var type = info.ColType.GetItemType();
-                    DataKind rawKind = type.GetRawKind();
-                    Contracts.Assert((DataKind)(byte)rawKind == rawKind);
+                    InternalDataKind rawKind = type.GetRawKind();
+                    Contracts.Assert((InternalDataKind)(byte)rawKind == rawKind);
                     ctx.Writer.Write((byte)rawKind);
                     ctx.Writer.WriteBoolByte(type is KeyType);
                     if (type is KeyType key)
@@ -1480,7 +1480,7 @@ namespace Microsoft.ML.Data
                 var column = new Column();
                 column.Name = mappingAttrName?.Name ?? memberInfo.Name;
                 column.Source = mappingAttr.Sources.ToArray();
-                DataKind dk;
+                InternalDataKind dk;
                 switch (memberInfo)
                 {
                     case FieldInfo field:
