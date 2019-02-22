@@ -190,6 +190,18 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
+        /// Check that a <see cref="CalibratedBinaryClassificationMetrics"/> object is valid.
+        /// </summary>
+        /// <param name="metrics">The metrics object.</param>
+        public static void CheckMetrics(CalibratedBinaryClassificationMetrics metrics)
+        {
+            Assert.InRange(metrics.Entropy, double.NegativeInfinity, 1);
+            Assert.InRange(metrics.LogLoss, double.NegativeInfinity, 1);
+            Assert.InRange(metrics.LogLossReduction, double.NegativeInfinity, 100);
+            CheckMetrics(metrics as BinaryClassificationMetrics);
+        }
+
+        /// <summary>
         /// Check that a <see cref="ClusteringMetrics"/> object is valid.
         /// </summary>
         /// <param name="metrics">The metrics object.</param>
