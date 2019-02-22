@@ -26,7 +26,7 @@ namespace Microsoft.ML.SamplesUtils
         /// <summary>
         /// Pretty-print CalibratedBinaryClassificationMetrics objects.
         /// </summary>
-        /// <param name="metrics">Calibrated binary classification metrics.</param>
+        /// <param name="metrics"><see cref="CalibratedBinaryClassificationMetrics"/> object.</param>
         public static void PrintMetrics(CalibratedBinaryClassificationMetrics metrics)
         {
             PrintMetrics(metrics as BinaryClassificationMetrics);

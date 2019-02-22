@@ -2119,6 +2119,8 @@ namespace Microsoft.ML.Trainers
 
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training logistic regression using a parallel stochastic gradient method.
+    /// The trained model is <a href='tmpurl_calib'>calibrated</a> and can produce probability by feeding the output value of the
+    /// linear function to a <see cref="PlattCalibrator"/>.
     /// </summary>
     /// <remarks>
     /// The Stochastic Gradient Descent (SGD) is one of the popular stochastic optimization procedures that can be integrated

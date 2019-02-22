@@ -6,7 +6,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
     public static class StochasticGradientDescentWithOptions
     {
         // In this examples we will use the adult income dataset. The goal is to predict
-        // if a person's income is above $50K or not, based on different pieces of information about that person.
+        // if a person's income is above $50K or not, based on demographic information about that person.
         // For more details about this dataset, please see https://archive.ics.uci.edu/ml/datasets/adult.
         public static void Example()
         {
@@ -24,8 +24,11 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             // Define the trainer options.
             var options = new SgdBinaryTrainer.Options()
             {
-                MaxIterations = 30,
+                // Make the convergence tolerance tighter.
                 ConvergenceTolerance = 5e-5,
+                // Increase the maximum number of passes over training data.
+                MaxIterations = 30,
+                // Give the instances of the positive class slightly more weight.
                 PositiveInstanceWeight = 1.2f,
             };
 
