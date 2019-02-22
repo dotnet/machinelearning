@@ -6,29 +6,24 @@
 
 The CLI will be branded as the ML.NET CLI since this CLI will also have additional features in addition to AutoML features.
 
-The .NET AutoML API (.NET based) will be part of the ML.NET API.
+The .NET AutoML API (.NET based) will be part of the [ML.NET](https://github.com/dotnet/machinelearning) API.
 AutoML features will be used for certain important foundational features of the ML.NET CLI.
 
 This specs-doc focuses most of all on the CLI features related to AutoML, but it will also consider (in less detail) the scenarios where AutoML is not needed, so the CLI syntax will be consistent end-to-end for all the possible scenarios in the future. 
 
 # Problem to solve
 
-Customers (.NET developers) have tolds us through many channels that they can get started with ML.NET and follow the initial simple examples. However, as soon as they have to create their own model to solve their problems, they are blocked because they don't know what learner/algorithms are better for them to pick and use, what hyper-parameters to use or even what data transformations they need to do.
+Customers (.NET developers) have tolds us through many channels that they can get started with [ML.NET](https://github.com/dotnet/machinelearning) and follow the initial simple examples. However, as soon as they have to create their own model to solve their problems, they are blocked because they don't know what learner/algorithms are better for them to pick and use, what hyper-parameters to use or even what data transformations they need to do.
 
 The subset of .NET developers who at the same time are skilled on data science and machine learning in general is very small compared to the total number of regular .NET developers.
 
-We need a way to enable regular .NET developers to easily use ML.NET to create custom models solving typical ML scenarios in the enterprise. 
+We need a way to enable regular .NET developers to easily use [ML.NET](https://github.com/dotnet/machinelearning) to create custom models solving typical ML scenarios in the enterprise. 
 
-If we don't provide a really simple way to use ML.NET for regular developers (almost no data science knowledge at all), then we won't be able to really "democratize" machine learning for .NET developers. 
+If we don't provide a really simple way to use [ML.NET](https://github.com/dotnet/machinelearning) for regular developers (almost no data science knowledge at all), then we won't be able to really "democratize" machine learning for .NET developers. 
 
 ## Evidence
 
-Sample feedback:
-
-ML.NET survey:
-https://www.surveymonkey.com/results/SM-LD5XVDJCV/
-
-Quotes:
+Sample feedback and quotes:
 
 - *"My blocking issues?: Understanding the pros and cons of various classifiers that are available in libraries and how best to use a  combination. What shoud I use?"*
 
