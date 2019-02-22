@@ -168,26 +168,4 @@ namespace Microsoft.ML.Data
             return SchemaShape.Create(transformer.GetOutputSchema(fakeSchema));
         }
     }
-
-    /// <summary>
-    /// Estimator for untrained wrapped transformers.
-    /// </summary>
-    public abstract class TrivialWrapperEstimator : TrivialEstimator<TransformWrapper>
-    {
-        protected TrivialWrapperEstimator(IHost host, TransformWrapper transformer)
-            : base(host, transformer)
-        {
-        }
-
-        /// <summary>
-        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
-        /// Used for schema propagation and verification in a pipeline.
-        /// </summary>
-        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
-        {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
-            var fakeSchema = FakeSchemaFactory.Create(inputSchema);
-            return SchemaShape.Create(Transformer.GetOutputSchema(fakeSchema));
-        }
-    }
 }

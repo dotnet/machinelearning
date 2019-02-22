@@ -4,7 +4,6 @@
 
 using System;
 using Microsoft.ML.EntryPoints;
-using Float = System.Single;
 
 namespace Microsoft.ML
 {
@@ -17,12 +16,12 @@ namespace Microsoft.ML
         Double Loss(TOutput output, TLabel label);
     }
 
-    public interface IScalarOutputLoss : ILossFunction<Float, Float>
+    public interface IScalarOutputLoss : ILossFunction<float, float>
     {
         /// <summary>
         /// Derivative of the loss function with respect to output
         /// </summary>
-        Float Derivative(Float output, Float label);
+        float Derivative(float output, float label);
     }
 
     [TlcModule.ComponentKind("RegressionLossFunction")]
@@ -46,10 +45,10 @@ namespace Microsoft.ML
     /// <summary>
     /// Delegate signature for standardized classification loss functions.
     /// </summary>
-    public delegate void SignatureClassificationLoss();
+    internal delegate void SignatureClassificationLoss();
 
     /// <summary>
     /// Delegate signature for standardized regression loss functions.
     /// </summary>
-    public delegate void SignatureRegressionLoss();
+    internal delegate void SignatureRegressionLoss();
 }
