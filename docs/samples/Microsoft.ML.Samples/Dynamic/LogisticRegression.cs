@@ -37,21 +37,21 @@ namespace Microsoft.ML.Samples.Dynamic
                 HasHeader = true,
                 Columns = new[]
                 {
-                    new TextLoader.Column("age", ScalarType.Single, 0),
-                    new TextLoader.Column("workclass", ScalarType.String, 1),
-                    new TextLoader.Column("fnlwgt", ScalarType.Single, 2),
-                    new TextLoader.Column("education", ScalarType.String, 3),
-                    new TextLoader.Column("education-num", ScalarType.Single, 4),
-                    new TextLoader.Column("marital-status", ScalarType.String, 5),
-                    new TextLoader.Column("occupation", ScalarType.String, 6),
-                    new TextLoader.Column("relationship", ScalarType.String, 7),
-                    new TextLoader.Column("ethnicity", ScalarType.String, 8),
-                    new TextLoader.Column("sex", ScalarType.String, 9),
-                    new TextLoader.Column("capital-gain", ScalarType.Single, 10),
-                    new TextLoader.Column("capital-loss", ScalarType.Single, 11),
-                    new TextLoader.Column("hours-per-week", ScalarType.Single, 12),
-                    new TextLoader.Column("native-country", ScalarType.String, 13),
-                    new TextLoader.Column("Label", ScalarType.Boolean, 14)
+                    new TextLoader.Column("age", DataKind.Single, 0),
+                    new TextLoader.Column("workclass", DataKind.String, 1),
+                    new TextLoader.Column("fnlwgt", DataKind.Single, 2),
+                    new TextLoader.Column("education", DataKind.String, 3),
+                    new TextLoader.Column("education-num", DataKind.Single, 4),
+                    new TextLoader.Column("marital-status", DataKind.String, 5),
+                    new TextLoader.Column("occupation", DataKind.String, 6),
+                    new TextLoader.Column("relationship", DataKind.String, 7),
+                    new TextLoader.Column("ethnicity", DataKind.String, 8),
+                    new TextLoader.Column("sex", DataKind.String, 9),
+                    new TextLoader.Column("capital-gain", DataKind.Single, 10),
+                    new TextLoader.Column("capital-loss", DataKind.Single, 11),
+                    new TextLoader.Column("hours-per-week", DataKind.Single, 12),
+                    new TextLoader.Column("native-country", DataKind.String, 13),
+                    new TextLoader.Column("Label", DataKind.Boolean, 14)
                 }
             });
 

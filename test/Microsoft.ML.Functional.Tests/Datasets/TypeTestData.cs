@@ -10,7 +10,7 @@ using Microsoft.ML.Data;
 namespace Microsoft.ML.Functional.Tests.Datasets
 {
     /// <summary>
-    /// A class containing one property per <see cref="ScalarType"/>.
+    /// A class containing one property per <see cref="DataKind"/>.
     /// </summary>
     /// <remarks>
     /// This class has annotations for automatic deserialization from a file, and contains helper methods
@@ -79,22 +79,22 @@ namespace Microsoft.ML.Functional.Tests.Datasets
         {
             return mlContext.Data.CreateTextLoader(
                     new[] {
-                        new TextLoader.Column("Label", ScalarType.Boolean, 0),
-                        new TextLoader.Column("I1", ScalarType.SByte, 1),
-                        new TextLoader.Column("U1", ScalarType.Byte, 2),
-                        new TextLoader.Column("I2", ScalarType.Int16, 3),
-                        new TextLoader.Column("U2", ScalarType.UInt16, 4),
-                        new TextLoader.Column("I4", ScalarType.Int32, 5),
-                        new TextLoader.Column("U4", ScalarType.UInt32, 6),
-                        new TextLoader.Column("I8", ScalarType.Int64, 7),
-                        new TextLoader.Column("U8", ScalarType.UInt64, 8),
-                        new TextLoader.Column("R4", ScalarType.Single, 9),
-                        new TextLoader.Column("R8", ScalarType.Double, 10),
-                        new TextLoader.Column("Tx", ScalarType.String, 11),
-                        new TextLoader.Column("Ts", ScalarType.TimeSpan, 12),
-                        new TextLoader.Column("Dt", ScalarType.DateTime, 13),
-                        new TextLoader.Column("Dz", ScalarType.DateTimeOffset, 14),
-                        new TextLoader.Column("Features", ScalarType.Single, 15, 15 + _numFeatures - 1),
+                        new TextLoader.Column("Label", DataKind.Boolean, 0),
+                        new TextLoader.Column("I1", DataKind.SByte, 1),
+                        new TextLoader.Column("U1", DataKind.Byte, 2),
+                        new TextLoader.Column("I2", DataKind.Int16, 3),
+                        new TextLoader.Column("U2", DataKind.UInt16, 4),
+                        new TextLoader.Column("I4", DataKind.Int32, 5),
+                        new TextLoader.Column("U4", DataKind.UInt32, 6),
+                        new TextLoader.Column("I8", DataKind.Int64, 7),
+                        new TextLoader.Column("U8", DataKind.UInt64, 8),
+                        new TextLoader.Column("R4", DataKind.Single, 9),
+                        new TextLoader.Column("R8", DataKind.Double, 10),
+                        new TextLoader.Column("Tx", DataKind.String, 11),
+                        new TextLoader.Column("Ts", DataKind.TimeSpan, 12),
+                        new TextLoader.Column("Dt", DataKind.DateTime, 13),
+                        new TextLoader.Column("Dz", DataKind.DateTimeOffset, 14),
+                        new TextLoader.Column("Features", DataKind.Single, 15, 15 + _numFeatures - 1),
                     },
                     separatorChar: separator,
                     hasHeader: true,

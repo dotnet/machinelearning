@@ -30,8 +30,8 @@ namespace Microsoft.ML.Tests
                 Separator = "\t",
                 Columns = new[]
                 {
-                    new TextLoader.Column("Label", ScalarType.Single, 0),
-                    new TextLoader.Column(featureColumn, ScalarType.Single, new [] { new TextLoader.Range(1, 784) })
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column(featureColumn, DataKind.Single, new [] { new TextLoader.Range(1, 784) })
                 },
                 AllowSparse = true
             });

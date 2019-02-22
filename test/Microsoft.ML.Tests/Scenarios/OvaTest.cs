@@ -23,8 +23,8 @@ namespace Microsoft.ML.Scenarios
             {
                 Columns = new[]
                         {
-                            new TextLoader.Column("Label", ScalarType.Single, 0),
-                            new TextLoader.Column("Features", ScalarType.Single, new [] { new TextLoader.Range(1, 4) }),
+                            new TextLoader.Column("Label", DataKind.Single, 0),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
 
@@ -55,8 +55,8 @@ namespace Microsoft.ML.Scenarios
             {
                 Columns = new[]
                         {
-                            new TextLoader.Column("Label", ScalarType.Single, 0),
-                            new TextLoader.Column("Features", ScalarType.Single, new [] { new TextLoader.Range(1, 4) }),
+                            new TextLoader.Column("Label", DataKind.Single, 0),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
 
@@ -88,8 +88,8 @@ namespace Microsoft.ML.Scenarios
             {
                 Columns = new[]
                         {
-                            new TextLoader.Column("Label", ScalarType.Single, 0),
-                            new TextLoader.Column("Features", ScalarType.Single, new [] { new TextLoader.Range(1, 4) }),
+                            new TextLoader.Column("Label", DataKind.Single, 0),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
 
@@ -121,8 +121,8 @@ namespace Microsoft.ML.Scenarios
             {
                 Columns = new[]
                         {
-                            new TextLoader.Column("Label", ScalarType.Single, 0),
-                            new TextLoader.Column("Features", ScalarType.Single, new [] { new TextLoader.Range(1, 4) }),
+                            new TextLoader.Column("Label", DataKind.Single, 0),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
 

@@ -29,7 +29,7 @@ namespace Microsoft.ML.Data
     /// <item><description><see cref="DateTimeOffset"/>: type of <see cref="System.DateTimeOffset"/>.</description></item>
     /// </list>
     /// </remarks>
-    public enum ScalarType : byte
+    public enum DataKind : byte
     {
         SByte = 1,
         Byte = 2,
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Data
     }
 
     /// <summary>
-    /// Data type specifier used in command line. <see cref="InternalDataKind"/> is the underlying version of <see cref="ScalarType"/>
+    /// Data type specifier used in command line. <see cref="InternalDataKind"/> is the underlying version of <see cref="DataKind"/>
     /// used for command line and entry point BC.
     /// </summary>
     [BestFriend]
@@ -60,31 +60,31 @@ namespace Microsoft.ML.Data
         // * We intentionally skip zero.
         // * Some code depends on sizeof(DataKind) == sizeof(byte).
 
-        I1 = ScalarType.SByte,
-        U1 = ScalarType.Byte,
-        I2 = ScalarType.Int16,
-        U2 = ScalarType.UInt16,
-        I4 = ScalarType.Int32,
-        U4 = ScalarType.UInt32,
-        I8 = ScalarType.Int64,
-        U8 = ScalarType.UInt64,
-        R4 = ScalarType.Single,
-        R8 = ScalarType.Double,
+        I1 = DataKind.SByte,
+        U1 = DataKind.Byte,
+        I2 = DataKind.Int16,
+        U2 = DataKind.UInt16,
+        I4 = DataKind.Int32,
+        U4 = DataKind.UInt32,
+        I8 = DataKind.Int64,
+        U8 = DataKind.UInt64,
+        R4 = DataKind.Single,
+        R8 = DataKind.Double,
         Num = R4,
 
-        TX = ScalarType.String,
+        TX = DataKind.String,
 #pragma warning disable MSML_GeneralName // The data kind enum has its own logic, independent of C# naming conventions.
         TXT = TX,
         Text = TX,
 
-        BL = ScalarType.Boolean,
+        BL = DataKind.Boolean,
         Bool = BL,
 
-        TS = ScalarType.TimeSpan,
+        TS = DataKind.TimeSpan,
         TimeSpan = TS,
-        DT = ScalarType.DateTime,
+        DT = DataKind.DateTime,
         DateTime = DT,
-        DZ = ScalarType.DateTimeOffset,
+        DZ = DataKind.DateTimeOffset,
         DateTimeZone = DZ,
 
         UG = 16, // Unsigned 16-byte integer.
@@ -120,20 +120,20 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// This function converts <paramref name="scalarType"/> to <see cref="InternalDataKind"/>.
-        /// Because <see cref="ScalarType"/> is a subset of <see cref="InternalDataKind"/>, the conversion is straightforward.
+        /// This function converts <paramref name="dataKind"/> to <see cref="InternalDataKind"/>.
+        /// Because <see cref="DataKind"/> is a subset of <see cref="InternalDataKind"/>, the conversion is straightforward.
         /// </summary>
-        public static InternalDataKind ToDataKind(this ScalarType scalarType) => (InternalDataKind)scalarType;
+        public static InternalDataKind ToDataKind(this DataKind dataKind) => (InternalDataKind)dataKind;
 
         /// <summary>
-        /// This function converts <paramref name="kind"/> to <see cref="ScalarType"/>.
-        /// Because <see cref="ScalarType"/> is a subset of <see cref="InternalDataKind"/>, we should check if <paramref name="kind"/>
-        /// can be found in <see cref="ScalarType"/>.
+        /// This function converts <paramref name="kind"/> to <see cref="DataKind"/>.
+        /// Because <see cref="DataKind"/> is a subset of <see cref="InternalDataKind"/>, we should check if <paramref name="kind"/>
+        /// can be found in <see cref="DataKind"/>.
         /// </summary>
-        public static ScalarType ToScalarType(this InternalDataKind kind)
+        public static DataKind ToScalarType(this InternalDataKind kind)
         {
             Contracts.Check(kind != InternalDataKind.UG);
-            return (ScalarType)kind;
+            return (DataKind)kind;
         }
 
         /// <summary>

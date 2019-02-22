@@ -17,11 +17,11 @@ namespace Microsoft.ML.Scenarios
 
             var reader = mlContext.Data.CreateTextLoader(columns: new[]
                 {
-                    new TextLoader.Column("SepalLength", ScalarType.Single, 0),
-                    new TextLoader.Column("SepalWidth", ScalarType.Single, 1),
-                    new TextLoader.Column("PetalLength", ScalarType.Single, 2),
-                    new TextLoader.Column("PetalWidth", ScalarType.Single, 3),
-                    new TextLoader.Column("IrisPlantType", ScalarType.String, 4),
+                    new TextLoader.Column("SepalLength", DataKind.Single, 0),
+                    new TextLoader.Column("SepalWidth", DataKind.Single, 1),
+                    new TextLoader.Column("PetalLength", DataKind.Single, 2),
+                    new TextLoader.Column("PetalWidth", DataKind.Single, 3),
+                    new TextLoader.Column("IrisPlantType", DataKind.String, 4),
                 },
                 separatorChar: ','
             );

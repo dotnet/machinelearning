@@ -50,8 +50,8 @@ namespace Microsoft.ML.Tests.Transformers
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
             var source = new MultiFileSource(dataPath);
             var loader = ML.Data.CreateTextLoader(new[] {
-                    new TextLoader.Column("Float1", ScalarType.Single, 9),
-                    new TextLoader.Column("Float4", ScalarType.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) })
+                    new TextLoader.Column("Float1", DataKind.Single, 9),
+                    new TextLoader.Column("Float4", DataKind.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) })
             }, hasHeader: true);
 
             var data = loader.Read(source);
@@ -90,9 +90,9 @@ namespace Microsoft.ML.Tests.Transformers
             string dataPath = GetDataPath("adult.test");
             var source = new MultiFileSource(dataPath);
             var loader = ML.Data.CreateTextLoader(new[] {
-                    new TextLoader.Column("Float1", ScalarType.Single, 0),
-                    new TextLoader.Column("Float4", ScalarType.Single, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
-                    new TextLoader.Column("Text1", ScalarType.String, 0)
+                    new TextLoader.Column("Float1", DataKind.Single, 0),
+                    new TextLoader.Column("Float4", DataKind.Single, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
+                    new TextLoader.Column("Text1", DataKind.String, 0)
             }, separatorChar: ',', hasHeader: true);
 
             var data = loader.Read(source);

@@ -57,13 +57,13 @@ namespace Microsoft.ML.Tests
             var loader = new TextLoader(ML, new TextLoader.Options
             {
                 Columns = new[]{
-                    new TextLoader.Column("float1", ScalarType.Single, 9),
-                    new TextLoader.Column("float4", ScalarType.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
-                    new TextLoader.Column("double1", ScalarType.Double, 9),
-                    new TextLoader.Column("double4", ScalarType.Double, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
-                    new TextLoader.Column("int1", ScalarType.Int32, 9),
-                    new TextLoader.Column("text1", ScalarType.String, 1),
-                    new TextLoader.Column("text2", ScalarType.String, new[]{new TextLoader.Range(1), new TextLoader.Range(2)}),
+                    new TextLoader.Column("float1", DataKind.Single, 9),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("double1", DataKind.Double, 9),
+                    new TextLoader.Column("double4", DataKind.Double, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("int1", DataKind.Int32, 9),
+                    new TextLoader.Column("text1", DataKind.String, 1),
+                    new TextLoader.Column("text2", DataKind.String, new[]{new TextLoader.Range(1), new TextLoader.Range(2)}),
                 },
                 Separator = "\t",
                 HasHeader = true

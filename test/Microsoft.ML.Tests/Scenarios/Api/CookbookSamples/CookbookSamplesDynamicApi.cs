@@ -279,8 +279,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Define the reader: specify the data columns and where to find them in the text file.
             var reader = mlContext.Data.CreateTextLoader(new[]
                 {
-                    new TextLoader.Column("IsToxic", ScalarType.Boolean, 0),
-                    new TextLoader.Column("Message", ScalarType.String, 1),
+                    new TextLoader.Column("IsToxic", DataKind.Boolean, 0),
+                    new TextLoader.Column("Message", DataKind.String, 1),
                 },
                 hasHeader: true
             );
@@ -346,13 +346,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Define the reader: specify the data columns and where to find them in the text file.
             var reader = mlContext.Data.CreateTextLoader(new[]
                 {
-                    new TextLoader.Column("Label", ScalarType.Boolean, 0),
+                    new TextLoader.Column("Label", DataKind.Boolean, 0),
                     // We will load all the categorical features into one vector column of size 8.
-                    new TextLoader.Column("CategoricalFeatures", ScalarType.String, 1, 8),
+                    new TextLoader.Column("CategoricalFeatures", DataKind.String, 1, 8),
                     // Similarly, load all numerical features into one vector of size 6.
-                    new TextLoader.Column("NumericalFeatures", ScalarType.Single, 9, 14),
+                    new TextLoader.Column("NumericalFeatures", DataKind.Single, 9, 14),
                     // Let's also separately load the 'Workclass' column.
-                    new TextLoader.Column("Workclass", ScalarType.String, 1),
+                    new TextLoader.Column("Workclass", DataKind.String, 1),
                 },
                 hasHeader: true
             );
@@ -479,8 +479,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
             var data = mlContext.Data.ReadFromTextFile(GetDataPath("adult.tiny.with-schema.txt"), new[]
             {
-                new TextLoader.Column("Income", ScalarType.Single, 10),
-                new TextLoader.Column("Features", ScalarType.Single, 12, 14)
+                new TextLoader.Column("Income", DataKind.Single, 10),
+                new TextLoader.Column("Features", DataKind.Single, 12, 14)
             }, hasHeader: true);
 
             PrepareData(mlContext, data);

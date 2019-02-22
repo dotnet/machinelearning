@@ -69,11 +69,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 HasHeader = false,
                 Columns = new[]
                 {
-                    new TextLoader.Column("Feature1", ScalarType.Single, new [] { new TextLoader.Range(1, 2) }),
-                    new TextLoader.Column("Feature2", ScalarType.Single, new [] { new TextLoader.Range(3, 4) }),
-                    new TextLoader.Column("Feature3", ScalarType.Single, new [] { new TextLoader.Range(5, 6) }),
-                    new TextLoader.Column("Feature4", ScalarType.Single, new [] { new TextLoader.Range(7, 9) }),
-                    new TextLoader.Column("Label", ScalarType.Boolean, 0)
+                    new TextLoader.Column("Feature1", DataKind.Single, new [] { new TextLoader.Range(1, 2) }),
+                    new TextLoader.Column("Feature2", DataKind.Single, new [] { new TextLoader.Range(3, 4) }),
+                    new TextLoader.Column("Feature3", DataKind.Single, new [] { new TextLoader.Range(5, 6) }),
+                    new TextLoader.Column("Feature4", DataKind.Single, new [] { new TextLoader.Range(7, 9) }),
+                    new TextLoader.Column("Label", DataKind.Boolean, 0)
                 }
             };
         }

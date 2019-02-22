@@ -741,7 +741,7 @@ namespace Microsoft.ML.Transforms.Text
                         Host,
                         columns: new[]
                         {
-                            new TextLoader.Column(stopwordsCol, ScalarType.String, 0)
+                            new TextLoader.Column(stopwordsCol, DataKind.String, 0)
                         },
                         dataSample: fileSource).Read(fileSource) as IDataLoader;
                 }

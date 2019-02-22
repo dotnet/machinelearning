@@ -49,10 +49,10 @@ namespace Microsoft.ML.Data
             /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="type"><see cref="ScalarType"/> of the items in the column.</param>
+            /// <param name="dataKind"><see cref="DataKind"/> of the items in the column.</param>
             /// <param name="index">Index of the column.</param>
-            public Column(string name, ScalarType type, int index)
-                : this(name, type.ToDataKind(), new[] { new Range(index) })
+            public Column(string name, DataKind dataKind, int index)
+                : this(name, dataKind.ToDataKind(), new[] { new Range(index) })
             {
             }
 
@@ -60,16 +60,16 @@ namespace Microsoft.ML.Data
             /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="type"><see cref="ScalarType"/> of the items in the column.</param>
+            /// <param name="dataKind"><see cref="DataKind"/> of the items in the column.</param>
             /// <param name="minIndex">The minimum inclusive index of the column.</param>
             /// <param name="maxIndex">The maximum-inclusive index of the column.</param>
-            public Column(string name, ScalarType type, int minIndex, int maxIndex)
-                : this(name, type.ToDataKind(), new[] { new Range(minIndex, maxIndex) })
+            public Column(string name, DataKind dataKind, int minIndex, int maxIndex)
+                : this(name, dataKind.ToDataKind(), new[] { new Range(minIndex, maxIndex) })
             {
             }
 
-            public Column(string name, ScalarType type, Range[] source, KeyCount keyCount = null)
-                : this(name, type.ToDataKind(), source, keyCount)
+            public Column(string name, DataKind dataKind, Range[] source, KeyCount keyCount = null)
+                : this(name, dataKind.ToDataKind(), source, keyCount)
             {
             }
 
@@ -77,16 +77,16 @@ namespace Microsoft.ML.Data
             /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="type"><see cref="InternalDataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.</param>
+            /// <param name="kind"><see cref="InternalDataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.</param>
             /// <param name="source">Source index range(s) of the column.</param>
             /// <param name="keyCount">For a key column, this defines the range of values.</param>
-            private Column(string name, InternalDataKind? type, Range[] source, KeyCount keyCount = null)
+            private Column(string name, InternalDataKind? kind, Range[] source, KeyCount keyCount = null)
             {
                 Contracts.CheckValue(name, nameof(name));
                 Contracts.CheckValue(source, nameof(source));
 
                 Name = name;
-                Type = type;
+                Type = kind;
                 Source = source;
                 KeyCount = keyCount;
             }
@@ -106,10 +106,10 @@ namespace Microsoft.ML.Data
             internal InternalDataKind? Type;
 
             /// <summary>
-            /// <see cref="ScalarType"/> of the items in the column.
+            /// <see cref="DataKind"/> of the items in the column.
             /// </summary>
             /// It's a public interface to access the information in an internal DataKind.
-            public ScalarType ItemType => Type.HasValue ? Type.Value.ToScalarType() : ScalarType.Single;
+            public DataKind ItemType => Type.HasValue ? Type.Value.ToScalarType() : DataKind.Single;
 
             /// <summary>
             /// Source index range(s) of the column.

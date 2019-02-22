@@ -46,10 +46,10 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="outputType">The expected type of the converted column.</param>
+        /// <param name="outputKind">The expected kind of the output column.</param>
         public static TypeConvertingEstimator ConvertType(this TransformsCatalog.ConversionTransforms catalog, string outputColumnName, string inputColumnName = null,
-            ScalarType outputType = ConvertDefaults.DefaultOutputKind)
-            => new TypeConvertingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, outputType);
+            DataKind outputKind = ConvertDefaults.DefaultOutputKind)
+            => new TypeConvertingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, outputKind);
 
         /// <summary>
         /// Changes column type of the input column.

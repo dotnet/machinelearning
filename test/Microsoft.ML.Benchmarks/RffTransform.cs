@@ -34,8 +34,8 @@ namespace Microsoft.ML.Benchmarks
             {
                 Columns = new[]
                 {
-                    new TextLoader.Column("Label", ScalarType.Single, 64),
-                    new TextLoader.Column("Features", ScalarType.Single, new[] {new TextLoader.Range() {Min = 0, Max = 63}})
+                    new TextLoader.Column("Label", DataKind.Single, 64),
+                    new TextLoader.Column("Features", DataKind.Single, new[] {new TextLoader.Range() {Min = 0, Max = 63}})
                 },
                 HasHeader = false,
                 Separators = new[] {','}

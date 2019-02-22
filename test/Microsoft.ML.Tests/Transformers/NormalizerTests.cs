@@ -35,12 +35,12 @@ namespace Microsoft.ML.Tests.Transformers
             var loader = new TextLoader(Env, new TextLoader.Options
             {
                 Columns = new[] {
-                    new TextLoader.Column("float1", ScalarType.Single, 1),
-                    new TextLoader.Column("float4", ScalarType.Single, new[]{new TextLoader.Range(1, 4) }),
-                    new TextLoader.Column("double1", ScalarType.Double, 1),
-                    new TextLoader.Column("double4", ScalarType.Double, new[]{new TextLoader.Range(1, 4) }),
-                    new TextLoader.Column("int1", ScalarType.Int32, 0),
-                    new TextLoader.Column("float0", ScalarType.Single, new[]{ new TextLoader.Range { Min = 1, VariableEnd = true } }),
+                    new TextLoader.Column("float1", DataKind.Single, 1),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("double1", DataKind.Double, 1),
+                    new TextLoader.Column("double4", DataKind.Double, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("int1", DataKind.Int32, 0),
+                    new TextLoader.Column("float0", DataKind.Single, new[]{ new TextLoader.Range { Min = 1, VariableEnd = true } }),
                 },
                 HasHeader = true
             }, new MultiFileSource(dataPath));
@@ -100,12 +100,12 @@ namespace Microsoft.ML.Tests.Transformers
             var loader = new TextLoader(Env, new TextLoader.Options
             {
                 Columns = new[] {
-                    new TextLoader.Column("float1", ScalarType.Single, 1),
-                    new TextLoader.Column("float4", ScalarType.Single, new[]{new TextLoader.Range(1, 4) }),
-                    new TextLoader.Column("double1", ScalarType.Double, 1),
-                    new TextLoader.Column("double4", ScalarType.Double, new[]{new TextLoader.Range(1, 4) }),
-                    new TextLoader.Column("int1", ScalarType.Int32, 0),
-                    new TextLoader.Column("float0", ScalarType.Single, new[]{ new TextLoader.Range { Min = 1, VariableEnd = true } })
+                    new TextLoader.Column("float1", DataKind.Single, 1),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("double1", DataKind.Double, 1),
+                    new TextLoader.Column("double4", DataKind.Double, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("int1", DataKind.Int32, 0),
+                    new TextLoader.Column("float0", DataKind.Single, new[]{ new TextLoader.Range { Min = 1, VariableEnd = true } })
                 },
                 HasHeader = true
             }, new MultiFileSource(dataPath));
@@ -217,8 +217,8 @@ namespace Microsoft.ML.Tests.Transformers
             var loader = new TextLoader(Env, new TextLoader.Options
             {
                 Columns = new[] {
-                    new TextLoader.Column("Label", ScalarType.Single, 0),
-                    new TextLoader.Column("float4", ScalarType.Single, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(1, 4) }),
                 }
             });
 

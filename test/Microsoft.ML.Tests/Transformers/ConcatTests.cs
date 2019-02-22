@@ -27,10 +27,10 @@ namespace Microsoft.ML.Tests.Transformers
             var loader = new TextLoader(ML, new TextLoader.Options
             {
                 Columns = new[]{
-                    new TextLoader.Column("float1", ScalarType.Single, 9),
-                    new TextLoader.Column("float4", ScalarType.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
-                    new TextLoader.Column("float6", ScalarType.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, 14) }),
-                    new TextLoader.Column("vfloat", ScalarType.Single, new[]{new TextLoader.Range(14, null) { AutoEnd = false, VariableEnd = true } })
+                    new TextLoader.Column("float1", DataKind.Single, 9),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("float6", DataKind.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, 14) }),
+                    new TextLoader.Column("vfloat", DataKind.Single, new[]{new TextLoader.Range(14, null) { AutoEnd = false, VariableEnd = true } })
                 },
                 Separator = "\t",
                 HasHeader = true
@@ -85,9 +85,9 @@ namespace Microsoft.ML.Tests.Transformers
             var loader = new TextLoader(ML, new TextLoader.Options
             {
                 Columns = new[]{
-                    new TextLoader.Column("float1", ScalarType.Single, 9),
-                    new TextLoader.Column("float4", ScalarType.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
-                    new TextLoader.Column("vfloat", ScalarType.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, null) { AutoEnd = false, VariableEnd = true } })
+                    new TextLoader.Column("float1", DataKind.Single, 9),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("vfloat", DataKind.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, null) { AutoEnd = false, VariableEnd = true } })
                 },
                 Separator = "\t",
                 HasHeader = true

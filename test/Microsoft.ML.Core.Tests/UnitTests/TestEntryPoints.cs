@@ -56,8 +56,8 @@ namespace Microsoft.ML.RunTests
                 {
                     Columns = new[]
                     {
-                        new TextLoader.Column("Label", ScalarType.Single, 0),
-                        new TextLoader.Column("Features", ScalarType.Single,
+                        new TextLoader.Column("Label", DataKind.Single, 0),
+                        new TextLoader.Column("Features", DataKind.Single,
                             new [] { new TextLoader.Range(1, 9) })
                     }
                 },
@@ -77,10 +77,10 @@ namespace Microsoft.ML.RunTests
                     HasHeader = true,
                     Columns = new[]
                     {
-                        new TextLoader.Column("Label", ScalarType.Single, 0),
-                        new TextLoader.Column("F1", ScalarType.String, 1),
-                        new TextLoader.Column("F2", ScalarType.Int32, 2),
-                        new TextLoader.Column("Rest", ScalarType.Single, new [] { new TextLoader.Range(3, 9) })
+                        new TextLoader.Column("Label", DataKind.Single, 0),
+                        new TextLoader.Column("F1", DataKind.String, 1),
+                        new TextLoader.Column("F2", DataKind.Int32, 2),
+                        new TextLoader.Column("Rest", DataKind.Single, new [] { new TextLoader.Range(3, 9) })
                     }
                 },
 
@@ -965,8 +965,8 @@ namespace Microsoft.ML.RunTests
                     HasHeader = true,
                     Columns = new[]
                     {
-                        new TextLoader.Column("Label", ScalarType.String, 0),
-                        new TextLoader.Column("Text", ScalarType.String, 3)
+                        new TextLoader.Column("Label", DataKind.String, 0),
+                        new TextLoader.Column("Text", DataKind.String, 3)
                     }
                 },
 
@@ -1176,8 +1176,8 @@ namespace Microsoft.ML.RunTests
                 {
                     Columns = new[]
                     {
-                        new TextLoader.Column("Label", ScalarType.Single, 0),
-                        new TextLoader.Column("Features", ScalarType.Single, new [] { new TextLoader.Range(1, 4) })
+                        new TextLoader.Column("Label", DataKind.Single, 0),
+                        new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) })
                     }
                 },
 
@@ -1322,9 +1322,9 @@ namespace Microsoft.ML.RunTests
                         {
                             Columns = new[]
                             {
-                                new TextLoader.Column("Label", ScalarType.Single, 0),
-                                new TextLoader.Column("Features", ScalarType.Single, new[] { new TextLoader.Range(1, 8) }),
-                                new TextLoader.Column("Cat", ScalarType.String, 9)
+                                new TextLoader.Column("Label", DataKind.Single, 0),
+                                new TextLoader.Column("Features", DataKind.Single, new[] { new TextLoader.Range(1, 8) }),
+                                new TextLoader.Column("Cat", DataKind.String, 9)
                             },
                             HasHeader = true,
                         }
@@ -3330,8 +3330,8 @@ namespace Microsoft.ML.RunTests
                     HasHeader = true,
                     Columns = new[]
                     {
-                        new TextLoader.Column("Label", ScalarType.Single, 0),
-                        new TextLoader.Column("Features", ScalarType.Single, new [] { new TextLoader.Range(1, 9) })
+                        new TextLoader.Column("Label", DataKind.Single, 0),
+                        new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 9) })
                     }
                 },
 
@@ -3405,7 +3405,7 @@ namespace Microsoft.ML.RunTests
                     HasHeader = false,
                     Columns = new[]
                     {
-                        new TextLoader.Column("Features", ScalarType.Single, new [] { new TextLoader.Range(1, 784) })
+                        new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 784) })
                     }
                 },
 
@@ -3618,7 +3618,7 @@ namespace Microsoft.ML.RunTests
                     Separators = new []{' '},
                     Columns = new[]
                     {
-                        new TextLoader.Column("Text", ScalarType.String,
+                        new TextLoader.Column("Text", DataKind.String,
                             new [] { new TextLoader.Range() { Min = 0, VariableEnd=true, ForceVector=true} })
                     }
                 },
