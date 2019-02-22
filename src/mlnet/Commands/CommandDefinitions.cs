@@ -93,7 +93,7 @@ namespace Microsoft.ML.CLI.Commands
 
             Option OutputPath() =>
               new Option(new List<string>() { "--output-path" }, "Output folder path.",
-             new Argument<DirectoryInfo>(defaultValue: new DirectoryInfo(".\\Sample")));
+             new Argument<DirectoryInfo>(defaultValue: new DirectoryInfo(".")));
 
             Option HasHeader() =>
              new Option(new List<string>() { "--has-header" }, "Specifies if the dataset has header or not.",

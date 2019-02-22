@@ -83,7 +83,7 @@ namespace MyNamespace
             return trainedModel;
         }
 
-        // (OPTIONAL) Try/test a single prediction by loding the model from the file, first.
+        // (OPTIONAL) Try/test a single prediction by loading the model from the file, first.
         private static void TestSinglePrediction(MLContext mlContext)
         {
             //Load data to test. Could be any test data. For demonstration purpose train data is used here.

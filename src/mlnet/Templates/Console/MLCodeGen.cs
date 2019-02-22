@@ -109,9 +109,6 @@ if(!string.IsNullOrEmpty(TestPath)){
                                              { Write("\r\n                                      .Append(");
                                              }
                                              Write("mlContext.Transforms."+Transforms[i]);
-                                             if(i>0)
-                                             { Write(")\r\n");
-                                             }
                                          }
             this.Write(";\r\n");
 }
@@ -181,7 +178,7 @@ if("Regression".Equals(TaskType)){
             return trainedModel;
         }
 
-        // (OPTIONAL) Try/test a single prediction by loding the model from the file, first.
+        // (OPTIONAL) Try/test a single prediction by loading the model from the file, first.
         private static void TestSinglePrediction(MLContext mlContext)
         {
             //Load data to test. Could be any test data. For demonstration purpose train data is used here.
