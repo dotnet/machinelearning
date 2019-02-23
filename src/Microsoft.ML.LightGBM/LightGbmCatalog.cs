@@ -17,8 +17,8 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree regression model trained with the <see cref="LightGbmRegressorTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The features column.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
@@ -32,8 +32,8 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static LightGbmRegressorTrainer LightGbm(this RegressionCatalog.RegressionTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,
@@ -42,7 +42,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LightGbmRegressorTrainer(env, labelColumn, featureColumn, exampleWeightColumnName, numLeaves, minDataPerLeaf, learningRate, numBoostRound);
+            return new LightGbmRegressorTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numLeaves, minDataPerLeaf, learningRate, numBoostRound);
         }
 
         /// <summary>
@@ -69,8 +69,8 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The features column.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
@@ -84,8 +84,8 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static LightGbmBinaryTrainer LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,
@@ -94,7 +94,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LightGbmBinaryTrainer(env, labelColumn, featureColumn, exampleWeightColumnName, numLeaves, minDataPerLeaf, learningRate, numBoostRound);
+            return new LightGbmBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numLeaves, minDataPerLeaf, learningRate, numBoostRound);
         }
 
         /// <summary>
@@ -121,18 +121,18 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree ranking model trained with the <see cref="LightGbmRankingTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The features column.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="rowGroupColumnName">The name of the group column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="groupIdColumn">The groupId column.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
         /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         public static LightGbmRankingTrainer LightGbm(this RankingCatalog.RankingTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string groupIdColumn = DefaultColumnNames.GroupId,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string rowGroupColumnName = DefaultColumnNames.GroupId,
             string exampleWeightColumnName = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,
@@ -141,7 +141,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LightGbmRankingTrainer(env, labelColumn, featureColumn, groupIdColumn, exampleWeightColumnName, numLeaves, minDataPerLeaf, learningRate, numBoostRound);
+            return new LightGbmRankingTrainer(env, labelColumnName, featureColumnName, rowGroupColumnName, exampleWeightColumnName, numLeaves, minDataPerLeaf, learningRate, numBoostRound);
         }
 
         /// <summary>
@@ -161,8 +161,8 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The features column.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
@@ -176,8 +176,8 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static LightGbmMulticlassTrainer LightGbm(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,
@@ -186,7 +186,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LightGbmMulticlassTrainer(env, labelColumn, featureColumn, exampleWeightColumnName, numLeaves, minDataPerLeaf, learningRate, numBoostRound);
+            return new LightGbmMulticlassTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numLeaves, minDataPerLeaf, learningRate, numBoostRound);
         }
 
         /// <summary>

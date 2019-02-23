@@ -513,7 +513,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Construct the learning pipeline. Note that we are now providing a contract name for the custom mapping:
             // otherwise we will not be able to save the model.
             var estimator = mlContext.Transforms.CustomMapping<InputRow, OutputRow>(CustomMappings.IncomeMapping, nameof(CustomMappings.IncomeMapping))
-                .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumn: "Label"));
+                .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label"));
 
             // If memory is enough, we can cache the data in-memory to avoid reading them from file
             // when it will be accessed multiple times. 
@@ -555,7 +555,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Construct the learning pipeline.
             var estimator = mlContext.Transforms.CustomMapping(mapping, null)
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumn: "Label"));
+                .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label"));
 
             return estimator.Fit(trainData);
         }

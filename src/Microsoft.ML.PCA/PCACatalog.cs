@@ -41,14 +41,14 @@ namespace Microsoft.ML
         /// Trains an approximate PCA using Randomized SVD algorithm.
         /// </summary>
         /// <param name="catalog">The anomaly detection catalog trainer object.</param>
-        /// <param name="featureColumn">The features, or independent variables.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="rank">The number of components in the PCA.</param>
         /// <param name="oversampling">Oversampling parameter for randomized PCA training.</param>
         /// <param name="center">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation.</param>
         public static RandomizedPcaTrainer RandomizedPca(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog,
-            string featureColumn = DefaultColumnNames.Features,
+            string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
             int rank = Options.Defaults.NumComponents,
             int oversampling = Options.Defaults.OversamplingParameters,
@@ -57,7 +57,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new RandomizedPcaTrainer(env, featureColumn, exampleWeightColumnName, rank, oversampling, center, seed);
+            return new RandomizedPcaTrainer(env, featureColumnName, exampleWeightColumnName, rank, oversampling, center, seed);
         }
 
         /// <summary>

@@ -134,7 +134,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetRankingPipeline();
 
-            var trainer = ML.Ranking.Trainers.LightGbm(labelColumn: "Label0", featureColumn: "NumericFeatures", groupIdColumn: "Group", learningRate: 0.4);
+            var trainer = ML.Ranking.Trainers.LightGbm(labelColumnName: "Label0", featureColumnName: "NumericFeatures", rowGroupColumnName: "Group", learningRate: 0.4);
 
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);

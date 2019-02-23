@@ -18,7 +18,7 @@ namespace Microsoft.ML
         /// Train a KMeans++ clustering algorithm.
         /// </summary>
         /// <param name="catalog">The clustering catalog trainer object.</param>
-        /// <param name="featureColumn">The features, or independent variables.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="clustersCount">The number of clusters to use for KMeans.</param>
         /// <example>
@@ -28,7 +28,7 @@ namespace Microsoft.ML
         /// ]]></format>
         /// </example>
         public static KMeansPlusPlusTrainer KMeans(this ClusteringCatalog.ClusteringTrainers catalog,
-           string featureColumn = DefaultColumnNames.Features,
+           string featureColumnName = DefaultColumnNames.Features,
            string exampleWeightColumnName = null,
            int clustersCount = KMeansPlusPlusTrainer.Defaults.ClustersCount)
         {
@@ -37,7 +37,7 @@ namespace Microsoft.ML
 
             var options = new KMeansPlusPlusTrainer.Options
             {
-                FeatureColumn = featureColumn,
+                FeatureColumn = featureColumnName,
                 WeightColumn = exampleWeightColumnName,
                 ClustersCount = clustersCount
             };
