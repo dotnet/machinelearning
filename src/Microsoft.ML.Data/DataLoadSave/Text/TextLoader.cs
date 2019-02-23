@@ -49,7 +49,7 @@ namespace Microsoft.ML.Data
             /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="dataKind"><see cref="DataKind"/> of the items in the column.</param>
+            /// <param name="dataKind"><see cref="Data.DataKind"/> of the items in the column.</param>
             /// <param name="index">Index of the column.</param>
             public Column(string name, DataKind dataKind, int index)
                 : this(name, dataKind.ToInternalDataKind(), new[] { new Range(index) })
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Data
             /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="dataKind"><see cref="DataKind"/> of the items in the column.</param>
+            /// <param name="dataKind"><see cref="Data.DataKind"/> of the items in the column.</param>
             /// <param name="minIndex">The minimum inclusive index of the column.</param>
             /// <param name="maxIndex">The maximum-inclusive index of the column.</param>
             public Column(string name, DataKind dataKind, int minIndex, int maxIndex)
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Data
             /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="dataKind"><see cref="DataKind"/> of the items in the column.</param>
+            /// <param name="dataKind"><see cref="Data.DataKind"/> of the items in the column.</param>
             /// <param name="source">Source index range(s) of the column.</param>
             /// <param name="keyCount">For a key column, this defines the range of values.</param>
             public Column(string name, DataKind dataKind, Range[] source, KeyCount keyCount = null)
@@ -84,10 +84,10 @@ namespace Microsoft.ML.Data
             /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="kind"><see cref="InternalDataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.</param>
+            /// <param name="kind"><see cref="InternalDataKind"/> of the items in the column.</param>
             /// <param name="source">Source index range(s) of the column.</param>
             /// <param name="keyCount">For a key column, this defines the range of values.</param>
-            private Column(string name, InternalDataKind? kind, Range[] source, KeyCount keyCount = null)
+            private Column(string name, InternalDataKind kind, Range[] source, KeyCount keyCount = null)
             {
                 Contracts.CheckValue(name, nameof(name));
                 Contracts.CheckValue(source, nameof(source));
@@ -106,17 +106,17 @@ namespace Microsoft.ML.Data
 
             /// <summary>
             /// <see cref="InternalDataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.
-            /// Although <see cref="InternalDataKind"/> is internal, <see cref="Type"/>'s information can be publically accessed by <see cref="ItemType"/>.
+            /// Although <see cref="InternalDataKind"/> is internal, <see cref="Type"/>'s information can be publically accessed by <see cref="DataKind"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Type of the items in the column")]
             [BestFriend]
-            internal InternalDataKind? Type;
+            internal InternalDataKind Type = default;
 
             /// <summary>
-            /// <see cref="DataKind"/> of the items in the column.
+            /// <see cref="Data.DataKind"/> of the items in the column.
             /// </summary>
             /// It's a public interface to access the information in an internal DataKind.
-            public DataKind ItemType => Type.HasValue ? Type.Value.ToDataKind() : DataKind.Single;
+            public DataKind DataKind => Type.ToDataKind();
 
             /// <summary>
             /// Source index range(s) of the column.
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Data
                     InternalDataKind kind;
                     if (!TypeParsingUtils.TryParseDataKind(rgstr[istr++], out kind, out KeyCount))
                         return false;
-                    Type = kind == default ? default(InternalDataKind?) : kind;
+                    Type = kind == default ? InternalDataKind.R4 : kind;
                 }
 
                 return TryParseSource(rgstr[istr++]);
@@ -195,10 +195,10 @@ namespace Microsoft.ML.Data
                 int ich = sb.Length;
                 sb.Append(Name);
                 sb.Append(':');
-                if (Type != null || KeyCount != null)
+                if (Type != default || KeyCount != null)
                 {
-                    if (Type != null)
-                        sb.Append(Type.Value.GetString());
+                    if (Type != default)
+                        sb.Append(Type.GetString());
                     if (KeyCount != null)
                     {
                         sb.Append('[');
@@ -725,7 +725,7 @@ namespace Microsoft.ML.Data
                         }
                         else
                         {
-                            kind = col.Type ?? InternalDataKind.Num;
+                            kind = col.Type == default? InternalDataKind.R4 : col.Type;
                             ch.CheckUserArg(Enum.IsDefined(typeof(InternalDataKind), kind), nameof(Column.Type), "Bad item type");
                             itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                         }
