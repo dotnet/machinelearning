@@ -20,10 +20,18 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildFastForestParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateOptions<FastForestRegression.Options>(sweepParams);
+            var options = TrainerExtensionUtil.CreateOptions<FastForestRegression.Options>(sweepParams, columnInfo.LabelColumn);
+            options.WeightColumn = columnInfo.WeightColumn;
             return mlContext.Regression.Trainers.FastForest(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn, columnInfo.WeightColumn);
         }
     }
 
@@ -34,10 +42,18 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildFastTreeParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateOptions<FastTreeRegressionTrainer.Options>(sweepParams);
+            var options = TrainerExtensionUtil.CreateOptions<FastTreeRegressionTrainer.Options>(sweepParams, columnInfo.LabelColumn);
+            options.WeightColumn = columnInfo.WeightColumn;
             return mlContext.Regression.Trainers.FastTree(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn, columnInfo.WeightColumn);
         }
     }
 
@@ -48,10 +64,18 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildFastTreeTweedieParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateOptions<FastTreeTweedieTrainer.Options>(sweepParams);
+            var options = TrainerExtensionUtil.CreateOptions<FastTreeTweedieTrainer.Options>(sweepParams, columnInfo.LabelColumn);
+            options.WeightColumn = columnInfo.WeightColumn;
             return mlContext.Regression.Trainers.FastTreeTweedie(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn, columnInfo.WeightColumn);
         }
     }
 
@@ -62,10 +86,18 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildLightGbmParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateLightGbmOptions(sweepParams);
+            var options = TrainerExtensionUtil.CreateLightGbmOptions(sweepParams, columnInfo);
+            options.WeightColumn = columnInfo.WeightColumn;
             return mlContext.Regression.Trainers.LightGbm(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildLightGbmPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn, columnInfo.WeightColumn);
         }
     }
 
@@ -76,10 +108,17 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildOnlineGradientDescentParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateOptions<OnlineGradientDescentTrainer.Options>(sweepParams);
+            var options = TrainerExtensionUtil.CreateOptions<OnlineGradientDescentTrainer.Options>(sweepParams, columnInfo.LabelColumn);
             return mlContext.Regression.Trainers.OnlineGradientDescent(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn);
         }
     }
 
@@ -90,10 +129,18 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildOrdinaryLeastSquaresParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateOptions<OlsLinearRegressionTrainer.Options>(sweepParams);
+            var options = TrainerExtensionUtil.CreateOptions<OlsLinearRegressionTrainer.Options>(sweepParams, columnInfo.LabelColumn);
+            options.WeightColumn = columnInfo.WeightColumn;
             return mlContext.Regression.Trainers.OrdinaryLeastSquares(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn, columnInfo.WeightColumn);
         }
     }
 
@@ -104,10 +151,18 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildPoissonRegressionParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateOptions<PoissonRegression.Options>(sweepParams);
+            var options = TrainerExtensionUtil.CreateOptions<PoissonRegression.Options>(sweepParams, columnInfo.LabelColumn);
+            options.WeightColumn = columnInfo.WeightColumn;
             return mlContext.Regression.Trainers.PoissonRegression(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn, columnInfo.WeightColumn);
         }
     }
 
@@ -118,10 +173,17 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildSdcaParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateOptions<SdcaRegressionTrainer.Options>(sweepParams);
+            var options = TrainerExtensionUtil.CreateOptions<SdcaRegressionTrainer.Options>(sweepParams, columnInfo.LabelColumn);
             return mlContext.Regression.Trainers.StochasticDualCoordinateAscent(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn);
         }
     }
 }

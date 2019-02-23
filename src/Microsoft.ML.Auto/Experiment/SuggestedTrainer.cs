@@ -16,12 +16,15 @@ namespace Microsoft.ML.Auto
 
         private readonly MLContext _mlContext;
         private readonly ITrainerExtension _trainerExtension;
+        private readonly ColumnInformation _columnInfo;
 
         internal SuggestedTrainer(MLContext mlContext, ITrainerExtension trainerExtension,
+            ColumnInformation columnInfo,
             ParameterSet hyperParamSet = null)
         {
             _mlContext = mlContext;
             _trainerExtension = trainerExtension;
+            _columnInfo = columnInfo;
             SweepParams = _trainerExtension.GetHyperparamSweepRanges();
             TrainerName = TrainerExtensionCatalog.GetTrainerName(_trainerExtension);
             SetHyperparamValues(hyperParamSet);
@@ -35,17 +38,17 @@ namespace Microsoft.ML.Auto
 
         public SuggestedTrainer Clone()
         {
-            return new SuggestedTrainer(_mlContext, _trainerExtension, HyperParamSet?.Clone());
+            return new SuggestedTrainer(_mlContext, _trainerExtension, _columnInfo, HyperParamSet?.Clone());
         }
 
-        public ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor> BuildTrainer(MLContext env)
+        public ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor> BuildTrainer()
         {
             IEnumerable<SweepableParam> sweepParams = null;
             if (HyperParamSet != null)
             {
                 sweepParams = SweepParams;
             }
-            return _trainerExtension.CreateInstance(_mlContext, sweepParams);
+            return _trainerExtension.CreateInstance(_mlContext, sweepParams, _columnInfo);
         }
 
         public override string ToString()
@@ -60,10 +63,8 @@ namespace Microsoft.ML.Auto
 
         public PipelineNode ToPipelineNode()
         {
-            var hyperParams = SweepParams.Where(p => p != null && p.RawValue != null);
-            var elementProperties = TrainerExtensionUtil.BuildPipelineNodeProps(TrainerName, hyperParams);
-            return new PipelineNode(TrainerName.ToString(), PipelineNodeType.Trainer, 
-                new[] { "Features" }, new[] { "Score" }, elementProperties);
+            var sweepParams = SweepParams.Where(p => p.RawValue != null);
+            return _trainerExtension.CreatePipelineNode(sweepParams, _columnInfo);
         }
 
         /// <summary>

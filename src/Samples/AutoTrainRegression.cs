@@ -45,7 +45,7 @@ namespace Samples
 
             // STEP 5: Evaluate test data
             IDataView testDataViewWithBestScore = best.Model.Transform(testDataView);
-            var testMetrics = mlContext.Regression.Evaluate(testDataViewWithBestScore, label: DefaultColumnNames.Label, DefaultColumnNames.Score);
+            var testMetrics = mlContext.Regression.Evaluate(testDataViewWithBestScore, label: LabelColumnName, DefaultColumnNames.Score);
             Console.WriteLine($"RSquared of best model from test data: {best.Metrics.RSquared}");
 
             // STEP 6: Save the best model for later deployment and inferencing

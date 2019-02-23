@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
 
 namespace Microsoft.ML.Auto
 {
@@ -42,9 +44,13 @@ namespace Microsoft.ML.Auto
 
     internal static class TrainerExtensionUtil
     {
-        public static T CreateOptions<T>(IEnumerable<SweepableParam> sweepParams)
+        private const string WeightColumn = "WeightColumn";
+        private const string LabelColumn = "LabelColumn";
+
+        public static T CreateOptions<T>(IEnumerable<SweepableParam> sweepParams, string labelColumn) where T : LearnerInputBaseWithLabel
         {
             var options = Activator.CreateInstance<T>();
+            options.LabelColumn = labelColumn;
             if(sweepParams != null)
             {
                 UpdateFields(options, sweepParams);
@@ -55,9 +61,11 @@ namespace Microsoft.ML.Auto
         private static string[] _lightGbmTreeBoosterParamNames = new[] { "RegLambda", "RegAlpha" };
         private const string LightGbmTreeBoosterPropName = "Booster";
 
-        public static LightGBM.Options CreateLightGbmOptions(IEnumerable<SweepableParam> sweepParams)
+        public static LightGBM.Options CreateLightGbmOptions(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
         {
             var options = new LightGBM.Options();
+            options.LabelColumn = columnInfo.LabelColumn;
+            options.WeightColumn = columnInfo.WeightColumn;
             if(sweepParams != null)
             {
                 var treeBoosterParams = sweepParams.Where(p => _lightGbmTreeBoosterParamNames.Contains(p.Name));
@@ -68,33 +76,91 @@ namespace Microsoft.ML.Auto
             return options;
         }
 
-        public static IDictionary<string, object> BuildPipelineNodeProps(TrainerName trainerName, IEnumerable<SweepableParam> sweepParams)
+        public static PipelineNode BuildOvaPipelineNode(ITrainerExtension multiExtension, ITrainerExtension binaryExtension, 
+            IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
         {
-            if (trainerName == TrainerName.LightGbmBinary || trainerName == TrainerName.LightGbmMulti ||
-                trainerName == TrainerName.LightGbmRegression)
-            {
-                return BuildLightGbmPipelineNodeProps(sweepParams);
-            }
-
-            return sweepParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
+            var ovaNode = binaryExtension.CreatePipelineNode(sweepParams, columnInfo);
+            ovaNode.Name = TrainerExtensionCatalog.GetTrainerName(multiExtension).ToString();
+            return ovaNode;
         }
 
-        private static IDictionary<string, object> BuildLightGbmPipelineNodeProps(IEnumerable<SweepableParam> sweepParams)
+        public static PipelineNode BuildPipelineNode(TrainerName trainerName, IEnumerable<SweepableParam> sweepParams,
+            string labelColumn, string weightColumn = null, IDictionary<string, object> additionalProperties = null)
         {
-            var treeBoosterParams = sweepParams.Where(p => _lightGbmTreeBoosterParamNames.Contains(p.Name));
-            var parentArgParams = sweepParams.Except(treeBoosterParams);
+            var properties = BuildBasePipelineNodeProps(sweepParams, labelColumn, weightColumn);
 
-            var treeBoosterProps = treeBoosterParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
-            var treeBoosterCustomProp = new CustomProperty("Options.TreeBooster.Arguments", treeBoosterProps);
+            if(additionalProperties != null)
+            {
+                foreach (var property in additionalProperties)
+                {
+                    properties[property.Key] = property.Value;
+                }
+            }
 
-            var props = parentArgParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
-            props[LightGbmTreeBoosterPropName] = treeBoosterCustomProp;
+            return new PipelineNode(trainerName.ToString(), PipelineNodeType.Trainer, DefaultColumnNames.Features,
+                DefaultColumnNames.Score, properties);
+        }
+
+        public static PipelineNode BuildLightGbmPipelineNode(TrainerName trainerName, IEnumerable<SweepableParam> sweepParams,
+            string labelColumn, string weightColumn)
+        {
+            return new PipelineNode(trainerName.ToString(), PipelineNodeType.Trainer, DefaultColumnNames.Features,
+                DefaultColumnNames.Score, BuildLightGbmPipelineNodeProps(sweepParams, labelColumn, weightColumn));
+        }
+
+        private static IDictionary<string, object> BuildBasePipelineNodeProps(IEnumerable<SweepableParam> sweepParams,
+            string labelColumn, string weightColumn)
+        {
+            var props = new Dictionary<string, object>();
+            if (sweepParams != null)
+            {
+                foreach (var sweepParam in sweepParams)
+                {
+                    props[sweepParam.Name] = sweepParam.ProcessedValue();
+                }
+            }
+            props[LabelColumn] = labelColumn;
+            if (weightColumn != null)
+            {
+                props[WeightColumn] = weightColumn;
+            }
+            return props;
+        }
+
+        private static IDictionary<string, object> BuildLightGbmPipelineNodeProps(IEnumerable<SweepableParam> sweepParams,
+            string labelColumn, string weightColumn)
+        {
+            Dictionary<string, object> props = null;
+            if(sweepParams == null)
+            {
+                props = new Dictionary<string, object>();
+            }
+            else
+            {
+                var treeBoosterParams = sweepParams.Where(p => _lightGbmTreeBoosterParamNames.Contains(p.Name));
+                var parentArgParams = sweepParams.Except(treeBoosterParams);
+
+                var treeBoosterProps = treeBoosterParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
+                var treeBoosterCustomProp = new CustomProperty("Options.TreeBooster.Arguments", treeBoosterProps);
+
+                props = parentArgParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
+                props[LightGbmTreeBoosterPropName] = treeBoosterCustomProp;
+            }
+
+            props[LabelColumn] = labelColumn;
+            if (weightColumn != null)
+            {
+                props[WeightColumn] = weightColumn;
+            }
 
             return props;
         }
 
         public static ParameterSet BuildParameterSet(TrainerName trainerName, IDictionary<string, object> props)
         {
+            props = props.Where(p => p.Key != LabelColumn && p.Key != WeightColumn)
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
             if (trainerName == TrainerName.LightGbmBinary || trainerName == TrainerName.LightGbmMulti ||
                 trainerName == TrainerName.LightGbmRegression)
             {
@@ -103,6 +169,18 @@ namespace Microsoft.ML.Auto
 
             var paramVals = props.Select(p => new StringParameterValue(p.Key, p.Value.ToString()));
             return new ParameterSet(paramVals);
+        }
+
+        public static ColumnInformation BuildColumnInfo(IDictionary<string, object> props)
+        {
+            var columnInfo = new ColumnInformation();
+
+            columnInfo.LabelColumn = props[LabelColumn] as string;
+
+            props.TryGetValue(WeightColumn, out var weightColumn);
+            columnInfo.WeightColumn = weightColumn as string;
+
+            return columnInfo;
         }
 
         private static ParameterSet BuildLightGbmParameterSet(IDictionary<string, object> props)

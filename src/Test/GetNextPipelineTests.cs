@@ -64,7 +64,7 @@ namespace Microsoft.ML.Auto.Test
             Assert.AreEqual(maxIterations, history.Count);
 
             // Get all 'Stage 1' and 'Stage 2' runs from Pipeline Suggester
-            var allAvailableTrainers = RecipeInference.AllowedTrainers(context, task, null);
+            var allAvailableTrainers = RecipeInference.AllowedTrainers(context, task, new ColumnInformation(), null);
             var stage1Runs = history.Take(allAvailableTrainers.Count());
             var stage2Runs = history.Skip(allAvailableTrainers.Count());
 

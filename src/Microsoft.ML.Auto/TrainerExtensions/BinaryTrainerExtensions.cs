@@ -23,18 +23,37 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildAveragePerceptronParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = new AveragedPerceptronTrainer.Options();
+            AveragedPerceptronTrainer.Options options = null;
             if (sweepParams == null)
             {
+                options = new AveragedPerceptronTrainer.Options();
                 options.NumIterations = DefaultNumIterations;
+                options.LabelColumn = columnInfo.LabelColumn;
             }
             else
             {
-                options = TrainerExtensionUtil.CreateOptions<AveragedPerceptronTrainer.Options>(sweepParams);
+                options = TrainerExtensionUtil.CreateOptions<AveragedPerceptronTrainer.Options>(sweepParams, columnInfo.LabelColumn);
             }
             return mlContext.BinaryClassification.Trainers.AveragedPerceptron(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            Dictionary<string, object> additionalProperties = null;
+
+            if(sweepParams == null)
+            {
+                additionalProperties = new Dictionary<string, object>()
+                {
+                    { "NumIterations", "10" }
+                };
+            }
+
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn, additionalProperties: additionalProperties);
         }
     }
 
@@ -45,10 +64,18 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildFastForestParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateOptions<FastForestClassification.Options>(sweepParams);
+            var options = TrainerExtensionUtil.CreateOptions<FastForestClassification.Options>(sweepParams, columnInfo.LabelColumn);
+            options.WeightColumn = columnInfo.WeightColumn;
             return mlContext.BinaryClassification.Trainers.FastForest(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn, columnInfo.WeightColumn);
         }
     }
 
@@ -59,10 +86,18 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildFastTreeParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateOptions<FastTreeBinaryClassificationTrainer.Options>(sweepParams);
+            var options = TrainerExtensionUtil.CreateOptions<FastTreeBinaryClassificationTrainer.Options>(sweepParams, columnInfo.LabelColumn);
+            options.WeightColumn = columnInfo.WeightColumn;
             return mlContext.BinaryClassification.Trainers.FastTree(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn, columnInfo.WeightColumn);
         }
     }
 
@@ -73,10 +108,17 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildLightGbmParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateLightGbmOptions(sweepParams);
+            var options = TrainerExtensionUtil.CreateLightGbmOptions(sweepParams, columnInfo);
             return mlContext.BinaryClassification.Trainers.LightGbm(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildLightGbmPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn, columnInfo.WeightColumn);
         }
     }
 
@@ -87,10 +129,17 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildLinearSvmParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateOptions<LinearSvmTrainer.Options>(sweepParams);
+            var options = TrainerExtensionUtil.CreateOptions<LinearSvmTrainer.Options>(sweepParams, columnInfo.LabelColumn);
             return mlContext.BinaryClassification.Trainers.LinearSupportVectorMachines(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn);
         }
     }
 
@@ -101,10 +150,17 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildSdcaParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateOptions<SdcaBinaryTrainer.Options>(sweepParams);
+            var options = TrainerExtensionUtil.CreateOptions<SdcaBinaryTrainer.Options>(sweepParams, columnInfo.LabelColumn);
             return mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn);
         }
     }
 
@@ -115,10 +171,18 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildLogisticRegressionParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateOptions<LogisticRegression.Options>(sweepParams);
+            var options = TrainerExtensionUtil.CreateOptions<LogisticRegression.Options>(sweepParams, columnInfo.LabelColumn);
+            options.WeightColumn = columnInfo.WeightColumn;
             return mlContext.BinaryClassification.Trainers.LogisticRegression(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn, columnInfo.WeightColumn);
         }
     }
 
@@ -129,10 +193,18 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildSgdParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateOptions<StochasticGradientDescentClassificationTrainer.Options>(sweepParams);
+            var options = TrainerExtensionUtil.CreateOptions<StochasticGradientDescentClassificationTrainer.Options>(sweepParams, columnInfo.LabelColumn);
+            options.WeightColumn = columnInfo.WeightColumn;
             return mlContext.BinaryClassification.Trainers.StochasticGradientDescent(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                 columnInfo.LabelColumn, columnInfo.WeightColumn);
         }
     }
 
@@ -143,10 +215,17 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildSymSgdParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateOptions<SymSgdClassificationTrainer.Options>(sweepParams);
+            var options = TrainerExtensionUtil.CreateOptions<SymSgdClassificationTrainer.Options>(sweepParams, columnInfo.LabelColumn);
             return mlContext.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn);
         }
     }
 }

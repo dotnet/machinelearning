@@ -13,14 +13,14 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <returns>Array of viable learners.</returns>
         public static IEnumerable<SuggestedTrainer> AllowedTrainers(MLContext mlContext, TaskKind task,
-            IEnumerable<TrainerName> trainerWhitelist)
+            ColumnInformation columnInfo, IEnumerable<TrainerName> trainerWhitelist)
         {
             var trainerExtensions = TrainerExtensionCatalog.GetTrainers(task, trainerWhitelist);
 
             var trainers = new List<SuggestedTrainer>();
             foreach (var trainerExtension in trainerExtensions)
             {
-                var learner = new SuggestedTrainer(mlContext, trainerExtension);
+                var learner = new SuggestedTrainer(mlContext, trainerExtension, columnInfo);
                 trainers.Add(learner);
             }
             return trainers.ToArray();

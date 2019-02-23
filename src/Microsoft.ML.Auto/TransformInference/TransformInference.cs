@@ -141,14 +141,6 @@ namespace Microsoft.ML.Auto
             // For text labels, convert to categories.
             yield return new Experts.AutoLabel(context);
 
-            // For group ID column, rename to GroupId and hash, if text.
-            // REVIEW: this is only sufficient if we discard the possibility of hash collisions, and don't care
-            // about the group Id cardinality (we don't for ranking).
-            yield return new Experts.GroupIdHashRename(context);
-
-            // For name column, rename to Name (or, if multiple and text, concat and rename to Name).
-            yield return new Experts.NameColumnConcatRename(context);
-
             // For boolean columns use convert transform
             yield return new Experts.Boolean(context);
 
@@ -180,37 +172,7 @@ namespace Microsoft.ML.Auto
 
                     if (col.Type.IsText())
                     {
-                        yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, col.ColumnName, DefaultColumnNames.Label);
-                    }
-                    else if (col.ColumnName != DefaultColumnNames.Label)
-                    {
-                        yield return ColumnCopyingExtension.CreateSuggestedTransform(Context, col.ColumnName, DefaultColumnNames.Label);
-                    }
-                }
-            }
-
-            internal sealed class GroupIdHashRename : TransformInferenceExpertBase
-            {
-                public GroupIdHashRename(MLContext context) : base(context)
-                {
-                }
-
-                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
-                {
-                    var firstGroupColId = Array.FindIndex(columns, x => x.Purpose == ColumnPurpose.Group);
-                    if (firstGroupColId < 0)
-                        yield break;
-
-                    var col = columns[firstGroupColId];
-
-                    if (col.Type.IsText())
-                    {
-                        // REVIEW: we could potentially apply HashJoin to vectors of text.
-                        yield return OneHotHashEncodingExtension.CreateSuggestedTransform(Context, col.ColumnName, DefaultColumnNames.GroupId);
-                    }
-                    else if (col.ColumnName != DefaultColumnNames.GroupId)
-                    {
-                        yield return ColumnCopyingExtension.CreateSuggestedTransform(Context, col.ColumnName, DefaultColumnNames.GroupId);
+                        yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, col.ColumnName, col.ColumnName);
                     }
                 }
             }
@@ -347,60 +309,6 @@ namespace Microsoft.ML.Auto
                     }
                 }
             }
-            
-            internal sealed class NameColumnConcatRename : TransformInferenceExpertBase
-            {
-                public NameColumnConcatRename(MLContext context) : base(context)
-                {
-                }
-
-                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
-                {
-                    int count = 0;
-                    var colSpec = new StringBuilder();
-                    var colSpecTextOnly = new List<string>();
-                    var columnList = new List<string>();
-
-                    foreach (var column in columns)
-                    {
-                        var columnName = new StringBuilder();
-                        if (column.Purpose != ColumnPurpose.Name)
-                        {
-                            continue;
-                        }
-                        count++;
-
-                        if (colSpec.Length > 0)
-                        {
-                            colSpec.Append(",");
-                        }
-                        colSpec.Append(column.ColumnName);
-                        
-                        columnName.Append(column.ColumnName);
-                        columnList.Add(columnName.ToString());
-
-                        if (column.Type.GetItemType().IsText())
-                        {
-                            colSpecTextOnly.Add(column.ColumnName);
-                        }
-                    }
-
-                    if (count == 1 && colSpec.ToString() != DefaultColumnNames.Name)
-                    {
-                        yield return ColumnCopyingExtension.CreateSuggestedTransform(Context, colSpec.ToString(), DefaultColumnNames.Name);
-                    }
-                    else if (count > 1)
-                    {
-                        if (string.IsNullOrWhiteSpace(colSpecTextOnly.ToString()))
-                        {
-                            yield break;
-                        }
-
-                        // suggested grouping name columns into one vector
-                        yield return ColumnConcatenatingExtension.CreateSuggestedTransform(Context, columnList.ToArray(), DefaultColumnNames.Name);
-                    }
-                }
-            }
         }
 
         /// <summary>
@@ -453,10 +361,9 @@ namespace Microsoft.ML.Auto
                 }
             }
 
-            // remove 'Label' if it was ever a suggested purpose
-            concatColNames.Remove(DefaultColumnNames.Label);
-            concatColNames.Remove(DefaultColumnNames.GroupId);
-            concatColNames.Remove(DefaultColumnNames.Name);
+            // remove column with 'Label' purpose
+            var labelColumnName = intermediateCols.FirstOrDefault(c => c.Purpose == ColumnPurpose.Label)?.ColumnName;
+            concatColNames.Remove(labelColumnName);
 
             intermediateCols = intermediateCols.Where(c => c.Purpose == ColumnPurpose.NumericFeature ||
                 c.Purpose == ColumnPurpose.CategoricalFeature || c.Purpose == ColumnPurpose.TextFeature);

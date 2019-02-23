@@ -76,7 +76,8 @@ namespace Microsoft.ML.Auto
                     var trainerName = (TrainerName)Enum.Parse(typeof(TrainerName), pipelineNode.Name);
                     var trainerExtension = TrainerExtensionCatalog.GetTrainerExtension(trainerName);
                     var hyperParamSet = TrainerExtensionUtil.BuildParameterSet(trainerName, pipelineNode.Properties);
-                    trainer = new SuggestedTrainer(context, trainerExtension, hyperParamSet);
+                    var columnInfo = TrainerExtensionUtil.BuildColumnInfo(pipelineNode.Properties);
+                    trainer = new SuggestedTrainer(context, trainerExtension, columnInfo, hyperParamSet);
                 }
                 else if (pipelineNode.NodeType == PipelineNodeType.Transform)
                 {
@@ -105,7 +106,7 @@ namespace Microsoft.ML.Auto
             }
 
             // get learner
-            var learner = Trainer.BuildTrainer(_context);
+            var learner = Trainer.BuildTrainer();
 
             // append learner to pipeline
             pipeline = pipeline.Append(learner);
@@ -122,7 +123,7 @@ namespace Microsoft.ML.Auto
         private void AddNormalizationTransforms()
         {
             // get learner
-            var learner = Trainer.BuildTrainer(_context);
+            var learner = Trainer.BuildTrainer();
 
             // only add normalization if learner needs it
             if (!learner.Info.NeedNormalization)

@@ -170,11 +170,11 @@ namespace Microsoft.ML.Auto
             switch(_task)
             {
                 case TaskKind.BinaryClassification:
-                    return _context.BinaryClassification.EvaluateNonCalibrated(scoredData) as T;
+                    return _context.BinaryClassification.EvaluateNonCalibrated(scoredData, label: _columnInfo.LabelColumn) as T;
                 case TaskKind.MulticlassClassification:
-                    return _context.MulticlassClassification.Evaluate(scoredData) as T;
+                    return _context.MulticlassClassification.Evaluate(scoredData, label: _columnInfo.LabelColumn) as T;
                 case TaskKind.Regression:
-                    return _context.Regression.Evaluate(scoredData) as T;
+                    return _context.Regression.Evaluate(scoredData, label: _columnInfo.LabelColumn) as T;
                 // should not be possible to reach here
                 default:
                     throw new InvalidOperationException($"unsupported machine learning task type {_task}");

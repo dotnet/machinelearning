@@ -104,13 +104,33 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void DefaultColumnNamesInferredCorrectly()
         {
-            var result = new MLContext().AutoInference().InferColumns(@".\TestData\DatasetWithDefaultColumnNames.txt", DefaultColumnNames.Label, groupColumns : false);
+            var result = new MLContext().AutoInference().InferColumns(@".\TestData\DatasetWithDefaultColumnNames.txt",
+                new ColumnInformation()
+                {
+                    LabelColumn = DefaultColumnNames.Label,
+                    WeightColumn = DefaultColumnNames.Weight,
+                },
+                groupColumns : false);
 
             Assert.AreEqual(DefaultColumnNames.Label, result.ColumnInformation.LabelColumn);
-            Assert.AreEqual(DefaultColumnNames.Name, result.ColumnInformation.NameColumn);
             Assert.AreEqual(DefaultColumnNames.Weight, result.ColumnInformation.WeightColumn);
-            Assert.AreEqual(DefaultColumnNames.GroupId, result.ColumnInformation.GroupIdColumn);
             Assert.AreEqual(result.ColumnInformation.NumericColumns.Count(), 3);
+        }
+
+        [TestMethod]
+        public void DefaultColumnNamesNoGrouping()
+        {
+            var result = new MLContext().AutoInference().InferColumns(@".\TestData\DatasetWithDefaultColumnNames.txt",
+                new ColumnInformation()
+                {
+                    LabelColumn = DefaultColumnNames.Label,
+                    WeightColumn = DefaultColumnNames.Weight,
+                });
+
+            Assert.AreEqual(DefaultColumnNames.Label, result.ColumnInformation.LabelColumn);
+            Assert.AreEqual(DefaultColumnNames.Weight, result.ColumnInformation.WeightColumn);
+            Assert.AreEqual(1, result.ColumnInformation.NumericColumns.Count());
+            Assert.AreEqual(DefaultColumnNames.Features, result.ColumnInformation.NumericColumns.First());
         }
 
         [TestMethod]
@@ -124,6 +144,7 @@ namespace Microsoft.ML.Auto.Test
             Assert.AreEqual(DatasetUtil.MlNetGeneratedRegressionLabel, result.ColumnInformation.LabelColumn);
             Assert.AreEqual(1, result.ColumnInformation.NumericColumns.Count());
             Assert.AreEqual(DefaultColumnNames.Features, result.ColumnInformation.NumericColumns.First());
+            Assert.AreEqual(null, result.ColumnInformation.WeightColumn);
         }
     }
 }

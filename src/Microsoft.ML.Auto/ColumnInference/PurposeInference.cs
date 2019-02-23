@@ -108,30 +108,6 @@ namespace Microsoft.ML.Auto
 
         private static class Experts
         {
-            internal sealed class HeaderComprehension : IPurposeInferenceExpert
-            {
-                public void Apply(IntermediateColumn[] columns)
-                {
-                    foreach (var column in columns)
-                    {
-                        if (column.IsPurposeSuggested)
-                            continue;
-                        else if (Regex.IsMatch(column.ColumnName, @"^m_queryid$", RegexOptions.IgnoreCase))
-                            column.SuggestedPurpose = ColumnPurpose.Group;
-                        else if (Regex.IsMatch(column.ColumnName, @"group", RegexOptions.IgnoreCase))
-                            column.SuggestedPurpose = ColumnPurpose.Group;
-                        else if (Regex.IsMatch(column.ColumnName, @"^m_\w+id$", RegexOptions.IgnoreCase))
-                            column.SuggestedPurpose = ColumnPurpose.Name;
-                        else if (Regex.IsMatch(column.ColumnName, @"^id$", RegexOptions.IgnoreCase))
-                            column.SuggestedPurpose = ColumnPurpose.Name;
-                        else if (Regex.IsMatch(column.ColumnName, @"^m_", RegexOptions.IgnoreCase))
-                            column.SuggestedPurpose = ColumnPurpose.Ignore;
-                        else
-                            continue;
-                    }
-                }
-            }
-
             internal sealed class TextClassification : IPurposeInferenceExpert
             {
                 public void Apply(IntermediateColumn[] columns)
@@ -172,12 +148,10 @@ namespace Microsoft.ML.Auto
                             if (cardinalityRatio < 0.7 || seen.Count < 100)
                                 column.SuggestedPurpose = ColumnPurpose.CategoricalFeature;
                             // (note: the columns.Count() == 1 condition below, in case a dataset has only
-                            // a 'name' and a 'label' column, forces what would be a 'name' column to become a text feature)
+                            // a 'name' and a 'label' column, forces what would be an 'ignore' column to become a text feature)
                             else if (cardinalityRatio >= 0.85 && (avgLength > 30 || avgSpaces >= 1 || columns.Count() == 1))
                                 column.SuggestedPurpose = ColumnPurpose.TextFeature;
                             else if (cardinalityRatio >= 0.9)
-                                column.SuggestedPurpose = ColumnPurpose.Name;
-                            else
                                 column.SuggestedPurpose = ColumnPurpose.Ignore;
                         }
                         else
@@ -244,9 +218,7 @@ namespace Microsoft.ML.Auto
         private static IEnumerable<IPurposeInferenceExpert> GetExperts()
         {
             // Each of the experts respects the decisions of all the experts above.
-
-            // Use column names to suggest purpose.
-            yield return new Experts.HeaderComprehension();
+            
             // Single-value text columns may be category, name, text or ignore.
             yield return new Experts.TextClassification();
             // Vector-value text columns are always treated as text.

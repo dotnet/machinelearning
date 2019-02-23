@@ -16,19 +16,22 @@ namespace Microsoft.ML.Auto.Test
         public void TrainerExtensionInstanceTests()
         {
             var context = new MLContext();
+            var columnInfo = new ColumnInformation();
             var trainerNames = Enum.GetValues(typeof(TrainerName)).Cast<TrainerName>();
             foreach (var trainerName in trainerNames)
             {
                 var extension = TrainerExtensionCatalog.GetTrainerExtension(trainerName);
-                var instance = extension.CreateInstance(context, null);
+                var instance = extension.CreateInstance(context, null, columnInfo);
                 Assert.IsNotNull(instance);
                 var sweepParams = extension.GetHyperparamSweepRanges();
                 Assert.IsNotNull(sweepParams);
+                var pipelineNode = extension.CreatePipelineNode(null, columnInfo);
+                Assert.IsNotNull(pipelineNode);
             }
         }
 
         [TestMethod]
-        public void BuildPipelineNodePropsLightGbm()
+        public void BuildLightGbmPipelineNode()
         {
             var sweepParams = SweepableParams.BuildLightGbmParams();
             foreach (var sweepParam in sweepParams)
@@ -36,37 +39,44 @@ namespace Microsoft.ML.Auto.Test
                 sweepParam.RawValue = 1;
             }
 
-            var lightGbmBinaryProps = TrainerExtensionUtil.BuildPipelineNodeProps(TrainerName.LightGbmBinary, sweepParams);
-            var lightGbmMultiProps = TrainerExtensionUtil.BuildPipelineNodeProps(TrainerName.LightGbmMulti, sweepParams);
-            var lightGbmRegressionProps = TrainerExtensionUtil.BuildPipelineNodeProps(TrainerName.LightGbmRegression, sweepParams);
+            var pipelineNode = new LightGbmBinaryExtension().CreatePipelineNode(sweepParams, new ColumnInformation());
 
             var expectedJson = @"{
-  ""NumBoostRound"": 20,
-  ""LearningRate"": 1,
-  ""NumLeaves"": 1,
-  ""MinDataPerLeaf"": 10,
-  ""UseSoftmax"": false,
-  ""UseCat"": false,
-  ""UseMissing"": false,
-  ""MinDataPerGroup"": 50,
-  ""MaxCatThreshold"": 16,
-  ""CatSmooth"": 10,
-  ""CatL2"": 0.5,
-  ""Booster"": {
-    ""Name"": ""Options.TreeBooster.Arguments"",
-    ""Properties"": {
-      ""RegLambda"": 0.5,
-      ""RegAlpha"": 0.5
-    }
+  ""Name"": ""LightGbmBinary"",
+  ""NodeType"": ""Trainer"",
+  ""InColumns"": [
+    ""Features""
+  ],
+  ""OutColumns"": [
+    ""Score""
+  ],
+  ""Properties"": {
+    ""NumBoostRound"": 20,
+    ""LearningRate"": 1,
+    ""NumLeaves"": 1,
+    ""MinDataPerLeaf"": 10,
+    ""UseSoftmax"": false,
+    ""UseCat"": false,
+    ""UseMissing"": false,
+    ""MinDataPerGroup"": 50,
+    ""MaxCatThreshold"": 16,
+    ""CatSmooth"": 10,
+    ""CatL2"": 0.5,
+    ""Booster"": {
+      ""Name"": ""Options.TreeBooster.Arguments"",
+      ""Properties"": {
+        ""RegLambda"": 0.5,
+        ""RegAlpha"": 0.5
+      }
+    },
+    ""LabelColumn"": ""Label""
   }
 }";
-            Util.AssertObjectMatchesJson(expectedJson, lightGbmBinaryProps);
-            Util.AssertObjectMatchesJson(expectedJson, lightGbmMultiProps);
-            Util.AssertObjectMatchesJson(expectedJson, lightGbmRegressionProps);
+            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
         }
 
         [TestMethod]
-        public void BuildPipelineNodePropsSdca()
+        public void BuildSdcaPipelineNode()
         {
             var sweepParams = SweepableParams.BuildSdcaParams();
             foreach (var sweepParam in sweepParams)
@@ -74,16 +84,103 @@ namespace Microsoft.ML.Auto.Test
                 sweepParam.RawValue = 1;
             }
 
-            var sdcaBinaryProps = TrainerExtensionUtil.BuildPipelineNodeProps(TrainerName.SdcaBinary, sweepParams);
+            var pipelineNode = new SdcaBinaryExtension().CreatePipelineNode(sweepParams, new ColumnInformation());
             var expectedJson = @"{
-  ""L2Const"": 1E-07,
-  ""L1Threshold"": 0.0,
-  ""ConvergenceTolerance"": 0.01,
-  ""MaxIterations"": 10,
-  ""Shuffle"": true,
-  ""BiasLearningRate"": 0.01
+  ""Name"": ""SdcaBinary"",
+  ""NodeType"": ""Trainer"",
+  ""InColumns"": [
+    ""Features""
+  ],
+  ""OutColumns"": [
+    ""Score""
+  ],
+  ""Properties"": {
+    ""L2Const"": 1E-07,
+    ""L1Threshold"": 0.0,
+    ""ConvergenceTolerance"": 0.01,
+    ""MaxIterations"": 10,
+    ""Shuffle"": true,
+    ""BiasLearningRate"": 0.01,
+    ""LabelColumn"": ""Label""
+  }
 }";
-            Util.AssertObjectMatchesJson(expectedJson, sdcaBinaryProps);
+            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
+        }
+
+        [TestMethod]
+        public void BuildPipelineNodeWithCustomColumns()
+        {
+            var columnInfo = new ColumnInformation()
+            {
+                LabelColumn = "L",
+                WeightColumn = "W"
+            };
+            var sweepParams = SweepableParams.BuildFastForestParams();
+            foreach (var sweepParam in sweepParams)
+            {
+                sweepParam.RawValue = 1;
+            }
+
+            var pipelineNode = new FastForestBinaryExtension().CreatePipelineNode(sweepParams, columnInfo);
+            var expectedJson = @"{
+  ""Name"": ""FastForestBinary"",
+  ""NodeType"": ""Trainer"",
+  ""InColumns"": [
+    ""Features""
+  ],
+  ""OutColumns"": [
+    ""Score""
+  ],
+  ""Properties"": {
+    ""NumLeaves"": 1,
+    ""MinDocumentsInLeafs"": 10,
+    ""NumTrees"": 100,
+    ""LabelColumn"": ""L"",
+    ""WeightColumn"": ""W""
+  }
+}";
+            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
+        }
+
+        [TestMethod]
+        public void BuildDefaultAveragedPerceptronPipelineNode()
+        {
+            var pipelineNode = new AveragedPerceptronBinaryExtension().CreatePipelineNode(null, new ColumnInformation() { LabelColumn = "L" });
+            var expectedJson = @"{
+  ""Name"": ""AveragedPerceptronBinary"",
+  ""NodeType"": ""Trainer"",
+  ""InColumns"": [
+    ""Features""
+  ],
+  ""OutColumns"": [
+    ""Score""
+  ],
+  ""Properties"": {
+    ""LabelColumn"": ""L"",
+    ""NumIterations"": ""10""
+  }
+}";
+            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
+        }
+
+        [TestMethod]
+        public void BuildOvaPipelineNode()
+        {
+            var pipelineNode = new FastForestOvaExtension().CreatePipelineNode(null, new ColumnInformation());
+            var expectedJson = @"{
+  ""Name"": ""FastForestOva"",
+  ""NodeType"": ""Trainer"",
+  ""InColumns"": [
+    ""Features""
+  ],
+  ""OutColumns"": [
+    ""Score""
+  ],
+  ""Properties"": {
+    ""LabelColumn"": ""Label""
+  }
+}";
+            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
         }
 
         [TestMethod]
@@ -164,7 +261,7 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void AllowedTrainersWhitelistNullTest()
         {
-            var trainers = RecipeInference.AllowedTrainers(new MLContext(), TaskKind.BinaryClassification, null);
+            var trainers = RecipeInference.AllowedTrainers(new MLContext(), TaskKind.BinaryClassification, new ColumnInformation(), null);
             Assert.IsTrue(trainers.Any());
         }
 
@@ -172,7 +269,7 @@ namespace Microsoft.ML.Auto.Test
         public void AllowedTrainersWhitelistTest()
         {
             var whitelist = new[] { TrainerName.AveragedPerceptronBinary, TrainerName.FastForestBinary };
-            var trainers = RecipeInference.AllowedTrainers(new MLContext(), TaskKind.BinaryClassification, whitelist);
+            var trainers = RecipeInference.AllowedTrainers(new MLContext(), TaskKind.BinaryClassification, new ColumnInformation(), whitelist);
             Assert.AreEqual(whitelist.Count(), trainers.Count());
         }
     }

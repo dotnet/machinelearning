@@ -32,7 +32,8 @@ namespace Microsoft.ML.Auto
             bool isMaximizingMetric,
             IEnumerable<TrainerName> trainerWhitelist = null)
         {
-            var availableTrainers = RecipeInference.AllowedTrainers(context, task, trainerWhitelist);
+            var availableTrainers = RecipeInference.AllowedTrainers(context, task, 
+                ColumnInformationUtil.BuildColumnInfo(columns), trainerWhitelist);
             var transforms = CalculateTransforms(context, columns, task);
             //var transforms = TransformInferenceApi.InferTransforms(context, columns, task);
 

@@ -641,47 +641,25 @@ namespace Microsoft.ML.Auto.Test
                 {
                     (DefaultColumnNames.Features, new VectorType(NumberType.R4), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                     ("CustomLabel", NumberType.R4, ColumnPurpose.Label, new ColumnDimensions(null, null)),
+                }, @"[]");
+        }
+
+        [TestMethod]
+        public void TransformInferenceCustomTextLabelCol()
+        {
+            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+                {
+                    (DefaultColumnNames.Features, new VectorType(NumberType.R4), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("CustomLabel", TextType.Instance, ColumnPurpose.Label, new ColumnDimensions(null, null)),
                 }, @"[
   {
-    ""Name"": ""ColumnCopying"",
+    ""Name"": ""ValueToKeyMapping"",
     ""NodeType"": ""Transform"",
     ""InColumns"": [
       ""CustomLabel""
     ],
     ""OutColumns"": [
-      ""Label""
-    ],
-    ""Properties"": {}
-  }
-]");
-        }
-
-        [TestMethod]
-        public void TransformInferenceDefaultGroupIdCol()
-        {
-            TransformInferenceTestCore(new(string, ColumnType, ColumnPurpose, ColumnDimensions)[]
-                {
-                    (DefaultColumnNames.Features, new VectorType(NumberType.R4), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    (DefaultColumnNames.GroupId, NumberType.R4, ColumnPurpose.Group, new ColumnDimensions(null, null)),
-                }, @"[]");
-        }
-
-        [TestMethod]
-        public void TransformInferenceCustomGroupIdCol()
-        {
-            TransformInferenceTestCore(new(string, ColumnType, ColumnPurpose, ColumnDimensions)[]
-                {
-                    (DefaultColumnNames.Features, new VectorType(NumberType.R4), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("CustomGroupId", NumberType.R4, ColumnPurpose.Group, new ColumnDimensions(null, null)),
-                }, @"[
-  {
-    ""Name"": ""ColumnCopying"",
-    ""NodeType"": ""Transform"",
-    ""InColumns"": [
-      ""CustomGroupId""
-    ],
-    ""OutColumns"": [
-      ""GroupId""
+      ""CustomLabel""
     ],
     ""Properties"": {}
   }

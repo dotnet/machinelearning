@@ -98,8 +98,8 @@ namespace mlnet.Test
                 // same learners with different hyperparams
                 var hyperparams1 = new Microsoft.ML.Auto.ParameterSet(new List<Microsoft.ML.Auto.IParameterValue>() { new LongParameterValue("NumLeaves", 2) });
                 var hyperparams2 = new Microsoft.ML.Auto.ParameterSet(new List<Microsoft.ML.Auto.IParameterValue>() { new LongParameterValue("NumLeaves", 6) });
-                var trainer1 = new SuggestedTrainer(context, new LightGbmBinaryExtension(), hyperparams1);
-                var trainer2 = new SuggestedTrainer(context, new LightGbmBinaryExtension(), hyperparams2);
+                var trainer1 = new SuggestedTrainer(context, new LightGbmBinaryExtension(), new ColumnInformation(), hyperparams1);
+                var trainer2 = new SuggestedTrainer(context, new LightGbmBinaryExtension(), new ColumnInformation(), hyperparams2);
                 var transforms1 = new List<SuggestedTransform>() { ColumnConcatenatingExtension.CreateSuggestedTransform(context, new[] { "In" }, "Out") };
                 var transforms2 = new List<SuggestedTransform>() { ColumnConcatenatingExtension.CreateSuggestedTransform(context, new[] { "In" }, "Out") };
                 var inferredPipeline1 = new SuggestedPipeline(transforms1, trainer1, context);

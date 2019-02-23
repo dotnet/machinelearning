@@ -7,13 +7,11 @@ namespace Microsoft.ML.Auto
     internal enum ColumnPurpose
     {
         Ignore = 0,
-        Name = 1,
-        Label = 2,
-        NumericFeature = 3,
-        CategoricalFeature = 4,
-        TextFeature = 5,
-        Weight = 6,
-        Group = 7,
-        ImagePath = 8
+        Label = 1,
+        NumericFeature = 2,
+        CategoricalFeature = 3,
+        TextFeature = 4,
+        Weight = 5,
+        ImagePath = 6
     }
 }

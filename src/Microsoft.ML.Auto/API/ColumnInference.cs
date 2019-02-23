@@ -16,9 +16,7 @@ namespace Microsoft.ML.Auto
     public class ColumnInformation
     {
         public string LabelColumn = DefaultColumnNames.Label;
-        public string NameColumn = DefaultColumnNames.Name;
-        public string GroupIdColumn = DefaultColumnNames.GroupId;
-        public string WeightColumn = DefaultColumnNames.Weight;
+        public string WeightColumn;
         public IEnumerable<string> CategoricalColumns { get; set; }
         public IEnumerable<string> NumericColumns { get; set; }
         public IEnumerable<string> TextColumns { get; set; }

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 
 namespace Microsoft.ML.Auto
 {
@@ -15,16 +16,6 @@ namespace Microsoft.ML.Auto
             if (columnName == columnInfo.LabelColumn)
             {
                 return ColumnPurpose.Label;
-            }
-
-            if (columnName == columnInfo.NameColumn)
-            {
-                return ColumnPurpose.Name;
-            }
-
-            if (columnName == columnInfo.GroupIdColumn)
-            {
-                return ColumnPurpose.Group;
             }
 
             if (columnName == columnInfo.WeightColumn)
@@ -70,17 +61,11 @@ namespace Microsoft.ML.Auto
                     case ColumnPurpose.CategoricalFeature:
                         categoricalColumns.Add(column.name);
                         break;
-                    case ColumnPurpose.Group:
-                        columnInfo.GroupIdColumn = column.name;
-                        break;
                     case ColumnPurpose.Ignore:
                         ignoredColumns.Add(column.name);
                         break;
                     case ColumnPurpose.Label:
                         columnInfo.LabelColumn = column.name;
-                        break;
-                    case ColumnPurpose.Name:
-                        columnInfo.NameColumn = column.name;
                         break;
                     case ColumnPurpose.NumericFeature:
                         numericColumns.Add(column.name);
@@ -95,6 +80,11 @@ namespace Microsoft.ML.Auto
             }
 
             return columnInfo;
+        }
+
+        public static ColumnInformation BuildColumnInfo(IEnumerable<(string, ColumnType, ColumnPurpose, ColumnDimensions)> columns)
+        {
+            return BuildColumnInfo(columns.Select(c => (c.Item1, c.Item3)));
         }
     }
 }

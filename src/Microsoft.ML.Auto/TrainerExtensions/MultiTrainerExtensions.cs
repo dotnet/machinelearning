@@ -22,10 +22,16 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildAveragePerceptronParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams) as ITrainerEstimatorProducingFloat;
+            var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildOvaPipelineNode(this, _binaryLearnerCatalogItem, sweepParams, columnInfo);
         }
     }
 
@@ -38,10 +44,16 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildFastForestParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams) as ITrainerEstimatorProducingFloat;
+            var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildOvaPipelineNode(this, _binaryLearnerCatalogItem, sweepParams, columnInfo);
         }
     }
 
@@ -52,10 +64,17 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildLightGbmParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateLightGbmOptions(sweepParams);
+            var options = TrainerExtensionUtil.CreateLightGbmOptions(sweepParams, columnInfo);
             return mlContext.MulticlassClassification.Trainers.LightGbm(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildLightGbmPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn, columnInfo.WeightColumn);
         }
     }
 
@@ -68,10 +87,16 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildLinearSvmParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams) as ITrainerEstimatorProducingFloat;
+            var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildOvaPipelineNode(this, _binaryLearnerCatalogItem, sweepParams, columnInfo);
         }
     }
 
@@ -82,13 +107,19 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildSdcaParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateOptions<SdcaMultiClassTrainer.Options>(sweepParams);
+            var options = TrainerExtensionUtil.CreateOptions<SdcaMultiClassTrainer.Options>(sweepParams, columnInfo.LabelColumn);
             return mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(options);
         }
-    }
 
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn);
+        }
+    }
 
     internal class LogisticRegressionOvaExtension : ITrainerExtension
     {
@@ -99,10 +130,16 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildLogisticRegressionParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams) as ITrainerEstimatorProducingFloat;
+            var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildOvaPipelineNode(this, _binaryLearnerCatalogItem, sweepParams, columnInfo);
         }
     }
 
@@ -115,10 +152,16 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildSgdParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams) as ITrainerEstimatorProducingFloat;
+            var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildOvaPipelineNode(this, _binaryLearnerCatalogItem, sweepParams, columnInfo);
         }
     }
 
@@ -131,10 +174,16 @@ namespace Microsoft.ML.Auto
             return _binaryLearnerCatalogItem.GetHyperparamSweepRanges();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams) as ITrainerEstimatorProducingFloat;
+            var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildOvaPipelineNode(this, _binaryLearnerCatalogItem, sweepParams, columnInfo);
         }
     }
 
@@ -147,10 +196,16 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildFastTreeParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams) as ITrainerEstimatorProducingFloat;
+            var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildOvaPipelineNode(this, _binaryLearnerCatalogItem, sweepParams, columnInfo);
         }
     }
 
@@ -161,10 +216,18 @@ namespace Microsoft.ML.Auto
             return SweepableParams.BuildLogisticRegressionParams();
         }
 
-        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
+        public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
+            ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateOptions<MulticlassLogisticRegression.Options>(sweepParams);
+            var options = TrainerExtensionUtil.CreateOptions<MulticlassLogisticRegression.Options>(sweepParams, columnInfo.LabelColumn);
+            options.WeightColumn = columnInfo.WeightColumn;
             return mlContext.MulticlassClassification.Trainers.LogisticRegression(options);
+        }
+
+        public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        {
+            return TrainerExtensionUtil.BuildPipelineNode(TrainerExtensionCatalog.GetTrainerName(this), sweepParams,
+                columnInfo.LabelColumn, columnInfo.WeightColumn);
         }
     }
 }
