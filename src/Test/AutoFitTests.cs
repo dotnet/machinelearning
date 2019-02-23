@@ -31,15 +31,14 @@ namespace Microsoft.ML.Auto.Test
         public void AutoFitMultiTest()
         {
             var context = new MLContext();
-            var dataPath = DatasetUtil.DownloadTrivialDataset();
-            var columnInference = context.AutoInference().InferColumns(dataPath, DatasetUtil.TrivialDatasetLabel);
+            var columnInference = context.AutoInference().InferColumns(DatasetUtil.TrivialMulticlassDatasetPath, DatasetUtil.TrivialMulticlassDatasetLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
-            var trainData = textLoader.Read(dataPath);
+            var trainData = textLoader.Read(DatasetUtil.TrivialMulticlassDatasetPath);
             var validationData = context.Data.TakeRows(trainData, 20);
             trainData = context.Data.SkipRows(trainData, 20);
             var result = context.AutoInference()
                 .CreateMulticlassClassificationExperiment(0)
-                .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = DatasetUtil.TrivialDatasetLabel });
+                .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = DatasetUtil.TrivialMulticlassDatasetLabel });
 
             Assert.IsTrue(result.Max(i => i.Metrics.AccuracyMacro) > 0.80);
         }
