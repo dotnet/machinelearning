@@ -31,7 +31,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
             // Evaluate how the model is doing on the test data.
             var dataWithPredictions = model.Transform(split.TestSet);
 
-            var metrics = mlContext.Ranking.Evaluate(dataWithPredictions, "Label", "GroupId");
+            var metrics = mlContext.Ranking.Evaluate(dataWithPredictions);
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output:
