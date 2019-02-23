@@ -27,12 +27,12 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            var trainData = mlContext.Data.ReadFromTextFile<MnistOneClass>(GetDataPath(TestDatasets.mnistOneClass.trainFilename),
-                hasHeader: TestDatasets.mnistOneClass.fileHasHeader,
-                separatorChar: TestDatasets.mnistOneClass.fileSeparator);
-            var testData = mlContext.Data.ReadFromTextFile<MnistOneClass>(GetDataPath(TestDatasets.mnistOneClass.testFilename),
-                hasHeader: TestDatasets.mnistOneClass.fileHasHeader,
-                separatorChar: TestDatasets.mnistOneClass.fileSeparator);
+            var trainData = MnistOneClass.GetTextLoader(mlContext,
+                    TestDatasets.mnistOneClass.fileHasHeader, TestDatasets.mnistOneClass.fileSeparator)
+                .Read(GetDataPath(TestDatasets.mnistOneClass.trainFilename));
+            var testData = MnistOneClass.GetTextLoader(mlContext,
+                    TestDatasets.mnistOneClass.fileHasHeader, TestDatasets.mnistOneClass.fileSeparator)
+                .Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
             // Create a training pipeline.
             var pipeline = mlContext.AnomalyDetection.Trainers.RandomizedPca();

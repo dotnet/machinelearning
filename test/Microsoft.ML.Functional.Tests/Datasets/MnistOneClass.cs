@@ -6,15 +6,24 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Functional.Tests.Datasets
 {
-    /// <summary>
-    /// A class for reading in the MNIST One Class test dataset.
-    /// </summary>
     internal sealed class MnistOneClass
     {
-        [LoadColumn(0)]
+        private const int _featureLength = 783;
+
         public float Label { get; set; }
 
-        [LoadColumn(1, 784), VectorType(784)]
         public float[] Features { get; set; }
+
+        public static TextLoader GetTextLoader(MLContext mlContext, bool hasHeader, char separatorChar)
+        {
+            return mlContext.Data.CreateTextLoader(
+                    new[] {
+                        new TextLoader.Column("Label", DataKind.R4, 0),
+                        new TextLoader.Column("Features", DataKind.R4, 1, 1 + _featureLength)
+                    },
+                    separatorChar: separatorChar,
+                    hasHeader: hasHeader,
+                    allowSparse: true);
+        }
     }
 }

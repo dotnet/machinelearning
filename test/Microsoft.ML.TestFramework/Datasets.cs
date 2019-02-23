@@ -663,7 +663,7 @@ namespace Microsoft.ML.RunTests
             name = "mnistOneClass",
             trainFilename = @"MNIST.Train.0-class.tiny.txt",
             testFilename = @"MNIST.Test.tiny.txt",
-            fileHasHeader = true,
+            fileHasHeader = false,
             fileSeparator = '\t',
             settings = ""
         };
