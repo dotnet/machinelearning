@@ -156,8 +156,8 @@ namespace Microsoft.ML
         /// <param name="order">In which order extracted colors presented in array.</param>
         /// <param name="interleave">Whether the pixels are interleaved, meaning whether they are in <paramref name="order"/> order, or separated in the planar form:
         /// all the values for one color for all pixels, then all the values for another color and so on.</param>
-        /// <param name="scale">The values are scaled by this value before being converted to pixels.</param>
-        /// <param name="offset">The offset is subtracted (before scaling) before converting the values to pixels.</param>
+        /// <param name="scale">The values are scaled by this value before being converted to pixels. Applied to vector value first.</param>
+        /// <param name="offset">The offset is subtracted before converting the values to pixels. Applied to vector value second.</param>
         /// <param name="defaultAlpha">Default value for alpha color, would be overriden if <paramref name="colors"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Alpha"/>.</param>
         /// <param name="defaultRed">Default value for red color, would be overriden if <paramref name="colors"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Red"/>.</param>
         /// <param name="defaultGreen">Default value for grenn color, would be overriden if <paramref name="colors"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Green"/>.</param>
