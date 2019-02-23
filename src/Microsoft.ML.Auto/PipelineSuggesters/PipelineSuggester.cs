@@ -221,7 +221,8 @@ namespace Microsoft.ML.Auto
             // this is a work-around for ML.NET bug tracked by https://github.com/dotnet/machinelearning/issues/1969
             if (task == TaskKind.MulticlassClassification)
             {
-                var transform = ValueToKeyMappingExtension.CreateSuggestedTransform(context, DefaultColumnNames.Label, DefaultColumnNames.Label);
+                var labelColumn = columns.First(c => c.Item3 == ColumnPurpose.Label).Item1;
+                var transform = ValueToKeyMappingExtension.CreateSuggestedTransform(context, labelColumn, labelColumn);
                 transforms.Add(transform);
             }
             return transforms;

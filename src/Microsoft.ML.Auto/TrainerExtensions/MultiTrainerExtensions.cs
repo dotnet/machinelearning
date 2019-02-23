@@ -24,7 +24,7 @@ namespace Microsoft.ML.Auto
             ColumnInformation columnInfo)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
-            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
+            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumn: columnInfo.LabelColumn);
         }
 
         public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Auto
             ColumnInformation columnInfo)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
-            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
+            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumn: columnInfo.LabelColumn);
         }
 
         public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Auto
             ColumnInformation columnInfo)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
-            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
+            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumn: columnInfo.LabelColumn);
         }
 
         public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Auto
             ColumnInformation columnInfo)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
-            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
+            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumn: columnInfo.LabelColumn);
         }
 
         public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
@@ -154,7 +154,7 @@ namespace Microsoft.ML.Auto
             ColumnInformation columnInfo)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
-            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
+            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumn: columnInfo.LabelColumn);
         }
 
         public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Auto
             ColumnInformation columnInfo)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
-            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
+            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumn: columnInfo.LabelColumn);
         }
 
         public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Auto
             ColumnInformation columnInfo)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
-            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
+            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumn: columnInfo.LabelColumn);
         }
 
         public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
