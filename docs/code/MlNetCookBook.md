@@ -219,10 +219,10 @@ private class AdultData
 
 // Read the data into a data view.
 var trainData = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
-                // First line of the file is a header, not a data row.
-                hasHeader: true,
                 // Default separator is tab, but we need a semicolon.
-                separatorChar: ';'
+                separatorChar: ';',
+                // First line of the file is a header, not a data row.
+                hasHeader: true
 );		
 
 ```
@@ -328,7 +328,7 @@ In the file above, the last column (12th) is label that we predict, and all the 
 // First, we define the reader: specify the data columns and where to find them in the text file.
 // Read the data into a data view. Remember though, readers are lazy, so the actual reading will happen when the data is accessed.
 var trainData = mlContext.Data.ReadFromTextFile<AdultData>(dataPath,
-    // First line of the file is a header, not a data row.
+    // Default separator is tab, but the dataset has comma.
     separatorChar: ','
 );
 
@@ -372,7 +372,7 @@ Assuming the example above was used to train the model, here's how you calculate
 ```csharp
 // Read the test dataset.
 var testData = mlContext.Data.ReadFromTextFile<AdultData>(testDataPath,
-    // First line of the file is a header, not a data row.
+    // Default separator is tab, but the dataset has comma.
     separatorChar: ','
 );
 // Calculate metrics of the model on the test data.
@@ -970,27 +970,27 @@ Please note that you need to make your `mapping` operation into a 'pure function
 - It should not have side effects (we may call it arbitrarily at any time, or omit the call)
 
 One important caveat is: if you want your custom transformation to be part of your saved model, you will need to provide a `contractName` for it.
-At loading time, you will need to reconstruct the custom transformer and inject it into MLContext. 
+At loading time, you will need to register the custom transformer with the MLContext. 
 
 Here is a complete example that saves and loads a model with a custom mapping.
 ```csharp
 /// <summary>
-/// One class that contains all custom mappings that we need for our model.
+/// One class that contains the custom mapping functionality that we need for our model.
+/// 
+/// It has a <see cref="CustomMappingFactoryAttributeAttribute"/> on it and
+/// derives from <see cref="CustomMappingFactory{TSrc, TDst}"/>.
 /// </summary>
-public class CustomMappings
+[CustomMappingFactoryAttribute(nameof(CustomMappings.IncomeMapping))]
+public class CustomMappings : CustomMappingFactory<InputRow, OutputRow>
 {
     // This is the custom mapping. We now separate it into a method, so that we can use it both in training and in loading.
     public static void IncomeMapping(InputRow input, OutputRow output) => output.Label = input.Income > 50000;
 
-    // MLContext is needed to create a new transformer. We are using 'Import' to have ML.NET populate
-    // this property.
-    [Import]
-    public MLContext MLContext { get; set; }
-
-    // We are exporting the custom transformer by the name 'IncomeMapping'.
-    [Export(nameof(IncomeMapping))]
-    public ITransformer MyCustomTransformer 
-        => MLContext.Transforms.CustomMappingTransformer<InputRow, OutputRow>(IncomeMapping, nameof(IncomeMapping));
+    // This factory method will be called when loading the model to get the mapping operation.
+    public override Action<InputRow, OutputRow> GetMapping()
+    {
+        return IncomeMapping;
+    }
 }
 ```
 
@@ -1013,8 +1013,9 @@ using (var fs = File.Create(modelPath))
 
 // Now pretend we are in a different process.
 
-// Create a custom composition container for all our custom mapping actions.
-newContext.CompositionContainer = new CompositionContainer(new TypeCatalog(typeof(CustomMappings)));
+// Register the assembly that contains 'CustomMappings' with the ComponentCatalog
+// so it can be found when loading the model.
+newContext.ComponentCatalog.RegisterAssembly(typeof(CustomMappings).Assembly);
 
 // Now we can load the model.
 ITransformer loadedModel;
