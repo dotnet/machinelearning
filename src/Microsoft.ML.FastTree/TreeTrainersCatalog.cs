@@ -257,19 +257,17 @@ namespace Microsoft.ML
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
         /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
-        /// <param name="learningRate">The learning rate.</param>
         public static FastForestRegression FastForest(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FastForestRegression(env, labelColumn, featureColumn, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate);
+            return new FastForestRegression(env, labelColumn, featureColumn, weights, numLeaves, numTrees, minDatapointsInLeaves);
         }
 
         /// <summary>
@@ -297,19 +295,17 @@ namespace Microsoft.ML
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
         /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
-        /// <param name="learningRate">The learning rate.</param>
         public static FastForestClassification FastForest(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FastForestClassification(env, labelColumn, featureColumn, weights,numLeaves, numTrees, minDatapointsInLeaves, learningRate);
+            return new FastForestClassification(env, labelColumn, featureColumn, weights,numLeaves, numTrees, minDatapointsInLeaves);
         }
 
         /// <summary>
