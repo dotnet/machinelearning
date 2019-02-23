@@ -105,12 +105,12 @@ namespace Microsoft.ML.Data
             public string Name;
 
             /// <summary>
-            /// <see cref="InternalDataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.
+            /// <see cref="InternalDataKind"/> of the items in the column. It defaults to float.
             /// Although <see cref="InternalDataKind"/> is internal, <see cref="Type"/>'s information can be publically accessed by <see cref="DataKind"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Type of the items in the column")]
             [BestFriend]
-            internal InternalDataKind Type = default;
+            internal InternalDataKind Type = InternalDataKind.R4;
 
             /// <summary>
             /// <see cref="Data.DataKind"/> of the items in the column.
