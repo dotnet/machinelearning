@@ -117,7 +117,7 @@ namespace Microsoft.ML.Data
                     var selectedColumn = _sourceSchema[selectedIndex];
                     schemaBuilder.AddColumn(selectedColumn.Name, selectedColumn.Type, selectedColumn.Metadata);
                 }
-                return schemaBuilder.GetSchema();
+                return schemaBuilder.ToSchema();
             }
 
             internal Bindings(ModelLoadContext ctx, DataViewSchema sourceSchema)

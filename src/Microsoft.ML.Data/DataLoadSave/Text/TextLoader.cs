@@ -983,14 +983,14 @@ namespace Microsoft.ML.Data
                         // Slot names present! Let's add them.
                         var metadataBuilder = new DataViewSchema.Metadata.Builder();
                         metadataBuilder.AddSlotNames(names.Length, (ref VBuffer<ReadOnlyMemory<char>> value) => names.CopyTo(ref value));
-                        schemaBuilder.AddColumn(info.Name, info.ColType, metadataBuilder.GetMetadata());
+                        schemaBuilder.AddColumn(info.Name, info.ColType, metadataBuilder.ToMetadata());
                     }
                     else
                         // Slot names is empty.
                         schemaBuilder.AddColumn(info.Name, info.ColType);
                 }
 
-                return schemaBuilder.GetSchema();
+                return schemaBuilder.ToSchema();
             }
         }
 

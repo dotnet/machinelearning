@@ -225,10 +225,10 @@ namespace Microsoft.ML.Data
 
                     if (builder._getKeyValues.TryGetValue(builder._names[i], out var keyValueGetter))
                         meta.AddKeyValues(_columns[i].Type.GetKeyCountAsInt32(_host), TextDataViewType.Instance, keyValueGetter);
-                    schemaBuilder.AddColumn(builder._names[i], _columns[i].Type, meta.GetMetadata());
+                    schemaBuilder.AddColumn(builder._names[i], _columns[i].Type, meta.ToMetadata());
                 }
 
-                _schema = schemaBuilder.GetSchema();
+                _schema = schemaBuilder.ToSchema();
                 _rowCount = rowCount;
             }
 

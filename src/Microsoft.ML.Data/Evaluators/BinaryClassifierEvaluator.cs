@@ -1561,7 +1561,7 @@ namespace Microsoft.ML.Data
             {
                 var schemaBuilder = new DataViewSchema.Builder();
                 schemaBuilder.AddColumn(MetricKinds.ColumnNames.WarningText, TextDataViewType.Instance);
-                warnings = new EmptyDataView(host, schemaBuilder.GetSchema());
+                warnings = new EmptyDataView(host, schemaBuilder.ToSchema());
             }
 
             return warnings;
@@ -1576,7 +1576,7 @@ namespace Microsoft.ML.Data
                 foreach (var mc in evaluator.GetOverallMetricColumns())
                     schemaBuilder.AddColumn(mc.LoadName, NumberDataViewType.Double);
 
-                overallMetrics = new EmptyDataView(host, schemaBuilder.GetSchema());
+                overallMetrics = new EmptyDataView(host, schemaBuilder.ToSchema());
             }
 
             return overallMetrics;
@@ -1589,7 +1589,7 @@ namespace Microsoft.ML.Data
             {
                 var schemaBuilder = new DataViewSchema.Builder();
                 schemaBuilder.AddColumn(MetricKinds.ColumnNames.Count, NumberDataViewType.Double);
-                confusionMatrix = new EmptyDataView(host, schemaBuilder.GetSchema());
+                confusionMatrix = new EmptyDataView(host, schemaBuilder.ToSchema());
             }
 
             return confusionMatrix;

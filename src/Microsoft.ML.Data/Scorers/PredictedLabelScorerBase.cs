@@ -92,7 +92,7 @@ namespace Microsoft.ML.Data
                 var getter = meta.GetGetter<T>(metaCol.Index);
                 var builder = new DataViewSchema.Metadata.Builder();
                 builder.Add(MetadataUtils.Kinds.KeyValues, metaCol.Type, meta.GetGetter<T>(metaCol.Index));
-                return builder.GetMetadata();
+                return builder.ToMetadata();
             }
 
             public static BindingsImpl Create(DataViewSchema input, ISchemaBoundRowMapper mapper, string suffix,

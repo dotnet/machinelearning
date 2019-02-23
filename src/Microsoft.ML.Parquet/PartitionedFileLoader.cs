@@ -319,7 +319,7 @@ namespace Microsoft.ML.Data
 
             var builder = new DataViewSchema.Builder();
             builder.AddColumns(cols.Select(c => new DataViewSchema.DetachedColumn(c.Name, ColumnTypeExtensions.PrimitiveTypeFromKind(c.Type.Value), null)));
-            var colSchema = builder.GetSchema();
+            var colSchema = builder.ToSchema();
 
             var subSchema = subLoader.Schema;
 

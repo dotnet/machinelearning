@@ -554,7 +554,7 @@ namespace Microsoft.ML.Data
             var slotNamesType = new VectorType(TextDataViewType.Instance, t.Size);
             var builder = new DataViewSchema.Metadata.Builder();
             builder.AddSlotNames(t.Size, CreateSlotNamesGetter(schema, LabelIndex, labelType.Size, "True"));
-            labelMetadata = builder.GetMetadata();
+            labelMetadata = builder.ToMetadata();
 
             t = schema[ScoreIndex].Type as VectorType;
             if (t == null || !t.IsKnownSize || t.ItemType != NumberDataViewType.Single)
@@ -569,7 +569,7 @@ namespace Microsoft.ML.Data
             builder.Add(MetadataUtils.Kinds.ScoreValueKind, TextDataViewType.Instance, getter);
             ValueGetter<uint> uintGetter = GetScoreColumnSetId(schema);
             builder.Add(MetadataUtils.Kinds.ScoreColumnSetId, MetadataUtils.ScoreColumnSetIdType, uintGetter);
-            scoreMetadata = builder.GetMetadata();
+            scoreMetadata = builder.ToMetadata();
         }
 
         private ValueGetter<uint> GetScoreColumnSetId(DataViewSchema schema)

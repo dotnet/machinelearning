@@ -79,9 +79,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
                         (ref VBuffer<ReadOnlyMemory<char>> value) => { upstreamOperatorNames.CopyTo(ref value); });
                 }
 
-                schemaBuilder.AddColumn(op.Name, columnType, metadataBuilder.GetMetadata());
+                schemaBuilder.AddColumn(op.Name, columnType, metadataBuilder.ToMetadata());
             }
-            return schemaBuilder.GetSchema();
+            return schemaBuilder.ToSchema();
         }
 
         /// <summary>

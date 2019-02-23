@@ -581,7 +581,7 @@ namespace Microsoft.ML.Data
                     if (_hasCategoricals)
                         metadata.Add(MetadataUtils.Kinds.CategoricalSlotRanges, _categoricalRangeType, (ValueGetter<VBuffer<int>>)GetCategoricalSlotRanges);
 
-                    return new DataViewSchema.DetachedColumn(_columnInfo.Name, OutputType, metadata.GetMetadata());
+                    return new DataViewSchema.DetachedColumn(_columnInfo.Name, OutputType, metadata.ToMetadata());
                 }
 
                 private void GetIsNormalized(ref bool value) => value = _isNormalized;

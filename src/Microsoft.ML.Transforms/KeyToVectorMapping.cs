@@ -211,7 +211,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     var builder = new DataViewSchema.Metadata.Builder();
                     AddMetadata(i, builder);
 
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.ToMetadata());
                 }
                 return result;
             }

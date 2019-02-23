@@ -360,8 +360,8 @@ namespace Microsoft.ML.Data
             var l2Metadata = new DataViewSchema.Metadata.Builder();
             l2Metadata.AddSlotNames(_scoreSize, CreateSlotNamesGetter(L2));
 
-            infos[L1Col] = new DataViewSchema.DetachedColumn(L1, _outputType, l1Metadata.GetMetadata());
-            infos[L2Col] = new DataViewSchema.DetachedColumn(L2, _outputType, l2Metadata.GetMetadata());
+            infos[L1Col] = new DataViewSchema.DetachedColumn(L1, _outputType, l1Metadata.ToMetadata());
+            infos[L2Col] = new DataViewSchema.DetachedColumn(L2, _outputType, l2Metadata.ToMetadata());
             return infos;
         }
 

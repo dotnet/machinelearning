@@ -299,10 +299,10 @@ namespace Microsoft.ML.Transforms
                     var aggregatedResultType = new VectorType(aggregatedValueType);
 
                     // Add column into output schema.
-                    schemaBuilder.AddColumn(groupValueColumnName, aggregatedResultType, metadataBuilder.GetMetadata());
+                    schemaBuilder.AddColumn(groupValueColumnName, aggregatedResultType, metadataBuilder.ToMetadata());
                 }
 
-                return schemaBuilder.GetSchema();
+                return schemaBuilder.ToSchema();
             }
 
             internal void Save(ModelSaveContext ctx)

@@ -322,9 +322,9 @@ namespace Microsoft.ML.Data
                         }
                         // Instead of appending extra metadata to the existing score column, we create new one because
                         // metadata is read-only.
-                        builder.AddColumn(partialSchema[i].Name, partialSchema[i].Type, meta.GetMetadata());
+                        builder.AddColumn(partialSchema[i].Name, partialSchema[i].Type, meta.ToMetadata());
                     }
-                    return builder.GetSchema();
+                    return builder.ToSchema();
                 }
 
                 public Func<int, bool> GetDependencies(Func<int, bool> predicate) => _mapper.GetDependencies(predicate);

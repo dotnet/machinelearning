@@ -426,10 +426,10 @@ namespace Microsoft.ML.Trainers
             builder.AddPrimitiveValue("AIC", NumberDataViewType.Single, 2 * _paramCount + _deviance);
 
             if (parent == null)
-                return builder.GetMetadata();
+                return builder.ToMetadata();
 
             if (!TryGetBiasStatistics(parent.Statistics, parent.Bias, out float biasStdErr, out float biasZScore, out float biasPValue))
-                return builder.GetMetadata();
+                return builder.ToMetadata();
 
             var biasEstimate = parent.Bias;
             builder.AddPrimitiveValue("BiasEstimate", NumberDataViewType.Single, biasEstimate);
@@ -448,7 +448,7 @@ namespace Microsoft.ML.Trainers
 
             var subMetaBuilder = new DataViewSchema.Metadata.Builder();
             subMetaBuilder.AddSlotNames(stdErr.Length, getSlotNames);
-            var subMeta = subMetaBuilder.GetMetadata();
+            var subMeta = subMetaBuilder.ToMetadata();
             var colType = new VectorType(NumberDataViewType.Single, stdErr.Length);
 
             builder.Add("Estimate", colType, (ref VBuffer<float> dst) => estimate.CopyTo(ref dst), subMeta);
@@ -456,7 +456,7 @@ namespace Microsoft.ML.Trainers
             builder.Add("ZScore", colType, (ref VBuffer<float> dst) => zScore.CopyTo(ref dst), subMeta);
             builder.Add("PValue", colType, (ref VBuffer<float> dst) => pValue.CopyTo(ref dst), subMeta);
 
-            return builder.GetMetadata();
+            return builder.ToMetadata();
         }
 
         private string DecorateProbabilityString(float probZ)

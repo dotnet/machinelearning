@@ -608,7 +608,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
                 builder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ValueGetter<bool>)IsNormalizedGetter);
                 builder.Add(InputSchema[ColMapNewToOld[iinfo]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                return builder.GetMetadata();
+                return builder.ToMetadata();
             }
 
             private void IsNormalizedGetter(ref bool dst)

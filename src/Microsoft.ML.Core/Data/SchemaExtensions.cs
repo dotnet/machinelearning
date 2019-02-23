@@ -14,7 +14,7 @@ namespace Microsoft.ML.Data
         {
             var builder = new DataViewSchema.Builder();
             builder.AddColumns(columns);
-            return builder.GetSchema();
+            return builder.ToSchema();
         }
 
         /// <summary>

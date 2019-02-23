@@ -54,7 +54,7 @@ namespace Microsoft.ML.Benchmarks
             {
                 var builder = new DataViewSchema.Builder();
                 builder.AddColumn("Foo", type, null);
-                Schema = builder.GetSchema();
+                Schema = builder.ToSchema();
                 _getter = getter;
             }
         }

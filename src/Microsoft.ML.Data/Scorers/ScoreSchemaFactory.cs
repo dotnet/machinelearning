@@ -36,9 +36,9 @@ namespace Microsoft.ML.Data
 
             // Build a schema consisting of a single column.
             var schemaBuilder = new DataViewSchema.Builder();
-            schemaBuilder.AddColumn(scoreColumnName, scoreType, metadataBuilder.GetMetadata());
+            schemaBuilder.AddColumn(scoreColumnName, scoreType, metadataBuilder.ToMetadata());
 
-            return schemaBuilder.GetSchema();
+            return schemaBuilder.ToSchema();
         }
 
         /// <summary>
@@ -68,9 +68,9 @@ namespace Microsoft.ML.Data
                 (ref ReadOnlyMemory<char> value) => { value = MetadataUtils.Const.ScoreValueKind.Probability.AsMemory(); });
 
             // Add probability column.
-            schemaBuilder.AddColumn(probabilityColumnName, NumberDataViewType.Single, probabilityMetadataBuilder.GetMetadata());
+            schemaBuilder.AddColumn(probabilityColumnName, NumberDataViewType.Single, probabilityMetadataBuilder.ToMetadata());
 
-            return schemaBuilder.GetSchema();
+            return schemaBuilder.ToSchema();
         }
 
         /// <summary>
@@ -102,9 +102,9 @@ namespace Microsoft.ML.Data
 
             // Build a schema consisting of a single column. Comparing with partial schema, the only difference is a metadata field.
             var schemaBuilder = new DataViewSchema.Builder();
-            schemaBuilder.AddColumn(partialSchema[0].Name, partialSchema[0].Type, metadataBuilder.GetMetadata());
+            schemaBuilder.AddColumn(partialSchema[0].Name, partialSchema[0].Type, metadataBuilder.ToMetadata());
 
-            return schemaBuilder.GetSchema();
+            return schemaBuilder.ToSchema();
         }
 
         /// <summary>
@@ -133,9 +133,9 @@ namespace Microsoft.ML.Data
 
             // Build a schema consisting of a single column.
             var schemaBuilder = new DataViewSchema.Builder();
-            schemaBuilder.AddColumn(MetadataUtils.Const.ScoreValueKind.PredictedLabel, scoreType, metadataBuilder.GetMetadata());
+            schemaBuilder.AddColumn(MetadataUtils.Const.ScoreValueKind.PredictedLabel, scoreType, metadataBuilder.ToMetadata());
 
-            return schemaBuilder.GetSchema();
+            return schemaBuilder.ToSchema();
         }
     }
 }

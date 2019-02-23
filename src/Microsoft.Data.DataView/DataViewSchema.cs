@@ -347,15 +347,14 @@ namespace Microsoft.Data.DataView
                 }
 
                 /// <summary>
-                /// Produce the metadata row that the builder has so far.
-                /// Can be called multiple times.
+                /// Returns a <see cref="Metadata"/> row that contains the current contents of this <see cref="Builder"/>.
                 /// </summary>
-                public Metadata GetMetadata()
+                public Metadata ToMetadata()
                 {
                     var builder = new DataViewSchema.Builder();
                     foreach (var item in _items)
                         builder.AddColumn(item.Name, item.Type, item.Metadata);
-                    return new Metadata(builder.GetSchema(), _items.Select(x => x.Getter).ToArray());
+                    return new Metadata(builder.ToSchema(), _items.Select(x => x.Getter).ToArray());
                 }
 
                 private void AddDelegate<TValue>(string name, DataViewType type, Delegate getter, Metadata metadata)
@@ -424,9 +423,9 @@ namespace Microsoft.Data.DataView
             }
 
             /// <summary>
-            /// Generate the final <see cref="DataViewSchema"/>.
+            /// Returns a <see cref="DataViewSchema"/> that contains the current contents of this <see cref="Builder"/>.
             /// </summary>
-            public DataViewSchema GetSchema()
+            public DataViewSchema ToSchema()
             {
                 var nameMap = new Dictionary<string, int>();
                 for (int i = 0; i < _items.Count; i++)

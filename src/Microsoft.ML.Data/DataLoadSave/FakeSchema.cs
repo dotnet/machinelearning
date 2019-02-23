@@ -36,9 +36,9 @@ namespace Microsoft.ML.Data.DataLoadSave
                         del = Utils.MarshalInvoke(GetDefaultGetter<int>, metaColumnType.RawType);
                     metaBuilder.Add(partialMetadata[j].Name, metaColumnType, del);
                 }
-                builder.AddColumn(shape[i].Name, MakeColumnType(shape[i]), metaBuilder.GetMetadata());
+                builder.AddColumn(shape[i].Name, MakeColumnType(shape[i]), metaBuilder.ToMetadata());
             }
-            return builder.GetSchema();
+            return builder.ToSchema();
         }
 
         private static DataViewType MakeColumnType(SchemaShape.Column column)

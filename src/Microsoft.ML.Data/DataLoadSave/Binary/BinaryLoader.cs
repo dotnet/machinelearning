@@ -661,14 +661,14 @@ namespace Microsoft.ML.Data.IO
                             throw MetadataUtils.ExceptGetMetadata();
                         metadataBuilder.Add(loadedMetadataColumn.Kind, loadedMetadataColumn.Codec.Type, metadataGetter);
                     }
-                    schemaBuilder.AddColumn(loadedColumn.Name, loadedColumn.Type, metadataBuilder.GetMetadata());
+                    schemaBuilder.AddColumn(loadedColumn.Name, loadedColumn.Type, metadataBuilder.ToMetadata());
                 }
                 else
                     // This case has no metadata.
                     schemaBuilder.AddColumn(loadedColumn.Name, loadedColumn.Type);
             }
 
-            return schemaBuilder.GetSchema();
+            return schemaBuilder.ToSchema();
         }
 
         private readonly Stream _stream;

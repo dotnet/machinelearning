@@ -714,7 +714,7 @@ namespace Microsoft.ML.Data
                 var meta = new DataViewSchema.Metadata.Builder();
                 foreach (var kvp in col.Metadata)
                     meta.Add(kvp.Value.Kind, kvp.Value.MetadataType, kvp.Value.GetGetterDelegate());
-                columns[i] = new DataViewSchema.DetachedColumn(col.ColumnName, col.ColumnType, meta.GetMetadata());
+                columns[i] = new DataViewSchema.DetachedColumn(col.ColumnName, col.ColumnType, meta.ToMetadata());
             }
 
             return columns;

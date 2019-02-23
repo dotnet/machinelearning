@@ -212,7 +212,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var builder = new DataViewSchema.Metadata.Builder();
                     AddMetadata(i, builder);
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _type, builder.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _type, builder.ToMetadata());
                 }
                 return result;
             }
