@@ -51,7 +51,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             var classLabels = this.GenerateClassLabels();
 
             // Get Namespace
-            var namespaceValue = Normalize(options.OutputName);
+            var namespaceValue = Utils.Normalize(options.OutputName);
 
             // Generate code for training and scoring
             var trainFileContent = GenerateTrainCode(usings, trainer, transforms, columns, classLabels, namespaceValue);
@@ -108,7 +108,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 Path = options.TrainDataset.FullName,
                 TestPath = options.TestDataset?.FullName,
                 TaskType = options.MlTask.ToString(),
-                Namespace = namespaceValue
+                Namespace = namespaceValue,
+                LabelName = options.LabelName
             };
 
             return trainingAndScoringCodeGen.TransformText();
@@ -214,15 +215,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     result.Add($"[ColumnName(\"{column.Name}\"), LoadColumn({column.Source[0].Min})]");
                 }
                 sb.Append(" ");
-                if (column.Name.Equals(label_column))
-                {
-                    sb.Append("Label");
-                }
-                else
-                {
-                    sb.Append(Normalize(column.Name));
-                }
-
+                sb.Append(Utils.Normalize(column.Name));
                 sb.Append("{get; set;}");
                 result.Add(sb.ToString());
                 result.Add("\r\n");
@@ -277,22 +270,5 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             var def = $"new Column(\"{column.Name}\",DataKind.{column.Type},{rangeBuilder.ToString()}),";
             return def;
         }
-
-        private static string Normalize(string inputColumn)
-        {
-            //check if first character is int
-            if (!string.IsNullOrEmpty(inputColumn) && int.TryParse(inputColumn.Substring(0, 1), out int val))
-            {
-                inputColumn = "Col" + inputColumn;
-                return inputColumn;
-            }
-            switch (inputColumn)
-            {
-                case null: throw new ArgumentNullException(nameof(inputColumn));
-                case "": throw new ArgumentException($"{nameof(inputColumn)} cannot be empty", nameof(inputColumn));
-                default: return inputColumn.First().ToString().ToUpper() + inputColumn.Substring(1);
-            }
-        }
-
     }
 }

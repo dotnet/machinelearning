@@ -3,6 +3,7 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="Microsoft.ML.CLI.Utilities" #>
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
@@ -89,10 +90,10 @@ else{#>
             // in order to evaluate and get the model's accuracy metrics
             Console.WriteLine("=============== Cross-validating to get model's accuracy metrics ===============");
 <#if("BinaryClassification".Equals(TaskType)){ #>
-            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numFolds: <#= Kfolds #>, labelColumn:"Label");
+            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numFolds: <#= Kfolds #>, labelColumn:"<#= LabelName #>");
             ConsoleHelper.PrintBinaryClassificationFoldsAverageMetrics(trainer.ToString(), crossValidationResults);
 <#}#><#if("Regression".Equals(TaskType)){ #>
-            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidate(trainingDataView, trainingPipeline, numFolds: <#= Kfolds #>, labelColumn:"Label");
+            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidate(trainingDataView, trainingPipeline, numFolds: <#= Kfolds #>, labelColumn:"<#= LabelName #>");
             ConsoleHelper.PrintRegressionFoldsAverageMetrics(trainer.ToString(), crossValidationResults);
 <#}
 } #>
@@ -106,10 +107,10 @@ else{#>
             Console.WriteLine("===== Evaluating Model's accuracy with Test data =====");
             var predictions = trainedModel.Transform(testDataView);
 <#if("BinaryClassification".Equals(TaskType)){ #>
-            var metrics = mlContext.<#= TaskType #>.EvaluateNonCalibrated(predictions, "Label", "Score");
+            var metrics = mlContext.<#= TaskType #>.EvaluateNonCalibrated(predictions, "<#= LabelName #>", "Score");
             ConsoleHelper.PrintBinaryClassificationMetrics(trainer.ToString(), metrics);
 <#}#><#if("Regression".Equals(TaskType)){ #>
-            var metrics = mlContext.<#= TaskType #>.Evaluate(predictions, "Label", "Score");
+            var metrics = mlContext.<#= TaskType #>.Evaluate(predictions, "<#= LabelName #>", "Score");
             ConsoleHelper.PrintRegressionMetrics(trainer.ToString(), metrics);
 <#}#>
 <# } #>
@@ -151,7 +152,7 @@ else{#>
             var resultprediction = predEngine.Predict(sample);
 
             Console.WriteLine($"=============== Single Prediction  ===============");
-            Console.WriteLine($"Actual value: {sample.Label} | Predicted value: {resultprediction.<#if("BinaryClassification".Equals(TaskType)){ #>Prediction<#}else{#>Score<#}#>}");
+            Console.WriteLine($"Actual value: {sample.<#= Utils.Normalize(LabelName) #>} | Predicted value: {resultprediction.<#if("BinaryClassification".Equals(TaskType)){ #>Prediction<#}else{#>Score<#}#>}");
             Console.WriteLine($"==================================================");
         }
 
@@ -201,4 +202,5 @@ public bool AllowSparse {get;set;}
 public bool TrimWhiteSpace {get;set;} 
 public int Kfolds {get;set;} = 5;
 public string Namespace {get;set;}
+public string LabelName {get;set;}
 #>

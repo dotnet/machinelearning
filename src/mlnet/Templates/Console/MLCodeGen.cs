@@ -12,6 +12,7 @@ namespace Microsoft.ML.CLI.Templates.Console
     using System.Linq;
     using System.Text;
     using System.Collections.Generic;
+    using Microsoft.ML.CLI.Utilities;
     using System;
     
     /// <summary>
@@ -135,16 +136,20 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
             this.Write(".CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numFolds: ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
-            this.Write(", labelColumn:\"Label\");\r\n            ConsoleHelper.PrintBinaryClassificationFolds" +
-                    "AverageMetrics(trainer.ToString(), crossValidationResults);\r\n");
+            this.Write(", labelColumn:\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
+            this.Write("\");\r\n            ConsoleHelper.PrintBinaryClassificationFoldsAverageMetrics(train" +
+                    "er.ToString(), crossValidationResults);\r\n");
 }
 if("Regression".Equals(TaskType)){ 
             this.Write("            var crossValidationResults = mlContext.");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
             this.Write(".CrossValidate(trainingDataView, trainingPipeline, numFolds: ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
-            this.Write(", labelColumn:\"Label\");\r\n            ConsoleHelper.PrintRegressionFoldsAverageMet" +
-                    "rics(trainer.ToString(), crossValidationResults);\r\n");
+            this.Write(", labelColumn:\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
+            this.Write("\");\r\n            ConsoleHelper.PrintRegressionFoldsAverageMetrics(trainer.ToStrin" +
+                    "g(), crossValidationResults);\r\n");
 }
 } 
             this.Write("\r\n            // Train the model fitting to the DataSet\r\n            Console.Writ" +
@@ -157,14 +162,18 @@ if("Regression".Equals(TaskType)){
 if("BinaryClassification".Equals(TaskType)){ 
             this.Write("            var metrics = mlContext.");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
-            this.Write(".EvaluateNonCalibrated(predictions, \"Label\", \"Score\");\r\n            ConsoleHelper" +
-                    ".PrintBinaryClassificationMetrics(trainer.ToString(), metrics);\r\n");
+            this.Write(".EvaluateNonCalibrated(predictions, \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
+            this.Write("\", \"Score\");\r\n            ConsoleHelper.PrintBinaryClassificationMetrics(trainer." +
+                    "ToString(), metrics);\r\n");
 }
 if("Regression".Equals(TaskType)){ 
             this.Write("            var metrics = mlContext.");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
-            this.Write(".Evaluate(predictions, \"Label\", \"Score\");\r\n            ConsoleHelper.PrintRegress" +
-                    "ionMetrics(trainer.ToString(), metrics);\r\n");
+            this.Write(".Evaluate(predictions, \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
+            this.Write("\", \"Score\");\r\n            ConsoleHelper.PrintRegressionMetrics(trainer.ToString()" +
+                    ", metrics);\r\n");
 }
  } 
             this.Write(@"
@@ -211,7 +220,9 @@ if("Regression".Equals(TaskType)){
             var resultprediction = predEngine.Predict(sample);
 
             Console.WriteLine($""=============== Single Prediction  ==============="");
-            Console.WriteLine($""Actual value: {sample.Label} | Predicted value: {resultprediction.");
+            Console.WriteLine($""Actual value: {sample.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
+            this.Write("} | Predicted value: {resultprediction.");
 if("BinaryClassification".Equals(TaskType)){ 
             this.Write("Prediction");
 }else{
@@ -258,6 +269,7 @@ public bool AllowSparse {get;set;}
 public bool TrimWhiteSpace {get;set;} 
 public int Kfolds {get;set;} = 5;
 public string Namespace {get;set;}
+public string LabelName {get;set;}
 
     }
     #region Base class

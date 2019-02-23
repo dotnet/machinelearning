@@ -5,6 +5,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 {
     internal class CodeGeneratorOptions
     {
+        public string LabelName { get; internal set; }
         internal string OutputName { get; set; }
 
         internal string OutputBaseDir { get; set; }

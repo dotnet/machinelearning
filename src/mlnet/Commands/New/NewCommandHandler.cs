@@ -48,6 +48,8 @@ namespace Microsoft.ML.CLI.Commands.New
             // Sanitize columns
             Array.ForEach(columnInference.TextLoaderArgs.Column, t => t.Name = Utils.Sanitize(t.Name));
 
+            var sanitized_Label_Name = Utils.Sanitize(columnInference.ColumnInformation.LabelColumn);
+
             // Load data
             (IDataView trainData, IDataView validationData) = LoadData(context, columnInference.TextLoaderArgs);
 
@@ -56,7 +58,7 @@ namespace Microsoft.ML.CLI.Commands.New
             Console.WriteLine($"{Strings.ExplorePipeline}: {options.MlTask}");
             try
             {
-                result = ExploreModels(context, trainData, validationData);
+                result = ExploreModels(context, trainData, validationData, sanitized_Label_Name);
             }
             catch (Exception e)
             {
@@ -77,7 +79,7 @@ namespace Microsoft.ML.CLI.Commands.New
             Utils.SaveModel(model, options.OutputPath.FullName, $"{options.Name}_model.zip", context);
 
             // Generate the Project
-            GenerateProject(columnInference, pipeline);
+            GenerateProject(columnInference, pipeline, sanitized_Label_Name);
         }
 
         internal ColumnInferenceResults InferColumns(MLContext context)
@@ -98,7 +100,7 @@ namespace Microsoft.ML.CLI.Commands.New
             return columnInference;
         }
 
-        internal void GenerateProject(ColumnInferenceResults columnInference, Pipeline pipeline)
+        internal void GenerateProject(ColumnInferenceResults columnInference, Pipeline pipeline, string labelName)
         {
             //Generate code
             logger.Log(LogLevel.Info, $"{Strings.GenerateProject} : {options.OutputPath.FullName}");
@@ -111,20 +113,15 @@ namespace Microsoft.ML.CLI.Commands.New
                     MlTask = taskKind,
                     TestDataset = options.TestDataset,
                     OutputName = options.Name,
-                    OutputBaseDir = options.OutputPath.FullName
+                    OutputBaseDir = options.OutputPath.FullName,
+                    LabelName = labelName
                 });
             codeGenerator.GenerateOutput();
         }
 
-        internal (Pipeline, ITransformer) ExploreModels(MLContext context, IDataView trainData, IDataView validationData)
+        internal (Pipeline, ITransformer) ExploreModels(MLContext context, IDataView trainData, IDataView validationData, string labelName)
         {
             ITransformer model = null;
-            string label = "Label";
-
-            if (options.LabelColumnName != null)
-            {
-                label = Utils.Sanitize(options.LabelColumnName);
-            }
 
             Pipeline pipeline = null;
 
@@ -137,7 +134,7 @@ namespace Microsoft.ML.CLI.Commands.New
                         MaxInferenceTimeInSeconds = options.MaxExplorationTime,
                         ProgressCallback = progressReporter
                     })
-                    .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = label });
+                    .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = labelName });
                 logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
                 var bestIteration = result.Best();
                 pipeline = bestIteration.Pipeline;
@@ -152,7 +149,7 @@ namespace Microsoft.ML.CLI.Commands.New
                     {
                         MaxInferenceTimeInSeconds = options.MaxExplorationTime,
                         ProgressCallback = progressReporter
-                    }).Execute(trainData, validationData, new ColumnInformation() { LabelColumn = label });
+                    }).Execute(trainData, validationData, new ColumnInformation() { LabelColumn = labelName });
                 logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
                 var bestIteration = result.Best();
                 pipeline = bestIteration.Pipeline;
