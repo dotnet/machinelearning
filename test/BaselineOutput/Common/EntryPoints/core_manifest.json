@@ -317,42 +317,6 @@
                 "Default": null
               },
               {
-                "Name": "UseThreads",
-                "Type": "Bool",
-                "Desc": "Use separate parsing threads?",
-                "Aliases": [
-                  "threads"
-                ],
-                "Required": false,
-                "SortOrder": 150.0,
-                "IsNullable": false,
-                "Default": true
-              },
-              {
-                "Name": "HeaderFile",
-                "Type": "String",
-                "Desc": "File containing a header with feature names. If specified, header defined in the data file (header+) is ignored.",
-                "Aliases": [
-                  "hf"
-                ],
-                "Required": false,
-                "SortOrder": 150.0,
-                "IsNullable": false,
-                "Default": null
-              },
-              {
-                "Name": "MaxRows",
-                "Type": "Int",
-                "Desc": "Maximum number of rows to produce",
-                "Aliases": [
-                  "rows"
-                ],
-                "Required": false,
-                "SortOrder": 150.0,
-                "IsNullable": true,
-                "Default": null
-              },
-              {
                 "Name": "AllowQuoting",
                 "Type": "Bool",
                 "Desc": "Whether the input may include quoted values, which can contain separator characters, colons, and distinguish empty values from missing values. When true, consecutive separators denote a missing value and an empty value is denoted by \"\". When false, consecutive separators denote an empty value.",
@@ -362,7 +326,7 @@
                 "Required": false,
                 "SortOrder": 150.0,
                 "IsNullable": false,
-                "Default": true
+                "Default": false
               },
               {
                 "Name": "AllowSparse",
@@ -374,7 +338,7 @@
                 "Required": false,
                 "SortOrder": 150.0,
                 "IsNullable": false,
-                "Default": true
+                "Default": false
               },
               {
                 "Name": "InputSize",
@@ -428,6 +392,42 @@
                 "SortOrder": 150.0,
                 "IsNullable": false,
                 "Default": false
+              },
+              {
+                "Name": "UseThreads",
+                "Type": "Bool",
+                "Desc": "Use separate parsing threads?",
+                "Aliases": [
+                  "threads"
+                ],
+                "Required": false,
+                "SortOrder": 150.0,
+                "IsNullable": false,
+                "Default": true
+              },
+              {
+                "Name": "HeaderFile",
+                "Type": "String",
+                "Desc": "File containing a header with feature names. If specified, header defined in the data file (header+) is ignored.",
+                "Aliases": [
+                  "hf"
+                ],
+                "Required": false,
+                "SortOrder": 150.0,
+                "IsNullable": false,
+                "Default": null
+              },
+              {
+                "Name": "MaxRows",
+                "Type": "Int",
+                "Desc": "Maximum number of rows to produce",
+                "Aliases": [
+                  "rows"
+                ],
+                "Required": false,
+                "SortOrder": 150.0,
+                "IsNullable": true,
+                "Default": null
               }
             ]
           },
@@ -2139,7 +2139,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -2370,7 +2370,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -5203,7 +5203,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -5215,7 +5215,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -5854,7 +5854,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -5866,7 +5866,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -6497,7 +6497,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -6509,7 +6509,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -7409,7 +7409,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -7421,7 +7421,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -8402,7 +8402,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -8414,7 +8414,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -9302,7 +9302,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -9314,7 +9314,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -10204,7 +10204,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "LambdaLatent",
@@ -10459,7 +10459,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -10760,7 +10760,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -10991,7 +10991,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -11283,7 +11283,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -11295,7 +11295,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -11787,7 +11787,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -11799,7 +11799,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -12291,7 +12291,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -12303,7 +12303,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -12795,7 +12795,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -12807,7 +12807,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -13204,7 +13204,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -13473,7 +13473,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -13785,7 +13785,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -14509,7 +14509,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -14640,7 +14640,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -14819,7 +14819,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -15964,7 +15964,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -23212,8 +23212,8 @@
           "Desc": "Offset (pre-scale)",
           "Required": false,
           "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null
+          "IsNullable": false,
+          "Default": 0.0
         },
         {
           "Name": "Scale",
@@ -23221,8 +23221,8 @@
           "Desc": "Scale factor",
           "Required": false,
           "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null
+          "IsNullable": false,
+          "Default": 1.0
         }
       ],
       "Outputs": [
@@ -25124,7 +25124,7 @@
               "Required": false,
               "SortOrder": 4.0,
               "IsNullable": false,
-              "Default": "Weight"
+              "Default": null
             },
             {
               "Name": "GroupIdColumn",
@@ -25136,7 +25136,7 @@
               "Required": false,
               "SortOrder": 5.0,
               "IsNullable": false,
-              "Default": "GroupId"
+              "Default": null
             },
             {
               "Name": "NormalizeFeatures",
@@ -26018,7 +26018,7 @@
               "Required": false,
               "SortOrder": 4.0,
               "IsNullable": false,
-              "Default": "Weight"
+              "Default": null
             },
             {
               "Name": "GroupIdColumn",
@@ -26030,7 +26030,7 @@
               "Required": false,
               "SortOrder": 5.0,
               "IsNullable": false,
-              "Default": "GroupId"
+              "Default": null
             },
             {
               "Name": "NormalizeFeatures",
@@ -26993,7 +26993,7 @@
               "Required": false,
               "SortOrder": 4.0,
               "IsNullable": false,
-              "Default": "Weight"
+              "Default": null
             },
             {
               "Name": "GroupIdColumn",
@@ -27005,7 +27005,7 @@
               "Required": false,
               "SortOrder": 5.0,
               "IsNullable": false,
-              "Default": "GroupId"
+              "Default": null
             },
             {
               "Name": "NormalizeFeatures",
@@ -27875,7 +27875,7 @@
               "Required": false,
               "SortOrder": 4.0,
               "IsNullable": false,
-              "Default": "Weight"
+              "Default": null
             },
             {
               "Name": "GroupIdColumn",
@@ -27887,7 +27887,7 @@
               "Required": false,
               "SortOrder": 5.0,
               "IsNullable": false,
-              "Default": "GroupId"
+              "Default": null
             },
             {
               "Name": "NormalizeFeatures",

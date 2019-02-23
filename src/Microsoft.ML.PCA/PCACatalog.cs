@@ -23,7 +23,7 @@ namespace Microsoft.ML
         public static PrincipalComponentAnalysisEstimator ProjectToPrincipalComponents(this TransformsCatalog.ProjectionTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
-            string exampleWeightColumnName = PrincipalComponentAnalysisEstimator.Defaults.WeightColumn,
+            string exampleWeightColumnName = null,
             int rank = PrincipalComponentAnalysisEstimator.Defaults.Rank,
             int overSampling = PrincipalComponentAnalysisEstimator.Defaults.Oversampling,
             bool center = PrincipalComponentAnalysisEstimator.Defaults.Center,

@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
@@ -32,17 +30,17 @@ namespace Microsoft.ML.Tests.Transformers
             public string Together { get; set; }
         }
 
-        public class MyLambda
+        [CustomMappingFactoryAttribute("MyLambda")]
+        public class MyLambda : CustomMappingFactory<MyInput, MyOutput>
         {
-            [Export("MyLambda")]
-            public ITransformer MyTransformer => ML.Transforms.CustomMappingTransformer<MyInput, MyOutput>(MyAction, "MyLambda");
-
-            [Import]
-            public MLContext ML { get; set; }
-
             public static void MyAction(MyInput input, MyOutput output)
             {
                 output.Together = $"{input.Float1} + {string.Join(", ", input.Float4)}";
+            }
+
+            public override Action<MyInput, MyOutput> GetMapping()
+            {
+                return MyAction;
             }
         }
 
@@ -67,14 +65,14 @@ namespace Microsoft.ML.Tests.Transformers
             try
             {
                 TestEstimatorCore(customEst, data);
-                Assert.True(false, "Cannot work without MEF injection");
+                Assert.True(false, "Cannot work without RegisterAssembly");
             }
             catch (InvalidOperationException ex)
             {
                 if (!ex.IsMarked())
                     throw;
             }
-            ML.CompositionContainer = new CompositionContainer(new TypeCatalog(typeof(MyLambda)));
+            ML.ComponentCatalog.RegisterAssembly(typeof(MyLambda).Assembly);
             TestEstimatorCore(customEst, data);
             transformedData = customEst.Fit(data).Transform(data);
 
@@ -95,7 +93,7 @@ namespace Microsoft.ML.Tests.Transformers
                     new TextLoader.Column("Float1", DataKind.R4, 0),
                     new TextLoader.Column("Float4", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
                     new TextLoader.Column("Text1", DataKind.Text, 0)
-            }, hasHeader: true, separatorChar: ',' );
+            }, separatorChar: ',', hasHeader: true);
 
             var data = loader.Read(source);
 

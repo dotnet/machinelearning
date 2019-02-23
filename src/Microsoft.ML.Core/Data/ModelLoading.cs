@@ -16,7 +16,7 @@ namespace Microsoft.ML.Model
     [BestFriend]
     internal delegate void SignatureLoadModel(ModelLoadContext ctx);
 
-    public sealed partial class ModelLoadContext : IDisposable
+    internal sealed partial class ModelLoadContext : IDisposable
     {
         public const string ModelStreamName = "Model.key";
         internal const string NameBinary = "Model.bin";

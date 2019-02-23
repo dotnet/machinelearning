@@ -208,7 +208,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 new FastTreeTweedieTrainer.Options
                 {
                     EntropyCoefficient = 0.3,
-                    OptimizationAlgorithm = BoostedTreeArgs.OptimizationAlgorithmType.AcceleratedGradientDescent,
+                    OptimizationAlgorithm = BoostedTreeOptions.OptimizationAlgorithmType.AcceleratedGradientDescent,
                 });
 
             TestEstimatorCore(trainer, dataView);

@@ -69,7 +69,7 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            _loss = loss ?? Args.LossFunction.CreateComponent(env);
+            _loss = loss ?? SdcaTrainerOptions.LossFunction.CreateComponent(env);
             Loss = _loss;
         }
 
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Trainers
             VBuffer<Float>[] weights, Float[] biasUnreg, VBuffer<Float>[] l1IntermediateWeights, Float[] l1IntermediateBias, Float[] featureNormSquared)
         {
             Contracts.AssertValueOrNull(progress);
-            Contracts.Assert(Args.L1Threshold.HasValue);
+            Contracts.Assert(SdcaTrainerOptions.L1Threshold.HasValue);
             Contracts.AssertValueOrNull(idToIdx);
             Contracts.AssertValueOrNull(invariants);
             Contracts.AssertValueOrNull(featureNormSquared);
@@ -131,13 +131,13 @@ namespace Microsoft.ML.Trainers
             Contracts.Assert(Utils.Size(biasUnreg) == numClasses);
 
             int maxUpdateTrials = 2 * numThreads;
-            var l1Threshold = Args.L1Threshold.Value;
+            var l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
             bool l1ThresholdZero = l1Threshold == 0;
-            var lr = Args.BiasLearningRate * Args.L2Const.Value;
+            var lr = SdcaTrainerOptions.BiasLearningRate * SdcaTrainerOptions.L2Const.Value;
 
             var pch = progress != null ? progress.StartProgressChannel("Dual update") : null;
             using (pch)
-            using (var cursor = Args.Shuffle ? cursorFactory.Create(rand) : cursorFactory.Create())
+            using (var cursor = SdcaTrainerOptions.Shuffle ? cursorFactory.Create(rand) : cursorFactory.Create())
             {
                 long rowCount = 0;
                 if (pch != null)
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Trainers
                     else
                     {
                         normSquared = VectorUtils.NormSquared(in features);
-                        if (Args.BiasLearningRate == 0)
+                        if (SdcaTrainerOptions.BiasLearningRate == 0)
                             normSquared += 1;
 
                         invariant = _loss.ComputeDualUpdateInvariant(2 * normSquared * lambdaNInv * GetInstanceWeight(cursor));
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Trainers
                                     //Thresholding: if |v[j]| < threshold, turn off weights[j]
                                     //If not, shrink: w[j] = v[i] - sign(v[j]) * threshold
                                     l1IntermediateBias[iClass] -= primalUpdate;
-                                    if (Args.BiasLearningRate == 0)
+                                    if (SdcaTrainerOptions.BiasLearningRate == 0)
                                     {
                                         biasReg[iClass] = Math.Abs(l1IntermediateBias[iClass]) - l1Threshold > 0.0
                                         ? l1IntermediateBias[iClass] - Math.Sign(l1IntermediateBias[iClass]) * l1Threshold
@@ -352,10 +352,10 @@ namespace Microsoft.ML.Trainers
                 Host.Assert(idToIdx == null || row * numClasses == duals.Length);
             }
 
-            Contracts.Assert(Args.L2Const.HasValue);
-            Contracts.Assert(Args.L1Threshold.HasValue);
-            Double l2Const = Args.L2Const.Value;
-            Double l1Threshold = Args.L1Threshold.Value;
+            Contracts.Assert(SdcaTrainerOptions.L2Const.HasValue);
+            Contracts.Assert(SdcaTrainerOptions.L1Threshold.HasValue);
+            Double l2Const = SdcaTrainerOptions.L2Const.Value;
+            Double l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
 
             Double weightsL1Norm = 0;
             Double weightsL2NormSquared = 0;
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Trainers
                 biasRegularizationAdjustment += biasReg[iClass] * biasUnreg[iClass];
             }
 
-            Double l1Regularizer = Args.L1Threshold.Value * l2Const * weightsL1Norm;
+            Double l1Regularizer = SdcaTrainerOptions.L1Threshold.Value * l2Const * weightsL1Norm;
             var l2Regularizer = l2Const * weightsL2NormSquared * 0.5;
 
             var newLoss = lossSum.Sum / count + l2Regularizer + l1Regularizer;
@@ -379,10 +379,10 @@ namespace Microsoft.ML.Trainers
             metrics[(int)MetricKind.DualityGap] = dualityGap;
             metrics[(int)MetricKind.BiasUnreg] = biasUnreg[0];
             metrics[(int)MetricKind.BiasReg] = biasReg[0];
-            metrics[(int)MetricKind.L1Sparsity] = Args.L1Threshold == 0 ? 1 : weights.Sum(
+            metrics[(int)MetricKind.L1Sparsity] = SdcaTrainerOptions.L1Threshold == 0 ? 1 : weights.Sum(
                 weight => weight.GetValues().Count(w => w != 0)) / (numClasses * numFeatures);
 
-            bool converged = dualityGap / newLoss < Args.ConvergenceTolerance;
+            bool converged = dualityGap / newLoss < SdcaTrainerOptions.ConvergenceTolerance;
 
             if (metrics[(int)MetricKind.Loss] < bestPrimalLoss)
             {

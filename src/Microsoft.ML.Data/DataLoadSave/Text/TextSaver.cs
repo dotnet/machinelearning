@@ -22,14 +22,22 @@ namespace Microsoft.ML.Data.IO
     [BestFriend]
     internal sealed class TextSaver : IDataSaver
     {
+        internal static class Defaults
+        {
+            internal const char Separator = '\t';
+            internal const bool ForceDense = false;
+            internal const bool OutputSchema = true;
+            internal const bool OutputHeader = true;
+        }
+
         // REVIEW: consider saving a command line in a separate file.
         public sealed class Arguments
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Separator", ShortName = "sep")]
-            public string Separator = "tab";
+            public string Separator = Defaults.Separator.ToString();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Force dense format", ShortName = "dense")]
-            public bool Dense;
+            public bool Dense = Defaults.ForceDense;
 
             // REVIEW: This and the corresponding BinarySaver option should be removed,
             // with the silence being handled, somehow, at the environment level. (Task 6158846.)
@@ -37,10 +45,10 @@ namespace Microsoft.ML.Data.IO
             public bool Silent;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output the comment containing the loader settings", ShortName = "schema")]
-            public bool OutputSchema = true;
+            public bool OutputSchema = Defaults.OutputSchema;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output the header", ShortName = "header")]
-            public bool OutputHeader = true;
+            public bool OutputHeader = Defaults.OutputHeader;
         }
 
         internal const string Summary = "Writes data into a text file.";

@@ -87,7 +87,7 @@ namespace Microsoft.ML.Data
         }
 
         // Factory for SignatureLoadModel.
-        public TransformWrapper(IHostEnvironment env, ModelLoadContext ctx)
+        private TransformWrapper(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TransformWrapper));

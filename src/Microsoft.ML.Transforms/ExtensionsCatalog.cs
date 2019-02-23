@@ -16,8 +16,8 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform extensions' catalog.</param>
         /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
         public static MissingValueIndicatorEstimator IndicateMissingValues(this TransformsCatalog catalog,
-            params (string outputColumnName, string inputColumnName)[] columns)
-            => new MissingValueIndicatorEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+            params SimpleColumnInfo[] columns)
+            => new MissingValueIndicatorEstimator(CatalogUtils.GetEnvironment(catalog), SimpleColumnInfo.ConvertToValueTuples(columns));
 
         /// <summary>
         /// Creates a new output column, or replaces the source with a new column

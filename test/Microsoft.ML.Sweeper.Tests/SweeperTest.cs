@@ -44,7 +44,7 @@ namespace Microsoft.ML.Sweeper.Tests
 
         private static DiscreteValueGenerator CreateDiscreteValueGenerator()
         {
-            var args = new DiscreteParamArguments()
+            var args = new DiscreteParamOptions()
             {
                 Name = "TestParam",
                 Values = new string[] { "one", "two" }

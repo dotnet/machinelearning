@@ -136,7 +136,7 @@ namespace Microsoft.ML.Transforms.Conversions
         private readonly VBuffer<ReadOnlyMemory<char>>[] _keyValues;
         private readonly VectorType[] _kvTypes;
 
-        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             if (!HashingEstimator.IsColumnTypeValid(type))

@@ -1755,8 +1755,8 @@ output Out [3] from H all;
         [TestCategory("Anomaly")]
         public void PcaAnomalyTest()
         {
-            Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.mnistOneClass, digitsOfPrecision: 5);
-            Run_TrainTest(TestLearners.PCAAnomalyNoNorm, TestDatasets.mnistOneClass, digitsOfPrecision: 5);
+            Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.mnistOneClass, extraSettings: new[] { "loader=text{sparse+}" }, digitsOfPrecision: 5);
+            Run_TrainTest(TestLearners.PCAAnomalyNoNorm, TestDatasets.mnistOneClass, extraSettings: new[] { "loader=text{sparse+}" }, digitsOfPrecision: 5);
 
             // REVIEW: This next test was misbehaving in a strange way that seems to have gone away
             // mysteriously (bad build?).
@@ -1806,7 +1806,7 @@ output Out [3] from H all;
         {
             using (var env = new LocalEnvironment(1, conc: 1))
             {
-                IDataView trainView = new TextLoader(env, new TextLoader.Arguments(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.trainFilename)));
+                IDataView trainView = new TextLoader(env, new TextLoader.Options(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.trainFilename)));
                 trainView =
                     NormalizeTransform.Create(env,
                         new NormalizeTransform.MinMaxArguments()
@@ -1815,7 +1815,7 @@ output Out [3] from H all;
                         },
                      trainView);
                 var trainData = new RoleMappedData(trainView, "Label", "Features");
-                IDataView testView = new TextLoader(env, new TextLoader.Arguments(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.testFilename)));
+                IDataView testView = new TextLoader(env, new TextLoader.Options(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.testFilename)));
                 ApplyTransformUtils.ApplyAllTransformsToData(env, trainView, testView);
                 var testData = new RoleMappedData(testView, "Label", "Features");
 

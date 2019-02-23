@@ -390,17 +390,6 @@ namespace Microsoft.ML.Training
         }
 
         /// <summary>
-        /// The <see cref="SchemaShape.Column"/> for the weight column.
-        /// </summary>
-        /// <param name="weightColumn">name of the weight column</param>
-        public static SchemaShape.Column MakeR4ScalarWeightColumn(Optional<string> weightColumn)
-        {
-            if (weightColumn == null || weightColumn.Value == null || !weightColumn.IsExplicit)
-                return default;
-            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
-        }
-
-        /// <summary>
         /// This is a shim class to translate the more contemporaneous <see cref="ITrainerEstimator{TTransformer, TPredictor}"/>
         /// style transformers into the older now disfavored <see cref="ITrainer{TPredictor}"/> idiom, for components that still
         /// need to operate via that older mechanism. (Mostly command line invocations, and so on.).

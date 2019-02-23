@@ -88,6 +88,10 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         private const string RegistrationName = "TextNormalizer";
+
+        /// <summary>
+        /// The names of the output and input column pairs on which the transformation is applied.
+        /// </summary>
         public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private readonly TextNormalizingEstimator.CaseNormalizationMode _textCase;
@@ -110,7 +114,7 @@ namespace Microsoft.ML.Transforms.Text
 
         }
 
-        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             if (!TextNormalizingEstimator.IsColumnTypeValid(type))

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Composition.Hosting;
 
 namespace Microsoft.ML.Data
 {
@@ -14,8 +13,6 @@ namespace Microsoft.ML.Data
     /// </summary>
     internal sealed class LocalEnvironment : HostEnvironmentBase<LocalEnvironment>
     {
-        private readonly Func<CompositionContainer> _compositionContainerFactory;
-
         private sealed class Channel : ChannelBase
         {
             public readonly Stopwatch Watch;
@@ -49,11 +46,9 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="seed">Random seed. Set to <c>null</c> for a non-deterministic environment.</param>
         /// <param name="conc">Concurrency level. Set to 1 to run single-threaded. Set to 0 to pick automatically.</param>
-        /// <param name="compositionContainerFactory">The function to retrieve the composition container</param>
-        public LocalEnvironment(int? seed = null, int conc = 0, Func<CompositionContainer> compositionContainerFactory = null)
+        public LocalEnvironment(int? seed = null, int conc = 0)
             : base(RandomUtils.Create(seed), verbose: false, conc)
         {
-            _compositionContainerFactory = compositionContainerFactory;
         }
 
         /// <summary>
@@ -94,13 +89,6 @@ namespace Microsoft.ML.Data
             Contracts.Assert(parent is LocalEnvironment);
             Contracts.AssertNonEmpty(name);
             return new Pipe<TMessage>(parent, name, GetDispatchDelegate<TMessage>());
-        }
-
-        public override CompositionContainer GetCompositionContainer()
-        {
-            if (_compositionContainerFactory != null)
-                return _compositionContainerFactory();
-            return base.GetCompositionContainer();
         }
 
         private sealed class Host : HostBase

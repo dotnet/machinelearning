@@ -40,7 +40,7 @@ namespace Microsoft.ML.Benchmarks
 
             var env = new MLContext(seed: 1, conc: 1);
             var reader = new TextLoader(env,
-                    columns: new[]
+                columns: new[]
                     {
                             new TextLoader.Column("Label", DataKind.R4, 0),
                             new TextLoader.Column("SepalLength", DataKind.R4, 1),
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Benchmarks
                             new TextLoader.Column("PetalLength", DataKind.R4, 3),
                             new TextLoader.Column("PetalWidth", DataKind.R4, 4),
                     },
-                    hasHeader: true
+                hasHeader: true
                 );
 
             IDataView data = reader.Read(_irisDataPath);
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Benchmarks
                             new TextLoader.Column("Label", DataKind.BL, 0),
                             new TextLoader.Column("SentimentText", DataKind.Text, 1)
                         },
-                        hasHeader: true                        
+                hasHeader: true
                     );
 
             IDataView data = reader.Read(_sentimentDataPath);
@@ -107,8 +107,8 @@ namespace Microsoft.ML.Benchmarks
                         {
                             new TextLoader.Column("Label", DataKind.BL, 0),
                             new TextLoader.Column("Features", DataKind.R4, new[] { new TextLoader.Range(1, 9) })
-                        }, 
-                        hasHeader: false
+                        },
+                hasHeader: false
                     );
 
             IDataView data = reader.Read(_breastCancerDataPath);

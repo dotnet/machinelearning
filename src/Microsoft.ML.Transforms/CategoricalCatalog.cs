@@ -9,7 +9,7 @@ using Microsoft.ML.Transforms.Categorical;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Static extensions for categorical transforms.
+    /// The catalog of categorical transformations.
     /// </summary>
     public static class CategoricalCatalog
     {

@@ -403,7 +403,7 @@ namespace Microsoft.ML.RunTests
                 view = new ChooseColumnsByIndexTransform(env, chooseargs, view);
             }
 
-            var args = new TextLoader.Options();
+            var args = new TextLoader.Options() { AllowSparse = true, AllowQuoting = true};
             if (!CmdParser.ParseArguments(Env, argsLoader, args))
             {
                 Fail("Couldn't parse the args '{0}' in '{1}'", argsLoader, pathData);
@@ -412,7 +412,7 @@ namespace Microsoft.ML.RunTests
 
             // Note that we don't pass in "args", but pass in a default args so we test
             // the auto-schema parsing.
-            var loadedData = ML.Data.ReadFromTextFile(pathData);
+            var loadedData = ML.Data.ReadFromTextFile(pathData, options: args);
             if (!CheckMetadataTypes(loadedData.Schema))
                 Failed();
 

@@ -39,7 +39,7 @@ namespace Microsoft.ML
             {
                 LabelColumn = labelColumnName,
                 FeatureColumn = featureColumnName,
-                WeightColumn = exampleWeightColumnName != null ? Optional<string>.Explicit(exampleWeightColumnName) : Optional<string>.Implicit(DefaultColumnNames.Weight)
+                WeightColumn = exampleWeightColumnName
             };
 
             return new OlsLinearRegressionTrainer(env, options);

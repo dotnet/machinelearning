@@ -18,8 +18,8 @@ namespace Microsoft.ML
         ///  [!code-csharp[ConvertToGrayscale](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ImageAnalytics/ConvertToGrayscale.cs)]
         /// ]]></format>
         /// </example>
-        public static ImageGrayscalingEstimator ConvertToGrayscale(this TransformsCatalog catalog, params (string outputColumnName, string inputColumnName)[] columnPairs)
-            => new ImageGrayscalingEstimator(CatalogUtils.GetEnvironment(catalog), columnPairs);
+        public static ImageGrayscalingEstimator ConvertToGrayscale(this TransformsCatalog catalog, params SimpleColumnInfo[] columnPairs)
+            => new ImageGrayscalingEstimator(CatalogUtils.GetEnvironment(catalog), SimpleColumnInfo.ConvertToValueTuples(columnPairs));
 
         /// <summary>
         /// Loads the images from the <see cref="ImageLoadingTransformer.ImageFolder" /> into memory.
@@ -41,8 +41,8 @@ namespace Microsoft.ML
         ///  [!code-csharp[LoadImages](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ImageAnalytics/LoadImages.cs)]
         /// ]]></format>
         /// </example>
-        public static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string imageFolder, params (string outputColumnName, string inputColumnName)[] columnPairs)
-           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, columnPairs);
+        public static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string imageFolder, params SimpleColumnInfo[] columnPairs)
+           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, SimpleColumnInfo.ConvertToValueTuples(columnPairs));
 
         /// <include file='doc.xml' path='doc/members/member[@name="ImagePixelExtractingEstimator"]/*' />
         /// <param name="catalog"> The transform's catalog.</param>
@@ -72,7 +72,7 @@ namespace Microsoft.ML
 
         /// <include file='doc.xml' path='doc/members/member[@name="ImagePixelExtractingEstimator"]/*' />
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="columns">The name of the columns containing the image paths, and per-column configurations.</param>
+        /// <param name="columns">The name of the columns containing the images, and per-column configurations.</param>
         public static ImagePixelExtractingEstimator ExtractPixels(this TransformsCatalog catalog, params ImagePixelExtractingEstimator.ColumnInfo[] columns)
             => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
@@ -133,5 +133,33 @@ namespace Microsoft.ML
         /// </example>
         public static ImageResizingEstimator ResizeImages(this TransformsCatalog catalog, params ImageResizingEstimator.ColumnInfo[] columns)
             => new ImageResizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+
+        /// <summary>
+        /// Converts vectors of pixels into <see cref="ImageType"/> representation.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="columns">The name of the columns containing the pixels, and per-column configurations.</param>
+        public static VectorToImageConvertingEstimator ConvertToImage(this TransformsCatalog catalog, params VectorToImageConvertingEstimator.ColumnInfo[] columns)
+            => new VectorToImageConvertingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+
+        /// <summary>
+        /// Converts vectors of pixels into <see cref="ImageType"/> representation.
+        /// </summary>
+        /// <param name="catalog">The transforms' catalog.</param>
+        /// <param name="height">The height of the output images.</param>
+        /// <param name="width">The width of the output images.</param>
+        /// <param name="outputColumnName"> Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName"> Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="colors"> Specifies which <see cref="ImagePixelExtractingEstimator.ColorBits"/> are in the input pixel vectors. The order of colors is: Alpha, Red, Green Blue.</param>
+        /// <param name="interleave">Whether the pixels are interleaved, meaning whether they are in `ARGB ARGB` order, or separated in the planar form, where the colors are specified one by one
+        /// alpha, red, green, blue for all the pixels of the image. </param>
+        /// <param name="scale">The values are scaled by this value before being converted to pixels.</param>
+        /// <param name="offset">The offset is subtracted (before scaling) before converting the values to pixels.</param>
+        public static VectorToImageConvertingEstimator ConvertToImage(this TransformsCatalog catalog, int height, int width, string outputColumnName, string inputColumnName = null,
+            ImagePixelExtractingEstimator.ColorBits colors = VectorToImageConvertingTransformer.Defaults.Colors,
+            bool interleave = VectorToImageConvertingTransformer.Defaults.InterleaveArgb,
+            float scale = VectorToImageConvertingTransformer.Defaults.Scale,
+            float offset = VectorToImageConvertingTransformer.Defaults.Offset)
+            => new VectorToImageConvertingEstimator(CatalogUtils.GetEnvironment(catalog), height, width, outputColumnName, inputColumnName, colors, interleave, scale, offset);
     }
 }

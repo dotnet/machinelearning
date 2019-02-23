@@ -51,9 +51,9 @@ namespace Microsoft.ML.Tests
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var mlContext = new MLContext(seed: 1, conc: 1);
             var data = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
-                hasHeader: true,
                 separatorChar: ';'
-            );
+,
+                hasHeader: true);
             var cachedTrainData = mlContext.Data.Cache(data);
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
@@ -129,8 +129,8 @@ namespace Microsoft.ML.Tests
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var data = mlContext.Data.ReadFromTextFile<BreastCancerFeatureVector>(dataPath,
-                hasHeader: true,
-                separatorChar: '\t');
+                separatorChar: '\t',
+                hasHeader: true);
 
             var pipeline = mlContext.Transforms.Normalize("Features").
                 Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeans.KMeansPlusPlusTrainer.Options
@@ -207,8 +207,8 @@ namespace Microsoft.ML.Tests
             string dataPath = GetDataPath("breast-cancer.txt");
 
             var data = mlContext.Data.ReadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
-                hasHeader: true,
-                separatorChar: '\t');
+                separatorChar: '\t',
+                hasHeader: true);
 
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.Categorical.OneHotEncodingTransformer.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnInfo("F2")))
@@ -305,9 +305,9 @@ namespace Microsoft.ML.Tests
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var mlContext = new MLContext(seed: 1, conc: 1);
             var data = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
-                hasHeader: true,
                 separatorChar: ';'
-            );
+,
+                hasHeader: true);
             var cachedTrainData = mlContext.Data.Cache(data);
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
@@ -338,9 +338,9 @@ namespace Microsoft.ML.Tests
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var mlContext = new MLContext(seed: 1, conc: 1);
             var data = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
-                hasHeader: true,
                 separatorChar: ';'
-            );
+,
+                hasHeader: true);
             var cachedTrainData = mlContext.Data.Cache(data);
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
@@ -371,8 +371,8 @@ namespace Microsoft.ML.Tests
 
             string dataPath = GetDataPath("breast-cancer.txt");
             var data = mlContext.Data.ReadFromTextFile<BreastCancerMulticlassExample>(dataPath,
-                hasHeader: true,
-                separatorChar: '\t');
+                separatorChar: '\t',
+                hasHeader: true);
 
             var pipeline = mlContext.Transforms.Normalize("Features").
                 Append(mlContext.Transforms.Conversion.MapValueToKey("Label")).
@@ -401,8 +401,8 @@ namespace Microsoft.ML.Tests
 
             string dataPath = GetDataPath("breast-cancer.txt");
             var data = mlContext.Data.ReadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
-                hasHeader: true,
-                separatorChar: '\t');
+                separatorChar: '\t',
+                hasHeader: true);
 
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.Categorical.OneHotEncodingTransformer.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnInfo("F2")))
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
             var dataPath = GetDataPath(@"small-sentiment-test.tsv");
             var embedNetworkPath = GetDataPath(@"shortsentiment.emd");
-            var data = mlContext.Data.ReadFromTextFile<SmallSentimentExample>(dataPath, hasHeader: false, separatorChar: '\t');
+            var data = mlContext.Data.ReadFromTextFile<SmallSentimentExample>(dataPath, separatorChar: '\t', hasHeader: false);
 
             var pipeline = mlContext.Transforms.Text.ExtractWordEmbeddings("Embed", embedNetworkPath, "Tokens");
             var model = pipeline.Fit(data);
