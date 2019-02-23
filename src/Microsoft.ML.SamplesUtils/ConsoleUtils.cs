@@ -55,8 +55,18 @@ namespace Microsoft.ML.SamplesUtils
         /// <param name="metrics">Ranker metrics.</param>
         public static void PrintMetrics(RankerMetrics metrics)
         {
-            Console.WriteLine($"DCG@N: {string.Join(", ", metrics.Dcg.Select(d => Math.Round(d, 2)).ToArray())}");
-            Console.WriteLine($"NDCG@N: {string.Join(", ", metrics.Ndcg.Select(d => Math.Round(d, 2)).ToArray())}");
+            Console.WriteLine($"DCG: {string.Join(", ", RoundAndBeautifyRankerMetrics(metrics.Dcg))}");
+            Console.WriteLine($"NDCG: {string.Join(", ", RoundAndBeautifyRankerMetrics(metrics.Ndcg))}");
+        }
+
+        private static string[] RoundAndBeautifyRankerMetrics(double[] input)
+        {
+            string[] result = input.Select(d => Math.Round(d, 2).ToString()).ToArray();
+            for (int i = 0; i < result.Length; i++)
+            {
+                result[i] = $"@{(i + 1).ToString()}:{result[i]}";
+            }
+            return result;
         }
     }
 }
