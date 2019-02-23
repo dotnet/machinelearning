@@ -192,7 +192,7 @@
                         "Required": false,
                         "SortOrder": 150.0,
                         "IsNullable": false,
-                        "Default": "0"
+                        "Default": "R4"
                       },
                       {
                         "Name": "Source",
