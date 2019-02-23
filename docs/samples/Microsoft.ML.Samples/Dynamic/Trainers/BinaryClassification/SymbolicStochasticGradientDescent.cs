@@ -1,4 +1,4 @@
-﻿namespace Microsoft.ML.Samples.Dynamic
+﻿namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class SymbolicStochasticGradientDescent
     {
@@ -24,15 +24,17 @@
 
             // Evaluate how the model is doing on the test data.
             var dataWithPredictions = model.Transform(split.TestSet);
-            var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(dataWithPredictions, "IsOver50K");
+            var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(dataWithPredictions);
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
-            // Accuracy: 0.85
-            // AUC: 0.90
-            // F1 Score: 0.64
-            // Negative Precision: 0.88
-            // Negative Recall: 0.93
-            // Positive Precision: 0.72
-            // Positive Recall: 0.58
+            
+            // Expected output:
+            //   Accuracy: 0.85
+            //   AUC: 0.90
+            //   F1 Score: 0.64
+            //   Negative Precision: 0.88
+            //   Negative Recall: 0.93
+            //   Positive Precision: 0.72
+            //   Positive Recall: 0.58
         }
     }
 }

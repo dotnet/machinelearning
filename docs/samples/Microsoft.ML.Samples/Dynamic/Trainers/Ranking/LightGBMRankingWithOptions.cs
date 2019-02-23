@@ -1,9 +1,8 @@
 ﻿using Microsoft.ML.LightGBM;
-using static Microsoft.ML.LightGBM.Options;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
 {
-    public class LightGbmRankingWithOptions
+    public class LightGbmWithOptions
     {
         // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
         public static void Example()
@@ -12,33 +11,35 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Download and featurize the train and validation datasets.
-            (var trainData, var validationData) = SamplesUtils.DatasetUtils.LoadFeaturizedMslrWeb10kTrainAndValidate(mlContext);
+            var dataview = SamplesUtils.DatasetUtils.LoadFeaturizedMslrWeb10kDataset(mlContext);
+
+            // Leave out 10% of the dataset for testing. Since this is a ranking problem, we must ensure that the split
+            // respects the GroupId column, i.e. rows with the same GroupId are either all in the train split or all in
+            // the test split. The samplingKeyColumn parameter in Ranking.TrainTestSplit is used for this purpose.
+            var split = mlContext.Ranking.TrainTestSplit(dataview, testFraction: 0.1, samplingKeyColumn: "GroupId");
 
             // Create the Estimator pipeline. For simplicity, we will train a small tree with 4 leaves and 2 boosting iterations.
             var pipeline = mlContext.Ranking.Trainers.LightGbm(
                 new Options
                 {
-                    LabelColumn = "Label",
-                    FeatureColumn = "Features",
-                    GroupIdColumn = "GroupId",
                     NumLeaves = 4,
                     MinDataPerLeaf = 10,
                     LearningRate = 0.1,
                     NumBoostRound = 2
                 });
 
-            // Fit this Pipeline to the Training Data.
-            var model = pipeline.Fit(trainData);
+            // Fit this pipeline to the training Data.
+            var model = pipeline.Fit(split.TrainSet);
 
             // Evaluate how the model is doing on the test data.
-            var dataWithPredictions = model.Transform(validationData);
+            var dataWithPredictions = model.Transform(split.TestSet);
 
             var metrics = mlContext.Ranking.Evaluate(dataWithPredictions, "Label", "GroupId");
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
-            // Output:
-            // DCG @N: 1.38, 3.11, 4.94
-            // NDCG @N: 7.13, 10.12, 12.62
+            // Expected output:
+            //   DCG: @1:1.25, @2:2.69, @3:4.57
+            //   NDCG: @1:7.01, @2:9.57, @3:12.34
         }
     }
 }

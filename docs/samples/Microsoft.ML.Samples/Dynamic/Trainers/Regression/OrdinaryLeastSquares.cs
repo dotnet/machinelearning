@@ -2,7 +2,7 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.SamplesUtils;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 {
     public static class OrdinaryLeastSquares
     {
@@ -55,11 +55,13 @@ namespace Microsoft.ML.Samples.Dynamic
             var metrics = mlContext.Regression.Evaluate(dataWithPredictions);
 
             ConsoleUtils.PrintMetrics(metrics);
-            // L1: 4.15
-            // L2: 31.98
-            // LossFunction: 31.98
-            // RMS: 5.65
-            // RSquared: 0.56
+            
+            // Expected output:
+            //   L1: 4.15
+            //   L2: 31.98
+            //   LossFunction: 31.98
+            //   RMS: 5.65
+            //   RSquared: 0.56
         }
     }
 }

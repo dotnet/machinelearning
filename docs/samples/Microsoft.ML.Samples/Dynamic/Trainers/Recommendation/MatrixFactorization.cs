@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.ML.Data;
 using static Microsoft.ML.SamplesUtils.DatasetUtils;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Microsoft.ML.Samples.Dynamic.Trainers.Recommendation
 {
     public static class MatrixFactorization
     {

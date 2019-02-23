@@ -3,9 +3,9 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.SamplesUtils;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
 {
-    class LightGbmMulticlassClassification
+    class LightGbm
     {
         // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
         public static void Example()
