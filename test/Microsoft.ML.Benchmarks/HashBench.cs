@@ -52,7 +52,7 @@ namespace Microsoft.ML.Benchmarks
 
             private RowImpl(DataViewType type, Delegate getter)
             {
-                var builder = new SchemaBuilder();
+                var builder = new DataViewSchema.Builder();
                 builder.AddColumn("Foo", type, null);
                 Schema = builder.GetSchema();
                 _getter = getter;

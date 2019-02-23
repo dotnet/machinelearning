@@ -215,7 +215,7 @@ namespace Microsoft.ML.Data
                 _host.Assert(builder._names.Count == builder._columns.Count);
                 _columns = builder._columns.ToArray();
 
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
                 for(int i=0; i< _columns.Length; i++)
                 {
                     var meta = new DataViewSchema.Metadata.Builder();

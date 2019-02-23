@@ -970,7 +970,7 @@ namespace Microsoft.ML.Data
 
             private DataViewSchema ComputeOutputSchema()
             {
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
 
                 // Iterate through all loaded columns. The index i indicates the i-th column loaded.
                 for (int i = 0; i < Infos.Length; ++i)

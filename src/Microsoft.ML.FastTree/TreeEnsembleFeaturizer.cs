@@ -108,7 +108,7 @@ namespace Microsoft.ML.Data
                 var pathIdType = new VectorType(NumberDataViewType.Single, owner._totalLeafCount - owner._ensemble.TrainedEnsemble.NumTrees);
 
                 // Start creating output schema with types derived above.
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
 
                 // Metadata of tree values.
                 var treeIdMetadataBuilder = new DataViewSchema.Metadata.Builder();

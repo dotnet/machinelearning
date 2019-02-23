@@ -323,7 +323,7 @@ namespace Microsoft.ML.Data
 
                 if (parent.Stringify)
                 {
-                    var builder = new SchemaBuilder();
+                    var builder = new DataViewSchema.Builder();
                     builder.AddColumn(DefaultColumnNames.FeatureContributions, TextDataViewType.Instance, null);
                     _outputSchema = builder.GetSchema();
                     if (FeatureColumn.HasSlotNames(featureSize))
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Data
                         metadataBuilder.AddSlotNames(featureSize, (ref VBuffer<ReadOnlyMemory<char>> value) =>
                             FeatureColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref value));
 
-                    var schemaBuilder = new SchemaBuilder();
+                    var schemaBuilder = new DataViewSchema.Builder();
                     var featureContributionType = new VectorType(NumberDataViewType.Single, FeatureColumn.Type as VectorType);
                     schemaBuilder.AddColumn(DefaultColumnNames.FeatureContributions, featureContributionType, metadataBuilder.GetMetadata());
                     _outputSchema = schemaBuilder.GetSchema();

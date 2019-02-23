@@ -274,7 +274,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(inputBindings, nameof(inputBindings));
 
-            var builder = new SchemaBuilder();
+            var builder = new DataViewSchema.Builder();
             for (int i = 0; i < inputBindings.ColumnCount; i++)
             {
                 var meta = new DataViewSchema.Metadata.Builder();

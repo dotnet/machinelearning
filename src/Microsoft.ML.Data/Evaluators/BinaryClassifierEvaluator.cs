@@ -1559,7 +1559,7 @@ namespace Microsoft.ML.Data
             IDataView warnings;
             if (!metrics.TryGetValue(MetricKinds.Warnings, out warnings))
             {
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
                 schemaBuilder.AddColumn(MetricKinds.ColumnNames.WarningText, TextDataViewType.Instance);
                 warnings = new EmptyDataView(host, schemaBuilder.GetSchema());
             }
@@ -1572,7 +1572,7 @@ namespace Microsoft.ML.Data
             IDataView overallMetrics;
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out overallMetrics))
             {
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
                 foreach (var mc in evaluator.GetOverallMetricColumns())
                     schemaBuilder.AddColumn(mc.LoadName, NumberDataViewType.Double);
 
@@ -1587,7 +1587,7 @@ namespace Microsoft.ML.Data
             IDataView confusionMatrix;
             if (!metrics.TryGetValue(MetricKinds.ConfusionMatrix, out confusionMatrix))
             {
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
                 schemaBuilder.AddColumn(MetricKinds.ColumnNames.Count, NumberDataViewType.Double);
                 confusionMatrix = new EmptyDataView(host, schemaBuilder.GetSchema());
             }

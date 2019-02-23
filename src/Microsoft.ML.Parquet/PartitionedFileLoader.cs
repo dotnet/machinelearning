@@ -317,7 +317,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(cols);
             Contracts.AssertValue(subLoader);
 
-            var builder = new SchemaBuilder();
+            var builder = new DataViewSchema.Builder();
             builder.AddColumns(cols.Select(c => new DataViewSchema.DetachedColumn(c.Name, ColumnTypeExtensions.PrimitiveTypeFromKind(c.Type.Value), null)));
             var colSchema = builder.GetSchema();
 

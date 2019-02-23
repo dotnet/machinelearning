@@ -781,7 +781,7 @@ namespace Microsoft.ML.Data
                 _host.Assert(outputColumnCount == _colToSplitIndex.Length);
 
                 // Sequentially concatenate output columns from all splitters to form output schema.
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
                 for (int c = 0; c < _splitters.Length; ++c)
                     schemaBuilder.AddColumns(_splitters[c].OutputSchema);
                 Schema = schemaBuilder.GetSchema();
@@ -1004,7 +1004,7 @@ namespace Microsoft.ML.Data
                         // The column selected for splitting.
                         var selectedColumn = _view.Schema[col];
 
-                        var schemaBuilder = new SchemaBuilder();
+                        var schemaBuilder = new DataViewSchema.Builder();
                         // Just copy the selected column to output since no splitting happens.
                         schemaBuilder.AddColumn(selectedColumn.Name, selectedColumn.Type, selectedColumn.Metadata);
                         OutputSchema = schemaBuilder.GetSchema();
@@ -1088,7 +1088,7 @@ namespace Microsoft.ML.Data
                             _types[c] = new VectorType(type.ItemType, _lims[c] - _lims[c - 1]);
 
                         var selectedColumn = _view.Schema[col];
-                        var schemaBuilder = new SchemaBuilder();
+                        var schemaBuilder = new DataViewSchema.Builder();
                         for (int c = 0; c < _lims.Length; ++c)
                             schemaBuilder.AddColumn(selectedColumn.Name, _types[c]);
                         OutputSchema = schemaBuilder.GetSchema();
@@ -1383,7 +1383,7 @@ namespace Microsoft.ML.Data
                 _data = data;
                 _col = col;
 
-                var builder = new SchemaBuilder();
+                var builder = new DataViewSchema.Builder();
                 builder.AddColumn(_data.Schema[_col].Name, _type);
                 Schema = builder.GetSchema();
             }
@@ -1476,7 +1476,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertValue(cursor);
 
                 _slotCursor = cursor;
-                var builder = new SchemaBuilder();
+                var builder = new DataViewSchema.Builder();
                 builder.AddColumn("Waffles", cursor.GetSlotType());
                 Schema = builder.GetSchema();
             }

@@ -278,7 +278,7 @@ namespace Microsoft.ML.Transforms
             private DataViewSchema BuildOutputSchema(DataViewSchema sourceSchema)
             {
                 // Create schema build. We will sequentially add group columns and then aggregated columns.
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
 
                 // Handle group(-key) columns. Those columns are used as keys to partition rows in the input data; specifically,
                 // rows with the same key value will be merged into one row in the output data.

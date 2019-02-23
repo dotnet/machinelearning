@@ -641,7 +641,7 @@ namespace Microsoft.ML.Data.IO
         /// <returns><see cref="Schema"/> of loaded file.</returns>
         private DataViewSchema ComputeOutputSchema()
         {
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
 
             for(int i = 0; i < _aliveColumns.Length; ++i)
             {

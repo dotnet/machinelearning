@@ -35,7 +35,7 @@ namespace Microsoft.ML.Data
                 (ref ReadOnlyMemory<char> value) => { value = MetadataUtils.Const.ScoreValueKind.Score.AsMemory(); });
 
             // Build a schema consisting of a single column.
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn(scoreColumnName, scoreType, metadataBuilder.GetMetadata());
 
             return schemaBuilder.GetSchema();
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Data
             // Schema of Score column. We are going to extend it by adding a Probability column.
             var partialSchema = Create(NumberDataViewType.Single, MetadataUtils.Const.ScoreColumnKind.BinaryClassification, scoreColumnName);
 
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
             // Copy Score column from partialSchema.
             schemaBuilder.AddColumn(partialSchema[0].Name, partialSchema[0].Type, partialSchema[0].Metadata);
 
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Data
             metadataBuilder.Add(partialSchema[0].Metadata, (string kind) => true);
 
             // Build a schema consisting of a single column. Comparing with partial schema, the only difference is a metadata field.
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn(partialSchema[0].Name, partialSchema[0].Type, metadataBuilder.GetMetadata());
 
             return schemaBuilder.GetSchema();
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Data
                 (ref ReadOnlyMemory<char> value) => value = MetadataUtils.Const.ScoreValueKind.PredictedLabel.AsMemory());
 
             // Build a schema consisting of a single column.
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn(MetadataUtils.Const.ScoreValueKind.PredictedLabel, scoreType, metadataBuilder.GetMetadata());
 
             return schemaBuilder.GetSchema();

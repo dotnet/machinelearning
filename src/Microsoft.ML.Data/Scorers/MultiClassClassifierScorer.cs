@@ -303,7 +303,7 @@ namespace Microsoft.ML.Data
                 private DataViewSchema DecorateOutputSchema(DataViewSchema partialSchema, int scoreColumnIndex, VectorType labelNameType,
                     ValueGetter<VBuffer<T>> labelNameGetter, string labelNameKind)
                 {
-                    var builder = new SchemaBuilder();
+                    var builder = new DataViewSchema.Builder();
                     // Sequentially add columns so that the order of them is not changed comparing with the schema in the mapper
                     // that computes score column.
                     for (int i = 0; i < partialSchema.Count; ++i)

@@ -20,7 +20,7 @@ namespace Microsoft.ML.Data.DataLoadSave
 
         public static DataViewSchema Create(SchemaShape shape)
         {
-            var builder = new SchemaBuilder();
+            var builder = new DataViewSchema.Builder();
 
             for (int i = 0; i < shape.Count; ++i)
             {

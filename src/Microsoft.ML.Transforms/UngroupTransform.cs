@@ -288,7 +288,7 @@ namespace Microsoft.ML.Transforms
                     _pivotIndex[info.Index] = i;
                 }
 
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
                 // Iterate through input columns. Input columns which are not pivot columns will be copied to output schema with the same column index unchanged.
                 // Input columns which are pivot columns would also be copied but with different data types and different metadata.
                 for (int i = 0; i < InputColumnCount; ++i)

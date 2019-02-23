@@ -207,7 +207,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         public void AssertStaticSimple()
         {
             var env = new MLContext(0);
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn("hello", TextDataViewType.Instance);
             schemaBuilder.AddColumn("my", new VectorType(NumberDataViewType.Int64, 5));
             schemaBuilder.AddColumn("friend", new KeyType(typeof(uint), 3));
@@ -231,7 +231,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         public void AssertStaticSimpleFailure()
         {
             var env = new MLContext(0);
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn("hello", TextDataViewType.Instance);
             schemaBuilder.AddColumn("my", new VectorType(NumberDataViewType.Int64, 5));
             schemaBuilder.AddColumn("friend", new KeyType(typeof(uint), 3));
