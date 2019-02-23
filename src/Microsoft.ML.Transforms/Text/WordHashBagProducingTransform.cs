@@ -103,7 +103,7 @@ namespace Microsoft.ML.Transforms.Text
             var uniqueSourceNames = NgramExtractionUtils.GenerateUniqueSourceNames(h, options.Columns, view.Schema);
             Contracts.Assert(uniqueSourceNames.Length == options.Columns.Length);
 
-            var tokenizeColumns = new List<WordTokenizingEstimator.ColumnInfo>();
+            var tokenizeColumns = new List<WordTokenizingEstimator.ColumnOptions>();
             var extractorCols = new NgramHashExtractingTransformer.Column[options.Columns.Length];
             var colCount = options.Columns.Length;
             List<string> tmpColNames = new List<string>();
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Transforms.Text
                 var curTmpNames = new string[srcCount];
                 Contracts.Assert(uniqueSourceNames[iinfo].Length == options.Columns[iinfo].Source.Length);
                 for (int isrc = 0; isrc < srcCount; isrc++)
-                    tokenizeColumns.Add(new WordTokenizingEstimator.ColumnInfo(curTmpNames[isrc] = uniqueSourceNames[iinfo][isrc], options.Columns[iinfo].Source[isrc]));
+                    tokenizeColumns.Add(new WordTokenizingEstimator.ColumnOptions(curTmpNames[isrc] = uniqueSourceNames[iinfo][isrc], options.Columns[iinfo].Source[isrc]));
 
                 tmpColNames.AddRange(curTmpNames);
                 extractorCols[iinfo] =
@@ -331,8 +331,8 @@ namespace Microsoft.ML.Transforms.Text
             if (termLoaderArgs != null)
                 termCols = new List<ValueToKeyMappingTransformer.Column>();
 
-	    var hashColumns = new List<HashingEstimator.ColumnInfo>();
-            var ngramHashColumns = new NgramHashingEstimator.ColumnInfo[options.Columns.Length];
+	    var hashColumns = new List<HashingEstimator.ColumnOptions>();
+            var ngramHashColumns = new NgramHashingEstimator.ColumnOptions[options.Columns.Length];
 
             var colCount = options.Columns.Length;
             // The NGramHashExtractor has a ManyToOne column type. To avoid stepping over the source
@@ -361,12 +361,12 @@ namespace Microsoft.ML.Transforms.Text
                             });
                     }
 
-                    hashColumns.Add(new HashingEstimator.ColumnInfo(tmpName, termLoaderArgs == null ? column.Source[isrc] : tmpName,
+                    hashColumns.Add(new HashingEstimator.ColumnOptions(tmpName, termLoaderArgs == null ? column.Source[isrc] : tmpName,
                         30, column.Seed ?? options.Seed, false, column.InvertHash ?? options.InvertHash));
                 }
 
                 ngramHashColumns[iinfo] =
-                    new NgramHashingEstimator.ColumnInfo(column.Name, tmpColNames[iinfo],
+                    new NgramHashingEstimator.ColumnOptions(column.Name, tmpColNames[iinfo],
                     column.NgramLength ?? options.NgramLength,
                     column.SkipLength ?? options.SkipLength,
                     column.AllLengths ?? options.AllLengths,

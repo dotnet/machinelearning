@@ -126,10 +126,10 @@ namespace Microsoft.ML.Transforms.Categorical
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns));
 
-            var columns = new List<OneHotEncodingEstimator.ColumnInfo>();
+            var columns = new List<OneHotEncodingEstimator.ColumnOptions>();
             foreach (var column in options.Columns)
             {
-                var col = new OneHotEncodingEstimator.ColumnInfo(
+                var col = new OneHotEncodingEstimator.ColumnOptions(
                     column.Name,
                     column.Source ?? column.Name,
                     column.OutputKind ?? options.OutputKind,
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public class ColumnInfo : ValueToKeyMappingEstimator.ColumnInfo
+        public class ColumnOptions : ValueToKeyMappingEstimator.ColumnOptions
         {
             public readonly OneHotEncodingTransformer.OutputKind OutputKind;
             /// <summary>
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Transforms.Categorical
             /// <param name="sort">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.SortOrder.Occurrence"/> choosen they will be in the order encountered.
             /// If <see cref="ValueToKeyMappingEstimator.SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
             /// <param name="term">List of terms.</param>
-            public ColumnInfo(string name, string inputColumnName = null,
+            public ColumnOptions(string name, string inputColumnName = null,
                 OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutKind,
                 int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumKeys, ValueToKeyMappingEstimator.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort,
                 string[] term = null)
@@ -224,11 +224,11 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <param name="outputKind">The type of output expected.</param>
         internal OneHotEncodingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
             OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutKind)
-            : this(env, new[] { new ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, outputKind) })
+            : this(env, new[] { new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, outputKind) })
         {
         }
 
-        internal OneHotEncodingEstimator(IHostEnvironment env, ColumnInfo[] columns, IDataView keyData = null)
+        internal OneHotEncodingEstimator(IHostEnvironment env, ColumnOptions[] columns, IDataView keyData = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(OneHotEncodingEstimator));
@@ -261,7 +261,7 @@ namespace Microsoft.ML.Transforms.Categorical
             if (binaryCols.Count > 0)
                 toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => (x.outputColumnName, x.inputColumnName)).ToArray());
             if (cols.Count > 0)
-                toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorMappingEstimator.ColumnInfo(x.outputColumnName, x.inputColumnName, x.bag)).ToArray());
+                toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorMappingEstimator.ColumnOptions(x.outputColumnName, x.inputColumnName, x.bag)).ToArray());
 
             if (toBinVector != null && toVector != null)
                 _toSomething = toVector.Append(toBinVector);

@@ -99,13 +99,13 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var infos = new LatentDirichletAllocationEstimator.ColumnInfo[toOutput.Length];
+                var infos = new LatentDirichletAllocationEstimator.ColumnOptions[toOutput.Length];
                 Action<LatentDirichletAllocationTransformer> onFit = null;
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ILdaCol)toOutput[i];
 
-                    infos[i] = new LatentDirichletAllocationEstimator.ColumnInfo(outputNames[toOutput[i]],
+                    infos[i] = new LatentDirichletAllocationEstimator.ColumnOptions(outputNames[toOutput[i]],
                         inputNames[tcol.Input],
                         tcol.Config.NumTopic,
                         tcol.Config.AlphaSum,

@@ -266,9 +266,9 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var infos = new CountFeatureSelectingEstimator.ColumnInfo[toOutput.Length];
+                var infos = new CountFeatureSelectingEstimator.ColumnOptions[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; i++)
-                    infos[i] = new CountFeatureSelectingEstimator.ColumnInfo(outputNames[toOutput[i]], inputNames[((OutPipelineColumn<T>)toOutput[i]).Input], _count);
+                    infos[i] = new CountFeatureSelectingEstimator.ColumnOptions(outputNames[toOutput[i]], inputNames[((OutPipelineColumn<T>)toOutput[i]).Input], _count);
 
                 return new CountFeatureSelectingEstimator(env, infos);
             }
@@ -576,11 +576,11 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var infos = new KeyToVectorMappingEstimator.ColumnInfo[toOutput.Length];
+                var infos = new KeyToVectorMappingEstimator.ColumnOptions[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var col = (IColInput)toOutput[i];
-                    infos[i] = new KeyToVectorMappingEstimator.ColumnInfo(outputNames[toOutput[i]], inputNames[col.Input], col.Bag);
+                    infos[i] = new KeyToVectorMappingEstimator.ColumnOptions(outputNames[toOutput[i]], inputNames[col.Input], col.Bag);
                 }
                 return new KeyToVectorMappingEstimator(env, infos);
             }
@@ -733,9 +733,9 @@ namespace Microsoft.ML.StaticPipe
         private readonly struct Config
         {
             public readonly bool ImputeBySlot;
-            public readonly MissingValueReplacingEstimator.ColumnInfo.ReplacementMode ReplacementMode;
+            public readonly MissingValueReplacingEstimator.ColumnOptions.ReplacementMode ReplacementMode;
 
-            public Config(MissingValueReplacingEstimator.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
+            public Config(MissingValueReplacingEstimator.ColumnOptions.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
                 bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
             {
                 ImputeBySlot = imputeBySlot;
@@ -801,11 +801,11 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var infos = new MissingValueReplacingEstimator.ColumnInfo[toOutput.Length];
+                var infos = new MissingValueReplacingEstimator.ColumnOptions[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var col = (IColInput)toOutput[i];
-                    infos[i] = new MissingValueReplacingEstimator.ColumnInfo(outputNames[toOutput[i]], inputNames[col.Input], col.Config.ReplacementMode, col.Config.ImputeBySlot);
+                    infos[i] = new MissingValueReplacingEstimator.ColumnOptions(outputNames[toOutput[i]], inputNames[col.Input], col.Config.ReplacementMode, col.Config.ImputeBySlot);
                 }
                 return new MissingValueReplacingEstimator(env, infos);
             }
@@ -816,7 +816,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static Scalar<float> ReplaceNaNValues(this Scalar<float> input, MissingValueReplacingEstimator.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        public static Scalar<float> ReplaceNaNValues(this Scalar<float> input, MissingValueReplacingEstimator.ColumnOptions.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutScalar<float>(input, new Config(replacementMode, false));
@@ -827,7 +827,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static Scalar<double> ReplaceNaNValues(this Scalar<double> input, MissingValueReplacingEstimator.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        public static Scalar<double> ReplaceNaNValues(this Scalar<double> input, MissingValueReplacingEstimator.ColumnOptions.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutScalar<double>(input, new Config(replacementMode, false));
@@ -840,7 +840,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
         /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
         /// where imputation is always for the entire column.</param>
-        public static Vector<float> ReplaceNaNValues(this Vector<float> input, MissingValueReplacingEstimator.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
+        public static Vector<float> ReplaceNaNValues(this Vector<float> input, MissingValueReplacingEstimator.ColumnOptions.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<float>(input, new Config(replacementMode, imputeBySlot));
@@ -854,7 +854,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
         /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
         /// where imputation is always for the entire column.</param>
-        public static Vector<double> ReplaceNaNValues(this Vector<double> input, MissingValueReplacingEstimator.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
+        public static Vector<double> ReplaceNaNValues(this Vector<double> input, MissingValueReplacingEstimator.ColumnOptions.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<double>(input, new Config(replacementMode, imputeBySlot));
@@ -865,7 +865,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static VarVector<float> ReplaceNaNValues(this VarVector<float> input, MissingValueReplacingEstimator.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        public static VarVector<float> ReplaceNaNValues(this VarVector<float> input, MissingValueReplacingEstimator.ColumnOptions.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVarVectorColumn<float>(input, new Config(replacementMode, false));
@@ -875,7 +875,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static VarVector<double> ReplaceNaNValues(this VarVector<double> input, MissingValueReplacingEstimator.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        public static VarVector<double> ReplaceNaNValues(this VarVector<double> input, MissingValueReplacingEstimator.ColumnOptions.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVarVectorColumn<double>(input, new Config(replacementMode, false));
@@ -931,11 +931,11 @@ namespace Microsoft.ML.StaticPipe
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
-                var infos = new TypeConvertingEstimator.ColumnInfo[toOutput.Length];
+                var infos = new TypeConvertingEstimator.ColumnOptions[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IConvertCol)toOutput[i];
-                    infos[i] = new TypeConvertingEstimator.ColumnInfo(outputNames[toOutput[i]], tcol.Kind.ToDataKind(), inputNames[tcol.Input]);
+                    infos[i] = new TypeConvertingEstimator.ColumnOptions(outputNames[toOutput[i]], tcol.Kind.ToDataKind(), inputNames[tcol.Input]);
                 }
                 return new TypeConvertingEstimator(env, infos);
             }
@@ -1023,12 +1023,12 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var infos = new ValueToKeyMappingEstimator.ColumnInfo[toOutput.Length];
+                var infos = new ValueToKeyMappingEstimator.ColumnOptions[toOutput.Length];
                 Action<ValueToKeyMappingTransformer> onFit = null;
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ITermCol)toOutput[i];
-                    infos[i] = new ValueToKeyMappingEstimator.ColumnInfo(outputNames[toOutput[i]], inputNames[tcol.Input],
+                    infos[i] = new ValueToKeyMappingEstimator.ColumnOptions(outputNames[toOutput[i]], inputNames[tcol.Input],
                         tcol.Config.Max, (ValueToKeyMappingEstimator.SortOrder)tcol.Config.Order);
                     if (tcol.Config.OnFit != null)
                     {
@@ -1593,11 +1593,11 @@ namespace Microsoft.ML.StaticPipe
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
-                var infos = new RandomFourierFeaturizingEstimator.ColumnInfo[toOutput.Length];
+                var infos = new RandomFourierFeaturizingEstimator.ColumnOptions[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IColInput)toOutput[i];
-                    infos[i] = new RandomFourierFeaturizingEstimator.ColumnInfo(outputNames[toOutput[i]], tcol.Config.NewDim, tcol.Config.UseSin, inputNames[tcol.Input], tcol.Config.Generator, tcol.Config.Seed);
+                    infos[i] = new RandomFourierFeaturizingEstimator.ColumnOptions(outputNames[toOutput[i]], tcol.Config.NewDim, tcol.Config.UseSin, inputNames[tcol.Input], tcol.Config.Generator, tcol.Config.Seed);
                 }
                 return new RandomFourierFeaturizingEstimator(env, infos);
             }
@@ -1638,11 +1638,11 @@ namespace Microsoft.ML.StaticPipe
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly PrincipalComponentAnalysisEstimator.ColumnInfo _colInfo;
+            private readonly PrincipalComponentAnalysisEstimator.ColumnOptions _colInfo;
 
             public Reconciler(string weightColumn, int rank, int overSampling, bool center, int? seed = null)
             {
-                _colInfo = new PrincipalComponentAnalysisEstimator.ColumnInfo(
+                _colInfo = new PrincipalComponentAnalysisEstimator.ColumnOptions(
                     null, null, weightColumn, rank, overSampling, center, seed);
             }
 

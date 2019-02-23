@@ -740,8 +740,8 @@ namespace Microsoft.ML.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RandomFourierFeaturizingEstimator.ColumnInfo("Features1", 10, false, "Features"),
-                    new RandomFourierFeaturizingEstimator.ColumnInfo("Features2", 10, false, "Features"),
+                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features1", 10, false, "Features"),
+                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
 
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
@@ -1192,8 +1192,8 @@ namespace Microsoft.ML.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RandomFourierFeaturizingEstimator.ColumnInfo("Features1", 10, false, "Features"),
-                    new RandomFourierFeaturizingEstimator.ColumnInfo("Features2", 10, false, "Features"),
+                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features1", 10, false, "Features"),
+                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
 
@@ -1338,7 +1338,7 @@ namespace Microsoft.ML.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new OneHotEncodingEstimator(Env, "Cat").Fit(data).Transform(data);
-                data = new ColumnConcatenatingTransformer(Env, new ColumnConcatenatingTransformer.ColumnInfo("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
+                data = new ColumnConcatenatingTransformer(Env, new ColumnConcatenatingTransformer.ColumnOptions("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
                 if (i % 2 == 0)
                 {
                     var lrInput = new LogisticRegression.Options

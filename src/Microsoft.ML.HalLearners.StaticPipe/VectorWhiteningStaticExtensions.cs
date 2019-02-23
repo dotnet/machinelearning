@@ -47,9 +47,9 @@ namespace Microsoft.ML.HalLearners.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var infos = new VectorWhiteningEstimator.ColumnInfo[toOutput.Length];
+                var infos = new VectorWhiteningEstimator.ColumnOptions[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; i++)
-                    infos[i] = new VectorWhiteningEstimator.ColumnInfo(outputNames[toOutput[i]], inputNames[((OutPipelineColumn)toOutput[i]).Input], _kind, _eps, _maxRows, _pcaNum);
+                    infos[i] = new VectorWhiteningEstimator.ColumnOptions(outputNames[toOutput[i]], inputNames[((OutPipelineColumn)toOutput[i]).Input], _kind, _eps, _maxRows, _pcaNum);
 
                 return new VectorWhiteningEstimator(env, infos);
             }
