@@ -138,7 +138,7 @@ namespace Microsoft.ML.SamplesUtils
                 .Append(mlContext.Transforms.Concatenate("Features", "workclass", "education", "marital-status",
                     "occupation", "relationship", "ethnicity", "native-country", "age", "education-num",
                     "capital-gain", "capital-loss", "hours-per-week"))
-                // Min-max normalized all the features
+                // Min-max normalize all the features
                 .Append(mlContext.Transforms.Normalize("Features"));
 
             var data = reader.Read(dataFile);
@@ -146,7 +146,7 @@ namespace Microsoft.ML.SamplesUtils
             return featurizedData;
         }
 
-        public static string DownloadMslrWeb10kTrain()
+        public static string DownloadMslrWeb10k()
         {
             var fileName = "MSLRWeb10KTrain720kRows.tsv";
             if (!File.Exists(fileName))
@@ -154,19 +154,10 @@ namespace Microsoft.ML.SamplesUtils
             return fileName;
         }
 
-        public static string DownloadMslrWeb10kValidate()
-        {
-            var fileName = "MSLRWeb10KValidate240kRows.tsv";
-            if (!File.Exists(fileName))
-                Download("https://tlcresources.blob.core.windows.net/datasets/MSLR-WEB10K/MSLR-WEB10K_Fold1.VALIDATE.160MB_240k-rows.tsv", fileName);
-            return fileName;
-        }
-
-        public static (IDataView, IDataView) LoadFeaturizedMslrWeb10kTrainAndValidate(MLContext mlContext)
+        public static IDataView LoadFeaturizedMslrWeb10kDataset(MLContext mlContext)
         {
             // Download the training and validation files.
-            string trainDataFile = DownloadMslrWeb10kTrain();
-            string validationDataFile = DownloadMslrWeb10kValidate();
+            string dataFile = DownloadMslrWeb10k();
 
             // Create the reader to read the data.
             var reader = mlContext.Data.CreateTextLoader(
@@ -178,23 +169,18 @@ namespace Microsoft.ML.SamplesUtils
                 }
             );
 
-            // Load the raw training and validation datasets.
-            var trainData = reader.Read(trainDataFile);
-            var validationData = reader.Read(validationDataFile);
+            // Load the raw dataset.
+            var data = reader.Read(dataFile);
 
             // Create the featurization pipeline. First, hash the GroupId column.
             var pipeline = mlContext.Transforms.Conversion.Hash("GroupId")
                 // Replace missing values in Features column with the default replacement value for its type.
                 .Append(mlContext.Transforms.ReplaceMissingValues("Features"));
 
-            // Fit the pipeline on the training data.
-            var fittedPipeline = pipeline.Fit(trainData);
+            // Fit the pipeline and transform the dataset.
+            var transformedData = pipeline.Fit(data).Transform(data);
 
-            // Use the fitted pipeline to transform the training and validation datasets.
-            var transformedTrainData = fittedPipeline.Transform(trainData);
-            var transformedValidationData = fittedPipeline.Transform(validationData);
-
-            return (transformedTrainData, transformedValidationData);
+            return transformedData;
         }
 
         /// <summary>
