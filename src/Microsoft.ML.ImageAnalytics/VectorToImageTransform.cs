@@ -376,6 +376,7 @@ namespace Microsoft.ML.ImageAnalytics
                         dst.SetResolution(width, height);
                         int cpix = height * width;
                         int position = 0;
+                        ImagePixelExtractingEstimator.GetOrder(ex.Order, ex.Colors, out int a, out int r, out int b, out int g);
 
                         for (int y = 0; y < height; ++y)
                             for (int x = 0; x < width; x++)
@@ -387,38 +388,35 @@ namespace Microsoft.ML.ImageAnalytics
                                 if (ex.Interleave)
                                 {
                                     if (ex.Alpha)
-                                        alpha = Convert.ToSingle(values[position++]);
+                                        alpha = Convert.ToSingle(values[position + a]);
                                     if (ex.Red)
-                                        red = Convert.ToSingle(values[position++]);
+                                        red = Convert.ToSingle(values[position + r]);
                                     if (ex.Green)
-                                        green = Convert.ToSingle(values[position++]);
+                                        green = Convert.ToSingle(values[position + g]);
                                     if (ex.Blue)
-                                        blue = Convert.ToSingle(values[position++]);
+                                        blue = Convert.ToSingle(values[position + b]);
+                                    position += ex.Planes;
                                 }
                                 else
                                 {
                                     position = y * width + x;
-                                    if (ex.Alpha)
-                                    { alpha = Convert.ToSingle(values[position]); position += cpix; }
-                                    if (ex.Red)
-                                    { red = Convert.ToSingle(values[position]); position += cpix; }
-                                    if (ex.Green)
-                                    { green = Convert.ToSingle(values[position]); position += cpix; }
-                                    if (ex.Blue)
-                                    { blue = Convert.ToSingle(values[position]); position += cpix; }
+                                    if (ex.Alpha) alpha = Convert.ToSingle(values[position + cpix * a]);
+                                    if (ex.Red) red = Convert.ToSingle(values[position + cpix * r]);
+                                    if (ex.Green) green = Convert.ToSingle(values[position + cpix * g]);
+                                    if (ex.Blue) blue = Convert.ToSingle(values[position + cpix * b]);
+                                    Color pixel;
+                                    if (!needScale)
+                                        pixel = Color.FromArgb((int)alpha, (int)red, (int)green, (int)blue);
+                                    else
+                                    {
+                                        pixel = Color.FromArgb(
+                                            ex.Alpha ? (int)Math.Round(alpha * scale - offset) : 0,
+                                            (int)Math.Round(red * scale - offset),
+                                            (int)Math.Round(green * scale - offset),
+                                            (int)Math.Round(blue * scale - offset));
+                                    }
+                                    dst.SetPixel(x, y, pixel);
                                 }
-                                Color pixel;
-                                if (!needScale)
-                                    pixel = Color.FromArgb((int)alpha, (int)red, (int)green, (int)blue);
-                                else
-                                {
-                                    pixel = Color.FromArgb(
-                                        ex.Alpha ? (int)Math.Round(alpha * scale - offset) : 0,
-                                        (int)Math.Round(red * scale - offset),
-                                        (int)Math.Round(green * scale - offset),
-                                        (int)Math.Round(blue * scale - offset));
-                                }
-                                dst.SetPixel(x, y, pixel);
                             }
                     };
             }
@@ -581,7 +579,7 @@ namespace Microsoft.ML.ImageAnalytics
             /// <param name="width">The width of the output images.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="colors">What colors to extract.</param>
-            /// <param name="order">In which order extract colors presented in array.</param>
+            /// <param name="order">In which order extracted colors presented in array.</param>
             /// <param name="interleave">Whether the pixels are interleaved, meaning whether they are in <paramref name="order"/> order, or separated in the planar form, where the colors are specified one by one
             /// alpha, red, green, blue for all the pixels of the image. </param>
             /// <param name="scale">Scale color pixel value by this amount.</param>

@@ -88,7 +88,7 @@ namespace Microsoft.ML.ImageAnalytics
             {
                 Contracts.AssertValue(sb);
                 if (UseAlpha != null || UseRed != null || UseGreen != null || UseBlue != null || Convert != null ||
-                    Offset != null || Scale != null || Interleave != null)
+                    Offset != null || Scale != null || Interleave != null || Order != null)
                 {
                     return false;
                 }
@@ -164,9 +164,9 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="colors">What colors to extract.</param>
-        /// <param name="order">In which order extract colors from pixel.</param>
-        /// <param name="interleave">Whether to interleave the pixels, meaning keep them in the <paramref name="order"/> order, or leave them in the plannar form:
-        /// first output one color values for all pixels, then another color and so on.</param>
+        /// <param name="order">In which order to extract colors from pixel.</param>
+        /// <param name="interleave">Whether to interleave the pixels colors, meaning keep them in the <paramref name="order"/> order, or leave them in the plannar form:
+        /// all the values for one color for all pixels, then all the values for another color and so on.</param>
         /// <param name="offset">Offset pixel's color value by this amount. Applied to color value first.</param>
         /// <param name="scale">Scale pixel's color value by this amount. Applied to color value second.</param>
         /// <param name="asFloat">Output array as float array. If false, output as byte array and ignores <paramref name="offset"/> and <paramref name="scale"/>.</param>
@@ -418,39 +418,31 @@ namespace Microsoft.ML.ImageAnalytics
                             for (int y = 0; y < h; ++y)
                             {
                                 int idst = idstMin + y * w;
-
-                                if (!vb.IsEmpty)
+                                for (int x = 0; x < w; x++, idst++)
                                 {
-                                    for (int x = 0; x < w; x++, idst++)
+                                    if (!vb.IsEmpty)
                                     {
                                         var pb = src.GetPixel(x, y);
-                                        if (a != -1) { vb[idst + cpix * a] = pb.A; }
-                                        if (r != -1) { vb[idst + cpix * r] = pb.R; }
-                                        if (g != -1) { vb[idst + cpix * g] = pb.G; }
-                                        if (b != -1) { vb[idst + cpix * b] = pb.B; }
+                                        if (a != -1) vb[idst + cpix * a] = pb.A;
+                                        if (r != -1) vb[idst + cpix * r] = pb.R;
+                                        if (g != -1) vb[idst + cpix * g] = pb.G;
+                                        if (b != -1) vb[idst + cpix * b] = pb.B;
                                     }
-                                }
-                                else if (!needScale)
-                                {
-                                    for (int x = 0; x < w; x++, idst++)
+                                    else if (!needScale)
                                     {
                                         var pb = src.GetPixel(x, y);
-
-                                        if (a != -1) { vf[idst + cpix * a] = pb.A; }
-                                        if (r != -1) { vf[idst + cpix * r] = pb.R; }
-                                        if (g != -1) { vf[idst + cpix * g] = pb.G; }
-                                        if (b != -1) { vf[idst + cpix * b] = pb.B; }
+                                        if (a != -1) vf[idst + cpix * a] = pb.A;
+                                        if (r != -1) vf[idst + cpix * r] = pb.R;
+                                        if (g != -1) vf[idst + cpix * g] = pb.G;
+                                        if (b != -1) vf[idst + cpix * b] = pb.B;
                                     }
-                                }
-                                else
-                                {
-                                    for (int x = 0; x < w; x++, idst++)
+                                    else
                                     {
                                         var pb = src.GetPixel(x, y);
-                                        if (a != -1) { vf[idst + cpix * a] = (pb.A - offset) * scale; }
-                                        if (r != -1) { vf[idst + cpix * r] = (pb.R - offset) * scale; }
-                                        if (g != -1) { vf[idst + cpix * g] = (pb.G - offset) * scale; }
-                                        if (b != -1) { vf[idst + cpix * b] = (pb.B - offset) * scale; }
+                                        if (a != -1) vf[idst + cpix * a] = (pb.A - offset) * scale;
+                                        if (r != -1) vf[idst + cpix * r] = (pb.R - offset) * scale;
+                                        if (g != -1) vf[idst + cpix * g] = (pb.G - offset) * scale;
+                                        if (b != -1) vf[idst + cpix * b] = (pb.B - offset) * scale;
                                     }
                                 }
                             }
@@ -592,7 +584,10 @@ namespace Microsoft.ML.ImageAnalytics
             /// <summary>Scale pixel's color value by this amount. Applied to color value second.</summary>
             public readonly float Scale;
 
-            /// <summary>Whether to interleave the pixels colors, meaning keep them in the <see cref="Order"/> order, or leave them in the plannar form.</summary>
+            /// <summary>
+            /// Whether to interleave the pixels colors, meaning keep them in the <see cref="Order"/> order, or leave them in the plannar form:
+            /// all the values for one color for all pixels, then all the values for another color and so on.
+            /// </summary>
             public readonly bool Interleave;
 
             /// <summary> Output array as float array. If false, output as byte array and ignores <see cref="Offset"/> and <see cref="Scale"/> .</summary>
@@ -637,9 +632,9 @@ namespace Microsoft.ML.ImageAnalytics
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="colors">What colors to extract.</param>
-            /// <param name="order">In which order extract colors from pixel.</param>
+            /// <param name="order">In which order to extract colors from pixel.</param>
             /// <param name="interleave">Whether to interleave the pixels, meaning keep them in the <paramref name="order"/> order, or leave them in the plannar form:
-            /// first output one color values for all pixels, then another color and so on.</param>
+            /// all the values for one color for all pixels, then all the values for another color and so on.</param>
             /// <param name="offset">Offset color pixel value by this amount. Applied to color value first.</param>
             /// <param name="scale">Scale color pixel value by this amount. Applied to color value second.</param>
             /// <param name="asFloat">Output array as float array. If false, output as byte array and ignores <paramref name="offset"/> and <paramref name="scale"/>.</param>
@@ -763,9 +758,9 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>. Null means <paramref name="inputColumnName"/> is replaced.</param>
         /// <param name="inputColumnName">Name of the input column.</param>
         /// <param name="colors">What colors to extract.</param>
-        /// <param name="order">In which order extract colors from pixel.</param>
+        /// <param name="order">In which order to extract colors from pixel.</param>
         /// <param name="interleave">Whether to interleave the pixels, meaning keep them in the <paramref name="order"/> order, or leave them in the plannar form:
-        /// first output one color values for all pixels, then another color and so on.</param>
+        /// all the values for one color for all pixels, then all the values for another color and so on.</param>
         /// <param name="offset">Offset color pixel value by this amount. Applied to color value first.</param>
         /// <param name="scale">Scale color pixel value by this amount. Applied to color value second.</param>
         /// <param name="asFloat">Output array as float array. If false, output as byte array.</param>
@@ -780,7 +775,7 @@ namespace Microsoft.ML.ImageAnalytics
             float scale = Defaults.Scale,
             bool asFloat = Defaults.Convert)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)),
-                  new ImagePixelExtractingTransformer(env, outputColumnName, inputColumnName, colors, order, interleave,  offset, scale, asFloat))
+                  new ImagePixelExtractingTransformer(env, outputColumnName, inputColumnName, colors, order, interleave, offset, scale, asFloat))
         {
         }
 
