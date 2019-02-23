@@ -16,7 +16,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="columns">Array of columns <see cref="TextLoader.Column"/> defining the schema.</param>
-        /// <param name="separators">The characters used as separators between data points in a row. {'\t'} will be used if not specified.</param>
+        /// <param name="separators">Array of characters used as separators between data points in a row. {'\t'} will be used if not specified.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
         /// <param name="allowQuoting">Whether the file can contain column defined by a quoted string.</param>
@@ -45,7 +45,7 @@ namespace Microsoft.ML
         /// Create a text loader <see cref="TextLoader"/> by inferencing the dataset schema from a data model type.
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
-        /// <param name="separators">Column separator characters. {'\t'} will be used if not specified.</param>
+        /// <param name="separators">Array of characters used as separators between data points in a row. {'\t'} will be used if not specified.</param>
         /// <param name="hasHeader">Does the file contains header?</param>
         /// <param name="allowQuoting">Whether the input may include quoted values,
         /// which can contain separator characters, colons,
@@ -70,7 +70,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="columns">The columns of the schema.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="separators">The characters used as separators between data points in a row. {'\t'} will be used if not specified.</param>
+        /// <param name="separators">Array of characters used as separators between data points in a row. {'\t'} will be used if not specified.</param>
         /// <param name="path">The path to the file.</param>
         /// <returns>The data view.</returns>
         public static IDataView ReadFromTextFile(this DataOperationsCatalog catalog,
@@ -94,7 +94,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="hasHeader">Does the file contains header?</param>
-        /// <param name="separators">The characters used as separators between data points in a row. {'\t'} will be used if not specified.</param>
+        /// <param name="separators">Array of characters used as separators between data points in a row. {'\t'} will be used if not specified.</param>
         /// <param name="allowQuoting">Whether the input may include quoted values,
         /// which can contain separator characters, colons,
         /// and distinguish empty values from missing values. When true, consecutive separators

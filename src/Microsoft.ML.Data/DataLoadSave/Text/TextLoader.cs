@@ -431,7 +431,7 @@ namespace Microsoft.ML.Data
             internal string Separator = Defaults.Separator;
 
             /// <summary>
-            /// The characters that should be used as separators column separator.
+            /// Array of characters used as separators between data points in a row. {'\t'} will be used if not specified.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, Name = nameof(Separator), Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Source column separator.", ShortName = "sep")]
             public char[] Separators = Defaults.Separators;
@@ -1065,7 +1065,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">Defines a mapping between input columns in the file and IDataView columns.</param>
-        /// <param name="separators"> The character used as separator between data points in a row. {'\t'} will be used if not specified.</param>
+        /// <param name="separators"> The array of characters used as separators between data points in a row. {'\t'} will be used if not specified.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
         /// <param name="allowQuoting">Whether the content of a column can be parsed from a string starting and ending with quote.</param>
