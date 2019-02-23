@@ -163,7 +163,7 @@ namespace Microsoft.ML.Auto.Test
 
             var validDataBuilder = new ArrayDataViewBuilder(context);
             validDataBuilder.AddColumn("0", new string[] { "0" });
-            validDataBuilder.AddColumn("1", NumberType.R4, new float[] { 1 });
+            validDataBuilder.AddColumn("1", NumberDataViewType.Single, new float[] { 1 });
             var validData = validDataBuilder.GetDataView();
 
             UserInputValidationUtil.ValidateAutoFitArgs(trainData, "0", validData, null, null);
@@ -203,8 +203,8 @@ namespace Microsoft.ML.Auto.Test
         public void ValidateFeaturesColInvalidType()
         {
             var schemaBuilder = new SchemaBuilder();
-            schemaBuilder.AddColumn(DefaultColumnNames.Features, NumberType.R8);
-            schemaBuilder.AddColumn(DefaultColumnNames.Label, NumberType.R4);
+            schemaBuilder.AddColumn(DefaultColumnNames.Features, NumberDataViewType.R8);
+            schemaBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single);
             var schema = schemaBuilder.GetSchema();
             var dataView = new EmptyDataView(new MLContext(), schema);
             UserInputValidationUtil.ValidateAutoFitArgs(dataView, DefaultColumnNames.Label, null, null, null);

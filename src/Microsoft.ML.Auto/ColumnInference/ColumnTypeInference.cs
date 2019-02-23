@@ -43,7 +43,7 @@ namespace Microsoft.ML.Auto
         {
             private readonly ReadOnlyMemory<char>[] _data;
             private readonly int _columnId;
-            private PrimitiveType _suggestedType;
+            private PrimitiveDataViewType _suggestedType;
             private bool? _hasHeader;
 
             public int ColumnId
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Auto
                 get { return _columnId; }
             }
 
-            public PrimitiveType SuggestedType
+            public PrimitiveDataViewType SuggestedType
             {
                 get { return _suggestedType; }
                 set { _suggestedType = value; }
@@ -95,10 +95,10 @@ namespace Microsoft.ML.Auto
         {
             public readonly int ColumnIndex;
 
-            public PrimitiveType ItemType;
+            public PrimitiveDataViewType ItemType;
             public string SuggestedName;
 
-            public Column(int columnIndex, string suggestedName, PrimitiveType itemType)
+            public Column(int columnIndex, string suggestedName, PrimitiveDataViewType itemType)
             {
                 ColumnIndex = columnIndex;
                 SuggestedName = suggestedName;
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Auto
                             continue;
                         }
 
-                        col.SuggestedType = BoolType.Instance;
+                        col.SuggestedType = BooleanDataViewType.Instance;
                         bool first;
 
                         col.HasHeader = !Conversions.TryParse(in col.RawData[0], out first);
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Auto
                             continue;
                         }
 
-                        col.SuggestedType = NumberType.R4;
+                        col.SuggestedType = NumberDataViewType.Single;
 
                         var headerStr = col.RawData[0].ToString();
                         col.HasHeader = !double.TryParse(headerStr, out var doubleVal);
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Auto
                         if (col.SuggestedType != null)
                             continue;
 
-                        col.SuggestedType = TextType.Instance;
+                        col.SuggestedType = TextDataViewType.Instance;
                         col.HasHeader = IsLookLikeHeader(col.RawData[0]);
                     }
                 }
@@ -258,14 +258,14 @@ namespace Microsoft.ML.Auto
             // read the file as the specified number of text columns
             var textLoaderArgs = new TextLoader.Arguments
             {
-                Column = new[] { new TextLoader.Column("C", DataKind.TX, 0, args.ColumnCount - 1) },
+                Columns = new[] { new TextLoader.Column("C", DataKind.TX, 0, args.ColumnCount - 1) },
                 Separators = new[] { args.Separator },
                 AllowSparse = args.AllowSparse,
                 AllowQuoting = args.AllowQuote,
             };
             var textLoader = new TextLoader(context, textLoaderArgs);
             var idv = textLoader.Read(fileSource);
-            idv = idv.Take(context, args.MaxRowsToRead);
+            idv = context.Data.TakeRows(idv, args.MaxRowsToRead);
 
             // read all the data into memory.
             // list items are rows of the dataset.
@@ -361,7 +361,7 @@ namespace Microsoft.ML.Auto
             // if label column has all Boolean values, set its type as Boolean
             if (labelColumn.HasAllBooleanValues())
             {
-                labelColumn.SuggestedType = BoolType.Instance;
+                labelColumn.SuggestedType = BooleanDataViewType.Instance;
             }
 
             var outCols = cols.Select(x => new Column(x.ColumnId, x.Name, x.SuggestedType)).ToArray();

@@ -12,7 +12,7 @@ namespace Microsoft.ML.Auto
 
         public static ColumnDimensions[] CalcColumnDimensions(MLContext context, IDataView data, PurposeInference.Column[] purposes)
         {
-            data = data.Take(context, MaxRowsToRead);
+            data = context.Data.TakeRows(data, MaxRowsToRead);
 
             var colDimensions = new ColumnDimensions[data.Schema.Count];
 
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Auto
                 }
 
                 // If numeric feature, discover missing values
-                if (itemType == NumberType.R4)
+                if (itemType == NumberDataViewType.Single)
                 {
                     hasMissing = column.Type.IsVector() ? 
                         DatasetDimensionsUtil.HasMissingNumericVector(data, i) : 

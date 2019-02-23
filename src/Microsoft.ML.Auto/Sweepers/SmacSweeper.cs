@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using Float = System.Single;
 
 namespace Microsoft.ML.Auto
@@ -106,8 +105,8 @@ namespace Microsoft.ML.Auto
             }
 
             ArrayDataViewBuilder dvBuilder = new ArrayDataViewBuilder(_context);
-            dvBuilder.AddColumn(DefaultColumnNames.Label, NumberType.Float, targets);
-            dvBuilder.AddColumn(DefaultColumnNames.Features, NumberType.Float, features);
+            dvBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single, targets);
+            dvBuilder.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single, features);
 
             IDataView data = dvBuilder.GetDataView();
             AutoMlUtils.Assert(data.GetRowCount() == targets.Length, "This data view will have as many rows as there have been evaluations");
@@ -120,7 +119,7 @@ namespace Microsoft.ML.Auto
                 NumTrees = _args.NumOfTrees,
                 MinDocumentsInLeafs = _args.NMinForSplit
             });
-            var predictor = trainer.Train(data).Model;
+            var predictor = trainer.Fit(data).Model;
 
             // Return random forest predictor.
             return predictor;
@@ -318,26 +317,14 @@ namespace Microsoft.ML.Auto
             foreach (ParameterSet config in configs)
             {
                 List<double> leafValues = new List<double>();
-                for (var treeId = 0; treeId < _args.NumOfTrees; treeId++)
+                for (var treeId = 0; treeId < forest.TrainedTreeEnsemble.Trees.Count; treeId++)
                 {
-                    // hack pending fix for ML.NET issue https://github.com/dotnet/machinelearning/issues/1960
-                    // we requested SMAC to train _args.NumOfTrees. however, it's possible it trained < this # of trees.
-                    // if we requested SMAC train 10 trees, but it only trained 8, then when we try to pull
-                    // the leaf node value from the 9th tree in the code in the try block, an exception will be thrown.
-                    // for now, swallow the exception, and just proceed using all the leaf values.
-                    try
-                    {
-                        Float[] transformedParams = SweeperProbabilityUtils.ParameterSetAsFloatArray(_sweepParameters, config, true);
-                        VBuffer<Float> features = new VBuffer<Float>(transformedParams.Length, transformedParams);
-                        List<int> path = null;
-                        var leafId = forest.GetLeaf(treeId, features, ref path);
-                        var leafValue = forest.GetLeafValue(treeId, leafId);
-                        leafValues.Add(leafValue);
-                    }
-                    catch (Exception)
-                    {
-                        // swallow exception
-                    }
+                    Float[] transformedParams = SweeperProbabilityUtils.ParameterSetAsFloatArray(_sweepParameters, config, true);
+                    VBuffer<Float> features = new VBuffer<Float>(transformedParams.Length, transformedParams);
+                    List<int> path = null;
+                    var leafId = forest.GetLeaf(treeId, features, ref path);
+                    var leafValue = forest.GetLeafValue(treeId, leafId);
+                    leafValues.Add(leafValue);
                 }
                 datasetLeafValues.Add(leafValues.ToArray());
             }

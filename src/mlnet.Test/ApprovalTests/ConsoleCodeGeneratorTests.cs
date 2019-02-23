@@ -108,14 +108,14 @@ namespace mlnet.Test
                 this.pipeline = inferredPipeline1.ToPipeline();
                 var textLoaderArgs = new TextLoader.Arguments()
                 {
-                    Column = new[] {
-                new TextLoader.Column("Label", DataKind.BL, 0),
-                new TextLoader.Column("col1", DataKind.R4, 1),
-                new TextLoader.Column("col2", DataKind.R4, 0),
-                new TextLoader.Column("col3", DataKind.Text, 0),
-                new TextLoader.Column("col4", DataKind.I4, 0),
-                new TextLoader.Column("col5", DataKind.U4, 0),
-            },
+                    Columns = new[] {
+                        new TextLoader.Column("Label", DataKind.BL, 0),
+                        new TextLoader.Column("col1", DataKind.R4, 1),
+                        new TextLoader.Column("col2", DataKind.R4, 0),
+                        new TextLoader.Column("col3", DataKind.Text, 0),
+                        new TextLoader.Column("col4", DataKind.I4, 0),
+                        new TextLoader.Column("col5", DataKind.U4, 0),
+                    },
                     AllowQuoting = true,
                     AllowSparse = true,
                     HasHeader = true,

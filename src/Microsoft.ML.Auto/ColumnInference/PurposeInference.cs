@@ -49,7 +49,7 @@ namespace Microsoft.ML.Auto
             private readonly int _columnId;
             private bool _isPurposeSuggested;
             private ColumnPurpose _suggestedPurpose;
-            private readonly Lazy<ColumnType> _type;
+            private readonly Lazy<DataViewType> _type;
             private readonly Lazy<string> _columnName;
             private object _cachedData;
 
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Auto
                 }
             }
 
-            public ColumnType Type { get { return _type.Value; } }
+            public DataViewType Type { get { return _type.Value; } }
 
             public string ColumnName { get { return _columnName.Value; } }
 
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Auto
             {
                 _data = data;
                 _columnId = columnId;
-                _type = new Lazy<ColumnType>(() => _data.Schema[_columnId].Type);
+                _type = new Lazy<DataViewType>(() => _data.Schema[_columnId].Type);
                 _columnName = new Lazy<string>(() => _data.Schema[_columnId].Name);
                 _suggestedPurpose = suggestedPurpose;
             }
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Auto
         public static PurposeInference.Column[] InferPurposes(MLContext context, IDataView data,
             ColumnInformation columnInfo)
         {
-            data = data.Take(context, MaxRowsToRead);
+            data = context.Data.TakeRows(data, MaxRowsToRead);
 
             var allColumns = new List<IntermediateColumn>();
             var columnsToInfer = new List<IntermediateColumn>();

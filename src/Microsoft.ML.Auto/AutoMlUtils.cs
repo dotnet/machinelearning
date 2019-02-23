@@ -23,11 +23,6 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        public static IDataView Take(this IDataView data, MLContext context, int count)
-        {
-            return TakeFilter.Create(context, data, count);
-        }
-
         public static IDataView DropLastColumn(this IDataView data, MLContext context)
         {
             return context.Transforms.DropColumns(data.Schema[data.Schema.Count - 1].Name).Fit(data).Transform(data);
@@ -37,23 +32,20 @@ namespace Microsoft.ML.Auto
             MLContext context, IDataView trainData)
         {
             IDataView validationData;
-            (trainData, validationData) = catalog.TrainTestSplit(trainData);
+            var splitData = catalog.TrainTestSplit(trainData);
+            trainData = splitData.TrainSet;
+            validationData = splitData.TestSet;
             trainData = trainData.DropLastColumn(context);
             validationData = validationData.DropLastColumn(context);
             return (trainData, validationData);
         }
 
-        public static IDataView Skip(this IDataView data, MLContext context, int count)
-        {
-            return SkipFilter.Create(context, data, count);
-        }
-
-        public static (string, ColumnType, ColumnPurpose, ColumnDimensions)[] GetColumnInfoTuples(MLContext context,
+        public static (string, DataViewType, ColumnPurpose, ColumnDimensions)[] GetColumnInfoTuples(MLContext context,
             IDataView data, ColumnInformation columnInfo)
         {
             var purposes = PurposeInference.InferPurposes(context, data, columnInfo);
             var colDimensions = DatasetDimensionsApi.CalcColumnDimensions(context, data, purposes);
-            var cols = new (string, ColumnType, ColumnPurpose, ColumnDimensions)[data.Schema.Count];
+            var cols = new (string, DataViewType, ColumnPurpose, ColumnDimensions)[data.Schema.Count];
             for (var i = 0; i < cols.Length; i++)
             {
                 var schemaCol = data.Schema[i];

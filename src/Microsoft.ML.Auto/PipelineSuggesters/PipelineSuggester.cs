@@ -16,7 +16,7 @@ namespace Microsoft.ML.Auto
 
         public static Pipeline GetNextPipeline(MLContext context,
             IEnumerable<PipelineScore> history,
-            (string, ColumnType, ColumnPurpose, ColumnDimensions)[] columns,
+            (string, DataViewType, ColumnPurpose, ColumnDimensions)[] columns,
             TaskKind task,
             bool isMaximizingMetric = true)
         {
@@ -27,7 +27,7 @@ namespace Microsoft.ML.Auto
 
         public static SuggestedPipeline GetNextInferredPipeline(MLContext context,
             IEnumerable<SuggestedPipelineResult> history,
-            (string, ColumnType, ColumnPurpose, ColumnDimensions)[] columns,
+            (string, DataViewType, ColumnPurpose, ColumnDimensions)[] columns,
             TaskKind task,
             bool isMaximizingMetric,
             IEnumerable<TrainerName> trainerWhitelist = null)
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Auto
 
         private static IEnumerable<SuggestedTransform> CalculateTransforms(
             MLContext context,
-            (string, ColumnType, ColumnPurpose, ColumnDimensions)[] columns,
+            (string, DataViewType, ColumnPurpose, ColumnDimensions)[] columns,
             TaskKind task)
         {
             var transforms = TransformInferenceApi.InferTransforms(context, columns).ToList();

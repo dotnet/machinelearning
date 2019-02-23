@@ -21,10 +21,14 @@ namespace Microsoft.ML.Auto.Test
             foreach (var trainerName in trainerNames)
             {
                 var extension = TrainerExtensionCatalog.GetTrainerExtension(trainerName);
-                var instance = extension.CreateInstance(context, null, columnInfo);
-                Assert.IsNotNull(instance);
                 var sweepParams = extension.GetHyperparamSweepRanges();
                 Assert.IsNotNull(sweepParams);
+                foreach(var sweepParam in sweepParams)
+                {
+                    sweepParam.RawValue = 1;
+                }
+                var instance = extension.CreateInstance(context, sweepParams, columnInfo);
+                Assert.IsNotNull(instance);
                 var pipelineNode = extension.CreatePipelineNode(null, columnInfo);
                 Assert.IsNotNull(pipelineNode);
             }

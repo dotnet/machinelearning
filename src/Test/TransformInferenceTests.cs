@@ -16,13 +16,13 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceNumAndCatCols()
         {
-            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    ("Numeric1", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Categorical1", TextType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
-                    ("Categorical2", TextType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
-                    ("LargeCat1", TextType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
-                    ("LargeCat2", TextType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
+                    ("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Categorical1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
+                    ("Categorical2", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
+                    ("LargeCat1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
+                    ("LargeCat2", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
                 }, @"[
   {
     ""Name"": ""OneHotEncoding"",
@@ -71,14 +71,14 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceNumCatAndFeatCols()
         {
-            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Numeric1", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Categorical1", TextType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
-                    ("Categorical2", TextType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
-                    ("LargeCat1", TextType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
-                    ("LargeCat2", TextType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
+                    (DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Categorical1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
+                    ("Categorical2", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
+                    ("LargeCat1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
+                    ("LargeCat2", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
                 }, @"[
   {
     ""Name"": ""OneHotEncoding"",
@@ -128,11 +128,11 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceCatAndFeatCols()
         {
-            TransformInferenceTestCore(new(string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new(string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Categorical1", TextType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
-                    ("LargeCat1", TextType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
+                    (DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Categorical1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
+                    ("LargeCat1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
                 }, @"[
   {
     ""Name"": ""OneHotEncoding"",
@@ -175,9 +175,9 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceNumericCol()
         {
-            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    ("Numeric", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 },
                 @"[
   {
@@ -197,10 +197,10 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceNumericCols()
         {
-            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    ("Numeric1", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Numeric2", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Numeric2", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""ColumnConcatenating"",
@@ -220,9 +220,9 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceFeatColScalar()
         {
-            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    (DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""ColumnConcatenating"",
@@ -241,19 +241,19 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceFeatColVector()
         {
-            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, new VectorType(NumberType.R4), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    (DefaultColumnNames.Features, new VectorType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[]");
         }
 
         [TestMethod]
         public void NumericAndFeatCol()
         {
-            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Numeric", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    (DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""ColumnConcatenating"",
@@ -273,9 +273,9 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void NumericScalarCol()
         {
-            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    ("Numeric", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""ColumnConcatenating"",
@@ -294,9 +294,9 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void NumericVectorCol()
         {
-            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    ("Numeric", new VectorType(NumberType.R4), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Numeric", new VectorType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""ColumnCopying"",
@@ -315,9 +315,9 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceTextCol()
         {
-            TransformInferenceTestCore(new(string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new(string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    ("Text", TextType.Instance, ColumnPurpose.TextFeature, new ColumnDimensions(null, null)),
+                    ("Text", TextDataViewType.Instance, ColumnPurpose.TextFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""TextFeaturizing"",
@@ -347,10 +347,10 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceTextAndFeatCol()
         {
-            TransformInferenceTestCore(new(string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new(string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Text", TextType.Instance, ColumnPurpose.TextFeature, new ColumnDimensions(null, null)),
+                    (DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Text", TextDataViewType.Instance, ColumnPurpose.TextFeature, new ColumnDimensions(null, null)),
                 },
                 @"[
   {
@@ -382,9 +382,9 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceBoolCol()
         {
-            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    ("Bool", BoolType.Instance, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Bool", BooleanDataViewType.Instance, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""TypeConverting"",
@@ -414,10 +414,10 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceBoolAndNumCols()
         {
-            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    ("Numeric", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Bool", BoolType.Instance, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Bool", BooleanDataViewType.Instance, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""TypeConverting"",
@@ -448,10 +448,10 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceBoolAndFeatCol()
         {
-            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Bool", BoolType.Instance, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    (DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Bool", BooleanDataViewType.Instance, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""TypeConverting"",
@@ -482,10 +482,10 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceNumericMissingCol()
         {
-            TransformInferenceTestCore(new(string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new(string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    ("Missing", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, true)),
-                    ("Numeric", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, false)),
+                    ("Missing", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, true)),
+                    ("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, false)),
                 }, @"[
   {
     ""Name"": ""MissingValueIndicating"",
@@ -539,11 +539,11 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceNumericMissingCols()
         {
-            TransformInferenceTestCore(new(string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new(string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    ("Missing1", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, true)),
-                    ("Missing2", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, true)),
-                    ("Numeric", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, false)),
+                    ("Missing1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, true)),
+                    ("Missing2", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, true)),
+                    ("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, false)),
                 }, @"[
   {
     ""Name"": ""MissingValueIndicating"",
@@ -605,10 +605,10 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceIgnoreCol()
         {
-            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    ("Numeric1", NumberType.R4, ColumnPurpose.Ignore, new ColumnDimensions(null, null)),
-                    ("Numeric2", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Numeric1", NumberDataViewType.Single, ColumnPurpose.Ignore, new ColumnDimensions(null, null)),
+                    ("Numeric2", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""ColumnConcatenating"",
@@ -627,30 +627,30 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceDefaultLabelCol()
         {
-            TransformInferenceTestCore(new(string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new(string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, new VectorType(NumberType.R4), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    (DefaultColumnNames.Label, NumberType.R4, ColumnPurpose.Label, new ColumnDimensions(null, null)),
+                    (DefaultColumnNames.Features, new VectorType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    (DefaultColumnNames.Label, NumberDataViewType.Single, ColumnPurpose.Label, new ColumnDimensions(null, null)),
                 }, @"[]");
         }
 
         [TestMethod]
         public void TransformInferenceCustomLabelCol()
         {
-            TransformInferenceTestCore(new(string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new(string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, new VectorType(NumberType.R4), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("CustomLabel", NumberType.R4, ColumnPurpose.Label, new ColumnDimensions(null, null)),
+                    (DefaultColumnNames.Features, new VectorType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("CustomLabel", NumberDataViewType.Single, ColumnPurpose.Label, new ColumnDimensions(null, null)),
                 }, @"[]");
         }
 
         [TestMethod]
         public void TransformInferenceCustomTextLabelCol()
         {
-            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, new VectorType(NumberType.R4), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("CustomLabel", TextType.Instance, ColumnPurpose.Label, new ColumnDimensions(null, null)),
+                    (DefaultColumnNames.Features, new VectorType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("CustomLabel", TextDataViewType.Instance, ColumnPurpose.Label, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""ValueToKeyMapping"",
@@ -669,11 +669,11 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceMissingNameCollision()
         {
-            TransformInferenceTestCore(new (string, ColumnType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    ("Missing", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, true)),
-                    ("Missing_MissingIndicator", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, false)),
-                    ("Missing_MissingIndicator0", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, false)),
+                    ("Missing", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, true)),
+                    ("Missing_MissingIndicator", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, false)),
+                    ("Missing_MissingIndicator0", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, false)),
                 }, @"[
   {
     ""Name"": ""MissingValueIndicating"",
@@ -726,7 +726,7 @@ namespace Microsoft.ML.Auto.Test
         }
 
         private static void TransformInferenceTestCore(
-            (string name, ColumnType type, ColumnPurpose purpose, ColumnDimensions dimensions)[] columns,
+            (string name, DataViewType type, ColumnPurpose purpose, ColumnDimensions dimensions)[] columns,
             string expectedJson)
         {
             var transforms = TransformInferenceApi.InferTransforms(new MLContext(), columns);
@@ -736,7 +736,7 @@ namespace Microsoft.ML.Auto.Test
         }
 
         private static void TestApplyTransformsToRealDataView(IEnumerable<SuggestedTransform> transforms,
-            IEnumerable<(string name, ColumnType type, ColumnPurpose purpose, ColumnDimensions dimensions)> columns)
+            IEnumerable<(string name, DataViewType type, ColumnPurpose purpose, ColumnDimensions dimensions)> columns)
         {
             // create a dummy data view from input columns
             var data = BuildDummyDataView(columns);
@@ -751,36 +751,36 @@ namespace Microsoft.ML.Auto.Test
             var featuresCol = data.Schema.GetColumnOrNull(DefaultColumnNames.Features);
             Assert.IsNotNull(featuresCol);
             Assert.AreEqual(true, featuresCol.Value.Type.IsVector());
-            Assert.AreEqual(NumberType.R4, featuresCol.Value.Type.GetItemType());
+            Assert.AreEqual(NumberDataViewType.Single, featuresCol.Value.Type.GetItemType());
         }
 
         private static IDataView BuildDummyDataView(
-            IEnumerable<(string name, ColumnType type, ColumnPurpose purpose, ColumnDimensions dimensions)> columns)
+            IEnumerable<(string name, DataViewType type, ColumnPurpose purpose, ColumnDimensions dimensions)> columns)
         {
             return BuildDummyDataView(columns.Select(c => (c.name, c.type)));
         }
 
-        private static IDataView BuildDummyDataView(IEnumerable<(string name, ColumnType type)> columns)
+        private static IDataView BuildDummyDataView(IEnumerable<(string name, DataViewType type)> columns)
         {
             var dataBuilder = new ArrayDataViewBuilder(new MLContext());
             foreach(var column in columns)
             {
-                if (column.type == NumberType.R4)
+                if (column.type == NumberDataViewType.Single)
                 {
-                    dataBuilder.AddColumn(column.name, NumberType.R4, new float[] { 0 });
+                    dataBuilder.AddColumn(column.name, NumberDataViewType.Single, new float[] { 0 });
                 }
-                else if (column.type == BoolType.Instance)
+                else if (column.type == BooleanDataViewType.Instance)
                 {
-                    dataBuilder.AddColumn(column.name, BoolType.Instance, new bool[] { false });
+                    dataBuilder.AddColumn(column.name, BooleanDataViewType.Instance, new bool[] { false });
                 }
-                else if (column.type == TextType.Instance)
+                else if (column.type == TextDataViewType.Instance)
                 {
                     dataBuilder.AddColumn(column.name, new string[] { "a" });
                 }
-                else if (column.type.IsVector() && column.type.GetItemType() == NumberType.R4)
+                else if (column.type.IsVector() && column.type.GetItemType() == NumberDataViewType.Single)
                 {
                     dataBuilder.AddColumn(column.name, Util.GetKeyValueGetter(new[] { "1", "2" }), 
-                        NumberType.R4, new float[] { 0, 0 });
+                        NumberDataViewType.Single, new float[] { 0, 0 });
                 }
             }
             return dataBuilder.GetDataView();

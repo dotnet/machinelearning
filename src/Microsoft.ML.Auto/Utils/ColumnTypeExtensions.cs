@@ -7,29 +7,29 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
-    internal static class ColumnTypeExtensions
+    internal static class DataViewTypeExtensions
     {
-        public static bool IsNumber(this ColumnType columnType)
+        public static bool IsNumber(this DataViewType columnType)
         {
-            return columnType is NumberType;
+            return columnType is NumberDataViewType;
         }
 
-        public static bool IsText(this ColumnType columnType)
+        public static bool IsText(this DataViewType columnType)
         {
-            return columnType is TextType;
+            return columnType is TextDataViewType;
         }
 
-        public static bool IsBool(this ColumnType columnType)
+        public static bool IsBool(this DataViewType columnType)
         {
-            return columnType is BoolType;
+            return columnType is BooleanDataViewType;
         }
 
-        public static bool IsVector(this ColumnType columnType)
+        public static bool IsVector(this DataViewType columnType)
         {
             return columnType is VectorType;
         }
 
-        public static bool IsKnownSizeVector(this ColumnType columnType)
+        public static bool IsKnownSizeVector(this DataViewType columnType)
         {
             var vector = columnType as VectorType;
             if(vector == null)
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Auto
             return vector.Size > 0;
         }
 
-        public static ColumnType GetItemType(this ColumnType columnType)
+        public static DataViewType GetItemType(this DataViewType columnType)
         {
             var vector = columnType as VectorType;
             if (vector == null)
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Auto
             return vector.ItemType;
         }
 
-        public static DataKind GetRawKind(this ColumnType columnType)
+        public static DataKind GetRawKind(this DataViewType columnType)
         {
             columnType.RawType.TryGetDataKind(out var rawKind);
             return rawKind;

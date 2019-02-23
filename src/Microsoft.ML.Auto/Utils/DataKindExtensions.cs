@@ -79,7 +79,7 @@ namespace Microsoft.ML.Auto
                         kind = DataKind.DZ;
                         goto IL_01ad;
                     }
-                    if (type == typeof(RowId))
+                    if (type == typeof(DataViewRowId))
                     {
                         kind = DataKind.UG;
                         goto IL_01ad;

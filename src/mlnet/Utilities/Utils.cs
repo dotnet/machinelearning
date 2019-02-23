@@ -6,7 +6,6 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Auto;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using NLog;
 

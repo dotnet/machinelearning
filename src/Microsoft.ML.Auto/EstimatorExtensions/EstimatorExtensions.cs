@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
@@ -96,10 +95,10 @@ namespace Microsoft.ML.Auto
 
         private static IEstimator<ITransformer> CreateInstance(MLContext context, string[] inColumns, string[] outColumns)
         {
-            var pairs = new MissingValueReplacingTransformer.ColumnInfo[inColumns.Length];
+            var pairs = new MissingValueReplacingEstimator.ColumnInfo[inColumns.Length];
             for (var i = 0; i < inColumns.Length; i++)
             {
-                var pair = new MissingValueReplacingTransformer.ColumnInfo(outColumns[i], inColumns[i]);
+                var pair = new MissingValueReplacingEstimator.ColumnInfo(outColumns[i], inColumns[i]);
                 pairs[i] = pair;
             }
             return context.Transforms.ReplaceMissingValues(pairs);
@@ -222,10 +221,10 @@ namespace Microsoft.ML.Auto
 
         private static IEstimator<ITransformer> CreateInstance(MLContext context, string[] inColumns, string[] outColumns)
         {
-            var cols = new TypeConvertingTransformer.ColumnInfo[inColumns.Length];
+            var cols = new TypeConvertingEstimator.ColumnInfo[inColumns.Length];
             for (var i = 0; i < cols.Length; i++)
             {
-                cols[i] = new TypeConvertingTransformer.ColumnInfo(outColumns[i], DataKind.R4, inColumns[i]);
+                cols[i] = new TypeConvertingEstimator.ColumnInfo(outColumns[i], DataKind.R4, inColumns[i]);
             }
             return context.Transforms.Conversion.ConvertType(cols);
         }

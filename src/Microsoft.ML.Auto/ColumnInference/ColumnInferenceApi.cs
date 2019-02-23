@@ -52,7 +52,7 @@ namespace Microsoft.ML.Auto
             var loaderColumns = ColumnTypeInference.GenerateLoaderColumns(typeInference.Columns);
             var typedLoaderArgs = new TextLoader.Arguments
             {
-                Column = loaderColumns,
+                Columns = loaderColumns,
                 Separators = new[] { splitInference.Separator.Value },
                 AllowSparse = splitInference.AllowSparse,
                 AllowQuoting = splitInference.AllowQuote,
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Auto
 
             var textLoaderArgs = new TextLoader.Arguments()
             {
-                Column = columnResults.ToArray(),
+                Columns = columnResults.ToArray(),
                 AllowQuoting = splitInference.AllowQuote,
                 AllowSparse = splitInference.AllowSparse,
                 Separators = new char[] { splitInference.Separator.Value },

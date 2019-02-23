@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.ML.Learners;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.HalLearners;
 using Microsoft.ML.Trainers.Online;
-using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Auto
@@ -30,7 +29,7 @@ namespace Microsoft.ML.Auto
             if (sweepParams == null)
             {
                 options = new AveragedPerceptronTrainer.Options();
-                options.NumIterations = DefaultNumIterations;
+                options.NumberOfIterations = DefaultNumIterations;
                 options.LabelColumn = columnInfo.LabelColumn;
             }
             else
@@ -196,7 +195,7 @@ namespace Microsoft.ML.Auto
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams,
             ColumnInformation columnInfo)
         {
-            var options = TrainerExtensionUtil.CreateOptions<StochasticGradientDescentClassificationTrainer.Options>(sweepParams, columnInfo.LabelColumn);
+            var options = TrainerExtensionUtil.CreateOptions<SgdBinaryTrainer.Options>(sweepParams, columnInfo.LabelColumn);
             options.WeightColumn = columnInfo.WeightColumn;
             return mlContext.BinaryClassification.Trainers.StochasticGradientDescent(options);
         }

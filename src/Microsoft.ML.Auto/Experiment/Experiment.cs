@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 
 namespace Microsoft.ML.Auto
 {

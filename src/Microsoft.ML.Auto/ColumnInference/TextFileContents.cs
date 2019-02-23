@@ -59,7 +59,7 @@ namespace Microsoft.ML.Auto
             {
                 var args = new TextLoader.Arguments
                 {
-                    Column = new[] { new TextLoader.Column() {
+                    Columns = new[] { new TextLoader.Column() {
                         Name = "C",
                         Type = DataKind.TX,
                         Source = new[] { new TextLoader.Range(0, null) }
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Auto
             {
 
                 var textLoader = new TextLoader(context, args, source);
-                var idv = textLoader.Read(source).Take(context, 1000);
+                var idv = context.Data.TakeRows(textLoader.Read(source), 1000);
                 var columnCounts = new List<int>();
                 var column = idv.Schema["C"];
                 var columnIndex = column.Index;

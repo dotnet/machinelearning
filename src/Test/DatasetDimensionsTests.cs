@@ -34,8 +34,8 @@ namespace Microsoft.ML.Auto.Test
         {
             var context = new MLContext();
             var dataBuilder = new ArrayDataViewBuilder(context);
-            dataBuilder.AddColumn("NoNan", NumberType.R4, new float[] { 0, 1, 0, 1, 0 });
-            dataBuilder.AddColumn("Nan", NumberType.R4, new float[] { 0, 1, 0, 1, float.NaN });
+            dataBuilder.AddColumn("NoNan", NumberDataViewType.Single, new float[] { 0, 1, 0, 1, 0 });
+            dataBuilder.AddColumn("Nan", NumberDataViewType.Single, new float[] { 0, 1, 0, 1, float.NaN });
             var data = dataBuilder.GetDataView();
             var dimensions = DatasetDimensionsApi.CalcColumnDimensions(context, data, new[] {
                 new PurposeInference.Column(0, ColumnPurpose.NumericFeature),
@@ -60,13 +60,13 @@ namespace Microsoft.ML.Auto.Test
                 new float[] { 0, 0 },
                 new float[] { 1, 1 },
             };
-            dataBuilder.AddColumn("NoNan", Util.GetKeyValueGetter(slotNames), NumberType.R4, colValues);
+            dataBuilder.AddColumn("NoNan", Util.GetKeyValueGetter(slotNames), NumberDataViewType.Single, colValues);
             colValues = new float[][]
             {
                 new float[] { 0, 0 },
                 new float[] { 1, float.NaN },
             };
-            dataBuilder.AddColumn("Nan", Util.GetKeyValueGetter(slotNames), NumberType.R4, colValues);
+            dataBuilder.AddColumn("Nan", Util.GetKeyValueGetter(slotNames), NumberDataViewType.Single, colValues);
             var data = dataBuilder.GetDataView();
             var dimensions = DatasetDimensionsApi.CalcColumnDimensions(context, data, new[] {
                 new PurposeInference.Column(0, ColumnPurpose.NumericFeature),

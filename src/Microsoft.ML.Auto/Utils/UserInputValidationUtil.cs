@@ -45,7 +45,7 @@ namespace Microsoft.ML.Auto
             }
 
             var type = trainData.Schema.GetColumnOrNull(DefaultColumnNames.Features)?.Type.GetItemType();
-            if (type != null && type != NumberType.R4)
+            if (type != null && type != NumberDataViewType.Single)
             {
                 throw new ArgumentException($"{DefaultColumnNames.Features} column must be of data type Single", nameof(trainData));
             }

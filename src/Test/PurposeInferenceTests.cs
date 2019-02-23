@@ -15,8 +15,8 @@ namespace Microsoft.ML.Auto.Test
 
             // build basic data view
             var schemaBuilder = new SchemaBuilder();
-            schemaBuilder.AddColumn(DefaultColumnNames.Label, BoolType.Instance);
-            schemaBuilder.AddColumn(DefaultColumnNames.Features, NumberType.R4);
+            schemaBuilder.AddColumn(DefaultColumnNames.Label, BooleanDataViewType.Instance);
+            schemaBuilder.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single);
             var schema = schemaBuilder.GetSchema();
             IDataView data = new EmptyDataView(context, schema);
 

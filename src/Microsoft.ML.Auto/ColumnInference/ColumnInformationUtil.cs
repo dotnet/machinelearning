@@ -82,7 +82,7 @@ namespace Microsoft.ML.Auto
             return columnInfo;
         }
 
-        public static ColumnInformation BuildColumnInfo(IEnumerable<(string, ColumnType, ColumnPurpose, ColumnDimensions)> columns)
+        public static ColumnInformation BuildColumnInfo(IEnumerable<(string, DataViewType, ColumnPurpose, ColumnDimensions)> columns)
         {
             return BuildColumnInfo(columns.Select(c => (c.Item1, c.Item3)));
         }

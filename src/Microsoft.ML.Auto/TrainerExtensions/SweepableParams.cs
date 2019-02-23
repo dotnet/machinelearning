@@ -23,8 +23,8 @@ namespace Microsoft.ML.Auto
         {
             return new SweepableParam[]
             {
-                new SweepableLongParam("NumIterations", 1, 100, stepSize: 10, isLogScale: true),
-                new SweepableFloatParam("InitWtsDiameter", 0.0f, 1.0f, numSteps: 5),
+                new SweepableLongParam("NumberOfIterations", 1, 100, stepSize: 10, isLogScale: true),
+                new SweepableFloatParam("InitialWeightsDiameter", 0.0f, 1.0f, numSteps: 5),
                 new SweepableDiscreteParam("Shuffle", new object[] { false, true }),
             };
         }

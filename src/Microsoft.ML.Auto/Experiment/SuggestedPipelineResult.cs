@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Core.Data;
 
 namespace Microsoft.ML.Auto
 {

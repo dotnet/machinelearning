@@ -167,7 +167,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         {
             IList<string> result = new List<string>();
             var label_column = Utils.Sanitize(columnInferenceResult.ColumnInformation.LabelColumn);
-            foreach (var column in columnInferenceResult.TextLoaderArgs.Column)
+            foreach (var column in columnInferenceResult.TextLoaderArgs.Columns)
             {
                 StringBuilder sb = new StringBuilder();
                 int range = (column.Source[0].Max - column.Source[0].Min).Value;
@@ -226,7 +226,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         internal IList<string> GenerateColumns()
         {
             var result = new List<string>();
-            foreach (var column in columnInferenceResult.TextLoaderArgs.Column)
+            foreach (var column in columnInferenceResult.TextLoaderArgs.Columns)
             {
                 result.Add(ConstructColumnDefinition(column));
             }

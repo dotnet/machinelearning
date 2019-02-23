@@ -3,13 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Auto;
 using Microsoft.ML.CLI.CodeGenerator.CSharp;
 using Microsoft.ML.CLI.Data;
 using Microsoft.ML.CLI.Utilities;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using NLog;
 
@@ -46,7 +44,7 @@ namespace Microsoft.ML.CLI.Commands.New
             }
 
             // Sanitize columns
-            Array.ForEach(columnInference.TextLoaderArgs.Column, t => t.Name = Utils.Sanitize(t.Name));
+            Array.ForEach(columnInference.TextLoaderArgs.Columns, t => t.Name = Utils.Sanitize(t.Name));
 
             var sanitized_Label_Name = Utils.Sanitize(columnInference.ColumnInformation.LabelColumn);
 

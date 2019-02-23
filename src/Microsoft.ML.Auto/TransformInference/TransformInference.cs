@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
@@ -70,11 +69,11 @@ namespace Microsoft.ML.Auto
         internal class IntermediateColumn
         {
             public readonly string ColumnName;
-            public readonly ColumnType Type;
+            public readonly DataViewType Type;
             public readonly ColumnPurpose Purpose;
             public readonly ColumnDimensions Dimensions;
 
-            public IntermediateColumn(string name, ColumnType type, ColumnPurpose purpose, ColumnDimensions dimensions)
+            public IntermediateColumn(string name, DataViewType type, ColumnPurpose purpose, ColumnDimensions dimensions)
             {
                 ColumnName = name;
                 Type = type;
@@ -292,7 +291,7 @@ namespace Microsoft.ML.Auto
                     var columnsWithMissing = new List<string>();
                     foreach (var column in columns)
                     {
-                        if (column.Type.GetItemType() == NumberType.R4
+                        if (column.Type.GetItemType() == NumberDataViewType.Single
                             && column.Purpose == ColumnPurpose.NumericFeature
                             && column.Dimensions.HasMissing == true)
                         {
@@ -314,7 +313,7 @@ namespace Microsoft.ML.Auto
         /// <summary>
         /// Automatically infer transforms for the data view
         /// </summary>
-        public static SuggestedTransform[] InferTransforms(MLContext context, (string, ColumnType, ColumnPurpose, ColumnDimensions)[] columns)
+        public static SuggestedTransform[] InferTransforms(MLContext context, (string, DataViewType, ColumnPurpose, ColumnDimensions)[] columns)
         {
             var intermediateCols = columns.Where(c => c.Item3 != ColumnPurpose.Ignore)
                 .Select(c => new IntermediateColumn(c.Item1, c.Item2, c.Item3, c.Item4))
@@ -355,7 +354,7 @@ namespace Microsoft.ML.Auto
             foreach(var intermediateCol in intermediateCols)
             {
                 if (intermediateCol.Purpose == ColumnPurpose.NumericFeature &&
-                    intermediateCol.Type.GetItemType() == NumberType.R4)
+                    intermediateCol.Type.GetItemType() == NumberDataViewType.Single)
                 {
                     concatColNames.Add(intermediateCol.ColumnName);
                 }

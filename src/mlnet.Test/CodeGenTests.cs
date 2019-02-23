@@ -95,7 +95,7 @@ namespace mlnet.Test
             {
                 TextLoaderArgs = new TextLoader.Arguments()
                 {
-                    Column = columns,
+                    Columns = columns,
                     AllowQuoting = false,
                     AllowSparse = false,
                     Separators = new[] { ',' },
@@ -127,7 +127,7 @@ namespace mlnet.Test
             {
                 TextLoaderArgs = new TextLoader.Arguments()
                 {
-                    Column = columns,
+                    Columns = columns,
                     AllowQuoting = false,
                     AllowSparse = false,
                     Separators = new[] { ',' },
@@ -136,7 +136,7 @@ namespace mlnet.Test
                 },
                 ColumnInformation = new ColumnInformation() { NumericColumns = new[] { DefaultColumnNames.Features } }
             };
-
+            
             var context = new MLContext();
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("Normalizing", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
