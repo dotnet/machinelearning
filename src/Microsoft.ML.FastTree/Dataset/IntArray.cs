@@ -55,8 +55,6 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public abstract IntArrayType Type { get; }
 
-        public abstract MD5Hash MD5Hash { get; }
-
         /// <summary>
         /// Number of bytes needed to store this number of values
         /// </summary>
