@@ -58,7 +58,7 @@ The business goals are the following, depending on the possible scenarios:
 
 - **"ML.NET learning and customization" scenario: (Previews)** .NET developers are able to research the generated pipeline's implementation code (C# + ML.NET API) for customization of the generated ML.NET code.
 
-- **"Cross-platform" scenario: (Previews)** .NET developers are able to use the ML.NET CLI from the same OS supported by .NET Core: Windows, Mac and Linux, so they are not tight to a single environment like Windows and VisualStudio but can be used from any OS CLI and code editor.
+- **"Cross-platform" scenario: (Previews)** .NET developers are able to use the ML.NET CLI from the same OS supported by .NET Core: Windows, Mac and Linux, so they are not tied to a single environment like Windows and VisualStudio but can be used from any OS CLI and code editor.
 
 - **"Advanced ML learning and customization" scenario: (v0.2)** Developers with ML skills are able to customize internal ML parameters such as trainerexclusion/inclusion lists, specific featurization, metrics to prioritize, etc. for more advanced learning and customization of the generated models and ML.NET code and even to improve total execution times by providing certain prescriptive ML "shortcuts".
 
