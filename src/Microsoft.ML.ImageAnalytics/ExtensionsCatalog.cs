@@ -70,7 +70,7 @@ namespace Microsoft.ML
             float offset = ImagePixelExtractingEstimator.Defaults.Offset,
             float scale = ImagePixelExtractingEstimator.Defaults.Scale,
             bool asFloat = ImagePixelExtractingEstimator.Defaults.Convert)
-            => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, colors, order, interleave, offset,scale, asFloat);
+            => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, colors, order, interleave, offset, scale, asFloat);
 
         /// <include file='doc.xml' path='doc/members/member[@name="ImagePixelExtractingEstimator"]/*' />
         /// <param name="catalog">The transform's catalog.</param>
