@@ -5,6 +5,7 @@
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.KMeans;
@@ -195,7 +196,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <summary>
         /// Train and Evaluate: Recommendation.
         /// </summary>
-        [Fact]
+        [MatrixFactorizationFact]
         public void TrainAndEvaluateRecommendation()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
