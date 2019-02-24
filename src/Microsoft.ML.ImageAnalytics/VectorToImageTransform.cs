@@ -404,19 +404,19 @@ namespace Microsoft.ML.ImageAnalytics
                                     if (ex.Red) red = Convert.ToSingle(values[position + cpix * r]);
                                     if (ex.Green) green = Convert.ToSingle(values[position + cpix * g]);
                                     if (ex.Blue) blue = Convert.ToSingle(values[position + cpix * b]);
-                                    Color pixel;
-                                    if (!needScale)
-                                        pixel = Color.FromArgb((int)alpha, (int)red, (int)green, (int)blue);
-                                    else
-                                    {
-                                        pixel = Color.FromArgb(
-                                            ex.Alpha ? (int)Math.Round(alpha * scale - offset) : 0,
-                                            (int)Math.Round(red * scale - offset),
-                                            (int)Math.Round(green * scale - offset),
-                                            (int)Math.Round(blue * scale - offset));
-                                    }
-                                    dst.SetPixel(x, y, pixel);
                                 }
+                                Color pixel;
+                                if (!needScale)
+                                    pixel = Color.FromArgb((int)alpha, (int)red, (int)green, (int)blue);
+                                else
+                                {
+                                    pixel = Color.FromArgb(
+                                        ex.Alpha ? (int)Math.Round(alpha * scale - offset) : 0,
+                                        (int)Math.Round(red * scale - offset),
+                                        (int)Math.Round(green * scale - offset),
+                                        (int)Math.Round(blue * scale - offset));
+                                }
+                                dst.SetPixel(x, y, pixel);
                             }
                     };
             }
