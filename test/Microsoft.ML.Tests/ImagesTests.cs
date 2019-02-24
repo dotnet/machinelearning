@@ -324,7 +324,7 @@ namespace Microsoft.ML.Tests
             IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
                ImagePixelExtractingEstimator.ColorBits.All,order: ImagePixelExtractingEstimator.ColorsOrder.ABRG).Transform(pixels);
 
-            var fname = nameof(TestBackAndForthConversionWithAlphaInterleave) + "_model.zip";
+            var fname = nameof(TestBackAndForthConversionWithDifferentOrder) + "_model.zip";
 
             var fh = env.CreateOutputFile(fname);
             using (var ch = env.Start("save"))
