@@ -826,7 +826,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new MetadataBuilder();
+                    var builder = new DataViewSchema.Metadata.Builder();
 
                     // Add SlotNames metadata.
                     if (_srcTypes[iinfo] is VectorType vectorType && vectorType.IsKnownSize)
@@ -864,7 +864,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     // Add isNormalize and KeyValues metadata.
                     builder.Add(InputSchema[_cols[iinfo]].Metadata, x => x == MetadataUtils.Kinds.KeyValues || x == MetadataUtils.Kinds.IsNormalized);
 
-                    result[iinfo] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, _dstTypes[iinfo], builder.GetMetadata());
+                    result[iinfo] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, _dstTypes[iinfo], builder.ToMetadata());
                 }
                 return result;
             }

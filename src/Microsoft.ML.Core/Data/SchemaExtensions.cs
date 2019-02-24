@@ -12,9 +12,9 @@ namespace Microsoft.ML.Data
     {
         public static DataViewSchema MakeSchema(IEnumerable<DataViewSchema.DetachedColumn> columns)
         {
-            var builder = new SchemaBuilder();
+            var builder = new DataViewSchema.Builder();
             builder.AddColumns(columns);
-            return builder.GetSchema();
+            return builder.ToSchema();
         }
 
         /// <summary>

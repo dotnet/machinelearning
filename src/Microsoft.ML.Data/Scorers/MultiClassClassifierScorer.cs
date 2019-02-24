@@ -303,12 +303,12 @@ namespace Microsoft.ML.Data
                 private DataViewSchema DecorateOutputSchema(DataViewSchema partialSchema, int scoreColumnIndex, VectorType labelNameType,
                     ValueGetter<VBuffer<T>> labelNameGetter, string labelNameKind)
                 {
-                    var builder = new SchemaBuilder();
+                    var builder = new DataViewSchema.Builder();
                     // Sequentially add columns so that the order of them is not changed comparing with the schema in the mapper
                     // that computes score column.
                     for (int i = 0; i < partialSchema.Count; ++i)
                     {
-                        var meta = new MetadataBuilder();
+                        var meta = new DataViewSchema.Metadata.Builder();
                         if (i == scoreColumnIndex)
                         {
                             // Add label names for score column.
@@ -322,9 +322,9 @@ namespace Microsoft.ML.Data
                         }
                         // Instead of appending extra metadata to the existing score column, we create new one because
                         // metadata is read-only.
-                        builder.AddColumn(partialSchema[i].Name, partialSchema[i].Type, meta.GetMetadata());
+                        builder.AddColumn(partialSchema[i].Name, partialSchema[i].Type, meta.ToMetadata());
                     }
-                    return builder.GetSchema();
+                    return builder.ToSchema();
                 }
 
                 public Func<int, bool> GetDependencies(Func<int, bool> predicate) => _mapper.GetDependencies(predicate);

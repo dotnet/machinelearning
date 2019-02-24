@@ -207,11 +207,11 @@ namespace Microsoft.ML.StaticPipelineTesting
         public void AssertStaticSimple()
         {
             var env = new MLContext(0);
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn("hello", TextDataViewType.Instance);
             schemaBuilder.AddColumn("my", new VectorType(NumberDataViewType.Int64, 5));
             schemaBuilder.AddColumn("friend", new KeyType(typeof(uint), 3));
-            var view = new EmptyDataView(env, schemaBuilder.GetSchema());
+            var view = new EmptyDataView(env, schemaBuilder.ToSchema());
 
             view.AssertStatic(env, c => new
             {
@@ -231,12 +231,12 @@ namespace Microsoft.ML.StaticPipelineTesting
         public void AssertStaticSimpleFailure()
         {
             var env = new MLContext(0);
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn("hello", TextDataViewType.Instance);
             schemaBuilder.AddColumn("my", new VectorType(NumberDataViewType.Int64, 5));
             schemaBuilder.AddColumn("friend", new KeyType(typeof(uint), 3));
 
-            var view = new EmptyDataView(env, schemaBuilder.GetSchema());
+            var view = new EmptyDataView(env, schemaBuilder.ToSchema());
 
             Assert.ThrowsAny<Exception>(() =>
                 view.AssertStatic(env, c => new
@@ -260,30 +260,30 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // We'll test a few things here. First, the case where the key-value metadata is text.
             var metaValues1 = new VBuffer<ReadOnlyMemory<char>>(3, new[] { "a".AsMemory(), "b".AsMemory(), "c".AsMemory() });
-            var metaBuilder = new MetadataBuilder();
+            var metaBuilder = new DataViewSchema.Metadata.Builder();
             metaBuilder.AddKeyValues<ReadOnlyMemory<char>>(3, TextDataViewType.Instance, metaValues1.CopyTo);
 
-            var builder = new MetadataBuilder();
-            builder.AddPrimitiveValue("stay", new KeyType(typeof(uint), 3), 2u, metaBuilder.GetMetadata());
+            var builder = new DataViewSchema.Metadata.Builder();
+            builder.AddPrimitiveValue("stay", new KeyType(typeof(uint), 3), 2u, metaBuilder.ToMetadata());
 
             // Next the case where those values are ints.
             var metaValues2 = new VBuffer<int>(3, new int[] { 1, 2, 3, 4 });
-            metaBuilder = new MetadataBuilder();
+            metaBuilder = new DataViewSchema.Metadata.Builder();
             metaBuilder.AddKeyValues<int>(3, NumberDataViewType.Int32, metaValues2.CopyTo);
             var value2 = new VBuffer<byte>(2, 0, null, null);
-            builder.Add<VBuffer<byte>>("awhile", new VectorType(new KeyType(typeof(byte), 3), 2), value2.CopyTo, metaBuilder.GetMetadata());
+            builder.Add<VBuffer<byte>>("awhile", new VectorType(new KeyType(typeof(byte), 3), 2), value2.CopyTo, metaBuilder.ToMetadata());
 
             // Then the case where a value of that kind exists, but is of not of the right kind, in which case it should not be identified as containing that metadata.
-            metaBuilder = new MetadataBuilder();
+            metaBuilder = new DataViewSchema.Metadata.Builder();
             metaBuilder.AddPrimitiveValue(MetadataUtils.Kinds.KeyValues, NumberDataViewType.Single, 2f);
-            builder.AddPrimitiveValue("and", new KeyType(typeof(ushort), 2), (ushort)1, metaBuilder.GetMetadata());
+            builder.AddPrimitiveValue("and", new KeyType(typeof(ushort), 2), (ushort)1, metaBuilder.ToMetadata());
 
             // Then a final case where metadata of that kind is actaully simply altogether absent.
             var value4 = new VBuffer<uint>(5, 0, null, null);
             builder.Add<VBuffer<uint>>("listen", new VectorType(new KeyType(typeof(uint), 2)), value4.CopyTo);
 
             // Finally compose a trivial data view out of all this.
-            var view = RowCursorUtils.RowAsDataView(env, MetadataUtils.MetadataAsRow(builder.GetMetadata()));
+            var view = RowCursorUtils.RowAsDataView(env, MetadataUtils.MetadataAsRow(builder.ToMetadata()));
 
             // Whew! I'm glad that's over with. Let us start running the test in ernest.
             // First let's do a direct match of the types to ensure that works.

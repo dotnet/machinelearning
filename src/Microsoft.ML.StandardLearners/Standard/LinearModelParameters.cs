@@ -365,13 +365,13 @@ namespace Microsoft.ML.Trainers
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
-            var subBuilder = new MetadataBuilder();
+            var subBuilder = new DataViewSchema.Metadata.Builder();
             subBuilder.AddSlotNames(Weight.Length, (ref VBuffer<ReadOnlyMemory<char>> dst) => names.CopyTo(ref dst));
             var colType = new VectorType(NumberDataViewType.Single, Weight.Length);
-            var builder = new MetadataBuilder();
+            var builder = new DataViewSchema.Metadata.Builder();
             builder.AddPrimitiveValue("Bias", NumberDataViewType.Single, Bias);
-            builder.Add("Weights", colType, (ref VBuffer<float> dst) => Weight.CopyTo(ref dst), subBuilder.GetMetadata());
-            return MetadataUtils.MetadataAsRow(builder.GetMetadata());
+            builder.Add("Weights", colType, (ref VBuffer<float> dst) => Weight.CopyTo(ref dst), subBuilder.ToMetadata());
+            return MetadataUtils.MetadataAsRow(builder.ToMetadata());
         }
 
         DataViewRow ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema) => GetSummaryIRowOrNull(schema);

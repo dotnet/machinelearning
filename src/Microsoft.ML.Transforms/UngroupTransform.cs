@@ -288,7 +288,7 @@ namespace Microsoft.ML.Transforms
                     _pivotIndex[info.Index] = i;
                 }
 
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
                 // Iterate through input columns. Input columns which are not pivot columns will be copied to output schema with the same column index unchanged.
                 // Input columns which are pivot columns would also be copied but with different data types and different metadata.
                 for (int i = 0; i < InputColumnCount; ++i)
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Transforms
                     else
                     {
                         // i-th input column is a pivot column. Let's calculate proper type and metadata for it.
-                        var metadataBuilder = new MetadataBuilder();
+                        var metadataBuilder = new DataViewSchema.Metadata.Builder();
                         metadataBuilder.Add(inputSchema[i].Metadata, metadataName => ShouldPreserveMetadata(metadataName));
                         // To explain the output type of pivot columns, let's consider a row
                         //   Age UserID
@@ -312,10 +312,10 @@ namespace Microsoft.ML.Transforms
                         //   18  "Amy"
                         //   18  "Willy"
                         // One can see that "UserID" column (in output data) has a type identical to the element's type of the "UserID" column in input data.
-                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type.GetItemType(), metadataBuilder.GetMetadata());
+                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type.GetItemType(), metadataBuilder.ToMetadata());
                     }
                 }
-                OutputSchema = schemaBuilder.GetSchema();
+                OutputSchema = schemaBuilder.ToSchema();
             }
 
             private static void Bind(IExceptionContext ectx, DataViewSchema inputSchema,

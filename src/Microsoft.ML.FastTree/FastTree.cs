@@ -3279,15 +3279,15 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
-            var metaBuilder = new MetadataBuilder();
+            var metaBuilder = new DataViewSchema.Metadata.Builder();
             metaBuilder.AddSlotNames(NumFeatures, names.CopyTo);
 
             var weights = default(VBuffer<Single>);
             ((IHaveFeatureWeights)this).GetFeatureWeights(ref weights);
-            var builder = new MetadataBuilder();
-            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.GetMetadata());
+            var builder = new DataViewSchema.Metadata.Builder();
+            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.ToMetadata());
 
-            return MetadataUtils.MetadataAsRow(builder.GetMetadata());
+            return MetadataUtils.MetadataAsRow(builder.ToMetadata());
         }
 
         DataViewRow ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema)

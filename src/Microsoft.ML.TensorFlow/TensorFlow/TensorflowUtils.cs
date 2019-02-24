@@ -30,7 +30,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
         internal static DataViewSchema GetModelSchema(IExceptionContext ectx, TFGraph graph, string opType = null)
         {
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
             foreach (var op in graph)
             {
                 if (opType != null && opType != op.OpType)
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 //     these values are names of some upstream operators which should be evaluated before executing
                 //     the current operator. It's possible that one operator doesn't need any input, so this field
                 //     can be missing.
-                var metadataBuilder = new MetadataBuilder();
+                var metadataBuilder = new DataViewSchema.Metadata.Builder();
                 // Create the first metadata field.
                 metadataBuilder.Add(TensorflowOperatorTypeKind, TextDataViewType.Instance, (ref ReadOnlyMemory<char> value) => value = op.OpType.AsMemory());
                 if (op.NumInputs > 0)
@@ -79,9 +79,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
                         (ref VBuffer<ReadOnlyMemory<char>> value) => { upstreamOperatorNames.CopyTo(ref value); });
                 }
 
-                schemaBuilder.AddColumn(op.Name, columnType, metadataBuilder.GetMetadata());
+                schemaBuilder.AddColumn(op.Name, columnType, metadataBuilder.ToMetadata());
             }
-            return schemaBuilder.GetSchema();
+            return schemaBuilder.ToSchema();
         }
 
         /// <summary>

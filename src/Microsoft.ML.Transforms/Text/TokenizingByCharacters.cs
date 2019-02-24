@@ -210,14 +210,14 @@ namespace Microsoft.ML.Transforms.Text
                 var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    var builder = new MetadataBuilder();
+                    var builder = new DataViewSchema.Metadata.Builder();
                     AddMetadata(i, builder);
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _type, builder.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _type, builder.ToMetadata());
                 }
                 return result;
             }
 
-            private void AddMetadata(int iinfo, MetadataBuilder builder)
+            private void AddMetadata(int iinfo, DataViewSchema.Metadata.Builder builder)
             {
                 builder.Add(InputSchema[_parent.ColumnPairs[iinfo].inputColumnName].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter =
