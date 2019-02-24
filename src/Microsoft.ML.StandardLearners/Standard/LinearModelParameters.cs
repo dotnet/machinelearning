@@ -115,7 +115,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="weights">The weights for the linear model. The i-th element of weights is the coefficient
         /// of the i-th feature. Note that this will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
-        public LinearModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
+        internal LinearModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
             : base(env, name)
         {
             Host.CheckParam(FloatUtils.IsFinite(weights.GetValues()), nameof(weights), "Cannot initialize linear predictor with non-finite weights");
@@ -436,7 +436,7 @@ namespace Microsoft.ML.Trainers
         /// of the i-th feature. Note that this will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
         /// <param name="stats"></param>
-        public LinearBinaryModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias, LinearModelStatistics stats = null)
+        internal LinearBinaryModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias, LinearModelStatistics stats = null)
             : base(env, RegistrationName, in weights, bias)
         {
             Contracts.AssertValueOrNull(stats);
@@ -604,7 +604,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="weights">The weights for the linear model. The i-th element of weights is the coefficient
         /// of the i-th feature. Note that this will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
-        public LinearRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias)
+        internal LinearRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias)
             : base(env, RegistrationName, in weights, bias)
         {
         }
@@ -687,7 +687,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="weights">The weights for the linear model. The i-th element of weights is the coefficient
         /// of the i-th feature. Note that this will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
-        public PoissonRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias)
+        internal PoissonRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias)
             : base(env, RegistrationName, in weights, bias)
         {
         }
