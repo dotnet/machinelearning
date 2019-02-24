@@ -97,7 +97,7 @@ namespace Microsoft.ML.Functional.Tests
             {
                 // Serialize a dataset with a known schema to a file.
                 var filePath = SerializeDatasetToFile(mlContext, dataBefore, separator);
-                var dataAfter = mlContext.Data.ReadFromTextFile<TypeTestData>(filePath, hasHeader: true, separatorChar: separator);
+                var dataAfter = mlContext.Data.ReadFromTextFile<TypeTestData>(filePath, separatorChar: separator, hasHeader: true, allowQuoting: true);
                 Common.AssertTestTypeDatasetsAreEqual(mlContext, dataBefore, dataAfter);
             }
         }

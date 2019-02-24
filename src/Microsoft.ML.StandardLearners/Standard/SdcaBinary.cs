@@ -1827,7 +1827,7 @@ namespace Microsoft.ML.Trainers
 
             _options.FeatureColumn = featureColumn;
             _options.LabelColumn = labelColumn;
-            _options.WeightColumn = weightColumn != null ? Optional<string>.Explicit(weightColumn) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+            _options.WeightColumn = weightColumn;
             Loss = loss ?? new LogLoss();
             Info = new TrainerInfo(calibration: false, supportIncrementalTrain: true);
         }
@@ -1840,7 +1840,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="loss">Loss function would be minimized.</param>
         /// <param name="doCalibration">Set to true if a calibration step should be happen after training. Use false otherwise.</param>
         internal SgdBinaryTrainerBase(IHostEnvironment env, OptionsBase options, IClassificationLoss loss = null, bool doCalibration = false)
-            : base(env, options.FeatureColumn, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn), options.WeightColumn.IsExplicit ? options.WeightColumn.Value : null)
+            : base(env, options.FeatureColumn, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn), options.WeightColumn)
         {
             options.Check(env);
             Loss = loss;

@@ -254,7 +254,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="labelHistogram">The histogram of labels.</param>
         /// <param name="featureHistogram">The feature histogram.</param>
         /// <param name="featureCount">The number of features.</param>
-        public MultiClassNaiveBayesModelParameters(IHostEnvironment env, int[] labelHistogram, int[][] featureHistogram, int featureCount)
+        internal MultiClassNaiveBayesModelParameters(IHostEnvironment env, int[] labelHistogram, int[][] featureHistogram, int featureCount)
             : base(env, LoaderSignature)
         {
             Host.AssertValue(labelHistogram);

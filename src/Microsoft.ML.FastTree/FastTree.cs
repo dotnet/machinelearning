@@ -124,12 +124,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
             FastTreeTrainerOptions.LabelColumn = label.Name;
             FastTreeTrainerOptions.FeatureColumn = featureColumn;
-
-            if (weightColumn != null)
-                FastTreeTrainerOptions.WeightColumn = Optional<string>.Explicit(weightColumn);
-
-            if (groupIdColumn != null)
-                FastTreeTrainerOptions.GroupIdColumn = Optional<string>.Explicit(groupIdColumn);
+            FastTreeTrainerOptions.WeightColumn = weightColumn;
+            FastTreeTrainerOptions.GroupIdColumn = groupIdColumn;
 
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.

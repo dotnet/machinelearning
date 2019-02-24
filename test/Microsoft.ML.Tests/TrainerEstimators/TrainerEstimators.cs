@@ -35,7 +35,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Columns = new[]
                 {
                     new TextLoader.Column(featureColumn, DataKind.R4, new [] { new TextLoader.Range(1, 784) })
-                }
+                },
+                AllowSparse = true
             });
             var data = reader.Read(GetDataPath(TestDatasets.mnistOneClass.trainFilename));
 
@@ -64,7 +65,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 {
                     new TextLoader.Column(featureColumn, DataKind.R4, new [] { new TextLoader.Range(1, 784) }),
                     new TextLoader.Column(weights, DataKind.R4, 0)
-                }
+                },
+                AllowSparse = true
             });
             var data = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
 
@@ -161,6 +163,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = new TextLoader(Env,
                     new TextLoader.Options()
                     {
+                        AllowQuoting = true,
                         Separator = "\t",
                         HasHeader = true,
                         Columns = new[]

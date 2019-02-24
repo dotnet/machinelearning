@@ -25,12 +25,11 @@ namespace Microsoft.ML.Tests
             // dotnet MML.dll savedata loader=text{col=A:U4[0-2]:0 col=B:U4[0-5]:0 col=C:U1[0-10]:0 col=D:U2[0-*]:0 col=E:U4[0-*]:0 col=F:U8[0-*]:0} dout=codectest.idv
             var data = ML.Data.ReadFromBinary(GetDataPath("schema-codec-test.idv"));
 
-            var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true });
             var outputPath = GetOutputPath("BinaryLoaderSaver", "OldKeyTypeCodecTest.txt");
             using (var ch = Env.Start("save"))
             {
                 using (var fs = File.Create(outputPath))
-                    ML.Data.SaveAsText(data, fs);
+                    ML.Data.SaveAsText(data, fs, headerRow: false);
             }
             CheckEquality("BinaryLoaderSaver", "OldKeyTypeCodecTest.txt");
             Done();
