@@ -58,7 +58,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Step 2: Create a binary classifier.
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
-            var pipeline = mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(labelColumn: "Label", featureColumn: "Features", l2Const: 0.001f);
+            var pipeline = mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(labelColumnName: "Label", featureColumnName: "Features", l2Const: 0.001f);
 
             // Step 3: Train the pipeline created.
             var model = pipeline.Fit(data);
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Step 2: Create a binary classifier.
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
             var pipeline = mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                labelColumn: "Label", featureColumn: "Features", loss: new HingeLoss(), l2Const: 0.001f);
+                labelColumnName: "Label", featureColumnName: "Features", loss: new HingeLoss(), l2Const: 0.001f);
 
             // Step 3: Train the pipeline created.
             var model = pipeline.Fit(data);
