@@ -11,6 +11,7 @@ namespace Microsoft.ML.CLI.Templates.Console
 {
     using System.Linq;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Collections.Generic;
     using Microsoft.ML.CLI.Utilities;
     using System;
@@ -77,7 +78,7 @@ if(!string.IsNullOrEmpty(TestPath)){
                                             hasHeader : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
             this.Write(",\r\n                                            separatorChar : \'");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Separator));
+            this.Write(this.ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
             this.Write("\',\r\n                                            allowQuotedStrings : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowQuoting.ToString().ToLowerInvariant()));
             this.Write(",\r\n                                            trimWhitespace : ");
@@ -91,7 +92,7 @@ if(!string.IsNullOrEmpty(TestPath)){
                     "                                      hasHeader : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
             this.Write(",\r\n                                            separatorChar : \'");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Separator));
+            this.Write(this.ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
             this.Write("\',\r\n                                            allowQuotedStrings : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowQuoting.ToString().ToLowerInvariant()));
             this.Write(",\r\n                                            trimWhitespace : ");
@@ -110,6 +111,9 @@ if(!string.IsNullOrEmpty(TestPath)){
                                              { Write("\r\n                                      .Append(");
                                              }
                                              Write("mlContext.Transforms."+Transforms[i]);
+                                             if(i>0)
+                                             { Write(")");
+                                             }
                                          }
             this.Write(";\r\n");
 }
@@ -196,7 +200,7 @@ if("Regression".Equals(TaskType)){
                                             hasHeader : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
             this.Write(",\r\n                                            separatorChar : \'");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Separator));
+            this.Write(this.ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
             this.Write("\',\r\n                                            allowQuotedStrings : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowQuoting.ToString().ToLowerInvariant()));
             this.Write(",\r\n                                            trimWhitespace : ");

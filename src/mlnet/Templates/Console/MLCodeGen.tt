@@ -2,6 +2,7 @@
 <#@ assembly name="System.Core" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="Microsoft.ML.CLI.Utilities" #>
 // Licensed to the .NET Foundation under one or more agreements.
@@ -51,7 +52,7 @@ namespace <#= Namespace #>
             IDataView trainingDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(
                                             path: TrainDataPath,
                                             hasHeader : <#= HasHeader.ToString().ToLowerInvariant() #>,
-                                            separatorChar : '<#= Separator #>',
+                                            separatorChar : '<#= Regex.Escape(Separator.ToString()) #>',
                                             allowQuotedStrings : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
                                             trimWhitespace : <#= TrimWhiteSpace.ToString().ToLowerInvariant() #> ,
                                             supportSparse : <#= AllowSparse.ToString().ToLowerInvariant() #>);
@@ -59,7 +60,7 @@ namespace <#= Namespace #>
             IDataView testDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(
                                             path: TestDataPath,
                                             hasHeader : <#= HasHeader.ToString().ToLowerInvariant() #>,
-                                            separatorChar : '<#= Separator #>',
+                                            separatorChar : '<#= Regex.Escape(Separator.ToString()) #>',
                                             allowQuotedStrings : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
                                             trimWhitespace : <#= TrimWhiteSpace.ToString().ToLowerInvariant() #> ,
                                             supportSparse : <#= AllowSparse.ToString().ToLowerInvariant() #>);
@@ -73,6 +74,9 @@ namespace <#= Namespace #>
                                              { Write("\r\n                                      .Append(");
                                              }
                                              Write("mlContext.Transforms."+Transforms[i]);
+                                             if(i>0)
+                                             { Write(")");
+                                             }
                                          }#>;
 <#}#>
 
@@ -132,7 +136,7 @@ else{#>
             IDataView trainingDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(
                                             path: TrainDataPath,
                                             hasHeader : <#= HasHeader.ToString().ToLowerInvariant() #>,
-                                            separatorChar : '<#= Separator #>',
+                                            separatorChar : '<#= Regex.Escape(Separator.ToString()) #>',
                                             allowQuotedStrings : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
                                             trimWhitespace : <#= TrimWhiteSpace.ToString().ToLowerInvariant() #> ,
                                             supportSparse : <#= AllowSparse.ToString().ToLowerInvariant() #>);
