@@ -20,6 +20,7 @@ namespace Microsoft.ML
         /// <param name="hasHeader">Whether the file has a header.</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
         /// <param name="allowQuoting">Whether the file can contain column defined by a quoted string.</param>
+        /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
         /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
         public static TextLoader CreateTextLoader(this DataOperationsCatalog catalog,
             TextLoader.Column[] columns,
@@ -27,8 +28,9 @@ namespace Microsoft.ML
             bool hasHeader = TextLoader.Defaults.HasHeader,
             bool allowSparse = TextLoader.Defaults.AllowSparse,
             bool allowQuoting = TextLoader.Defaults.AllowQuoting,
+            bool trimWhitespace = TextLoader.Defaults.TrimWhitespace,
             IMultiStreamSource dataSample = null)
-            => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, separatorChar, hasHeader, allowSparse, allowQuoting, dataSample);
+            => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, separatorChar, hasHeader, allowSparse, allowQuoting, dataSample, trimWhitespace);
 
         /// <summary>
         /// Create a text loader <see cref="TextLoader"/>.
@@ -47,20 +49,20 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
         /// <param name="hasHeader">Does the file contains header?</param>
+        /// <param name="allowSparse">Whether the input may include sparse representations for example,
+        /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero
+        /// except for 3rd and 5th columns which have values 6 and 3</param>
         /// <param name="allowQuoting">Whether the input may include quoted values,
         /// which can contain separator characters, colons,
         /// and distinguish empty values from missing values. When true, consecutive separators
         /// denote a missing value and an empty value is denoted by \"\".
         /// When false, consecutive separators denote an empty value.</param>
-        /// <param name="allowSparse">Whether the input may include sparse representations for example,
-        /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero
-        /// except for 3rd and 5th columns which have values 6 and 3</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
         public static TextLoader CreateTextLoader<TInput>(this DataOperationsCatalog catalog,
             char separatorChar = TextLoader.Defaults.Separator,
             bool hasHeader = TextLoader.Defaults.HasHeader,
-            bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool allowSparse = TextLoader.Defaults.AllowSparse,
+            bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool trimWhitespace = TextLoader.Defaults.TrimWhitespace)
             => TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar, allowQuoting, allowSparse, trimWhitespace);
 
@@ -68,24 +70,31 @@ namespace Microsoft.ML
         /// Read a data view from a text file using <see cref="TextLoader"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
-        /// <param name="columns">The columns of the schema.</param>
-        /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
         /// <param name="path">The path to the file.</param>
+        /// <param name="columns">The columns of the schema.</param>
+        /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
+        /// <param name="hasHeader">Whether the file has a header.</param>
+        /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
+        /// <param name="allowQuoting">Whether the file can contain column defined by a quoted string.</param>
+        /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
+        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
         /// <returns>The data view.</returns>
         public static IDataView ReadFromTextFile(this DataOperationsCatalog catalog,
             string path,
             TextLoader.Column[] columns,
             char separatorChar = TextLoader.Defaults.Separator,
-            bool hasHeader = TextLoader.Defaults.HasHeader)
+            bool hasHeader = TextLoader.Defaults.HasHeader,
+            bool allowSparse = TextLoader.Defaults.AllowSparse,
+            bool allowQuoting = TextLoader.Defaults.AllowQuoting,
+            bool trimWhitespace = TextLoader.Defaults.TrimWhitespace,
+            IMultiStreamSource dataSample = null)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
             var env = catalog.GetEnvironment();
 
-            // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
-            // Therefore, we are going to disallow data sample.
-            var reader = new TextLoader(env, columns, separatorChar, hasHeader, dataSample: null);
+            var reader = new TextLoader(env, columns, separatorChar: separatorChar, hasHeader: hasHeader, allowSparse: allowSparse,
+                allowQuoting: allowQuoting, dataSample: dataSample, trimWhitespace: trimWhitespace);
             return reader.Read(new MultiFileSource(path));
         }
 
@@ -93,25 +102,25 @@ namespace Microsoft.ML
         /// Read a data view from a text file using <see cref="TextLoader"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
-        /// <param name="hasHeader">Does the file contains header?</param>
+        /// <param name="path">The path to the file.</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
+        /// <param name="hasHeader">Does the file contains header?</param>
+        /// <param name="allowSparse">Whether the input may include sparse representations for example,
+        /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero
+        /// except for 3rd and 5th columns which have values 6 and 3</param>
         /// <param name="allowQuoting">Whether the input may include quoted values,
         /// which can contain separator characters, colons,
         /// and distinguish empty values from missing values. When true, consecutive separators
         /// denote a missing value and an empty value is denoted by \"\".
         /// When false, consecutive separators denote an empty value.</param>
-        /// <param name="allowSparse">Whether the input may include sparse representations for example,
-        /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero
-        /// except for 3rd and 5th columns which have values 6 and 3</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
-        /// <param name="path">The path to the file.</param>
         /// <returns>The data view.</returns>
         public static IDataView ReadFromTextFile<TInput>(this DataOperationsCatalog catalog,
             string path,
             char separatorChar = TextLoader.Defaults.Separator,
             bool hasHeader = TextLoader.Defaults.HasHeader,
-            bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool allowSparse = TextLoader.Defaults.AllowSparse,
+            bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool trimWhitespace = TextLoader.Defaults.TrimWhitespace)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
@@ -128,14 +137,16 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="path">Specifies a file from which to read.</param>
         /// <param name="options">Defines the settings of the load operation.</param>
-        public static IDataView ReadFromTextFile(this DataOperationsCatalog catalog, string path, TextLoader.Options options = null)
+        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
+        public static IDataView ReadFromTextFile(this DataOperationsCatalog catalog, string path,
+            TextLoader.Options options = null, IMultiStreamSource dataSample = null)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
             var env = catalog.GetEnvironment();
             var source = new MultiFileSource(path);
 
-            return new TextLoader(env, options, source).Read(source);
+            return new TextLoader(env, options, dataSample).Read(source);
         }
 
         /// <summary>

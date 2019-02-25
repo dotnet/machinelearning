@@ -1095,17 +1095,19 @@ namespace Microsoft.ML.Data
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
         /// <param name="allowQuoting">Whether the content of a column can be parsed from a string starting and ending with quote.</param>
         /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
+        /// <param name="trimWhitespace">Remove trailing whitespace from lines.</param>
         internal TextLoader(IHostEnvironment env, Column[] columns, char separatorChar = Defaults.Separator,
             bool hasHeader = Defaults.HasHeader, bool allowSparse = Defaults.AllowSparse,
-            bool allowQuoting = Defaults.AllowQuoting, IMultiStreamSource dataSample = null)
-            : this(env, MakeArgs(columns, hasHeader, new[] { separatorChar }, allowSparse, allowQuoting), dataSample)
+            bool allowQuoting = Defaults.AllowQuoting, IMultiStreamSource dataSample = null, bool trimWhitespace = Defaults.TrimWhitespace)
+            : this(env, MakeArgs(columns, hasHeader, new[] { separatorChar }, allowSparse, allowQuoting, trimWhitespace), dataSample)
         {
         }
 
-        private static Options MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars, bool allowSparse, bool allowQuoting)
+        private static Options MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars, bool allowSparse, bool allowQuoting, bool trimWhitespace)
         {
             Contracts.AssertValue(separatorChars);
-            var result = new Options { Columns = columns, HasHeader = hasHeader, Separators = separatorChars, AllowSparse = allowSparse, AllowQuoting = allowQuoting };
+            var result = new Options { Columns = columns, HasHeader = hasHeader, Separators = separatorChars,
+                AllowSparse = allowSparse, AllowQuoting = allowQuoting, TrimWhitespace = trimWhitespace };
             return result;
         }
 
@@ -1462,7 +1464,7 @@ namespace Microsoft.ML.Data
         internal static TextLoader CreateTextReader<TInput>(IHostEnvironment host,
            bool hasHeader = Defaults.HasHeader,
            char separator = Defaults.Separator,
-           bool allowQuotedStrings = Defaults.AllowQuoting,
+           bool allowQuoting = Defaults.AllowQuoting,
            bool supportSparse = Defaults.AllowSparse,
            bool trimWhitespace = Defaults.TrimWhitespace)
         {
@@ -1519,7 +1521,7 @@ namespace Microsoft.ML.Data
             {
                 HasHeader = hasHeader,
                 Separators = new[] { separator },
-                AllowQuoting = allowQuotedStrings,
+                AllowQuoting = allowQuoting,
                 AllowSparse = supportSparse,
                 TrimWhitespace = trimWhitespace,
                 Columns = columns.ToArray()
