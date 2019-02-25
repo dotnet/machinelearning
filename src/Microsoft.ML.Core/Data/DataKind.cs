@@ -93,7 +93,7 @@ namespace Microsoft.ML.Data
     /// Extension methods related to the DataKind enum.
     /// </summary>
     [BestFriend]
-    internal static class DataKindExtensions
+    internal static class InternalDataKindExtensions
     {
         public const InternalDataKind KindMin = InternalDataKind.I1;
         public const InternalDataKind KindLim = InternalDataKind.U16 + 1;

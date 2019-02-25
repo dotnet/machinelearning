@@ -116,7 +116,11 @@ namespace Microsoft.ML.Data
             /// <see cref="Data.DataKind"/> of the items in the column.
             /// </summary>
             /// It's a public interface to access the information in an internal DataKind.
-            public DataKind DataKind => Type.ToDataKind();
+            public DataKind DataKind
+            {
+                get { return Type.ToDataKind(); }
+                set { Type = value.ToInternalDataKind(); }
+            }
 
             /// <summary>
             /// Source index range(s) of the column.
@@ -1491,13 +1495,13 @@ namespace Microsoft.ML.Data
                 switch (memberInfo)
                 {
                     case FieldInfo field:
-                        if (!DataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
+                        if (!InternalDataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
                             throw Contracts.Except($"Field {memberInfo.Name} is of unsupported type.");
 
                         break;
 
                     case PropertyInfo property:
-                        if (!DataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
+                        if (!InternalDataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
                             throw Contracts.Except($"Property {memberInfo.Name} is of unsupported type.");
                         break;
 

@@ -51,9 +51,9 @@ namespace Microsoft.ML.Data
                 _methVec = new Func<PrimitiveDataViewType, Func<RowSet, ColumnPipe>>(GetCreatorVecCore<int>)
                     .GetMethodInfo().GetGenericMethodDefinition();
 
-                _creatorsOne = new Func<RowSet, ColumnPipe>[DataKindExtensions.KindCount];
-                _creatorsVec = new Func<RowSet, ColumnPipe>[DataKindExtensions.KindCount];
-                for (var kind = DataKindExtensions.KindMin; kind < DataKindExtensions.KindLim; kind++)
+                _creatorsOne = new Func<RowSet, ColumnPipe>[InternalDataKindExtensions.KindCount];
+                _creatorsVec = new Func<RowSet, ColumnPipe>[InternalDataKindExtensions.KindCount];
+                for (var kind = InternalDataKindExtensions.KindMin; kind < InternalDataKindExtensions.KindLim; kind++)
                 {
                     var type = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                     _creatorsOne[kind.ToIndex()] = GetCreatorOneCore(type);

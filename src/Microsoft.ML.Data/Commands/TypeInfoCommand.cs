@@ -129,7 +129,7 @@ namespace Microsoft.ML.Data.Commands
                 if (Utils.Size(nonIdentity) > 0)
                 {
                     ch.Warning("The following kinds did not have an identity conversion: {0}",
-                        string.Join(", ", nonIdentity.OrderBy(k => k).Select(DataKindExtensions.GetString)));
+                        string.Join(", ", nonIdentity.OrderBy(k => k).Select(InternalDataKindExtensions.GetString)));
                 }
             }
         }
