@@ -138,7 +138,7 @@ namespace Microsoft.ML.Transforms
         private readonly IHost _host;
         private string[] _selectedColumns;
 
-        public bool IsRowToRowMapper => true;
+        bool ITransformer.IsRowToRowMapper => true;
 
         public IEnumerable<string> SelectColumns => _selectedColumns.AsReadOnly();
 
@@ -458,13 +458,13 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Constructs a row-to-row mapper based on an input schema. If <see cref="IsRowToRowMapper"/>
+        /// Constructs a row-to-row mapper based on an input schema. If <see cref="ITransformer.IsRowToRowMapper"/>
         /// is <c>false</c>, then an exception is thrown. If the input schema is in any way
         /// unsuitable for constructing the mapper, an exception should likewise be thrown.
         /// </summary>
         /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
         /// <returns>The row to row mapper.</returns>
-        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
+        IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             if (!IgnoreMissing && !IsSchemaValid(inputSchema.Select(x => x.Name),

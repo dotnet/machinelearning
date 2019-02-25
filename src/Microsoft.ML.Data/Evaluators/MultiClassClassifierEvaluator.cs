@@ -766,21 +766,21 @@ namespace Microsoft.ML.Data
         {
             var infos = new DataViewSchema.DetachedColumn[4];
 
-            var assignedColKeyValues = new MetadataBuilder();
+            var assignedColKeyValues = new DataViewSchema.Metadata.Builder();
             assignedColKeyValues.AddKeyValues(_numClasses, TextDataViewType.Instance, CreateKeyValueGetter());
-            infos[AssignedCol] = new DataViewSchema.DetachedColumn(Assigned, _types[AssignedCol], assignedColKeyValues.GetMetadata());
+            infos[AssignedCol] = new DataViewSchema.DetachedColumn(Assigned, _types[AssignedCol], assignedColKeyValues.ToMetadata());
 
             infos[LogLossCol] = new DataViewSchema.DetachedColumn(LogLoss, _types[LogLossCol], null);
 
-            var sortedScores = new MetadataBuilder();
+            var sortedScores = new DataViewSchema.Metadata.Builder();
             sortedScores.AddSlotNames(_numClasses, CreateSlotNamesGetter(_numClasses, "Score"));
 
-            var sortedClasses = new MetadataBuilder();
+            var sortedClasses = new DataViewSchema.Metadata.Builder();
             sortedClasses.AddSlotNames(_numClasses, CreateSlotNamesGetter(_numClasses, "Class"));
             sortedClasses.AddKeyValues(_numClasses, TextDataViewType.Instance, CreateKeyValueGetter());
 
-            infos[SortedScoresCol] = new DataViewSchema.DetachedColumn(SortedScores, _types[SortedScoresCol], sortedScores.GetMetadata());
-            infos[SortedClassesCol] = new DataViewSchema.DetachedColumn(SortedClasses, _types[SortedClassesCol], sortedClasses.GetMetadata());
+            infos[SortedScoresCol] = new DataViewSchema.DetachedColumn(SortedScores, _types[SortedScoresCol], sortedScores.ToMetadata());
+            infos[SortedClassesCol] = new DataViewSchema.DetachedColumn(SortedClasses, _types[SortedClassesCol], sortedClasses.ToMetadata());
             return infos;
         }
 

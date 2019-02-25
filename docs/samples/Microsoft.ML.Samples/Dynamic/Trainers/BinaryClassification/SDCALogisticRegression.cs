@@ -49,7 +49,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // the "Features" column produced by FeaturizeText as the features column.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
                     .AppendCacheCheckpoint(mlContext) // Add a data-cache step within a pipeline.
-                    .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(labelColumn: "Sentiment", featureColumn: "Features", l2Const: 0.001f));
+                    .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(labelColumnName: "Sentiment", featureColumnName: "Features", l2Const: 0.001f));
 
             // Step 3: Run Cross-Validation on this pipeline.
             var cvResults = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumn: "Sentiment");

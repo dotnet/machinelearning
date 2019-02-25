@@ -30,10 +30,10 @@ namespace Microsoft.ML.Transforms
         internal SchemaDefinition InputSchemaDefinition { get; }
 
         /// <summary>
-        /// Whether a call to <see cref="GetRowToRowMapper(DataViewSchema)"/> should succeed, on an
+        /// Whether a call to <see cref="ITransformer.GetRowToRowMapper(DataViewSchema)"/> should succeed, on an
         /// appropriate schema.
         /// </summary>
-        public bool IsRowToRowMapper => true;
+        bool ITransformer.IsRowToRowMapper => true;
 
         /// <summary>
         /// Create a custom mapping of input columns to output columns.
@@ -95,11 +95,11 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Constructs a row-to-row mapper based on an input schema. If <see cref="IsRowToRowMapper"/>
+        /// Constructs a row-to-row mapper based on an input schema. If <see cref="ITransformer.IsRowToRowMapper"/>
         /// is <c>false</c>, then an exception is thrown. If the <paramref name="inputSchema"/> is in any way
         /// unsuitable for constructing the mapper, an exception is likewise thrown.
         /// </summary>
-        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
+        IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             var simplerMapper = MakeRowMapper(inputSchema);

@@ -28,7 +28,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 .ToArray();
             var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
                     .Append(mlContext.Regression.Trainers.GeneralizedAdditiveModels(
-                        labelColumn: labelName, featureColumn: "Features", maxBins: 16));
+                        labelColumnName: labelName, featureColumnName: "Features", maxBins: 16));
             var fitPipeline = pipeline.Fit(data);
 
             // Extract the model from the pipeline

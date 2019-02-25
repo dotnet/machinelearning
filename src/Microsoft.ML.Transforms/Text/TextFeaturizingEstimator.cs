@@ -586,9 +586,9 @@ namespace Microsoft.ML.Transforms.Text
                 return ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input);
             }
 
-            public bool IsRowToRowMapper => true;
+            bool ITransformer.IsRowToRowMapper => true;
 
-            public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
+            IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
             {
                 _host.CheckValue(inputSchema, nameof(inputSchema));
                 var input = new EmptyDataView(_host, inputSchema);

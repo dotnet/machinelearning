@@ -219,10 +219,10 @@ private class AdultData
 
 // Read the data into a data view.
 var trainData = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
-                // First line of the file is a header, not a data row.
-                hasHeader: true,
                 // Default separator is tab, but we need a semicolon.
-                separatorChar: ';'
+                separatorChar: ';',
+                // First line of the file is a header, not a data row.
+                hasHeader: true
 );		
 
 ```
@@ -328,7 +328,7 @@ In the file above, the last column (12th) is label that we predict, and all the 
 // First, we define the reader: specify the data columns and where to find them in the text file.
 // Read the data into a data view. Remember though, readers are lazy, so the actual reading will happen when the data is accessed.
 var trainData = mlContext.Data.ReadFromTextFile<AdultData>(dataPath,
-    // First line of the file is a header, not a data row.
+    // Default separator is tab, but the dataset has comma.
     separatorChar: ','
 );
 
@@ -372,7 +372,7 @@ Assuming the example above was used to train the model, here's how you calculate
 ```csharp
 // Read the test dataset.
 var testData = mlContext.Data.ReadFromTextFile<AdultData>(testDataPath,
-    // First line of the file is a header, not a data row.
+    // Default separator is tab, but the dataset has comma.
     separatorChar: ','
 );
 // Calculate metrics of the model on the test data.
@@ -959,7 +959,7 @@ public static ITransformer TrainModel(MLContext mlContext, IDataView trainData)
     // Construct the learning pipeline.
     var estimator = mlContext.Transforms.CustomMapping(mapping, null)
         .AppendCacheCheckpoint(mlContext)
-        .Append(mlContext.BinaryClassification.Trainers.FastTree(label: "Label"));
+        .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label"));
 
     return estimator.Fit(trainData);
 }
@@ -998,7 +998,7 @@ public class CustomMappings : CustomMappingFactory<InputRow, OutputRow>
 // Construct the learning pipeline. Note that we are now providing a contract name for the custom mapping:
 // otherwise we will not be able to save the model.
 var estimator = mlContext.Transforms.CustomMapping<InputRow, OutputRow>(CustomMappings.IncomeMapping, nameof(CustomMappings.IncomeMapping))
-    .Append(mlContext.BinaryClassification.Trainers.FastTree(label: "Label"));
+    .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label"));
 
 // If memory is enough, we can cache the data in-memory to avoid reading them from file
 // when it will be accessed multiple times. 

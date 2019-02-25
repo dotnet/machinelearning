@@ -54,7 +54,7 @@ namespace Microsoft.ML.Benchmarks
         private TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> Train(string dataPath)
         {
             var reader = new TextLoader(mlContext,
-                    columns: new[]
+                columns: new[]
                     {
                             new TextLoader.Column("Label", DataKind.R4, 0),
                             new TextLoader.Column("SepalLength", DataKind.R4, 1),
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Benchmarks
                             new TextLoader.Column("PetalLength", DataKind.R4, 3),
                             new TextLoader.Column("PetalWidth", DataKind.R4, 4),
                     },
-                    hasHeader: true
+                hasHeader: true
                 );
 
             IDataView data = reader.Read(dataPath);
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Benchmarks
             _consumer.Consume(_predictionEngine.Predict(_example));
 
             var reader = new TextLoader(mlContext,
-                    columns: new[]
+                columns: new[]
                     {
                             new TextLoader.Column("Label", DataKind.R4, 0),
                             new TextLoader.Column("SepalLength", DataKind.R4, 1),
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Benchmarks
                             new TextLoader.Column("PetalLength", DataKind.R4, 3),
                             new TextLoader.Column("PetalWidth", DataKind.R4, 4),
                     },
-                    hasHeader: true
+                hasHeader: true
                 );
 
             IDataView testData = reader.Read(_dataPath);

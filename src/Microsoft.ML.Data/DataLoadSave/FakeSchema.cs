@@ -20,11 +20,11 @@ namespace Microsoft.ML.Data.DataLoadSave
 
         public static DataViewSchema Create(SchemaShape shape)
         {
-            var builder = new SchemaBuilder();
+            var builder = new DataViewSchema.Builder();
 
             for (int i = 0; i < shape.Count; ++i)
             {
-                var metaBuilder = new MetadataBuilder();
+                var metaBuilder = new DataViewSchema.Metadata.Builder();
                 var partialMetadata = shape[i].Metadata;
                 for (int j = 0; j < partialMetadata.Count; ++j)
                 {
@@ -36,9 +36,9 @@ namespace Microsoft.ML.Data.DataLoadSave
                         del = Utils.MarshalInvoke(GetDefaultGetter<int>, metaColumnType.RawType);
                     metaBuilder.Add(partialMetadata[j].Name, metaColumnType, del);
                 }
-                builder.AddColumn(shape[i].Name, MakeColumnType(shape[i]), metaBuilder.GetMetadata());
+                builder.AddColumn(shape[i].Name, MakeColumnType(shape[i]), metaBuilder.ToMetadata());
             }
-            return builder.GetSchema();
+            return builder.ToSchema();
         }
 
         private static DataViewType MakeColumnType(SchemaShape.Column column)

@@ -14,7 +14,7 @@ namespace Microsoft.Data.DataView
     /// This class represents the <see cref="DataViewSchema"/> of an object like, for interstance, an <see cref="IDataView"/> or an <see cref="DataViewRow"/>.
     /// On the high level, the schema is a collection of <see cref="DataViewSchema.Column"/>.
     /// </summary>
-    [System.Diagnostics.DebuggerTypeProxy(typeof(SchemaDebuggerProxy))]
+    [DebuggerTypeProxy(typeof(SchemaDebuggerProxy))]
     public sealed class DataViewSchema : IReadOnlyList<DataViewSchema.Column>
     {
         private readonly Column[] _columns;
@@ -168,7 +168,7 @@ namespace Microsoft.Data.DataView
         /// <summary>
         /// The metadata of one <see cref="Column"/>.
         /// </summary>
-        [System.Diagnostics.DebuggerTypeProxy(typeof(MetadataDebuggerProxy))]
+        [DebuggerTypeProxy(typeof(MetadataDebuggerProxy))]
         public sealed class Metadata
         {
             /// <summary>
@@ -248,13 +248,202 @@ namespace Microsoft.Data.DataView
                 Debug.Assert(0 <= index && index < Schema.Count);
                 return _getters[index];
             }
+
+            /// <summary>
+            /// The class that incrementally builds a <see cref="Metadata"/>.
+            /// </summary>
+            public sealed class Builder
+            {
+                private readonly List<(string Name, DataViewType Type, Delegate Getter, Metadata Metadata)> _items;
+
+                public Builder()
+                {
+                    _items = new List<(string Name, DataViewType Type, Delegate Getter, Metadata Metadata)>();
+                }
+
+                /// <summary>
+                /// Add some columns from <paramref name="metadata"/> into our new metadata, by applying <paramref name="selector"/>
+                /// to all the names.
+                /// </summary>
+                /// <param name="metadata">The metadata row to take values from.</param>
+                /// <param name="selector">The predicate describing which metadata columns to keep.</param>
+                public void Add(Metadata metadata, Func<string, bool> selector)
+                {
+                    if (metadata == null)
+                        return;
+
+                    if (selector == null)
+                        throw new ArgumentNullException(nameof(selector));
+
+                    foreach (var column in metadata.Schema)
+                    {
+                        if (selector(column.Name))
+                            _items.Add((column.Name, column.Type, metadata.GetGetterInternal(column.Index), column.Metadata));
+                    }
+                }
+
+                /// <summary>
+                /// Add one metadata column, strongly-typed version.
+                /// </summary>
+                /// <typeparam name="TValue">The type of the value.</typeparam>
+                /// <param name="name">The metadata name.</param>
+                /// <param name="type">The metadata type.</param>
+                /// <param name="getter">The getter delegate.</param>
+                /// <param name="metadata">Metadata of the input column. Note that metadata on a metadata column is somewhat rare
+                /// except for certain types (for example, slot names for a vector, key values for something of key type).</param>
+                public void Add<TValue>(string name, DataViewType type, ValueGetter<TValue> getter, Metadata metadata = null)
+                {
+                    if (string.IsNullOrEmpty(name))
+                        throw new ArgumentNullException(nameof(name));
+                    if (type == null)
+                        throw new ArgumentNullException(nameof(type));
+                    if (getter == null)
+                        throw new ArgumentNullException(nameof(getter));
+                    if (type.RawType != typeof(TValue))
+                        throw new ArgumentException($"{nameof(type)}.{nameof(type.RawType)} must be of type '{typeof(TValue).FullName}'.", nameof(type));
+
+                    _items.Add((name, type, getter, metadata));
+                }
+
+                /// <summary>
+                /// Add one metadata column, weakly-typed version.
+                /// </summary>
+                /// <param name="name">The metadata name.</param>
+                /// <param name="type">The metadata type.</param>
+                /// <param name="getter">The getter delegate that provides the value. Note that the type of the getter is still checked
+                /// inside this method.</param>
+                /// <param name="metadata">Metadata of the input column. Note that metadata on a metadata column is somewhat rare
+                /// except for certain types (for example, slot names for a vector, key values for something of key type).</param>
+                public void Add(string name, DataViewType type, Delegate getter, Metadata metadata = null)
+                {
+                    if (string.IsNullOrEmpty(name))
+                        throw new ArgumentNullException(nameof(name));
+                    if (type == null)
+                        throw new ArgumentNullException(nameof(type));
+                    if (getter == null)
+                        throw new ArgumentNullException(nameof(getter));
+
+                    Utils.MarshalActionInvoke(AddDelegate<int>, type.RawType, name, type, getter, metadata);
+                }
+
+                /// <summary>
+                /// Add one metadata column for a primitive value type.
+                /// </summary>
+                /// <param name="name">The metadata name.</param>
+                /// <param name="type">The metadata type.</param>
+                /// <param name="value">The value of the metadata.</param>
+                /// <param name="metadata">Metadata of the input column. Note that metadata on a metadata column is somewhat rare
+                /// except for certain types (for example, slot names for a vector, key values for something of key type).</param>
+                public void AddPrimitiveValue<TValue>(string name, PrimitiveDataViewType type, TValue value, Metadata metadata = null)
+                {
+                    if (string.IsNullOrEmpty(name))
+                        throw new ArgumentNullException(nameof(name));
+                    if (type == null)
+                        throw new ArgumentNullException(nameof(type));
+                    if (type.RawType != typeof(TValue))
+                        throw new ArgumentException($"{nameof(type)}.{nameof(type.RawType)} must be of type '{typeof(TValue).FullName}'.", nameof(type));
+
+                    Add(name, type, (ref TValue dst) => dst = value, metadata);
+                }
+
+                /// <summary>
+                /// Returns a <see cref="Metadata"/> row that contains the current contents of this <see cref="Builder"/>.
+                /// </summary>
+                public Metadata ToMetadata()
+                {
+                    var builder = new DataViewSchema.Builder();
+                    foreach (var item in _items)
+                        builder.AddColumn(item.Name, item.Type, item.Metadata);
+                    return new Metadata(builder.ToSchema(), _items.Select(x => x.Getter).ToArray());
+                }
+
+                private void AddDelegate<TValue>(string name, DataViewType type, Delegate getter, Metadata metadata)
+                {
+                    Debug.Assert(!string.IsNullOrEmpty(name));
+                    Debug.Assert(type != null);
+                    Debug.Assert(getter != null);
+
+                    var typedGetter = getter as ValueGetter<TValue>;
+                    if (typedGetter == null)
+                        throw new ArgumentException($"{nameof(getter)} must be of type '{typeof(ValueGetter<TValue>).FullName}'", nameof(getter));
+                    _items.Add((name, type, typedGetter, metadata));
+                }
+            }
         }
 
         /// <summary>
-        /// This constructor should only be called by <see cref="SchemaBuilder"/>.
+        /// The class that incrementally builds a <see cref="DataViewSchema"/>.
+        /// </summary>
+        public sealed class Builder
+        {
+            private readonly List<(string Name, DataViewType Type, Metadata Metadata)> _items;
+
+            /// <summary>
+            /// Create a new instance of <see cref="Builder"/>.
+            /// </summary>
+            public Builder()
+            {
+                _items = new List<(string Name, DataViewType Type, Metadata Metadata)>();
+            }
+
+            /// <summary>
+            /// Add one column to the schema being built.
+            /// </summary>
+            /// <param name="name">The column name.</param>
+            /// <param name="type">The column type.</param>
+            /// <param name="metadata">The column metadata.</param>
+            public void AddColumn(string name, DataViewType type, Metadata metadata = null)
+            {
+                if (string.IsNullOrEmpty(name))
+                    throw new ArgumentNullException(nameof(name));
+                if (type == null)
+                    throw new ArgumentNullException(nameof(type));
+
+                _items.Add((name, type, metadata));
+            }
+
+            /// <summary>
+            /// Add multiple existing columns to the schema being built.
+            /// </summary>
+            /// <param name="source">Columns to add.</param>
+            public void AddColumns(IEnumerable<Column> source)
+            {
+                foreach (var column in source)
+                    AddColumn(column.Name, column.Type, column.Metadata);
+            }
+
+            /// <summary>
+            /// Add multiple existing columns to the schema being built.
+            /// </summary>
+            /// <param name="source">Columns to add.</param>
+            public void AddColumns(IEnumerable<DetachedColumn> source)
+            {
+                foreach (var column in source)
+                    AddColumn(column.Name, column.Type, column.Metadata);
+            }
+
+            /// <summary>
+            /// Returns a <see cref="DataViewSchema"/> that contains the current contents of this <see cref="Builder"/>.
+            /// </summary>
+            public DataViewSchema ToSchema()
+            {
+                var nameMap = new Dictionary<string, int>();
+                for (int i = 0; i < _items.Count; i++)
+                    nameMap[_items[i].Name] = i;
+
+                var columns = new Column[_items.Count];
+                for (int i = 0; i < columns.Length; i++)
+                    columns[i] = new Column(_items[i].Name, i, nameMap[_items[i].Name] != i, _items[i].Type, _items[i].Metadata);
+
+                return new DataViewSchema(columns);
+            }
+        }
+
+        /// <summary>
+        /// This constructor should only be called by <see cref="Builder"/>.
         /// </summary>
         /// <param name="columns">The input columns. The constructed instance takes ownership of the array.</param>
-        internal DataViewSchema(Column[] columns)
+        private DataViewSchema(Column[] columns)
         {
             if (columns == null)
                 throw new ArgumentNullException(nameof(columns));

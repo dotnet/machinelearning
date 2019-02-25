@@ -159,7 +159,7 @@ namespace Microsoft.ML.Tests
             var pipe = data.MakeNewEstimator()
                 .Append(row => (
                     row.name,
-                    Input: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
+                    Input: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleave: true)))
                 .Append(row => (row.name, Output: row.Input.ApplyTensorFlowGraph(modelLocation)));
 
             TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Tests
             var pipe = data.MakeNewEstimator()
                 .Append(row => (
                     row.name,
-                    Input: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
+                    Input: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleave: true)))
                 .Append(row => (row.name, Output: row.Input.ApplyTensorFlowGraph(tensorFlowModel)));
 
             TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);

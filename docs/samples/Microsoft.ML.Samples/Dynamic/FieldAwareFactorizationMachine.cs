@@ -46,7 +46,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // the "Features" column produced by FeaturizeText as the features column.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
                     .AppendCacheCheckpoint(mlContext) // Add a data-cache step within a pipeline.
-                    .Append(mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine(labelColumn: "Sentiment", featureColumns: new[] { "Features" }));
+                    .Append(mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine(labelColumnName: "Sentiment", featureColumnNames: new[] { "Features" }));
 
             // Fit the model.
             var model = pipeline.Fit(data);
