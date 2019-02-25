@@ -2,12 +2,36 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {
+    public sealed class SimpleColumnInfo
+    {
+        private readonly string _outputColumnName;
+        private readonly string _inputColumnName;
+
+        public SimpleColumnInfo(string outputColumnName, string inputColumnName)
+        {
+            _outputColumnName = outputColumnName;
+            _inputColumnName = inputColumnName;
+        }
+
+        public static implicit operator SimpleColumnInfo((string outputColumnName, string inputColumnName) value)
+        {
+            return new SimpleColumnInfo(value.outputColumnName, value.inputColumnName);
+        }
+
+        [BestFriend]
+        internal static (string outputColumnName, string inputColumnName)[] ConvertToValueTuples(SimpleColumnInfo[] infos)
+        {
+            return infos.Select(info => (info._outputColumnName, info._inputColumnName)).ToArray();
+        }
+    }
+
     /// <summary>
     /// Extension methods for the <see cref="TransformsCatalog"/>.
     /// </summary>
@@ -42,8 +66,8 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params (string outputColumnName, string inputColumnName)[] columns)
-            => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+        public static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params SimpleColumnInfo[] columns)
+            => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), SimpleColumnInfo.ConvertToValueTuples(columns));
 
         /// <summary>
         /// Concatenates columns together.

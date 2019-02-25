@@ -60,11 +60,11 @@ namespace Microsoft.ML.Data
         }
 
         [BestFriend]
-        internal abstract class ImplBase<TArgs> : ICommand
-            where TArgs : ArgumentsBase
+        internal abstract class ImplBase<TOptions> : ICommand
+            where TOptions : ArgumentsBase
         {
             protected readonly IHost Host;
-            protected readonly TArgs Args;
+            protected readonly TOptions ImplOptions;
             private readonly ServerChannel.IServerFactory _serverFactory;
 
             protected ServerChannel.IServer InitServer(IChannel ch)
@@ -78,35 +78,35 @@ namespace Microsoft.ML.Data
             /// The degree of concurrency is passed in the conc parameter. If it is null, the value
             /// of args.parralel is used. If that is null, zero is used (which means "automatic").
             /// </summary>
-            protected ImplBase(IHostEnvironment env, TArgs args, string name, int? conc = null)
+            protected ImplBase(IHostEnvironment env, TOptions options, string name, int? conc = null)
             {
                 Contracts.CheckValue(env, nameof(env));
 
                 // Note that env may be null here, which is OK since the CheckXxx methods are extension
                 // methods designed to allow null.
-                env.CheckValue(args, nameof(args));
+                env.CheckValue(options, nameof(options));
                 env.CheckParam(conc == null || conc >= 0, nameof(conc), "Degree of concurrency must be non-negative (or null)");
 
-                conc = conc ?? args.Parallel;
-                env.CheckUserArg(!(conc < 0), nameof(args.Parallel), "Degree of parallelism must be non-negative (or null)");
+                conc = conc ?? options.Parallel;
+                env.CheckUserArg(!(conc < 0), nameof(options.Parallel), "Degree of parallelism must be non-negative (or null)");
 
                 // Capture the environment options from args.
-                env = env.Register(name, args.RandomSeed, args.Verbose, conc);
+                env = env.Register(name, options.RandomSeed, options.Verbose, conc);
 
                 env.CheckNonWhiteSpace(name, nameof(name));
                 Host = env.Register(name);
-                Args = args;
-                _serverFactory = args.Server;
-                Utils.CheckOptionalUserDirectory(args.OutputModelFile, nameof(args.OutputModelFile));
+                ImplOptions = options;
+                _serverFactory = options.Server;
+                Utils.CheckOptionalUserDirectory(options.OutputModelFile, nameof(options.OutputModelFile));
             }
 
-            protected ImplBase(ImplBase<TArgs> impl, string name)
+            protected ImplBase(ImplBase<TOptions> impl, string name)
             {
                 Contracts.CheckValue(impl, nameof(impl));
                 Contracts.AssertValue(impl.Host);
-                impl.Host.AssertValue(impl.Args);
+                impl.Host.AssertValue(impl.ImplOptions);
                 impl.Host.AssertValue(name);
-                Args = impl.Args;
+                ImplOptions = impl.ImplOptions;
                 Host = impl.Host.Register(name);
             }
 
@@ -135,9 +135,9 @@ namespace Microsoft.ML.Data
             {
                 Contracts.AssertValue(pipe);
 
-                if (Args.Transforms != null)
+                if (ImplOptions.Transforms != null)
                 {
-                    foreach (var transform in Args.Transforms)
+                    foreach (var transform in ImplOptions.Transforms)
                         SendTelemetryComponent(pipe, transform.Value);
                 }
             }
@@ -221,9 +221,9 @@ namespace Microsoft.ML.Data
             protected IDataLoader CreateAndSaveLoader(Func<IHostEnvironment, IMultiStreamSource, IDataLoader> defaultLoaderFactory = null)
             {
                 var loader = CreateLoader(defaultLoaderFactory);
-                if (!string.IsNullOrWhiteSpace(Args.OutputModelFile))
+                if (!string.IsNullOrWhiteSpace(ImplOptions.OutputModelFile))
                 {
-                    using (var file = Host.CreateOutputFile(Args.OutputModelFile))
+                    using (var file = Host.CreateOutputFile(ImplOptions.OutputModelFile))
                         LoaderUtils.SaveLoader(loader, file);
                 }
                 return loader;
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Data
                 // First handle the case where there is no input model file.
                 // Everything must come from the command line.
 
-                using (var file = Host.OpenInputFile(Args.InputModelFile))
+                using (var file = Host.OpenInputFile(ImplOptions.InputModelFile))
                 using (var strm = file.OpenReadStream())
                 using (var rep = RepositoryReader.Open(strm, Host))
                 {
@@ -274,28 +274,28 @@ namespace Microsoft.ML.Data
                     }
 
                     // Next create the loader.
-                    var loaderFactory = Args.Loader;
+                    var loaderFactory = ImplOptions.Loader;
                     IDataLoader trainPipe = null;
                     if (loaderFactory != null)
                     {
                         // The loader is overridden from the command line.
-                        pipe = loaderFactory.CreateComponent(Host, new MultiFileSource(Args.DataFile));
-                        if (Args.LoadTransforms == true)
+                        pipe = loaderFactory.CreateComponent(Host, new MultiFileSource(ImplOptions.DataFile));
+                        if (ImplOptions.LoadTransforms == true)
                         {
-                            Host.CheckUserArg(!string.IsNullOrWhiteSpace(Args.InputModelFile), nameof(Args.InputModelFile));
+                            Host.CheckUserArg(!string.IsNullOrWhiteSpace(ImplOptions.InputModelFile), nameof(ImplOptions.InputModelFile));
                             pipe = LoadTransformChain(pipe);
                         }
                     }
                     else
                     {
-                        var loadTrans = Args.LoadTransforms ?? true;
-                        pipe = LoadLoader(rep, Args.DataFile, loadTrans);
+                        var loadTrans = ImplOptions.LoadTransforms ?? true;
+                        pipe = LoadLoader(rep, ImplOptions.DataFile, loadTrans);
                         if (loadTrans)
                             trainPipe = pipe;
                     }
 
-                    if (Utils.Size(Args.Transforms) > 0)
-                        pipe = CompositeDataLoader.Create(Host, pipe, Args.Transforms);
+                    if (Utils.Size(ImplOptions.Transforms) > 0)
+                        pipe = CompositeDataLoader.Create(Host, pipe, ImplOptions.Transforms);
 
                     // Next consider loading the training data's role mapped schema.
                     trainSchema = null;
@@ -331,7 +331,7 @@ namespace Microsoft.ML.Data
 
             private IDataLoader CreateTransformChain(IDataLoader loader)
             {
-                return CompositeDataLoader.Create(Host, loader, Args.Transforms);
+                return CompositeDataLoader.Create(Host, loader, ImplOptions.Transforms);
             }
 
             protected IDataLoader CreateRawLoader(
@@ -339,22 +339,22 @@ namespace Microsoft.ML.Data
                 string dataFile = null)
             {
                 if (string.IsNullOrWhiteSpace(dataFile))
-                    dataFile = Args.DataFile;
+                    dataFile = ImplOptions.DataFile;
 
                 IDataLoader loader;
-                if (!string.IsNullOrWhiteSpace(Args.InputModelFile) && Args.Loader == null)
+                if (!string.IsNullOrWhiteSpace(ImplOptions.InputModelFile) && ImplOptions.Loader == null)
                 {
                     // Load the loader from the data model.
-                    using (var file = Host.OpenInputFile(Args.InputModelFile))
+                    using (var file = Host.OpenInputFile(ImplOptions.InputModelFile))
                     using (var strm = file.OpenReadStream())
                     using (var rep = RepositoryReader.Open(strm, Host))
-                        loader = LoadLoader(rep, dataFile, Args.LoadTransforms ?? true);
+                        loader = LoadLoader(rep, dataFile, ImplOptions.LoadTransforms ?? true);
                 }
                 else
                 {
                     // Either there is no input model file, or there is, but the loader is overridden.
                     IMultiStreamSource fileSource = new MultiFileSource(dataFile);
-                    var loaderFactory = Args.Loader;
+                    var loaderFactory = ImplOptions.Loader;
                     if (loaderFactory == null)
                     {
                         var ext = Path.GetExtension(dataFile);
@@ -375,9 +375,9 @@ namespace Microsoft.ML.Data
                         loader = loaderFactory.CreateComponent(Host, fileSource);
                     }
 
-                    if (Args.LoadTransforms == true)
+                    if (ImplOptions.LoadTransforms == true)
                     {
-                        Host.CheckUserArg(!string.IsNullOrWhiteSpace(Args.InputModelFile), nameof(Args.InputModelFile));
+                        Host.CheckUserArg(!string.IsNullOrWhiteSpace(ImplOptions.InputModelFile), nameof(ImplOptions.InputModelFile));
                         loader = LoadTransformChain(loader);
                     }
                 }
@@ -386,9 +386,9 @@ namespace Microsoft.ML.Data
 
             private IDataLoader LoadTransformChain(IDataLoader srcData)
             {
-                Host.Assert(!string.IsNullOrWhiteSpace(Args.InputModelFile));
+                Host.Assert(!string.IsNullOrWhiteSpace(ImplOptions.InputModelFile));
 
-                using (var file = Host.OpenInputFile(Args.InputModelFile))
+                using (var file = Host.OpenInputFile(ImplOptions.InputModelFile))
                 using (var strm = file.OpenReadStream())
                 using (var rep = RepositoryReader.Open(strm, Host))
                 using (var pipeLoaderEntry = rep.OpenEntry(ModelFileUtils.DirDataLoaderModel, ModelLoadContext.ModelStreamName))

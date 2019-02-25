@@ -14,6 +14,8 @@ namespace Microsoft.ML.RunTests
         public string testFilename;
         public string validFilename;
         public string labelFilename;
+        public char fileSeparator;
+        public bool fileHasHeader;
 
         // REVIEW: Replace these with appropriate SubComponents!
         public string settings;
@@ -158,6 +160,8 @@ namespace Microsoft.ML.RunTests
             name = "housing",
             trainFilename = "housing.txt",
             testFilename = "housing.txt",
+            fileSeparator = '\t',
+            fileHasHeader = true,
             loaderSettings = "loader=Text{col=Label:0 col=Features:~ header=+}",
             GetLoaderColumns = () =>
             {
@@ -206,6 +210,8 @@ namespace Microsoft.ML.RunTests
             name = "sentiment",
             trainFilename = "wikipedia-detox-250-line-data.tsv",
             testFilename = "wikipedia-detox-250-line-test.tsv",
+            fileHasHeader = true,
+            fileSeparator = '\t',
             GetLoaderColumns = () =>
              {
                  return new[]
@@ -447,6 +453,8 @@ namespace Microsoft.ML.RunTests
             name = "iris",
             trainFilename = @"iris.txt",
             testFilename = @"iris.txt",
+            fileHasHeader = true,
+            fileSeparator = '\t'
         };
 
         public static TestDataset irisMissing = new TestDataset()
@@ -655,6 +663,8 @@ namespace Microsoft.ML.RunTests
             name = "mnistOneClass",
             trainFilename = @"MNIST.Train.0-class.tiny.txt",
             testFilename = @"MNIST.Test.tiny.txt",
+            fileHasHeader = false,
+            fileSeparator = '\t',
             settings = ""
         };
 
@@ -704,6 +714,8 @@ namespace Microsoft.ML.RunTests
             name = "trivialMatrixFactorization",
             trainFilename = @"trivial-train.tsv",
             testFilename = @"trivial-test.tsv",
+            fileHasHeader = true,
+            fileSeparator = '\t',
             loaderSettings = "loader=Text{col=Label:R4:0 col=User:U4[0-19]:1 col=Item:U4[0-39]:2 header+}"
         };
     }

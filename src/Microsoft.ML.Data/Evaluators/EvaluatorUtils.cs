@@ -1334,7 +1334,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public static class MetricWriter
+    internal static class MetricWriter
     {
         /// <summary>
         /// Get the confusion tables as strings to be printed to the Console.
@@ -1757,7 +1757,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// This is a list of string constants denoting 'standard' metric kinds.
     /// </summary>
-    public static class MetricKinds
+    [BestFriend]
+    internal static class MetricKinds
     {
         /// <summary>
         /// This data view contains the confusion matrix for N-class classification. It has N rows, and each row has

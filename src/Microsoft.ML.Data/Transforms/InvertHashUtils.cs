@@ -321,7 +321,8 @@ namespace Microsoft.ML.Data
     /// Simple utility class for saving a <see cref="VBuffer{T}"/> of ReadOnlyMemory
     /// as a model, both in a binary and more easily human readable form.
     /// </summary>
-    public static class TextModelHelper
+    [BestFriend]
+    internal static class TextModelHelper
     {
         private const string LoaderSignature = "TextSpanBuffer";
 

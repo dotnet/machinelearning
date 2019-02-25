@@ -611,14 +611,14 @@ namespace Microsoft.ML.Transforms.Text
                 var result = new DataViewSchema.DetachedColumn[_parent._columns.Length];
                 for (int i = 0; i < _parent._columns.Length; i++)
                 {
-                    var builder = new MetadataBuilder();
+                    var builder = new DataViewSchema.Metadata.Builder();
                     AddMetadata(i, builder);
-                    result[i] = new DataViewSchema.DetachedColumn(_parent._columns[i].Name, _types[i], builder.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent._columns[i].Name, _types[i], builder.ToMetadata());
                 }
                 return result;
             }
 
-            private void AddMetadata(int i, MetadataBuilder builder)
+            private void AddMetadata(int i, DataViewSchema.Metadata.Builder builder)
             {
                 if (_parent._slotNamesTypes != null && _parent._slotNamesTypes[i] != null)
                 {

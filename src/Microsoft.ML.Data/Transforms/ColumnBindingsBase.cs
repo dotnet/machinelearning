@@ -14,7 +14,7 @@ using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Data
 {
-    public abstract class SourceNameColumnBase
+    internal abstract class SourceNameColumnBase
     {
         [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the new column", ShortName = "name")]
         public string Name;
@@ -103,13 +103,15 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public abstract class OneToOneColumn : SourceNameColumnBase
+    [BestFriend]
+    internal abstract class OneToOneColumn : SourceNameColumnBase
     {
         [BestFriend]
         private protected OneToOneColumn() { }
     }
 
-    public abstract class ManyToOneColumn
+    [BestFriend]
+    internal abstract class ManyToOneColumn
     {
         [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the new column", ShortName = "name")]
         public string Name;
@@ -272,19 +274,19 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(inputBindings, nameof(inputBindings));
 
-            var builder = new SchemaBuilder();
+            var builder = new DataViewSchema.Builder();
             for (int i = 0; i < inputBindings.ColumnCount; i++)
             {
-                var meta = new MetadataBuilder();
+                var meta = new DataViewSchema.Metadata.Builder();
                 foreach (var kvp in inputBindings.GetMetadataTypes(i))
                 {
                     var getter = Utils.MarshalInvoke(GetMetadataGetterDelegate<int>, kvp.Value.RawType, inputBindings, i, kvp.Key);
                     meta.Add(kvp.Key, kvp.Value, getter);
                 }
-                builder.AddColumn(inputBindings.GetColumnName(i), inputBindings.GetColumnType(i), meta.GetMetadata());
+                builder.AddColumn(inputBindings.GetColumnName(i), inputBindings.GetColumnType(i), meta.ToMetadata());
             }
 
-            return builder.GetSchema();
+            return builder.ToSchema();
         }
 
         private static Delegate GetMetadataGetterDelegate<TValue>(ColumnBindingsBase bindings, int col, string kind)

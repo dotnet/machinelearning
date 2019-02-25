@@ -22,7 +22,8 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 789);
 
             // Get the dataset, create a train and test
-            var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(), hasHeader: true)
+            var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(),
+                    hasHeader: TestDatasets.housing.fileHasHeader, separatorChar: TestDatasets.housing.fileSeparator)
                 .Read(BaseTestClass.GetDataPath(TestDatasets.housing.trainFilename));
             var split = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.2);
 
@@ -38,7 +39,7 @@ namespace Microsoft.ML.Functional.Tests
             var scoredTest = model.Transform(split.TestSet);
             var metrics = mlContext.Regression.Evaluate(scoredTest);
 
-            Common.CheckMetrics(metrics);
+            Common.AssertMetrics(metrics);
 
             // Todo #2465: Allow the setting of threshold and thresholdColumn for scoring.
             // This is no longer possible in the API

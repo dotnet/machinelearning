@@ -87,7 +87,7 @@ namespace Microsoft.ML.Data
         }
 
         // Factory for SignatureLoadModel.
-        public TransformWrapper(IHostEnvironment env, ModelLoadContext ctx)
+        private TransformWrapper(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TransformWrapper));
@@ -166,28 +166,6 @@ namespace Microsoft.ML.Data
             var fakeSchema = FakeSchemaFactory.Create(inputSchema);
             var transformer = Fit(new EmptyDataView(Host, fakeSchema));
             return SchemaShape.Create(transformer.GetOutputSchema(fakeSchema));
-        }
-    }
-
-    /// <summary>
-    /// Estimator for untrained wrapped transformers.
-    /// </summary>
-    public abstract class TrivialWrapperEstimator : TrivialEstimator<TransformWrapper>
-    {
-        protected TrivialWrapperEstimator(IHost host, TransformWrapper transformer)
-            : base(host, transformer)
-        {
-        }
-
-        /// <summary>
-        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
-        /// Used for schema propagation and verification in a pipeline.
-        /// </summary>
-        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
-        {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
-            var fakeSchema = FakeSchemaFactory.Create(inputSchema);
-            return SchemaShape.Create(Transformer.GetOutputSchema(fakeSchema));
         }
     }
 }

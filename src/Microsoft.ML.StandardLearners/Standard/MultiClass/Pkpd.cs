@@ -64,7 +64,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Options passed to PKPD.
         /// </summary>
-        internal sealed class Options : ArgumentsBase
+        internal sealed class Options : OptionsBase
         {
         }
         /// <summary>

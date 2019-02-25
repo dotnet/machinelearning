@@ -39,9 +39,6 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
                 VerifyCS.Diagnostic(ContractsCheckAnalyzer.SimpleMessageDiagnostic.Rule).WithLocation(basis + 32, 35).WithArguments("Check", "\"Less fine: \" + env.GetType().Name"),
                 VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(basis + 34, 17).WithArguments("CheckUserArg", "name", "\"p\""),
                 VerifyCS.Diagnostic(ContractsCheckAnalyzer.DecodeMessageWithLoadContextDiagnostic.Rule).WithLocation(basis + 39, 41).WithArguments("CheckDecode", "\"This message is suspicious\""),
-                new DiagnosticResult("CS0117", DiagnosticSeverity.Error).WithLocation("Test1.cs", 220, 70).WithMessage("'MessageSensitivity' does not contain a definition for 'UserData'"),
-                new DiagnosticResult("CS0117", DiagnosticSeverity.Error).WithLocation("Test1.cs", 231, 70).WithMessage("'MessageSensitivity' does not contain a definition for 'Schema'"),
-                new DiagnosticResult("CS1061", DiagnosticSeverity.Error).WithLocation("Test1.cs", 747, 21).WithMessage("'IHostEnvironment' does not contain a definition for 'IsCancelled' and no accessible extension method 'IsCancelled' accepting a first argument of type 'IHostEnvironment' could be found (are you missing a using directive or an assembly reference?)"),
             };
 
             var test = new VerifyCS.Test

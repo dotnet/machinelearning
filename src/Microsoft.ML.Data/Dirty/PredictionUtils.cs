@@ -16,7 +16,8 @@ namespace Microsoft.ML.Internal.Internallearn
     /// <summary>
     /// Various utilities
     /// </summary>
-    public static class PredictionUtil
+    [BestFriend]
+    internal static class PredictionUtil
     {
         /// <summary>
         /// generic method for parsing arguments using CommandLine. If there's a problem, it throws an InvalidOperationException, with a message giving usage.
@@ -150,18 +151,6 @@ namespace Microsoft.ML.Internal.Internallearn
                     return s[0];
                 return default(char);
             }
-        }
-    }
-
-    /// <summary>
-    /// A generic reverse Comparer (for use in Array.Sort)
-    /// </summary>
-    public sealed class ReverseComparer<T> : IComparer<T>
-        where T : IComparable<T>
-    {
-        public int Compare(T x, T y)
-        {
-            return -x.CompareTo(y);
         }
     }
 }

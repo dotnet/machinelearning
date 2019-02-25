@@ -34,11 +34,6 @@ namespace Microsoft.ML.Trainers.FastTree
             get { return _bpi; }
         }
 
-        public override MD5Hash MD5Hash
-        {
-            get { return MD5Hasher.Hash(_data) ^ MD5Hasher.Hash(_segLength) ^ MD5Hasher.Hash(_segType); }
-        }
-
         public override IntArrayType Type
         {
             get { return IntArrayType.Segmented; }

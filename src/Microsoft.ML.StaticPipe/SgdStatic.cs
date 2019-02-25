@@ -83,7 +83,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.FeatureColumn = featuresName;
                     options.LabelColumn = labelName;
-                    options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                    options.WeightColumn = weightsName;
 
                     var trainer = new SgdBinaryTrainer(env, options);
 
@@ -166,7 +166,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.FeatureColumn = featuresName;
                     options.LabelColumn = labelName;
-                    options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                    options.WeightColumn = weightsName;
 
                     var trainer = new SgdNonCalibratedBinaryTrainer(env, options);
 

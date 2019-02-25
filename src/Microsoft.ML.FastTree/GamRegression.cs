@@ -76,12 +76,12 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private protected override ObjectiveFunctionBase CreateObjectiveFunction()
         {
-            return new FastTreeRegressionTrainer.ObjectiveImpl(TrainSet, Args);
+            return new FastTreeRegressionTrainer.ObjectiveImpl(TrainSet, GamTrainerOptions);
         }
 
         private protected override void DefinePruningTest()
         {
-            var validTest = new RegressionTest(ValidSetScore, Args.PruningMetrics);
+            var validTest = new RegressionTest(ValidSetScore, GamTrainerOptions.PruningMetrics);
             // Because we specify pruning metrics as L2 by default, the results array will have 1 value
             PruningLossIndex = 0;
             PruningTest = new TestHistory(validTest, PruningLossIndex);
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="featureToInputMap">A map from the feature shape functions (as described by the binUpperBounds and BinEffects)
         /// to the input feature. Used when the number of input features is different than the number of shape functions. Use default if all features have
         /// a shape function.</param>
-        public RegressionGamModelParameters(IHostEnvironment env,
+        internal RegressionGamModelParameters(IHostEnvironment env,
             double[][] binUpperBounds, double[][] binEffects, double intercept, int inputLength = -1, int[] featureToInputMap = null)
             : base(env, LoaderSignature, binUpperBounds, binEffects, intercept, inputLength, featureToInputMap) { }
 

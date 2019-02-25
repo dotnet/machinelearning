@@ -497,7 +497,8 @@ namespace Microsoft.ML.Scenarios
                         new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
 
                     },
-                    hasHeader: true
+                hasHeader: true,
+                allowSparse: true
                 );
 
             var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
@@ -537,7 +538,8 @@ namespace Microsoft.ML.Scenarios
                         {
                             new TextLoader.Column("Label", DataKind.I8, 0),
                             new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
-                        }
+                        },
+                    allowSparse: true
                     );
 
                 var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
@@ -631,7 +633,8 @@ namespace Microsoft.ML.Scenarios
                         new TextLoader.Column("Label", DataKind.U4, new []{ new TextLoader.Range(0) }, new KeyCount(10)),
                         new TextLoader.Column("TfLabel", DataKind.I8, 0),
                         new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
-                    }
+                    },
+                    allowSparse: true
                 );
 
                 var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
@@ -725,7 +728,8 @@ namespace Microsoft.ML.Scenarios
                     new TextLoader.Column("Label", DataKind.U4 , new [] { new TextLoader.Range(0) }, new KeyCount(10)),
                     new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
                 },
-                hasHeader: true
+                hasHeader: true,
+                allowSparse: true
             );
 
             var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
@@ -851,7 +855,7 @@ namespace Microsoft.ML.Scenarios
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = mlContext.Data.ReadFromTextFile(dataFile,
-                    columns: new[]
+                columns: new[]
                     {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -989,12 +993,12 @@ namespace Microsoft.ML.Scenarios
             var dataView = mlContext.Data.ReadFromEnumerable(data);
 
             var lookupMap = mlContext.Data.ReadFromTextFile(@"sentiment_model/imdb_word_index.csv",
-                   columns: new[]
+                columns: new[]
                    {
                         new TextLoader.Column("Words", DataKind.TX, 0),
                         new TextLoader.Column("Ids", DataKind.I4, 1),
                    },
-                   separatorChar: ','
+                separatorChar: ','
                );
 
             // We cannot resize variable length vector to fixed length vector in ML.NET
@@ -1003,7 +1007,7 @@ namespace Microsoft.ML.Scenarios
             // Then this integer vector is retrieved from the pipeline and resized to fixed length.
             // The second pipeline 'tfEnginePipe' takes the resized integer vector and passes it to TensoFlow and gets the classification scores.
             var estimator = mlContext.Transforms.Text.TokenizeWords("TokenizedWords", "Sentiment_Text")
-                .Append(mlContext.Transforms.Conversion.ValueMap(lookupMap, "Words", "Ids", new[] { ("Features", "TokenizedWords") }));
+                .Append(mlContext.Transforms.Conversion.ValueMap(lookupMap, "Words", "Ids", new SimpleColumnInfo[] { ("Features", "TokenizedWords") }));
             var dataPipe = estimator.Fit(dataView)
                 .CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(mlContext);
 

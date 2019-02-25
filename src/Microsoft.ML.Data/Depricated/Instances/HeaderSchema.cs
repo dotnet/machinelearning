@@ -34,12 +34,12 @@ namespace Microsoft.ML.Internal.Internallearn
                 _colType = new VectorType(NumberDataViewType.Single, collection.Count);
                 _slotNamesType = new VectorType(TextDataViewType.Instance, collection.Count);
 
-                var metadataBuilder = new MetadataBuilder();
+                var metadataBuilder = new DataViewSchema.Metadata.Builder();
                 metadataBuilder.Add(MetadataUtils.Kinds.SlotNames, _slotNamesType,
                     (ref VBuffer<ReadOnlyMemory<char>> slotNames) => { GetSlotNames(0, ref slotNames); } );
-                var schemaBuilder = new SchemaBuilder();
-                schemaBuilder.AddColumn(RoleMappedSchema.ColumnRole.Feature.Value, _colType, metadataBuilder.GetMetadata());
-                FeatureNameCollectionSchema = schemaBuilder.GetSchema();
+                var schemaBuilder = new DataViewSchema.Builder();
+                schemaBuilder.AddColumn(RoleMappedSchema.ColumnRole.Feature.Value, _colType, metadataBuilder.ToMetadata());
+                FeatureNameCollectionSchema = schemaBuilder.ToSchema();
             }
 
             private void GetSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)

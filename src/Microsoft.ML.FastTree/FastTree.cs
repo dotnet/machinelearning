@@ -95,7 +95,7 @@ namespace Microsoft.ML.Trainers.FastTree
         // random for active features selection
         private Random _featureSelectionRandom;
 
-        private protected string InnerArgs => CmdParser.GetSettings(Host, FastTreeTrainerOptions, new TOptions());
+        private protected string InnerOptions => CmdParser.GetSettings(Host, FastTreeTrainerOptions, new TOptions());
 
         public override TrainerInfo Info { get; }
 
@@ -124,12 +124,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
             FastTreeTrainerOptions.LabelColumn = label.Name;
             FastTreeTrainerOptions.FeatureColumn = featureColumn;
-
-            if (weightColumn != null)
-                FastTreeTrainerOptions.WeightColumn = Optional<string>.Explicit(weightColumn);
-
-            if (groupIdColumn != null)
-                FastTreeTrainerOptions.GroupIdColumn = Optional<string>.Explicit(groupIdColumn);
+            FastTreeTrainerOptions.WeightColumn = weightColumn;
+            FastTreeTrainerOptions.GroupIdColumn = groupIdColumn;
 
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
@@ -236,7 +232,7 @@ namespace Microsoft.ML.Trainers.FastTree
             {
                 using (Timer.Time(TimerEvent.TotalInitialization))
                 {
-                    CheckArgs(ch);
+                    CheckOptions(ch);
                     PrintPrologInfo(ch);
 
                     Initialize(ch);
@@ -270,7 +266,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ch.Info("Execution time breakdown:\n{0}", Timer.GetString());
         }
 
-        private protected virtual void CheckArgs(IChannel ch)
+        private protected virtual void CheckOptions(IChannel ch)
         {
             FastTreeTrainerOptions.Check(ch);
 
@@ -2814,7 +2810,7 @@ namespace Microsoft.ML.Trainers.FastTree
         int ITreeEnsemble.NumTrees => TrainedEnsemble.NumTrees;
 
         // Inner args is used only for documentation purposes when saving comments to INI files.
-        private protected readonly string InnerArgs;
+        private protected readonly string InnerOptions;
 
         // The total number of features used in training (takes the value of zero if the
         // written version of the loaded model is less than VerNumFeaturesSerialized)
@@ -2865,7 +2861,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // the trained ensemble to, for instance, resize arrays so that they are of the length
             // the actual number of leaves/nodes, or remove unnecessary arrays, and so forth.
             TrainedEnsemble = trainedEnsemble;
-            InnerArgs = innerArgs;
+            InnerOptions = innerArgs;
             NumFeatures = numFeatures;
 
             MaxSplitFeatIdx = trainedEnsemble.GetMaxFeatureIndex();
@@ -2895,7 +2891,7 @@ namespace Microsoft.ML.Trainers.FastTree
             TrainedEnsemble = new InternalTreeEnsemble(ctx, usingDefaultValues, categoricalSplits);
             MaxSplitFeatIdx = TrainedEnsemble.GetMaxFeatureIndex();
 
-            InnerArgs = ctx.LoadStringOrNull();
+            InnerOptions = ctx.LoadStringOrNull();
             if (ctx.Header.ModelVerWritten >= VerNumFeaturesSerialized)
             {
                 NumFeatures = ctx.Reader.ReadInt32();
@@ -2924,7 +2920,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // int: Number of features (VerNumFeaturesSerialized)
             // <PredictionKind> specific stuff
             TrainedEnsemble.Save(ctx);
-            ctx.SaveStringOrNull(InnerArgs);
+            ctx.SaveStringOrNull(InnerOptions);
             Host.Assert(NumFeatures >= 0);
             ctx.Writer.Write(NumFeatures);
         }
@@ -3003,7 +2999,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             Host.CheckValue(writer, nameof(writer));
             var ensembleIni = FastTreeIniFileUtils.TreeEnsembleToIni(Host, TrainedEnsemble, schema, calibrator,
-                InnerArgs, appendFeatureGain: true, includeZeroGainFeatures: false);
+                InnerOptions, appendFeatureGain: true, includeZeroGainFeatures: false);
             writer.WriteLine(ensembleIni);
         }
 
@@ -3283,15 +3279,15 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
-            var metaBuilder = new MetadataBuilder();
+            var metaBuilder = new DataViewSchema.Metadata.Builder();
             metaBuilder.AddSlotNames(NumFeatures, names.CopyTo);
 
             var weights = default(VBuffer<Single>);
             ((IHaveFeatureWeights)this).GetFeatureWeights(ref weights);
-            var builder = new MetadataBuilder();
-            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.GetMetadata());
+            var builder = new DataViewSchema.Metadata.Builder();
+            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.ToMetadata());
 
-            return MetadataUtils.MetadataAsRow(builder.GetMetadata());
+            return MetadataUtils.MetadataAsRow(builder.ToMetadata());
         }
 
         DataViewRow ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema)

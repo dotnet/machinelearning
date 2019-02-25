@@ -72,13 +72,13 @@ namespace Microsoft.ML.Transforms
 
         private readonly float _gamma;
 
-        public GaussianFourierSampler(IHostEnvironment env, Options args, float avgDist)
+        public GaussianFourierSampler(IHostEnvironment env, Options options, float avgDist)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoadName);
-            _host.CheckValue(args, nameof(args));
+            _host.CheckValue(options, nameof(options));
 
-            _gamma = args.Gamma / avgDist;
+            _gamma = options.Gamma / avgDist;
         }
 
         private static GaussianFourierSampler Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -153,13 +153,13 @@ namespace Microsoft.ML.Transforms
         private readonly IHost _host;
         private readonly float _a;
 
-        public LaplacianFourierSampler(IHostEnvironment env, Options args, float avgDist)
+        public LaplacianFourierSampler(IHostEnvironment env, Options options, float avgDist)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
-            _host.CheckValue(args, nameof(args));
+            _host.CheckValue(options, nameof(options));
 
-            _a = args.A / avgDist;
+            _a = options.A / avgDist;
         }
 
         private static LaplacianFourierSampler Create(IHostEnvironment env, ModelLoadContext ctx)

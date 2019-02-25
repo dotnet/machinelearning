@@ -95,7 +95,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
-                    options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                    options.WeightColumn = weightsName;
 
                     var trainer = new LogisticRegression(env, options);
 
@@ -191,7 +191,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
-                    options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                    options.WeightColumn = weightsName;
 
                     var trainer = new PoissonRegression(env, options);
 
@@ -288,7 +288,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
-                    options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                    options.WeightColumn = weightsName;
 
                     var trainer = new MulticlassLogisticRegression(env, options);
 
