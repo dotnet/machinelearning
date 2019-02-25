@@ -9,63 +9,79 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Projections;
 
-[assembly: LoadableClass(typeof(GaussianRngGenerator), typeof(GaussianRngGenerator.Options), typeof(SignatureRngGenerator),
-    "Gaussian Kernel", GaussianRngGenerator.LoadName, "Gaussian")]
+[assembly: LoadableClass(typeof(GaussianKernel), typeof(GaussianKernel.Options), typeof(SignatureRngGenerator),
+    "Gaussian Kernel", GaussianKernel.LoadName, "Gaussian")]
 
-[assembly: LoadableClass(typeof(LaplacianRngGenerator), typeof(LaplacianRngGenerator.Options), typeof(SignatureRngGenerator),
-    "Laplacian Kernel", LaplacianRngGenerator.LoadName, "Laplacian")]
-
-// This is for deserialization from a binary model file.
-[assembly: LoadableClass(typeof(GaussianRngGenerator.RandomNumberGenerator), null, typeof(SignatureLoadModel),
-    "Gaussian Fourier Sampler Executor", "GaussianSamplerExecutor", GaussianRngGenerator.RandomNumberGenerator.LoaderSignature)]
+[assembly: LoadableClass(typeof(LaplacianKernel), typeof(LaplacianKernel.Options), typeof(SignatureRngGenerator),
+    "Laplacian Kernel", LaplacianKernel.LoadName, "Laplacian")]
 
 // This is for deserialization from a binary model file.
-[assembly: LoadableClass(typeof(LaplacianRngGenerator.RandomNumberGenerator), null, typeof(SignatureLoadModel),
-    "Laplacian Fourier Sampler Executor", "LaplacianSamplerExecutor", LaplacianRngGenerator.RandomNumberGenerator.LoaderSignature)]
+[assembly: LoadableClass(typeof(GaussianKernel.RandomNumberGenerator), null, typeof(SignatureLoadModel),
+    "Gaussian Fourier Sampler Executor", "GaussianSamplerExecutor", GaussianKernel.RandomNumberGenerator.LoaderSignature)]
 
-// REVIEW: Roll all of this in with the RffTransform.
-namespace Microsoft.ML.Transforms
+// This is for deserialization from a binary model file.
+[assembly: LoadableClass(typeof(LaplacianKernel.RandomNumberGenerator), null, typeof(SignatureLoadModel),
+    "Laplacian Fourier Sampler Executor", "LaplacianSamplerExecutor", LaplacianKernel.RandomNumberGenerator.LoaderSignature)]
+
+namespace Microsoft.ML.Transforms.Projections
 {
     /// <summary>
-    /// Signature for a <see cref="RngGeneratorBase"/> constructor.
+    /// Signature for a <see cref="KernelBase"/> constructor.
     /// </summary>
     [BestFriend]
     internal delegate void SignatureRngGenerator();
 
-    public abstract class RngGeneratorBase
+    /// <summary>
+    /// This class indicates which kernel should be approximated by the <see cref="RandomFourierFeaturizingTransformer"/>.
+    /// <seealso cref="RandomFourierFeaturizingEstimator"/>.
+    /// </summary>
+    public abstract class KernelBase
     {
-        internal abstract float Dist(in VBuffer<float> first, in VBuffer<float> second);
+        /// <summary>
+        /// The kernels deriving from this class are shift-invariant, and each of them depends on a different distance between
+        /// its inputs. The <see cref="GaussianKernel"/> depends on the L2 distance, and the <see cref="LaplacianKernel"/> depends
+        /// on the L1 distance.
+        /// </summary>
+        internal abstract float Distance(in VBuffer<float> first, in VBuffer<float> second);
 
-        internal abstract RandomNumberGeneratorBase GetRandomNumberGenerator(float avgDist);
+        /// <summary>
+        /// This method returns an object that can sample from the non-negative measure that is the Fourier transform of this kernel.
+        /// </summary>
+        internal abstract FourierRandomNumberGeneratorBase GetRandomNumberGenerator(float averageDistance);
     }
 
-    internal abstract class RandomNumberGeneratorBase
+    /// <summary>
+    /// The Fourier transform of a continuous positive definite kernel is a non-negative measure
+    /// (<a href="https://en.wikipedia.org/wiki/Bochner%27s_theorem">Bochner's theorem</a>). This class
+    /// samples numbers from the non-negative measure corresponding to the given kernel.
+    /// </summary>
+    internal abstract class FourierRandomNumberGeneratorBase
     {
         public abstract float Next(Random rand);
     }
 
-    public sealed class GaussianRngGenerator : RngGeneratorBase
+    public sealed class GaussianKernel : KernelBase
     {
-        public sealed class Options : IComponentFactory<RngGeneratorBase>
+        internal sealed class Options : IComponentFactory<KernelBase>
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "gamma in the kernel definition: exp(-gamma*||x-y||^2 / r^2). r is an estimate of the average intra-example distance", ShortName = "g")]
             public float Gamma = 1;
 
-            public RngGeneratorBase CreateComponent(IHostEnvironment env) => new GaussianRngGenerator(env, this);
+            public KernelBase CreateComponent(IHostEnvironment env) => new GaussianKernel(env, this);
         }
 
         internal const string LoadName = "GaussianRandom";
 
         private readonly float _gamma;
 
-        public GaussianRngGenerator(float gamma = 1)
+        public GaussianKernel(float gamma = 1)
         {
             _gamma = gamma;
         }
 
-        internal GaussianRngGenerator(IHostEnvironment env, Options options)
+        internal GaussianKernel(IHostEnvironment env, Options options)
         {
             Contracts.CheckValueOrNull(env, nameof(env));
             env.CheckValue(options, nameof(options));
@@ -73,17 +89,17 @@ namespace Microsoft.ML.Transforms
             _gamma = options.Gamma;
         }
 
-        internal override float Dist(in VBuffer<float> first, in VBuffer<float> second)
+        internal override float Distance(in VBuffer<float> first, in VBuffer<float> second)
         {
             return VectorUtils.L2DistSquared(in first, in second);
         }
 
-        internal override RandomNumberGeneratorBase GetRandomNumberGenerator(float avgDist)
+        internal override FourierRandomNumberGeneratorBase GetRandomNumberGenerator(float averageDistance)
         {
-            return new RandomNumberGenerator(_gamma, avgDist);
+            return new RandomNumberGenerator(_gamma, averageDistance);
         }
 
-        internal sealed class RandomNumberGenerator : RandomNumberGeneratorBase, ICanSaveModel
+        internal sealed class RandomNumberGenerator : FourierRandomNumberGeneratorBase, ICanSaveModel
         {
             internal const string LoaderSignature = "RandGaussFourierExec";
             private static VersionInfo GetVersionInfo()
@@ -99,10 +115,11 @@ namespace Microsoft.ML.Transforms
 
             private readonly float _gamma;
 
-            public RandomNumberGenerator(float gamma, float avgDist)
+            public RandomNumberGenerator(float gamma, float averageDistance)
                 : base()
             {
-                _gamma = gamma / avgDist;
+                Contracts.Assert(averageDistance != 0);
+                _gamma = gamma / averageDistance;
             }
 
             private static RandomNumberGenerator Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -149,26 +166,26 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public sealed class LaplacianRngGenerator : RngGeneratorBase
+    public sealed class LaplacianKernel : KernelBase
     {
-        public sealed class Options : IComponentFactory<RngGeneratorBase>
+        internal sealed class Options : IComponentFactory<KernelBase>
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "a in the term exp(-a|x| / r). r is an estimate of the average intra-example L1 distance")]
             public float A = 1;
 
-            public RngGeneratorBase CreateComponent(IHostEnvironment env) => new LaplacianRngGenerator(env, this);
+            public KernelBase CreateComponent(IHostEnvironment env) => new LaplacianKernel(env, this);
         }
 
         internal const string LoadName = "LaplacianRandom";
 
         private readonly float _a;
 
-        public LaplacianRngGenerator(float a = 1)
+        public LaplacianKernel(float a = 1)
         {
             _a = a;
         }
 
-        internal LaplacianRngGenerator(IHostEnvironment env, Options options)
+        internal LaplacianKernel(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(options, nameof(options));
@@ -176,17 +193,17 @@ namespace Microsoft.ML.Transforms
             _a = options.A;
         }
 
-        internal override float Dist(in VBuffer<float> first, in VBuffer<float> second)
+        internal override float Distance(in VBuffer<float> first, in VBuffer<float> second)
         {
             return VectorUtils.L1Distance(in first, in second);
         }
 
-        internal override RandomNumberGeneratorBase GetRandomNumberGenerator(float avgDist)
+        internal override FourierRandomNumberGeneratorBase GetRandomNumberGenerator(float averageDistance)
         {
-            return new RandomNumberGenerator(_a, avgDist);
+            return new RandomNumberGenerator(_a, averageDistance);
         }
 
-        internal sealed class RandomNumberGenerator : RandomNumberGeneratorBase, ICanSaveModel
+        internal sealed class RandomNumberGenerator : FourierRandomNumberGeneratorBase, ICanSaveModel
         {
             private static VersionInfo GetVersionInfo()
             {
@@ -204,9 +221,10 @@ namespace Microsoft.ML.Transforms
 
             private readonly float _a;
 
-            public RandomNumberGenerator(float a, float avgDist)
+            public RandomNumberGenerator(float a, float averageDistance)
             {
-                _a = a / avgDist;
+                Contracts.Assert(averageDistance != 0);
+                _a = a / averageDistance;
             }
 
             private static RandomNumberGenerator Create(IHostEnvironment env, ModelLoadContext ctx)

@@ -30,7 +30,11 @@ using Microsoft.ML.Transforms.Projections;
 namespace Microsoft.ML.Transforms.Projections
 {
     /// <summary>
-    /// Maps vector columns to a low -dimensional feature space.
+    /// Maps vector columns to a feature space where the inner products approximate a user specified shift-invariant kernel.
+    /// The kernel is indicated by specifying a <see cref="KernelBase"/> instance. The available implementations
+    /// are <see cref="GaussianKernel"/> and <see cref="LaplacianKernel"/>.
+    /// This transformation is based on this paper by
+    /// <a href="http://pages.cs.wisc.edu/~brecht/papers/07.rah.rec.nips.pdf">Rahimi and Recht</a>.
     /// </summary>
     public sealed class RandomFourierFeaturizingTransformer : OneToOneTransformerBase
     {
@@ -43,7 +47,7 @@ namespace Microsoft.ML.Transforms.Projections
             public int NewDim = RandomFourierFeaturizingEstimator.Defaults.NewDim;
 
             [Argument(ArgumentType.Multiple, HelpText = "Which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureRngGenerator))]
-            public IComponentFactory<RngGeneratorBase> MatrixGenerator = new GaussianRngGenerator.Options();
+            public IComponentFactory<KernelBase> MatrixGenerator = new GaussianKernel.Options();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Create two features for every random Fourier frequency? (one for cos and one for sin)")]
             public bool UseSin = RandomFourierFeaturizingEstimator.Defaults.UseSin;
@@ -60,7 +64,7 @@ namespace Microsoft.ML.Transforms.Projections
             public int? NewDim;
 
             [Argument(ArgumentType.Multiple, HelpText = "which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureRngGenerator))]
-            public IComponentFactory<RngGeneratorBase> MatrixGenerator;
+            public IComponentFactory<KernelBase> MatrixGenerator;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "create two features for every random Fourier frequency? (one for cos and one for sin)")]
             public bool? UseSin;
@@ -100,7 +104,7 @@ namespace Microsoft.ML.Transforms.Projections
             // the random rotations
             public readonly AlignedArray RotationTerms;
 
-            private readonly RandomNumberGeneratorBase _matrixGenerator;
+            private readonly FourierRandomNumberGeneratorBase _matrixGenerator;
             private readonly bool _useSin;
             private readonly TauswortheHybrid _rand;
             private readonly TauswortheHybrid.State _state;
@@ -151,7 +155,7 @@ namespace Microsoft.ML.Transforms.Projections
                 _rand = new TauswortheHybrid(_state);
 
                 env.CheckDecode(ctx.Repository != null &&
-                    ctx.LoadModelOrNull<RandomNumberGeneratorBase, SignatureLoadModel>(env, out _matrixGenerator, directoryName));
+                    ctx.LoadModelOrNull<FourierRandomNumberGeneratorBase, SignatureLoadModel>(env, out _matrixGenerator, directoryName));
 
                 // initialize the transform matrix
                 int roundedUpD = RoundUp(NewDim, _cfltAlign);
@@ -363,7 +367,7 @@ namespace Microsoft.ML.Transforms.Projections
                             for (int i = 0; i < instanceCount; i++)
                             {
                                 for (int j = i + 1; j < instanceCount; j++)
-                                    distances[count++] = columns[iinfo].Generator.Dist(in res[i], in res[j]);
+                                    distances[count++] = columns[iinfo].Generator.Distance(in res[i], in res[j]);
                             }
                             Host.Assert(count == distances.Length);
                         }
@@ -371,7 +375,7 @@ namespace Microsoft.ML.Transforms.Projections
                         {
                             distances = new float[reservoirSize / 2];
                             for (int i = 0; i < reservoirSize - 1; i += 2)
-                                distances[i / 2] = columns[iinfo].Generator.Dist(in res[i], in res[i + 1]);
+                                distances[i / 2] = columns[iinfo].Generator.Distance(in res[i], in res[i + 1]);
                         }
 
                         // If by chance, in the random permutation all the pairs are the same instance we return 1.
@@ -627,7 +631,7 @@ namespace Microsoft.ML.Transforms.Projections
             /// <summary>
             /// Which fourier generator to use.
             /// </summary>
-            public readonly RngGeneratorBase Generator;
+            public readonly KernelBase Generator;
             /// <summary>
             /// The number of random Fourier features to create.
             /// </summary>
@@ -650,12 +654,12 @@ namespace Microsoft.ML.Transforms.Projections
             /// <param name="inputColumnName">Name of column to transform. </param>
             /// <param name="generator">Which fourier generator to use.</param>
             /// <param name="seed">The seed of the random number generator for generating the new features (if unspecified, the global random is used).</param>
-            public ColumnInfo(string name, int newDim, bool useSin, string inputColumnName = null, RngGeneratorBase generator = null, int? seed = null)
+            public ColumnInfo(string name, int newDim, bool useSin, string inputColumnName = null, KernelBase generator = null, int? seed = null)
             {
                 Contracts.CheckUserArg(newDim > 0, nameof(newDim), "must be positive.");
                 InputColumnName = inputColumnName ?? name;
                 Name = name;
-                Generator = generator ?? new GaussianRngGenerator();
+                Generator = generator ?? new GaussianKernel();
                 NewDim = newDim;
                 UseSin = useSin;
                 Seed = seed;
