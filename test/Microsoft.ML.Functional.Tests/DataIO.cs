@@ -53,7 +53,7 @@ namespace Microsoft.ML.Functional.Tests
             var data = mlContext.Data.ReadFromEnumerable(enumerableBefore);
 
             // Export back to an enumerable.
-            var enumerableAfter = mlContext.CreateEnumerable<TypeTestData>(data, true);
+            var enumerableAfter = mlContext.Data.CreateEnumerable<TypeTestData>(data, true);
 
             Common.AssertEqual(enumerableBefore, enumerableAfter);
         }

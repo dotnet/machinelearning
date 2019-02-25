@@ -58,7 +58,7 @@ namespace Microsoft.ML.Samples.Dynamic
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);
 
             // Getting the resulting data as an IEnumerable of SampleInfertDataWithIntArray. This will contain the newly created column EducationCategory
-            IEnumerable<SampleInfertDataWithIntArray> featuresColumn = mlContext.CreateEnumerable<SampleInfertDataWithIntArray>(transformedData, reuseRowObject: false);
+            IEnumerable<SampleInfertDataWithIntArray> featuresColumn = mlContext.Data.CreateEnumerable<SampleInfertDataWithIntArray>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"Example of mapping string->array");
             Console.WriteLine($"Age\tEducation\tEducationFeature");

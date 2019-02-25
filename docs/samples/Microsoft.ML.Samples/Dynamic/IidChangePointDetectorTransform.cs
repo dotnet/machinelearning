@@ -56,7 +56,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedData = ml.Transforms.IidChangePointEstimator(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of ChangePointPrediction.
-            var predictionColumn = ml.CreateEnumerable<ChangePointPrediction>(transformedData, reuseRowObject: false);
+            var predictionColumn = ml.Data.CreateEnumerable<ChangePointPrediction>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
             Console.WriteLine("Data\tAlert\tScore\tP-Value\tMartingale value");

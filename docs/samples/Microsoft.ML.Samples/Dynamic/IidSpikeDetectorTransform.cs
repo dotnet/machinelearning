@@ -53,7 +53,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedData = ml.Transforms.IidSpikeEstimator(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of IidSpikePrediction.
-            var predictionColumn = ml.CreateEnumerable<IidSpikePrediction>(transformedData, reuseRowObject: false);
+            var predictionColumn = ml.Data.CreateEnumerable<IidSpikePrediction>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
             Console.WriteLine("Alert\tScore\tP-Value");

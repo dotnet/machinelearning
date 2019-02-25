@@ -41,7 +41,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedValues = pipeline.Fit(idv).Transform(idv);
 
             // Retrieve model scores into Prediction class
-            var predictions = mlContext.CreateEnumerable<Prediction>(transformedValues, reuseRowObject: false);
+            var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedValues, reuseRowObject: false);
 
             // Iterate rows
             foreach (var prediction in predictions)

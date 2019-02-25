@@ -65,7 +65,7 @@ namespace Microsoft.ML.Samples.Dynamic
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);
 
             // Getting the resulting data as an IEnumerable of SampleInfertDataWithFeatures.
-            IEnumerable<SampleInfertDataWithFeatures> featureRows = mlContext.CreateEnumerable<SampleInfertDataWithFeatures>(transformedData, reuseRowObject: false);
+            IEnumerable<SampleInfertDataWithFeatures> featureRows = mlContext.Data.CreateEnumerable<SampleInfertDataWithFeatures>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"Example of mapping string->keytype");
             Console.WriteLine($"Age\tEducation\tEducationCategory");

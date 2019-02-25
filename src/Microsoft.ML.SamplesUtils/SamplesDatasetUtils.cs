@@ -480,7 +480,7 @@ namespace Microsoft.ML.SamplesUtils
 
         /// <summary>
         /// Class used to capture prediction of <see cref="BinaryLabelFloatFeatureVectorSample"/> when
-        /// calling <see cref="CursoringUtils.CreateEnumerable"/> via on <see cref="MLContext"/>.
+        /// calling TODO via on <see cref="MLContext"/>.
         /// </summary>
         public class CalibratedBinaryClassifierOutput
         {
@@ -491,7 +491,7 @@ namespace Microsoft.ML.SamplesUtils
 
         /// <summary>
         /// Class used to capture prediction of <see cref="BinaryLabelFloatFeatureVectorSample"/> when
-        /// calling <see cref="CursoringUtils.CreateEnumerable"/> via on <see cref="MLContext"/>.
+        /// calling TODO via on <see cref="MLContext"/>.
         /// </summary>
         public class NonCalibratedBinaryClassifierOutput
         {

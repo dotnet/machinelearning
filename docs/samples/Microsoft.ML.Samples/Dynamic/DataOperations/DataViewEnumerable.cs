@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.ML.Data;
+using Microsoft.Data.DataView;
 using Microsoft.ML.SamplesUtils;
 
 namespace Microsoft.ML.Samples.Dynamic
@@ -23,7 +23,7 @@ namespace Microsoft.ML.Samples.Dynamic
             IDataView data = mlContext.Data.ReadFromEnumerable(enumerableOfData);
 
             // We can now examine the records in the IDataView. We first create an enumerable of rows in the IDataView.
-            var rowEnumerable = mlContext.CreateEnumerable<DatasetUtils.SampleTemperatureData>(data, true);
+            var rowEnumerable = mlContext.Data.CreateEnumerable<DatasetUtils.SampleTemperatureData>(data, true);
 
             Console.WriteLine($"Date\tTemperature");
             foreach (var row in rowEnumerable)
