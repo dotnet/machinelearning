@@ -9,26 +9,27 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
-// todo: re-write & test user input validation once final API nailed down.
-// Tracked by Github issue: https://github.com/dotnet/machinelearning-automl/issues/159
-
 namespace Microsoft.ML.Auto
 {
-    /*internal static class UserInputValidationUtil
+    internal static class UserInputValidationUtil
     {
-        public static void ValidateAutoFitArgs(IDataView trainData, string label, IDataView validationData,
-            AutoFitSettings settings, IEnumerable<(string, ColumnPurpose)> purposeOverrides)
+        public static void ValidateExperimentExecuteArgs(IDataView trainData, ColumnInformation columnInformation,
+            IDataView validationData)
         {
             ValidateTrainData(trainData);
+            ValidateColumnInformation(trainData, columnInformation);
             ValidateValidationData(trainData, validationData);
-            ValidateLabel(trainData, label);
-            ValidateSettings(settings);
-            ValidatePurposeOverrides(trainData, validationData, label, purposeOverrides);
         }
 
-        public static void ValidateInferColumnsArgs(string path, string label)
+        public static void ValidateInferColumnsArgs(string path, ColumnInformation columnInformation)
         {
-            ValidateLabel(label);
+            ValidateColumnInformation(columnInformation);
+            ValidatePath(path);
+        }
+
+        public static void ValidateInferColumnsArgs(string path, string labelColumn)
+        {
+            ValidateLabelColumn(labelColumn);
             ValidatePath(path);
         }
 
@@ -51,21 +52,55 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        private static void ValidateLabel(IDataView trainData, string label)
+        private static void ValidateColumnInformation(IDataView trainData, ColumnInformation columnInformation)
         {
-            ValidateLabel(label);
+            ValidateColumnInformation(columnInformation);
+            ValidateTrainDataColumnExists(trainData, columnInformation.LabelColumn);
+            ValidateTrainDataColumnExists(trainData, columnInformation.WeightColumn);
+            ValidateTrainDataColumnsExist(trainData, columnInformation.CategoricalColumns);
+            ValidateTrainDataColumnsExist(trainData, columnInformation.NumericColumns);
+            ValidateTrainDataColumnsExist(trainData, columnInformation.TextColumns);
+            ValidateTrainDataColumnsExist(trainData, columnInformation.IgnoredColumns);
+        }
 
-            if (trainData.Schema.GetColumnOrNull(label) == null)
+        private static void ValidateColumnInformation(ColumnInformation columnInformation)
+        {
+            ValidateLabelColumn(columnInformation.LabelColumn);
+
+            ValidateColumnInfoEnumerationProperty(columnInformation.CategoricalColumns, "categorical");
+            ValidateColumnInfoEnumerationProperty(columnInformation.NumericColumns, "numeric");
+            ValidateColumnInfoEnumerationProperty(columnInformation.TextColumns, "text");
+            ValidateColumnInfoEnumerationProperty(columnInformation.IgnoredColumns, "ignored");
+
+            // keep a list of all columns, to detect duplicates
+            var allColumns = new List<string>();
+            allColumns.Add(columnInformation.LabelColumn);
+            if (columnInformation.WeightColumn != null) { allColumns.Add(columnInformation.WeightColumn); }
+            if (columnInformation.CategoricalColumns != null) { allColumns.AddRange(columnInformation.CategoricalColumns); }
+            if (columnInformation.NumericColumns != null) { allColumns.AddRange(columnInformation.NumericColumns); }
+            if (columnInformation.TextColumns != null) { allColumns.AddRange(columnInformation.TextColumns); }
+            if (columnInformation.IgnoredColumns != null) { allColumns.AddRange(columnInformation.IgnoredColumns); }
+
+            var duplicateColName = FindFirstDuplicate(allColumns);
+            if (duplicateColName != null)
             {
-                throw new ArgumentException($"Provided label column '{label}' not found in training data.", nameof(label));
+                throw new ArgumentException($"Duplicate column name {duplicateColName} is present in two or more distinct properties of provided column information", nameof(columnInformation));
             }
         }
 
-        private static void ValidateLabel(string label)
+        private static void ValidateColumnInfoEnumerationProperty(IEnumerable<string> columns, string propertyName)
         {
-            if (label == null)
+            if (columns?.Contains(null) == true)
             {
-                throw new ArgumentNullException(nameof(label), "Provided label cannot be null");
+                throw new ArgumentException($"Null column string was specified as {propertyName} in column information");
+            }
+        }
+
+        private static void ValidateLabelColumn(string labelColumn)
+        {
+            if (labelColumn == null)
+            {
+                throw new ArgumentException("Provided label column cannot be null");
             }
         }
 
@@ -120,55 +155,24 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        private static void ValidateSettings(AutoFitSettings settings)
+        private static void ValidateTrainDataColumnsExist(IDataView trainData, IEnumerable<string> columnNames)
         {
-            if (settings?.StoppingCriteria == null)
+            if (columnNames == null)
             {
                 return;
             }
 
-            if (settings.StoppingCriteria.MaxIterations <= 0)
+            foreach (var columnName in columnNames)
             {
-                throw new ArgumentOutOfRangeException(nameof(settings), "Max iterations must be > 0");
+                ValidateTrainDataColumnExists(trainData, columnName);
             }
         }
 
-        private static void ValidatePurposeOverrides(IDataView trainData, IDataView validationData,
-            string label, IEnumerable<(string, ColumnPurpose)> purposeOverrides)
+        private static void ValidateTrainDataColumnExists(IDataView trainData, string columnName)
         {
-            if (purposeOverrides == null)
+            if (columnName != null && trainData.Schema.GetColumnOrNull(columnName) == null)
             {
-                return;
-            }
-
-            foreach (var purposeOverride in purposeOverrides)
-            {
-                var colName = purposeOverride.Item1;
-                var colPurpose = purposeOverride.Item2;
-
-                if (colName == null)
-                {
-                    throw new ArgumentException("Purpose override column name cannot be null.", nameof(purposeOverrides));
-                }
-
-                if (trainData.Schema.GetColumnOrNull(colName) == null)
-                {
-                    throw new ArgumentException($"Purpose override column name '{colName}' not found in training data.", nameof(purposeOverride));
-                }
-
-                // if column w/ purpose = 'Label' found, ensure it matches the passed-in label
-                if (colPurpose == ColumnPurpose.Label && colName != label)
-                {
-                    throw new ArgumentException($"Label column name in provided list of purposes '{colName}' must match " +
-                        $"the label column name '{label}'", nameof(purposeOverrides));
-                }
-            }
-
-            // ensure all column names unique
-            var duplicateColName = FindFirstDuplicate(purposeOverrides.Select(p => p.Item1));
-            if (duplicateColName != null)
-            {
-                throw new ArgumentException($"Duplicate column name '{duplicateColName}' in purpose overrides.", nameof(purposeOverrides));
+                throw new ArgumentException($"Provided column '{columnName}' not found in training data.");
             }
         }
 
@@ -177,5 +181,5 @@ namespace Microsoft.ML.Auto
             var groups = values.GroupBy(v => v);
             return groups.FirstOrDefault(g => g.Count() > 1)?.Key;
         }
-    }*/
+    }
 }

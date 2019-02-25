@@ -76,7 +76,7 @@ namespace Microsoft.ML.Auto
             IEstimator<ITransformer> preFeaturizers = null)
         {
             columnInfo = columnInfo ?? new ColumnInformation();
-            //UserInputValidationUtil.ValidateAutoFitArgs(trainData, labelColunName, validationData, settings, columnPurposes);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, columnInfo, validationData);
 
             // run autofit & get all pipelines run in that process
             var experiment = new Experiment<RegressionMetrics>(context, TaskKind.Regression, trainData, columnInfo, 

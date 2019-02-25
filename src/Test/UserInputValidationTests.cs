@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
@@ -11,111 +10,61 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.ML.Auto.Test
 {
-    /*[TestClass]
+    [TestClass]
     public class UserInputValidationTests
     {
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
-        public void ValidateAutoFitNullTrainData()
-        {
-            UserInputValidationUtil.ValidateAutoFitArgs(null, DatasetUtil.UciAdultLabel,
-                DatasetUtil.GetUciAdultDataView(), null, null);
-        }
+        private static readonly IDataView Data = DatasetUtil.GetUciAdultDataView();
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void ValidateAutoFitArgsNullLabel()
+        public void ValidateExperimentExecuteNullTrainData()
         {
-            UserInputValidationUtil.ValidateAutoFitArgs(DatasetUtil.GetUciAdultDataView(),
-                null, DatasetUtil.GetUciAdultDataView(), null, null);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(null, new ColumnInformation(), null);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
-        public void ValidateAutoFitArgsLabelNotInTrain()
+        public void ValidateExperimentExecuteNullLabel()
         {
-            UserInputValidationUtil.ValidateAutoFitArgs(DatasetUtil.GetUciAdultDataView(),
-                "Label1", DatasetUtil.GetUciAdultDataView(), null, null);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentOutOfRangeException))]
-        public void ValidateAutoFitArgsZeroMaxIterations()
-        {
-            UserInputValidationUtil.ValidateAutoFitArgs(DatasetUtil.GetUciAdultDataView(),
-                DatasetUtil.UciAdultLabel, DatasetUtil.GetUciAdultDataView(),
-                new AutoFitSettings()
-                {
-                    StoppingCriteria = new ExperimentStoppingCriteria()
-                    {
-                        MaxIterations = 0,
-                    }
-                }, null);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, 
+                new ColumnInformation() { LabelColumn = null }, null);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
-        public void ValidateAutoFitArgsPurposeOverrideNullCol()
+        public void ValidateExperimentExecuteLabelNotInTrain()
         {
-            UserInputValidationUtil.ValidateAutoFitArgs(DatasetUtil.GetUciAdultDataView(),
-                DatasetUtil.UciAdultLabel, DatasetUtil.GetUciAdultDataView(),
-                null, new List<(string, ColumnPurpose)>()
-                {
-                    (null, ColumnPurpose.TextFeature)
-                });
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(Data,
+                new ColumnInformation() { LabelColumn = "L" }, null);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
-        public void ValidateAutoFitArgsPurposeOverrideColNotExist()
+        public void ValidateExperimentExecuteNumericColNotInTrain()
         {
-            UserInputValidationUtil.ValidateAutoFitArgs(DatasetUtil.GetUciAdultDataView(),
-                DatasetUtil.UciAdultLabel, DatasetUtil.GetUciAdultDataView(),
-                null, new List<(string, ColumnPurpose)>()
-                {
-                    ("IDontExist", ColumnPurpose.TextFeature)
-                });
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(Data,
+                new ColumnInformation() { NumericColumns = new[] { "N" } }, null);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
-        public void ValidateAutoFitArgsPurposeOverrideLabelMismatch()
+        public void ValidateExperimentExecuteNullNumericCol()
         {
-            UserInputValidationUtil.ValidateAutoFitArgs(DatasetUtil.GetUciAdultDataView(),
-                DatasetUtil.UciAdultLabel, DatasetUtil.GetUciAdultDataView(),
-                null, new List<(string, ColumnPurpose)>()
-                {
-                    ("Workclass", ColumnPurpose.Label)
-                });
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(Data,
+                new ColumnInformation() { NumericColumns = new string[] { null } }, null);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
-        public void ValidateAutoFitArgsPurposeOverrideDuplicateCol()
+        public void ValidateExperimentExecuteDuplicateCol()
         {
-            UserInputValidationUtil.ValidateAutoFitArgs(DatasetUtil.GetUciAdultDataView(),
-                DatasetUtil.UciAdultLabel, DatasetUtil.GetUciAdultDataView(),
-                null, new List<(string, ColumnPurpose)>()
-                {
-                    ("Workclass", ColumnPurpose.CategoricalFeature),
-                    ("Workclass", ColumnPurpose.CategoricalFeature)
-                });
-        }
-
-        [TestMethod]
-        public void ValidateAutoFitArgsPurposeOverrideSuccess()
-        {
-            UserInputValidationUtil.ValidateAutoFitArgs(DatasetUtil.GetUciAdultDataView(),
-                DatasetUtil.UciAdultLabel, DatasetUtil.GetUciAdultDataView(),
-                null, new List<(string, ColumnPurpose)>()
-                {
-                    ("Workclass", ColumnPurpose.CategoricalFeature)
-                });
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(Data,
+                new ColumnInformation() { NumericColumns = new[] { DefaultColumnNames.Label } }, null);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
-        public void ValidateAutoFitArgsTrainValidColCountMismatch()
+        public void ValidateExperimentExecuteArgsTrainValidColCountMismatch()
         {
             var context = new MLContext();
 
@@ -128,12 +77,13 @@ namespace Microsoft.ML.Auto.Test
             validDataBuilder.AddColumn("0", new string[] { "0" });
             var validData = validDataBuilder.GetDataView();
 
-            UserInputValidationUtil.ValidateAutoFitArgs(trainData, "0", validData, null, null);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, 
+                new ColumnInformation() { LabelColumn = "0" }, validData);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
-        public void ValidateAutoFitArgsTrainValidColNamesMismatch()
+        public void ValidateExperimentExecuteArgsTrainValidColNamesMismatch()
         {
             var context = new MLContext();
 
@@ -147,12 +97,13 @@ namespace Microsoft.ML.Auto.Test
             validDataBuilder.AddColumn("2", new string[] { "2" });
             var validData = validDataBuilder.GetDataView();
 
-            UserInputValidationUtil.ValidateAutoFitArgs(trainData, "0", validData, null, null);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData,
+                new ColumnInformation() { LabelColumn = "0" }, validData);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
-        public void ValidateAutoFitArgsTrainValidColTypeMismatch()
+        public void ValidateExperimentExecuteArgsTrainValidColTypeMismatch()
         {
             var context = new MLContext();
 
@@ -166,7 +117,8 @@ namespace Microsoft.ML.Auto.Test
             validDataBuilder.AddColumn("1", NumberDataViewType.Single, new float[] { 1 });
             var validData = validDataBuilder.GetDataView();
 
-            UserInputValidationUtil.ValidateAutoFitArgs(trainData, "0", validData, null, null);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData,
+                new ColumnInformation() { LabelColumn = "0" }, validData);
         }
 
         [TestMethod]
@@ -203,11 +155,11 @@ namespace Microsoft.ML.Auto.Test
         public void ValidateFeaturesColInvalidType()
         {
             var schemaBuilder = new SchemaBuilder();
-            schemaBuilder.AddColumn(DefaultColumnNames.Features, NumberDataViewType.R8);
+            schemaBuilder.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Double);
             schemaBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single);
             var schema = schemaBuilder.GetSchema();
             var dataView = new EmptyDataView(new MLContext(), schema);
-            UserInputValidationUtil.ValidateAutoFitArgs(dataView, DefaultColumnNames.Label, null, null, null);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(), null);
         }
-    }*/
+    }
 }
