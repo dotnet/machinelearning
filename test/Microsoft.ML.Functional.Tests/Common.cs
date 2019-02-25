@@ -223,10 +223,10 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// Check that a <see cref="RankerMetrics"/> object is valid.
+        /// Check that a <see cref="RankingMetrics"/> object is valid.
         /// </summary>
         /// <param name="metrics">The metrics object.</param>
-        public static void AssertMetrics(RankerMetrics metrics)
+        public static void AssertMetrics(RankingMetrics metrics)
         {
             foreach (var dcg in metrics.Dcg)
                 Assert.True(dcg >= 0);

@@ -1894,7 +1894,7 @@ namespace Microsoft.ML.RunTests
                         }
                       },";
 
-            RunTrainScoreEvaluate("Trainers.FastTreeRanker", "Models.RankerEvaluator",
+            RunTrainScoreEvaluate("Trainers.FastTreeRanker", "Models.RankingEvaluator",
                 dataPath, warningsPath, overallMetricsPath, instanceMetricsPath,
                 splitterInput: "output_data3", transforms: transforms);
 
