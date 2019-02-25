@@ -33,15 +33,15 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var invalidData = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.R4, 0),
+                        new TextLoader.Column("ImagePath", DataKind.Single, 0),
                     }
             }, new MultiFileSource(dataFile));
 
@@ -64,8 +64,8 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
 
@@ -103,8 +103,8 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
@@ -142,8 +142,8 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
@@ -193,8 +193,8 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
@@ -253,8 +253,8 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
@@ -313,8 +313,8 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
@@ -375,8 +375,8 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
@@ -435,8 +435,8 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
@@ -495,8 +495,8 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
@@ -556,8 +556,8 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
@@ -616,8 +616,8 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
@@ -677,9 +677,9 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
-                    }
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
+                }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
@@ -734,7 +734,7 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                    new TextLoader.Column("ImagePath", DataKind.TX, 0)
+                    new TextLoader.Column("ImagePath", DataKind.String, 0)
                 }
             }, new MultiFileSource(dataFile));
 

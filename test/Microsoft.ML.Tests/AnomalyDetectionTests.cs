@@ -52,8 +52,8 @@ namespace Microsoft.ML.Tests
         {
             var reader = ML.Data.CreateTextLoader(new[]
             {
-                new TextLoader.Column(DefaultColumnNames.Label, DataKind.R4, 0),
-                new TextLoader.Column(DefaultColumnNames.Features, DataKind.R4, 1, 784)
+                new TextLoader.Column(DefaultColumnNames.Label, DataKind.Single, 0),
+                new TextLoader.Column(DefaultColumnNames.Features, DataKind.Single, 1, 784)
             },
             allowSparse: true);
 

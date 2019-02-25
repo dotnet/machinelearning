@@ -85,7 +85,7 @@ namespace Microsoft.ML.Data
             _host.CheckValue(getKeyValues, nameof(getKeyValues));
             _host.CheckParam(keyCount > 0, nameof(keyCount));
             CheckLength(name, values);
-            values.GetType().GetElementType().TryGetDataKind(out DataKind kind);
+            values.GetType().GetElementType().TryGetDataKind(out InternalDataKind kind);
             _columns.Add(new AssignmentColumn<T1>(new KeyType(kind.ToType(), keyCount), values));
             _getKeyValues.Add(name, getKeyValues);
             _names.Add(name);

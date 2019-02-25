@@ -36,8 +36,8 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
             var lookupMap = mlContext.Data.ReadFromTextFile(Path.Combine(modelLocation, "imdb_word_index.csv"),
                 columns: new[]
                    {
-                        new TextLoader.Column("Words", DataKind.TX, 0),
-                        new TextLoader.Column("Ids", DataKind.I4, 1),
+                        new TextLoader.Column("Words", DataKind.String, 0),
+                        new TextLoader.Column("Ids", DataKind.Int32, 1),
                    },
                 separatorChar: ','
                );

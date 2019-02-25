@@ -185,7 +185,7 @@ namespace Microsoft.ML.EntryPoints
                         // This happens when the training is done on an XDF and the scoring is done on a data frame.
                         var colName = GetUniqueName();
                         concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
-                        Utils.Add(ref cvt, new TypeConvertingEstimator.ColumnInfo(colName, DataKind.R4, col.Name));
+                        Utils.Add(ref cvt, new TypeConvertingEstimator.ColumnInfo(colName, DataKind.Single, col.Name));
                         continue;
                     }
                 }
@@ -300,7 +300,7 @@ namespace Microsoft.ML.EntryPoints
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };
             }
 
-            var xf = new TypeConvertingTransformer(host, new TypeConvertingEstimator.ColumnInfo(input.LabelColumn, DataKind.R4, input.LabelColumn)).Transform(input.Data);
+            var xf = new TypeConvertingTransformer(host, new TypeConvertingEstimator.ColumnInfo(input.LabelColumn, DataKind.Single, input.LabelColumn)).Transform(input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
     }

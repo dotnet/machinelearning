@@ -338,8 +338,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Contracts.CheckDecode(vectorSize >= 0);
                 Contracts.CheckDecode(vectorSize > 0 || !isVector);
 
-                DataKind itemKind = (DataKind)ctx.Reader.ReadByte();
-                Contracts.CheckDecode(itemKind == DataKind.R4 || itemKind == DataKind.R8);
+                InternalDataKind itemKind = (InternalDataKind)ctx.Reader.ReadByte();
+                Contracts.CheckDecode(itemKind == InternalDataKind.R4 || itemKind == InternalDataKind.R8);
 
                 var itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(itemKind);
                 return isVector ? (DataViewType)(new VectorType(itemType, vectorSize)) : itemType;
@@ -359,8 +359,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                 ctx.Writer.Write(vectorType?.Size ?? 0);
 
                 DataViewType itemType = vectorType?.ItemType ?? type;
-                itemType.RawType.TryGetDataKind(out DataKind itemKind);
-                Contracts.Assert(itemKind == DataKind.R4 || itemKind == DataKind.R8);
+                itemType.RawType.TryGetDataKind(out InternalDataKind itemKind);
+                Contracts.Assert(itemKind == InternalDataKind.R4 || itemKind == InternalDataKind.R8);
                 ctx.Writer.Write((byte)itemKind);
             }
         }

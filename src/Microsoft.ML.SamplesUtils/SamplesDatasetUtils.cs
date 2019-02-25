@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using Microsoft.Data.DataView;
-using Microsoft.ML;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.SamplesUtils
@@ -34,18 +33,18 @@ namespace Microsoft.ML.SamplesUtils
             var reader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
-                        new TextLoader.Column("MedianHomeValue", DataKind.R4, 0),
-                        new TextLoader.Column("CrimesPerCapita", DataKind.R4, 1),
-                        new TextLoader.Column("PercentResidental", DataKind.R4, 2),
-                        new TextLoader.Column("PercentNonRetail", DataKind.R4, 3),
-                        new TextLoader.Column("CharlesRiver", DataKind.R4, 4),
-                        new TextLoader.Column("NitricOxides", DataKind.R4, 5),
-                        new TextLoader.Column("RoomsPerDwelling", DataKind.R4, 6),
-                        new TextLoader.Column("PercentPre40s", DataKind.R4, 7),
-                        new TextLoader.Column("EmploymentDistance", DataKind.R4, 8),
-                        new TextLoader.Column("HighwayDistance", DataKind.R4, 9),
-                        new TextLoader.Column("TaxRate", DataKind.R4, 10),
-                        new TextLoader.Column("TeacherRatio", DataKind.R4, 11),
+                        new TextLoader.Column("MedianHomeValue", DataKind.Single, 0),
+                        new TextLoader.Column("CrimesPerCapita", DataKind.Single, 1),
+                        new TextLoader.Column("PercentResidental", DataKind.Single, 2),
+                        new TextLoader.Column("PercentNonRetail", DataKind.Single, 3),
+                        new TextLoader.Column("CharlesRiver", DataKind.Single, 4),
+                        new TextLoader.Column("NitricOxides", DataKind.Single, 5),
+                        new TextLoader.Column("RoomsPerDwelling", DataKind.Single, 6),
+                        new TextLoader.Column("PercentPre40s", DataKind.Single, 7),
+                        new TextLoader.Column("EmploymentDistance", DataKind.Single, 8),
+                        new TextLoader.Column("HighwayDistance", DataKind.Single, 9),
+                        new TextLoader.Column("TaxRate", DataKind.Single, 10),
+                        new TextLoader.Column("TeacherRatio", DataKind.Single, 11),
                     },
                 hasHeader: true
             );
@@ -104,21 +103,21 @@ namespace Microsoft.ML.SamplesUtils
             var reader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
-                        new TextLoader.Column("age", DataKind.R4, 0),
-                        new TextLoader.Column("workclass", DataKind.TX, 1),
-                        new TextLoader.Column("fnlwgt", DataKind.R4, 2),
-                        new TextLoader.Column("education", DataKind.TX, 3),
-                        new TextLoader.Column("education-num", DataKind.R4, 4),
-                        new TextLoader.Column("marital-status", DataKind.TX, 5),
-                        new TextLoader.Column("occupation", DataKind.TX, 6),
-                        new TextLoader.Column("relationship", DataKind.TX, 7),
-                        new TextLoader.Column("ethnicity", DataKind.TX, 8),
-                        new TextLoader.Column("sex", DataKind.TX, 9),
-                        new TextLoader.Column("capital-gain", DataKind.R4, 10),
-                        new TextLoader.Column("capital-loss", DataKind.R4, 11),
-                        new TextLoader.Column("hours-per-week", DataKind.R4, 12),
-                        new TextLoader.Column("native-country", DataKind.R4, 13),
-                        new TextLoader.Column("IsOver50K", DataKind.BL, 14),
+                        new TextLoader.Column("age", DataKind.Single, 0),
+                        new TextLoader.Column("workclass", DataKind.String, 1),
+                        new TextLoader.Column("fnlwgt", DataKind.Single, 2),
+                        new TextLoader.Column("education", DataKind.String, 3),
+                        new TextLoader.Column("education-num", DataKind.Single, 4),
+                        new TextLoader.Column("marital-status", DataKind.String, 5),
+                        new TextLoader.Column("occupation", DataKind.String, 6),
+                        new TextLoader.Column("relationship", DataKind.String, 7),
+                        new TextLoader.Column("ethnicity", DataKind.String, 8),
+                        new TextLoader.Column("sex", DataKind.String, 9),
+                        new TextLoader.Column("capital-gain", DataKind.Single, 10),
+                        new TextLoader.Column("capital-loss", DataKind.Single, 11),
+                        new TextLoader.Column("hours-per-week", DataKind.Single, 12),
+                        new TextLoader.Column("native-country", DataKind.Single, 13),
+                        new TextLoader.Column("IsOver50K", DataKind.Boolean, 14),
                     },
                 separatorChar: ',',
                 hasHeader: true

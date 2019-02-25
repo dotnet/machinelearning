@@ -191,8 +191,8 @@
                         "Desc": "Type of the items in the column",
                         "Required": false,
                         "SortOrder": 150.0,
-                        "IsNullable": true,
-                        "Default": null
+                        "IsNullable": false,
+                        "Default": "R4"
                       },
                       {
                         "Name": "Source",
