@@ -386,6 +386,10 @@ namespace Microsoft.ML.Auto
             double empMean = forestStatistics[0];
             double empStdDev = forestStatistics[1];
             double centered = empMean - bestVal;
+            if (empStdDev == 0)
+            {
+                return centered;
+            }
             double ztrans = centered / empStdDev;
             return centered * SweeperProbabilityUtils.StdNormalCdf(ztrans) + empStdDev * SweeperProbabilityUtils.StdNormalPdf(ztrans);
         }
