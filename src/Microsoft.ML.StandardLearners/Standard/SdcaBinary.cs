@@ -1723,36 +1723,77 @@ namespace Microsoft.ML.Trainers
     {
         public class OptionsBase : LearnerInputBaseWithWeight
         {
+            /// <summary>
+            /// The L2 weight for <a href='tmpurl_regularization'>regularization</a>.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization constant", ShortName = "l2", SortOrder = 50)]
             [TGUI(Label = "L2 Regularization Constant", SuggestedSweeps = "1e-7,5e-7,1e-6,5e-6,1e-5")]
             [TlcModule.SweepableDiscreteParam("L2Const", new object[] { 1e-7f, 5e-7f, 1e-6f, 5e-6f, 1e-5f })]
             public float L2Weight = Defaults.L2Weight;
 
+            /// <summary>
+            /// The degree of lock-free parallelism used by SGD.
+            /// </summary>
+            /// <value>
+            /// Defaults to automatic depending on data sparseness. Determinism is not guaranteed.
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic depending on data sparseness. Determinism not guaranteed.", ShortName = "nt,t,threads", SortOrder = 50)]
             [TGUI(Label = "Number of threads", SuggestedSweeps = "1,2,4")]
             public int? NumThreads;
 
+            /// <summary>
+            /// The convergence tolerance. If the exponential moving average of loss reductions falls below this tolerance,
+            /// the algorithm is deemed to have converged and will stop.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Exponential moving averaged improvement tolerance for convergence", ShortName = "tol")]
             [TGUI(SuggestedSweeps = "1e-2,1e-3,1e-4,1e-5")]
             [TlcModule.SweepableDiscreteParam("ConvergenceTolerance", new object[] { 1e-2f, 1e-3f, 1e-4f, 1e-5f })]
             public double ConvergenceTolerance = 1e-4;
 
+            /// <summary>
+            /// The maximum number of passes through the training dataset.
+            /// </summary>
+            /// <value>
+            /// Set to 1 to simulate online learning.
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning.", ShortName = "iter")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "1,5,10,20")]
             [TlcModule.SweepableDiscreteParam("MaxIterations", new object[] { 1, 5, 10, 20 })]
             public int MaxIterations = Defaults.MaxIterations;
 
+            /// <summary>
+            /// The initial <a href="tmpurl_lr">learning rate</a> used by SGD.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate (only used by SGD)", ShortName = "ilr,lr")]
             [TGUI(Label = "Initial Learning Rate (for SGD)")]
             public double InitLearningRate = Defaults.InitLearningRate;
 
+            /// <summary>
+            /// Determines whether to shuffle data for each training iteration.
+            /// </summary>
+            /// <value>
+            /// <see langword="true" /> to shuffle data for each training iteration; otherwise, <see langword="false" />.
+            /// Default is <see langword="true" />.
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data every epoch?", ShortName = "shuf")]
             [TlcModule.SweepableDiscreteParam("Shuffle", null, isBool: true)]
             public bool Shuffle = true;
 
+            /// <summary>
+            /// The weight to be applied to the positive class. This is useful for training with imbalanced data.
+            /// </summary>
+            /// <value>
+            /// Default value is 1, which means no extra weight.
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
             public float PositiveInstanceWeight = 1;
 
+            /// <summary>
+            /// Determines the frequency of checking for convergence in terms of number of iterations.
+            /// </summary>
+            /// <value>
+            /// Default equals <see cref="NumThreads"/>."
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Convergence check frequency (in terms of number of iterations). Default equals number of threads", ShortName = "checkFreq")]
             public int? CheckFrequency;
 
@@ -1802,7 +1843,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="env">The environment to use.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="weightColumn">The name for the example weight column.</param>
+        /// <param name="weightColumn">The name of the example weight column.</param>
         /// <param name="maxIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
         /// <param name="initLearningRate">The initial learning rate used by SGD.</param>
         /// <param name="l2Weight">The L2 regularizer constant.</param>
@@ -2077,13 +2118,21 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// Train logistic regression using a parallel stochastic gradient method.
+    /// The <see cref="IEstimator{TTransformer}"/> for training logistic regression using a parallel stochastic gradient method.
+    /// The trained model is <a href='tmpurl_calib'>calibrated</a> and can produce probability by feeding the output value of the
+    /// linear function to a <see cref="PlattCalibrator"/>.
     /// </summary>
+    /// <remarks>
+    /// The Stochastic Gradient Descent (SGD) is one of the popular stochastic optimization procedures that can be integrated
+    /// into several machine learning tasks to achieve state-of-the-art performance. This trainer implements the Hogwild SGD for binary classification
+    /// that supports multi-threading without any locking. If the associated optimization problem is sparse, Hogwild SGD achieves a nearly optimal
+    /// rate of convergence. For more details about Hogwild SGD, please refer to http://arxiv.org/pdf/1106.5730v2.pdf.
+    /// </remarks>
     public sealed class SgdBinaryTrainer :
         SgdBinaryTrainerBase<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
-        /// Options available to training logistic regression using the implemented stochastic gradient method.
+        /// Options for the <see cref="SgdBinaryTrainer"/>.
         /// </summary>
         public sealed class Options : OptionsBase
         {

@@ -19,15 +19,22 @@ namespace Microsoft.ML
     public static class StandardLearnersCatalog
     {
         /// <summary>
-        ///  Predict a target using logistic regression trained with the <see cref="SgdBinaryTrainer"/> trainer.
+        /// Predict a target using a linear classification model trained with <see cref="SgdBinaryTrainer"/>.
         /// </summary>
-        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
-        /// <param name="labelColumnName">The name of the label column.</param>
-        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
+        /// <param name="labelColumnName">The name of the label column, or dependent variable.</param>
+        /// <param name="featureColumnName">The features, or independent variables.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="maxIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
-        /// <param name="initLearningRate">The initial learning rate used by SGD.</param>
-        /// <param name="l2Weight">The L2 regularization constant.</param>
+        /// <param name="maxIterations">The maximum number of passes through the training dataset; set to 1 to simulate online learning.</param>
+        /// <param name="initLearningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
+        /// <param name="l2Weight">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[StochasticGradientDescent](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/StochasticGradientDescent.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static SgdBinaryTrainer StochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
@@ -43,10 +50,17 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Predict a target using logistic regression trained with the <see cref="SgdBinaryTrainer"/> trainer.
+        /// Predict a target using a linear classification model trained with <see cref="SgdBinaryTrainer"/> and advanced options.
         /// </summary>
-        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
-        /// <param name="options">Advanced arguments to the algorithm.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
+        /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[StochasticGradientDescentWithOptions](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/StochasticGradientDescentWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static SgdBinaryTrainer StochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             SgdBinaryTrainer.Options options)
         {
@@ -58,16 +72,16 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Predict a target using a linear classification model trained with the <see cref="SgdNonCalibratedBinaryTrainer"/> trainer.
+        ///  Predict a target using a linear classification model trained with <see cref="SgdNonCalibratedBinaryTrainer"/>.
         /// </summary>
-        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
-        /// <param name="labelColumnName">The name of the label column.</param>
-        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
+        /// <param name="labelColumnName">The name of the label column, or dependent variable.</param>
+        /// <param name="featureColumnName">The features, or independent variables.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="loss">The loss function minimized in the training process. Using, for example, <see cref="HingeLoss"/> leads to a support vector machine trainer.</param>
-        /// <param name="maxIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
-        /// <param name="initLearningRate">The initial learning rate used by SGD.</param>
-        /// <param name="l2Weight">The L2 regularization constant.</param>
+        /// <param name="maxIterations">The maximum number of passes through the training dataset; set to 1 to simulate online learning.</param>
+        /// <param name="initLearningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
+        /// <param name="l2Weight">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         public static SgdNonCalibratedBinaryTrainer StochasticGradientDescentNonCalibrated(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
@@ -84,10 +98,10 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Predict a target using a linear classification model trained with the <see cref="SgdNonCalibratedBinaryTrainer"/> trainer.
+        /// Predict a target using a linear classification model trained with <see cref="SgdNonCalibratedBinaryTrainer"/> and advanced options.
         /// </summary>
-        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
-        /// <param name="options">Advanced arguments to the algorithm.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
+        /// <param name="options">Trainer options.</param>
         public static SgdNonCalibratedBinaryTrainer StochasticGradientDescentNonCalibrated(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             SgdNonCalibratedBinaryTrainer.Options options)
         {
@@ -141,7 +155,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Predict a target using a logistic regression model trained with the SDCA trainer.
-        /// The trained model can produce probablity by feeding the output value of the linear
+        /// The trained model can produce probability by feeding the output value of the linear
         /// function to a <see cref="PlattCalibrator"/>.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
@@ -173,7 +187,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Predict a target using a logistic regression model trained with the SDCA trainer.
-        /// The trained model can produce probablity via feeding output value of the linear
+        /// The trained model can produce probability via feeding output value of the linear
         /// function to a <see cref="PlattCalibrator"/>. Compared with <see cref="StochasticDualCoordinateAscent(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, float?, float?, int?)"/>,
         /// this function allows more advanced settings by accepting <see cref="SdcaBinaryTrainer.Options"/>.
         /// </summary>
@@ -290,7 +304,7 @@ namespace Microsoft.ML
         /// <see langword="true" /> to decrease the <paramref name="learningRate"/> as iterations progress; otherwise, <see langword="false" />.
         /// Default is <see langword="false" />.
         /// </param>
-        /// <param name="l2RegularizerWeight">L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="l2RegularizerWeight">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <param name="numIterations">Number of passes through the training dataset.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -396,7 +410,7 @@ namespace Microsoft.ML
         /// <summary>
         ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LogisticRegression"/> trainer.
         /// </summary>
-        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
@@ -430,7 +444,7 @@ namespace Microsoft.ML
         /// <summary>
         ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LogisticRegression"/> trainer.
         /// </summary>
-        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
         public static LogisticRegression LogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, LROptions options)
         {

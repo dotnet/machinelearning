@@ -1,9 +1,9 @@
 ﻿using Microsoft.ML;
-using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
-    public static class AveragedPerceptronWithOptions
+    public static class StochasticGradientDescentWithOptions
     {
         // In this examples we will use the adult income dataset. The goal is to predict
         // if a person's income is above $50K or not, based on demographic information about that person.
@@ -22,34 +22,38 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var trainTestData = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
 
             // Define the trainer options.
-            var options = new AveragedPerceptronTrainer.Options()
+            var options = new SgdBinaryTrainer.Options()
             {
-                LossFunction = new SmoothedHingeLoss.Options(),
-                LearningRate = 0.1f,
-                DoLazyUpdates = false,
-                RecencyGain = 0.1f,
-                NumberOfIterations = 10
+                // Make the convergence tolerance tighter.
+                ConvergenceTolerance = 5e-5,
+                // Increase the maximum number of passes over training data.
+                MaxIterations = 30,
+                // Give the instances of the positive class slightly more weight.
+                PositiveInstanceWeight = 1.2f,
             };
 
             // Create data training pipeline.
-            var pipeline = mlContext.BinaryClassification.Trainers.AveragedPerceptron(options);
+            var pipeline = mlContext.BinaryClassification.Trainers.StochasticGradientDescent(options);
 
             // Fit this pipeline to the training data.
             var model = pipeline.Fit(trainTestData.TrainSet);
 
             // Evaluate how the model is doing on the test data.
             var dataWithPredictions = model.Transform(trainTestData.TestSet);
-            var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(dataWithPredictions);
+            var metrics = mlContext.BinaryClassification.Evaluate(dataWithPredictions);
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output:
-            //  Accuracy: 0.86
-            //  AUC: 0.90
-            //  F1 Score: 0.66
-            //  Negative Precision: 0.89
-            //  Negative Recall: 0.93
-            //  Positive Precision: 0.72
-            //  Positive Recall: 0.61
+            //   Accuracy: 0.85
+            //   AUC: 0.90
+            //   F1 Score: 0.67
+            //   Negative Precision: 0.91
+            //   Negative Recall: 0.89
+            //   Positive Precision: 0.65
+            //   Positive Recall: 0.70
+            //   LogLoss: 0.48
+            //   LogLossReduction: 37.52
+            //   Entropy: 0.78
         }
     }
 }
