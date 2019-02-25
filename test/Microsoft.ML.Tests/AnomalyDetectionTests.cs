@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tests
         {
             var trainPath = GetDataPath(TestDatasets.mnistOneClass.trainFilename);
             var testPath = GetDataPath(TestDatasets.mnistOneClass.testFilename);
-            
+
             var transformedData = DetectAnomalyInMnistOneClass(trainPath, testPath);
 
             // Evaluate
