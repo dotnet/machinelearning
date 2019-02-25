@@ -30,7 +30,19 @@ namespace Microsoft.ML
             bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool trimWhitespace = TextLoader.Defaults.TrimWhitespace,
             bool allowSparse = TextLoader.Defaults.AllowSparse)
-            => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, separatorChar, hasHeader, allowSparse, allowQuoting, dataSample, trimWhitespace);
+        {
+            var options = new TextLoader.Options
+            {
+                Columns = columns,
+                Separators = new[] { separatorChar },
+                HasHeader = hasHeader,
+                AllowQuoting = allowQuoting,
+                TrimWhitespace = trimWhitespace,
+                AllowSparse = allowSparse
+            };
+
+            return new TextLoader(CatalogUtils.GetEnvironment(catalog), options: options, dataSample: dataSample);
+        }
 
         /// <summary>
         /// Create a text loader <see cref="TextLoader"/>.
@@ -94,10 +106,17 @@ namespace Microsoft.ML
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
-            var env = catalog.GetEnvironment();
+            var options = new TextLoader.Options
+            {
+                Columns = columns,
+                Separators = new[] { separatorChar },
+                HasHeader = hasHeader,
+                AllowQuoting = allowQuoting,
+                TrimWhitespace = trimWhitespace,
+                AllowSparse = allowSparse
+            };
 
-            var reader = new TextLoader(env, columns, separatorChar: separatorChar, hasHeader: hasHeader, allowSparse: allowSparse,
-                allowQuoting: allowQuoting, dataSample: dataSample, trimWhitespace: trimWhitespace);
+            var reader = new TextLoader(CatalogUtils.GetEnvironment(catalog), options: options, dataSample: dataSample);
             return reader.Read(new MultiFileSource(path));
         }
 

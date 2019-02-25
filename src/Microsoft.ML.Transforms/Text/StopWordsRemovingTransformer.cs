@@ -737,13 +737,19 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     if (stopwordsCol == null)
                         stopwordsCol = "Stopwords";
-                    dataLoader = new TextLoader(
-                        Host,
-                        columns: new[]
+
+                    // Create text loader.
+                    var options = new TextLoader.Options()
+                    {
+                        Columns = new[]
                         {
                             new TextLoader.Column(stopwordsCol, DataKind.String, 0)
                         },
-                        dataSample: fileSource).Read(fileSource) as IDataLoader;
+                        Separators = new[] { ',' },
+                    };
+                    var reader = new TextLoader(Host, options: options, dataSample: fileSource);
+
+                    dataLoader = reader.Read(fileSource) as IDataLoader;
                 }
                 ch.AssertNonEmpty(stopwordsCol);
             }
