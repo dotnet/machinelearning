@@ -4,7 +4,6 @@
 
 using System;
 using Microsoft.ML.Calibrator;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.StaticPipe
