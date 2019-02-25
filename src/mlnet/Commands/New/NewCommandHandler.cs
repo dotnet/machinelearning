@@ -41,6 +41,7 @@ namespace Microsoft.ML.CLI.Commands.New
                 logger.Log(LogLevel.Error, e.Message);
                 logger.Log(LogLevel.Debug, e.ToString());
                 logger.Log(LogLevel.Error, Strings.Exiting);
+                return;
             }
 
             // Sanitize columns
