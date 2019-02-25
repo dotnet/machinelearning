@@ -200,7 +200,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private protected void ConvertData(RoleMappedData trainData)
         {
-            MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, trainData.Schema.Feature.Value.Index, out CategoricalFeatures);
+            AnnotationUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, trainData.Schema.Feature.Value.Index, out CategoricalFeatures);
             var useTranspose = UseTranspose(FastTreeTrainerOptions.DiskTranspose, trainData) && (ValidData == null || UseTranspose(FastTreeTrainerOptions.DiskTranspose, ValidData));
             var instanceConverter = new ExamplesToFastTreeBins(Host, FastTreeTrainerOptions.MaxBins, useTranspose, !FastTreeTrainerOptions.FeatureFlocks, FastTreeTrainerOptions.MinDocumentsInLeafs, GetMaxLabel());
 
@@ -3156,7 +3156,7 @@ namespace Microsoft.ML.Trainers.FastTree
             var gainMap = new FeatureToGainMap(TrainedEnsemble.Trees.ToList(), normalize: true);
 
             var names = default(VBuffer<ReadOnlyMemory<char>>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
+            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
             var ordered = gainMap.OrderByDescending(pair => pair.Value);
             Double max = ordered.FirstOrDefault().Value;
             Double normFactor = max == 0 ? 1.0 : (1.0 / Math.Sqrt(max));
@@ -3188,7 +3188,7 @@ namespace Microsoft.ML.Trainers.FastTree
             Host.AssertValueOrNull(schema);
 
             var names = default(VBuffer<ReadOnlyMemory<char>>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
+            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
 
             int i = 0;
             foreach (InternalRegressionTree tree in TrainedEnsemble.Trees)
@@ -3278,16 +3278,16 @@ namespace Microsoft.ML.Trainers.FastTree
         DataViewRow ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
-            var metaBuilder = new DataViewSchema.Metadata.Builder();
+            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
+            var metaBuilder = new DataViewSchema.Annotations.Builder();
             metaBuilder.AddSlotNames(NumFeatures, names.CopyTo);
 
             var weights = default(VBuffer<Single>);
             ((IHaveFeatureWeights)this).GetFeatureWeights(ref weights);
-            var builder = new DataViewSchema.Metadata.Builder();
-            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.ToMetadata());
+            var builder = new DataViewSchema.Annotations.Builder();
+            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.ToAnnotations());
 
-            return MetadataUtils.MetadataAsRow(builder.ToMetadata());
+            return AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
         }
 
         DataViewRow ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema)

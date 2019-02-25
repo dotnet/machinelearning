@@ -92,7 +92,7 @@ namespace Microsoft.ML.Data
                 throw Host.ExceptSchemaMismatch(nameof(RankingMamlEvaluator.Arguments.LabelColumn),
                     "label", schema.Label.Value.Name, "R4 or a key", t.ToString());
             }
-            var scoreCol = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var scoreCol = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             if (scoreCol.Type != NumberDataViewType.Single)
             {
                 throw Host.ExceptSchemaMismatch(nameof(RankingMamlEvaluator.Arguments.ScoreColumn),
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Data
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckParam(data.Schema.Label.HasValue, nameof(data), "Schema must contain a label column");
-            var scoreInfo = data.Schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var scoreInfo = data.Schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             Host.CheckParam(data.Schema.Group.HasValue, nameof(data), "Schema must contain a group column");
 
             return new RankingPerInstanceTransform(Host, data.Data,
@@ -250,7 +250,7 @@ namespace Microsoft.ML.Data
             var roles = new RoleMappedData(data, opt: false,
                 RoleMappedSchema.ColumnRole.Label.Bind(label),
                 RoleMappedSchema.ColumnRole.Group.Bind(groupId),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score));
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, score));
 
             var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
@@ -445,7 +445,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(schema.Label.HasValue);
                 Contracts.Assert(schema.Group.HasValue);
 
-                var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+                var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
                 _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
                 _scoreGetter = row.GetGetter<Single>(score.Index);
@@ -622,7 +622,7 @@ namespace Microsoft.ML.Data
                 private readonly DataViewType _outputType;
                 private readonly DataViewType _slotNamesType;
                 private readonly int _truncationLevel;
-                private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _slotNamesGetter;
+                private readonly AnnotationUtils.AnnotationGetter<VBuffer<ReadOnlyMemory<char>>> _slotNamesGetter;
 
                 public Bindings(IExceptionContext ectx, DataViewSchema input, bool user, string labelCol, string scoreCol, string groupCol,
                     int truncationLevel)
@@ -640,31 +640,31 @@ namespace Microsoft.ML.Data
                     return _outputType;
                 }
 
-                protected override IEnumerable<KeyValuePair<string, DataViewType>> GetMetadataTypesCore(int iinfo)
+                protected override IEnumerable<KeyValuePair<string, DataViewType>> GetAnnotationTypesCore(int iinfo)
                 {
                     Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
-                    var types = base.GetMetadataTypesCore(iinfo);
-                    types = types.Prepend(_slotNamesType.GetPair(MetadataUtils.Kinds.SlotNames));
+                    var types = base.GetAnnotationTypesCore(iinfo);
+                    types = types.Prepend(_slotNamesType.GetPair(AnnotationUtils.Kinds.SlotNames));
                     return types;
                 }
 
-                protected override DataViewType GetMetadataTypeCore(string kind, int iinfo)
+                protected override DataViewType GetAnnotationTypeCore(string kind, int iinfo)
                 {
                     Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
-                    if (kind == MetadataUtils.Kinds.SlotNames)
+                    if (kind == AnnotationUtils.Kinds.SlotNames)
                         return _slotNamesType;
-                    return base.GetMetadataTypeCore(kind, iinfo);
+                    return base.GetAnnotationTypeCore(kind, iinfo);
                 }
 
-                protected override void GetMetadataCore<TValue>(string kind, int iinfo, ref TValue value)
+                protected override void GetAnnotationCore<TValue>(string kind, int iinfo, ref TValue value)
                 {
                     Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
-                    if (kind == MetadataUtils.Kinds.SlotNames)
+                    if (kind == AnnotationUtils.Kinds.SlotNames)
                     {
                         _slotNamesGetter.Marshal(iinfo, ref value);
                         return;
                     }
-                    base.GetMetadataCore(kind, iinfo, ref value);
+                    base.GetAnnotationCore(kind, iinfo, ref value);
                 }
 
                 private void SlotNamesGetter(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
@@ -863,7 +863,7 @@ namespace Microsoft.ML.Data
         private protected override IEvaluator Evaluator => _evaluator;
 
         public RankingMamlEvaluator(IHostEnvironment env, Arguments args)
-            : base(args, env, MetadataUtils.Const.ScoreColumnKind.Ranking, "RankerMamlEvaluator")
+            : base(args, env, AnnotationUtils.Const.ScoreColumnKind.Ranking, "RankerMamlEvaluator")
         {
             Host.CheckValue(args, nameof(args));
             Utils.CheckOptionalUserDirectory(args.GroupSummaryFilename, nameof(args.GroupSummaryFilename));
@@ -935,7 +935,7 @@ namespace Microsoft.ML.Data
             yield return schema.Group.Value.Name;
             yield return schema.Label.Value.Name;
             var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
-                MetadataUtils.Const.ScoreColumnKind.Ranking);
+                AnnotationUtils.Const.ScoreColumnKind.Ranking);
             yield return scoreCol.Name;
 
             // Return the output columns.

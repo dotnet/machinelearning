@@ -334,7 +334,7 @@ namespace Microsoft.ML.Data
         public readonly int DerivedColumnCount;
 
         private readonly uint _crtScoreSet;
-        private readonly MetadataUtils.MetadataGetter<uint> _getScoreColumnSetId;
+        private readonly AnnotationUtils.AnnotationGetter<uint> _getScoreColumnSetId;
 
         protected ScorerBindingsBase(DataViewSchema input, ISchemaBoundMapper mapper, string suffix, bool user, params string[] namesDerived)
             : base(input, user, GetOutputNames(mapper, suffix, namesDerived))
@@ -348,7 +348,7 @@ namespace Microsoft.ML.Data
             Suffix = suffix ?? "";
 
             int c;
-            var max = input.GetMaxMetadataKind(out c, MetadataUtils.Kinds.ScoreColumnSetId);
+            var max = input.GetMaxAnnotationKind(out c, AnnotationUtils.Kinds.ScoreColumnSetId);
             _crtScoreSet = checked(max + 1);
             _getScoreColumnSetId = GetScoreColumnSetId;
         }
@@ -425,39 +425,39 @@ namespace Microsoft.ML.Data
             return Mapper.OutputSchema[iinfo - DerivedColumnCount].Type;
         }
 
-        protected override IEnumerable<KeyValuePair<string, DataViewType>> GetMetadataTypesCore(int iinfo)
+        protected override IEnumerable<KeyValuePair<string, DataViewType>> GetAnnotationTypesCore(int iinfo)
         {
             Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
 
-            yield return MetadataUtils.ScoreColumnSetIdType.GetPair(MetadataUtils.Kinds.ScoreColumnSetId);
+            yield return AnnotationUtils.ScoreColumnSetIdType.GetPair(AnnotationUtils.Kinds.ScoreColumnSetId);
             if (iinfo < DerivedColumnCount)
                 yield break;
-            foreach (var pair in Mapper.OutputSchema[iinfo - DerivedColumnCount].Metadata.Schema.Select(c => new KeyValuePair<string, DataViewType>(c.Name, c.Type)))
+            foreach (var pair in Mapper.OutputSchema[iinfo - DerivedColumnCount].Annotations.Schema.Select(c => new KeyValuePair<string, DataViewType>(c.Name, c.Type)))
                 yield return pair;
         }
 
-        protected override DataViewType GetMetadataTypeCore(string kind, int iinfo)
+        protected override DataViewType GetAnnotationTypeCore(string kind, int iinfo)
         {
             Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
-            if (kind == MetadataUtils.Kinds.ScoreColumnSetId)
-                return MetadataUtils.ScoreColumnSetIdType;
+            if (kind == AnnotationUtils.Kinds.ScoreColumnSetId)
+                return AnnotationUtils.ScoreColumnSetIdType;
             if (iinfo < DerivedColumnCount)
                 return null;
-            return Mapper.OutputSchema[iinfo - DerivedColumnCount].Metadata.Schema.GetColumnOrNull(kind)?.Type;
+            return Mapper.OutputSchema[iinfo - DerivedColumnCount].Annotations.Schema.GetColumnOrNull(kind)?.Type;
         }
 
-        protected override void GetMetadataCore<TValue>(string kind, int iinfo, ref TValue value)
+        protected override void GetAnnotationCore<TValue>(string kind, int iinfo, ref TValue value)
         {
             Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
             switch (kind)
             {
-                case MetadataUtils.Kinds.ScoreColumnSetId:
+                case AnnotationUtils.Kinds.ScoreColumnSetId:
                     _getScoreColumnSetId.Marshal(iinfo, ref value);
                     break;
                 default:
                     if (iinfo < DerivedColumnCount)
-                        throw MetadataUtils.ExceptGetMetadata();
-                    Mapper.OutputSchema[iinfo - DerivedColumnCount].Metadata.GetValue(kind, ref value);
+                        throw AnnotationUtils.ExceptGetAnnotation();
+                    Mapper.OutputSchema[iinfo - DerivedColumnCount].Annotations.GetValue(kind, ref value);
                     break;
             }
         }

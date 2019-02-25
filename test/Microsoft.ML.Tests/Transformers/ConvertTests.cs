@@ -161,7 +161,7 @@ namespace Microsoft.ML.Tests.Transformers
             var output = pipe.Fit(dataView).Transform(dataView);
 
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
-            output.Schema["CatA"].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref slotNames);
+            output.Schema["CatA"].Annotations.GetValue(AnnotationUtils.Kinds.KeyValues, ref slotNames);
 
             Assert.Equal(3, slotNames.Length);
             Assert.Equal("hello", slotNames.GetItemOrDefault(0).ToString());
@@ -217,14 +217,14 @@ namespace Microsoft.ML.Tests.Transformers
 
         private void ValidateMetadata(IDataView result)
         {
-            Assert.Equal(result.Schema["ConvA"].Metadata.Schema.Select(x => x.Name), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(result.Schema["ConvA"].Annotations.Schema.Select(x => x.Name), new string[2] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.IsNormalized });
             VBuffer<ReadOnlyMemory<char>> slots = default;
             result.Schema["ConvA"].GetSlotNames(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "1", "2" });
             Assert.True(result.Schema["ConvA"].IsNormalized());
 
-            Assert.Equal(result.Schema["ConvB"].Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.KeyValues });
+            Assert.Equal(result.Schema["ConvB"].Annotations.Schema.Select(x => x.Name), new string[1] { AnnotationUtils.Kinds.KeyValues });
             result.Schema["ConvB"].GetKeyValues(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "A", "B" });

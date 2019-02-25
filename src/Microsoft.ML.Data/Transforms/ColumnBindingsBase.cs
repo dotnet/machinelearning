@@ -244,7 +244,7 @@ namespace Microsoft.ML.Data
     /// Base class that abstracts passing input columns through (with possibly different indices) and adding
     /// InfoCount additional columns. If an added column has the same name as a non-hidden input column, it hides
     /// the input column, and is placed immediately after the input column. Otherwise, the added column is placed
-    /// at the end. By default, newly added columns have no metadata (but this can be overriden).
+    /// at the end. By default, newly added columns have no annotations (but this can be overriden).
     /// </summary>
     [BestFriend]
     internal abstract class ColumnBindingsBase
@@ -277,21 +277,21 @@ namespace Microsoft.ML.Data
             var builder = new DataViewSchema.Builder();
             for (int i = 0; i < inputBindings.ColumnCount; i++)
             {
-                var meta = new DataViewSchema.Metadata.Builder();
-                foreach (var kvp in inputBindings.GetMetadataTypes(i))
+                var meta = new DataViewSchema.Annotations.Builder();
+                foreach (var kvp in inputBindings.GetAnnotationTypes(i))
                 {
-                    var getter = Utils.MarshalInvoke(GetMetadataGetterDelegate<int>, kvp.Value.RawType, inputBindings, i, kvp.Key);
+                    var getter = Utils.MarshalInvoke(GetAnnotationGetterDelegate<int>, kvp.Value.RawType, inputBindings, i, kvp.Key);
                     meta.Add(kvp.Key, kvp.Value, getter);
                 }
-                builder.AddColumn(inputBindings.GetColumnName(i), inputBindings.GetColumnType(i), meta.ToMetadata());
+                builder.AddColumn(inputBindings.GetColumnName(i), inputBindings.GetColumnType(i), meta.ToAnnotations());
             }
 
             return builder.ToSchema();
         }
 
-        private static Delegate GetMetadataGetterDelegate<TValue>(ColumnBindingsBase bindings, int col, string kind)
+        private static Delegate GetAnnotationGetterDelegate<TValue>(ColumnBindingsBase bindings, int col, string kind)
         {
-            ValueGetter<TValue> getter = (ref TValue value) => bindings.GetMetadata(kind, col, ref value);
+            ValueGetter<TValue> getter = (ref TValue value) => bindings.GetAnnotation(kind, col, ref value);
             return getter;
         }
 
@@ -506,19 +506,19 @@ namespace Microsoft.ML.Data
             return GetColumnTypeCore(index);
         }
 
-        public IEnumerable<KeyValuePair<string, DataViewType>> GetMetadataTypes(int col)
+        public IEnumerable<KeyValuePair<string, DataViewType>> GetAnnotationTypes(int col)
         {
             Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
 
             bool isSrc;
             int index = MapColumnIndex(out isSrc, col);
             if (isSrc)
-                return Input[index].Metadata.Schema.Select(c => new KeyValuePair<string, DataViewType>(c.Name, c.Type));
+                return Input[index].Annotations.Schema.Select(c => new KeyValuePair<string, DataViewType>(c.Name, c.Type));
             Contracts.Assert(0 <= index && index < InfoCount);
-            return GetMetadataTypesCore(index);
+            return GetAnnotationTypesCore(index);
         }
 
-        public DataViewType GetMetadataTypeOrNull(string kind, int col)
+        public DataViewType GetAnnotationTypeOrNull(string kind, int col)
         {
             Contracts.CheckNonEmpty(kind, nameof(kind));
             Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
@@ -526,12 +526,12 @@ namespace Microsoft.ML.Data
             bool isSrc;
             int index = MapColumnIndex(out isSrc, col);
             if (isSrc)
-                return Input[index].Metadata.Schema.GetColumnOrNull(kind)?.Type;
+                return Input[index].Annotations.Schema.GetColumnOrNull(kind)?.Type;
             Contracts.Assert(0 <= index && index < InfoCount);
-            return GetMetadataTypeCore(kind, index);
+            return GetAnnotationTypeCore(kind, index);
         }
 
-        public void GetMetadata<TValue>(string kind, int col, ref TValue value)
+        public void GetAnnotation<TValue>(string kind, int col, ref TValue value)
         {
             Contracts.CheckNonEmpty(kind, nameof(kind));
             Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
@@ -539,11 +539,11 @@ namespace Microsoft.ML.Data
             bool isSrc;
             int index = MapColumnIndex(out isSrc, col);
             if (isSrc)
-                Input[index].Metadata.GetValue(kind, ref value);
+                Input[index].Annotations.GetValue(kind, ref value);
             else
             {
                 Contracts.Assert(0 <= index && index < InfoCount);
-                GetMetadataCore(kind, index, ref value);
+                GetAnnotationCore(kind, index, ref value);
             }
         }
 
@@ -561,24 +561,24 @@ namespace Microsoft.ML.Data
 
         protected abstract DataViewType GetColumnTypeCore(int iinfo);
 
-        protected virtual IEnumerable<KeyValuePair<string, DataViewType>> GetMetadataTypesCore(int iinfo)
+        protected virtual IEnumerable<KeyValuePair<string, DataViewType>> GetAnnotationTypesCore(int iinfo)
         {
             Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
             return Enumerable.Empty<KeyValuePair<string, DataViewType>>();
         }
 
-        protected virtual DataViewType GetMetadataTypeCore(string kind, int iinfo)
+        protected virtual DataViewType GetAnnotationTypeCore(string kind, int iinfo)
         {
             Contracts.AssertNonEmpty(kind);
             Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
             return null;
         }
 
-        protected virtual void GetMetadataCore<TValue>(string kind, int iinfo, ref TValue value)
+        protected virtual void GetAnnotationCore<TValue>(string kind, int iinfo, ref TValue value)
         {
             Contracts.AssertNonEmpty(kind);
             Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
-            throw MetadataUtils.ExceptGetMetadata();
+            throw AnnotationUtils.ExceptGetAnnotation();
         }
 
         /// <summary>

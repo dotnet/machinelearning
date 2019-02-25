@@ -129,14 +129,14 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 // In the event that we are transforming something that is of type key, we will get their type of key value
                 // metadata, unless it has none or is not vector in which case we back off to having key values over the item type.
-                if (!col.IsKey || !col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var kv) || kv.Kind != SchemaShape.Column.VectorKind.Vector)
+                if (!col.IsKey || !col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var kv) || kv.Kind != SchemaShape.Column.VectorKind.Vector)
                 {
-                    kv = new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector,
+                    kv = new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector,
                         colInfo.TextKeyValues ? TextDataViewType.Instance : col.ItemType, col.IsKey);
                 }
                 Contracts.Assert(kv.IsValid);
 
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                     metadata = new SchemaShape(new[] { slotMeta, kv });
                 else
                     metadata = new SchemaShape(new[] { kv });

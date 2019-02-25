@@ -177,9 +177,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    var meta = new DataViewSchema.Metadata.Builder();
-                    meta.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.ToMetadata());
+                    var meta = new DataViewSchema.Annotations.Builder();
+                    meta.Add(InputSchema[ColMapNewToOld[i]].Annotations, name => name == AnnotationUtils.Kinds.SlotNames);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.ToAnnotations());
                 }
                 return result;
             }
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     // Construct kvMaps.
                     Contracts.Assert(types[iinfo] == null);
                     var typeSrc = schema[ColMapNewToOld[iinfo]].Type;
-                    var typeVals = schema[ColMapNewToOld[iinfo]].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
+                    var typeVals = schema[ColMapNewToOld[iinfo]].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type;
                     Host.Check(typeVals != null, "Metadata KeyValues does not exist");
                     DataViewType valsItemType = typeVals.GetItemType();
                     DataViewType srcItemType = typeSrc.GetItemType();
@@ -531,11 +531,11 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (!col.IsKey)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, "KeyType", col.GetTypeString());
 
-                if (!col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMetaCol))
+                if (!col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var keyMetaCol))
                     throw Host.ExceptParam(nameof(inputSchema), $"Input column '{colInfo.inputColumnName}' doesn't contain key values metadata");
 
                 SchemaShape metadata = null;
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotCol))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotCol))
                     metadata = new SchemaShape(new[] { slotCol });
 
                 result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, col.Kind, keyMetaCol.ItemType, keyMetaCol.IsKey, metadata);

@@ -608,7 +608,7 @@ namespace Microsoft.ML.Internal.Calibration
                 _parent = parent;
                 _predictor = _parent._bindable.Bind(env, schema) as ISchemaBoundRowMapper;
                 env.Check(_predictor != null, "Predictor is not a row-to-row mapper");
-                if (!_predictor.OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out _scoreCol))
+                if (!_predictor.OutputSchema.TryGetColumnIndex(AnnotationUtils.Const.ScoreValueKind.Score, out _scoreCol))
                     throw env.Except("Predictor does not output a score");
                 var scoreType = _predictor.OutputSchema[_scoreCol].Type;
                 env.Check(scoreType is NumberDataViewType);
@@ -804,7 +804,7 @@ namespace Microsoft.ML.Internal.Calibration
             var bound = bindable.Bind(env, schema);
             var outputSchema = bound.OutputSchema;
             int scoreCol;
-            if (!outputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreCol))
+            if (!outputSchema.TryGetColumnIndex(AnnotationUtils.Const.ScoreValueKind.Score, out scoreCol))
             {
                 ch.Info("Not training a calibrator because the predictor does not output a score column.");
                 return false;

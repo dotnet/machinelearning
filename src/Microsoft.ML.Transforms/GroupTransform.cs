@@ -283,15 +283,15 @@ namespace Microsoft.ML.Transforms
                 // Handle group(-key) columns. Those columns are used as keys to partition rows in the input data; specifically,
                 // rows with the same key value will be merged into one row in the output data.
                 foreach (var groupKeyColumnName in _groupColumns)
-                    schemaBuilder.AddColumn(groupKeyColumnName, sourceSchema[groupKeyColumnName].Type, sourceSchema[groupKeyColumnName].Metadata);
+                    schemaBuilder.AddColumn(groupKeyColumnName, sourceSchema[groupKeyColumnName].Type, sourceSchema[groupKeyColumnName].Annotations);
 
                 // Handle aggregated (aka keep) columns.
                 foreach (var groupValueColumnName in _keepColumns)
                 {
                     // Prepare column's metadata.
-                    var metadataBuilder = new DataViewSchema.Metadata.Builder();
-                    metadataBuilder.Add(sourceSchema[groupValueColumnName].Metadata,
-                        s => s == MetadataUtils.Kinds.IsNormalized || s == MetadataUtils.Kinds.KeyValues);
+                    var metadataBuilder = new DataViewSchema.Annotations.Builder();
+                    metadataBuilder.Add(sourceSchema[groupValueColumnName].Annotations,
+                        s => s == AnnotationUtils.Kinds.IsNormalized || s == AnnotationUtils.Kinds.KeyValues);
 
                     // Prepare column's type.
                     var aggregatedValueType = sourceSchema[groupValueColumnName].Type as PrimitiveDataViewType;
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Transforms
                     var aggregatedResultType = new VectorType(aggregatedValueType);
 
                     // Add column into output schema.
-                    schemaBuilder.AddColumn(groupValueColumnName, aggregatedResultType, metadataBuilder.ToMetadata());
+                    schemaBuilder.AddColumn(groupValueColumnName, aggregatedResultType, metadataBuilder.ToAnnotations());
                 }
 
                 return schemaBuilder.ToSchema();
