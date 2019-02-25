@@ -47,6 +47,7 @@ namespace Microsoft.ML.CLI
 
 
             parser.InvokeAsync(args).Wait();
+            Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
         }
     }

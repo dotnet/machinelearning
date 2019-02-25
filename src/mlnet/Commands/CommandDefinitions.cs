@@ -88,7 +88,7 @@ namespace Microsoft.ML.CLI.Commands
                          new Argument<string>(defaultValue: "m").FromAmong(GetVerbositySuggestions()));
 
             Option Name() =>
-              new Option(new List<string>() { "--name" }, "Name of the output files(project and folder).",
+              new Option(new List<string>() { "--name" }, "Name of the output files(project).",
                          new Argument<string>(defaultValue: "Sample"));
 
             Option OutputPath() =>

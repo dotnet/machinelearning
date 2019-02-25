@@ -74,7 +74,7 @@ namespace Microsoft.ML.CLI.Commands.New
 
             // Save the model
             logger.Log(LogLevel.Info, Strings.SavingBestModel);
-            Utils.SaveModel(model, options.OutputPath.FullName, $"{options.Name}_model.zip", context);
+            Utils.SaveModel(model, options.OutputPath.FullName, $"model.zip", context);
 
             // Generate the Project
             GenerateProject(columnInference, pipeline, sanitized_Label_Name);
