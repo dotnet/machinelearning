@@ -19,7 +19,8 @@ namespace Microsoft.ML.Data
         /// </summary>
         public static bool IsStandardScalar(this DataViewType columnType) =>
             (columnType is NumberDataViewType) || (columnType is TextDataViewType) || (columnType is BooleanDataViewType) ||
-            (columnType is TimeSpanDataViewType) || (columnType is DateTimeDataViewType) || (columnType is DateTimeOffsetDataViewType);
+            (columnType is RowIdDataViewType) || (columnType is TimeSpanDataViewType) ||
+            (columnType is DateTimeDataViewType) || (columnType is DateTimeOffsetDataViewType);
 
         /// <summary>
         /// Zero return means it's not a key type.
@@ -103,6 +104,8 @@ namespace Microsoft.ML.Data
                 return DateTimeDataViewType.Instance;
             if (type == typeof(DateTimeOffset))
                 return DateTimeOffsetDataViewType.Instance;
+            if (type == typeof(DataViewRowId))
+                return RowIdDataViewType.Instance;
             return NumberTypeFromType(type);
         }
 
@@ -118,6 +121,8 @@ namespace Microsoft.ML.Data
                 return DateTimeDataViewType.Instance;
             if (kind == InternalDataKind.DZ)
                 return DateTimeOffsetDataViewType.Instance;
+            if (kind == InternalDataKind.UG)
+                return RowIdDataViewType.Instance;
             return NumberTypeFromKind(kind);
         }
 
@@ -131,7 +136,7 @@ namespace Microsoft.ML.Data
             throw new InvalidOperationException($"Bad type in {nameof(ColumnTypeExtensions)}.{nameof(NumberTypeFromType)}: {type}");
         }
 
-        public static NumberDataViewType NumberTypeFromKind(InternalDataKind kind)
+        private static NumberDataViewType NumberTypeFromKind(InternalDataKind kind)
         {
             switch (kind)
             {
@@ -155,8 +160,6 @@ namespace Microsoft.ML.Data
                     return NumberDataViewType.Single;
                 case InternalDataKind.R8:
                     return NumberDataViewType.Double;
-                case InternalDataKind.UG:
-                    return NumberDataViewType.DataViewRowId;
             }
 
             Contracts.Assert(false);

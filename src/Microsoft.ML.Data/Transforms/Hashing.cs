@@ -1213,10 +1213,11 @@ namespace Microsoft.ML.Transforms.Conversions
         internal static bool IsColumnTypeValid(DataViewType type)
         {
             var itemType = type.GetItemType();
-            return itemType is TextDataViewType || itemType is KeyType || itemType is NumberDataViewType || itemType is BooleanDataViewType;
+            return itemType is TextDataViewType || itemType is KeyType || itemType is NumberDataViewType ||
+                itemType is BooleanDataViewType || itemType is RowIdDataViewType;
         }
 
-        internal const string ExpectedColumnType = "Expected Text, Key, numeric or Boolean item type";
+        internal const string ExpectedColumnType = "Expected Text, Key, numeric, Boolean or DataViewRowId item type";
 
         /// <summary>
         /// Initializes a new instance of <see cref="HashingEstimator"/>.

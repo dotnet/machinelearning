@@ -199,17 +199,6 @@ namespace Microsoft.Data.DataView
             }
         }
 
-        private static volatile NumberDataViewType _instDataViewRowId;
-        public static NumberDataViewType DataViewRowId
-        {
-            get
-            {
-                return _instDataViewRowId ??
-                    Interlocked.CompareExchange(ref _instDataViewRowId, new NumberDataViewType(typeof(DataViewRowId), "UG"), null) ??
-                    _instDataViewRowId;
-            }
-        }
-
         private static volatile NumberDataViewType _instSingle;
         public static NumberDataViewType Single
         {
@@ -241,6 +230,41 @@ namespace Microsoft.Data.DataView
         }
 
         public override string ToString() => _name;
+    }
+
+    /// <summary>
+    /// The DataViewRowId type.
+    /// </summary>
+    public sealed class RowIdDataViewType : PrimitiveDataViewType
+    {
+        private static volatile RowIdDataViewType _instance;
+        public static RowIdDataViewType Instance
+        {
+            get
+            {
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new RowIdDataViewType(), null) ??
+                    _instance;
+            }
+        }
+
+        private RowIdDataViewType()
+            : base(typeof(DataViewRowId))
+        {
+        }
+
+        public override bool Equals(DataViewType other)
+        {
+            if (other == this)
+                return true;
+            Debug.Assert(!(other is RowIdDataViewType));
+            return false;
+        }
+
+        public override string ToString()
+        {
+            return "DataViewRowId";
+        }
     }
 
     /// <summary>
