@@ -596,7 +596,7 @@ namespace Microsoft.ML.Data
         /// This builds an array of bools of length ColumnCount containing the results of calling
         /// predicate on each column index.
         /// </summary>
-        public bool[] GetActive(IEnumerable<Schema.Column> columns)
+        public bool[] GetActive(IEnumerable<DataViewSchema.Column> columns)
         {
             return Utils.BuildArray(ColumnCount, columns);
         }
@@ -626,7 +626,7 @@ namespace Microsoft.ML.Data
         /// This builds an array of bools of length Input.ColumnCount containing the results of calling
         /// predicate on the output column index corresponding to each input column index.
         /// </summary>
-        public bool[] GetActiveInput(IEnumerable<Schema.Column> inputColumns)
+        public bool[] GetActiveInput(IEnumerable<DataViewSchema.Column> inputColumns)
         {
             Contracts.AssertValue(inputColumns);
             var predicate = RowCursorUtils.FromColumnsToPredicate(inputColumns, AsSchema);
@@ -794,7 +794,7 @@ namespace Microsoft.ML.Data
         /// This builds an array of bools of length Input.ColumnCount containing the results of calling
         /// predicate on the output column index corresponding to each input column index.
         /// </summary>
-        public bool[] GetActiveInput(IEnumerable<Schema.Column> activeColumns)
+        public bool[] GetActiveInput(IEnumerable<DataViewSchema.Column> activeColumns)
         {
             Contracts.AssertValue(activeColumns);
             var predicate = RowCursorUtils.FromColumnsToPredicate(activeColumns, Schema);

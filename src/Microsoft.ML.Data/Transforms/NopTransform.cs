@@ -126,7 +126,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Given a set of columns, return the input columns that are needed to generate those output columns.
         /// </summary>
-        IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> dependingColumns)
+        IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
             => dependingColumns;
 
         public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)

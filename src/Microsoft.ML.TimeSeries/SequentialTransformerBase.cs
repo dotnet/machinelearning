@@ -480,10 +480,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// <summary>
             /// Given a set of columns, return the input columns that are needed to generate those output columns.
             /// </summary>
-            public IEnumerable<Schema.Column> GetDependencies(IEnumerable<Schema.Column> dependingColumns)
+            public IEnumerable<DataViewSchema.Column> GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
                 if (dependingColumns.Count() == 0)
-                    return Enumerable.Empty<Schema.Column>();
+                    return Enumerable.Empty<DataViewSchema.Column>();
 
                 return InputSchema;
             }
@@ -695,7 +695,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// a predicate for the needed active input columns, and a predicate for the needed active
         /// output columns.
         /// </summary>
-        private IEnumerable<Schema.Column> GetActive(Func<int, bool> predicate)
+        private IEnumerable<DataViewSchema.Column> GetActive(Func<int, bool> predicate)
         {
             Func<int, bool> predicateInput;
 
@@ -778,7 +778,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <summary>
         /// Given a set of columns, return the input columns that are needed to generate those output columns.
         /// </summary>
-        public IEnumerable<Schema.Column> GetDependencies(IEnumerable<Schema.Column> dependingColumns)
+        public IEnumerable<DataViewSchema.Column> GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(dependingColumns, OutputSchema);
             return GetActive(predicate);

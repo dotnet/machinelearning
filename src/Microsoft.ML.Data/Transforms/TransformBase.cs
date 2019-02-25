@@ -168,10 +168,10 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Given a set of columns, return the input columns that are needed to generate those output columns.
         /// </summary>
-        IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> dependingColumns)
+        IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
             => GetDependenciesCore(dependingColumns);
 
-        protected abstract IEnumerable<Schema.Column> GetDependenciesCore(IEnumerable<Schema.Column> dependingColumns);
+        protected abstract IEnumerable<DataViewSchema.Column> GetDependenciesCore(IEnumerable<DataViewSchema.Column> dependingColumns);
 
         public DataViewSchema InputSchema => Source.Schema;
 
@@ -415,7 +415,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Given a set of columns, return the input columns that are needed to generate those output columns.
             /// </summary>
-            public IEnumerable<Schema.Column> GetDependencies(IEnumerable<Schema.Column> columns)
+            public IEnumerable<DataViewSchema.Column> GetDependencies(IEnumerable<DataViewSchema.Column> columns)
             {
                 Contracts.AssertValue(columns);
 
@@ -742,7 +742,7 @@ namespace Microsoft.ML.Data
                 inputs = DataViewUtils.CreateSplitCursors(Host, inputs[0], n);
             Host.AssertNonEmpty(inputs);
 
-            var cursors = var cursors = new DataViewRowCursor[inputs.Length];
+            var cursors = new DataViewRowCursor[inputs.Length];
             var active = _bindings.GetActive(predicate);
             for (int i = 0; i < inputs.Length; i++)
                 cursors[i] = new Cursor(Host, this, inputs[i], active);
@@ -797,7 +797,7 @@ namespace Microsoft.ML.Data
             return _bindings.MapColumnIndex(out isSrc, col);
         }
 
-        protected override IEnumerable<Schema.Column> GetDependenciesCore(IEnumerable<Schema.Column> dependingColumns)
+        protected override IEnumerable<DataViewSchema.Column> GetDependenciesCore(IEnumerable<DataViewSchema.Column> dependingColumns)
             => _bindings.GetDependencies(dependingColumns);
 
         protected override Delegate[] CreateGetters(DataViewRow input, Func<int, bool> active, out Action disposer)

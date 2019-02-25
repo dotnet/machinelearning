@@ -2,11 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.OnnxConverter;
+using Microsoft.ML.Model.Pfa;
 
 [assembly: LoadableClass(typeof(RowToRowMapperTransform), null, typeof(SignatureLoadDataTransform),
     "", RowToRowMapperTransform.LoaderSignature)]
@@ -95,7 +101,7 @@ namespace Microsoft.ML.Data
             _mapperFactory = mapperFactory;
             _bindings = new ColumnBindings(input.Schema, mapper.GetOutputColumns());
         }
-        public static Schema GetOutputSchema(Schema inputSchema, IRowMapper mapper)
+        public static DataViewSchema GetOutputSchema(DataViewSchema inputSchema, IRowMapper mapper)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.CheckValue(mapper, nameof(mapper));
@@ -138,7 +144,7 @@ namespace Microsoft.ML.Data
         /// Produces the set of active columns for the data view (as a bool[] of length bindings.ColumnCount),
         /// and the needed active input columns, given a predicate for the needed active output columns.
         /// </summary>
-        private bool[] GetActive(Func<int, bool> predicate, out IEnumerable<Schema.Column> inputColumns)
+        private bool[] GetActive(Func<int, bool> predicate, out IEnumerable<DataViewSchema.Column> inputColumns)
         {
             int n = _bindings.Schema.Count;
             var active = Utils.BuildArray(n, predicate);
@@ -180,20 +186,20 @@ namespace Microsoft.ML.Data
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
-            var active = GetActive(predicate, out IEnumerable<Schema.Column> inputCols);
+            var active = GetActive(predicate, out IEnumerable<DataViewSchema.Column> inputCols);
 
             return new Cursor(Host, Source.GetRowCursor(inputCols, rand), this, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
 
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
-            var active = GetActive(predicate, out IEnumerable<Schema.Column> inputCols);
+            var active = GetActive(predicate, out IEnumerable<DataViewSchema.Column> inputCols);
 
             var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
@@ -231,7 +237,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Given a set of output columns, return the input columns that are needed to generate those output columns.
         /// </summary>
-        IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> dependingColumns)
+        IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(dependingColumns, OutputSchema);
             GetActive(predicate, out var inputColumns);
@@ -240,7 +246,7 @@ namespace Microsoft.ML.Data
 
         public DataViewSchema InputSchema => Source.Schema;
 
-        public Row GetRow(Row input, Func<int, bool> active)
+        public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
         {
             Host.CheckValue(input, nameof(input));
             Host.CheckValue(active, nameof(active));

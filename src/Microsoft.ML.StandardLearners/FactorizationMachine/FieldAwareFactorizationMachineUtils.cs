@@ -136,10 +136,10 @@ namespace Microsoft.ML.FactorizationMachine
         /// <summary>
         /// Given a set of columns, return the input columns that are needed to generate those output columns.
         /// </summary>
-        IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> columns)
+        IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> columns)
         {
             if (columns.Count() == 0)
-                return Enumerable.Empty<Schema.Column>();
+                return Enumerable.Empty<DataViewSchema.Column>();
 
             return InputSchema.Where(col => _inputColumnIndexes.Contains(col.Index));
         }

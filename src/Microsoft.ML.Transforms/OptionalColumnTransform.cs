@@ -217,7 +217,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Given a set of columns, return the input columns that are needed to generate those output columns.
             /// </summary>
-            public IEnumerable<Schema.Column> GetDependencies(IEnumerable<Schema.Column> dependingColumns)
+            public IEnumerable<DataViewSchema.Column> GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
                 Contracts.AssertValue(dependingColumns);
                 var predicate = RowCursorUtils.FromColumnsToPredicate(dependingColumns, AsSchema);
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Transforms
             return new DataViewRowCursor[] { new Cursor(Host, _bindings, input, active) };
         }
 
-        protected override IEnumerable<Schema.Column> GetDependenciesCore(IEnumerable<Schema.Column> dependingColumns)
+        protected override IEnumerable<DataViewSchema.Column> GetDependenciesCore(IEnumerable<DataViewSchema.Column> dependingColumns)
             => _bindings.GetDependencies(dependingColumns);
 
         protected override int MapColumnIndex(out bool isSrc, int col)

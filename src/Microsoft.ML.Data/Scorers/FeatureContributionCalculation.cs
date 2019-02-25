@@ -352,10 +352,10 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns the input columns needed for the requested output columns.
             /// </summary>
-            IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> dependingColumns)
+            IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
                 if (dependingColumns.Count() == 0)
-                    return Enumerable.Empty<Schema.Column>();
+                    return Enumerable.Empty<DataViewSchema.Column>();
 
                 return Enumerable.Repeat(FeatureColumn, 1);
             }

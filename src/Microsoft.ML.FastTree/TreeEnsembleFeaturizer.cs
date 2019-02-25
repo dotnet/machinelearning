@@ -333,10 +333,10 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Given a set of columns, return the input columns that are needed to generate those output columns.
             /// </summary>
-            public IEnumerable<Schema.Column> GetDependencies(IEnumerable<Schema.Column> dependingColumns)
+            public IEnumerable<DataViewSchema.Column> GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
                 if (dependingColumns.Count() == 0)
-                    return Enumerable.Empty<Schema.Column>();
+                    return Enumerable.Empty<DataViewSchema.Column>();
 
                 return Enumerable.Repeat(FeatureColumn, 1);
             }

@@ -31,7 +31,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Given a set of columns, return the input columns that are needed to generate those output columns.
         /// </summary>
-        IEnumerable<Schema.Column> GetDependencies(IEnumerable<Schema.Column> dependingColumns);
+        IEnumerable<DataViewSchema.Column> GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns);
 
         /// <summary>
         /// Get an <see cref="DataViewRow"/> with the indicated active columns, based on the input <paramref name="input"/>.

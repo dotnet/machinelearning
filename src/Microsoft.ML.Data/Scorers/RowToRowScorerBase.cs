@@ -82,8 +82,8 @@ namespace Microsoft.ML.Data
         /// mapper columns.
         /// </summary>
         private static bool[] GetActive(BindingsBase bindings,
-            IEnumerable<Schema.Column> columns,
-            out IEnumerable<Schema.Column> inputColumns,
+            IEnumerable<DataViewSchema.Column> columns,
+            out IEnumerable<DataViewSchema.Column> inputColumns,
             out Func<int, bool> predicateMapper)
         {
             var active = bindings.GetActive(columns);
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Data
 
             var bindings = GetBindings();
             Func<int, bool> predicateMapper;
-            var active = GetActive(bindings, columnsNeeded, out IEnumerable<Schema.Column> inputCols, out predicateMapper);
+            var active = GetActive(bindings, columnsNeeded, out IEnumerable<DataViewSchema.Column> inputCols, out predicateMapper);
 
             var input = Source.GetRowCursor(inputCols, rand);
             return new Cursor(Host, this, input, active, predicateMapper);
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Data
 
             var bindings = GetBindings();
             Func<int, bool> predicateMapper;
-            var active = GetActive(bindings, columnsNeeded, out IEnumerable<Schema.Column> inputCols, out predicateMapper);
+            var active = GetActive(bindings, columnsNeeded, out IEnumerable<DataViewSchema.Column> inputCols, out predicateMapper);
             var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Contracts.AssertNonEmpty(inputs);
 
@@ -162,9 +162,9 @@ namespace Microsoft.ML.Data
         protected override Delegate[] CreateGetters(DataViewRow input, Func<int, bool> active, out Action disp)
         {
             var bindings = GetBindings();
-            IEnumerable<Schema.Column> inputColumns;
+            IEnumerable<DataViewSchema.Column> inputColumns;
             Func<int, bool> predicateMapper;
-            IEnumerable<Schema.Column> activeColumns = OutputSchema.Where(col => active(col.Index));
+            IEnumerable<DataViewSchema.Column> activeColumns = OutputSchema.Where(col => active(col.Index));
             GetActive(bindings, activeColumns, out inputColumns, out predicateMapper);
             var output = bindings.RowMapper.GetRow(input, predicateMapper);
             Func<int, bool> activeInfos = iinfo => active(bindings.MapIinfoToCol(iinfo));
@@ -172,10 +172,10 @@ namespace Microsoft.ML.Data
             return GetGetters(output, activeInfos);
         }
 
-        protected override IEnumerable<Schema.Column> GetDependenciesCore(IEnumerable<Schema.Column> columns)
+        protected override IEnumerable<DataViewSchema.Column> GetDependenciesCore(IEnumerable<DataViewSchema.Column> columns)
         {
             var bindings = GetBindings();
-            IEnumerable<Schema.Column> inputColumns;
+            IEnumerable<DataViewSchema.Column> inputColumns;
             Func<int, bool> predicateMapper;
 
             GetActive(bindings, columns, out inputColumns, out predicateMapper);

@@ -618,12 +618,12 @@ namespace Microsoft.ML.Internal.Calibration
             /// <summary>
             /// Given a set of columns, return the input columns that are needed to generate those output columns.
             /// </summary>
-            IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> dependingColumns)
+            IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
                 if (dependingColumns.Count() > 0)
                     return _predictor.GetDependencies(OutputSchema);
 
-                return Enumerable.Empty<Schema.Column>();
+                return Enumerable.Empty<DataViewSchema.Column>();
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()

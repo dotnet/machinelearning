@@ -679,7 +679,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Given a set of columns, return the input columns that are needed to generate those output columns.
             /// </summary>
-            IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> columns)
+            IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> columns)
             {
                 var active = new bool[_mapper.InputSchema.Count];
                 foreach (var column in columns)
@@ -688,7 +688,7 @@ namespace Microsoft.ML.Transforms
                 return _mapper.InputSchema.Where(col => col.Index < active.Length && active[col.Index]);
             }
 
-            public Row GetRow(DataViewRow input, Func<int, bool> active)
+            public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
             {
                 return new RowImpl(input, _mapper);
             }
