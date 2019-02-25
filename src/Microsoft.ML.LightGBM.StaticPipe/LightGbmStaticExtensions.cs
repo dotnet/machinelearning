@@ -89,7 +89,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
                {
                    options.LabelColumn = labelName;
                    options.FeatureColumn = featuresName;
-                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                   options.WeightColumn = weightsName;
 
                    var trainer = new LightGbmRegressorTrainer(env, options);
                    if (onFit != null)
@@ -176,7 +176,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
                {
                    options.LabelColumn = labelName;
                    options.FeatureColumn = featuresName;
-                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                   options.WeightColumn = weightsName;
 
                    var trainer = new LightGbmBinaryTrainer(env, options);
 
@@ -263,7 +263,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
                    options.LabelColumn = labelName;
                    options.FeatureColumn = featuresName;
                    options.GroupIdColumn = groupIdName;
-                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                   options.WeightColumn = weightsName;
 
                    var trainer = new LightGbmRankingTrainer(env, options);
 
@@ -355,7 +355,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
-                    options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                    options.WeightColumn = weightsName;
 
                     var trainer = new LightGbmMulticlassTrainer(env, options);
 

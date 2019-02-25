@@ -254,8 +254,6 @@ namespace Microsoft.ML.Trainers.FastTree
 
             public int Id { get; }
 
-            public MD5Hash ContentMD5Hash => MD5Hasher.Hash(Content);
-
             // Return the name of the input
             public unsafe string Name => _parserInterface.GetInputName(Id);
 

@@ -191,14 +191,14 @@ namespace Microsoft.ML.Transforms.Categorical
         void ICanSaveModel.Save(ModelSaveContext ctx) => (_transformer as ICanSaveModel).Save(ctx);
 
         /// <summary>
-        /// Whether a call to <see cref="GetRowToRowMapper"/> should succeed, on an appropriate schema.
+        /// Whether a call to <see cref="ITransformer.GetRowToRowMapper"/> should succeed, on an appropriate schema.
         /// </summary>
-        public bool IsRowToRowMapper => _transformer.IsRowToRowMapper;
+        bool ITransformer.IsRowToRowMapper => ((ITransformer)_transformer).IsRowToRowMapper;
 
         /// <summary>
         /// Constructs a row-to-row mapper based on an input schema.
         /// </summary>
-        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema) => _transformer.GetRowToRowMapper(inputSchema);
+        IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema) => ((ITransformer)_transformer).GetRowToRowMapper(inputSchema);
     }
 
     /// <summary>

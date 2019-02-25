@@ -418,7 +418,7 @@ namespace Microsoft.ML.Trainers
             _env.AssertValueOrNull(parent);
             _env.AssertValue(schema);
 
-            var builder = new MetadataBuilder();
+            var builder = new DataViewSchema.Metadata.Builder();
 
             builder.AddPrimitiveValue("Count of training examples", NumberDataViewType.Int64, _trainingExampleCount);
             builder.AddPrimitiveValue("Residual Deviance", NumberDataViewType.Single, _deviance);
@@ -426,10 +426,10 @@ namespace Microsoft.ML.Trainers
             builder.AddPrimitiveValue("AIC", NumberDataViewType.Single, 2 * _paramCount + _deviance);
 
             if (parent == null)
-                return builder.GetMetadata();
+                return builder.ToMetadata();
 
             if (!TryGetBiasStatistics(parent.Statistics, parent.Bias, out float biasStdErr, out float biasZScore, out float biasPValue))
-                return builder.GetMetadata();
+                return builder.ToMetadata();
 
             var biasEstimate = parent.Bias;
             builder.AddPrimitiveValue("BiasEstimate", NumberDataViewType.Single, biasEstimate);
@@ -446,9 +446,9 @@ namespace Microsoft.ML.Trainers
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames;
             GetUnorderedCoefficientStatistics(parent.Statistics, in weights, in names, ref estimate, ref stdErr, ref zScore, ref pValue, out getSlotNames);
 
-            var subMetaBuilder = new MetadataBuilder();
+            var subMetaBuilder = new DataViewSchema.Metadata.Builder();
             subMetaBuilder.AddSlotNames(stdErr.Length, getSlotNames);
-            var subMeta = subMetaBuilder.GetMetadata();
+            var subMeta = subMetaBuilder.ToMetadata();
             var colType = new VectorType(NumberDataViewType.Single, stdErr.Length);
 
             builder.Add("Estimate", colType, (ref VBuffer<float> dst) => estimate.CopyTo(ref dst), subMeta);
@@ -456,7 +456,7 @@ namespace Microsoft.ML.Trainers
             builder.Add("ZScore", colType, (ref VBuffer<float> dst) => zScore.CopyTo(ref dst), subMeta);
             builder.Add("PValue", colType, (ref VBuffer<float> dst) => pValue.CopyTo(ref dst), subMeta);
 
-            return builder.GetMetadata();
+            return builder.ToMetadata();
         }
 
         private string DecorateProbabilityString(float probZ)

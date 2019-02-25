@@ -215,8 +215,8 @@ namespace Microsoft.ML.StaticPipe
         /// Reconciler to an <see cref="ImagePixelExtractingEstimator"/> for the <see cref="PipelineColumn"/>.
         /// </summary>
         /// <remarks>Because we want to use the same reconciler for </remarks>
-        /// <see cref="ImageStaticPipe.ExtractPixels(Custom{Bitmap}, bool, bool, bool, bool, bool, float, float)"/>
-        /// <see cref="ImageStaticPipe.ExtractPixelsAsBytes(Custom{Bitmap}, bool, bool, bool, bool, bool)"/>
+        /// <see cref="ImageStaticPipe.ExtractPixels(Custom{Bitmap}, bool, bool, bool, bool, ImagePixelExtractingEstimator.ColorsOrder, bool, float, float)"/>
+        /// <see cref="ImageStaticPipe.ExtractPixelsAsBytes(Custom{Bitmap}, bool, bool, bool, bool,ImagePixelExtractingEstimator.ColorsOrder, bool)"/>
         private sealed class Reconciler : EstimatorReconciler
         {
             /// <summary>

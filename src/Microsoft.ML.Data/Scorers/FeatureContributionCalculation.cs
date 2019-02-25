@@ -323,9 +323,9 @@ namespace Microsoft.ML.Data
 
                 if (parent.Stringify)
                 {
-                    var builder = new SchemaBuilder();
+                    var builder = new DataViewSchema.Builder();
                     builder.AddColumn(DefaultColumnNames.FeatureContributions, TextDataViewType.Instance, null);
-                    _outputSchema = builder.GetSchema();
+                    _outputSchema = builder.ToSchema();
                     if (FeatureColumn.HasSlotNames(featureSize))
                         FeatureColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
                     else
@@ -333,15 +333,15 @@ namespace Microsoft.ML.Data
                 }
                 else
                 {
-                    var metadataBuilder = new MetadataBuilder();
+                    var metadataBuilder = new DataViewSchema.Metadata.Builder();
                     if (InputSchema[FeatureColumn.Index].HasSlotNames(featureSize))
                         metadataBuilder.AddSlotNames(featureSize, (ref VBuffer<ReadOnlyMemory<char>> value) =>
                             FeatureColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref value));
 
-                    var schemaBuilder = new SchemaBuilder();
+                    var schemaBuilder = new DataViewSchema.Builder();
                     var featureContributionType = new VectorType(NumberDataViewType.Single, FeatureColumn.Type as VectorType);
-                    schemaBuilder.AddColumn(DefaultColumnNames.FeatureContributions, featureContributionType, metadataBuilder.GetMetadata());
-                    _outputSchema = schemaBuilder.GetSchema();
+                    schemaBuilder.AddColumn(DefaultColumnNames.FeatureContributions, featureContributionType, metadataBuilder.ToMetadata());
+                    _outputSchema = schemaBuilder.ToSchema();
                 }
 
                 _outputGenericSchema = _genericRowMapper.OutputSchema;

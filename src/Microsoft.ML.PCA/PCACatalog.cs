@@ -15,7 +15,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="weightColumn">The name of the weight column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="rank">The number of principal components.</param>
         /// <param name="overSampling">Oversampling parameter for randomized PrincipalComponentAnalysis training.</param>
         /// <param name="center">If enabled, data is centered to be zero mean.</param>
@@ -23,13 +23,13 @@ namespace Microsoft.ML
         public static PrincipalComponentAnalysisEstimator ProjectToPrincipalComponents(this TransformsCatalog.ProjectionTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
-            string weightColumn = PrincipalComponentAnalysisEstimator.Defaults.WeightColumn,
+            string exampleWeightColumnName = null,
             int rank = PrincipalComponentAnalysisEstimator.Defaults.Rank,
             int overSampling = PrincipalComponentAnalysisEstimator.Defaults.Oversampling,
             bool center = PrincipalComponentAnalysisEstimator.Defaults.Center,
             int? seed = null)
             => new PrincipalComponentAnalysisEstimator(CatalogUtils.GetEnvironment(catalog),
-                outputColumnName, inputColumnName, weightColumn, rank, overSampling, center, seed);
+                outputColumnName, inputColumnName, exampleWeightColumnName, rank, overSampling, center, seed);
 
         /// <summary>Initializes a new instance of <see cref="PrincipalComponentAnalysisEstimator"/>.</summary>
         /// <param name="catalog">The transform's catalog.</param>
@@ -41,15 +41,15 @@ namespace Microsoft.ML
         /// Trains an approximate PCA using Randomized SVD algorithm.
         /// </summary>
         /// <param name="catalog">The anomaly detection catalog trainer object.</param>
-        /// <param name="featureColumn">The features, or independent variables.</param>
-        /// <param name="weights">The optional example weights.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="rank">The number of components in the PCA.</param>
         /// <param name="oversampling">Oversampling parameter for randomized PCA training.</param>
         /// <param name="center">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation.</param>
         public static RandomizedPcaTrainer RandomizedPca(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog,
-            string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
+            string featureColumnName = DefaultColumnNames.Features,
+            string exampleWeightColumnName = null,
             int rank = Options.Defaults.NumComponents,
             int oversampling = Options.Defaults.OversamplingParameters,
             bool center = Options.Defaults.IsCenteredZeroMean,
@@ -57,7 +57,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new RandomizedPcaTrainer(env, featureColumn, weights, rank, oversampling, center, seed);
+            return new RandomizedPcaTrainer(env, featureColumnName, exampleWeightColumnName, rank, oversampling, center, seed);
         }
 
         /// <summary>

@@ -29,7 +29,7 @@ namespace Microsoft.ML.RunTests
         {
             TestCore(GetDataPath(Path.Combine("Timeseries", "real_1.csv")),
                 true,
-                    new[]{"loader=TextLoader{sep=, col=Features:R4:1 header=+}",
+                    new[]{"loader=TextLoader{sparse+ sep=, col=Features:R4:1 header=+}",
                     "xf=IidSpikeDetector{src=Features name=Anomaly cnf=99.5 wnd=200 side=Positive}",
                     "xf=Convert{col=fAnomaly:R4:Anomaly}",
                     "xf=IidSpikeDetector{src=Features name=Anomaly2 cnf=99.5 wnd=200 side=Negative}",

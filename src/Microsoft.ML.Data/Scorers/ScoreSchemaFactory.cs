@@ -28,17 +28,17 @@ namespace Microsoft.ML.Data
             Contracts.CheckNonEmpty(scoreColumnKindValue, nameof(scoreColumnKindValue));
 
             // Two metadata fields. One can set up by caller of this function while the other one is a constant.
-            var metadataBuilder = new MetadataBuilder();
+            var metadataBuilder = new DataViewSchema.Metadata.Builder();
             metadataBuilder.Add(MetadataUtils.Kinds.ScoreColumnKind, TextDataViewType.Instance,
                 (ref ReadOnlyMemory<char> value) => { value = scoreColumnKindValue.AsMemory(); });
             metadataBuilder.Add(MetadataUtils.Kinds.ScoreValueKind, TextDataViewType.Instance,
                 (ref ReadOnlyMemory<char> value) => { value = MetadataUtils.Const.ScoreValueKind.Score.AsMemory(); });
 
             // Build a schema consisting of a single column.
-            var schemaBuilder = new SchemaBuilder();
-            schemaBuilder.AddColumn(scoreColumnName, scoreType, metadataBuilder.GetMetadata());
+            var schemaBuilder = new DataViewSchema.Builder();
+            schemaBuilder.AddColumn(scoreColumnName, scoreType, metadataBuilder.ToMetadata());
 
-            return schemaBuilder.GetSchema();
+            return schemaBuilder.ToSchema();
         }
 
         /// <summary>
@@ -55,12 +55,12 @@ namespace Microsoft.ML.Data
             // Schema of Score column. We are going to extend it by adding a Probability column.
             var partialSchema = Create(NumberDataViewType.Single, MetadataUtils.Const.ScoreColumnKind.BinaryClassification, scoreColumnName);
 
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
             // Copy Score column from partialSchema.
             schemaBuilder.AddColumn(partialSchema[0].Name, partialSchema[0].Type, partialSchema[0].Metadata);
 
             // Create Probability column's metadata.
-            var probabilityMetadataBuilder = new MetadataBuilder();
+            var probabilityMetadataBuilder = new DataViewSchema.Metadata.Builder();
             probabilityMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ref bool value) => { value = true; });
             probabilityMetadataBuilder.Add(MetadataUtils.Kinds.ScoreColumnKind, TextDataViewType.Instance,
                 (ref ReadOnlyMemory<char> value) => { value = MetadataUtils.Const.ScoreColumnKind.BinaryClassification.AsMemory(); });
@@ -68,9 +68,9 @@ namespace Microsoft.ML.Data
                 (ref ReadOnlyMemory<char> value) => { value = MetadataUtils.Const.ScoreValueKind.Probability.AsMemory(); });
 
             // Add probability column.
-            schemaBuilder.AddColumn(probabilityColumnName, NumberDataViewType.Single, probabilityMetadataBuilder.GetMetadata());
+            schemaBuilder.AddColumn(probabilityColumnName, NumberDataViewType.Single, probabilityMetadataBuilder.ToMetadata());
 
-            return schemaBuilder.GetSchema();
+            return schemaBuilder.ToSchema();
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Data
             // Create a schema using standard function. The produced schema will be modified by adding one metadata column.
             var partialSchema = Create(new VectorType(scoreType as PrimitiveDataViewType, quantiles.Length), MetadataUtils.Const.ScoreColumnKind.QuantileRegression);
 
-            var metadataBuilder = new MetadataBuilder();
+            var metadataBuilder = new DataViewSchema.Metadata.Builder();
             // Add the extra metadata.
             metadataBuilder.AddSlotNames(quantiles.Length, (ref VBuffer<ReadOnlyMemory<char>> value) =>
                 {
@@ -101,10 +101,10 @@ namespace Microsoft.ML.Data
             metadataBuilder.Add(partialSchema[0].Metadata, (string kind) => true);
 
             // Build a schema consisting of a single column. Comparing with partial schema, the only difference is a metadata field.
-            var schemaBuilder = new SchemaBuilder();
-            schemaBuilder.AddColumn(partialSchema[0].Name, partialSchema[0].Type, metadataBuilder.GetMetadata());
+            var schemaBuilder = new DataViewSchema.Builder();
+            schemaBuilder.AddColumn(partialSchema[0].Name, partialSchema[0].Type, metadataBuilder.ToMetadata());
 
-            return schemaBuilder.GetSchema();
+            return schemaBuilder.ToSchema();
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(scoreType, nameof(scoreType));
             Contracts.CheckValue(scoreColumnKindValue, nameof(scoreColumnKindValue));
 
-            var metadataBuilder = new MetadataBuilder();
+            var metadataBuilder = new DataViewSchema.Metadata.Builder();
             // Add metadata columns including their getters. We starts with key names of predicted keys if they exist.
             if (keyNames.Length > 0)
                 metadataBuilder.AddKeyValues(keyNames.Length, TextDataViewType.Instance,
@@ -132,10 +132,10 @@ namespace Microsoft.ML.Data
                 (ref ReadOnlyMemory<char> value) => value = MetadataUtils.Const.ScoreValueKind.PredictedLabel.AsMemory());
 
             // Build a schema consisting of a single column.
-            var schemaBuilder = new SchemaBuilder();
-            schemaBuilder.AddColumn(MetadataUtils.Const.ScoreValueKind.PredictedLabel, scoreType, metadataBuilder.GetMetadata());
+            var schemaBuilder = new DataViewSchema.Builder();
+            schemaBuilder.AddColumn(MetadataUtils.Const.ScoreValueKind.PredictedLabel, scoreType, metadataBuilder.ToMetadata());
 
-            return schemaBuilder.GetSchema();
+            return schemaBuilder.ToSchema();
         }
     }
 }

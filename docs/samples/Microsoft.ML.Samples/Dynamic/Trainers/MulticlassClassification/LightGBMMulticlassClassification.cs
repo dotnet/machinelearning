@@ -31,7 +31,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //  - Convert the string labels into key types.
             //  - Apply LightGbm multiclass trainer.
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label")
-                        .Append(mlContext.MulticlassClassification.Trainers.LightGbm(labelColumn: "LabelIndex"))
+                        .Append(mlContext.MulticlassClassification.Trainers.LightGbm(labelColumnName: "LabelIndex"))
                         .Append(mlContext.Transforms.Conversion.MapValueToKey("PredictedLabelIndex", "PredictedLabel"))
                         .Append(mlContext.Transforms.CopyColumns("Scores", "Score"));
 

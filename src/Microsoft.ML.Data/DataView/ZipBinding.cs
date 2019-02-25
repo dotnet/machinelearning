@@ -35,10 +35,10 @@ namespace Microsoft.ML.Data
                 _cumulativeColCounts[i + 1] = _cumulativeColCounts[i] + schema.Count;
             }
 
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
             foreach (var sourceSchema in sources)
                 schemaBuilder.AddColumns(sourceSchema);
-            OutputSchema = schemaBuilder.GetSchema();
+            OutputSchema = schemaBuilder.ToSchema();
         }
 
         public int ColumnCount => _cumulativeColCounts[_cumulativeColCounts.Length - 1];

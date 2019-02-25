@@ -126,7 +126,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="featureToInputMap">A map from the feature shape functions (as described by the binUpperBounds and BinEffects)
         /// to the input feature. Used when the number of input features is different than the number of shape functions. Use default if all features have
         /// a shape function.</param>
-        public RegressionGamModelParameters(IHostEnvironment env,
+        internal RegressionGamModelParameters(IHostEnvironment env,
             double[][] binUpperBounds, double[][] binEffects, double intercept, int inputLength = -1, int[] featureToInputMap = null)
             : base(env, LoaderSignature, binUpperBounds, binEffects, intercept, inputLength, featureToInputMap) { }
 

@@ -35,7 +35,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
             var engine = model.CreatePredictionEngine<IrisDataNoLabel, IrisPredictionNotCasted>(ml);
 
-            var testLoader = ml.Data.ReadFromTextFile(dataPath, TestDatasets.irisData.GetLoaderColumns(), hasHeader: true, separatorChar: ',');
+            var testLoader = ml.Data.ReadFromTextFile(dataPath, TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',', hasHeader: true);
             var testData = ml.CreateEnumerable<IrisData>(testLoader, false);
             
             // During prediction we will get Score column with 3 float values.

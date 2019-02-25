@@ -855,7 +855,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// Allows us to optionally register metadata. It is also perfectly legal for
             /// this to do nothing, which corresponds to there being no metadata.
             /// </summary>
-            public abstract void AddMetadata(MetadataBuilder builder);
+            public abstract void AddMetadata(DataViewSchema.Metadata.Builder builder);
 
             /// <summary>
             /// Writes out all terms we map to a text writer, with one line per mapped term.
@@ -1038,7 +1038,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     }
                 }
 
-                public override void AddMetadata(MetadataBuilder builder)
+                public override void AddMetadata(DataViewSchema.Metadata.Builder builder)
                 {
                     if (TypedMap.Count == 0)
                         return;
@@ -1081,7 +1081,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _host.Assert(TypedMap.ItemType is KeyType);
                 }
 
-                public override void AddMetadata(MetadataBuilder builder)
+                public override void AddMetadata(DataViewSchema.Metadata.Builder builder)
                 {
                     if (TypedMap.Count == 0)
                         return;
@@ -1096,7 +1096,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     }
                 }
 
-                private bool AddMetadataCore<TMeta>(DataViewType srcMetaType, MetadataBuilder builder)
+                private bool AddMetadataCore<TMeta>(DataViewType srcMetaType, DataViewSchema.Metadata.Builder builder)
                 {
                     _host.AssertValue(srcMetaType);
                     _host.Assert(srcMetaType.RawType == typeof(TMeta));

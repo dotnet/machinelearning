@@ -34,7 +34,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 .ToArray();
             var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
                            .Append(mlContext.Regression.Trainers.LightGbm(
-                                            labelColumn: labelName,
+                                            labelColumnName: labelName,
                                             numLeaves: 4,
                                             minDataPerLeaf: 6,
                                             learningRate: 0.001));

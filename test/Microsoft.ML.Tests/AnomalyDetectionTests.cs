@@ -40,7 +40,8 @@ namespace Microsoft.ML.Tests
                 {
                     new TextLoader.Column("Label", DataKind.R4, 0),
                     new TextLoader.Column(featureColumn, DataKind.R4, new [] { new TextLoader.Range(1, 784) })
-                }
+                },
+                AllowSparse = true
             });
 
             var trainData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.trainFilename));

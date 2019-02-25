@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void IntrospectiveTraining()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
+            var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true, allowQuoting: true);
 
             var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(ml)
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void FastTreeClassificationIntrospectiveTraining()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
+            var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true, allowQuoting: true);
 
             var trainer = ml.BinaryClassification.Trainers.FastTree(numLeaves: 5, numTrees: 3);
 

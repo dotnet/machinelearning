@@ -278,7 +278,7 @@ namespace Microsoft.ML.Transforms
             private DataViewSchema BuildOutputSchema(DataViewSchema sourceSchema)
             {
                 // Create schema build. We will sequentially add group columns and then aggregated columns.
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
 
                 // Handle group(-key) columns. Those columns are used as keys to partition rows in the input data; specifically,
                 // rows with the same key value will be merged into one row in the output data.
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Transforms
                 foreach (var groupValueColumnName in _keepColumns)
                 {
                     // Prepare column's metadata.
-                    var metadataBuilder = new MetadataBuilder();
+                    var metadataBuilder = new DataViewSchema.Metadata.Builder();
                     metadataBuilder.Add(sourceSchema[groupValueColumnName].Metadata,
                         s => s == MetadataUtils.Kinds.IsNormalized || s == MetadataUtils.Kinds.KeyValues);
 
@@ -299,10 +299,10 @@ namespace Microsoft.ML.Transforms
                     var aggregatedResultType = new VectorType(aggregatedValueType);
 
                     // Add column into output schema.
-                    schemaBuilder.AddColumn(groupValueColumnName, aggregatedResultType, metadataBuilder.GetMetadata());
+                    schemaBuilder.AddColumn(groupValueColumnName, aggregatedResultType, metadataBuilder.ToMetadata());
                 }
 
-                return schemaBuilder.GetSchema();
+                return schemaBuilder.ToSchema();
             }
 
             internal void Save(ModelSaveContext ctx)

@@ -102,7 +102,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             private DataViewSchema ComputeOutputSchema()
             {
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
                 for (int i = 0; i < _sources.Length; ++i)
                 {
                     // selectedIndex is an column index of input schema. Note that the input column indexed by _sources[i] in _sourceSchema is sent
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Data
                     var selectedColumn = _sourceSchema[selectedIndex];
                     schemaBuilder.AddColumn(selectedColumn.Name, selectedColumn.Type, selectedColumn.Metadata);
                 }
-                return schemaBuilder.GetSchema();
+                return schemaBuilder.ToSchema();
             }
 
             internal Bindings(ModelLoadContext ctx, DataViewSchema sourceSchema)

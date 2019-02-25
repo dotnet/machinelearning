@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tests.Transformers
             var est = ML.Transforms.Projection.ProjectToPrincipalComponents("pca", "features", rank: 4, seed: 10);
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
-            var estNonDefaultArgs = ML.Transforms.Projection.ProjectToPrincipalComponents("pca", "features", rank: 3, weightColumn: "weight", overSampling: 2, center: false);
+            var estNonDefaultArgs = ML.Transforms.Projection.ProjectToPrincipalComponents("pca", "features", rank: 3, exampleWeightColumnName: "weight", overSampling: 2, center: false);
             TestEstimatorCore(estNonDefaultArgs, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             Done();

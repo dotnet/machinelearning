@@ -237,9 +237,9 @@ namespace Microsoft.ML.Data
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
                 // Add FeatureContributions column.
-                var builder = new MetadataBuilder();
+                var builder = new DataViewSchema.Metadata.Builder();
                 builder.Add(InputSchema[_featureColumnIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames);
-                return new[] { new DataViewSchema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberDataViewType.Single, _featureColumnType.Size), builder.GetMetadata()) };
+                return new[] { new DataViewSchema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberDataViewType.Single, _featureColumnType.Size), builder.ToMetadata()) };
             }
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> active, out Action disposer)
