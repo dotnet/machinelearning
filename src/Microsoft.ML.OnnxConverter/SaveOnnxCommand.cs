@@ -14,7 +14,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
 using Newtonsoft.Json;
-using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
+using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
 [assembly: LoadableClass(SaveOnnxCommand.Summary, typeof(SaveOnnxCommand), typeof(SaveOnnxCommand.Arguments), typeof(SignatureCommand),
     "Save ONNX", "SaveOnnx", DocName = "command/SaveOnnx.md")]
