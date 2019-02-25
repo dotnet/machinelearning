@@ -81,9 +81,9 @@ namespace Microsoft.ML
             RegressionMetrics a, RegressionMetrics b)
         {
             return new RegressionMetrics(
-                l1: a.AbsoluteLoss - b.AbsoluteLoss,
-                l2: a.SquaredLoss - b.SquaredLoss,
-                rms: a.RootMeanSquareLoss - b.RootMeanSquareLoss,
+                l1: a.MeanAbsoluteError - b.MeanAbsoluteError,
+                l2: a.MeanSquaredError - b.MeanSquaredError,
+                rms: a.RootMeanSquaredError - b.RootMeanSquaredError,
                 lossFunction: a.LossFunction - b.LossFunction,
                 rSquared: a.RSquared - b.RSquared);
         }
@@ -158,7 +158,7 @@ namespace Microsoft.ML
             BinaryClassificationMetrics a, BinaryClassificationMetrics b)
         {
             return new BinaryClassificationMetrics(
-                auc: a.AreaUnderTheCurve - b.AreaUnderTheCurve,
+                auc: a.AreaUnderTheRocCurve - b.AreaUnderTheRocCurve,
                 accuracy: a.Accuracy - b.Accuracy,
                 positivePrecision: a.PositivePrecision - b.PositivePrecision,
                 positiveRecall: a.PositiveRecall - b.PositiveRecall,
@@ -456,9 +456,9 @@ namespace Microsoft.ML
         /// <param name="metrics">The observed regression evaluation metric</param>
         public override void Add(RegressionMetrics metrics)
         {
-            L1.Add(metrics.AbsoluteLoss);
-            L2.Add(metrics.SquaredLoss);
-            Rms.Add(metrics.RootMeanSquareLoss);
+            L1.Add(metrics.MeanAbsoluteError);
+            L2.Add(metrics.MeanSquaredError);
+            Rms.Add(metrics.RootMeanSquaredError);
             LossFn.Add(metrics.LossFunction);
             RSquared.Add(metrics.RSquared);
         }
@@ -528,7 +528,7 @@ namespace Microsoft.ML
         /// <param name="metrics">The observed binary classification evaluation metric</param>
         public override void Add(BinaryClassificationMetrics metrics)
         {
-            Auc.Add(metrics.AreaUnderTheCurve);
+            Auc.Add(metrics.AreaUnderTheRocCurve);
             Accuracy.Add(metrics.Accuracy);
             PositivePrecision.Add(metrics.PositivePrecision);
             PositiveRecall.Add(metrics.PositiveRecall);

@@ -7,7 +7,7 @@ using Microsoft.Data.DataView;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Evaluation results for binary classifiers, excluding probabilistic metrics.
+    /// Evaluation results for binary classifiers (supervised learning algorithm), excluding probabilistic metrics.
     /// </summary>
     public class BinaryClassificationMetrics
     {
@@ -19,7 +19,7 @@ namespace Microsoft.ML.Data
         /// a randomly chosen positive instance higher than a randomly chosen negative one
         /// (assuming 'positive' ranks higher than 'negative').
         /// </remarks>
-        public double AreaUnderTheCurve { get; }
+        public double AreaUnderTheRocCurve { get; }
 
         /// <summary>
         /// Gets the accuracy of a classifier which is the proportion of correct predictions in the test set.
@@ -69,7 +69,8 @@ namespace Microsoft.ML.Data
         /// The area under the precision/recall curve is a single number summary of the information in the
         /// precision/recall curve. It is increasingly used in the machine learning community, particularly
         /// for imbalanced datasets where one class is observed more frequently than the other. On these
-        /// datasets, AUPRC can highlight performance differences that are lost with AUC.
+        /// datasets, <see cref="AreaUnderPrecisionRecallCurve"/> can highlight performance differences that
+        /// are lost with <see cref="AreaUnderTheRocCurve"/>.
         /// </remarks>
         public double AreaUnderPrecisionRecallCurve { get; }
 
@@ -85,7 +86,7 @@ namespace Microsoft.ML.Data
         internal BinaryClassificationMetrics(IExceptionContext ectx, DataViewRow overallResult)
         {
             double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
-            AreaUnderTheCurve = Fetch(BinaryClassifierEvaluator.Auc);
+            AreaUnderTheRocCurve = Fetch(BinaryClassifierEvaluator.Auc);
             Accuracy = Fetch(BinaryClassifierEvaluator.Accuracy);
             PositivePrecision = Fetch(BinaryClassifierEvaluator.PosPrecName);
             PositiveRecall = Fetch(BinaryClassifierEvaluator.PosRecallName);
@@ -99,7 +100,7 @@ namespace Microsoft.ML.Data
         internal BinaryClassificationMetrics(double auc, double accuracy, double positivePrecision, double positiveRecall,
             double negativePrecision, double negativeRecall, double f1Score, double auprc)
         {
-            AreaUnderTheCurve = auc;
+            AreaUnderTheRocCurve = auc;
             Accuracy = accuracy;
             PositivePrecision = positivePrecision;
             PositiveRecall = positiveRecall;

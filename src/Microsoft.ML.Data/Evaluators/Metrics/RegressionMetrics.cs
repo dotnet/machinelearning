@@ -6,6 +6,9 @@ using Microsoft.Data.DataView;
 
 namespace Microsoft.ML.Data
 {
+    /// <summary>
+    /// Evaluation results regression algorithms (supervised learning algorithm).
+    /// </summary>
     public sealed class RegressionMetrics
     {
         /// <summary>
@@ -15,10 +18,10 @@ namespace Microsoft.ML.Data
         /// The absolute loss is defined as
         /// L1 = (1/m) * sum( abs( yi - y&apos;i))
         /// where m is the number of instances in the test set.
-        /// y'i are the predicted labels for each instance.
+        /// y&apos;i are the predicted labels for each instance.
         /// yi are the correct labels of each instance.
         /// </remarks>
-        public double AbsoluteLoss { get; }
+        public double MeanAbsoluteError { get; }
 
         /// <summary>
         /// Gets the squared loss of the model.
@@ -27,15 +30,15 @@ namespace Microsoft.ML.Data
         /// The squared loss is defined as
         /// L2 = (1/m) * sum(( yi - y&apos;i)^2)
         /// where m is the number of instances in the test set.
-        /// y'i are the predicted labels for each instance.
+        /// y&apos;i are the predicted labels for each instance.
         /// yi are the correct labels of each instance.
         /// </remarks>
-        public double SquaredLoss { get; }
+        public double MeanSquaredError { get; }
 
         /// <summary>
         /// Gets the root mean square loss (or RMS) which is the square root of the L2 loss.
         /// </summary>
-        public double RootMeanSquareLoss { get; }
+        public double RootMeanSquaredError { get; }
 
         /// <summary>
         /// Gets the result of user defined loss function.
@@ -55,9 +58,9 @@ namespace Microsoft.ML.Data
         internal RegressionMetrics(IExceptionContext ectx, DataViewRow overallResult)
         {
             double Fetch(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
-            AbsoluteLoss = Fetch(RegressionEvaluator.L1);
-            SquaredLoss = Fetch(RegressionEvaluator.L2);
-            RootMeanSquareLoss = Fetch(RegressionEvaluator.Rms);
+            MeanAbsoluteError = Fetch(RegressionEvaluator.L1);
+            MeanSquaredError = Fetch(RegressionEvaluator.L2);
+            RootMeanSquaredError = Fetch(RegressionEvaluator.Rms);
             LossFunction = Fetch(RegressionEvaluator.Loss);
             RSquared = Fetch(RegressionEvaluator.RSquared);
         }
@@ -65,9 +68,9 @@ namespace Microsoft.ML.Data
         [BestFriend]
         internal RegressionMetrics(double l1, double l2, double rms, double lossFunction, double rSquared)
         {
-            AbsoluteLoss = l1;
-            SquaredLoss = l2;
-            RootMeanSquareLoss = rms;
+            MeanAbsoluteError = l1;
+            MeanSquaredError = l2;
+            RootMeanSquaredError = rms;
             LossFunction = lossFunction;
             RSquared = rSquared;
         }

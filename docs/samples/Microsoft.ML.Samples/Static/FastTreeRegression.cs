@@ -47,10 +47,10 @@ namespace Microsoft.ML.Samples.Static
 
             var cvResults = mlContext.Regression.CrossValidate(data, learningPipeline, r => r.label, numFolds: 5);
             var averagedMetrics = (
-                L1: cvResults.Select(r => r.metrics.AbsoluteLoss).Average(),
-                L2: cvResults.Select(r => r.metrics.SquaredLoss).Average(),
+                L1: cvResults.Select(r => r.metrics.MeanAbsoluteError).Average(),
+                L2: cvResults.Select(r => r.metrics.MeanSquaredError).Average(),
                 LossFn: cvResults.Select(r => r.metrics.LossFunction).Average(),
-                Rms: cvResults.Select(r => r.metrics.RootMeanSquareLoss).Average(),
+                Rms: cvResults.Select(r => r.metrics.RootMeanSquaredError).Average(),
                 RSquared: cvResults.Select(r => r.metrics.RSquared).Average()
             );
             Console.WriteLine($"L1 - {averagedMetrics.L1}");    // 3.091095

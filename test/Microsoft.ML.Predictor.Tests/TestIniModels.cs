@@ -545,9 +545,9 @@ namespace Microsoft.ML.RunTests
 
             // Getting parity results from maml.exe:
             // maml.exe ini ini=model.ini out=model_ini.zip data=breast-cancer.txt  loader=TextLoader{col=Label:R4:0 col=Features:R4:1-9} xf=NAHandleTransform{col=Features slot=- ind=-} kind=Regression
-            Assert.Equal(0.093256807643323947, results.AbsoluteLoss);
-            Assert.Equal(0.025707474358979077, results.SquaredLoss);
-            Assert.Equal(0.16033550560926635, results.RootMeanSquareLoss);
+            Assert.Equal(0.093256807643323947, results.MeanAbsoluteError);
+            Assert.Equal(0.025707474358979077, results.MeanSquaredError);
+            Assert.Equal(0.16033550560926635, results.RootMeanSquaredError);
             Assert.Equal(0.88620288753853549, results.RSquared);
         }
 
@@ -587,7 +587,7 @@ namespace Microsoft.ML.RunTests
 
             // Getting parity results from maml.exe:
             // maml.exe ini ini=model.ini out=model_ini.zip data=breast-cancer.txt  loader=TextLoader{col=Label:R4:0 col=Features:R4:1-9} xf=NAHandleTransform{col=Features slot=- ind=-} kind=Binary
-            Assert.Equal(0.99545199224483139, results.AreaUnderTheCurve);
+            Assert.Equal(0.99545199224483139, results.AreaUnderTheRocCurve);
             Assert.Equal(0.96995708154506433, results.Accuracy);
             Assert.Equal(0.95081967213114749, results.PositivePrecision);
             Assert.Equal(0.96265560165975106, results.PositiveRecall);

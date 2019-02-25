@@ -6,7 +6,10 @@ using Microsoft.Data.DataView;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class RankingMetrics
+    /// <summary>
+    /// Evaluation results for rankers (supervised learning algorithm).
+    /// </summary>
+    public sealed class RankerMetrics
     {
         /// <summary>
         /// Array of normalized discounted cumulative gains where i-th element represent NDCG@i.
@@ -16,11 +19,12 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Array of discounted cumulative gains where i-th element represent DCG@i.
-        /// <a href="https://en.wikipedia.org/wiki/Discounted_cumulative_gain">Discounted Cumulative gain</a>
-        /// is the sum of the gains, for all the instances i, normalized by the natural logarithm of the instance + 1.
-        /// Note that unlike the Wikipedia article, ML.NET uses the natural logarithm.
+        /// Discounted Cumulative gain is the sum of the gains, for all the instances i,
+        /// normalized by the natural logarithm of the instance + 1.
+        /// Note that unline the Wikipedia article, ML.Net uses the natural logarithm.
         /// <image src="https://github.com/dotnet/machinelearning/tree/master/docs/images/DCG.png"></image>
         /// </summary>
+        /// <remarks><a href="https://en.wikipedia.org/wiki/Discounted_cumulative_gain">Discounted Cumulative gain</a></remarks>
         public double[] DiscountedCumulativeGains { get; }
 
         private static T Fetch<T>(IExceptionContext ectx, DataViewRow row, string name)
