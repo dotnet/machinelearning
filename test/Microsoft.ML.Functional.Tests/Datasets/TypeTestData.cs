@@ -96,9 +96,9 @@ namespace Microsoft.ML.Functional.Tests.Datasets
                         new TextLoader.Column("Dz", DataKind.DateTimeOffset, 14),
                         new TextLoader.Column("Features", DataKind.Single, 15, 15 + _numFeatures - 1),
                     },
-                    separatorChar: separator,
-                    hasHeader: true,
-                    allowQuoting: true);
+                separatorChar: separator,
+                hasHeader: true,
+                allowQuoting: true);
         }
 
         /// <summary>

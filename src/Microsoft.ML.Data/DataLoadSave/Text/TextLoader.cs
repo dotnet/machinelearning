@@ -1466,7 +1466,8 @@ namespace Microsoft.ML.Data
            char separator = Defaults.Separator,
            bool allowQuoting = Defaults.AllowQuoting,
            bool supportSparse = Defaults.AllowSparse,
-           bool trimWhitespace = Defaults.TrimWhitespace)
+           bool trimWhitespace = Defaults.TrimWhitespace,
+           IMultiStreamSource dataSample = null)
         {
             var userType = typeof(TInput);
 
@@ -1527,7 +1528,7 @@ namespace Microsoft.ML.Data
                 Columns = columns.ToArray()
             };
 
-            return new TextLoader(host, options);
+            return new TextLoader(host, options, dataSample: dataSample);
         }
 
         private sealed class BoundLoader : IDataLoader
