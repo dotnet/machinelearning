@@ -12,8 +12,6 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Training;
-using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
 

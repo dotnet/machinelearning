@@ -5,10 +5,9 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Training;
 
 namespace Microsoft.ML.LightGBM
 {

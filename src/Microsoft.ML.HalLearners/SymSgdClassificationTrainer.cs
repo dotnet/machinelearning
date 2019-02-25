@@ -16,7 +16,6 @@ using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Trainers.HalLearners;
-using Microsoft.ML.Training;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(SymSgdClassificationTrainer), typeof(SymSgdClassificationTrainer.Options),

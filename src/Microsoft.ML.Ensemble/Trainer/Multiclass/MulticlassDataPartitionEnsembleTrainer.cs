@@ -10,7 +10,6 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Trainers.Ensemble;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(MulticlassDataPartitionEnsembleTrainer.Summary, typeof(MulticlassDataPartitionEnsembleTrainer),
     typeof(MulticlassDataPartitionEnsembleTrainer.Arguments),

@@ -9,7 +9,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(RegressionGamTrainer.Summary,
     typeof(RegressionGamTrainer), typeof(RegressionGamTrainer.Options),
