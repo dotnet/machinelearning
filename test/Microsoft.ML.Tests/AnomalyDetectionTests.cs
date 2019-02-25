@@ -54,7 +54,8 @@ namespace Microsoft.ML.Tests
             {
                 new TextLoader.Column(DefaultColumnNames.Label, DataKind.R4, 0),
                 new TextLoader.Column(DefaultColumnNames.Features, DataKind.R4, 1, 784)
-            });
+            },
+            allowSparse: true);
 
             var trainData = reader.Read(trainPath);
             var testData = reader.Read(testPath);
