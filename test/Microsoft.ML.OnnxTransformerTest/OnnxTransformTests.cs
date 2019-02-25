@@ -195,7 +195,7 @@ namespace Microsoft.ML.Tests
             var pipe = data.MakeNewEstimator()
                 .Append(row => (
                     row.name,
-                    data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
+                    data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleave: true)))
                 .Append(row => (row.name, softmaxout_1: row.data_0.ApplyOnnxModel(modelFile)));
 
             TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
