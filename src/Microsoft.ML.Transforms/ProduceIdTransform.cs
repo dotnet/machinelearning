@@ -46,7 +46,7 @@ namespace Microsoft.ML.Transforms
             protected override DataViewType GetColumnTypeCore(int iinfo)
             {
                 Contracts.Assert(iinfo == 0);
-                return NumberDataViewType.DataViewRowId;
+                return RowIdDataViewType.Instance;
             }
 
             public static Bindings Create(ModelLoadContext ctx, DataViewSchema input)

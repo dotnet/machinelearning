@@ -166,7 +166,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 if (physType != null && (
                     pt == NumberDataViewType.SByte || pt == NumberDataViewType.Int16 || pt == NumberDataViewType.Int32 || pt == NumberDataViewType.Int32 ||
                     pt == NumberDataViewType.Byte || pt == NumberDataViewType.UInt16 || pt == NumberDataViewType.UInt32 || pt == NumberDataViewType.UInt32 ||
-                    pt == NumberDataViewType.Single || pt == NumberDataViewType.Double || pt == NumberDataViewType.DataViewRowId || pt == BooleanDataViewType.Instance ||
+                    pt == NumberDataViewType.Single || pt == NumberDataViewType.Double || pt == RowIdDataViewType.Instance || pt == BooleanDataViewType.Instance ||
                     pt == DateTimeDataViewType.Instance || pt == DateTimeOffsetDataViewType.Instance || pt == TimeSpanDataViewType.Instance ||
                     pt == TextDataViewType.Instance))
                 {
@@ -311,7 +311,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 if (physType != null && (
                     pt == NumberDataViewType.SByte || pt == NumberDataViewType.Int16 || pt == NumberDataViewType.Int32 || pt == NumberDataViewType.Int64 ||
                     pt == NumberDataViewType.Byte || pt == NumberDataViewType.UInt16 || pt == NumberDataViewType.UInt32 || pt == NumberDataViewType.UInt64 ||
-                    pt == NumberDataViewType.Single || pt == NumberDataViewType.Double || pt == NumberDataViewType.DataViewRowId || pt == BooleanDataViewType.Instance ||
+                    pt == NumberDataViewType.Single || pt == NumberDataViewType.Double || pt == RowIdDataViewType.Instance || pt == BooleanDataViewType.Instance ||
                     pt == DateTimeDataViewType.Instance || pt == DateTimeOffsetDataViewType.Instance || pt == TimeSpanDataViewType.Instance ||
                     pt == TextDataViewType.Instance))
                 {
