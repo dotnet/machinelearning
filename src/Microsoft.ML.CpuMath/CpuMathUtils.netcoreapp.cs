@@ -163,7 +163,7 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(destination);
 
-            if (destination.Length < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (destination.Length < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < destination.Length; i++)
                 {
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(destination);
 
-            if (destination.Length < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (destination.Length < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < destination.Length; i++)
                 {
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= destination.Length);
 
-            if (destination.Length < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (destination.Length < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
@@ -255,7 +255,7 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(destination);
 
-            if (destination.Length < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (destination.Length < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < destination.Length; i++)
                 {
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= destination.Length);
 
-            if (destination.Length < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (destination.Length < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
@@ -324,7 +324,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= indices.Length);
             Contracts.Assert(count < destination.Length);
 
-            if (count < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
@@ -361,7 +361,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= destination.Length);
             Contracts.Assert(count <= result.Length);
 
-            if (count < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= destination.Length);
 
-            if (count < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= indices.Length);
             Contracts.Assert(count < destination.Length);
 
-            if (count < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
@@ -464,7 +464,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= right.Length);
             Contracts.Assert(count <= destination.Length);
 
-            if (count < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
@@ -491,7 +491,7 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (source.Length < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (source.Length < MinInputSize || !Sse.IsSupported)
             {
                 float sum = 0;
                 for (int i = 0; i < source.Length; i++)
@@ -520,7 +520,7 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (source.Length < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (source.Length < MinInputSize || !Sse.IsSupported)
             {
                 float result = 0;
                 for (int i = 0; i < source.Length; i++)
@@ -550,7 +550,7 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (source.Length < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (source.Length < MinInputSize || !Sse.IsSupported)
             {
                 float result = 0;
                 for (int i = 0; i < source.Length; i++)
@@ -579,7 +579,7 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (source.Length < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (source.Length < MinInputSize || !Sse.IsSupported)
             {
                 float sum = 0;
                 for (int i = 0; i < source.Length; i++)
@@ -609,7 +609,7 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (source.Length < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (source.Length < MinInputSize || !Sse.IsSupported)
             {
                 float sum = 0;
                 for (int i = 0; i < source.Length; i++)
@@ -638,7 +638,7 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (source.Length < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (source.Length < MinInputSize || !Sse.IsSupported)
             {
                 float max = 0;
                 for (int i = 0; i < source.Length; i++)
@@ -672,7 +672,7 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (source.Length < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (source.Length < MinInputSize || !Sse.IsSupported)
             {
                 float max = 0;
                 for (int i = 0; i < source.Length; i++)
@@ -711,7 +711,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(left.Length >= count);
             Contracts.Assert(right.Length >= count);
 
-            if (count < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 float result = 0;
                 for (int i = 0; i < count; i++)
@@ -749,7 +749,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= right.Length);
             Contracts.Assert(count <= indices.Length);
 
-            if (count < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 float result = 0;
                 for (int i = 0; i < count; i++)
@@ -785,7 +785,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= left.Length);
             Contracts.Assert(count <= right.Length);
 
-            if (count < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 float norm = 0;
                 for (int i = 0; i < count; i++)
@@ -897,7 +897,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= v.Length);
             Contracts.Assert(count <= w.Length);
 
-            if (count < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
@@ -939,7 +939,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= v.Length);
             Contracts.Assert(count <= w.Length);
 
-            if (count < MinInputSize || !(Avx.IsSupported || Sse.IsSupported))
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
