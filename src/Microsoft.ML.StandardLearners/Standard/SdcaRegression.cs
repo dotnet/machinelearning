@@ -21,7 +21,10 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a regression model using the stochastic dual coordinate ascent method.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
     public sealed class SdcaRegressionTrainer : SdcaTrainerBase<SdcaRegressionTrainer.Options, RegressionPredictionTransformer<LinearRegressionModelParameters>, LinearRegressionModelParameters>
     {
         internal const string LoadNameValue = "SDCAR";
@@ -31,6 +34,12 @@ namespace Microsoft.ML.Trainers
 
         public sealed class Options : OptionsBase
         {
+            /// <summary>
+            /// A custom <a href="tmpurl_loss">loss</a>.
+            /// </summary>
+            /// <value>
+            /// Defaults to <see cref="SquaredLoss"/>
+            /// </value>
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaRegressionLossFactory LossFunction = new SquaredLossFactory();
 

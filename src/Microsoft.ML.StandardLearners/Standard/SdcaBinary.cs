@@ -1516,11 +1516,17 @@ namespace Microsoft.ML.Trainers
             => new BinaryPredictionTransformer<TModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
     }
 
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a binary logistic regression classification model using the stochastic dual coordinate ascent method.
+    /// The trained model is <a href='tmpurl_calib'>calibrated</a> and can produce probability by feeding the output value of the
+    /// linear function to a <see cref="PlattCalibrator"/>.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
     public sealed class SdcaBinaryTrainer :
         SdcaBinaryTrainerBase<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
-        /// Configuration to training logistic regression using SDCA.
+        /// Options for the <see cref="SdcaBinaryTrainer"/>.
         /// </summary>
         public sealed class Options : BinaryOptionsBase
         {
@@ -1576,10 +1582,14 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a binary logistic regression classification model using the stochastic dual coordinate ascent method.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
     public sealed class SdcaNonCalibratedBinaryTrainer : SdcaBinaryTrainerBase<LinearBinaryModelParameters>
     {
         /// <summary>
-        /// General Configuration to training linear model using SDCA.
+        /// Options for the <see cref="SdcaNonCalibratedBinaryTrainer"/>.
         /// </summary>
         public sealed class Options : BinaryOptionsBase
         {

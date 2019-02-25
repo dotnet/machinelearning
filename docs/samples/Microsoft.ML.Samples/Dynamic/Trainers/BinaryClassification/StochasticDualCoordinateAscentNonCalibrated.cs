@@ -4,7 +4,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
-    public static class SDCASupportVectorMachine
+    public static class StochasticDualCoordinateAscentNonCalibrated
     {
         public static void Example()
         {

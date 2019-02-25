@@ -5,7 +5,7 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
-    public static class SDCALogisticRegression
+    public static class StochasticDualCoordinateAscent
     {
         public static void Example()
         {
