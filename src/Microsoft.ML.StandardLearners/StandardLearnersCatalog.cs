@@ -7,7 +7,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Online;
-using Microsoft.ML.Training;
 
 namespace Microsoft.ML
 {

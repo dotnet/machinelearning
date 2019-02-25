@@ -11,7 +11,6 @@ using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Trainers.Online;
-using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Trainers
 {
