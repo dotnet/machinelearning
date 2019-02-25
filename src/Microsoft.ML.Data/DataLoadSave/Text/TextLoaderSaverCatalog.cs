@@ -170,7 +170,10 @@ namespace Microsoft.ML
             var env = catalog.GetEnvironment();
             var source = new MultiFileSource(path);
 
-            return new TextLoader(env, options, dataSample).Read(source);
+            if (dataSample == null)
+                return new TextLoader(env, options, source).Read(source);
+            else
+                return new TextLoader(env, options, dataSample).Read(source);
         }
 
         /// <summary>
