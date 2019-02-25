@@ -4,10 +4,10 @@
 
 using Microsoft.ML;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.ImageAnalytics.EntryPoints;
+using Microsoft.ML.ImageAnalytics;
 
 [assembly: LoadableClass(typeof(void), typeof(ImageAnalytics), null, typeof(SignatureEntryPointModule), "ImageAnalytics")]
-namespace Microsoft.ML.ImageAnalytics.EntryPoints
+namespace Microsoft.ML.ImageAnalytics
 {
     internal static class ImageAnalytics
     {

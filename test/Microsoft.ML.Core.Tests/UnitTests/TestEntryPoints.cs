@@ -13,7 +13,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.ImageAnalytics;
-using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Calibrator;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.LightGBM;

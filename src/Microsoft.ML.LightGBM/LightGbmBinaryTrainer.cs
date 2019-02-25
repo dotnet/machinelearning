@@ -7,7 +7,6 @@ using Microsoft.ML;
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers;

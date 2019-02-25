@@ -14,7 +14,6 @@ using Microsoft.ML.Calibrator;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -80,7 +79,7 @@ using Newtonsoft.Json.Linq;
 [assembly: EntryPointModule(typeof(PavCalibratorTrainerFactory))]
 [assembly: EntryPointModule(typeof(PlattCalibratorTrainerFactory))]
 
-namespace Microsoft.ML.Internal.Calibration
+namespace Microsoft.ML.Calibrator
 {
     /// <summary>
     /// Signature for the loaders of calibrators.

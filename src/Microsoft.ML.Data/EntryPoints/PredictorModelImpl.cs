@@ -9,7 +9,6 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
 

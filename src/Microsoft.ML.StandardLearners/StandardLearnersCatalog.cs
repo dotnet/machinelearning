@@ -4,7 +4,6 @@
 
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Online;
 

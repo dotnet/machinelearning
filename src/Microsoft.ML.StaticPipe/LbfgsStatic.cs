@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Calibrator;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Trainers;
 

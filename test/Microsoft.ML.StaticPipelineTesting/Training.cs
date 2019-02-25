@@ -7,7 +7,7 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Calibrator;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.LightGBM.StaticPipe;
