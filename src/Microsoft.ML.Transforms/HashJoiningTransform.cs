@@ -106,7 +106,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        public sealed class ColumnOptionsEx
+        public sealed class ColumnOptions
         {
             // Either VBuffer<Key<U4>> or a single Key<U4>.
             // Note that if CustomSlotMap contains only one array, the output type of the transform will a single Key<U4>.
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 get { return OutputColumnType.GetValueCount(); }
             }
 
-            public ColumnOptionsEx(int[][] slotMap, int hashBits, uint hashSeed, bool ordered)
+            public ColumnOptions(int[][] slotMap, int hashBits, uint hashSeed, bool ordered)
             {
                 Contracts.CheckValueOrNull(slotMap);
                 Contracts.Check(NumBitsMin <= hashBits && hashBits < NumBitsLim);
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 loaderAssemblyName: typeof(HashJoiningTransform).Assembly.FullName);
         }
 
-        private readonly ColumnOptionsEx[] _exes;
+        private readonly ColumnOptions[] _exes;
 
         /// <summary>
         /// Initializes a new instance of <see cref="HashJoiningTransform"/>.
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Transforms.Conversions
             if (args.HashBits < NumBitsMin || args.HashBits >= NumBitsLim)
                 throw Host.ExceptUserArg(nameof(args.HashBits), "hashBits should be between {0} and {1} inclusive", NumBitsMin, NumBitsLim - 1);
 
-            _exes = new ColumnOptionsEx[Infos.Length];
+            _exes = new ColumnOptions[Infos.Length];
             for (int i = 0; i < Infos.Length; i++)
             {
                 var hashBits = args.Columns[i].HashBits ?? args.HashBits;
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             Host.AssertNonEmpty(Infos);
 
-            _exes = new ColumnOptionsEx[Infos.Length];
+            _exes = new ColumnOptions[Infos.Length];
             for (int i = 0; i < Infos.Length; i++)
             {
                 int hashBits = ctx.Reader.ReadInt32();
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     }
                 }
 
-                _exes[i] = new ColumnOptionsEx(slotMap, hashBits, hashSeed, ordered);
+                _exes[i] = new ColumnOptions(slotMap, hashBits, hashSeed, ordered);
             }
 
             SetMetadata();
@@ -327,7 +327,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        private ColumnOptionsEx CreateColumnOptionsEx(bool join, string customSlotMap, int hashBits, uint hashSeed, bool ordered, ColInfo colInfo)
+        private ColumnOptions CreateColumnOptionsEx(bool join, string customSlotMap, int hashBits, uint hashSeed, bool ordered, ColInfo colInfo)
         {
             int[][] slotMap = null;
             if (colInfo.TypeSrc is VectorType vectorType)
@@ -340,7 +340,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(Utils.Size(slotMap) >= 1);
             }
 
-            return new ColumnOptionsEx(slotMap, hashBits, hashSeed, ordered);
+            return new ColumnOptions(slotMap, hashBits, hashSeed, ordered);
         }
 
         private int[][] CompileSlotMap(string slotMapString, int srcSlotCount)

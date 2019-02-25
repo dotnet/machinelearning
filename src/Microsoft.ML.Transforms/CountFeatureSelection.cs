@@ -183,18 +183,18 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             host.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns));
             host.CheckUserArg(options.Count > 0, nameof(options.Count));
 
-            var columnOptionss = options.Columns.Select(inColName => new ColumnOptions(inColName, minCount: options.Count)).ToArray();
+            var columnOptions = options.Columns.Select(inColName => new ColumnOptions(inColName, minCount: options.Count)).ToArray();
 
-            return new CountFeatureSelectingEstimator(env, columnOptionss).Fit(input).Transform(input) as IDataTransform;
+            return new CountFeatureSelectingEstimator(env, columnOptions).Fit(input).Transform(input) as IDataTransform;
         }
 
-        private static void CreateDropAndCopyColumns(ColumnOptions[] columnOptionss, int size, long[][] scores,
+        private static void CreateDropAndCopyColumns(ColumnOptions[] columnOptions, int size, long[][] scores,
             out int[] selectedCount, out SlotsDroppingTransformer.ColumnOptions[] dropSlotsColumns, out (string outputColumnName, string inputColumnName)[] copyColumnsPairs)
         {
             Contracts.Assert(size > 0);
             Contracts.Assert(Utils.Size(scores) == size);
-            Contracts.AssertValue(columnOptionss);
-            Contracts.Assert(Utils.Size(columnOptionss) == size);
+            Contracts.AssertValue(columnOptions);
+            Contracts.Assert(Utils.Size(columnOptions) == size);
 
             selectedCount = new int[scores.Length];
             var dropSlotsCols = new List<SlotsDroppingTransformer.ColumnOptions>();
@@ -206,11 +206,11 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 selectedCount[i] = 0;
                 for (int j = 0; j < score.Length; j++)
                 {
-                    if (score[j] < columnOptionss[i].MinCount)
+                    if (score[j] < columnOptions[i].MinCount)
                     {
                         // Adjacent slots are combined into a single range.
                         int min = j;
-                        while (j < score.Length && score[j] < columnOptionss[i].MinCount)
+                        while (j < score.Length && score[j] < columnOptions[i].MinCount)
                             j++;
                         int max = j - 1;
                         slots.Add((min, max));
@@ -221,9 +221,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                         selectedCount[i]++;
                 }
                 if (slots.Count <= 0)
-                    copyCols.Add((columnOptionss[i].Name, columnOptionss[i].InputColumnName));
+                    copyCols.Add((columnOptions[i].Name, columnOptions[i].InputColumnName));
                 else
-                    dropSlotsCols.Add(new SlotsDroppingTransformer.ColumnOptions(columnOptionss[i].Name, columnOptionss[i].InputColumnName, slots.ToArray()));
+                    dropSlotsCols.Add(new SlotsDroppingTransformer.ColumnOptions(columnOptions[i].Name, columnOptions[i].InputColumnName, slots.ToArray()));
             }
             dropSlotsColumns = dropSlotsCols.ToArray();
             copyColumnsPairs = copyCols.ToArray();
