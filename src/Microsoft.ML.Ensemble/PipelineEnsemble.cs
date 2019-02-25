@@ -93,7 +93,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             /// <summary>
             /// Given a set of columns, return the input columns that are needed to generate those output columns.
             /// </summary>
-            IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
+            IEnumerable<DataViewSchema.Column> ISchemaBoundRowMapper.GetDependenciesForNewColumns(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
                 if (dependingColumns.Count() == 0)
                     return Enumerable.Empty<DataViewSchema.Column>();
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                         // First get the output row from the pipelines. The input predicate of the predictor
                         // is the output predicate of the pipeline.
                         var mapperColumns = Mappers[i].OutputSchema.Where(col => col.Name == DefaultColumnNames.Score);
-                        var inputColumns = Mappers[i].GetDependencies(mapperColumns);
+                        var inputColumns = Mappers[i].GetDependenciesForNewColumns(mapperColumns);
 
                         Func<int, bool> inputPredicate = c => inputColumns.Any(col => col.Index == c);
                         var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate);
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     }
                     var weightCol = Mappers[i].InputRoleMappedSchema.Weight.Value;
                     // The weight should be in the output row of the i'th pipeline if it exists.
-                    var inputColumns = Mappers[i].GetDependencies(Enumerable.Repeat(weightCol, 1));
+                    var inputColumns = Mappers[i].GetDependenciesForNewColumns(Enumerable.Repeat(weightCol, 1));
 
                     Func<int, bool> inputPredicate = c => inputColumns.Any(col => col.Index == c);
                     var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate);

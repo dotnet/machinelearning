@@ -18,7 +18,7 @@ namespace Microsoft.ML.Data
     /// features column. New predictors can implement <see cref="ISchemaBindableMapper"/> directly. Implementing <see cref="ISchemaBindableMapper"/>
     /// includes implementing a corresponding <see cref="ISchemaBoundMapper"/> (or <see cref="ISchemaBoundRowMapper"/>) and a corresponding ISchema
     /// for the output schema of the <see cref="ISchemaBoundMapper"/>. In case the <see cref="ISchemaBoundRowMapper"/> interface is implemented,
-    /// the SimpleRow class can be used in the <see cref="IRowToRowMapper.GetRow"/> method.
+    /// the SimpleRow class can be used in the <see cref="IRowToRowMapperBase.GetRow"/> method.
     /// </summary>
     [BestFriend]
     internal interface ISchemaBindableMapper
@@ -58,12 +58,17 @@ namespace Microsoft.ML.Data
     /// This interface combines <see cref="ISchemaBoundMapper"/> with <see cref="IRowToRowMapper"/>.
     /// </summary>
     [BestFriend]
-    internal interface ISchemaBoundRowMapper : ISchemaBoundMapper, IRowToRowMapper
+    internal interface ISchemaBoundRowMapper : ISchemaBoundMapper, IRowToRowMapperBase
     {
         /// <summary>
         /// There are two schemas from <see cref="ISchemaBoundMapper"/> and <see cref="IRowToRowMapper"/>.
         /// Since the two parent schema's are identical in all derived classes, we merge them into <see cref="OutputSchema"/>.
         /// </summary>
         new DataViewSchema OutputSchema { get; }
+
+        /// <summary>
+        /// Given a set of columns, from the newly generated ones, return the input columns that are needed to generate those output columns.
+        /// </summary>
+        IEnumerable<DataViewSchema.Column> GetDependenciesForNewColumns(IEnumerable<DataViewSchema.Column> dependingColumns);
     }
 }

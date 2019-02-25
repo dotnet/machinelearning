@@ -98,7 +98,7 @@ namespace Microsoft.ML.Data
 
             // Get the active output columns
             var activeOutputCols = bindings.RowMapper.OutputSchema.Where(c => localMapper(c.Index));
-            var colsInputForMapper = bindings.RowMapper.GetDependencies(activeOutputCols);
+            var colsInputForMapper = bindings.RowMapper.GetDependenciesForNewColumns(activeOutputCols);
 
             var activeInCols = bindings.Input.Where(c => c.Index < activeInput.Length && activeInput[c.Index]);
             inputColumns = activeInCols.Union(colsInputForMapper);

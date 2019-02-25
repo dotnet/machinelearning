@@ -330,8 +330,8 @@ namespace Microsoft.ML.Data
                 /// <summary>
                 /// Given a set of columns, return the input columns that are needed to generate those output columns.
                 /// </summary>
-                IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
-                    => _mapper.GetDependencies(dependingColumns);
+                IEnumerable<DataViewSchema.Column> ISchemaBoundRowMapper.GetDependenciesForNewColumns(IEnumerable<DataViewSchema.Column> dependingColumns)
+                    => _mapper.GetDependenciesForNewColumns(dependingColumns);
 
                 public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles() => _mapper.GetInputColumnRoles();
 

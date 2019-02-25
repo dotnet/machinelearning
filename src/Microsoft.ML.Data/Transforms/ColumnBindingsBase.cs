@@ -587,19 +587,13 @@ namespace Microsoft.ML.Data
         /// predicate on each column index.
         /// </summary>
         public bool[] GetActive(Func<int, bool> predicate)
-        {
-            return Utils.BuildArray(ColumnCount, predicate);
-        }
+            => Utils.BuildArray(ColumnCount, predicate);
 
         /// <summary>
-        /// The given predicate maps from output column index to whether the column is active.
-        /// This builds an array of bools of length ColumnCount containing the results of calling
-        /// predicate on each column index.
+        /// This builds an array of bools of length ColumnCount indicating the index of the active column.
         /// </summary>
         public bool[] GetActive(IEnumerable<DataViewSchema.Column> columns)
-        {
-            return Utils.BuildArray(ColumnCount, columns);
-        }
+            => Utils.BuildArray(ColumnCount, columns);
 
         /// <summary>
         /// The given predicate maps from output column index to whether the column is active.
@@ -622,9 +616,8 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// The given predicate maps from output column index to whether the column is active.
-        /// This builds an array of bools of length Input.ColumnCount containing the results of calling
-        /// predicate on the output column index corresponding to each input column index.
+        /// This builds an array of bools of length Input.ColumnCount containing indicating the index of the
+        /// active input columns, given the actual columns.
         /// </summary>
         public bool[] GetActiveInput(IEnumerable<DataViewSchema.Column> inputColumns)
         {
@@ -787,18 +780,6 @@ namespace Microsoft.ML.Data
                     active[src] = true;
             }
             return active;
-        }
-
-        /// <summary>
-        /// The given predicate maps from output column index to whether the column is active.
-        /// This builds an array of bools of length Input.ColumnCount containing the results of calling
-        /// predicate on the output column index corresponding to each input column index.
-        /// </summary>
-        public bool[] GetActiveInput(IEnumerable<DataViewSchema.Column> activeColumns)
-        {
-            Contracts.AssertValue(activeColumns);
-            var predicate = RowCursorUtils.FromColumnsToPredicate(activeColumns, Schema);
-            return GetActiveInput(predicate);
         }
     }
 

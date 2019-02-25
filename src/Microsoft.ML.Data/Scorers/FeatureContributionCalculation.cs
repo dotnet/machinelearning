@@ -352,7 +352,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns the input columns needed for the requested output columns.
             /// </summary>
-            IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
+            IEnumerable<DataViewSchema.Column> ISchemaBoundRowMapper.GetDependenciesForNewColumns(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
                 if (dependingColumns.Count() == 0)
                     return Enumerable.Empty<DataViewSchema.Column>();

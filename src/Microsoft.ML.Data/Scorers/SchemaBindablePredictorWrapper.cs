@@ -218,12 +218,12 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Given a set of columns, return the input columns that are needed to generate those output columns.
             /// </summary>
-            IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
+            IEnumerable<DataViewSchema.Column> ISchemaBoundRowMapper.GetDependenciesForNewColumns(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
                 if (!InputRoleMappedSchema.Feature.HasValue || dependingColumns.Count() == 0)
                     return Enumerable.Empty<DataViewSchema.Column>();
 
-                return InputSchema.Where(col => col.Index == InputRoleMappedSchema.Feature.Value.Index);
+                return Enumerable.Repeat(InputRoleMappedSchema.Feature.Value, 1); ;
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
@@ -502,13 +502,13 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Given a set of columns, return the input columns that are needed to generate those output columns.
             /// </summary>
-            IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
+            IEnumerable<DataViewSchema.Column> ISchemaBoundRowMapper.GetDependenciesForNewColumns(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
 
                 if (dependingColumns.Count() == 0 || !InputRoleMappedSchema.Feature.HasValue)
                     return Enumerable.Empty<DataViewSchema.Column>();
 
-                return InputSchema.Where(col => col.Index == InputRoleMappedSchema.Feature.Value.Index);
+                return Enumerable.Repeat(InputRoleMappedSchema.Feature.Value, 1);
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()

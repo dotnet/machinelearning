@@ -784,7 +784,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             return GetActive(predicate);
         }
 
-        DataViewSchema IRowToRowMapper.InputSchema => Source.Schema;
+        DataViewSchema IRowToRowMapperBase.InputSchema => Source.Schema;
 
         public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
         {

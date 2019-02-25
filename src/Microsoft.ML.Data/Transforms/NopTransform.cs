@@ -27,7 +27,7 @@ namespace Microsoft.ML.Data
 
         public IDataView Source { get; }
 
-        DataViewSchema IRowToRowMapper.InputSchema => Source.Schema;
+        DataViewSchema IRowToRowMapperBase.InputSchema => Source.Schema;
 
         /// <summary>
         /// Creates a NopTransform if the input is not an IDataTransform.
