@@ -51,9 +51,9 @@ namespace Microsoft.ML.Data
                 _methVec = new Func<PrimitiveDataViewType, Func<RowSet, ColumnPipe>>(GetCreatorVecCore<int>)
                     .GetMethodInfo().GetGenericMethodDefinition();
 
-                _creatorsOne = new Func<RowSet, ColumnPipe>[DataKindExtensions.KindCount];
-                _creatorsVec = new Func<RowSet, ColumnPipe>[DataKindExtensions.KindCount];
-                for (var kind = DataKindExtensions.KindMin; kind < DataKindExtensions.KindLim; kind++)
+                _creatorsOne = new Func<RowSet, ColumnPipe>[InternalDataKindExtensions.KindCount];
+                _creatorsVec = new Func<RowSet, ColumnPipe>[InternalDataKindExtensions.KindCount];
+                for (var kind = InternalDataKindExtensions.KindMin; kind < InternalDataKindExtensions.KindLim; kind++)
                 {
                     var type = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                     _creatorsOne[kind.ToIndex()] = GetCreatorOneCore(type);
@@ -103,14 +103,14 @@ namespace Microsoft.ML.Data
                 return (Func<RowSet, ColumnPipe>)meth.Invoke(this, new object[] { key });
             }
 
-            public Func<RowSet, ColumnPipe> GetCreatorOne(DataKind kind)
+            public Func<RowSet, ColumnPipe> GetCreatorOne(InternalDataKind kind)
             {
                 int index = kind.ToIndex();
                 Contracts.Assert(0 <= index & index < _creatorsOne.Length);
                 return _creatorsOne[index];
             }
 
-            public Func<RowSet, ColumnPipe> GetCreatorVec(DataKind kind)
+            public Func<RowSet, ColumnPipe> GetCreatorVec(InternalDataKind kind)
             {
                 int index = kind.ToIndex();
                 Contracts.Assert(0 <= index & index < _creatorsOne.Length);
@@ -654,8 +654,8 @@ namespace Microsoft.ML.Data
                 _infos = parent._bindings.Infos;
                 _creator = new Func<RowSet, ColumnPipe>[_infos.Length];
                 var cache = ValueCreatorCache.Instance;
-                var mapOne = new Dictionary<DataKind, Func<RowSet, ColumnPipe>>();
-                var mapVec = new Dictionary<DataKind, Func<RowSet, ColumnPipe>>();
+                var mapOne = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();
+                var mapVec = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();
                 for (int i = 0; i < _creator.Length; i++)
                 {
                     var info = _infos[i];

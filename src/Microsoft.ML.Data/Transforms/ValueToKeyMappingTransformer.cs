@@ -440,7 +440,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             nameof(Options.TermsColumn), src);
                     }
                     keyData = new TextLoader(env,
-                        columns: new[] { new TextLoader.Column("Term", DataKind.TX, 0) },
+                        columns: new[] { new TextLoader.Column("Term", DataKind.String, 0) },
                         dataSample: fileSource)
                         .Read(fileSource);
                     src = "Term";

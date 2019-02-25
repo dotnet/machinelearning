@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(10, columnA.Type.GetValueCount());
 
             Assert.Equal("B", columnB.Name);
-            Assert.Equal(DataKind.U4, columnB.Type.GetRawKind());
+            Assert.Equal(InternalDataKind.U4, columnB.Type.GetRawKind());
             Assert.Equal(10u, columnB.Type.GetKeyCount());
 
             Assert.Equal("C", columnC.Name);

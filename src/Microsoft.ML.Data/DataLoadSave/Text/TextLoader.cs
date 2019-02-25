@@ -49,20 +49,10 @@ namespace Microsoft.ML.Data
             /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="type"><see cref="DataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.</param>
+            /// <param name="dataKind"><see cref="Data.DataKind"/> of the items in the column.</param>
             /// <param name="index">Index of the column.</param>
-            public Column(string name, DataKind? type, int index)
-               : this(name, type, new[] { new Range(index) }) { }
-
-            /// <summary>
-            /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
-            /// </summary>
-            /// <param name="name">Name of the column.</param>
-            /// <param name="type"><see cref="DataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.</param>
-            /// <param name="minIndex">The minimum inclusive index of the column.</param>
-            /// <param name="maxIndex">The maximum-inclusive index of the column.</param>
-            public Column(string name, DataKind? type, int minIndex, int maxIndex)
-                : this(name, type, new[] { new Range(minIndex, maxIndex) })
+            public Column(string name, DataKind dataKind, int index)
+                : this(name, dataKind.ToInternalDataKind(), new[] { new Range(index) })
             {
             }
 
@@ -70,16 +60,40 @@ namespace Microsoft.ML.Data
             /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="type"><see cref="DataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.</param>
+            /// <param name="dataKind"><see cref="Data.DataKind"/> of the items in the column.</param>
+            /// <param name="minIndex">The minimum inclusive index of the column.</param>
+            /// <param name="maxIndex">The maximum-inclusive index of the column.</param>
+            public Column(string name, DataKind dataKind, int minIndex, int maxIndex)
+                : this(name, dataKind.ToInternalDataKind(), new[] { new Range(minIndex, maxIndex) })
+            {
+            }
+
+            /// <summary>
+            /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
+            /// </summary>
+            /// <param name="name">Name of the column.</param>
+            /// <param name="dataKind"><see cref="Data.DataKind"/> of the items in the column.</param>
             /// <param name="source">Source index range(s) of the column.</param>
             /// <param name="keyCount">For a key column, this defines the range of values.</param>
-            public Column(string name, DataKind? type, Range[] source, KeyCount keyCount = null)
+            public Column(string name, DataKind dataKind, Range[] source, KeyCount keyCount = null)
+                : this(name, dataKind.ToInternalDataKind(), source, keyCount)
+            {
+            }
+
+            /// <summary>
+            /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
+            /// </summary>
+            /// <param name="name">Name of the column.</param>
+            /// <param name="kind"><see cref="InternalDataKind"/> of the items in the column.</param>
+            /// <param name="source">Source index range(s) of the column.</param>
+            /// <param name="keyCount">For a key column, this defines the range of values.</param>
+            private Column(string name, InternalDataKind kind, Range[] source, KeyCount keyCount = null)
             {
                 Contracts.CheckValue(name, nameof(name));
                 Contracts.CheckValue(source, nameof(source));
 
                 Name = name;
-                Type = type;
+                Type = kind;
                 Source = source;
                 KeyCount = keyCount;
             }
@@ -91,10 +105,22 @@ namespace Microsoft.ML.Data
             public string Name;
 
             /// <summary>
-            /// <see cref="DataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.
+            /// <see cref="InternalDataKind"/> of the items in the column. It defaults to float.
+            /// Although <see cref="InternalDataKind"/> is internal, <see cref="Type"/>'s information can be publically accessed by <see cref="DataKind"/>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Type of the items in the column")]
-            public DataKind? Type;
+            [BestFriend]
+            internal InternalDataKind Type = InternalDataKind.R4;
+
+            /// <summary>
+            /// <see cref="Data.DataKind"/> of the items in the column.
+            /// </summary>
+            /// It's a public interface to access the information in an internal DataKind.
+            public DataKind DataKind
+            {
+                get { return Type.ToDataKind(); }
+                set { Type = value.ToInternalDataKind(); }
+            }
 
             /// <summary>
             /// Source index range(s) of the column.
@@ -132,10 +158,10 @@ namespace Microsoft.ML.Data
                     return false;
                 if (rgstr.Length == 3)
                 {
-                    DataKind kind;
+                    InternalDataKind kind;
                     if (!TypeParsingUtils.TryParseDataKind(rgstr[istr++], out kind, out KeyCount))
                         return false;
-                    Type = kind == default ? default(DataKind?) : kind;
+                    Type = kind == default ? InternalDataKind.R4 : kind;
                 }
 
                 return TryParseSource(rgstr[istr++]);
@@ -173,10 +199,10 @@ namespace Microsoft.ML.Data
                 int ich = sb.Length;
                 sb.Append(Name);
                 sb.Append(':');
-                if (Type != null || KeyCount != null)
+                if (Type != default || KeyCount != null)
                 {
-                    if (Type != null)
-                        sb.Append(Type.Value.GetString());
+                    if (Type != default)
+                        sb.Append(Type.GetString());
                     if (KeyCount != null)
                     {
                         sb.Append('[');
@@ -536,7 +562,7 @@ namespace Microsoft.ML.Data
         {
             public readonly string Name;
             // REVIEW: Fix this for keys.
-            public readonly DataKind Kind;
+            public readonly InternalDataKind Kind;
             public readonly DataViewType ColType;
             public readonly Segment[] Segments;
 
@@ -696,15 +722,15 @@ namespace Microsoft.ML.Data
                             ch.Info("Duplicate name(s) specified - later columns will hide earlier ones");
 
                         PrimitiveDataViewType itemType;
-                        DataKind kind;
+                        InternalDataKind kind;
                         if (col.KeyCount != null)
                         {
                             itemType = TypeParsingUtils.ConstructKeyType(col.Type, col.KeyCount);
                         }
                         else
                         {
-                            kind = col.Type ?? DataKind.Num;
-                            ch.CheckUserArg(Enum.IsDefined(typeof(DataKind), kind), nameof(Column.Type), "Bad item type");
+                            kind = col.Type == default? InternalDataKind.R4 : col.Type;
+                            ch.CheckUserArg(Enum.IsDefined(typeof(InternalDataKind), kind), nameof(Column.Type), "Bad item type");
                             itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                         }
 
@@ -861,8 +887,8 @@ namespace Microsoft.ML.Data
                     string name = ctx.LoadNonEmptyString();
 
                     PrimitiveDataViewType itemType;
-                    var kind = (DataKind)ctx.Reader.ReadByte();
-                    Contracts.CheckDecode(Enum.IsDefined(typeof(DataKind), kind));
+                    var kind = (InternalDataKind)ctx.Reader.ReadByte();
+                    Contracts.CheckDecode(Enum.IsDefined(typeof(InternalDataKind), kind));
                     bool isKey = ctx.Reader.ReadBoolByte();
                     if (isKey)
                     {
@@ -948,8 +974,8 @@ namespace Microsoft.ML.Data
                     var info = Infos[iinfo];
                     ctx.SaveNonEmptyString(info.Name);
                     var type = info.ColType.GetItemType();
-                    DataKind rawKind = type.GetRawKind();
-                    Contracts.Assert((DataKind)(byte)rawKind == rawKind);
+                    InternalDataKind rawKind = type.GetRawKind();
+                    Contracts.Assert((InternalDataKind)(byte)rawKind == rawKind);
                     ctx.Writer.Write((byte)rawKind);
                     ctx.Writer.WriteBoolByte(type is KeyType);
                     if (type is KeyType key)
@@ -1465,17 +1491,17 @@ namespace Microsoft.ML.Data
                 var column = new Column();
                 column.Name = mappingAttrName?.Name ?? memberInfo.Name;
                 column.Source = mappingAttr.Sources.ToArray();
-                DataKind dk;
+                InternalDataKind dk;
                 switch (memberInfo)
                 {
                     case FieldInfo field:
-                        if (!DataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
+                        if (!InternalDataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
                             throw Contracts.Except($"Field {memberInfo.Name} is of unsupported type.");
 
                         break;
 
                     case PropertyInfo property:
-                        if (!DataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
+                        if (!InternalDataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
                             throw Contracts.Except($"Property {memberInfo.Name} is of unsupported type.");
                         break;
 

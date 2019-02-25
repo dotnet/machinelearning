@@ -61,13 +61,13 @@ namespace Microsoft.ML.Data
         public static bool IsKnownSizeVector(this DataViewType columnType) => columnType.GetVectorSize() > 0;
 
         /// <summary>
-        /// Gets the equivalent <see cref="DataKind"/> for the <paramref name="columnType"/>'s RawType.
-        /// This can return default(<see cref="DataKind"/>) if the RawType doesn't have a corresponding
-        /// <see cref="DataKind"/>.
+        /// Gets the equivalent <see cref="InternalDataKind"/> for the <paramref name="columnType"/>'s RawType.
+        /// This can return default(<see cref="InternalDataKind"/>) if the RawType doesn't have a corresponding
+        /// <see cref="InternalDataKind"/>.
         /// </summary>
-        public static DataKind GetRawKind(this DataViewType columnType)
+        public static InternalDataKind GetRawKind(this DataViewType columnType)
         {
-            columnType.RawType.TryGetDataKind(out DataKind result);
+            columnType.RawType.TryGetDataKind(out InternalDataKind result);
             return result;
         }
 
@@ -106,24 +106,24 @@ namespace Microsoft.ML.Data
             return NumberTypeFromType(type);
         }
 
-        public static PrimitiveDataViewType PrimitiveTypeFromKind(DataKind kind)
+        public static PrimitiveDataViewType PrimitiveTypeFromKind(InternalDataKind kind)
         {
-            if (kind == DataKind.TX)
+            if (kind == InternalDataKind.TX)
                 return TextDataViewType.Instance;
-            if (kind == DataKind.BL)
+            if (kind == InternalDataKind.BL)
                 return BooleanDataViewType.Instance;
-            if (kind == DataKind.TS)
+            if (kind == InternalDataKind.TS)
                 return TimeSpanDataViewType.Instance;
-            if (kind == DataKind.DT)
+            if (kind == InternalDataKind.DT)
                 return DateTimeDataViewType.Instance;
-            if (kind == DataKind.DZ)
+            if (kind == InternalDataKind.DZ)
                 return DateTimeOffsetDataViewType.Instance;
             return NumberTypeFromKind(kind);
         }
 
         public static NumberDataViewType NumberTypeFromType(Type type)
         {
-            DataKind kind;
+            InternalDataKind kind;
             if (type.TryGetDataKind(out kind))
                 return NumberTypeFromKind(kind);
 
@@ -131,31 +131,31 @@ namespace Microsoft.ML.Data
             throw new InvalidOperationException($"Bad type in {nameof(ColumnTypeExtensions)}.{nameof(NumberTypeFromType)}: {type}");
         }
 
-        public static NumberDataViewType NumberTypeFromKind(DataKind kind)
+        public static NumberDataViewType NumberTypeFromKind(InternalDataKind kind)
         {
             switch (kind)
             {
-                case DataKind.I1:
+                case InternalDataKind.I1:
                     return NumberDataViewType.SByte;
-                case DataKind.U1:
+                case InternalDataKind.U1:
                     return NumberDataViewType.Byte;
-                case DataKind.I2:
+                case InternalDataKind.I2:
                     return NumberDataViewType.Int16;
-                case DataKind.U2:
+                case InternalDataKind.U2:
                     return NumberDataViewType.UInt16;
-                case DataKind.I4:
+                case InternalDataKind.I4:
                     return NumberDataViewType.Int32;
-                case DataKind.U4:
+                case InternalDataKind.U4:
                     return NumberDataViewType.UInt32;
-                case DataKind.I8:
+                case InternalDataKind.I8:
                     return NumberDataViewType.Int64;
-                case DataKind.U8:
+                case InternalDataKind.U8:
                     return NumberDataViewType.UInt64;
-                case DataKind.R4:
+                case InternalDataKind.R4:
                     return NumberDataViewType.Single;
-                case DataKind.R8:
+                case InternalDataKind.R8:
                     return NumberDataViewType.Double;
-                case DataKind.UG:
+                case InternalDataKind.UG:
                     return NumberDataViewType.DataViewRowId;
             }
 
