@@ -677,9 +677,9 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
-                    }
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
+                }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
