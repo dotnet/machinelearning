@@ -135,7 +135,7 @@ namespace Microsoft.ML.Tests.Transformers
             // First do an unordered hash.
             var info = new HashingEstimator.ColumnInfo("Bar", "Foo", hashBits: bits);
             var xf = new HashingTransformer(Env, new[] { info });
-            var mapper = xf.GetRowToRowMapper(inRow.Schema);
+            var mapper = ((ITransformer)xf).GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out int outCol);
             var outRow = mapper.GetRow(inRow, c => c == outCol);
 
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Tests.Transformers
             // Next do an ordered hash.
             info = new HashingEstimator.ColumnInfo("Bar", "Foo", hashBits: bits, ordered: true);
             xf = new HashingTransformer(Env, new[] { info });
-            mapper = xf.GetRowToRowMapper(inRow.Schema);
+            mapper = ((ITransformer)xf).GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
             outRow = mapper.GetRow(inRow, c => c == outCol);
 
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             info = new HashingEstimator.ColumnInfo("Bar", "Foo", hashBits: bits, ordered: false);
             xf = new HashingTransformer(Env, new[] { info });
-            mapper = xf.GetRowToRowMapper(inRow.Schema);
+            mapper = ((ITransformer)xf).GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
             outRow = mapper.GetRow(inRow, c => c == outCol);
 
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Tests.Transformers
             // Now do ordered with the dense vector.
             info = new HashingEstimator.ColumnInfo("Bar", "Foo", hashBits: bits, ordered: true);
             xf = new HashingTransformer(Env, new[] { info });
-            mapper = xf.GetRowToRowMapper(inRow.Schema);
+            mapper = ((ITransformer)xf).GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
             outRow = mapper.GetRow(inRow, c => c == outCol);
             vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             info = new HashingEstimator.ColumnInfo("Bar", "Foo", hashBits: bits, ordered: false);
             xf = new HashingTransformer(Env, new[] { info });
-            mapper = xf.GetRowToRowMapper(inRow.Schema);
+            mapper = ((ITransformer)xf).GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
             outRow = mapper.GetRow(inRow, c => c == outCol);
             vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
@@ -212,7 +212,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             info = new HashingEstimator.ColumnInfo("Bar", "Foo", hashBits: bits, ordered: true);
             xf = new HashingTransformer(Env, new[] { info });
-            mapper = xf.GetRowToRowMapper(inRow.Schema);
+            mapper = ((ITransformer)xf).GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
             outRow = mapper.GetRow(inRow, c => c == outCol);
             vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);

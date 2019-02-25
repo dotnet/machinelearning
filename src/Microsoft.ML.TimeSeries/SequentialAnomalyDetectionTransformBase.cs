@@ -348,7 +348,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         return col => false;
                 }
 
-                public void Save(ModelSaveContext ctx) => _parent.SaveModel(ctx);
+                void ICanSaveModel.Save(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
                 public Delegate[] CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
                 {
