@@ -8,18 +8,18 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.FactorizationMachine;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.FactorizationMachine;
 
 [assembly: LoadableClass(typeof(FieldAwareFactorizationMachineModelParameters), null, typeof(SignatureLoadModel), "Field Aware Factorization Machine", FieldAwareFactorizationMachineModelParameters.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(FieldAwareFactorizationMachinePredictionTransformer), typeof(FieldAwareFactorizationMachinePredictionTransformer), null, typeof(SignatureLoadModel),
     "", FieldAwareFactorizationMachinePredictionTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.FactorizationMachine
+namespace Microsoft.ML.Trainers.FactorizationMachine
 {
     public sealed class FieldAwareFactorizationMachineModelParameters : ModelParametersBase<float>, ISchemaBindableMapper
     {

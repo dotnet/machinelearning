@@ -10,10 +10,9 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.FactorizationMachine;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FactorizationMachine;
 
 [assembly: LoadableClass(FieldAwareFactorizationMachineTrainer.Summary, typeof(FieldAwareFactorizationMachineTrainer),
     typeof(FieldAwareFactorizationMachineTrainer.Options), new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) }
@@ -22,7 +21,7 @@ using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(void), typeof(FieldAwareFactorizationMachineTrainer), null, typeof(SignatureEntryPointModule), FieldAwareFactorizationMachineTrainer.LoadName)]
 
-namespace Microsoft.ML.FactorizationMachine
+namespace Microsoft.ML.Trainers.FactorizationMachine
 {
     /*
      Train a field-aware factorization machine using ADAGRAD (an advanced stochastic gradient method). See references below
