@@ -19,7 +19,8 @@ namespace Microsoft.ML.Data
         /// </summary>
         public static bool IsStandardScalar(this DataViewType columnType) =>
             (columnType is NumberDataViewType) || (columnType is TextDataViewType) || (columnType is BooleanDataViewType) ||
-            (columnType is TimeSpanDataViewType) || (columnType is DateTimeDataViewType) || (columnType is DateTimeOffsetDataViewType);
+            (columnType is RowIdDataViewType) || (columnType is TimeSpanDataViewType) ||
+            (columnType is DateTimeDataViewType) || (columnType is DateTimeOffsetDataViewType);
 
         /// <summary>
         /// Zero return means it's not a key type.
