@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 using static Microsoft.ML.StaticPipe.TermStaticExtensions;

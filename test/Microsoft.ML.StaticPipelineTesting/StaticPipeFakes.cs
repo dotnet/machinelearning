@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 
 // Holds some classes that superficially represent classes, at least sufficiently to give the idea of the
 // statically typed columnar estimator helper API. As more "real" examples of the static functions get

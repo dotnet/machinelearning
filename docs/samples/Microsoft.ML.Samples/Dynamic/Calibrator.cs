@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.ML.Calibrator;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic

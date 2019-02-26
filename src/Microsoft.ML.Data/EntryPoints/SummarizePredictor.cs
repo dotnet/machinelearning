@@ -5,11 +5,10 @@
 using System.IO;
 using System.Text;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Calibrator;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 
 [assembly: EntryPointModule(typeof(SummarizePredictor))]
