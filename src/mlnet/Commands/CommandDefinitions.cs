@@ -17,7 +17,7 @@ namespace Microsoft.ML.CLI.Commands
     {
         internal static System.CommandLine.Command New(ICommandHandler handler)
         {
-            var newCommand = new System.CommandLine.Command("new", "ML.NET CLI tool for code generation", handler: handler)
+            var newCommand = new System.CommandLine.Command("new", "Create a new .NET project using ML.NET to train and run a model", handler: handler)
             {
                                 Dataset(),
                                 ValidationDataset(),
@@ -56,47 +56,47 @@ namespace Microsoft.ML.CLI.Commands
             return newCommand;
 
             Option Dataset() =>
-               new Option("--dataset", "Dataset file path.",
+               new Option("--dataset", "File path to either a single dataset or a training dataset for train/test split approaches.",
                           new Argument<FileInfo>().ExistingOnly());
 
             Option ValidationDataset() =>
-               new Option("--validation-dataset", "Validation dataset file path. Used for model exploration.",
+               new Option("--validation-dataset", "File path for the validation dataset in train/validation/test split approaches.",
                           new Argument<FileInfo>(defaultValue: default(FileInfo)).ExistingOnly());
 
             Option TestDataset() =>
-               new Option("--test-dataset", "Test dataset file path.",
+               new Option("--test-dataset", "File path for the test dataset in train/test approaches.",
                           new Argument<FileInfo>(defaultValue: default(FileInfo)).ExistingOnly());
 
             Option MlTask() =>
-               new Option("--ml-task", "Type of ML task.",
+               new Option("--ml-task", "Type of ML task to perform. Current supported tasks: regression and binary-classification",
                           new Argument<string>().FromAmong(GetMlTaskSuggestions()));
 
             Option LabelName() =>
-               new Option("--label-column-name", "Name of the label column.",
+               new Option("--label-column-name", "Name of the label (target) column to predict.",
                           new Argument<string>());
 
             Option LabelColumnIndex() =>
-             new Option("--label-column-index", "Index of the label column.",
+             new Option("--label-column-index", "Index of the label (target) column to predict.",
                         new Argument<uint>());
 
             Option MaxExplorationTime() =>
-              new Option("--max-exploration-time", "Timeout in seconds for exploring models.",
+              new Option("--max-exploration-time", "Maximum time in seconds for exploring models with best configuration.",
                          new Argument<uint>(defaultValue: 10));
 
             Option Verbosity() =>
-              new Option(new List<string>() { "--verbosity" }, "Verbosity of the output to be shown by the tool.",
+              new Option(new List<string>() { "--verbosity" }, "Output verbosity choices: q[uiet], m[inimal] (by default) and diag[nostic]",
                          new Argument<string>(defaultValue: "m").FromAmong(GetVerbositySuggestions()));
 
             Option Name() =>
-              new Option(new List<string>() { "--name" }, "Name of the output files(project).",
+              new Option(new List<string>() { "--name" }, "Name for the output project or solution to create. ",
                          new Argument<string>(defaultValue: "Sample"));
 
             Option OutputPath() =>
-              new Option(new List<string>() { "--output-path" }, "Output folder path.",
+              new Option(new List<string>() { "--output-path" }, "Location folder to place the generated output. The default is the current directory.",
              new Argument<DirectoryInfo>(defaultValue: new DirectoryInfo(".")));
 
             Option HasHeader() =>
-             new Option(new List<string>() { "--has-header" }, "Specifies if the dataset has header or not.",
+             new Option(new List<string>() { "--has-header" }, "Specify true/false depending if the dataset file(s) have a header row.",
             new Argument<bool>(defaultValue: true));
 
         }
