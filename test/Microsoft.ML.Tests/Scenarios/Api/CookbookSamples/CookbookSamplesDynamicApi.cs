@@ -61,7 +61,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // This will give the entire dataset: make sure to only take several row
             // in case the dataset is huge. The is similar to the static API, except
             // you have to specify the column name and type.
-            var featureColumns = transformedData.GetColumn<string[]>("AllFeatures")
+            var featureColumns = transformedData.GetColumn<string[]>(transformedData.Schema["AllFeatures"])
                 .Take(20).ToArray();
         }
 
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var normalizedData = pipeline.Fit(trainData).Transform(trainData);
 
             // Inspect one column of the resulting dataset.
-            var meanVarValues = normalizedData.GetColumn<float[]>("MeanVarNormalized").ToArray();
+            var meanVarValues = normalizedData.GetColumn<float[]>(normalizedData.Schema["MeanVarNormalized"]).ToArray();
         }
 
         [Fact]
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var data = loader.Load(dataPath);
 
             // Inspect the message texts that are read from the file.
-            var messageTexts = data.GetColumn<string>("Message").Take(20).ToArray();
+            var messageTexts = data.GetColumn<string>(data.Schema["Message"]).Take(20).ToArray();
 
             // Apply various kinds of text operations supported by ML.NET.
             var pipeline =
@@ -321,8 +321,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var transformedData = pipeline.Fit(data).Transform(data);
 
             // Inspect some columns of the resulting dataset.
-            var embeddings = transformedData.GetColumn<float[]>("Embeddings").Take(10).ToArray();
-            var unigrams = transformedData.GetColumn<float[]>("BagOfWords").Take(10).ToArray();
+            var embeddings = transformedData.GetColumn<float[]>(transformedData.Schema["Embeddings"]).Take(10).ToArray();
+            var unigrams = transformedData.GetColumn<float[]>(transformedData.Schema["BagOfWords"]).Take(10).ToArray();
         }
 
         [Fact(Skip = "This test is running for one minute")]
@@ -361,7 +361,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var data = loader.Load(dataPath);
 
             // Inspect the first 10 records of the categorical columns to check that they are correctly read.
-            var catColumns = data.GetColumn<string[]>("CategoricalFeatures").Take(10).ToArray();
+            var catColumns = data.GetColumn<string[]>(data.Schema["CategoricalFeatures"]).Take(10).ToArray();
 
             // Build several alternative featurization pipelines.
             var pipeline =
@@ -377,8 +377,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var transformedData = pipeline.Fit(data).Transform(data);
 
             // Inspect some columns of the resulting dataset.
-            var categoricalBags = transformedData.GetColumn<float[]>("CategoricalBag").Take(10).ToArray();
-            var workclasses = transformedData.GetColumn<float[]>("WorkclassOneHotTrimmed").Take(10).ToArray();
+            var categoricalBags = transformedData.GetColumn<float[]>(transformedData.Schema["CategoricalBag"]).Take(10).ToArray();
+            var workclasses = transformedData.GetColumn<float[]>(transformedData.Schema["WorkclassOneHotTrimmed"]).Take(10).ToArray();
 
             // Of course, if we want to train the model, we will need to compose a single float vector of all the features.
             // Here's how we could do this:

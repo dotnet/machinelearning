@@ -20,14 +20,18 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <typeparam name="T">The type of the values. This must match the actual column type.</typeparam>
         /// <param name="data">The data view to get the column from.</param>
-        /// <param name="columnName">The name of the column to extract.</param>
-        public static IEnumerable<T> GetColumn<T>(this IDataView data, string columnName)
+        /// <param name="column">The column to be extracted.</param>
+        public static IEnumerable<T> GetColumn<T>(this IDataView data, DataViewSchema.Column column)
         {
             Contracts.CheckValue(data, nameof(data));
-            Contracts.CheckNonEmpty(columnName, nameof(columnName));
+            Contracts.CheckNonEmpty(column.Name, nameof(column));
 
-            if (!data.Schema.TryGetColumnIndex(columnName, out int col))
-                throw Contracts.ExceptSchemaMismatch(nameof(columnName), "input", columnName);
+            if (!data.Schema.TryGetColumnIndex(column.Name, out int colIndex))
+                throw Contracts.ExceptParam(nameof(column), string.Format("column name {0} cannot be found in {1}", column.Name, nameof(data)));
+
+            if (data.Schema[colIndex].Type != column.Type)
+                throw Contracts.ExceptParam(nameof(column), string.Format("column {0}'s type {1} doesn't match the expected type {2} in {3}",
+                    column.Name, column.Type, data.Schema[colIndex].Type, nameof(data)));
 
             // There are two decisions that we make here:
             // - Is the T an array type?
@@ -37,11 +41,11 @@ namespace Microsoft.ML.Data
             //     - If this is the same type, we can map directly.
             //     - Otherwise, we need a conversion delegate.
 
-            var colType = data.Schema[col].Type;
+            var colType = column.Type;
             if (colType.RawType == typeof(T))
             {
                 // Direct mapping is possible.
-                return GetColumnDirect<T>(data, col);
+                return GetColumnDirect<T>(data, colIndex);
             }
             else if (typeof(T) == typeof(string) && colType is TextDataViewType)
             {
@@ -49,20 +53,20 @@ namespace Microsoft.ML.Data
                 Delegate convert = (Func<ReadOnlyMemory<char>, string>)((ReadOnlyMemory<char> txt) => txt.ToString());
                 Func<IDataView, int, Func<int, T>, IEnumerable<T>> del = GetColumnConvert;
                 var meth = del.Method.GetGenericMethodDefinition().MakeGenericMethod(typeof(T), colType.RawType);
-                return (IEnumerable<T>)(meth.Invoke(null, new object[] { data, col, convert }));
+                return (IEnumerable<T>)(meth.Invoke(null, new object[] { data, colIndex, convert }));
             }
             else if (typeof(T).IsArray)
             {
                 // Output is an array type.
                 if (!(colType is VectorType colVectorType))
-                    throw Contracts.ExceptSchemaMismatch(nameof(columnName), "input", columnName, "vector", "scalar");
+                    throw Contracts.ExceptParam(nameof(column), string.Format("Cannot load vector type, {0}, specified in {1} to the user-defined type, {2}.", column.Type, nameof(column), typeof(T)));
                 var elementType = typeof(T).GetElementType();
                 if (elementType == colVectorType.ItemType.RawType)
                 {
                     // Direct mapping of items.
                     Func<IDataView, int, IEnumerable<int[]>> del = GetColumnArrayDirect<int>;
                     var meth = del.Method.GetGenericMethodDefinition().MakeGenericMethod(elementType);
-                    return (IEnumerable<T>)meth.Invoke(null, new object[] { data, col });
+                    return (IEnumerable<T>)meth.Invoke(null, new object[] { data, colIndex });
                 }
                 else if (elementType == typeof(string) && colVectorType.ItemType is TextDataViewType)
                 {
@@ -70,11 +74,13 @@ namespace Microsoft.ML.Data
                     Delegate convert = (Func<ReadOnlyMemory<char>, string>)((ReadOnlyMemory<char> txt) => txt.ToString());
                     Func<IDataView, int, Func<int, long>, IEnumerable<long[]>> del = GetColumnArrayConvert;
                     var meth = del.Method.GetGenericMethodDefinition().MakeGenericMethod(elementType, colVectorType.ItemType.RawType);
-                    return (IEnumerable<T>)meth.Invoke(null, new object[] { data, col, convert });
+                    return (IEnumerable<T>)meth.Invoke(null, new object[] { data, colIndex, convert });
                 }
                 // Fall through to the failure.
             }
-            throw Contracts.Except($"Could not map a data view column '{columnName}' of type {colType} to {typeof(T)}.");
+
+            throw Contracts.ExceptParam(nameof(column), string.Format("Cannot map column (name: {0}, type: {1}) in {2} to the user-defined type, {3}.",
+                column.Name, column.Type, nameof(data), typeof(T)));
         }
 
         private static IEnumerable<T> GetColumnDirect<T>(IDataView data, int col)

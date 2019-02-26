@@ -53,18 +53,18 @@ namespace Microsoft.ML.Tests.Scenarios
                 }
             };
 
-            var enum1 = data.AsDynamic.GetColumn<float>("floatScalar").ToArray();
-            var enum2 = data.AsDynamic.GetColumn<float[]>("floatVector").ToArray();
-            var enum3 = data.AsDynamic.GetColumn<VBuffer<float>>("floatVector").ToArray();
+            var enum1 = data.AsDynamic.GetColumn<float>(data.AsDynamic.Schema["floatScalar"]).ToArray();
+            var enum2 = data.AsDynamic.GetColumn<float[]>(data.AsDynamic.Schema["floatVector"]).ToArray();
+            var enum3 = data.AsDynamic.GetColumn<VBuffer<float>>(data.AsDynamic.Schema["floatVector"]).ToArray();
 
-            var enum4 = data.AsDynamic.GetColumn<string>("stringScalar").ToArray();
-            var enum5 = data.AsDynamic.GetColumn<string[]>("stringVector").ToArray();
+            var enum4 = data.AsDynamic.GetColumn<string>(data.AsDynamic.Schema["stringScalar"]).ToArray();
+            var enum5 = data.AsDynamic.GetColumn<string[]>(data.AsDynamic.Schema["stringVector"]).ToArray();
 
-            mustFail(() => data.AsDynamic.GetColumn<float[]>("floatScalar"));
-            mustFail(() => data.AsDynamic.GetColumn<int[]>("floatVector"));
-            mustFail(() => data.AsDynamic.GetColumn<int>("floatScalar"));
-            mustFail(() => data.AsDynamic.GetColumn<int?>("floatScalar"));
-            mustFail(() => data.AsDynamic.GetColumn<string>("floatScalar"));
+            mustFail(() => data.AsDynamic.GetColumn<float[]>(data.AsDynamic.Schema["floatScalar"]));
+            mustFail(() => data.AsDynamic.GetColumn<int[]>(data.AsDynamic.Schema["floatVector"]));
+            mustFail(() => data.AsDynamic.GetColumn<int>(data.AsDynamic.Schema["floatScalar"]));
+            mustFail(() => data.AsDynamic.GetColumn<int?>(data.AsDynamic.Schema["floatScalar"]));
+            mustFail(() => data.AsDynamic.GetColumn<string>(data.AsDynamic.Schema["floatScalar"]));
 
             // Static types.
             var enum8 = data.GetColumn(r => r.floatScalar);

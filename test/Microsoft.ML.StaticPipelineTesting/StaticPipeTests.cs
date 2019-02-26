@@ -793,10 +793,10 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             IDataView newData = ml.Data.TakeRows(est.Fit(data).Transform(data).AsDynamic, 4);
             Assert.NotNull(newData);
-            bool[] ScalarFloat = newData.GetColumn<bool>("A").ToArray();
-            bool[] ScalarDouble = newData.GetColumn<bool>("B").ToArray();
-            bool[][] VectorFloat = newData.GetColumn<bool[]>("C").ToArray();
-            bool[][] VectorDoulbe = newData.GetColumn<bool[]>("D").ToArray();
+            bool[] ScalarFloat = newData.GetColumn<bool>(newData.Schema["A"]).ToArray();
+            bool[] ScalarDouble = newData.GetColumn<bool>(newData.Schema["B"]).ToArray();
+            bool[][] VectorFloat = newData.GetColumn<bool[]>(newData.Schema["C"]).ToArray();
+            bool[][] VectorDoulbe = newData.GetColumn<bool[]>(newData.Schema["D"]).ToArray();
 
             Assert.NotNull(ScalarFloat);
             Assert.NotNull(ScalarDouble);
