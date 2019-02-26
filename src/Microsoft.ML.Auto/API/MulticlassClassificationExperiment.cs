@@ -10,7 +10,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
-    public class MulticlassExperimentSettings : ExperimentSettings
+    public sealed class MulticlassExperimentSettings : ExperimentSettings
     {
         public IProgress<RunResult<MultiClassClassifierMetrics>> ProgressCallback;
         public MulticlassClassificationMetric OptimizingMetric = MulticlassClassificationMetric.AccuracyMicro;
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Auto
         SymbolicStochasticGradientDescentOVA,
     }
 
-    public class MulticlassClassificationExperiment
+    public sealed class MulticlassClassificationExperiment
     {
         private readonly MLContext _context;
         private readonly MulticlassExperimentSettings _settings;

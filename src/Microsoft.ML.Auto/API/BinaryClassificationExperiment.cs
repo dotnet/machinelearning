@@ -10,7 +10,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
-    public class BinaryExperimentSettings : ExperimentSettings
+    public sealed class BinaryExperimentSettings : ExperimentSettings
     {
         public IProgress<RunResult<BinaryClassificationMetrics>> ProgressCallback;
         public BinaryClassificationMetric OptimizingMetric = BinaryClassificationMetric.Accuracy;
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Auto
         SymbolicStochasticGradientDescent,
     }
 
-    public class BinaryClassificationExperiment
+    public sealed class BinaryClassificationExperiment
     {
         private readonly MLContext _context;
         private readonly BinaryExperimentSettings _settings;

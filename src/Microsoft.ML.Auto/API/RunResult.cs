@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Microsoft.ML.Auto
 {
-    public class RunResult<T>
+    public sealed class RunResult<T>
     {
         public readonly T Metrics;
         public readonly ITransformer Model;

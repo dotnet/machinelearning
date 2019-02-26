@@ -13,7 +13,7 @@ namespace Microsoft.ML.Auto
         Label,
     }
 
-    public class InferenceException : Exception
+    public sealed class InferenceException : Exception
     {
         public InferenceType InferenceType;
 

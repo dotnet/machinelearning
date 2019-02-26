@@ -7,13 +7,13 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
-    public class ColumnInferenceResults
+    public sealed class ColumnInferenceResults
     {
         public TextLoader.Arguments TextLoaderArgs { get; set; }
         public ColumnInformation ColumnInformation { get; set; }
     }
 
-    public class ColumnInformation
+    public sealed class ColumnInformation
     {
         public string LabelColumn = DefaultColumnNames.Label;
         public string WeightColumn;

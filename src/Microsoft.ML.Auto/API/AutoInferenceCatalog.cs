@@ -6,7 +6,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
-    public class AutoInferenceCatalog
+    public sealed class AutoInferenceCatalog
     {
         private readonly MLContext _context;
 

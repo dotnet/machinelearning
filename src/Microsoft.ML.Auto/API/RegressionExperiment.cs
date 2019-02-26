@@ -10,7 +10,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
-    public class RegressionExperimentSettings : ExperimentSettings
+    public sealed class RegressionExperimentSettings : ExperimentSettings
     {
         public IProgress<RunResult<RegressionMetrics>> ProgressCallback;
         public RegressionMetric OptimizingMetric = RegressionMetric.RSquared;
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Auto
         StochasticDualCoordinateAscent,
     }
 
-    public class RegressionExperiment
+    public sealed class RegressionExperiment
     {
         private readonly MLContext _context;
         private readonly RegressionExperimentSettings _settings;
