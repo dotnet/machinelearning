@@ -14,11 +14,11 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         [Benchmark]
         public void AddScalarU()
-            => CpuMathUtils.Add(DefaultScale, new Span<float>(dst, 0, _smallInputLength));
+            => CpuMathUtils.Add(DefaultScale, dst.AsSpan(0, _smallInputLength));
 
         [Benchmark]
         public void Scale()
-            => CpuMathUtils.Scale(DefaultScale, new Span<float>(dst, 0, _smallInputLength));
+            => CpuMathUtils.Scale(DefaultScale, dst.AsSpan(0, _smallInputLength));
 
         [Benchmark]
         public void ScaleSrcU()
@@ -26,7 +26,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         [Benchmark]
         public void ScaleAddU()
-            => CpuMathUtils.ScaleAdd(DefaultScale, DefaultScale, new Span<float>(dst, 0, _smallInputLength));
+            => CpuMathUtils.ScaleAdd(DefaultScale, DefaultScale, dst.AsSpan(0, _smallInputLength));
 
         [Benchmark]
         public void AddScaleU()
@@ -62,23 +62,23 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         [Benchmark]
         public float SumSqDiffU()
-            => CpuMathUtils.SumSq(DefaultScale, new Span<float>(src, 0, Length));
+            => CpuMathUtils.SumSq(DefaultScale, src.AsSpan(0, _smallInputLength));
 
         [Benchmark]
         public float SumAbsU()
-             => CpuMathUtils.SumAbs(new Span<float>(src, 0, _smallInputLength));
+             => CpuMathUtils.SumAbs(src.AsSpan(0, _smallInputLength));
 
         [Benchmark]
         public float SumAbsDiffU()
-            => CpuMathUtils.SumAbs(DefaultScale, new Span<float>(src, 0, Length));
+            => CpuMathUtils.SumAbs(DefaultScale, src.AsSpan(0, _smallInputLength));
 
         [Benchmark]
         public float MaxAbsU()
-            => CpuMathUtils.MaxAbs(new Span<float>(src, 0, Length));
+            => CpuMathUtils.MaxAbs(src.AsSpan(0, _smallInputLength));
 
         [Benchmark]
         public float MaxAbsDiffU()
-            => CpuMathUtils.MaxAbsDiff(DefaultScale, new Span<float>(src, 0, _smallInputLength));
+            => CpuMathUtils.MaxAbsDiff(DefaultScale, src.AsSpan(0, _smallInputLength));
 
         [Benchmark]
         public float DotU()
