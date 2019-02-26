@@ -6,7 +6,7 @@ using System.IO;
 
 namespace Microsoft.ML.CLI.Data
 {
-    public class NewCommandOptions
+    public class NewCommandSettings
     {
         public string Name { get; set; }
 

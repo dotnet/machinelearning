@@ -20,14 +20,14 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
     internal class CodeGenerator : IProjectGenerator
     {
         private readonly Pipeline pipeline;
-        private readonly CodeGeneratorOptions options;
+        private readonly CodeGeneratorSettings settings;
         private readonly ColumnInferenceResults columnInferenceResult;
 
-        internal CodeGenerator(Pipeline pipeline, ColumnInferenceResults columnInferenceResult, CodeGeneratorOptions options)
+        internal CodeGenerator(Pipeline pipeline, ColumnInferenceResults columnInferenceResult, CodeGeneratorSettings settings)
         {
             this.pipeline = pipeline;
             this.columnInferenceResult = columnInferenceResult;
-            this.options = options;
+            this.settings = settings;
         }
 
         public void GenerateOutput()
@@ -51,7 +51,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             var classLabels = this.GenerateClassLabels();
 
             // Get Namespace
-            var namespaceValue = Utils.Normalize(options.OutputName);
+            var namespaceValue = Utils.Normalize(settings.OutputName);
 
             // Generate code for training and scoring
             var trainFileContent = GenerateTrainCode(usings, trainer, transforms, columns, classLabels, namespaceValue);
@@ -70,13 +70,13 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal void WriteOutputToFiles(string trainScoreCode, string projectSourceCode, string consoleHelperCode)
         {
-            if (!Directory.Exists(options.OutputBaseDir))
+            if (!Directory.Exists(settings.OutputBaseDir))
             {
-                Directory.CreateDirectory(options.OutputBaseDir);
+                Directory.CreateDirectory(settings.OutputBaseDir);
             }
-            File.WriteAllText($"{options.OutputBaseDir}/Program.cs", trainScoreCode);
-            File.WriteAllText($"{options.OutputBaseDir}/{options.OutputName}.csproj", projectSourceCode);
-            File.WriteAllText($"{options.OutputBaseDir}/ConsoleHelper.cs", consoleHelperCode);
+            File.WriteAllText($"{settings.OutputBaseDir}/Program.cs", trainScoreCode);
+            File.WriteAllText($"{settings.OutputBaseDir}/{settings.OutputName}.csproj", projectSourceCode);
+            File.WriteAllText($"{settings.OutputBaseDir}/ConsoleHelper.cs", consoleHelperCode);
         }
 
         internal static string GenerateConsoleHelper(string namespaceValue)
@@ -105,11 +105,11 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 Trainer = trainer,
                 ClassLabels = classLabels,
                 GeneratedUsings = usings,
-                Path = options.TrainDataset.FullName,
-                TestPath = options.TestDataset?.FullName,
-                TaskType = options.MlTask.ToString(),
+                Path = settings.TrainDataset.FullName,
+                TestPath = settings.TestDataset?.FullName,
+                TaskType = settings.MlTask.ToString(),
                 Namespace = namespaceValue,
-                LabelName = options.LabelName
+                LabelName = settings.LabelName
             };
 
             return trainingAndScoringCodeGen.TransformText();

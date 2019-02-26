@@ -15,14 +15,14 @@ namespace Microsoft.ML.CLI.Commands.New
 {
     internal class NewCommand : ICommand
     {
-        private NewCommandOptions options;
+        private NewCommandSettings settings;
         private static Logger logger = LogManager.GetCurrentClassLogger();
         private TaskKind taskKind;
 
-        internal NewCommand(NewCommandOptions options)
+        internal NewCommand(NewCommandSettings settings)
         {
-            this.options = options;
-            this.taskKind = Utils.GetTaskKind(options.MlTask);
+            this.settings = settings;
+            this.taskKind = Utils.GetTaskKind(settings.MlTask);
         }
 
         public void Execute()
@@ -54,7 +54,7 @@ namespace Microsoft.ML.CLI.Commands.New
 
             // Explore the models
             (Pipeline, ITransformer) result = default;
-            Console.WriteLine($"{Strings.ExplorePipeline}: {options.MlTask}");
+            Console.WriteLine($"{Strings.ExplorePipeline}: {settings.MlTask}");
             try
             {
                 result = ExploreModels(context, trainData, validationData, sanitized_Label_Name);
@@ -75,7 +75,7 @@ namespace Microsoft.ML.CLI.Commands.New
 
             // Save the model
             logger.Log(LogLevel.Info, Strings.SavingBestModel);
-            Utils.SaveModel(model, options.OutputPath.FullName, $"model.zip", context);
+            Utils.SaveModel(model, settings.OutputPath.FullName, $"model.zip", context);
 
             // Generate the Project
             GenerateProject(columnInference, pipeline, sanitized_Label_Name);
@@ -86,14 +86,14 @@ namespace Microsoft.ML.CLI.Commands.New
             //Check what overload method of InferColumns needs to be called.
             logger.Log(LogLevel.Info, Strings.InferColumns);
             ColumnInferenceResults columnInference = null;
-            var dataset = options.Dataset.FullName;
-            if (options.LabelColumnName != null)
+            var dataset = settings.Dataset.FullName;
+            if (settings.LabelColumnName != null)
             {
-                columnInference = context.AutoInference().InferColumns(dataset, options.LabelColumnName, groupColumns: false);
+                columnInference = context.AutoInference().InferColumns(dataset, settings.LabelColumnName, groupColumns: false);
             }
             else
             {
-                columnInference = context.AutoInference().InferColumns(dataset, options.LabelColumnIndex, hasHeader: options.HasHeader, groupColumns: false);
+                columnInference = context.AutoInference().InferColumns(dataset, settings.LabelColumnIndex, hasHeader: settings.HasHeader, groupColumns: false);
             }
 
             return columnInference;
@@ -102,17 +102,17 @@ namespace Microsoft.ML.CLI.Commands.New
         internal void GenerateProject(ColumnInferenceResults columnInference, Pipeline pipeline, string labelName)
         {
             //Generate code
-            logger.Log(LogLevel.Info, $"{Strings.GenerateProject} : {options.OutputPath.FullName}");
+            logger.Log(LogLevel.Info, $"{Strings.GenerateProject} : {settings.OutputPath.FullName}");
             var codeGenerator = new CodeGenerator.CSharp.CodeGenerator(
                 pipeline,
                 columnInference,
-                new CodeGeneratorOptions()
+                new CodeGeneratorSettings()
                 {
-                    TrainDataset = options.Dataset,
+                    TrainDataset = settings.Dataset,
                     MlTask = taskKind,
-                    TestDataset = options.TestDataset,
-                    OutputName = options.Name,
-                    OutputBaseDir = options.OutputPath.FullName,
+                    TestDataset = settings.TestDataset,
+                    OutputName = settings.Name,
+                    OutputBaseDir = settings.OutputPath.FullName,
                     LabelName = labelName
                 });
             codeGenerator.GenerateOutput();
@@ -130,7 +130,7 @@ namespace Microsoft.ML.CLI.Commands.New
                 var result = context.AutoInference()
                     .CreateBinaryClassificationExperiment(new BinaryExperimentSettings()
                     {
-                        MaxInferenceTimeInSeconds = options.MaxExplorationTime,
+                        MaxInferenceTimeInSeconds = settings.MaxExplorationTime,
                         ProgressHandler = progressReporter
                     })
                     .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = labelName });
@@ -146,7 +146,7 @@ namespace Microsoft.ML.CLI.Commands.New
                 var result = context.AutoInference()
                     .CreateRegressionExperiment(new RegressionExperimentSettings()
                     {
-                        MaxInferenceTimeInSeconds = options.MaxExplorationTime,
+                        MaxInferenceTimeInSeconds = settings.MaxExplorationTime,
                         ProgressHandler = progressReporter
                     }).Execute(trainData, validationData, new ColumnInformation() { LabelColumn = labelName });
                 logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
@@ -170,8 +170,8 @@ namespace Microsoft.ML.CLI.Commands.New
             var textLoader = context.Data.CreateTextLoader(textLoaderArgs);
 
             logger.Log(LogLevel.Info, Strings.LoadData);
-            var trainData = textLoader.Read(options.Dataset.FullName);
-            var validationData = options.ValidationDataset == null ? null : textLoader.Read(options.ValidationDataset.FullName);
+            var trainData = textLoader.Read(settings.Dataset.FullName);
+            var validationData = settings.ValidationDataset == null ? null : textLoader.Read(settings.ValidationDataset.FullName);
 
             return (trainData, validationData);
         }

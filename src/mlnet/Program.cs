@@ -19,7 +19,7 @@ namespace Microsoft.ML.CLI
         public static void Main(string[] args)
         {
             // Create handler outside so that commandline and the handler is decoupled and testable.
-            var handler = CommandHandler.Create<NewCommandOptions>(
+            var handler = CommandHandler.Create<NewCommandSettings>(
                 (options) =>
              {
                  // Map the verbosity to internal levels

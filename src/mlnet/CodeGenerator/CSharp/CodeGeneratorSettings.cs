@@ -3,7 +3,7 @@ using Microsoft.ML.Auto;
 
 namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 {
-    internal class CodeGeneratorOptions
+    internal class CodeGeneratorSettings
     {
         public string LabelName { get; internal set; }
         internal string OutputName { get; set; }

@@ -28,7 +28,7 @@ namespace mlnet.Test
             (Pipeline pipeline,
             ColumnInferenceResults columnInference) = GetMockedPipelineAndInference();
 
-            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorOptions()
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
             {
                 MlTask = TaskKind.BinaryClassification,
                 OutputBaseDir = null,
@@ -51,7 +51,7 @@ namespace mlnet.Test
             (Pipeline pipeline,
             ColumnInferenceResults columnInference) = GetMockedPipelineAndInference();
 
-            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorOptions()
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
             {
                 MlTask = TaskKind.BinaryClassification,
                 OutputBaseDir = null,
@@ -74,7 +74,7 @@ namespace mlnet.Test
             (Pipeline pipeline,
             ColumnInferenceResults columnInference) = GetMockedPipelineAndInference();
 
-            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorOptions()
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
             {
                 MlTask = TaskKind.BinaryClassification,
                 OutputBaseDir = null,

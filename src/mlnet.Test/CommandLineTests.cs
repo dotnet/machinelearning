@@ -20,7 +20,7 @@ namespace mlnet.Test
             bool parsingSuccessful = false;
 
             // Create handler outside so that commandline and the handler is decoupled and testable.
-            var handler = CommandHandler.Create<NewCommandOptions>(
+            var handler = CommandHandler.Create<NewCommandSettings>(
                 (opt) =>
                 {
                     parsingSuccessful = true;
@@ -48,7 +48,7 @@ namespace mlnet.Test
             bool parsingSuccessful = false;
 
             // Create handler outside so that commandline and the handler is decoupled and testable.
-            var handler = CommandHandler.Create<NewCommandOptions>(
+            var handler = CommandHandler.Create<NewCommandSettings>(
                 (opt) =>
                 {
                     parsingSuccessful = true;
@@ -100,7 +100,7 @@ namespace mlnet.Test
             var falseString = "false";
 
             // Create handler outside so that commandline and the handler is decoupled and testable.
-            var handler = CommandHandler.Create<NewCommandOptions>(
+            var handler = CommandHandler.Create<NewCommandSettings>(
                 (opt) =>
                 {
                     parsingSuccessful = true;
@@ -141,7 +141,7 @@ namespace mlnet.Test
             var labelName = "Label";
 
             // Create handler outside so that commandline and the handler is decoupled and testable.
-            var handler = CommandHandler.Create<NewCommandOptions>(
+            var handler = CommandHandler.Create<NewCommandSettings>(
                 (opt) =>
                 {
                     parsingSuccessful = true;
