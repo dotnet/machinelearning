@@ -53,7 +53,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Preview of the CharsUnigrams column obtained after processing the input.
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
             transformedData_onechars.Schema["CharsUnigrams"].GetSlotNames(ref slotNames);
-            var charsOneGramColumn = transformedData_onechars.GetColumn<VBuffer<float>>(ml, "CharsUnigrams");
+            var charsOneGramColumn = transformedData_onechars.GetColumn<VBuffer<float>>("CharsUnigrams");
             printHelper("CharsUnigrams", charsOneGramColumn, slotNames);
 
             // CharsUnigrams column obtained post-transformation.
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // 'e' - 1 '<?>' - 2 'd' - 1 '=' - 4 'R' - 1 'U' - 1 'D' - 2 'E' - 1 'u' - 1 ',' - 1 '2' - 1
             // 'B' - 0 'e' - 6 's' - 3 't' - 6 '<?>' - 9 'g' - 2 'a' - 2 'm' - 2 'I' - 0 ''' - 0 'v' - 0 ...
             // Preview of the CharsTwoGrams column obtained after processing the input.
-            var charsTwoGramColumn = transformedData_twochars.GetColumn<VBuffer<float>>(ml, "CharsTwograms");
+            var charsTwoGramColumn = transformedData_twochars.GetColumn<VBuffer<float>>("CharsTwograms");
             transformedData_twochars.Schema["CharsTwograms"].GetSlotNames(ref slotNames);
             printHelper("CharsTwograms", charsTwoGramColumn, slotNames);
 

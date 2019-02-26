@@ -20,11 +20,10 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <typeparam name="T">The type of the values. This must match the actual column type.</typeparam>
         /// <param name="data">The data view to get the column from.</param>
-        /// <param name="env">The current host environment.</param>
         /// <param name="columnName">The name of the column to extract.</param>
-        public static IEnumerable<T> GetColumn<T>(this IDataView data, IHostEnvironment env, string columnName)
+        public static IEnumerable<T> GetColumn<T>(this IDataView data, string columnName)
         {
-            Contracts.CheckValue(env, nameof(env));
+            var env = RetrieveHost(data);
             env.CheckValue(data, nameof(data));
             env.CheckNonEmpty(columnName, nameof(columnName));
 
@@ -77,6 +76,23 @@ namespace Microsoft.ML.Data
                 // Fall through to the failure.
             }
             throw env.Except($"Could not map a data view column '{columnName}' of type {colType} to {typeof(T)}.");
+        }
+
+        /// <summary>
+        /// Return a <see cref="IHost"/> assigned in a given <see cref="IDataView"/> implementation.
+        /// </summary>
+        /// <param name="data">an <see cref="IDataView"/> implementation.</param>
+        private static IHost RetrieveHost(IDataView data)
+        {
+            // Search for the first (if there are multiples) field typed to IHost.
+            var fields = data.GetType().GetFields(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var fieldInfo = fields.Where((field, index) => field.FieldType == typeof(IHost)).FirstOrDefault();
+
+            // Check if a IHost really gets retrieved.
+            string errorMessage = nameof(data) + " should contains a field of " + typeof(IHost);
+            Contracts.CheckValue(fieldInfo, nameof(data), errorMessage);
+
+            return (IHost)fieldInfo.GetValue(data);
         }
 
         private static IEnumerable<T> GetColumnDirect<T>(IDataView data, int col)

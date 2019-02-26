@@ -83,8 +83,8 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             // Print the data that results from the transformations.
-            var countSelectColumn = transformedData.AsDynamic.GetColumn<VBuffer<float>>(ml, "FeaturesCountSelect");
-            var MISelectColumn = transformedData.AsDynamic.GetColumn<VBuffer<float>>(ml, "FeaturesMISelect");
+            var countSelectColumn = transformedData.AsDynamic.GetColumn<VBuffer<float>>("FeaturesCountSelect");
+            var MISelectColumn = transformedData.AsDynamic.GetColumn<VBuffer<float>>("FeaturesMISelect");
             printHelper("FeaturesCountSelect", countSelectColumn);
             printHelper("FeaturesMISelect", MISelectColumn);
 

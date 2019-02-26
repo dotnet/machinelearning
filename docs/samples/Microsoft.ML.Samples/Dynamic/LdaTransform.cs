@@ -37,7 +37,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformed_data = transformer.Transform(trainData);
 
             // Column obtained after processing the input.
-            var ldaFeaturesColumn = transformed_data.GetColumn<VBuffer<float>>(ml, ldaFeatures);
+            var ldaFeaturesColumn = transformed_data.GetColumn<VBuffer<float>>(ldaFeatures);
 
             Console.WriteLine($"{ldaFeatures} column obtained post-transformation.");
             foreach (var featureRow in ldaFeaturesColumn)
