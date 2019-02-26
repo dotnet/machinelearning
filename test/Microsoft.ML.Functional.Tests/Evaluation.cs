@@ -240,7 +240,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Get the dataset.
             var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(),
-                    hasHeader: TestDatasets.housing.fileHasHeader, separatorChar: TestDatasets.housing.fileSeparator)
+                hasHeader: TestDatasets.housing.fileHasHeader, separatorChar: TestDatasets.housing.fileSeparator)
                 .Read(GetDataPath(TestDatasets.housing.trainFilename));
 
             // Create a pipeline to train on the sentiment data.

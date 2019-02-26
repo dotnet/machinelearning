@@ -439,10 +439,19 @@ namespace Microsoft.ML.Transforms.Conversions
                             "{0} should not be specified when default loader is " + nameof(TextLoader) + ". Ignoring {0}={1}",
                             nameof(Options.TermsColumn), src);
                     }
-                    keyData = new TextLoader(env,
-                        columns: new[] { new TextLoader.Column("Term", DataKind.String, 0) },
-                        dataSample: fileSource)
-                        .Read(fileSource);
+
+                    // Create text loader.
+                    var options = new TextLoader.Options()
+                    {
+                        Columns = new[]
+                        {
+                            new TextLoader.Column("Term", DataKind.String, 0)
+                        }
+                    };
+                    var reader = new TextLoader(env, options: options, dataSample: fileSource);
+
+                    keyData = reader.Read(fileSource);
+
                     src = "Term";
                     // In this case they are relying on heuristics, so auto-loading in this case is most appropriate.
                     autoConvert = true;

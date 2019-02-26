@@ -21,9 +21,9 @@ namespace Microsoft.ML.Functional.Tests.Datasets
                         new TextLoader.Column("Label", DataKind.Single, 0),
                         new TextLoader.Column("Features", DataKind.Single, 1, 1 + _featureLength)
                     },
-                    separatorChar: separatorChar,
-                    hasHeader: hasHeader,
-                    allowSparse: true);
+                separatorChar: separatorChar,
+                hasHeader: hasHeader,
+                allowSparse: true);
         }
     }
 }

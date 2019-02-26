@@ -149,7 +149,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt"));
             Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: true));
             Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false));
-            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowSparse: false, trimWhitespace: false));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, trimWhitespace: false, allowSparse: false));
             Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowSparse: false));
             Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowQuoting: false));
             Assert.NotNull(mlContext.Data.ReadFromTextFile<InputWithUnderscore>("fakeFile.txt"));

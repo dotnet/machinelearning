@@ -53,17 +53,20 @@ namespace Microsoft.ML.Benchmarks
 
         private TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> Train(string dataPath)
         {
-            var reader = new TextLoader(mlContext,
-                columns: new[]
-                    {
-                            new TextLoader.Column("Label", DataKind.Single, 0),
-                            new TextLoader.Column("SepalLength", DataKind.Single, 1),
-                            new TextLoader.Column("SepalWidth", DataKind.Single, 2),
-                            new TextLoader.Column("PetalLength", DataKind.Single, 3),
-                            new TextLoader.Column("PetalWidth", DataKind.Single, 4),
-                    },
-                hasHeader: true
-                );
+            // Create text loader.
+            var options = new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("SepalLength", DataKind.Single, 1),
+                    new TextLoader.Column("SepalWidth", DataKind.Single, 2),
+                    new TextLoader.Column("PetalLength", DataKind.Single, 3),
+                    new TextLoader.Column("PetalWidth", DataKind.Single, 4),
+                },
+                HasHeader = true,
+            };
+            var reader = new TextLoader(mlContext, options: options);
 
             IDataView data = reader.Read(dataPath);
 
@@ -116,17 +119,20 @@ namespace Microsoft.ML.Benchmarks
             _predictionEngine = _trainedModel.CreatePredictionEngine<IrisData, IrisPrediction>(mlContext);
             _consumer.Consume(_predictionEngine.Predict(_example));
 
-            var reader = new TextLoader(mlContext,
-                columns: new[]
-                    {
-                            new TextLoader.Column("Label", DataKind.Single, 0),
-                            new TextLoader.Column("SepalLength", DataKind.Single, 1),
-                            new TextLoader.Column("SepalWidth", DataKind.Single, 2),
-                            new TextLoader.Column("PetalLength", DataKind.Single, 3),
-                            new TextLoader.Column("PetalWidth", DataKind.Single, 4),
-                    },
-                hasHeader: true
-                );
+            // Create text loader.
+            var options = new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("SepalLength", DataKind.Single, 1),
+                    new TextLoader.Column("SepalWidth", DataKind.Single, 2),
+                    new TextLoader.Column("PetalLength", DataKind.Single, 3),
+                    new TextLoader.Column("PetalWidth", DataKind.Single, 4),
+                },
+                HasHeader = true,
+            };
+            var reader = new TextLoader(mlContext, options: options);
 
             IDataView testData = reader.Read(_dataPath);
             IDataView scoredTestData = _trainedModel.Transform(testData);
