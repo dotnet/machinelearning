@@ -78,11 +78,11 @@ namespace Microsoft.ML.SamplesUtils
         /// <summary>
         /// Downloads the wikipedia detox dataset from the ML.NET repo.
         /// </summary>
-        public static (string trainFile, string testFile) DownloadSentimentDataset()
+        public static string[] DownloadSentimentDataset()
         {
             var trainFile = Download("https://raw.githubusercontent.com/dotnet/machinelearning/76cb2cdf5cc8b6c88ca44b8969153836e589df04/test/data/wikipedia-detox-250-line-data.tsv", "sentiment.tsv");
             var testFile = Download("https://raw.githubusercontent.com/dotnet/machinelearning/76cb2cdf5cc8b6c88ca44b8969153836e589df04/test/data/wikipedia-detox-250-line-test.tsv", "sentimenttest.tsv");
-            return (trainFile, testFile);
+            return new[] { trainFile, testFile };
         }
 
             /// <summary>
@@ -95,11 +95,11 @@ namespace Microsoft.ML.SamplesUtils
         /// Downloads the  wikipedia detox dataset and featurizes it to be suitable for sentiment classification tasks.
         /// </summary>
         /// <param name="mlContext"><see cref="MLContext"/> used for data loading and processing.</param>
-        /// <returns>Featurized dataset.</returns>
-        public static (IDataView trainData, IDataView testData) LoadFeaturizedSentimentDataset(MLContext mlContext)
+        /// <returns>Featurized train and test dataset.</returns>
+        public static IDataView[] LoadFeaturizedSentimentDataset(MLContext mlContext)
         {
-            // Download the file
-            (string trainFile, string testFile) = DownloadSentimentDataset();
+            // Download the files
+            var dataFiles = DownloadSentimentDataset();
 
             // Define the columns to read
             var reader = mlContext.Data.CreateTextLoader(
@@ -114,11 +114,11 @@ namespace Microsoft.ML.SamplesUtils
             // Create data featurizing pipeline
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText");
 
-            var data = reader.Read(trainFile);
+            var data = reader.Read(dataFiles[0]);
             var model = pipeline.Fit(data);
             var featurizedDataTrain = model.Transform(data);
-            var featurizedDataTest = model.Transform(reader.Read(testFile));
-            return (featurizedDataTrain, featurizedDataTest);
+            var featurizedDataTest = model.Transform(reader.Read(dataFiles[1]));
+            return new[] { featurizedDataTrain, featurizedDataTest };
         }
 
         /// <summary>

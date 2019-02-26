@@ -49,8 +49,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 FeatureColumn = "Feature1", // Features from the 1st field.
                 ExtraFeatureColumns = new[] { "Feature2", "Feature3",  "Feature4" }, // 2nd field's feature column, 3rd field's feature column, 4th field's feature column.
                 Shuffle = false,
-                Iters = 3,
-                LatentDim = 7,
+                Iterations = 3,
+                LatentDimension = 7,
             };
 
             var est = ML.BinaryClassification.Trainers.FieldAwareFactorizationMachine(ffmArgs);

@@ -9,11 +9,14 @@ namespace Microsoft.ML.Samples.Dynamic
     {
         public static void Example()
         {
-            // Creating the ML.Net IHostEnvironment object, needed for the pipeline.
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
             // Download and featurize the dataset.
-            (var trainData, var testData) = SamplesUtils.DatasetUtils.LoadFeaturizedSentimentDataset(mlContext);
+            var dataviews = SamplesUtils.DatasetUtils.LoadFeaturizedSentimentDataset(mlContext);
+            var trainData = dataviews[0];
+            var testData = dataviews[1];
 
             // ML.NET doesn't cache data set by default. Therefore, if one reads a data set from a file and accesses it many times, it can be slow due to
             // expensive featurization and disk operations. When the considered data can fit into memory, a solution is to cache the data in memory. Caching is especially
@@ -26,14 +29,14 @@ namespace Microsoft.ML.Samples.Dynamic
             // the "Features" column as the features column.
             var pipeline = new EstimatorChain<ITransformer>().AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.
-                FieldAwareFactorizationMachine(
-                    new FieldAwareFactorizationMachineTrainer.Options
-                    {
-                        FeatureColumn = "Features",
-                        LabelColumn = "Sentiment",
-                        LearningRate = 0.1f,
-                        Iters = 10
-                    }));
+                    FieldAwareFactorizationMachine(
+                        new FieldAwareFactorizationMachineTrainer.Options
+                        {
+                            FeatureColumn = "Features",
+                            LabelColumn = "Sentiment",
+                            LearningRate = 0.1f,
+                            Iterations = 10
+                        }));
 
             // Fit the model.
             var model = pipeline.Fit(trainData);
@@ -42,9 +45,9 @@ namespace Microsoft.ML.Samples.Dynamic
             var modelParams = model.LastTransformer.Model;
 
             // Let's inspect the model parameters.
-            var featureCount = modelParams.GetFeatureCount();
-            var fieldCount = modelParams.GetFieldCount();
-            var latentDim = modelParams.GetLatentDim();
+            var featureCount = modelParams.FeatureCount;
+            var fieldCount = modelParams.FieldCount;
+            var latentDim = modelParams.LatentDimension;
             var linearWeights = modelParams.GetLinearWeights();
             var latentWeights = modelParams.GetLatentWeights();
 
