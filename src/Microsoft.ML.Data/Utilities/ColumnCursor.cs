@@ -26,12 +26,15 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(data, nameof(data));
             Contracts.CheckNonEmpty(column.Name, nameof(column));
 
-            if (!data.Schema.TryGetColumnIndex(column.Name, out int colIndex))
-                throw Contracts.ExceptParam(nameof(column), string.Format("column name {0} cannot be found in {1}", column.Name, nameof(data)));
+            var colIndex = column.Index;
+            var colType = column.Type;
+            var colName = column.Name;
 
-            if (data.Schema[colIndex].Type != column.Type)
-                throw Contracts.ExceptParam(nameof(column), string.Format("column {0}'s type {1} doesn't match the expected type {2} in {3}",
-                    column.Name, column.Type, data.Schema[colIndex].Type, nameof(data)));
+            // Use column index as the principle address of the specified input column and check if that address in data contains
+            // the column indicated.
+            if (data.Schema[colIndex].Name != colName || data.Schema[colIndex].Type != colType)
+                throw Contracts.ExceptParam(nameof(column), string.Format("column with name {0}, type {1}, and index {2} cannot be found in {3}",
+                    colName, colType, colIndex, nameof(data)));
 
             // There are two decisions that we make here:
             // - Is the T an array type?
@@ -41,7 +44,6 @@ namespace Microsoft.ML.Data
             //     - If this is the same type, we can map directly.
             //     - Otherwise, we need a conversion delegate.
 
-            var colType = column.Type;
             if (colType.RawType == typeof(T))
             {
                 // Direct mapping is possible.
