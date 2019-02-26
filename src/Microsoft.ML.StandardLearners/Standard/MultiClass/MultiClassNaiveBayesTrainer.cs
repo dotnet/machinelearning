@@ -33,7 +33,7 @@ namespace Microsoft.ML.Trainers
         internal const string ShortName = "MNB";
         internal const string Summary = "Trains a multiclass Naive Bayes predictor that supports binary feature values.";
 
-        internal sealed class Options : LearnerInputBaseWithLabel
+        internal sealed class Options : TrainerInputBaseWithLabel
         {
         }
 
@@ -174,9 +174,9 @@ namespace Microsoft.ML.Trainers
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
                 () => new MultiClassNaiveBayesTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }
     }
 

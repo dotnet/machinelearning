@@ -17,7 +17,7 @@ namespace Microsoft.ML.Trainers
     /// The base class for all learner inputs.
     /// </summary>
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInput))]
-    public abstract class LearnerInputBase
+    public abstract class TrainerInputBase
     {
         /// <summary>
         /// The data to be used for training. Used only in entry-points, since in the API the expected mechanism is
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Trainers
     /// The base class for all learner inputs that support a Label column.
     /// </summary>
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInputWithLabel))]
-    public abstract class LearnerInputBaseWithLabel : LearnerInputBase
+    public abstract class TrainerInputBaseWithLabel : TrainerInputBase
     {
         /// <summary>
         /// Column to use for labels.
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Trainers
     /// The base class for all learner inputs that support a weight column.
     /// </summary>
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInputWithWeight))]
-    public abstract class LearnerInputBaseWithWeight : LearnerInputBaseWithLabel
+    public abstract class TrainerInputBaseWithWeight : TrainerInputBaseWithLabel
     {
         /// <summary>
         /// Column to use for example weight.
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Trainers
     /// The base class for all unsupervised learner inputs that support a weight column.
     /// </summary>
     [TlcModule.EntryPointKind(typeof(CommonInputs.IUnsupervisedTrainerWithWeight))]
-    public abstract class UnsupervisedLearnerInputBaseWithWeight : LearnerInputBase
+    public abstract class UnsupervisedTrainerInputBaseWithWeight : TrainerInputBase
     {
         /// <summary>
         /// Column to use for example weight.
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Trainers
     }
 
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInputWithGroupId))]
-    public abstract class LearnerInputBaseWithGroupId : LearnerInputBaseWithWeight
+    public abstract class TrainerInputBaseWithGroupId : TrainerInputBaseWithWeight
     {
         /// <summary>
         /// Column to use for example groupId.
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Trainers
     }
 
     [BestFriend]
-    internal static class LearnerEntryPointsUtils
+    internal static class TrainerEntryPointsUtils
     {
         public static string FindColumn(IExceptionContext ectx, DataViewSchema schema, Optional<string> value)
         {
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Trainers
             Func<IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>>> getCustom = null,
             ICalibratorTrainerFactory calibrator = null,
             int maxCalibrationExamples = 0)
-            where TArg : LearnerInputBase
+            where TArg : TrainerInputBase
             where TOut : CommonOutputs.TrainerOutput, new()
         {
             using (var ch = host.Start("Training"))

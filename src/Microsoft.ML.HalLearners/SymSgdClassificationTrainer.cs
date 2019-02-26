@@ -38,7 +38,7 @@ namespace Microsoft.ML.Trainers.HalLearners
         internal const string ShortName = "SymSGD";
 
         ///<summary> Advanced options for trainer.</summary>
-        public sealed class Options : LearnerInputBaseWithLabel
+        public sealed class Options : TrainerInputBaseWithLabel
         {
             /// <summary>
             /// Degree of lock-free parallelism. Determinism not guaranteed if this is set to higher than 1.
@@ -249,9 +249,9 @@ namespace Microsoft.ML.Trainers.HalLearners
             host.CheckValue(options, nameof(options));
             EntryPointUtils.CheckInputArgs(host, options);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, options,
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, options,
                 () => new SymSgdClassificationTrainer(host, options),
-                () => LearnerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.LabelColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.LabelColumn));
         }
 
         // We buffer instances from the cursor (limited to memorySize) and passes that buffer to

@@ -19,7 +19,7 @@ namespace Microsoft.ML.Trainers.Online
     /// <summary>
     /// Arguments class for online linear trainers.
     /// </summary>
-    public abstract class OnlineLinearOptions : LearnerInputBaseWithLabel
+    public abstract class OnlineLinearOptions : TrainerInputBaseWithLabel
     {
         /// <summary>
         /// Number of passes through the training dataset.

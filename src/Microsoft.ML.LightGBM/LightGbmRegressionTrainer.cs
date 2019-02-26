@@ -174,10 +174,10 @@ namespace Microsoft.ML.LightGBM
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, input,
                 () => new LightGbmRegressorTrainer(host, input),
-                getLabel: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+                getLabel: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
+                getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
     }
 }

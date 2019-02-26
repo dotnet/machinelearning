@@ -201,11 +201,11 @@ namespace Microsoft.ML.LightGBM
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.RankingOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.RankingOutput>(host, input,
                 () => new LightGbmRankingTrainer(host, input),
-                getLabel: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),
-                getGroup: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.GroupIdColumn));
+                getLabel: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
+                getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),
+                getGroup: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.GroupIdColumn));
         }
     }
 }

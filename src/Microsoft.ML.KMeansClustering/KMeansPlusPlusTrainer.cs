@@ -50,7 +50,7 @@ namespace Microsoft.ML.Trainers.KMeans
             public const int ClustersCount = 5;
         }
 
-        public sealed class Options : UnsupervisedLearnerInputBaseWithWeight
+        public sealed class Options : UnsupervisedTrainerInputBaseWithWeight
         {
             /// <summary>
             /// The number of clusters.
@@ -248,9 +248,9 @@ namespace Microsoft.ML.Trainers.KMeans
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.ClusteringOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.ClusteringOutput>(host, input,
                 () => new KMeansPlusPlusTrainer(host, input),
-                getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+                getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

@@ -35,7 +35,7 @@ namespace Microsoft.ML.Trainers.HalLearners
     public sealed class OlsLinearRegressionTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OlsLinearRegressionModelParameters>, OlsLinearRegressionModelParameters>
     {
         ///<summary> Advanced options for trainer.</summary>
-        public sealed class Options : LearnerInputBaseWithWeight
+        public sealed class Options : TrainerInputBaseWithWeight
         {
             // Adding L2 regularization turns this into a form of ridge regression,
             // rather than, strictly speaking, ordinary least squares. But it is an
@@ -499,10 +499,10 @@ namespace Microsoft.ML.Trainers.HalLearners
             host.CheckValue(options, nameof(options));
             EntryPointUtils.CheckInputArgs(host, options);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, options,
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, options,
                 () => new OlsLinearRegressionTrainer(host, options),
-                () => LearnerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.LabelColumn),
-                () => LearnerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.WeightColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.LabelColumn),
+                () => TrainerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.WeightColumn));
         }
     }
 

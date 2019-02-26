@@ -28,7 +28,7 @@ namespace Microsoft.ML.EntryPoints
             public Var<PredictorModel> Model;
         }
 
-        public sealed class Arguments : LearnerInputBaseWithWeight
+        public sealed class Arguments : TrainerInputBaseWithWeight
         {
             // This is the subgraph that describes how to train a model for submodel. It should
             // accept one IDataView input and output one IPredictorModel output.

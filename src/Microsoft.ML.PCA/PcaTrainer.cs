@@ -47,7 +47,7 @@ namespace Microsoft.ML.Trainers.PCA
         internal const string Summary = "This algorithm trains an approximate PCA using Randomized SVD algorithm. "
             + "This PCA can be made into Kernel PCA by using Random Fourier Features transform.";
 
-        public sealed class Options : UnsupervisedLearnerInputBaseWithWeight
+        public sealed class Options : UnsupervisedTrainerInputBaseWithWeight
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of components in the PCA", ShortName = "k", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "10,20,40,80")]
@@ -359,9 +359,9 @@ namespace Microsoft.ML.Trainers.PCA
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.AnomalyDetectionOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.AnomalyDetectionOutput>(host, input,
                 () => new RandomizedPcaTrainer(host, input),
-                getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+                getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
     }
 

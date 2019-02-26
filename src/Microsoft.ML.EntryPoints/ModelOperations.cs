@@ -53,7 +53,7 @@ namespace Microsoft.ML.EntryPoints
             public PredictorModel PredictorModel;
         }
 
-        public sealed class CombineOvaPredictorModelsInput : LearnerInputBaseWithWeight
+        public sealed class CombineOvaPredictorModelsInput : TrainerInputBaseWithWeight
         {
             [Argument(ArgumentType.Multiple, HelpText = "Input models", SortOrder = 1)]
             public PredictorModel[] ModelArray;

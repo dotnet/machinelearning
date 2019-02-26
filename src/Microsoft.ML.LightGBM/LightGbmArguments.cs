@@ -41,7 +41,7 @@ namespace Microsoft.ML.LightGBM
     /// Parameters names comes from LightGBM library.
     /// See https://github.com/Microsoft/LightGBM/blob/master/docs/Parameters.rst.
     /// </summary>
-    public sealed class Options : LearnerInputBaseWithGroupId
+    public sealed class Options : TrainerInputBaseWithGroupId
     {
         public abstract class BoosterParameter<TOptions> : IBoosterParameter
             where TOptions : class, new()

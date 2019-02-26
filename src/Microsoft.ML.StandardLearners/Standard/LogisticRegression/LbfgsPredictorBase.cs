@@ -20,7 +20,7 @@ namespace Microsoft.ML.Trainers
       where TModel : class
       where TOptions : LbfgsTrainerBase<TOptions, TTransformer, TModel>.OptionsBase, new ()
     {
-        public abstract class OptionsBase : LearnerInputBaseWithWeight
+        public abstract class OptionsBase : TrainerInputBaseWithWeight
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization weight", ShortName = "l2", SortOrder = 50)]
             [TGUI(Label = "L2 Weight", Description = "Weight of L2 regularizer term", SuggestedSweeps = "0,0.1,1")]
