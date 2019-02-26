@@ -615,14 +615,15 @@ namespace Microsoft.ML.Internal.Calibration
                 OutputSchema = ScoreSchemaFactory.CreateBinaryClassificationSchema();
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            IEnumerable<DataViewSchema.Column> ISchemaBoundRowMapper.GetDependenciesForNewColumns(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
-                for (int i = 0; i < OutputSchema.Count; i++)
-                {
-                    if (predicate(i))
-                        return _predictor.GetDependencies(col => true);
-                }
-                return col => false;
+                if (dependingColumns.Count() > 0)
+                    return _predictor.GetDependenciesForNewColumns(OutputSchema);
+
+                return Enumerable.Empty<DataViewSchema.Column>();
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()

@@ -78,27 +78,30 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Produces the set of active columns for the scorer (as a bool[] of length bindings.ColumnCount),
-        /// a predicate for the needed active input columns, and a predicate for the needed active
+        /// the set of needed active input columns, and a predicate for the needed active
         /// mapper columns.
         /// </summary>
-        private static bool[] GetActive(BindingsBase bindings, Func<int, bool> predicate,
-            out Func<int, bool> predicateInput, out Func<int, bool> predicateMapper)
+        private static bool[] GetActive(BindingsBase bindings,
+            IEnumerable<DataViewSchema.Column> columns,
+            out IEnumerable<DataViewSchema.Column> inputColumns,
+            out Func<int, bool> predicateMapper)
         {
-            var active = bindings.GetActive(predicate);
+            var active = bindings.GetActive(columns);
             Contracts.Assert(active.Length == bindings.ColumnCount);
 
-            var activeInput = bindings.GetActiveInput(predicate);
-            Contracts.Assert(activeInput.Length == bindings.Input.Count);
+            var activeInput = bindings.GetActiveInput(columns);
+            Contracts.Assert(activeInput.Count() == bindings.Input.Count);
 
             // Get a predicate that determines which Mapper outputs are active.
             predicateMapper = bindings.GetActiveMapperColumns(active);
+            Func<int, bool> localMapper = predicateMapper;
 
-            // Now map those to active input columns.
-            var predicateInputForMapper = bindings.RowMapper.GetDependencies(predicateMapper);
+            // Get the active output columns
+            var activeOutputCols = bindings.RowMapper.OutputSchema.Where(c => localMapper(c.Index));
+            var colsInputForMapper = bindings.RowMapper.GetDependenciesForNewColumns(activeOutputCols);
 
-            // Combine the two sets of input columns.
-            predicateInput =
-                col => 0 <= col && col < activeInput.Length && (activeInput[col] || predicateInputForMapper(col));
+            var activeInCols = bindings.Input.Where(c => c.Index < activeInput.Length && activeInput[c.Index]);
+            inputColumns = activeInCols.Union(colsInputForMapper);
 
             return active;
         }
@@ -126,14 +129,10 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValueOrNull(rand);
 
-            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
-
             var bindings = GetBindings();
-            Func<int, bool> inputPred;
             Func<int, bool> predicateMapper;
-            var active = GetActive(bindings, predicate, out inputPred, out predicateMapper);
+            var active = GetActive(bindings, columnsNeeded, out IEnumerable<DataViewSchema.Column> inputCols, out predicateMapper);
 
-            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
             var input = Source.GetRowCursor(inputCols, rand);
             return new Cursor(Host, this, input, active, predicateMapper);
         }
@@ -145,11 +144,8 @@ namespace Microsoft.ML.Data
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
             var bindings = GetBindings();
-            Func<int, bool> inputPred;
             Func<int, bool> predicateMapper;
-            var active = GetActive(bindings, predicate, out inputPred, out predicateMapper);
-
-            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var active = GetActive(bindings, columnsNeeded, out IEnumerable<DataViewSchema.Column> inputCols, out predicateMapper);
             var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Contracts.AssertNonEmpty(inputs);
 
@@ -166,22 +162,24 @@ namespace Microsoft.ML.Data
         protected override Delegate[] CreateGetters(DataViewRow input, Func<int, bool> active, out Action disp)
         {
             var bindings = GetBindings();
-            Func<int, bool> predicateInput;
+            IEnumerable<DataViewSchema.Column> inputColumns;
             Func<int, bool> predicateMapper;
-            GetActive(bindings, active, out predicateInput, out predicateMapper);
+            IEnumerable<DataViewSchema.Column> activeColumns = OutputSchema.Where(col => active(col.Index));
+            GetActive(bindings, activeColumns, out inputColumns, out predicateMapper);
             var output = bindings.RowMapper.GetRow(input, predicateMapper);
             Func<int, bool> activeInfos = iinfo => active(bindings.MapIinfoToCol(iinfo));
             disp = output.Dispose;
             return GetGetters(output, activeInfos);
         }
 
-        protected override Func<int, bool> GetDependenciesCore(Func<int, bool> predicate)
+        protected override IEnumerable<DataViewSchema.Column> GetDependenciesCore(IEnumerable<DataViewSchema.Column> columns)
         {
             var bindings = GetBindings();
-            Func<int, bool> predicateInput;
+            IEnumerable<DataViewSchema.Column> inputColumns;
             Func<int, bool> predicateMapper;
-            GetActive(bindings, predicate, out predicateInput, out predicateMapper);
-            return predicateInput;
+
+            GetActive(bindings, columns, out inputColumns, out predicateMapper);
+            return inputColumns;
         }
 
         /// <summary>

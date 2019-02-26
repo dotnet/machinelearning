@@ -587,9 +587,13 @@ namespace Microsoft.ML.Data
         /// predicate on each column index.
         /// </summary>
         public bool[] GetActive(Func<int, bool> predicate)
-        {
-            return Utils.BuildArray(ColumnCount, predicate);
-        }
+            => Utils.BuildArray(ColumnCount, predicate);
+
+        /// <summary>
+        /// This builds an array of bools of length ColumnCount indicating the index of the active column.
+        /// </summary>
+        public bool[] GetActive(IEnumerable<DataViewSchema.Column> columns)
+            => Utils.BuildArray(ColumnCount, columns);
 
         /// <summary>
         /// The given predicate maps from output column index to whether the column is active.
@@ -609,6 +613,18 @@ namespace Microsoft.ML.Data
                     active[src] = true;
             }
             return active;
+        }
+
+        /// <summary>
+        /// This builds an array of bools of length Input.ColumnCount containing indicating the index of the
+        /// active input columns, given the actual columns.
+        /// </summary>
+        public bool[] GetActiveInput(IEnumerable<DataViewSchema.Column> inputColumns)
+        {
+            Contracts.AssertValue(inputColumns);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(inputColumns, AsSchema);
+
+            return GetActiveInput(predicate);
         }
 
         /// <summary>

@@ -90,14 +90,15 @@ namespace Microsoft.ML.Trainers.Ensemble
                 }
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            IEnumerable<DataViewSchema.Column> ISchemaBoundRowMapper.GetDependenciesForNewColumns(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
-                for (int i = 0; i < OutputSchema.Count; i++)
-                {
-                    if (predicate(i))
-                        return col => _inputColIndices.Contains(col);
-                }
-                return col => false;
+                if (dependingColumns.Count() == 0)
+                    return Enumerable.Empty<DataViewSchema.Column>();
+
+                return InputSchema.Where(col => _inputColIndices.Contains(col.Index));
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
@@ -107,11 +108,11 @@ namespace Microsoft.ML.Trainers.Ensemble
 
             public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
             {
-                var scoreGetter = CreateScoreGetter(input, predicate, out Action disposer);
+                var scoreGetter = CreateScoreGetter(input, out Action disposer);
                 return new SimpleRow(OutputSchema, input, new[] { scoreGetter }, disposer);
             }
 
-            internal abstract Delegate CreateScoreGetter(DataViewRow input, Func<int, bool> mapperPredicate, out Action disposer);
+            internal abstract Delegate CreateScoreGetter(DataViewRow input, out Action disposer);
         }
 
         // A generic base class for pipeline ensembles. This class contains the combiner.
@@ -127,19 +128,19 @@ namespace Microsoft.ML.Trainers.Ensemble
                     _combiner = parent.Combiner;
                 }
 
-                internal override Delegate CreateScoreGetter(DataViewRow input, Func<int, bool> mapperPredicate, out Action disposer)
+                internal override Delegate CreateScoreGetter(DataViewRow input, out Action disposer)
                 {
                     disposer = null;
-
-                    if (!mapperPredicate(0))
-                        return null;
 
                     var getters = new ValueGetter<T>[Mappers.Length];
                     for (int i = 0; i < Mappers.Length; i++)
                     {
                         // First get the output row from the pipelines. The input predicate of the predictor
                         // is the output predicate of the pipeline.
-                        var inputPredicate = Mappers[i].GetDependencies(mapperPredicate);
+                        var mapperColumns = Mappers[i].OutputSchema.Where(col => col.Name == DefaultColumnNames.Score);
+                        var inputColumns = Mappers[i].GetDependenciesForNewColumns(mapperColumns);
+
+                        Func<int, bool> inputPredicate = c => inputColumns.Any(col => col.Index == c);
                         var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate);
 
                         // Next we get the output row from the predictors. We activate the score column as output predicate.
@@ -184,7 +185,9 @@ namespace Microsoft.ML.Trainers.Ensemble
                     }
                     var weightCol = Mappers[i].InputRoleMappedSchema.Weight.Value;
                     // The weight should be in the output row of the i'th pipeline if it exists.
-                    var inputPredicate = Mappers[i].GetDependencies(col => col == weightCol.Index);
+                    var inputColumns = Mappers[i].GetDependenciesForNewColumns(Enumerable.Repeat(weightCol, 1));
+
+                    Func<int, bool> inputPredicate = c => inputColumns.Any(col => col.Index == c);
                     var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate);
                     disposer = pipelineRow.Dispose;
                     return pipelineRow.GetGetter<float>(weightCol.Index);
@@ -330,7 +333,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     var bound = new Bound(this, new RoleMappedSchema(data.Schema));
                     using (var curs = data.GetRowCursorForAllColumns())
                     {
-                        var scoreGetter = (ValueGetter<Single>)bound.CreateScoreGetter(curs, col => true, out Action disposer);
+                        var scoreGetter = (ValueGetter<Single>)bound.CreateScoreGetter(curs, out Action disposer);
 
                         // We assume that we can use the label column of the first predictor, since if the labels are not identical
                         // then the whole model is garbage anyway.
