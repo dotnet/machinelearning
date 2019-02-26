@@ -56,9 +56,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // IDataView with predictions, to an IEnumerable<DatasetUtils.MulticlassClassificationExample>.
             var nativePredictions = mlContext.CreateEnumerable<DatasetUtils.MulticlassClassificationExample>(dataWithPredictions, false).ToList();
 
-            // Get schema object out of the prediction. It contains metadata such as the mapping from predicted label index
+            // Get schema object out of the prediction. It contains annotations such as the mapping from predicted label index
             // (e.g., 1) to its actual label (e.g., "AA").
-            // The metadata can be used to get all the unique labels used during training.
+            // The annotations can be used to get all the unique labels used during training.
             var labelBuffer = new VBuffer<ReadOnlyMemory<char>>();
             dataWithPredictions.Schema["PredictedLabelIndex"].GetKeyValues(ref labelBuffer);
             // nativeLabels is { "AA" , "BB", "CC", "DD" }

@@ -195,33 +195,33 @@ namespace Microsoft.ML.Transforms
                 return UseCounter[iinfo] ? NumberDataViewType.Int64 : NumberDataViewType.Single;
             }
 
-            protected override IEnumerable<KeyValuePair<string, DataViewType>> GetMetadataTypesCore(int iinfo)
+            protected override IEnumerable<KeyValuePair<string, DataViewType>> GetAnnotationTypesCore(int iinfo)
             {
                 Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
-                var items = base.GetMetadataTypesCore(iinfo);
+                var items = base.GetAnnotationTypesCore(iinfo);
                 if (!UseCounter[iinfo])
-                    items.Prepend(BooleanDataViewType.Instance.GetPair(MetadataUtils.Kinds.IsNormalized));
+                    items.Prepend(BooleanDataViewType.Instance.GetPair(AnnotationUtils.Kinds.IsNormalized));
                 return items;
             }
 
-            protected override DataViewType GetMetadataTypeCore(string kind, int iinfo)
+            protected override DataViewType GetAnnotationTypeCore(string kind, int iinfo)
             {
                 Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
-                if (kind == MetadataUtils.Kinds.IsNormalized && !UseCounter[iinfo])
+                if (kind == AnnotationUtils.Kinds.IsNormalized && !UseCounter[iinfo])
                     return BooleanDataViewType.Instance;
-                return base.GetMetadataTypeCore(kind, iinfo);
+                return base.GetAnnotationTypeCore(kind, iinfo);
             }
 
-            protected override void GetMetadataCore<TValue>(string kind, int iinfo, ref TValue value)
+            protected override void GetAnnotationCore<TValue>(string kind, int iinfo, ref TValue value)
             {
                 Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
-                if (kind == MetadataUtils.Kinds.IsNormalized && !UseCounter[iinfo])
+                if (kind == AnnotationUtils.Kinds.IsNormalized && !UseCounter[iinfo])
                 {
-                    MetadataUtils.Marshal<bool, TValue>(IsNormalized, iinfo, ref value);
+                    AnnotationUtils.Marshal<bool, TValue>(IsNormalized, iinfo, ref value);
                     return;
                 }
 
-                base.GetMetadataCore(kind, iinfo, ref value);
+                base.GetAnnotationCore(kind, iinfo, ref value);
             }
 
             private void IsNormalized(int iinfo, ref bool dst)

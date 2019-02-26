@@ -206,12 +206,12 @@ namespace Microsoft.ML.Transforms
             {
                 switch (kind)
                 {
-                    case MetadataUtils.Kinds.IsNormalized:
-                    case MetadataUtils.Kinds.KeyValues:
-                    case MetadataUtils.Kinds.ScoreColumnSetId:
-                    case MetadataUtils.Kinds.ScoreColumnKind:
-                    case MetadataUtils.Kinds.ScoreValueKind:
-                    case MetadataUtils.Kinds.IsUserVisible:
+                    case AnnotationUtils.Kinds.IsNormalized:
+                    case AnnotationUtils.Kinds.KeyValues:
+                    case AnnotationUtils.Kinds.ScoreColumnSetId:
+                    case AnnotationUtils.Kinds.ScoreColumnKind:
+                    case AnnotationUtils.Kinds.ScoreValueKind:
+                    case AnnotationUtils.Kinds.IsUserVisible:
                         return true;
                     default:
                         return false;
@@ -296,13 +296,13 @@ namespace Microsoft.ML.Transforms
                     if (_pivotIndex[i] < 0)
                     {
                         // i-th input column is not a pivot column. Let's do a naive copy.
-                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type, inputSchema[i].Metadata);
+                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type, inputSchema[i].Annotations);
                     }
                     else
                     {
                         // i-th input column is a pivot column. Let's calculate proper type and metadata for it.
-                        var metadataBuilder = new DataViewSchema.Metadata.Builder();
-                        metadataBuilder.Add(inputSchema[i].Metadata, metadataName => ShouldPreserveMetadata(metadataName));
+                        var metadataBuilder = new DataViewSchema.Annotations.Builder();
+                        metadataBuilder.Add(inputSchema[i].Annotations, metadataName => ShouldPreserveMetadata(metadataName));
                         // To explain the output type of pivot columns, let's consider a row
                         //   Age UserID
                         //   18  {"Amy", "Willy"}
@@ -312,7 +312,7 @@ namespace Microsoft.ML.Transforms
                         //   18  "Amy"
                         //   18  "Willy"
                         // One can see that "UserID" column (in output data) has a type identical to the element's type of the "UserID" column in input data.
-                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type.GetItemType(), metadataBuilder.ToMetadata());
+                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type.GetItemType(), metadataBuilder.ToAnnotations());
                     }
                 }
                 OutputSchema = schemaBuilder.ToSchema();

@@ -183,17 +183,17 @@ namespace Microsoft.ML.Transforms
                 return ColumnTypes[iinfo];
             }
 
-            protected override IEnumerable<KeyValuePair<string, DataViewType>> GetMetadataTypesCore(int iinfo)
+            protected override IEnumerable<KeyValuePair<string, DataViewType>> GetAnnotationTypesCore(int iinfo)
             {
                 return _metadata.GetMetadataTypes(iinfo);
             }
 
-            protected override DataViewType GetMetadataTypeCore(string kind, int iinfo)
+            protected override DataViewType GetAnnotationTypeCore(string kind, int iinfo)
             {
                 return _metadata.GetMetadataTypeOrNull(kind, iinfo);
             }
 
-            protected override void GetMetadataCore<TValue>(string kind, int iinfo, ref TValue value)
+            protected override void GetAnnotationCore<TValue>(string kind, int iinfo, ref TValue value)
             {
                 _metadata.GetMetadata(_parent.Host, kind, iinfo, ref value);
             }

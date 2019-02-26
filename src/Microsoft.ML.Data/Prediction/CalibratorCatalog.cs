@@ -110,7 +110,7 @@ namespace Microsoft.ML.Calibrator
                 SchemaShape.Column.VectorKind.Scalar,
                 NumberDataViewType.Single,
                 false,
-                new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true)));
+                new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true)));
 
             return new SchemaShape(outColumns.Values);
         }

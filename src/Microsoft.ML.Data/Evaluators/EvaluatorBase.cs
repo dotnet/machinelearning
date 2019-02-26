@@ -91,7 +91,7 @@ namespace Microsoft.ML.Data
         [BestFriend]
         private protected virtual Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
         {
-            var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             int label = schema.Label?.Index ?? -1;
             int weight = schema.Weight?.Index ?? -1;
             return i => i == score.Index || i == label || i == weight;

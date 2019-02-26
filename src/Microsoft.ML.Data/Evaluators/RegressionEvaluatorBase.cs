@@ -201,7 +201,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(PassNum < 1);
                 Contracts.Assert(schema.Label.HasValue);
 
-                var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+                var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
                 _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
                 _scoreGetter = row.GetGetter<TScore>(score.Index);

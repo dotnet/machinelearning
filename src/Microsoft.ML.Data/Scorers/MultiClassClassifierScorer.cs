@@ -20,7 +20,7 @@ using Float = System.Single;
 [assembly: LoadableClass(typeof(MultiClassClassifierScorer),
     typeof(MultiClassClassifierScorer.Arguments), typeof(SignatureDataScorer),
     "Multi-Class Classifier Scorer", "MultiClassClassifierScorer", "MultiClassClassifier",
-    "MultiClass", MetadataUtils.Const.ScoreColumnKind.MultiClassClassification)]
+    "MultiClass", AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification)]
 
 [assembly: LoadableClass(typeof(MultiClassClassifierScorer), null, typeof(SignatureLoadDataTransform),
     "Multi-Class Classifier Scorer", MultiClassClassifierScorer.LoaderSignature)]
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Data
                 _host.CheckDecode(value != null);
                 _getter = Utils.MarshalInvoke(DecodeInit<int>, _type.ItemType.RawType, value);
                 _metadataKind = ctx.Header.ModelVerReadable >= VersionAddedMetadataKind ?
-                    ctx.LoadNonEmptyString() : MetadataUtils.Kinds.SlotNames;
+                    ctx.LoadNonEmptyString() : AnnotationUtils.Kinds.SlotNames;
             }
 
             private Delegate DecodeInit<T>(object value)
@@ -285,9 +285,9 @@ namespace Microsoft.ML.Data
                     _mapper = mapper;
 
                     int scoreIdx;
-                    bool result = mapper.OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIdx);
+                    bool result = mapper.OutputSchema.TryGetColumnIndex(AnnotationUtils.Const.ScoreValueKind.Score, out scoreIdx);
                     if (!result)
-                        throw env.ExceptParam(nameof(mapper), "Mapper did not have a '{0}' column", MetadataUtils.Const.ScoreValueKind.Score);
+                        throw env.ExceptParam(nameof(mapper), "Mapper did not have a '{0}' column", AnnotationUtils.Const.ScoreValueKind.Score);
 
                     _labelNameType = type;
                     _labelNameGetter = getter;
@@ -308,21 +308,21 @@ namespace Microsoft.ML.Data
                     // that computes score column.
                     for (int i = 0; i < partialSchema.Count; ++i)
                     {
-                        var meta = new DataViewSchema.Metadata.Builder();
+                        var meta = new DataViewSchema.Annotations.Builder();
                         if (i == scoreColumnIndex)
                         {
                             // Add label names for score column.
-                            meta.Add(partialSchema[i].Metadata, selector: s => s != labelNameKind);
+                            meta.Add(partialSchema[i].Annotations, selector: s => s != labelNameKind);
                             meta.Add(labelNameKind, labelNameType, labelNameGetter);
                         }
                         else
                         {
                             // Copy all existing metadata because this transform only affects score column.
-                            meta.Add(partialSchema[i].Metadata, selector: s => true);
+                            meta.Add(partialSchema[i].Annotations, selector: s => true);
                         }
                         // Instead of appending extra metadata to the existing score column, we create new one because
                         // metadata is read-only.
-                        builder.AddColumn(partialSchema[i].Name, partialSchema[i].Type, meta.ToMetadata());
+                        builder.AddColumn(partialSchema[i].Name, partialSchema[i].Type, meta.ToAnnotations());
                     }
                     return builder.ToSchema();
                 }
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Data
 
             if (trainSchema?.Label == null)
                 return mapper; // We don't even have a label identified in a training schema.
-            var keyType = trainSchema.Label.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+            var keyType = trainSchema.Label.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
             if (keyType == null || !CanWrap(mapper, keyType))
                 return mapper;
 
@@ -408,10 +408,10 @@ namespace Microsoft.ML.Data
 
             var outSchema = mapper.OutputSchema;
             int scoreIdx;
-            var scoreCol = outSchema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
-            if (!outSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIdx))
+            var scoreCol = outSchema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
+            if (!outSchema.TryGetColumnIndex(AnnotationUtils.Const.ScoreValueKind.Score, out scoreIdx))
                 return false; // The mapper doesn't even publish a score column to attach the metadata to.
-            if (outSchema[scoreIdx].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type != null)
+            if (outSchema[scoreIdx].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type != null)
                 return false; // The mapper publishes a score column, and already produces its own slot names.
             var scoreType = outSchema[scoreIdx].Type;
 
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Data
             env.Assert(mapper is ISchemaBoundRowMapper);
 
             // Key values from the training schema label, will map to slot names of the score output.
-            var type = trainSchema.Label.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
+            var type = trainSchema.Label.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type;
             env.AssertValue(type);
             env.Assert(type is VectorType);
 
@@ -438,13 +438,13 @@ namespace Microsoft.ML.Data
                     trainSchema.Label.Value.GetKeyValues(ref value);
                 };
 
-            return LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type as VectorType, getter, MetadataUtils.Kinds.SlotNames, CanWrap);
+            return LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type as VectorType, getter, AnnotationUtils.Kinds.SlotNames, CanWrap);
         }
 
         [BestFriend]
         internal MultiClassClassifierScorer(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
-            : base(args, env, data, WrapIfNeeded(env, mapper, trainSchema), trainSchema, RegistrationName, MetadataUtils.Const.ScoreColumnKind.MultiClassClassification,
-                MetadataUtils.Const.ScoreValueKind.Score, OutputTypeMatches, GetPredColType)
+            : base(args, env, data, WrapIfNeeded(env, mapper, trainSchema), trainSchema, RegistrationName, AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification,
+                AnnotationUtils.Const.ScoreValueKind.Score, OutputTypeMatches, GetPredColType)
         {
         }
 

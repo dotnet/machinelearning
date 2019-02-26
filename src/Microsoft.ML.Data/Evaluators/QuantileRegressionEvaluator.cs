@@ -43,12 +43,12 @@ namespace Microsoft.ML.Data
         private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
-            var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var scoreInfo = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             int scoreSize = scoreInfo.Type.GetVectorSize();
-            var type = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
+            var type = schema.Schema[scoreInfo.Index].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType;
             Host.Check(type != null && type.IsKnownSize && type.ItemType is TextDataViewType, "Quantile regression score column must have slot names");
             var quantiles = default(VBuffer<ReadOnlyMemory<char>>);
-            schema.Schema[scoreInfo.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref quantiles);
+            schema.Schema[scoreInfo.Index].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref quantiles);
             Host.Assert(quantiles.IsDense && quantiles.Length == scoreSize);
 
             return new QuantileRegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.Value.Name, scoreSize, quantiles);
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Data
 
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
-            var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             var t = score.Type as VectorType;
             if (t == null || t.Size == 0 || (t.ItemType != NumberDataViewType.Single && t.ItemType != NumberDataViewType.Double))
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "vector of float or double", t.ToString());
@@ -68,11 +68,11 @@ namespace Microsoft.ML.Data
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
-            var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var scoreInfo = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             var scoreType = scoreInfo.Type as VectorType;
             Host.Assert(scoreType != null && scoreType.Size > 0 && (scoreType.ItemType == NumberDataViewType.Single || scoreType.ItemType == NumberDataViewType.Double));
             var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
-            var slotNamesType = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
+            var slotNamesType = schema.Schema[scoreInfo.Index].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType;
             if (slotNamesType != null && slotNamesType.Size == scoreType.Size && slotNamesType.ItemType is TextDataViewType)
                 schema.Schema[scoreInfo.Index].GetSlotNames(ref slotNames);
             return new Aggregator(Host, LossFunction, schema.Weight != null, scoreType.Size, in slotNames, stratName);
@@ -354,14 +354,14 @@ namespace Microsoft.ML.Data
             var infos = new DataViewSchema.DetachedColumn[2];
 
             var slotNamesType = new VectorType(TextDataViewType.Instance, _scoreSize);
-            var l1Metadata = new DataViewSchema.Metadata.Builder();
+            var l1Metadata = new DataViewSchema.Annotations.Builder();
             l1Metadata.AddSlotNames(_scoreSize, CreateSlotNamesGetter(L1));
 
-            var l2Metadata = new DataViewSchema.Metadata.Builder();
+            var l2Metadata = new DataViewSchema.Annotations.Builder();
             l2Metadata.AddSlotNames(_scoreSize, CreateSlotNamesGetter(L2));
 
-            infos[L1Col] = new DataViewSchema.DetachedColumn(L1, _outputType, l1Metadata.ToMetadata());
-            infos[L2Col] = new DataViewSchema.DetachedColumn(L2, _outputType, l2Metadata.ToMetadata());
+            infos[L1Col] = new DataViewSchema.DetachedColumn(L1, _outputType, l1Metadata.ToAnnotations());
+            infos[L2Col] = new DataViewSchema.DetachedColumn(L2, _outputType, l2Metadata.ToAnnotations());
             return infos;
         }
 
@@ -476,7 +476,7 @@ namespace Microsoft.ML.Data
         private protected override IEvaluator Evaluator => _evaluator;
 
         public QuantileRegressionMamlEvaluator(IHostEnvironment env, Arguments args)
-            : base(args, env, MetadataUtils.Const.ScoreColumnKind.QuantileRegression, "QuantilsRegressionMamlEvaluator")
+            : base(args, env, AnnotationUtils.Const.ScoreColumnKind.QuantileRegression, "QuantilsRegressionMamlEvaluator")
         {
             _index = args.Index;
             Host.CheckUserArg(args.LossFunction != null, nameof(args.LossFunction), "Loss function must be specified.");
@@ -545,7 +545,7 @@ namespace Microsoft.ML.Data
             // The quantile regression evaluator outputs the label and score columns.
             yield return schema.Label.Value.Name;
             var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
-                MetadataUtils.Const.ScoreColumnKind.QuantileRegression);
+                AnnotationUtils.Const.ScoreColumnKind.QuantileRegression);
             yield return scoreCol.Name;
 
             // Return the output columns.

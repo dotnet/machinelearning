@@ -333,19 +333,19 @@ namespace Microsoft.ML.Data
             switch (predictor.PredictionKind)
             {
                 case PredictionKind.BinaryClassification:
-                    return MetadataUtils.Const.ScoreColumnKind.BinaryClassification;
+                    return AnnotationUtils.Const.ScoreColumnKind.BinaryClassification;
                 case PredictionKind.MultiClassClassification:
-                    return MetadataUtils.Const.ScoreColumnKind.MultiClassClassification;
+                    return AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification;
                 case PredictionKind.Regression:
-                    return MetadataUtils.Const.ScoreColumnKind.Regression;
+                    return AnnotationUtils.Const.ScoreColumnKind.Regression;
                 case PredictionKind.MultiOutputRegression:
-                    return MetadataUtils.Const.ScoreColumnKind.MultiOutputRegression;
+                    return AnnotationUtils.Const.ScoreColumnKind.MultiOutputRegression;
                 case PredictionKind.Ranking:
-                    return MetadataUtils.Const.ScoreColumnKind.Ranking;
+                    return AnnotationUtils.Const.ScoreColumnKind.Ranking;
                 case PredictionKind.AnomalyDetection:
-                    return MetadataUtils.Const.ScoreColumnKind.AnomalyDetection;
+                    return AnnotationUtils.Const.ScoreColumnKind.AnomalyDetection;
                 case PredictionKind.Clustering:
-                    return MetadataUtils.Const.ScoreColumnKind.Clustering;
+                    return AnnotationUtils.Const.ScoreColumnKind.Clustering;
                 default:
                     throw Contracts.Except("Unknown prediction kind, can't map to score column kind: {0}", predictor.PredictionKind);
             }

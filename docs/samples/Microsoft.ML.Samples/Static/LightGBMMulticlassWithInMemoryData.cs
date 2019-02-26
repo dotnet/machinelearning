@@ -70,15 +70,15 @@ namespace Microsoft.ML.Samples.Static
             // Convert prediction in ML.NET format to native C# class.
             var nativePredictions = mlContext.CreateEnumerable<DatasetUtils.MulticlassClassificationExample>(prediction.AsDynamic, false).ToList();
 
-            // Get schema object out of the prediction. It contains metadata such as the mapping from predicted label index
+            // Get schema object out of the prediction. It contains annotations such as the mapping from predicted label index
             // (e.g., 1) to its actual label (e.g., "AA"). The call to "AsDynamic" converts our statically-typed pipeline into
-            // a dynamically-typed one only for extracting metadata. In the future, metadata in statically-typed pipeline should
+            // a dynamically-typed one only for extracting annotations. In the future, annotations in statically-typed pipeline should
             // be accessible without dynamically-typed things.
             var schema = prediction.AsDynamic.Schema;
 
             // Retrieve the mapping from labels to label indexes.
             var labelBuffer = new VBuffer<ReadOnlyMemory<char>>(); 
-            schema[nameof(DatasetUtils.MulticlassClassificationExample.PredictedLabelIndex)].Metadata.GetValue("KeyValues", ref labelBuffer);
+            schema[nameof(DatasetUtils.MulticlassClassificationExample.PredictedLabelIndex)].Annotations.GetValue("KeyValues", ref labelBuffer);
             // nativeLabels is { "AA" , "BB", "CC", "DD" }
             var nativeLabels = labelBuffer.DenseValues().ToArray(); // nativeLabels[nativePrediction.PredictedLabelIndex - 1] is the original label indexed by nativePrediction.PredictedLabelIndex.
 

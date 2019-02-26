@@ -203,8 +203,8 @@ namespace Microsoft.ML.Data
         /// </summary>
         public sealed class Column
         {
-            private readonly Dictionary<string, MetadataInfo> _metadata;
-            internal Dictionary<string, MetadataInfo> Metadata { get { return _metadata; } }
+            private readonly Dictionary<string, AnnotationInfo> _annotations;
+            internal Dictionary<string, AnnotationInfo> Annotations { get { return _annotations; } }
 
             /// <summary>
             /// The name of the member the column is taken from. The API
@@ -236,60 +236,60 @@ namespace Microsoft.ML.Data
             public Type ReturnType => Generator?.GetMethodInfo().GetParameters().LastOrDefault().ParameterType.GetElementType();
 
             public Column(IExceptionContext ectx, string memberName, DataViewType columnType,
-                string columnName = null, IEnumerable<MetadataInfo> metadataInfos = null, Delegate generator = null)
+                string columnName = null, IEnumerable<AnnotationInfo> annotationInfos = null, Delegate generator = null)
             {
                 ectx.CheckNonEmpty(memberName, nameof(memberName));
                 MemberName = memberName;
                 ColumnName = columnName ?? memberName;
                 ColumnType = columnType;
                 Generator = generator;
-                _metadata = metadataInfos != null ?
-                    metadataInfos.ToDictionary(m => m.Kind, m => m)
-                    : new Dictionary<string, MetadataInfo>();
+                _annotations = annotationInfos != null ?
+                    annotationInfos.ToDictionary(m => m.Kind, m => m)
+                    : new Dictionary<string, AnnotationInfo>();
             }
 
             public Column()
             {
-                _metadata = _metadata ?? new Dictionary<string, MetadataInfo>();
+                _annotations = _annotations ?? new Dictionary<string, AnnotationInfo>();
             }
 
             /// <summary>
-            /// Add metadata to the column.
+            /// Add annotation to the column.
             /// </summary>
-            /// <typeparam name="T">Type of Metadata being added. Types suported as entries in columns
-            /// are also supported as entries in Metadata. Multiple metadata may be added to one column.
+            /// <typeparam name="T">Type of annotation being added. Types suported as entries in columns
+            /// are also supported as entries in Annotations. Multiple annotations may be added to one column.
             /// </typeparam>
-            /// <param name="kind">The string identifier of the metadata.</param>
-            /// <param name="value">Value of metadata.</param>
-            /// <param name="metadataType">Type of value.</param>
-            public void AddMetadata<T>(string kind, T value, DataViewType metadataType = null)
+            /// <param name="kind">The string identifier of the annotation.</param>
+            /// <param name="value">Value of annotation.</param>
+            /// <param name="annotationType">Type of value.</param>
+            public void AddAnnotation<T>(string kind, T value, DataViewType annotationType = null)
             {
-                if (_metadata.ContainsKey(kind))
-                    throw Contracts.Except("Column already contains metadata of this kind.");
-                _metadata[kind] = new MetadataInfo<T>(kind, value, metadataType);
+                if (_annotations.ContainsKey(kind))
+                    throw Contracts.Except("Column already contains an annotation of this kind.");
+                _annotations[kind] = new AnnotationInfo<T>(kind, value, annotationType);
             }
 
             /// <summary>
-            /// Remove metadata from the column if it exists.
+            /// Remove annotation from the column if it exists.
             /// </summary>
-            /// <param name="kind">The string identifier of the metadata. </param>
-            public void RemoveMetadata(string kind)
+            /// <param name="kind">The string identifier of the annotation.</param>
+            public void RemoveAnnotation(string kind)
             {
-                if (_metadata.ContainsKey(kind))
-                    _metadata.Remove(kind);
-                throw Contracts.Except("Column does not contain metadata of kind: " + kind);
+                if (_annotations.ContainsKey(kind))
+                    _annotations.Remove(kind);
+                throw Contracts.Except("Column does not contain an annotation of kind: " + kind);
             }
 
             /// <summary>
-            /// Returns metadata kind and type associated with this column.
+            /// Returns annotations kind and type associated with this column.
             /// </summary>
-            /// <returns>A dictionary with the kind of the metadata as the key, and the
-            /// metadata type as the associated value.</returns>
-            public IEnumerable<KeyValuePair<string, DataViewType>> GetMetadataTypes
+            /// <returns>A dictionary with the kind of the annotation as the key, and the
+            /// annotation type as the associated value.</returns>
+            public IEnumerable<KeyValuePair<string, DataViewType>> GetAnnotationTypes
             {
                 get
                 {
-                    return Metadata.Select(x => new KeyValuePair<string, DataViewType>(x.Key, x.Value.MetadataType));
+                    return Annotations.Select(x => new KeyValuePair<string, DataViewType>(x.Key, x.Value.AnnotationType));
                 }
             }
         }

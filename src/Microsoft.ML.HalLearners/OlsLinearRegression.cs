@@ -92,7 +92,7 @@ namespace Microsoft.ML.Trainers.HalLearners
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
@@ -719,7 +719,7 @@ namespace Microsoft.ML.Trainers.HalLearners
         private protected override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
+            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
 
             writer.WriteLine("Ordinary Least Squares Model Summary");
             writer.WriteLine("R-squared: {0:g4}", RSquared);

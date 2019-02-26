@@ -279,7 +279,7 @@ namespace Microsoft.ML.LightGBM
             if (useCat)
             {
                 var featureCol = trainData.Schema.Schema[DefaultColumnNames.Features];
-                MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureCol.Index, out categoricalFeatures);
+                AnnotationUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureCol.Index, out categoricalFeatures);
             }
             var colType = trainData.Schema.Feature.Value.Type;
             int rawNumCol = colType.GetVectorSize();

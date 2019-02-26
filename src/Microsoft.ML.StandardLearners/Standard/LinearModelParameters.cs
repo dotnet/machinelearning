@@ -364,14 +364,14 @@ namespace Microsoft.ML.Trainers
         private protected virtual DataViewRow GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
-            var subBuilder = new DataViewSchema.Metadata.Builder();
+            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
+            var subBuilder = new DataViewSchema.Annotations.Builder();
             subBuilder.AddSlotNames(Weight.Length, (ref VBuffer<ReadOnlyMemory<char>> dst) => names.CopyTo(ref dst));
             var colType = new VectorType(NumberDataViewType.Single, Weight.Length);
-            var builder = new DataViewSchema.Metadata.Builder();
+            var builder = new DataViewSchema.Annotations.Builder();
             builder.AddPrimitiveValue("Bias", NumberDataViewType.Single, Bias);
-            builder.Add("Weights", colType, (ref VBuffer<float> dst) => Weight.CopyTo(ref dst), subBuilder.ToMetadata());
-            return MetadataUtils.MetadataAsRow(builder.ToMetadata());
+            builder.Add("Weights", colType, (ref VBuffer<float> dst) => Weight.CopyTo(ref dst), subBuilder.ToAnnotations());
+            return AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
         }
 
         DataViewRow ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema) => GetSummaryIRowOrNull(schema);
@@ -528,9 +528,9 @@ namespace Microsoft.ML.Trainers
             if (_stats == null)
                 return null;
             var names = default(VBuffer<ReadOnlyMemory<char>>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
+            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
             var meta = _stats.MakeStatisticsMetadata(this, schema, in names);
-            return MetadataUtils.MetadataAsRow(meta);
+            return AnnotationUtils.AnnotationsAsRow(meta);
         }
 
         private protected override void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null)

@@ -111,27 +111,27 @@ namespace Microsoft.ML.Data
                 var schemaBuilder = new DataViewSchema.Builder();
 
                 // Metadata of tree values.
-                var treeIdMetadataBuilder = new DataViewSchema.Metadata.Builder();
-                treeIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(treeValueType.Size),
+                var treeIdMetadataBuilder = new DataViewSchema.Annotations.Builder();
+                treeIdMetadataBuilder.Add(AnnotationUtils.Kinds.SlotNames, AnnotationUtils.GetNamesType(treeValueType.Size),
                     (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetTreeSlotNames);
                 // Add the column of trees' output values
-                schemaBuilder.AddColumn(OutputColumnNames.Trees, treeValueType, treeIdMetadataBuilder.ToMetadata());
+                schemaBuilder.AddColumn(OutputColumnNames.Trees, treeValueType, treeIdMetadataBuilder.ToAnnotations());
 
                 // Metadata of leaf IDs.
-                var leafIdMetadataBuilder = new DataViewSchema.Metadata.Builder();
-                leafIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(leafIdType.Size),
+                var leafIdMetadataBuilder = new DataViewSchema.Annotations.Builder();
+                leafIdMetadataBuilder.Add(AnnotationUtils.Kinds.SlotNames, AnnotationUtils.GetNamesType(leafIdType.Size),
                     (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetLeafSlotNames);
-                leafIdMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ref bool value) => value = true);
+                leafIdMetadataBuilder.Add(AnnotationUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ref bool value) => value = true);
                 // Add the column of leaves' IDs where the input example reaches.
-                schemaBuilder.AddColumn(OutputColumnNames.Leaves, leafIdType, leafIdMetadataBuilder.ToMetadata());
+                schemaBuilder.AddColumn(OutputColumnNames.Leaves, leafIdType, leafIdMetadataBuilder.ToAnnotations());
 
                 // Metadata of path IDs.
-                var pathIdMetadataBuilder = new DataViewSchema.Metadata.Builder();
-                pathIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(pathIdType.Size),
+                var pathIdMetadataBuilder = new DataViewSchema.Annotations.Builder();
+                pathIdMetadataBuilder.Add(AnnotationUtils.Kinds.SlotNames, AnnotationUtils.GetNamesType(pathIdType.Size),
                     (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetPathSlotNames);
-                pathIdMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ref bool value) => value = true);
+                pathIdMetadataBuilder.Add(AnnotationUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ref bool value) => value = true);
                 // Add the column of encoded paths which the input example passes.
-                schemaBuilder.AddColumn(OutputColumnNames.Paths, pathIdType, pathIdMetadataBuilder.ToMetadata());
+                schemaBuilder.AddColumn(OutputColumnNames.Paths, pathIdType, pathIdMetadataBuilder.ToAnnotations());
 
                 OutputSchema = schemaBuilder.ToSchema();
 

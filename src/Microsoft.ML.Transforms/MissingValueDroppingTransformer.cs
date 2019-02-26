@@ -187,9 +187,9 @@ namespace Microsoft.ML.Transforms
                 var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    var builder = new DataViewSchema.Metadata.Builder();
-                    builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, x => x == MetadataUtils.Kinds.KeyValues || x == MetadataUtils.Kinds.IsNormalized);
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.ToMetadata());
+                    var builder = new DataViewSchema.Annotations.Builder();
+                    builder.Add(InputSchema[ColMapNewToOld[i]].Annotations, x => x == AnnotationUtils.Kinds.KeyValues || x == AnnotationUtils.Kinds.IsNormalized);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.ToAnnotations());
                 }
                 return result;
             }
@@ -382,9 +382,9 @@ namespace Microsoft.ML.Transforms
                 if (!(col.Kind == SchemaShape.Column.VectorKind.Vector || col.Kind == SchemaShape.Column.VectorKind.VariableVector))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.inputColumnName, "known-size vector", col.GetTypeString());
                 var metadata = new List<SchemaShape.Column>();
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var keyMeta))
                     metadata.Add(keyMeta);
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.IsNormalized, out var normMeta))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.IsNormalized, out var normMeta))
                     metadata.Add(normMeta);
                 result[colPair.outputColumnName] = new SchemaShape.Column(colPair.outputColumnName, SchemaShape.Column.VectorKind.VariableVector, col.ItemType, false, new SchemaShape(metadata.ToArray()));
             }

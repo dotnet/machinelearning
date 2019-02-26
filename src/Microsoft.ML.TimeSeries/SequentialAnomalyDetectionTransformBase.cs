@@ -331,10 +331,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 public DataViewSchema.DetachedColumn[] GetOutputColumns()
                 {
-                    var meta = new DataViewSchema.Metadata.Builder();
+                    var meta = new DataViewSchema.Annotations.Builder();
                     meta.AddSlotNames(_parent.OutputLength, GetSlotNames);
                     var info = new DataViewSchema.DetachedColumn[1];
-                    info[0] = new DataViewSchema.DetachedColumn(_parent.OutputColumnName, new VectorType(NumberDataViewType.Double, _parent.OutputLength), meta.ToMetadata());
+                    info[0] = new DataViewSchema.DetachedColumn(_parent.OutputColumnName, new VectorType(NumberDataViewType.Double, _parent.OutputLength), meta.ToAnnotations());
                     return info;
                 }
 

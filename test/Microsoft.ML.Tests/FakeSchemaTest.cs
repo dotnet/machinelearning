@@ -21,12 +21,12 @@ namespace Microsoft.ML.Tests
         [Fact]
         void SimpleTest()
         {
-            var metadataBuilder = new DataViewSchema.Metadata.Builder();
+            var metadataBuilder = new DataViewSchema.Annotations.Builder();
             metadataBuilder.Add("M", NumberDataViewType.Single, (ref float v) => v = 484f);
             var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn("A", new VectorType(NumberDataViewType.Single, 94));
             schemaBuilder.AddColumn("B", new KeyType(typeof(uint), 17));
-            schemaBuilder.AddColumn("C", NumberDataViewType.Int32, metadataBuilder.ToMetadata());
+            schemaBuilder.AddColumn("C", NumberDataViewType.Int32, metadataBuilder.ToAnnotations());
 
             var shape = SchemaShape.Create(schemaBuilder.ToSchema());
 
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal("C", columnC.Name);
             Assert.Equal(NumberDataViewType.Int32, columnC.Type);
 
-            var metaC = columnC.Metadata;
+            var metaC = columnC.Annotations;
             Assert.Single(metaC.Schema);
 
             float mValue = -1;
