@@ -22,7 +22,7 @@ namespace Microsoft.ML.Data
         }
 
         public DataViewSchema Schema { get; }
-        public ImmutableArray<ColumnOptions> ColumnView { get; }
+        public ImmutableArray<ColumnInfo> ColumnView { get; }
         public ImmutableArray<RowInfo> RowView { get; }
 
         internal DataDebuggerPreview(IDataView data, int maxRows = Defaults.MaxRows)
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Data
                 }
             }
             RowView = rows.ToImmutableArray();
-            ColumnView = Enumerable.Range(0, n).Select(c => new ColumnOptions(data.Schema[c], columns[c].ToArray())).ToImmutableArray();
+            ColumnView = Enumerable.Range(0, n).Select(c => new ColumnInfo(data.Schema[c], columns[c].ToArray())).ToImmutableArray();
         }
 
         public override string ToString()
@@ -94,14 +94,14 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public sealed class ColumnOptions
+        public sealed class ColumnInfo
         {
             public DataViewSchema.Column Column { get; }
             public object[] Values { get; }
 
             public override string ToString() => $"{Column.Name}: {Column.Type}";
 
-            internal ColumnOptions(DataViewSchema.Column column, object[] values)
+            internal ColumnInfo(DataViewSchema.Column column, object[] values)
             {
                 Column = column;
                 Values = values;
