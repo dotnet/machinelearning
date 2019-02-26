@@ -144,7 +144,8 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Constructor that is used when invoking the classes deriving from this, through maml.
         /// </summary>
         private protected FastTreeTrainerBase(IHostEnvironment env, TOptions options, SchemaShape.Column label)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn),
+                  TrainerUtils.MakeU4ScalarColumn(options.GroupIdColumn))
         {
             Host.CheckValue(options, nameof(options));
             FastTreeTrainerOptions = options;
@@ -1842,7 +1843,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     {
                         hasGroup = _data.Schema.Group != null;
 
-                        if(hasGroup)
+                        if (hasGroup)
                             curOptions |= CursOpt.Group;
                     }
                     else

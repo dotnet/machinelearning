@@ -84,7 +84,8 @@ namespace Microsoft.ML.LightGBM
         }
 
         private protected LightGbmTrainerBase(IHostEnvironment env, string name, Options options, SchemaShape.Column label)
-           : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
+           : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label,
+                 TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn), TrainerUtils.MakeU4ScalarColumn(options.GroupIdColumn))
         {
             Host.CheckValue(options, nameof(options));
 
@@ -163,7 +164,7 @@ namespace Microsoft.ML.LightGBM
             ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "Need a label column");
         }
 
-        protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategarical, int totalCats, bool hiddenMsg=false)
+        protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategarical, int totalCats, bool hiddenMsg = false)
         {
             double learningRate = LightGbmTrainerOptions.LearningRate ?? DefaultLearningRate(numRow, hasCategarical, totalCats);
             int numLeaves = LightGbmTrainerOptions.NumLeaves ?? DefaultNumLeaves(numRow, hasCategarical, totalCats);
@@ -584,7 +585,7 @@ namespace Microsoft.ML.LightGBM
             int[] nonZeroCntPerColumn = new int[catMetaData.NumCol];
             int estimateNonZeroCnt = (int)(numSampleRow * density);
             estimateNonZeroCnt = Math.Max(1, estimateNonZeroCnt);
-            for(int i = 0; i < catMetaData.NumCol; i++)
+            for (int i = 0; i < catMetaData.NumCol; i++)
             {
                 nonZeroCntPerColumn[i] = 0;
                 sampleValuePerColumn[i] = new double[estimateNonZeroCnt];
