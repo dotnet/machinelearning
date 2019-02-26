@@ -28,17 +28,27 @@ namespace <#= Namespace #>
 <# } #>
         private static string ModelPath = @"./model.zip";
 
+        // Set this flag to enable the training process.
+        private static bool EnableTraining = false;
+
         static void Main(string[] args)
         {
-            //Create MLContext to be shared across the model creation workflow objects 
-            //Set a random seed for repeatable/deterministic results across multiple trainings.
+            // Create MLContext to be shared across the model creation workflow objects 
+            // Set a random seed for repeatable/deterministic results across multiple trainings.
             var mlContext = new MLContext(seed: 1);
 
-            // Create, Train, Evaluate and Save a model
-            BuildTrainEvaluateAndSaveModel(mlContext);
-            ConsoleHelper.ConsoleWriteHeader("=============== End of training process ===============");
+            if (EnableTraining)
+            {
+                // Create, Train, Evaluate and Save a model
+                BuildTrainEvaluateAndSaveModel(mlContext);
+                ConsoleHelper.ConsoleWriteHeader("=============== End of training process ===============");
+            }
+            else
+            {
+                ConsoleHelper.ConsoleWriteHeader("Skipping the training process. Please set the flag : 'EnableTraining' to 'true' to enable the training process.");
+            }
 
-            // Make a single test prediction loding the model from .ZIP file
+            // Make a single test prediction loading the model from .ZIP file
             TestSinglePrediction(mlContext);
 
             ConsoleHelper.ConsoleWriteHeader("=============== End of process, hit any key to finish ===============");

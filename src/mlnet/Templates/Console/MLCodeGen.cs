@@ -50,32 +50,27 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write(this.ToStringHelper.ToStringWithCulture(TestPath));
             this.Write("\";\r\n");
  } 
-            this.Write(@"        private static string ModelPath = @""./model.zip"";
-
-        static void Main(string[] args)
-        {
-            //Create MLContext to be shared across the model creation workflow objects 
-            //Set a random seed for repeatable/deterministic results across multiple trainings.
-            var mlContext = new MLContext(seed: 1);
-
-            // Create, Train, Evaluate and Save a model
-            BuildTrainEvaluateAndSaveModel(mlContext);
-            ConsoleHelper.ConsoleWriteHeader(""=============== End of training process ==============="");
-
-            // Make a single test prediction loding the model from .ZIP file
-            TestSinglePrediction(mlContext);
-
-            ConsoleHelper.ConsoleWriteHeader(""=============== End of process, hit any key to finish ==============="");
-            Console.ReadKey();
-
-        }
-
-        private static ITransformer BuildTrainEvaluateAndSaveModel(MLContext mlContext)
-        {
-            // Data loading
-            IDataView trainingDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(
-                                            path: TrainDataPath,
-                                            hasHeader : ");
+            this.Write("        private static string ModelPath = @\"./model.zip\";\r\n\r\n        // Set this " +
+                    "flag to enable the training process.\r\n        private static bool EnableTraining" +
+                    " = false;\r\n\r\n        static void Main(string[] args)\r\n        {\r\n            // " +
+                    "Create MLContext to be shared across the model creation workflow objects \r\n     " +
+                    "       // Set a random seed for repeatable/deterministic results across multiple" +
+                    " trainings.\r\n            var mlContext = new MLContext(seed: 1);\r\n\r\n            " +
+                    "if (EnableTraining)\r\n            {\r\n                // Create, Train, Evaluate a" +
+                    "nd Save a model\r\n                BuildTrainEvaluateAndSaveModel(mlContext);\r\n   " +
+                    "             ConsoleHelper.ConsoleWriteHeader(\"=============== End of training p" +
+                    "rocess ===============\");\r\n            }\r\n            else\r\n            {\r\n     " +
+                    "           ConsoleHelper.ConsoleWriteHeader(\"Skipping the training process. Plea" +
+                    "se set the flag : \'EnableTraining\' to \'true\' to enable the training process.\");\r" +
+                    "\n            }\r\n\r\n            // Make a single test prediction loading the model" +
+                    " from .ZIP file\r\n            TestSinglePrediction(mlContext);\r\n\r\n            Con" +
+                    "soleHelper.ConsoleWriteHeader(\"=============== End of process, hit any key to fi" +
+                    "nish ===============\");\r\n            Console.ReadKey();\r\n\r\n        }\r\n\r\n        " +
+                    "private static ITransformer BuildTrainEvaluateAndSaveModel(MLContext mlContext)\r" +
+                    "\n        {\r\n            // Data loading\r\n            IDataView trainingDataView " +
+                    "= mlContext.Data.ReadFromTextFile<SampleObservation>(\r\n                         " +
+                    "                   path: TrainDataPath,\r\n                                       " +
+                    "     hasHeader : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
             this.Write(",\r\n                                            separatorChar : \'");
             this.Write(this.ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
