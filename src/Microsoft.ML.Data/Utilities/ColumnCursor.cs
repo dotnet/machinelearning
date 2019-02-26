@@ -23,12 +23,11 @@ namespace Microsoft.ML.Data
         /// <param name="columnName">The name of the column to extract.</param>
         public static IEnumerable<T> GetColumn<T>(this IDataView data, string columnName)
         {
-            var env = RetrieveHost(data);
-            env.CheckValue(data, nameof(data));
-            env.CheckNonEmpty(columnName, nameof(columnName));
+            Contracts.CheckValue(data, nameof(data));
+            Contracts.CheckNonEmpty(columnName, nameof(columnName));
 
             if (!data.Schema.TryGetColumnIndex(columnName, out int col))
-                throw env.ExceptSchemaMismatch(nameof(columnName), "input", columnName);
+                throw Contracts.ExceptSchemaMismatch(nameof(columnName), "input", columnName);
 
             // There are two decisions that we make here:
             // - Is the T an array type?
@@ -56,7 +55,7 @@ namespace Microsoft.ML.Data
             {
                 // Output is an array type.
                 if (!(colType is VectorType colVectorType))
-                    throw env.ExceptSchemaMismatch(nameof(columnName), "input", columnName, "vector", "scalar");
+                    throw Contracts.ExceptSchemaMismatch(nameof(columnName), "input", columnName, "vector", "scalar");
                 var elementType = typeof(T).GetElementType();
                 if (elementType == colVectorType.ItemType.RawType)
                 {
@@ -75,24 +74,7 @@ namespace Microsoft.ML.Data
                 }
                 // Fall through to the failure.
             }
-            throw env.Except($"Could not map a data view column '{columnName}' of type {colType} to {typeof(T)}.");
-        }
-
-        /// <summary>
-        /// Return a <see cref="IHost"/> assigned in a given <see cref="IDataView"/> implementation.
-        /// </summary>
-        /// <param name="data">an <see cref="IDataView"/> implementation.</param>
-        private static IHost RetrieveHost(IDataView data)
-        {
-            // Search for the first (if there are multiples) field typed to IHost.
-            var fields = data.GetType().GetFields(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var fieldInfo = fields.Where((field, index) => field.FieldType == typeof(IHost)).FirstOrDefault();
-
-            // Check if a IHost really gets retrieved.
-            string errorMessage = nameof(data) + " should contains a field of " + typeof(IHost);
-            Contracts.CheckValue(fieldInfo, nameof(data), errorMessage);
-
-            return (IHost)fieldInfo.GetValue(data);
+            throw Contracts.Except($"Could not map a data view column '{columnName}' of type {colType} to {typeof(T)}.");
         }
 
         private static IEnumerable<T> GetColumnDirect<T>(IDataView data, int col)
