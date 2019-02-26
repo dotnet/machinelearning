@@ -45,6 +45,10 @@ namespace Microsoft.ML.FastTree
         /// See <see cref="LeafValues"/>.
         /// </summary>
         private readonly ImmutableArray<double> _leafValues;
+        /// <summary>
+        /// See <see cref="SplitGains"/>.
+        /// </summary>
+        private readonly ImmutableArray<double> _splitGains;
 
         /// <summary>
         /// <see cref="LteChild"/>[i] is the i-th node's child index used when
@@ -128,6 +132,11 @@ namespace Microsoft.ML.FastTree
         }
 
         /// <summary>
+        /// The gains obtained by splitting data at nodes. Its i-th value is computed from to the split at the i-th node.
+        /// </summary>
+        public IReadOnlyList<double> SplitGains => _splitGains;
+
+        /// <summary>
         /// Number of leaves in the tree. Note that <see cref="NumLeaves"/> does not take non-leaf nodes into account.
         /// </summary>
         public int NumLeaves => _tree.NumLeaves;
@@ -157,6 +166,7 @@ namespace Microsoft.ML.FastTree
             _numericalSplitThresholds = ImmutableArray.Create(_tree.RawThresholds, 0, _tree.NumNodes);
             _categoricalSplitFlags = ImmutableArray.Create(_tree.CategoricalSplit, 0, _tree.NumNodes);
             _leafValues = ImmutableArray.Create(_tree.LeafValues, 0, _tree.NumLeaves);
+            _splitGains = ImmutableArray.Create(_tree.SplitGains, 0, _tree.NumNodes);
         }
     }
 
