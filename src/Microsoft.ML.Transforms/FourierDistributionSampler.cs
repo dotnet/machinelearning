@@ -11,10 +11,10 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Transforms.Projections;
 
-[assembly: LoadableClass(typeof(GaussianKernel), typeof(GaussianKernel.Options), typeof(SignatureRngGenerator),
+[assembly: LoadableClass(typeof(GaussianKernel), typeof(GaussianKernel.Options), typeof(SignatureKernelBase),
     "Gaussian Kernel", GaussianKernel.LoadName, "Gaussian")]
 
-[assembly: LoadableClass(typeof(LaplacianKernel), typeof(LaplacianKernel.Options), typeof(SignatureRngGenerator),
+[assembly: LoadableClass(typeof(LaplacianKernel), typeof(LaplacianKernel.Options), typeof(SignatureKernelBase),
     "Laplacian Kernel", LaplacianKernel.LoadName, "Laplacian")]
 
 // This is for deserialization from a binary model file.
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Transforms.Projections
     /// Signature for a <see cref="KernelBase"/> constructor.
     /// </summary>
     [BestFriend]
-    internal delegate void SignatureRngGenerator();
+    internal delegate void SignatureKernelBase();
 
     /// <summary>
     /// This class indicates which kernel should be approximated by the <see cref="RandomFourierFeaturizingTransformer"/>.
@@ -39,6 +39,11 @@ namespace Microsoft.ML.Transforms.Projections
     /// </summary>
     public abstract class KernelBase
     {
+        // Private protected constructor, so that external devs cannot inherit from this class.
+        private protected KernelBase()
+        {
+        }
+
         /// <summary>
         /// The kernels deriving from this class are shift-invariant, and each of them depends on a different distance between
         /// its inputs. The <see cref="GaussianKernel"/> depends on the L2 distance, and the <see cref="LaplacianKernel"/> depends
@@ -62,6 +67,10 @@ namespace Microsoft.ML.Transforms.Projections
         public abstract float Next(Random rand);
     }
 
+    /// <summary>
+    /// The Gaussian kernel is defined as k(x,y)=exp(-gamma*|x-y|_2^2). The distribution that is the Fourier transform of
+    /// this kernel is the Normal distribution with variance 2*gamma.
+    /// </summary>
     public sealed class GaussianKernel : KernelBase
     {
         internal sealed class Options : IComponentFactory<KernelBase>
@@ -76,8 +85,13 @@ namespace Microsoft.ML.Transforms.Projections
 
         private readonly float _gamma;
 
+        /// <summary>
+        /// Create a new instance of a GaussianKernel.
+        /// </summary>
+        /// <param name="gamma">The coefficient in the exponent of the kernel function. It should be positive.</param>
         public GaussianKernel(float gamma = 1)
         {
+            Contracts.CheckParam(gamma > 0, nameof(gamma));
             _gamma = gamma;
         }
 
@@ -96,6 +110,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         internal override FourierRandomNumberGeneratorBase GetRandomNumberGenerator(float averageDistance)
         {
+            Contracts.Assert(averageDistance > 0);
             return new RandomNumberGenerator(_gamma, averageDistance);
         }
 
@@ -118,7 +133,8 @@ namespace Microsoft.ML.Transforms.Projections
             public RandomNumberGenerator(float gamma, float averageDistance)
                 : base()
             {
-                Contracts.Assert(averageDistance != 0);
+                Contracts.Assert(gamma > 0);
+                Contracts.Assert(averageDistance > 0);
                 _gamma = gamma / averageDistance;
             }
 
@@ -166,6 +182,10 @@ namespace Microsoft.ML.Transforms.Projections
         }
     }
 
+    /// <summary>
+    /// The Laplacian kernel is defined as k(x,y)=exp(-a*|x-y|_1). The distribution that is the Fourier transform of this
+    /// kernel is the Cauchy distribution with parameters (0, a).
+    /// </summary>
     public sealed class LaplacianKernel : KernelBase
     {
         internal sealed class Options : IComponentFactory<KernelBase>
@@ -180,8 +200,13 @@ namespace Microsoft.ML.Transforms.Projections
 
         private readonly float _a;
 
+        /// <summary>
+        /// Create a new instance of a LaplacianKernel.
+        /// </summary>
+        /// <param name="a">The coefficient in the exponent of the kernel function</param>
         public LaplacianKernel(float a = 1)
         {
+            Contracts.CheckParam(a > 0, nameof(a));
             _a = a;
         }
 
@@ -200,6 +225,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         internal override FourierRandomNumberGeneratorBase GetRandomNumberGenerator(float averageDistance)
         {
+            Contracts.Assert(averageDistance > 0);
             return new RandomNumberGenerator(_a, averageDistance);
         }
 
@@ -223,7 +249,8 @@ namespace Microsoft.ML.Transforms.Projections
 
             public RandomNumberGenerator(float a, float averageDistance)
             {
-                Contracts.Assert(averageDistance != 0);
+                Contracts.Assert(a > 0);
+                Contracts.Assert(averageDistance > 0);
                 _a = a / averageDistance;
             }
 

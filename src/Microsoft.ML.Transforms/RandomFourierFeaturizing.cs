@@ -46,7 +46,7 @@ namespace Microsoft.ML.Transforms.Projections
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of random Fourier features to create", ShortName = "dim")]
             public int NewDim = RandomFourierFeaturizingEstimator.Defaults.NewDim;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureRngGenerator))]
+            [Argument(ArgumentType.Multiple, HelpText = "Which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureKernelBase))]
             public IComponentFactory<KernelBase> MatrixGenerator = new GaussianKernel.Options();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Create two features for every random Fourier frequency? (one for cos and one for sin)")]
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Transforms.Projections
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of random Fourier features to create", ShortName = "dim")]
             public int? NewDim;
 
-            [Argument(ArgumentType.Multiple, HelpText = "which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureRngGenerator))]
+            [Argument(ArgumentType.Multiple, HelpText = "which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureKernelBase))]
             public IComponentFactory<KernelBase> MatrixGenerator;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "create two features for every random Fourier frequency? (one for cos and one for sin)")]
@@ -358,7 +358,7 @@ namespace Microsoft.ML.Transforms.Projections
                     else
                     {
                         float[] distances;
-
+                        var generator = columns[iinfo].Generator;
                         // If the number of pairs is at most the maximum reservoir size / 2, go over all the pairs.
                         if (resLength < reservoirSize)
                         {
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Transforms.Projections
                             for (int i = 0; i < instanceCount; i++)
                             {
                                 for (int j = i + 1; j < instanceCount; j++)
-                                    distances[count++] = columns[iinfo].Generator.Distance(in res[i], in res[j]);
+                                    distances[count++] = generator.Distance(in res[i], in res[j]);
                             }
                             Host.Assert(count == distances.Length);
                         }
@@ -375,7 +375,7 @@ namespace Microsoft.ML.Transforms.Projections
                         {
                             distances = new float[reservoirSize / 2];
                             for (int i = 0; i < reservoirSize - 1; i += 2)
-                                distances[i / 2] = columns[iinfo].Generator.Distance(in res[i], in res[i + 1]);
+                                distances[i / 2] = generator.Distance(in res[i], in res[i + 1]);
                         }
 
                         // If by chance, in the random permutation all the pairs are the same instance we return 1.
