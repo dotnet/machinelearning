@@ -5,7 +5,6 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
@@ -81,9 +80,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             Assert.Equal(tree.LteChild, new int[] { 2, -2, -1, -3 });
             Assert.Equal(tree.GtChild, new int[] { 1, 3, -4, -5 });
             Assert.Equal(tree.NumericalSplitFeatureIndexes, new int[] { 14, 294, 633, 266 });
+            Assert.Equal(tree.SplitGains.Count, tree.NumNodes);
+            Assert.Equal(tree.NumericalSplitThresholds.Count, tree.NumNodes);
+            var expectedSplitGains = new double[] { 0.52634223978445616, 0.45899249367725858, 0.44142707650267105, 0.38348634823264854 };
             var expectedThresholds = new float[] { 0.0911167f, 0.06509889f, 0.019873254f, 0.0361835f };
             for (int i = 0; i < tree.NumNodes; ++i)
+            {
+                Assert.Equal(expectedSplitGains[i], tree.SplitGains[i], 6);
                 Assert.Equal(expectedThresholds[i], tree.NumericalSplitThresholds[i], 6);
+            }
             Assert.All(tree.CategoricalSplitFlags, flag => Assert.False(flag));
 
             Assert.Equal(0, tree.GetCategoricalSplitFeaturesAt(0).Count);
@@ -120,9 +125,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             Assert.Equal(tree.LteChild, new int[] { -1, -2, -3, -4 });
             Assert.Equal(tree.GtChild, new int[] { 1, 2, 3, -5 });
             Assert.Equal(tree.NumericalSplitFeatureIndexes, new int[] { 9, 0, 1, 8 });
+            Assert.Equal(tree.SplitGains.Count, tree.NumNodes);
+            Assert.Equal(tree.NumericalSplitThresholds.Count, tree.NumNodes);
+            var expectedSplitGains = new double[] { 21.279269008093962, 19.376698810984138, 17.830020749728774, 17.366801337893413 };
             var expectedThresholds = new float[] { 0.208134219f, 0.198336035f, 0.202952743f, 0.205061346f };
             for (int i = 0; i < tree.NumNodes; ++i)
+            {
+                Assert.Equal(expectedSplitGains[i], tree.SplitGains[i], 6);
                 Assert.Equal(expectedThresholds[i], tree.NumericalSplitThresholds[i], 6);
+            }
             Assert.All(tree.CategoricalSplitFlags, flag => Assert.False(flag));
 
             Assert.Equal(0, tree.GetCategoricalSplitFeaturesAt(0).Count);
