@@ -42,11 +42,9 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
             var metrics = mlContext.Ranking.Evaluate(dataWithPredictions);
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
-            // NOTE:
-            //
-            // This sample is currently broken due to a bug in setting the GroupId column in LightGbm when using Options.
-            //
-            // Please follow GitHub issue 2652 to be notified of a fix: https://github.com/dotnet/machinelearning/issues/2652
+            // Expected output:
+            //   DCG: @1:1.71, @2:3.88, @3:7.93
+            //   NDCG: @1:7.98, @2:12.14, @3:16.62
         }
     }
 }
