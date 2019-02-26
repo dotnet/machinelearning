@@ -234,7 +234,7 @@ namespace Microsoft.ML.Tests.Transformers
         public class SimpleSchemaUIntColumn
         {
             [LoadColumn(0)]
-            [KeyType(Count = 4)]
+            [KeyType(4)]
             public uint key;
         }
 

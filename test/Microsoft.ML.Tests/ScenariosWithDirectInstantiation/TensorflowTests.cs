@@ -824,7 +824,6 @@ namespace Microsoft.ML.Scenarios
 
         public class MNISTData
         {
-            [Column("0")]
             public long Label;
 
             [VectorType(784)]

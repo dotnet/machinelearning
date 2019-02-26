@@ -12,82 +12,108 @@ using Microsoft.ML.Internal.Utilities;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Attach to a member of a class to indicate that the item type should be of class key.
+    /// Allow member to be marked as a <see cref="KeyType"/>.
     /// </summary>
+    /// <remarks>
+    /// Can be applied only for member of following types: <see cref="byte"/>, <see cref="ushort"/>, <see cref="uint"/>, <see cref="ulong"/>
+    /// </remarks>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class KeyTypeAttribute : Attribute
     {
-        // REVIEW: Property based, but should I just have a constructor?
+        /// <summary>
+        /// Marks member as <see cref="KeyType"/>.
+        /// </summary>
+        /// <remarks>
+        /// Cardinality of <see cref="KeyType"/> would be maximum legal value of member type.
+        /// </remarks>
+        public KeyTypeAttribute()
+        {
+
+        }
+
+        /// <summary>
+        /// Marks member as <see cref="KeyType"/> and specifies <see cref="KeyType"/> cardinality.
+        /// </summary>
+        /// <param name="count">Cardinality of <see cref="KeyType"/>.</param>
+        public KeyTypeAttribute(ulong count)
+        {
+            KeyCount = new KeyCount(count);
+        }
 
         /// <summary>
         /// The key count.
         /// </summary>
-        public ulong Count { get; set; }
+        internal KeyCount KeyCount { get; }
     }
 
     /// <summary>
-    /// Allows a member to be marked as a vector valued field, primarily allowing one to set
+    /// Allows a member to be marked as a <see cref="VectorType"/>, primarily allowing one to set
     /// the dimensionality of the resulting array.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class VectorTypeAttribute : Attribute
     {
-        private readonly int[] _dims;
-
         /// <summary>
         /// The length of the vectors from this vector valued field.
         /// </summary>
-        public int[] Dims { get { return _dims; } }
+        internal int[] Dims { get; }
 
-        public VectorTypeAttribute(params int[] dims)
+        /// <summary>
+        /// Mark member as single-dimensional array with unknown size.
+        /// </summary>
+        public VectorTypeAttribute()
         {
-            _dims = dims;
+
         }
-    }
-
-    /// <summary>
-    /// Describes column information such as name and the source columns indicies that this
-    /// column encapsulates.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public sealed class ColumnAttribute : Attribute
-    {
-        public ColumnAttribute(string ordinal, string name = null)
+        /// <summary>
+        /// Mark member as single-dimensional array with specified size.
+        /// </summary>
+        /// <param name="size">Expected size of array. A zero value indicates that the vector type is considered to have unknown length.</param>
+        public VectorTypeAttribute(int size)
         {
-            Name = name;
+            Contracts.CheckParam(size >= 0, nameof(size), "Should be non-negative number");
+            Dims = new int[1] { size };
         }
 
         /// <summary>
-        /// Column name.
+        /// Mark member with expected dimensions of array.
         /// </summary>
-        public string Name { get; }
+        /// <param name="dimensions">Dimensions of array. All values should be non-negative.
+        /// A zero value indicates that the vector type is considered to have unknown length along that dimension.</param>
+        public VectorTypeAttribute(params int[] dimensions)
+        {
+            foreach (var size in dimensions)
+            {
+                Contracts.CheckParam(size >= 0, nameof(dimensions), "Should contain only non-negative values");
+            }
+            Dims = dimensions;
+        }
     }
 
     /// <summary>
-    /// Allows a member to specify its column name directly, as opposed to the default
+    /// Allows a member to specify <see cref="IDataView"/> column name directly, as opposed to the default
     /// behavior of using the member name as the column name.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class ColumnNameAttribute : Attribute
     {
-        private readonly string _name;
         /// <summary>
         /// Column name.
         /// </summary>
-        public string Name { get { return _name; } }
+        internal string Name { get; }
 
         /// <summary>
-        /// Allows one to specify a name to expose this column as, as opposed to simply
-        /// the field name.
+        /// Allows one to specify a name to expose this column as, as opposed to the default
+        /// behavior of using the member name as the column name.
         /// </summary>
         public ColumnNameAttribute(string name)
         {
-            _name = name;
+            Name = name;
         }
     }
 
     /// <summary>
-    /// Mark this member as not being exposed as a column in the schema.
+    /// Mark this member as not being exposed as a <see cref="IDataView"/> column in the <see cref="DataViewSchema"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class NoColumnAttribute : Attribute
@@ -362,9 +388,8 @@ namespace Microsoft.ML.Data
                 if (memberInfo.GetCustomAttribute<NoColumnAttribute>() != null)
                     continue;
 
-                var mappingAttr = memberInfo.GetCustomAttribute<ColumnAttribute>();
                 var mappingNameAttr = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
-                string name = mappingAttr?.Name ?? mappingNameAttr?.Name ?? memberInfo.Name;
+                string name = mappingNameAttr?.Name ?? memberInfo.Name;
                 // Disallow duplicate names, because the field enumeration order is not actually
                 // well defined, so we are not gauranteed to have consistent "hiding" from run to
                 // run, across different .NET versions.
@@ -379,7 +404,10 @@ namespace Microsoft.ML.Data
                 {
                     if (!KeyType.IsValidDataType(dataType))
                         throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", memberInfo.Name);
-                    itemType = new KeyType(dataType, keyAttr.Count);
+                    if (keyAttr.KeyCount == null)
+                        itemType = new KeyType(dataType, dataType.ToMaxInt());
+                    else
+                        itemType = new KeyType(dataType, keyAttr.KeyCount.Count.GetValueOrDefault());
                 }
                 else
                     itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataType);
@@ -388,7 +416,7 @@ namespace Microsoft.ML.Data
                 DataViewType columnType;
                 var vectorAttr = memberInfo.GetCustomAttribute<VectorTypeAttribute>();
                 if (vectorAttr != null && !isVector)
-                    throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with VectorType attribute, but does not appear to be a vector type", memberInfo.Name);
+                    throw Contracts.ExceptParam(nameof(userType), $"Member {memberInfo.Name} marked with {nameof(VectorTypeAttribute)}, but does not appear to be a vector type", memberInfo.Name);
                 if (isVector)
                 {
                     int[] dims = vectorAttr?.Dims;
