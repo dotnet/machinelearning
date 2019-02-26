@@ -137,12 +137,49 @@ namespace Microsoft.ML.SamplesUtils
                 .Append(mlContext.Transforms.Concatenate("Features", "workclass", "education", "marital-status",
                     "occupation", "relationship", "ethnicity", "native-country", "age", "education-num",
                     "capital-gain", "capital-loss", "hours-per-week"))
-                // Min-max normalized all the features
+                // Min-max normalize all the features
                 .Append(mlContext.Transforms.Normalize("Features"));
 
             var data = reader.Read(dataFile);
             var featurizedData = pipeline.Fit(data).Transform(data);
             return featurizedData;
+        }
+
+        public static string DownloadMslrWeb10k()
+        {
+            var fileName = "MSLRWeb10KTrain10kRows.tsv";
+            if (!File.Exists(fileName))
+                Download("https://tlcresources.blob.core.windows.net/datasets/MSLR-WEB10K/MSLR-WEB10K%2BFold1.TRAIN.SMALL_10k-rows.tsv", fileName);
+            return fileName;
+        }
+
+        public static IDataView LoadFeaturizedMslrWeb10kDataset(MLContext mlContext)
+        {
+            // Download the training and validation files.
+            string dataFile = DownloadMslrWeb10k();
+
+            // Create the reader to read the data.
+            var reader = mlContext.Data.CreateTextLoader(
+                columns: new[]
+                {
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("GroupId", DataKind.String, 1),
+                    new TextLoader.Column("Features", DataKind.Single, new[] { new TextLoader.Range(2, 138) })
+                }
+            );
+
+            // Load the raw dataset.
+            var data = reader.Read(dataFile);
+
+            // Create the featurization pipeline. First, hash the GroupId column.
+            var pipeline = mlContext.Transforms.Conversion.Hash("GroupId")
+                // Replace missing values in Features column with the default replacement value for its type.
+                .Append(mlContext.Transforms.ReplaceMissingValues("Features"));
+
+            // Fit the pipeline and transform the dataset.
+            var transformedData = pipeline.Fit(data).Transform(data);
+
+            return transformedData;
         }
 
         /// <summary>
