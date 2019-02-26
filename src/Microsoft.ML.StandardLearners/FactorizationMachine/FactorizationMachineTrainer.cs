@@ -52,7 +52,7 @@ namespace Microsoft.ML.FactorizationMachine
             /// <summary>
             /// Number of training iterations.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of training iterations", ShortName = "iter", SortOrder = 2)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of training iterations", ShortName = "iters", SortOrder = 2)]
             [TlcModule.SweepableLongParam(1, 100)]
             public int Iterations = 5;
 
