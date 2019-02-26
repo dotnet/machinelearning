@@ -6,7 +6,6 @@ using System;
 using System.IO;
 using System.Text;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 
 namespace Microsoft.ML
 {
