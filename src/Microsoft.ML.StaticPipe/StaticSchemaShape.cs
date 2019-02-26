@@ -138,7 +138,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 Contracts.Assert(physType == typeof(byte) || physType == typeof(ushort)
                     || physType == typeof(uint) || physType == typeof(ulong));
                 var keyType = typeof(Key<>).MakeGenericType(physType);
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var kvMeta))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var kvMeta))
                 {
                     var subtype = GetTypeOrNull(kvMeta);
                     if (subtype != null && subtype.IsGenericType)
@@ -166,7 +166,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 if (physType != null && (
                     pt == NumberDataViewType.SByte || pt == NumberDataViewType.Int16 || pt == NumberDataViewType.Int32 || pt == NumberDataViewType.Int32 ||
                     pt == NumberDataViewType.Byte || pt == NumberDataViewType.UInt16 || pt == NumberDataViewType.UInt32 || pt == NumberDataViewType.UInt32 ||
-                    pt == NumberDataViewType.Single || pt == NumberDataViewType.Double || pt == NumberDataViewType.DataViewRowId || pt == BooleanDataViewType.Instance ||
+                    pt == NumberDataViewType.Single || pt == NumberDataViewType.Double || pt == RowIdDataViewType.Instance || pt == BooleanDataViewType.Instance ||
                     pt == DateTimeDataViewType.Instance || pt == DateTimeOffsetDataViewType.Instance || pt == TimeSpanDataViewType.Instance ||
                     pt == TextDataViewType.Instance))
                 {
@@ -246,8 +246,8 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 {
                     // Check to see if the column is normalized.
                     // Once we shift to metadata being a row globally we can also make this a bit more efficient:
-                    var meta = col.Metadata;
-                    if (meta.Schema.TryGetColumnIndex(MetadataUtils.Kinds.IsNormalized, out int normcol))
+                    var meta = col.Annotations;
+                    if (meta.Schema.TryGetColumnIndex(AnnotationUtils.Kinds.IsNormalized, out int normcol))
                     {
                         var normtype = meta.Schema[normcol].Type;
                         if (normtype == BooleanDataViewType.Instance)
@@ -275,8 +275,8 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 if (kt.Count > 0)
                 {
                     // Check to see if we have key value metadata of the appropriate type, size, and whatnot.
-                    var meta = col.Metadata;
-                    if (meta.Schema.TryGetColumnIndex(MetadataUtils.Kinds.KeyValues, out int kvcolIndex))
+                    var meta = col.Annotations;
+                    if (meta.Schema.TryGetColumnIndex(AnnotationUtils.Kinds.KeyValues, out int kvcolIndex))
                     {
                         var kvcol = meta.Schema[kvcolIndex];
                         var kvType = kvcol.Type;
@@ -311,7 +311,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 if (physType != null && (
                     pt == NumberDataViewType.SByte || pt == NumberDataViewType.Int16 || pt == NumberDataViewType.Int32 || pt == NumberDataViewType.Int64 ||
                     pt == NumberDataViewType.Byte || pt == NumberDataViewType.UInt16 || pt == NumberDataViewType.UInt32 || pt == NumberDataViewType.UInt64 ||
-                    pt == NumberDataViewType.Single || pt == NumberDataViewType.Double || pt == NumberDataViewType.DataViewRowId || pt == BooleanDataViewType.Instance ||
+                    pt == NumberDataViewType.Single || pt == NumberDataViewType.Double || pt == RowIdDataViewType.Instance || pt == BooleanDataViewType.Instance ||
                     pt == DateTimeDataViewType.Instance || pt == DateTimeOffsetDataViewType.Instance || pt == TimeSpanDataViewType.Instance ||
                     pt == TextDataViewType.Instance))
                 {
@@ -324,7 +324,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
         /// <summary>
         /// Note that this can return a different type than the actual physical representation type, for example, for
-        /// <see cref="DataKind.Text"/> the return type is <see cref="string"/>, even though we do not use that
+        /// <see cref="InternalDataKind.Text"/> the return type is <see cref="string"/>, even though we do not use that
         /// type for communicating text.
         /// </summary>
         /// <returns>The basic type used to represent an item type in the static pipeline</returns>

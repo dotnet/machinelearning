@@ -15,7 +15,7 @@ using Float = System.Single;
 
 [assembly: LoadableClass(typeof(BinaryClassifierScorer), typeof(BinaryClassifierScorer.Arguments), typeof(SignatureDataScorer),
     "Binary Classifier Scorer", "BinaryClassifierScorer", "BinaryClassifier", "Binary",
-    "bin", MetadataUtils.Const.ScoreColumnKind.BinaryClassification)]
+    "bin", AnnotationUtils.Const.ScoreColumnKind.BinaryClassification)]
 
 [assembly: LoadableClass(typeof(BinaryClassifierScorer), null, typeof(SignatureLoadDataTransform),
     "Binary Classifier Scorer", BinaryClassifierScorer.LoaderSignature)]
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Data
 
             if (trainSchema?.Label == null)
                 return mapper; // We don't even have a label identified in a training schema.
-            var keyType = trainSchema.Label.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+            var keyType = trainSchema.Label.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
             if (keyType == null || !CanWrap(mapper, keyType))
                 return mapper;
 
@@ -95,9 +95,9 @@ namespace Microsoft.ML.Data
                 return false; // We could cover this case, but it is of no practical worth as far as I see, so I decline to do so.
 
             int scoreIdx;
-            if (!mapper.OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIdx))
+            if (!mapper.OutputSchema.TryGetColumnIndex(AnnotationUtils.Const.ScoreValueKind.Score, out scoreIdx))
                 return false; // The mapper doesn't even publish a score column to attach the metadata to.
-            if (mapper.OutputSchema[scoreIdx].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.TrainingLabelValues)?.Type != null)
+            if (mapper.OutputSchema[scoreIdx].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.TrainingLabelValues)?.Type != null)
                 return false; // The mapper publishes a score column, and already produces its own slot names.
 
             return labelNameType is VectorType vectorType && vectorType.Size == 2;
@@ -113,19 +113,19 @@ namespace Microsoft.ML.Data
             var labelColumn = trainSchema.Label.Value;
 
             // Key values from the training schema label, will map to slot names of the score output.
-            var type = labelColumn.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+            var type = labelColumn.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
             env.AssertValue(type);
 
             // Wrap the fetching of the metadata as a simple getter.
             ValueGetter<VBuffer<T>> getter = (ref VBuffer<T> value) =>
                 labelColumn.GetKeyValues(ref value);
 
-            return MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type, getter, MetadataUtils.Kinds.TrainingLabelValues, CanWrap);
+            return MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type, getter, AnnotationUtils.Kinds.TrainingLabelValues, CanWrap);
         }
 
         [BestFriend]
         internal BinaryClassifierScorer(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
-            : base(args, env, data, WrapIfNeeded(env, mapper, trainSchema), trainSchema, RegistrationName, MetadataUtils.Const.ScoreColumnKind.BinaryClassification,
+            : base(args, env, data, WrapIfNeeded(env, mapper, trainSchema), trainSchema, RegistrationName, AnnotationUtils.Const.ScoreColumnKind.BinaryClassification,
                 Contracts.CheckRef(args, nameof(args)).ThresholdColumn, OutputTypeMatches, GetPredColType)
         {
             Contracts.CheckValue(args, nameof(args));

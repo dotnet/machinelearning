@@ -20,7 +20,7 @@ using Microsoft.ML.Transforms;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
+using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
 namespace Microsoft.ML.Tests
 {
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tests
         }
 
         /// <summary>
-        /// In this test, we convert a trained <see cref="TransformerChain"/> into ONNX <see cref="UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ModelProto"/> file and then
+        /// In this test, we convert a trained <see cref="TransformerChain"/> into ONNX <see cref="ModelProto"/> file and then
         /// call <see cref="OnnxScoringEstimator"/> to evaluate that file. The outputs of <see cref="OnnxScoringEstimator"/> are checked against the original
         /// ML.NET model's outputs.
         /// </summary>

@@ -23,12 +23,12 @@ namespace Microsoft.ML.Benchmarks
             // Pipeline
 
             var input = ml.Data.ReadFromTextFile(_dataPath, new[] {
-                            new TextLoader.Column("Label", DataKind.BL, 0),
-                            new TextLoader.Column("CatFeatures", DataKind.TX,
+                            new TextLoader.Column("Label", DataKind.Boolean, 0),
+                            new TextLoader.Column("CatFeatures", DataKind.String,
                                 new [] {
                                     new TextLoader.Range() { Min = 1, Max = 8 },
                                 }),
-                            new TextLoader.Column("NumFeatures", DataKind.R4,
+                            new TextLoader.Column("NumFeatures", DataKind.Single,
                                 new [] {
                                     new TextLoader.Range() { Min = 9, Max = 14 },
                                 }),

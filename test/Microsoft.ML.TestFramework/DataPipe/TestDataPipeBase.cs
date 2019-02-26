@@ -464,11 +464,11 @@ namespace Microsoft.ML.RunTests
             var hs = new HashSet<string>();
             for (int col = 0; col < sch.Count; col++)
             {
-                var typeSlot = sch[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
-                var typeKeys = sch[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
+                var typeSlot = sch[col].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type;
+                var typeKeys = sch[col].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type;
 
                 hs.Clear();
-                foreach (var metaColumn in sch[col].Metadata.Schema)
+                foreach (var metaColumn in sch[col].Annotations.Schema)
                 {
                     if (metaColumn.Name == null || metaColumn.Type == null)
                     {
@@ -480,7 +480,7 @@ namespace Microsoft.ML.RunTests
                         Fail("Duplicate metadata type: {0}", metaColumn.Name);
                         return Failed();
                     }
-                    if (metaColumn.Name == MetadataUtils.Kinds.SlotNames)
+                    if (metaColumn.Name == AnnotationUtils.Kinds.SlotNames)
                     {
                         if (typeSlot == null || !typeSlot.Equals(metaColumn.Type))
                         {
@@ -490,7 +490,7 @@ namespace Microsoft.ML.RunTests
                         typeSlot = null;
                         continue;
                     }
-                    if (metaColumn.Name == MetadataUtils.Kinds.KeyValues)
+                    if (metaColumn.Name == AnnotationUtils.Kinds.KeyValues)
                     {
                         if (typeKeys == null || !typeKeys.Equals(metaColumn.Type))
                         {
@@ -554,14 +554,14 @@ namespace Microsoft.ML.RunTests
                     return Failed();
 
                 ulong vsize = type1 is VectorType vectorType ? (ulong)vectorType.Size : 0;
-                if (!CheckMetadataNames(MetadataUtils.Kinds.SlotNames, vsize, sch1, sch2, col, exactTypes, true))
+                if (!CheckMetadataNames(AnnotationUtils.Kinds.SlotNames, vsize, sch1, sch2, col, exactTypes, true))
                     return Failed();
 
                 if (!keyNames)
                     continue;
 
                 ulong ksize = type1.GetItemType() is KeyType keyType ? keyType.Count : 0;
-                if (!CheckMetadataNames(MetadataUtils.Kinds.KeyValues, ksize, sch1, sch2, col, exactTypes, false))
+                if (!CheckMetadataNames(AnnotationUtils.Kinds.KeyValues, ksize, sch1, sch2, col, exactTypes, false))
                     return Failed();
             }
 
@@ -573,8 +573,8 @@ namespace Microsoft.ML.RunTests
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var names2 = default(VBuffer<ReadOnlyMemory<char>>);
 
-            var t1 = sch1[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
-            var t2 = sch2[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
+            var t1 = sch1[col].Annotations.Schema.GetColumnOrNull(kind)?.Type;
+            var t2 = sch2[col].Annotations.Schema.GetColumnOrNull(kind)?.Type;
             if ((t1 == null) != (t2 == null))
             {
                 Fail("Different null-ness of {0} metadata types", kind);
@@ -612,8 +612,8 @@ namespace Microsoft.ML.RunTests
                 return Failed();
             }
 
-            sch1[col].Metadata.GetValue(kind, ref names1);
-            sch2[col].Metadata.GetValue(kind, ref names2);
+            sch1[col].Annotations.GetValue(kind, ref names1);
+            sch2[col].Annotations.GetValue(kind, ref names2);
             if (!CompareVec(in names1, in names2, (int)size, (a, b) => a.Span.SequenceEqual(b.Span)))
             {
                 Fail("Different {0} metadata values", kind);
@@ -626,15 +626,15 @@ namespace Microsoft.ML.RunTests
         {
             try
             {
-                sch[col].Metadata.GetValue(kind, ref names);
+                sch[col].Annotations.GetValue(kind, ref names);
                 Fail("Getting {0} metadata unexpectedly succeeded", kind);
                 return Failed();
             }
             catch (InvalidOperationException ex)
             {
-                if (ex.Message != "Invalid call to GetMetadata")
+                if (ex.Message != "Invalid call to 'GetValue'")
                 {
-                    Fail("Message from GetMetadata failed call doesn't match expected message: {0}", ex.Message);
+                    Fail("Message from GetValue failed call doesn't match expected message: {0}", ex.Message);
                     return Failed();
                 }
             }

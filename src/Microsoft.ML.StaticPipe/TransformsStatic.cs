@@ -889,14 +889,14 @@ namespace Microsoft.ML.StaticPipe
         private interface IConvertCol
         {
             PipelineColumn Input { get; }
-            DataKind Kind { get; }
+            InternalDataKind Kind { get; }
         }
 
         private sealed class ImplScalar<T> : Scalar<float>, IConvertCol
         {
             public PipelineColumn Input { get; }
-            public DataKind Kind { get; }
-            public ImplScalar(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
+            public InternalDataKind Kind { get; }
+            public ImplScalar(PipelineColumn input, InternalDataKind kind) : base(Rec.Inst, input)
             {
                 Input = input;
                 Kind = kind;
@@ -906,8 +906,8 @@ namespace Microsoft.ML.StaticPipe
         private sealed class ImplVector<T> : Vector<float>, IConvertCol
         {
             public PipelineColumn Input { get; }
-            public DataKind Kind { get; }
-            public ImplVector(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
+            public InternalDataKind Kind { get; }
+            public ImplVector(PipelineColumn input, InternalDataKind kind) : base(Rec.Inst, input)
             {
                 Input = input;
                 Kind = kind;
@@ -917,8 +917,8 @@ namespace Microsoft.ML.StaticPipe
         private sealed class ImplVarVector<T> : VarVector<float>, IConvertCol
         {
             public PipelineColumn Input { get; }
-            public DataKind Kind { get; }
-            public ImplVarVector(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
+            public InternalDataKind Kind { get; }
+            public ImplVarVector(PipelineColumn input, InternalDataKind kind) : base(Rec.Inst, input)
             {
                 Input = input;
                 Kind = kind;
@@ -936,7 +936,7 @@ namespace Microsoft.ML.StaticPipe
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IConvertCol)toOutput[i];
-                    infos[i] = new TypeConvertingEstimator.ColumnInfo(outputNames[toOutput[i]], tcol.Kind, inputNames[tcol.Input]);
+                    infos[i] = new TypeConvertingEstimator.ColumnInfo(outputNames[toOutput[i]], tcol.Kind.ToDataKind(), inputNames[tcol.Input]);
                 }
                 return new TypeConvertingEstimator(env, infos);
             }
@@ -1560,9 +1560,9 @@ namespace Microsoft.ML.StaticPipe
             public readonly int NewDim;
             public readonly bool UseSin;
             public readonly int? Seed;
-            public readonly IComponentFactory<float, IFourierDistributionSampler> Generator;
+            public readonly KernelBase Generator;
 
-            public Config(int newDim, bool useSin, IComponentFactory<float, IFourierDistributionSampler> generator, int? seed = null)
+            public Config(int newDim, bool useSin, KernelBase generator, int? seed = null)
             {
                 NewDim = newDim;
                 UseSin = useSin;
@@ -1612,11 +1612,11 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="input">The column to apply Random Fourier transfomration.</param>
         /// <param name="newDim">Expected size of new vector.</param>
         /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin) </param>
-        /// <param name="generator">Which kernel to use. (<see cref="GaussianFourierSampler"/> by default)</param>
+        /// <param name="generator">Which kernel to use. (if it is null, <see cref="GaussianKernel"/> is used.)</param>
         /// <param name="seed">The seed of the random number generator for generating the new features. If not specified global random would be used.</param>
         public static Vector<float> LowerVectorSizeWithRandomFourierTransformation(this Vector<float> input,
             int newDim = RandomFourierFeaturizingEstimator.Defaults.NewDim, bool useSin = RandomFourierFeaturizingEstimator.Defaults.UseSin,
-            IComponentFactory<float, IFourierDistributionSampler> generator = null, int? seed = null)
+            KernelBase generator = null, int? seed = null)
         {
             Contracts.CheckValue(input, nameof(input));
             return new ImplVector<string>(input, new Config(newDim, useSin, generator, seed));

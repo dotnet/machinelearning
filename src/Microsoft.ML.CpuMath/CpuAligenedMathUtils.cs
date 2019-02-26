@@ -107,7 +107,7 @@ namespace Microsoft.ML.Internal.CpuMath
         }
     }
 
-    public static class GeneralUtils
+    internal static class GeneralUtils
     {
         /// <summary>
         /// Count the number of zero bits in the lonest string of zero's from the lowest significant bit of the input integer.

@@ -3,7 +3,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class SDCALogisticRegression
     {
@@ -28,8 +28,8 @@ namespace Microsoft.ML.Samples.Dynamic
             var reader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
-                        new TextLoader.Column("Sentiment", DataKind.BL, 0),
-                        new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                        new TextLoader.Column("Sentiment", DataKind.Boolean, 0),
+                        new TextLoader.Column("SentimentText", DataKind.String, 1)
                     },
                 hasHeader: true
             );

@@ -611,14 +611,14 @@ namespace Microsoft.ML.Transforms.Text
                 var result = new DataViewSchema.DetachedColumn[_parent._columns.Length];
                 for (int i = 0; i < _parent._columns.Length; i++)
                 {
-                    var builder = new DataViewSchema.Metadata.Builder();
+                    var builder = new DataViewSchema.Annotations.Builder();
                     AddMetadata(i, builder);
-                    result[i] = new DataViewSchema.DetachedColumn(_parent._columns[i].Name, _types[i], builder.ToMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent._columns[i].Name, _types[i], builder.ToAnnotations());
                 }
                 return result;
             }
 
-            private void AddMetadata(int i, DataViewSchema.Metadata.Builder builder)
+            private void AddMetadata(int i, DataViewSchema.Annotations.Builder builder)
             {
                 if (_parent._slotNamesTypes != null && _parent._slotNamesTypes[i] != null)
                 {
@@ -626,7 +626,7 @@ namespace Microsoft.ML.Transforms.Text
                     {
                         _parent._slotNames[i].CopyTo(ref dst);
                     };
-                    builder.Add(MetadataUtils.Kinds.SlotNames, _parent._slotNamesTypes[i], getter);
+                    builder.Add(AnnotationUtils.Kinds.SlotNames, _parent._slotNamesTypes[i], getter);
                 }
             }
         }
@@ -1236,7 +1236,7 @@ namespace Microsoft.ML.Transforms.Text
                         throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, ExpectedColumnType, col.GetTypeString());
                 }
                 var metadata = new List<SchemaShape.Column>();
-                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
+                metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(metadata));
             }
             return new SchemaShape(result.Values);

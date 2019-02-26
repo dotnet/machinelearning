@@ -16,19 +16,19 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 
-[assembly: LoadableClass(typeof(RankerEvaluator), typeof(RankerEvaluator), typeof(RankerEvaluator.Arguments), typeof(SignatureEvaluator),
-    "Ranking Evaluator", RankerEvaluator.LoadName, "Ranking", "rank")]
+[assembly: LoadableClass(typeof(RankingEvaluator), typeof(RankingEvaluator), typeof(RankingEvaluator.Arguments), typeof(SignatureEvaluator),
+    "Ranking Evaluator", RankingEvaluator.LoadName, "Ranking", "rank")]
 
-[assembly: LoadableClass(typeof(RankerMamlEvaluator), typeof(RankerMamlEvaluator), typeof(RankerMamlEvaluator.Arguments), typeof(SignatureMamlEvaluator),
-    "Ranking Evaluator", RankerEvaluator.LoadName, "Ranking", "rank")]
+[assembly: LoadableClass(typeof(RankingMamlEvaluator), typeof(RankingMamlEvaluator), typeof(RankingMamlEvaluator.Arguments), typeof(SignatureMamlEvaluator),
+    "Ranking Evaluator", RankingEvaluator.LoadName, "Ranking", "rank")]
 
-[assembly: LoadableClass(typeof(RankerPerInstanceTransform), null, typeof(SignatureLoadDataTransform),
-    "", RankerPerInstanceTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(RankingPerInstanceTransform), null, typeof(SignatureLoadDataTransform),
+    "", RankingPerInstanceTransform.LoaderSignature)]
 
 namespace Microsoft.ML.Data
 {
     [BestFriend]
-    internal sealed class RankerEvaluator : EvaluatorBase<RankerEvaluator.Aggregator>
+    internal sealed class RankingEvaluator : EvaluatorBase<RankingEvaluator.Aggregator>
     {
         public sealed class Arguments
         {
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Data
         private readonly bool _groupSummary;
         private readonly Double[] _labelGains;
 
-        public RankerEvaluator(IHostEnvironment env, Arguments args)
+        public RankingEvaluator(IHostEnvironment env, Arguments args)
             : base(env, LoadName)
         {
             // REVIEW: What kind of checking should be applied to labelGains?
@@ -89,13 +89,13 @@ namespace Microsoft.ML.Data
             var t = schema.Label.Value.Type;
             if (t != NumberDataViewType.Single && !(t is KeyType))
             {
-                throw Host.ExceptSchemaMismatch(nameof(RankerMamlEvaluator.Arguments.LabelColumn),
+                throw Host.ExceptSchemaMismatch(nameof(RankingMamlEvaluator.Arguments.LabelColumn),
                     "label", schema.Label.Value.Name, "R4 or a key", t.ToString());
             }
-            var scoreCol = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var scoreCol = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             if (scoreCol.Type != NumberDataViewType.Single)
             {
-                throw Host.ExceptSchemaMismatch(nameof(RankerMamlEvaluator.Arguments.ScoreColumn),
+                throw Host.ExceptSchemaMismatch(nameof(RankingMamlEvaluator.Arguments.ScoreColumn),
                     "score", scoreCol.Name, "R4", t.ToString());
             }
         }
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Data
             var t = schema.Group.Value.Type;
             if (!(t is KeyType))
             {
-                throw Host.ExceptSchemaMismatch(nameof(RankerMamlEvaluator.Arguments.GroupIdColumn),
+                throw Host.ExceptSchemaMismatch(nameof(RankingMamlEvaluator.Arguments.GroupIdColumn),
                     "group", schema.Group.Value.Name, "key", t.ToString());
             }
         }
@@ -126,10 +126,10 @@ namespace Microsoft.ML.Data
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckParam(data.Schema.Label.HasValue, nameof(data), "Schema must contain a label column");
-            var scoreInfo = data.Schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var scoreInfo = data.Schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             Host.CheckParam(data.Schema.Group.HasValue, nameof(data), "Schema must contain a group column");
 
-            return new RankerPerInstanceTransform(Host, data.Data,
+            return new RankingPerInstanceTransform(Host, data.Data,
                 data.Schema.Label.Value.Name, scoreInfo.Name, data.Schema.Group.Value.Name, _truncationLevel, _labelGains);
         }
 
@@ -242,7 +242,7 @@ namespace Microsoft.ML.Data
         /// <param name="groupId">The name of the groupId column.</param>
         /// <param name="score">The name of the predicted score column.</param>
         /// <returns>The evaluation metrics for these outputs.</returns>
-        public RankerMetrics Evaluate(IDataView data, string label, string groupId, string score)
+        public RankingMetrics Evaluate(IDataView data, string label, string groupId, string score)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -250,18 +250,18 @@ namespace Microsoft.ML.Data
             var roles = new RoleMappedData(data, opt: false,
                 RoleMappedSchema.ColumnRole.Label.Bind(label),
                 RoleMappedSchema.ColumnRole.Group.Bind(groupId),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score));
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, score));
 
             var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
-            RankerMetrics result;
+            RankingMetrics result;
             using (var cursor = overall.GetRowCursorForAllColumns())
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new RankerMetrics(Host, cursor);
+                result = new RankingMetrics(Host, cursor);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }
@@ -374,7 +374,7 @@ namespace Microsoft.ML.Data
 
                 public void UpdateGroup(Single weight)
                 {
-                    RankerUtils.QueryMaxDcg(_labelGains, TruncationLevel, _queryLabels, _queryOutputs, _groupMaxDcgCur);
+                    RankingUtils.QueryMaxDcg(_labelGains, TruncationLevel, _queryLabels, _queryOutputs, _groupMaxDcgCur);
                     if (_groupMaxDcg != null)
                     {
                         var maxDcg = new Double[TruncationLevel];
@@ -382,7 +382,7 @@ namespace Microsoft.ML.Data
                         _groupMaxDcg.Add(maxDcg);
                     }
 
-                    RankerUtils.QueryDcg(_labelGains, TruncationLevel, _queryLabels, _queryOutputs, _groupDcgCur);
+                    RankingUtils.QueryDcg(_labelGains, TruncationLevel, _queryLabels, _queryOutputs, _groupDcgCur);
                     if (_groupDcg != null)
                     {
                         var groupDcg = new Double[TruncationLevel];
@@ -445,7 +445,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(schema.Label.HasValue);
                 Contracts.Assert(schema.Group.HasValue);
 
-                var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+                var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
                 _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
                 _scoreGetter = row.GetGetter<Single>(score.Index);
@@ -539,7 +539,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    internal sealed class RankerPerInstanceTransform : IDataTransform
+    internal sealed class RankingPerInstanceTransform : IDataTransform
     {
         public const string LoaderSignature = "RankerPerInstTransform";
         private const string RegistrationName = LoaderSignature;
@@ -552,7 +552,7 @@ namespace Microsoft.ML.Data
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(RankerPerInstanceTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(RankingPerInstanceTransform).Assembly.FullName);
         }
 
         public const string Ndcg = "NDCG";
@@ -576,25 +576,25 @@ namespace Microsoft.ML.Data
         /// </summary>
         public DataViewSchema OutputSchema => _transform.OutputSchema;
 
-        public RankerPerInstanceTransform(IHostEnvironment env, IDataView input, string labelCol, string scoreCol, string groupCol,
+        public RankingPerInstanceTransform(IHostEnvironment env, IDataView input, string labelCol, string scoreCol, string groupCol,
                 int truncationLevel, Double[] labelGains)
         {
             _transform = new Transform(env, input, labelCol, scoreCol, groupCol, truncationLevel, labelGains);
         }
 
-        private RankerPerInstanceTransform(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private RankingPerInstanceTransform(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             _transform = new Transform(env, ctx, input);
         }
 
-        public static RankerPerInstanceTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        public static RankingPerInstanceTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
             h.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
             h.CheckValue(input, nameof(input));
-            return h.Apply("Loading Model", ch => new RankerPerInstanceTransform(h, ctx, input));
+            return h.Apply("Loading Model", ch => new RankingPerInstanceTransform(h, ctx, input));
         }
 
         void ICanSaveModel.Save(ModelSaveContext ctx)
@@ -622,7 +622,7 @@ namespace Microsoft.ML.Data
                 private readonly DataViewType _outputType;
                 private readonly DataViewType _slotNamesType;
                 private readonly int _truncationLevel;
-                private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _slotNamesGetter;
+                private readonly AnnotationUtils.AnnotationGetter<VBuffer<ReadOnlyMemory<char>>> _slotNamesGetter;
 
                 public Bindings(IExceptionContext ectx, DataViewSchema input, bool user, string labelCol, string scoreCol, string groupCol,
                     int truncationLevel)
@@ -640,31 +640,31 @@ namespace Microsoft.ML.Data
                     return _outputType;
                 }
 
-                protected override IEnumerable<KeyValuePair<string, DataViewType>> GetMetadataTypesCore(int iinfo)
+                protected override IEnumerable<KeyValuePair<string, DataViewType>> GetAnnotationTypesCore(int iinfo)
                 {
                     Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
-                    var types = base.GetMetadataTypesCore(iinfo);
-                    types = types.Prepend(_slotNamesType.GetPair(MetadataUtils.Kinds.SlotNames));
+                    var types = base.GetAnnotationTypesCore(iinfo);
+                    types = types.Prepend(_slotNamesType.GetPair(AnnotationUtils.Kinds.SlotNames));
                     return types;
                 }
 
-                protected override DataViewType GetMetadataTypeCore(string kind, int iinfo)
+                protected override DataViewType GetAnnotationTypeCore(string kind, int iinfo)
                 {
                     Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
-                    if (kind == MetadataUtils.Kinds.SlotNames)
+                    if (kind == AnnotationUtils.Kinds.SlotNames)
                         return _slotNamesType;
-                    return base.GetMetadataTypeCore(kind, iinfo);
+                    return base.GetAnnotationTypeCore(kind, iinfo);
                 }
 
-                protected override void GetMetadataCore<TValue>(string kind, int iinfo, ref TValue value)
+                protected override void GetAnnotationCore<TValue>(string kind, int iinfo, ref TValue value)
                 {
                     Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
-                    if (kind == MetadataUtils.Kinds.SlotNames)
+                    if (kind == AnnotationUtils.Kinds.SlotNames)
                     {
                         _slotNamesGetter.Marshal(iinfo, ref value);
                         return;
                     }
-                    base.GetMetadataCore(kind, iinfo, ref value);
+                    base.GetAnnotationCore(kind, iinfo, ref value);
                 }
 
                 private void SlotNamesGetter(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
@@ -801,9 +801,9 @@ namespace Microsoft.ML.Data
             protected override void UpdateState(RowCursorState state)
             {
                 // Calculate the current group DCG, NDCG and MaxDcg.
-                RankerUtils.QueryMaxDcg(_labelGains, _truncationLevel, state.QueryLabels, state.QueryOutputs,
+                RankingUtils.QueryMaxDcg(_labelGains, _truncationLevel, state.QueryLabels, state.QueryOutputs,
                     state.MaxDcgCur);
-                RankerUtils.QueryDcg(_labelGains, _truncationLevel, state.QueryLabels, state.QueryOutputs, state.DcgCur);
+                RankingUtils.QueryDcg(_labelGains, _truncationLevel, state.QueryLabels, state.QueryOutputs, state.DcgCur);
                 for (int t = 0; t < _truncationLevel; t++)
                 {
                     Double ndcg = state.MaxDcgCur[t] > 0 ? state.DcgCur[t] / state.MaxDcgCur[t] * 100 : 0;
@@ -838,7 +838,7 @@ namespace Microsoft.ML.Data
     }
 
     [BestFriend]
-    internal sealed class RankerMamlEvaluator : MamlEvaluatorBase
+    internal sealed class RankingMamlEvaluator : MamlEvaluatorBase
     {
         public sealed class Arguments : ArgumentsBase
         {
@@ -855,25 +855,25 @@ namespace Microsoft.ML.Data
             public string GroupSummaryFilename;
         }
 
-        private readonly RankerEvaluator _evaluator;
+        private readonly RankingEvaluator _evaluator;
         private readonly string _groupIdCol;
 
         private readonly string _groupSummaryFilename;
 
         private protected override IEvaluator Evaluator => _evaluator;
 
-        public RankerMamlEvaluator(IHostEnvironment env, Arguments args)
-            : base(args, env, MetadataUtils.Const.ScoreColumnKind.Ranking, "RankerMamlEvaluator")
+        public RankingMamlEvaluator(IHostEnvironment env, Arguments args)
+            : base(args, env, AnnotationUtils.Const.ScoreColumnKind.Ranking, "RankerMamlEvaluator")
         {
             Host.CheckValue(args, nameof(args));
             Utils.CheckOptionalUserDirectory(args.GroupSummaryFilename, nameof(args.GroupSummaryFilename));
 
-            var evalArgs = new RankerEvaluator.Arguments();
+            var evalArgs = new RankingEvaluator.Arguments();
             evalArgs.DcgTruncationLevel = args.DcgTruncationLevel;
             evalArgs.LabelGains = args.LabelGains;
             evalArgs.OutputGroupSummary = !string.IsNullOrEmpty(args.GroupSummaryFilename);
 
-            _evaluator = new RankerEvaluator(Host, evalArgs);
+            _evaluator = new RankingEvaluator(Host, evalArgs);
             _groupSummaryFilename = args.GroupSummaryFilename;
             _groupIdCol = args.GroupIdColumn;
         }
@@ -908,14 +908,14 @@ namespace Microsoft.ML.Data
             Host.AssertNonEmpty(metrics);
 
             if (metrics.Length == 1)
-                return metrics[0].TryGetValue(RankerEvaluator.GroupSummary, out gs);
+                return metrics[0].TryGetValue(RankingEvaluator.GroupSummary, out gs);
 
             gs = null;
             var gsList = new List<IDataView>();
             for (int i = 0; i < metrics.Length; i++)
             {
                 IDataView idv;
-                if (!metrics[i].TryGetValue(RankerEvaluator.GroupSummary, out idv))
+                if (!metrics[i].TryGetValue(RankingEvaluator.GroupSummary, out idv))
                     return false;
 
                 idv = EvaluateUtils.AddFoldIndex(Host, idv, i, metrics.Length);
@@ -935,17 +935,17 @@ namespace Microsoft.ML.Data
             yield return schema.Group.Value.Name;
             yield return schema.Label.Value.Name;
             var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
-                MetadataUtils.Const.ScoreColumnKind.Ranking);
+                AnnotationUtils.Const.ScoreColumnKind.Ranking);
             yield return scoreCol.Name;
 
             // Return the output columns.
-            yield return RankerPerInstanceTransform.Ndcg;
-            yield return RankerPerInstanceTransform.Dcg;
-            yield return RankerPerInstanceTransform.MaxDcg;
+            yield return RankingPerInstanceTransform.Ndcg;
+            yield return RankingPerInstanceTransform.Dcg;
+            yield return RankingPerInstanceTransform.MaxDcg;
         }
     }
 
-    internal static class RankerUtils
+    internal static class RankingUtils
     {
         private static volatile Double[] _discountMap;
         public static Double[] DiscountMap
@@ -1054,8 +1054,8 @@ namespace Microsoft.ML.Data
 
     internal static partial class Evaluate
     {
-        [TlcModule.EntryPoint(Name = "Models.RankerEvaluator", Desc = "Evaluates a ranking scored dataset.")]
-        public static CommonOutputs.CommonEvaluateOutput Ranking(IHostEnvironment env, RankerMamlEvaluator.Arguments input)
+        [TlcModule.EntryPoint(Name = "Models.RankingEvaluator", Desc = "Evaluates a ranking scored dataset.")]
+        public static CommonOutputs.CommonEvaluateOutput Ranking(IHostEnvironment env, RankingMamlEvaluator.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("EvaluateRanker");
@@ -1068,9 +1068,9 @@ namespace Microsoft.ML.Data
             MatchColumns(host, input, out label, out weight, out name);
             var schema = input.Data.Schema;
             string groupId = TrainUtils.MatchNameOrDefaultOrNull(host, schema,
-                nameof(RankerMamlEvaluator.Arguments.GroupIdColumn),
+                nameof(RankingMamlEvaluator.Arguments.GroupIdColumn),
                 input.GroupIdColumn, DefaultColumnNames.GroupId);
-            IMamlEvaluator evaluator = new RankerMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new RankingMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, null, groupId, weight, name);
             var metrics = evaluator.Evaluate(data);
 

@@ -313,10 +313,10 @@ are initialized using the pseudo-random number generator in an `IHost` that
 changes from one to another. But, that's a bit nit-picky.
 
 Note also: when we say functionally identical we include everything about it:
-not just the data, but the schema, its metadata, the implementation of
+not just the data, but the schema, its annotations, the implementation of
 shuffling, etc. For this reason, while serializing the data *model* has
 guarantees of consistency, serializing the *data* has no such guarantee: if
-you serialize data using the text saver, practically all metadata (except slot
+you serialize data using the text saver, practically all annotations (except slot
 names) will be completely lost, which can have implications on how some
 transforms and downstream processes work. Or: if you serialize data using the
 binary saver, suddenly it may become shufflable whereas it may not have been
@@ -475,7 +475,7 @@ helpful).
 
 The schema contains information about the columns. As we see in [the design
 principles](IDataViewDesignPrinciples.md), it has index, data type, and
-optional metadata.
+optional annotations.
 
 While *programmatically* accesses to an `IDataView` are by index, from a
 user's perspective the indices are by name; most training algorithms
@@ -498,20 +498,20 @@ things like key-types and vector-types, when returned, should not be created
 in the function itself (thereby creating a new object every time), but rather
 stored somewhere and returned.
 
-## Metadata
+## Annotations
 
-Since metadata is *optional*, one is not obligated to necessarily produce it,
+Since annotations are *optional*, one is not obligated to necessarily produce it,
 or conform to any particular schemas for any particular kinds (beyond, say,
 the obvious things like making sure that the types and values are consistent).
 However, the flip side of that freedom given to *producers*, is that
 *consumers* are obligated, when processing a data view input, to react
-gracefully when metadata of a certain kind is absent, or not in a form that
-one expects. One should *never* fail when input metadata is in a form one does
+gracefully when an annotation of a certain kind is absent, or not in a form that
+one expects. One should *never* fail when input annotations are in a form one does
 not expect.
 
 To give a practical example of this: many transforms, learners, or other
 components that process `IDataView`s will do something with the slot names,
-but when the `SlotNames` metadata kind for a given column is either absent,
+but when the `SlotNames` annotation kind for a given column is either absent,
 *or* not of the right type (vectors of strings), *or* not of the right size
 (same length vectors as the input), the behavior is not to throw or yield
 errors or do anything of the kind, but to simply say, "oh, I don't really have

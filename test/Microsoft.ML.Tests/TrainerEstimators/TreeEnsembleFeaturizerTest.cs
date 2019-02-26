@@ -53,9 +53,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.Equal(NumberDataViewType.Single, treeValuesType.ItemType);
                 Assert.Equal(10, treeValuesType.Size);
                 // Below we check the only metadata field.
-                Assert.Single(treeValuesColumn.Metadata.Schema);
+                Assert.Single(treeValuesColumn.Annotations.Schema);
                 VBuffer<ReadOnlyMemory<char>> slotNames = default;
-                treeValuesColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNames);
+                treeValuesColumn.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref slotNames);
                 Assert.Equal(10, slotNames.Length);
                 // Just check the head and the tail of the extracted vector.
                 Assert.Equal("Tree000", slotNames.GetItemOrDefault(0).ToString());
@@ -71,14 +71,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.Equal(NumberDataViewType.Single, treeLeafIdsType.ItemType);
                 Assert.Equal(50, treeLeafIdsType.Size);
                 // Below we check the two leaf-IDs column's metadata fields.
-                Assert.Equal(2, treeLeafIdsColumn.Metadata.Schema.Count);
+                Assert.Equal(2, treeLeafIdsColumn.Annotations.Schema.Count);
                 // Check metadata field IsNormalized's content.
                 bool leafIdsNormalizedFlag = false;
-                treeLeafIdsColumn.Metadata.GetValue(MetadataUtils.Kinds.IsNormalized, ref leafIdsNormalizedFlag);
+                treeLeafIdsColumn.Annotations.GetValue(AnnotationUtils.Kinds.IsNormalized, ref leafIdsNormalizedFlag);
                 Assert.True(leafIdsNormalizedFlag);
                 // Check metadata field SlotNames's content.
                 VBuffer<ReadOnlyMemory<char>> leafIdsSlotNames = default;
-                treeLeafIdsColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref leafIdsSlotNames);
+                treeLeafIdsColumn.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref leafIdsSlotNames);
                 Assert.Equal(50, leafIdsSlotNames.Length);
                 // Just check the head and the tail of the extracted vector.
                 Assert.Equal("Tree000Leaf000", leafIdsSlotNames.GetItemOrDefault(0).ToString());
@@ -94,14 +94,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.Equal(NumberDataViewType.Single, treePathIdsType.ItemType);
                 Assert.Equal(40, treePathIdsType.Size);
                 // Below we check the two path-IDs column's metadata fields.
-                Assert.Equal(2, treePathIdsColumn.Metadata.Schema.Count);
+                Assert.Equal(2, treePathIdsColumn.Annotations.Schema.Count);
                 // Check metadata field IsNormalized's content.
                 bool pathIdsNormalizedFlag = false;
-                treePathIdsColumn.Metadata.GetValue(MetadataUtils.Kinds.IsNormalized, ref pathIdsNormalizedFlag);
+                treePathIdsColumn.Annotations.GetValue(AnnotationUtils.Kinds.IsNormalized, ref pathIdsNormalizedFlag);
                 Assert.True(pathIdsNormalizedFlag);
                 // Check metadata field SlotNames's content.
                 VBuffer<ReadOnlyMemory<char>> pathIdsSlotNames = default;
-                treePathIdsColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref pathIdsSlotNames);
+                treePathIdsColumn.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref pathIdsSlotNames);
                 Assert.Equal(40, pathIdsSlotNames.Length);
                 // Just check the head and the tail of the extracted vector.
                 Assert.Equal("Tree000Node000", pathIdsSlotNames.GetItemOrDefault(0).ToString());

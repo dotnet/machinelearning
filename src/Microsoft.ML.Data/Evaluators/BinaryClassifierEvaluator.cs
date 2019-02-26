@@ -126,7 +126,7 @@ namespace Microsoft.ML.Data
 
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
-            var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             var host = Host.SchemaSensitive();
             var t = score.Type;
             if (t != NumberDataViewType.Single)
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Data
 
         private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
         {
-            var prob = schema.GetColumns(MetadataUtils.Const.ScoreValueKind.Probability);
+            var prob = schema.GetColumns(AnnotationUtils.Const.ScoreValueKind.Probability);
             var host = Host.SchemaSensitive();
             if (prob != null)
             {
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Data
         private protected override Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
         {
             var pred = base.GetActiveColsCore(schema);
-            var prob = schema.GetColumns(MetadataUtils.Const.ScoreValueKind.Probability);
+            var prob = schema.GetColumns(AnnotationUtils.Const.ScoreValueKind.Probability);
             Host.Assert(prob == null || prob.Count == 1);
             return i => Utils.Size(prob) > 0 && i == prob[0].Index || pred(i);
         }
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Data
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
             var labelCol = schema.Label.Value;
             if (labelCol.Type is KeyType &&
-                labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type is VectorType vecType &&
+                labelCol.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type is VectorType vecType &&
                 vecType.Size > 0 && vecType.ItemType == TextDataViewType.Instance)
             {
                 labelCol.GetKeyValues(ref labelNames);
@@ -193,9 +193,9 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckParam(schema.Label != null, nameof(schema), "Could not find the label column");
-            var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var scoreInfo = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
-            var probInfos = schema.GetColumns(MetadataUtils.Const.ScoreValueKind.Probability);
+            var probInfos = schema.GetColumns(AnnotationUtils.Const.ScoreValueKind.Probability);
             var probCol = Utils.Size(probInfos) > 0 ? probInfos[0].Name : null;
             return new BinaryPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, probCol, schema.Label.Value.Name, _threshold, _useRaw);
         }
@@ -614,14 +614,14 @@ namespace Microsoft.ML.Data
                 Host.Assert(schema.Label.HasValue);
                 Host.Assert(PassNum < 1);
 
-                var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+                var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
                 _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
                 _scoreGetter = row.GetGetter<Single>(score.Index);
                 Host.AssertValue(_labelGetter);
                 Host.AssertValue(_scoreGetter);
 
-                var prob = schema.GetColumns(new RoleMappedSchema.ColumnRole(MetadataUtils.Const.ScoreValueKind.Probability));
+                var prob = schema.GetColumns(new RoleMappedSchema.ColumnRole(AnnotationUtils.Const.ScoreValueKind.Probability));
                 Host.Assert(prob == null || prob.Count == 1);
 
                 if (prob != null)
@@ -809,9 +809,9 @@ namespace Microsoft.ML.Data
 
             var roles = new RoleMappedData(data, opt: false,
                 RoleMappedSchema.ColumnRole.Label.Bind(label),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probability),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, score),
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Probability, probability),
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
 
             var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
@@ -847,8 +847,8 @@ namespace Microsoft.ML.Data
 
             var roles = new RoleMappedData(data, opt: false,
                 RoleMappedSchema.ColumnRole.Label.Bind(label),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, score),
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
 
             var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
@@ -1156,7 +1156,7 @@ namespace Microsoft.ML.Data
         private protected override IEvaluator Evaluator => _evaluator;
 
         public BinaryClassifierMamlEvaluator(IHostEnvironment env, Arguments args)
-            : base(args, env, MetadataUtils.Const.ScoreColumnKind.BinaryClassification, "BinaryClassifierMamlEvaluator")
+            : base(args, env, AnnotationUtils.Const.ScoreColumnKind.BinaryClassification, "BinaryClassifierMamlEvaluator")
         {
             Host.CheckValue(args, nameof(args));
             Utils.CheckOptionalUserDirectory(args.PRFilename, nameof(args.PRFilename));
@@ -1178,13 +1178,13 @@ namespace Microsoft.ML.Data
             var cols = base.GetInputColumnRolesCore(schema);
 
             var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
-                MetadataUtils.Const.ScoreColumnKind.BinaryClassification);
+                AnnotationUtils.Const.ScoreColumnKind.BinaryClassification);
 
             // Get the optional probability column.
             var probCol = EvaluateUtils.GetOptAuxScoreColumn(Host, schema.Schema, _probCol, nameof(Arguments.ProbabilityColumn),
-                scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberDataViewType.Single.Equals);
+                scoreCol.Index, AnnotationUtils.Const.ScoreValueKind.Probability, NumberDataViewType.Single.Equals);
             if (probCol.HasValue)
-                cols = MetadataUtils.Prepend(cols, RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probCol.Value.Name));
+                cols = AnnotationUtils.Prepend(cols, RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Probability, probCol.Value.Name));
             return cols;
         }
 
@@ -1488,10 +1488,10 @@ namespace Microsoft.ML.Data
             // The binary classifier evaluator outputs the label, score and probability columns.
             yield return schema.Label.Value.Name;
             var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
-                MetadataUtils.Const.ScoreColumnKind.BinaryClassification);
+                AnnotationUtils.Const.ScoreColumnKind.BinaryClassification);
             yield return scoreCol.Name;
             var probCol = EvaluateUtils.GetOptAuxScoreColumn(Host, schema.Schema, _probCol, nameof(Arguments.ProbabilityColumn),
-                scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberDataViewType.Single.Equals);
+                scoreCol.Index, AnnotationUtils.Const.ScoreValueKind.Probability, NumberDataViewType.Single.Equals);
             // Return the output columns. The LogLoss column is returned only if the probability column exists.
             if (probCol.HasValue)
             {

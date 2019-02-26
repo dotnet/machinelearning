@@ -1006,7 +1006,7 @@ namespace Microsoft.ML.Data
 
                         var schemaBuilder = new DataViewSchema.Builder();
                         // Just copy the selected column to output since no splitting happens.
-                        schemaBuilder.AddColumn(selectedColumn.Name, selectedColumn.Type, selectedColumn.Metadata);
+                        schemaBuilder.AddColumn(selectedColumn.Name, selectedColumn.Type, selectedColumn.Annotations);
                         OutputSchema = schemaBuilder.ToSchema();
                     }
 

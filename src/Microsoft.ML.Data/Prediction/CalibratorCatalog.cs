@@ -10,7 +10,7 @@ using Microsoft.ML.Calibrator;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Model;
-using Microsoft.ML.Training;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(CalibratorTransformer<PlattCalibrator>), typeof(PlattCalibratorTransformer), null,
     typeof(SignatureLoadModel), "", PlattCalibratorTransformer.LoadName)]
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Calibrator
                 SchemaShape.Column.VectorKind.Scalar,
                 NumberDataViewType.Single,
                 false,
-                new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true)));
+                new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true)));
 
             return new SchemaShape(outColumns.Values);
         }

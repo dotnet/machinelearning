@@ -399,7 +399,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     continue;
                 using (var bldr = md.BuildMetadata(i))
                 {
-                    bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.SlotNames,
+                    bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(AnnotationUtils.Kinds.SlotNames,
                         new VectorType(TextDataViewType.Instance, ex.SlotMap.Length), GetSlotNames);
                 }
             }
@@ -420,7 +420,7 @@ namespace Microsoft.ML.Transforms.Conversions
             VBuffer<ReadOnlyMemory<char>> srcSlotNames = default;
             if (!useDefaultSlotNames)
             {
-                Source.Schema[Infos[iinfo].Source].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref srcSlotNames);
+                Source.Schema[Infos[iinfo].Source].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref srcSlotNames);
                 useDefaultSlotNames =
                     !srcSlotNames.IsDense
                     || srcSlotNames.Length != Infos[iinfo].TypeSrc.GetValueCount();

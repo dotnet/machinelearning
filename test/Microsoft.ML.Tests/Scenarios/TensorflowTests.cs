@@ -28,8 +28,8 @@ namespace Microsoft.ML.Scenarios
             {
                 Columns = new[]
                     {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Label", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Label", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
 

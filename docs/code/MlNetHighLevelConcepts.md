@@ -29,9 +29,9 @@ This document is going to cover the following ML.NET concepts:
 In ML.NET, data is very similar to a SQL view: it's a lazily-evaluated, cursorable, heterogenous, schematized dataset.
 
 - It has *Schema* (an instance of an `ISchema` interface), that contains the information about the data view's columns.
-  - Each column has a *Name*, a *Type*, and an arbitrary set of *metadata* associated with it.
+  - Each column has a *Name*, a *Type*, and an arbitrary set of *annotations* associated with it.
   - It is important to note that one of the types is the `vector<T, N>` type, which means that the column's values are *vectors of items of type T, with the size of N*. This is a recommended way to represent multi-dimensional data associated with every row, like pixels in an image, or tokens in a text.
-  - The column's *metadata* contains information like 'slot names' of a vector column and suchlike. The metadata itself is actually represented as another one-row *data*, that is unique to each column.
+  - The column's *annotations* contains information like 'slot names' of a vector column and suchlike. The annotations itself are actually represented as another one-row *data*, that is unique to each column.
 - The data view is a source of *cursors*. Think SQL cursors: a cursor is an object that iterates through the data, one row at a time, and presents the available data.
   - Naturally, data can have as many active cursors over it as needed: since data itself is immutable, cursors are truly independent.
   - Note that cursors typically access only a subset of columns: for efficiency, we do not compute the values of columns that are not 'needed' by the cursor.

@@ -18,12 +18,12 @@ namespace Microsoft.ML.Functional.Tests.Datasets
         {
             return mlContext.Data.CreateTextLoader(
                     new[] {
-                        new TextLoader.Column("Label", DataKind.R4, 0),
-                        new TextLoader.Column("Features", DataKind.R4, 1, 1 + _featureLength)
+                        new TextLoader.Column("Label", DataKind.Single, 0),
+                        new TextLoader.Column("Features", DataKind.Single, 1, 1 + _featureLength)
                     },
-                    separatorChar: separatorChar,
-                    hasHeader: hasHeader,
-                    allowSparse: true);
+                separatorChar: separatorChar,
+                hasHeader: hasHeader,
+                allowSparse: true);
         }
     }
 }
