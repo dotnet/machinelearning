@@ -48,7 +48,7 @@ namespace Microsoft.ML.Samples.Dynamic
             Console.WriteLine("The linear weights of some of the features are: " + 
                 string.Concat(Enumerable.Range(1, 10).Select(i => $"{linearWeights[i]:F4} ")));
             Console.WriteLine("The weights of some of the latent features are: " + 
-                 string.Concat(Enumerable.Range(1, 10).Select(i => $"{latentWeights[i]:F4} ")));
+                string.Concat(Enumerable.Range(1, 10).Select(i => $"{latentWeights[i]:F4} ")));
 
             //  The feature count is: 9374
             //  The number of fields is: 1

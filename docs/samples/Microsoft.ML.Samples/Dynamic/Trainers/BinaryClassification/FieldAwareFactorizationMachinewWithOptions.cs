@@ -30,12 +30,12 @@ namespace Microsoft.ML.Samples.Dynamic
             var pipeline = new EstimatorChain<ITransformer>().AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.
                     FieldAwareFactorizationMachine(
-                        new FieldAwareFactorizationMachineTrainer.Options
+                        new FieldAwareFactorizationMachineBinaryClassificationTrainer.Options
                         {
                             FeatureColumn = "Features",
                             LabelColumn = "Sentiment",
                             LearningRate = 0.1f,
-                            Iterations = 10
+                            NumberOfIterations = 10
                         }));
 
             // Fit the model.
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Samples.Dynamic
             Console.WriteLine("The linear weights of some of the features are: " +
                 string.Concat(Enumerable.Range(1, 10).Select(i => $"{linearWeights[i]:F4} ")));
             Console.WriteLine("The weights of some of the latent features are: " +
-                 string.Concat(Enumerable.Range(1, 10).Select(i => $"{latentWeights[i]:F4} ")));
+                string.Concat(Enumerable.Range(1, 10).Select(i => $"{latentWeights[i]:F4} ")));
 
             //  The feature count is: 9374
             //  The number of fields is: 1

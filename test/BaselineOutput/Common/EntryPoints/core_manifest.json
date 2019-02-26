@@ -10119,11 +10119,12 @@
           "IsNullable": false
         },
         {
-          "Name": "Iterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Number of training iterations",
           "Aliases": [
-            "iters"
+            "iters",
+            "iter"
           ],
           "Required": false,
           "SortOrder": 2.0,

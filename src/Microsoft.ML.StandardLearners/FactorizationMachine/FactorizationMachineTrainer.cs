@@ -15,12 +15,12 @@ using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Trainers;
 
-[assembly: LoadableClass(FieldAwareFactorizationMachineTrainer.Summary, typeof(FieldAwareFactorizationMachineTrainer),
-    typeof(FieldAwareFactorizationMachineTrainer.Options), new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) }
-    , FieldAwareFactorizationMachineTrainer.UserName, FieldAwareFactorizationMachineTrainer.LoadName,
-    FieldAwareFactorizationMachineTrainer.ShortName, DocName = "trainer/FactorizationMachine.md")]
+[assembly: LoadableClass(FieldAwareFactorizationMachineBinaryClassificationTrainer.Summary, typeof(FieldAwareFactorizationMachineBinaryClassificationTrainer),
+    typeof(FieldAwareFactorizationMachineBinaryClassificationTrainer.Options), new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) }
+    , FieldAwareFactorizationMachineBinaryClassificationTrainer.UserName, FieldAwareFactorizationMachineBinaryClassificationTrainer.LoadName,
+    FieldAwareFactorizationMachineBinaryClassificationTrainer.ShortName, DocName = "trainer/FactorizationMachine.md")]
 
-[assembly: LoadableClass(typeof(void), typeof(FieldAwareFactorizationMachineTrainer), null, typeof(SignatureEntryPointModule), FieldAwareFactorizationMachineTrainer.LoadName)]
+[assembly: LoadableClass(typeof(void), typeof(FieldAwareFactorizationMachineBinaryClassificationTrainer), null, typeof(SignatureEntryPointModule), FieldAwareFactorizationMachineBinaryClassificationTrainer.LoadName)]
 
 namespace Microsoft.ML.FactorizationMachine
 {
@@ -32,7 +32,7 @@ namespace Microsoft.ML.FactorizationMachine
      [3] https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
     */
     /// <include file='doc.xml' path='doc/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
-    public sealed class FieldAwareFactorizationMachineTrainer : ITrainer<FieldAwareFactorizationMachineModelParameters>,
+    public sealed class FieldAwareFactorizationMachineBinaryClassificationTrainer : ITrainer<FieldAwareFactorizationMachineModelParameters>,
         IEstimator<FieldAwareFactorizationMachinePredictionTransformer>
     {
         internal const string Summary = "Train a field-aware factorization machine for binary classification";
@@ -52,9 +52,9 @@ namespace Microsoft.ML.FactorizationMachine
             /// <summary>
             /// Number of training iterations.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of training iterations", ShortName = "iters", SortOrder = 2)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of training iterations", ShortName = "iters,iter", SortOrder = 2)]
             [TlcModule.SweepableLongParam(1, 100)]
-            public int Iterations = 5;
+            public int NumberOfIterations = 5;
 
             /// <summary>
             /// Latent space dimension.
@@ -151,12 +151,12 @@ namespace Microsoft.ML.FactorizationMachine
         private float _radius;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/> through the <see cref="Options"/> class.
+        /// Initializes a new instance of <see cref="FieldAwareFactorizationMachineBinaryClassificationTrainer"/> through the <see cref="Options"/> class.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="options">An instance of the legacy <see cref="Options"/> to apply advanced parameters to the algorithm.</param>
         [BestFriend]
-        internal FieldAwareFactorizationMachineTrainer(IHostEnvironment env, Options options)
+        internal FieldAwareFactorizationMachineBinaryClassificationTrainer(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoadName);
@@ -178,14 +178,14 @@ namespace Microsoft.ML.FactorizationMachine
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/>.
+        /// Initializes a new instance of <see cref="FieldAwareFactorizationMachineBinaryClassificationTrainer"/>.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="featureColumnNames">The name of column hosting the features. The i-th element stores feature column of the i-th field.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="weightColumnName">The name of the weight column (optional).</param>
         [BestFriend]
-        internal FieldAwareFactorizationMachineTrainer(IHostEnvironment env,
+        internal FieldAwareFactorizationMachineBinaryClassificationTrainer(IHostEnvironment env,
             string[] featureColumnNames,
             string labelColumnName = DefaultColumnNames.Label,
             string weightColumnName = null)
@@ -218,13 +218,13 @@ namespace Microsoft.ML.FactorizationMachine
             _host.CheckUserArg(options.LambdaLinear >= 0, nameof(options.LambdaLinear), "Must be non-negative");
             _host.CheckUserArg(options.LambdaLatent >= 0, nameof(options.LambdaLatent), "Must be non-negative");
             _host.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), "Must be positive");
-            _host.CheckUserArg(options.Iterations >= 0, nameof(options.Iterations), "Must be non-negative");
+            _host.CheckUserArg(options.NumberOfIterations >= 0, nameof(options.NumberOfIterations), "Must be non-negative");
             _latentDim = options.LatentDimension;
             _latentDimAligned = FieldAwareFactorizationMachineUtils.GetAlignedVectorLength(_latentDim);
             _lambdaLinear = options.LambdaLinear;
             _lambdaLatent = options.LambdaLatent;
             _learningRate = options.LearningRate;
-            _numIterations = options.Iterations;
+            _numIterations = options.NumberOfIterations;
             _norm = options.Normalize;
             _shuffle = options.Shuffle;
             _verbose = options.Verbose;
@@ -514,12 +514,12 @@ namespace Microsoft.ML.FactorizationMachine
             var host = env.Register("Train a field-aware factorization machine");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input, () => new FieldAwareFactorizationMachineTrainer(host, input),
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input, () => new FieldAwareFactorizationMachineBinaryClassificationTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }
 
         /// <summary>
-        /// Continues the training of a <see cref="FieldAwareFactorizationMachineTrainer"/> using an already trained <paramref name="modelParameters"/> and/or validation data,
+        /// Continues the training of a <see cref="FieldAwareFactorizationMachineBinaryClassificationTrainer"/> using an already trained <paramref name="modelParameters"/> and/or validation data,
         /// and returns a <see cref="FieldAwareFactorizationMachinePredictionTransformer"/>.
         /// </summary>
         public FieldAwareFactorizationMachinePredictionTransformer Fit(IDataView trainData,

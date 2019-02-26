@@ -253,11 +253,9 @@ namespace Microsoft.ML.FactorizationMachine
         /// <summary>
         /// The linear coefficients of the features. It's the symbol `w` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
         /// </summary>
-        public float[] GetLinearWeights()
+        public IReadOnlyList<float> GetLinearWeights()
         {
-            var linearWeights = new float[_linearWeights.Length];
-            CopyLinearWeightsTo(linearWeights);
-            return linearWeights;
+            return _linearWeights;
         }
 
         /// <summary>
@@ -267,7 +265,7 @@ namespace Microsoft.ML.FactorizationMachine
         /// The k-th element in v_{j, f} is latentWeights[j * fieldCount * latentDim + f * latentDim + k].
         /// The size of the returned value is featureCount x fieldCount x latentDim.
         /// </summary>
-        public float[] GetLatentWeights()
+        public IReadOnlyList<float> GetLatentWeights()
         {
             var latentWeights = new float[FeatureCount * FieldCount * LatentDimension];
             for (int j = 0; j < FeatureCount; j++)
