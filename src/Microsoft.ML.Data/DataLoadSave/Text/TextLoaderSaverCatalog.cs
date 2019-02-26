@@ -78,7 +78,7 @@ namespace Microsoft.ML
             bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool trimWhitespace = TextLoader.Defaults.TrimWhitespace,
             bool allowSparse = TextLoader.Defaults.AllowSparse)
-            => TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar, allowQuoting,
+            => TextLoader.CreateTextLoader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar, allowQuoting,
                 allowSparse, trimWhitespace, dataSample: dataSample);
 
         /// <summary>
@@ -147,8 +147,8 @@ namespace Microsoft.ML
 
             // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
             // Therefore, we are going to disallow data sample.
-            return TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar,
-                allowQuoting, allowSparse, trimWhitespace).Read(new MultiFileSource(path));
+            return TextLoader.CreateTextLoader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar,
+                allowQuoting, allowSparse, trimWhitespace).Load(new MultiFileSource(path));
         }
 
         /// <summary>

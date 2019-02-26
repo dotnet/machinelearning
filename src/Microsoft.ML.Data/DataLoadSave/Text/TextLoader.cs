@@ -1425,7 +1425,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// The output <see cref="DataViewSchema"/> that will be produced by the reader.
+        /// The output <see cref="DataViewSchema"/> that will be produced by the loader.
         /// </summary>
         public DataViewSchema GetOutputSchema() => _bindings.OutputSchema;
 
@@ -1435,7 +1435,7 @@ namespace Microsoft.ML.Data
         /// <param name="source">The source from which to load data.</param>
         public IDataView Read(IMultiStreamSource source) => new BoundLoader(this, source);
 
-        internal static TextLoader CreateTextReader<TInput>(IHostEnvironment host,
+        internal static TextLoader CreateTextLoader<TInput>(IHostEnvironment host,
            bool hasHeader = Defaults.HasHeader,
            char separator = Defaults.Separator,
            bool allowQuoting = Defaults.AllowQuoting,
@@ -1507,14 +1507,14 @@ namespace Microsoft.ML.Data
 
         private sealed class BoundLoader : ILegacyDataLoader
         {
-            private readonly TextLoader _reader;
+            private readonly TextLoader _loader;
             private readonly IHost _host;
             private readonly IMultiStreamSource _files;
 
-            public BoundLoader(TextLoader reader, IMultiStreamSource files)
+            public BoundLoader(TextLoader loader, IMultiStreamSource files)
             {
-                _reader = reader;
-                _host = reader._host.Register(nameof(BoundLoader));
+                _loader = loader;
+                _host = loader._host.Register(nameof(BoundLoader));
                 _files = files;
             }
 
@@ -1528,23 +1528,23 @@ namespace Microsoft.ML.Data
             // REVIEW: Should we try to support shuffling?
             public bool CanShuffle => false;
 
-            public DataViewSchema Schema => _reader._bindings.OutputSchema;
+            public DataViewSchema Schema => _loader._bindings.OutputSchema;
 
             public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
-                var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, columnsNeeded);
-                return Cursor.Create(_reader, _files, active);
+                var active = Utils.BuildArray(_loader._bindings.OutputSchema.Count, columnsNeeded);
+                return Cursor.Create(_loader, _files, active);
             }
 
             public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
-                var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, columnsNeeded);
-                return Cursor.CreateSet(_reader, _files, active, n);
+                var active = Utils.BuildArray(_loader._bindings.OutputSchema.Count, columnsNeeded);
+                return Cursor.CreateSet(_loader, _files, active, n);
             }
 
-            void ICanSaveModel.Save(ModelSaveContext ctx) => ((ICanSaveModel)_reader).Save(ctx);
+            void ICanSaveModel.Save(ModelSaveContext ctx) => ((ICanSaveModel)_loader).Save(ctx);
         }
     }
 }
