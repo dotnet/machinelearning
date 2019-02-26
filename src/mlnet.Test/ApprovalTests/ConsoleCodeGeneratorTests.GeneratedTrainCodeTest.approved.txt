@@ -16,7 +16,7 @@ namespace MyNamespace
     {
         private static string TrainDataPath = @"x:\dummypath\dummy_train.csv";
         private static string TestDataPath = @"x:\dummypath\dummy_test.csv";
-        private static string ModelPath = @"./model.zip";
+        private static string ModelPath = @"..\..\..\model.zip";
 
         // Set this flag to enable the training process.
         private static bool EnableTraining = false;
