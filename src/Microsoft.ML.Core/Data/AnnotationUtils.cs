@@ -12,64 +12,64 @@ using Microsoft.ML.Internal.Utilities;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Utilities for implementing and using the metadata API of <see cref="DataViewSchema"/>.
+    /// Utilities for implementing and using the annotation API of <see cref="DataViewSchema"/>.
     /// </summary>
     [BestFriend]
-    internal static class MetadataUtils
+    internal static class AnnotationUtils
     {
         /// <summary>
-        /// This class lists the canonical metadata kinds
+        /// This class lists the canonical annotation kinds
         /// </summary>
         public static class Kinds
         {
             /// <summary>
-            /// Metadata kind for names associated with slots/positions in a vector-valued column.
-            /// The associated metadata type is typically fixed-sized vector of Text.
+            /// Annotation kind for names associated with slots/positions in a vector-valued column.
+            /// The associated annotation type is typically fixed-sized vector of Text.
             /// </summary>
             public const string SlotNames = "SlotNames";
 
             /// <summary>
-            /// Metadata kind for values associated with the key indices when the column type's item type
-            /// is a key type. The associated metadata type is typically fixed-sized vector of a primitive
+            /// Annotation kind for values associated with the key indices when the column type's item type
+            /// is a key type. The associated annotation type is typically fixed-sized vector of a primitive
             /// type. The primitive type is frequently Text, but can be anything.
             /// </summary>
             public const string KeyValues = "KeyValues";
 
             /// <summary>
-            /// Metadata kind for sets of score columns. The value is typically a KeyType with raw type U4.
+            /// Annotation kind for sets of score columns. The value is typically a KeyType with raw type U4.
             /// </summary>
             public const string ScoreColumnSetId = "ScoreColumnSetId";
 
             /// <summary>
-            /// Metadata kind that indicates the prediction kind as a string. For example, "BinaryClassification".
+            /// Annotation kind that indicates the prediction kind as a string. For example, "BinaryClassification".
             /// The value is typically a ReadOnlyMemory&lt;char&gt;.
             /// </summary>
             public const string ScoreColumnKind = "ScoreColumnKind";
 
             /// <summary>
-            /// Metadata kind that indicates the value kind of the score column as a string. For example, "Score", "PredictedLabel", "Probability". The value is typically a ReadOnlyMemory.
+            /// Annotation kind that indicates the value kind of the score column as a string. For example, "Score", "PredictedLabel", "Probability". The value is typically a ReadOnlyMemory.
             /// </summary>
             public const string ScoreValueKind = "ScoreValueKind";
 
             /// <summary>
-            /// Metadata kind that indicates if a column is normalized. The value is typically a Bool.
+            /// Annotation kind that indicates if a column is normalized. The value is typically a Bool.
             /// </summary>
             public const string IsNormalized = "IsNormalized";
 
             /// <summary>
-            /// Metadata kind that indicates if a column is visible to the users. The value is typically a Bool.
+            /// Annotation kind that indicates if a column is visible to the users. The value is typically a Bool.
             /// Not to be confused with IsHidden() that determines if a column is masked.
             /// </summary>
             public const string IsUserVisible = "IsUserVisible";
 
             /// <summary>
-            /// Metadata kind for the label values used in training to be used for the predicted label.
+            /// Annotation kind for the label values used in training to be used for the predicted label.
             /// The value is typically a fixed-sized vector of Text.
             /// </summary>
             public const string TrainingLabelValues = "TrainingLabelValues";
 
             /// <summary>
-            /// Metadata kind that indicates the ranges within a column that are categorical features.
+            /// Annotation kind that indicates the ranges within a column that are categorical features.
             /// The value is a vector type of ints with dimension of two. The first dimension
             /// represents the number of categorical features and second dimension represents the range
             /// and is of size two. The range has start and end index(both inclusive) of categorical
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// This class holds all pre-defined string values that can be found in canonical metadata
+        /// This class holds all pre-defined string values that can be found in canonical annotations
         /// </summary>
         public static class Const
         {
@@ -110,34 +110,34 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Helper delegate for marshaling from generic land to specific types. Used by the Marshal method below.
         /// </summary>
-        public delegate void MetadataGetter<TValue>(int col, ref TValue dst);
+        public delegate void AnnotationGetter<TValue>(int col, ref TValue dst);
 
         /// <summary>
-        /// Returns a standard exception for responding to an invalid call to GetMetadata.
+        /// Returns a standard exception for responding to an invalid call to GetAnnotation.
         /// </summary>
-        public static Exception ExceptGetMetadata() => Contracts.Except("Invalid call to GetMetadata");
+        public static Exception ExceptGetAnnotation() => Contracts.Except("Invalid call to GetAnnotation");
 
         /// <summary>
-        /// Returns a standard exception for responding to an invalid call to GetMetadata.
+        /// Returns a standard exception for responding to an invalid call to GetAnnotation.
         /// </summary>
-        public static Exception ExceptGetMetadata(this IExceptionContext ctx) => ctx.Except("Invalid call to GetMetadata");
+        public static Exception ExceptGetAnnotation(this IExceptionContext ctx) => ctx.Except("Invalid call to GetAnnotation");
 
         /// <summary>
-        /// Helper to marshal a call to GetMetadata{TValue} to a specific type.
+        /// Helper to marshal a call to GetAnnotation{TValue} to a specific type.
         /// </summary>
-        public static void Marshal<THave, TNeed>(this MetadataGetter<THave> getter, int col, ref TNeed dst)
+        public static void Marshal<THave, TNeed>(this AnnotationGetter<THave> getter, int col, ref TNeed dst)
         {
             Contracts.CheckValue(getter, nameof(getter));
 
             if (typeof(TNeed) != typeof(THave))
-                throw ExceptGetMetadata();
-            var get = (MetadataGetter<TNeed>)(Delegate)getter;
+                throw ExceptGetAnnotation();
+            var get = (AnnotationGetter<TNeed>)(Delegate)getter;
             get(col, ref dst);
         }
 
         /// <summary>
         /// Returns a vector type with item type text and the given size. The size must be positive.
-        /// This is a standard type for metadata consisting of multiple text values, eg SlotNames.
+        /// This is a standard type for annotation consisting of multiple text values, eg SlotNames.
         /// </summary>
         public static VectorType GetNamesType(int size)
         {
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Returns a vector type with item type int and the given size.
         /// The range count must be a positive integer.
-        /// This is a standard type for metadata consisting of multiple int values that represent
+        /// This is a standard type for annotation consisting of multiple int values that represent
         /// categorical slot ranges with in a column.
         /// </summary>
         public static VectorType GetCategoricalType(int rangeCount)
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Data
         private static volatile KeyType _scoreColumnSetIdType;
 
         /// <summary>
-        /// The type of the ScoreColumnSetId metadata.
+        /// The type of the ScoreColumnSetId annotation.
         /// </summary>
         public static KeyType ScoreColumnSetIdType
         {
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Returns a key-value pair useful when implementing GetMetadataTypes(col).
+        /// Returns a key-value pair useful when implementing GetAnnotationTypes(col).
         /// </summary>
         public static KeyValuePair<string, DataViewType> GetSlotNamesPair(int size)
         {
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Returns a key-value pair useful when implementing GetMetadataTypes(col). This assumes
+        /// Returns a key-value pair useful when implementing GetAnnotationTypes(col). This assumes
         /// that the values of the key type are Text.
         /// </summary>
         public static KeyValuePair<string, DataViewType> GetKeyNamesPair(int size)
@@ -190,8 +190,8 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Given a type and metadata kind string, returns a key-value pair. This is useful when
-        /// implementing GetMetadataTypes(col).
+        /// Given a type and annotation kind string, returns a key-value pair. This is useful when
+        /// implementing GetAnnotationTypes(col).
         /// </summary>
         public static KeyValuePair<string, DataViewType> GetPair(this DataViewType type, string kind)
         {
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Data
         // REVIEW: This should be in some general utility code.
 
         /// <summary>
-        /// Prepends a params array to an enumerable. Useful when implementing GetMetadataTypes.
+        /// Prepends a params array to an enumerable. Useful when implementing GetAnnotationTypes.
         /// </summary>
         public static IEnumerable<T> Prepend<T>(this IEnumerable<T> tail, params T[] head)
         {
@@ -210,26 +210,26 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Returns the max value for the specified metadata kind.
-        /// The metadata type should be a KeyType with raw type U4.
-        /// colMax will be set to the first column that has the max value for the specified metadata.
-        /// If no column has the specified metadata, colMax is set to -1 and the method returns zero.
+        /// Returns the max value for the specified annotation kind.
+        /// The annotation type should be a KeyType with raw type U4.
+        /// colMax will be set to the first column that has the max value for the specified annotation.
+        /// If no column has the specified annotation, colMax is set to -1 and the method returns zero.
         /// The filter function is called for each column, passing in the schema and the column index, and returns
         /// true if the column should be considered, false if the column should be skipped.
         /// </summary>
-        public static uint GetMaxMetadataKind(this DataViewSchema schema, out int colMax, string metadataKind, Func<DataViewSchema, int, bool> filterFunc = null)
+        public static uint GetMaxAnnotationKind(this DataViewSchema schema, out int colMax, string annotationKind, Func<DataViewSchema, int, bool> filterFunc = null)
         {
             uint max = 0;
             colMax = -1;
             for (int col = 0; col < schema.Count; col++)
             {
-                var columnType = schema[col].Metadata.Schema.GetColumnOrNull(metadataKind)?.Type;
+                var columnType = schema[col].Annotations.Schema.GetColumnOrNull(annotationKind)?.Type;
                 if (!(columnType is KeyType) || columnType.RawType != typeof(uint))
                     continue;
                 if (filterFunc != null && !filterFunc(schema, col))
                     continue;
                 uint value = 0;
-                schema[col].Metadata.GetValue(metadataKind, ref value);
+                schema[col].Annotations.GetValue(annotationKind, ref value);
                 if (max < value)
                 {
                     max = value;
@@ -240,18 +240,18 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Returns the set of column ids which match the value of specified metadata kind.
-        /// The metadata type should be a KeyType with raw type U4.
+        /// Returns the set of column ids which match the value of specified annotation kind.
+        /// The annotation type should be a KeyType with raw type U4.
         /// </summary>
-        public static IEnumerable<int> GetColumnSet(this DataViewSchema schema, string metadataKind, uint value)
+        public static IEnumerable<int> GetColumnSet(this DataViewSchema schema, string annotationKind, uint value)
         {
             for (int col = 0; col < schema.Count; col++)
             {
-                var columnType = schema[col].Metadata.Schema.GetColumnOrNull(metadataKind)?.Type;
+                var columnType = schema[col].Annotations.Schema.GetColumnOrNull(annotationKind)?.Type;
                 if (columnType is KeyType && columnType.RawType == typeof(uint))
                 {
                     uint val = 0;
-                    schema[col].Metadata.GetValue(metadataKind, ref val);
+                    schema[col].Annotations.GetValue(annotationKind, ref val);
                     if (val == value)
                         yield return col;
                 }
@@ -259,18 +259,18 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Returns the set of column ids which match the value of specified metadata kind.
-        /// The metadata type should be of type text.
+        /// Returns the set of column ids which match the value of specified annotation kind.
+        /// The annotation type should be of type text.
         /// </summary>
-        public static IEnumerable<int> GetColumnSet(this DataViewSchema schema, string metadataKind, string value)
+        public static IEnumerable<int> GetColumnSet(this DataViewSchema schema, string annotationKind, string value)
         {
             for (int col = 0; col < schema.Count; col++)
             {
-                var columnType = schema[col].Metadata.Schema.GetColumnOrNull(metadataKind)?.Type;
+                var columnType = schema[col].Annotations.Schema.GetColumnOrNull(annotationKind)?.Type;
                 if (columnType is TextDataViewType)
                 {
                     ReadOnlyMemory<char> val = default;
-                    schema[col].Metadata.GetValue(metadataKind, ref val);
+                    schema[col].Annotations.GetValue(annotationKind, ref val);
                     if (ReadOnlyMemoryUtils.EqualsStr(value, val))
                         yield return col;
                 }
@@ -279,15 +279,15 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Returns <c>true</c> if the specified column:
-        ///  * has a SlotNames metadata
-        ///  * metadata type is VBuffer&lt;ReadOnlyMemory&lt;char&gt;&gt; of length <paramref name="vectorSize"/>.
+        ///  * has a SlotNames annotation
+        ///  * annotation type is VBuffer&lt;ReadOnlyMemory&lt;char&gt;&gt; of length <paramref name="vectorSize"/>.
         /// </summary>
         public static bool HasSlotNames(this DataViewSchema.Column column, int vectorSize)
         {
             if (vectorSize == 0)
                 return false;
 
-            var metaColumn = column.Metadata.Schema.GetColumnOrNull(Kinds.SlotNames);
+            var metaColumn = column.Annotations.Schema.GetColumnOrNull(Kinds.SlotNames);
             return
                 metaColumn != null
                 && metaColumn.Value.Type is VectorType vectorType
@@ -304,66 +304,66 @@ namespace Microsoft.ML.Data
             if (list?.Count != 1 || !schema.Schema[list[0].Index].HasSlotNames(vectorSize))
                 VBufferUtils.Resize(ref slotNames, vectorSize, 0);
             else
-                schema.Schema[list[0].Index].Metadata.GetValue(Kinds.SlotNames, ref slotNames);
+                schema.Schema[list[0].Index].Annotations.GetValue(Kinds.SlotNames, ref slotNames);
         }
 
         public static bool HasKeyValues(this SchemaShape.Column col)
         {
-            return col.Metadata.TryFindColumn(Kinds.KeyValues, out var metaCol)
+            return col.Annotations.TryFindColumn(Kinds.KeyValues, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Vector
                 && metaCol.ItemType is TextDataViewType;
         }
 
         /// <summary>
-        /// Returns whether a column has the <see cref="Kinds.IsNormalized"/> metadata indicated by
+        /// Returns whether a column has the <see cref="Kinds.IsNormalized"/> annotation indicated by
         /// the schema shape.
         /// </summary>
         /// <param name="column">The schema shape column to query</param>
-        /// <returns>True if and only if the column has the <see cref="Kinds.IsNormalized"/> metadata
+        /// <returns>True if and only if the column has the <see cref="Kinds.IsNormalized"/> annotation
         /// of a scalar <see cref="BooleanDataViewType"/> type, which we assume, if set, should be <c>true</c>.</returns>
         public static bool IsNormalized(this SchemaShape.Column column)
         {
             Contracts.CheckParam(column.IsValid, nameof(column), "struct not initialized properly");
-            return column.Metadata.TryFindColumn(Kinds.IsNormalized, out var metaCol)
+            return column.Annotations.TryFindColumn(Kinds.IsNormalized, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Scalar && !metaCol.IsKey
                 && metaCol.ItemType == BooleanDataViewType.Instance;
         }
 
         /// <summary>
-        /// Returns whether a column has the <see cref="Kinds.SlotNames"/> metadata indicated by
+        /// Returns whether a column has the <see cref="Kinds.SlotNames"/> annotation indicated by
         /// the schema shape.
         /// </summary>
         /// <param name="col">The schema shape column to query</param>
         /// <returns>True if and only if the column is a definite sized vector type, has the
-        /// <see cref="Kinds.SlotNames"/> metadata of definite sized vectors of text.</returns>
+        /// <see cref="Kinds.SlotNames"/> annotation of definite sized vectors of text.</returns>
         public static bool HasSlotNames(this SchemaShape.Column col)
         {
             Contracts.CheckParam(col.IsValid, nameof(col), "struct not initialized properly");
             return col.Kind == SchemaShape.Column.VectorKind.Vector
-                && col.Metadata.TryFindColumn(Kinds.SlotNames, out var metaCol)
+                && col.Annotations.TryFindColumn(Kinds.SlotNames, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Vector && !metaCol.IsKey
                 && metaCol.ItemType == TextDataViewType.Instance;
         }
 
         /// <summary>
-        /// Tries to get the metadata kind of the specified type for a column.
+        /// Tries to get the annotation kind of the specified type for a column.
         /// </summary>
-        /// <typeparam name="T">The raw type of the metadata, should match the PrimitiveType type</typeparam>
+        /// <typeparam name="T">The raw type of the annotation, should match the PrimitiveType type</typeparam>
         /// <param name="schema">The schema</param>
-        /// <param name="type">The type of the metadata</param>
-        /// <param name="kind">The metadata kind</param>
+        /// <param name="type">The type of the annotation</param>
+        /// <param name="kind">The annotation kind</param>
         /// <param name="col">The column</param>
         /// <param name="value">The value to return, if successful</param>
-        /// <returns>True if the metadata of the right type exists, false otherwise</returns>
-        public static bool TryGetMetadata<T>(this DataViewSchema schema, PrimitiveDataViewType type, string kind, int col, ref T value)
+        /// <returns>True if the annotation of the right type exists, false otherwise</returns>
+        public static bool TryGetAnnotation<T>(this DataViewSchema schema, PrimitiveDataViewType type, string kind, int col, ref T value)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(type, nameof(type));
 
-            var metadataType = schema[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
-            if (!type.Equals(metadataType))
+            var annotationType = schema[col].Annotations.Schema.GetColumnOrNull(kind)?.Type;
+            if (!type.Equals(annotationType))
                 return false;
-            schema[col].Metadata.GetValue(kind, ref value);
+            schema[col].Annotations.GetValue(kind, ref value);
             return true;
         }
 
@@ -385,11 +385,11 @@ namespace Microsoft.ML.Data
             if (!(schema[colIndex].Type is VectorType vecType && vecType.Size > 0))
                 return isValid;
 
-            var type = schema[colIndex].Metadata.Schema.GetColumnOrNull(Kinds.CategoricalSlotRanges)?.Type;
+            var type = schema[colIndex].Annotations.Schema.GetColumnOrNull(Kinds.CategoricalSlotRanges)?.Type;
             if (type?.RawType == typeof(VBuffer<int>))
             {
                 VBuffer<int> catIndices = default(VBuffer<int>);
-                schema[colIndex].Metadata.GetValue(Kinds.CategoricalSlotRanges, ref catIndices);
+                schema[colIndex].Annotations.GetValue(Kinds.CategoricalSlotRanges, ref catIndices);
                 VBufferUtils.Densify(ref catIndices);
                 int columnSlotsCount = vecType.Size;
                 if (catIndices.Length > 0 && catIndices.Length % 2 == 0 && catIndices.Length <= columnSlotsCount * 2)
@@ -422,7 +422,7 @@ namespace Microsoft.ML.Data
         /// Produces sequence of columns that are generated by trainer estimators.
         /// </summary>
         /// <param name="isNormalized">whether we should also append 'IsNormalized' (typically for probability column)</param>
-        public static IEnumerable<SchemaShape.Column> GetTrainerOutputMetadata(bool isNormalized = false)
+        public static IEnumerable<SchemaShape.Column> GetTrainerOutputAnnotation(bool isNormalized = false)
         {
             var cols = new List<SchemaShape.Column>();
             cols.Add(new SchemaShape.Column(Kinds.ScoreColumnSetId, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true));
@@ -434,47 +434,47 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Produces metadata for the score column generated by trainer estimators for multiclass classification.
-        /// If input LabelColumn is not available it produces slotnames metadata by default.
+        /// Produces annotations for the score column generated by trainer estimators for multiclass classification.
+        /// If input LabelColumn is not available it produces slotnames annotation by default.
         /// </summary>
         /// <param name="labelColumn">Label column.</param>
-        public static IEnumerable<SchemaShape.Column> MetadataForMulticlassScoreColumn(SchemaShape.Column? labelColumn = null)
+        public static IEnumerable<SchemaShape.Column> AnnotationsForMulticlassScoreColumn(SchemaShape.Column? labelColumn = null)
         {
             var cols = new List<SchemaShape.Column>();
             if (labelColumn != null && labelColumn.Value.IsKey && HasKeyValues(labelColumn.Value))
                 cols.Add(new SchemaShape.Column(Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
-            cols.AddRange(GetTrainerOutputMetadata());
+            cols.AddRange(GetTrainerOutputAnnotation());
             return cols;
         }
 
-        private sealed class MetadataRow : DataViewRow
+        private sealed class AnnotationRow : DataViewRow
         {
-            private readonly DataViewSchema.Metadata _metadata;
+            private readonly DataViewSchema.Annotations _annotations;
 
-            public MetadataRow(DataViewSchema.Metadata metadata)
+            public AnnotationRow(DataViewSchema.Annotations annotations)
             {
-                Contracts.AssertValue(metadata);
-                _metadata = metadata;
+                Contracts.AssertValue(annotations);
+                _annotations = annotations;
             }
 
-            public override DataViewSchema Schema => _metadata.Schema;
+            public override DataViewSchema Schema => _annotations.Schema;
             public override long Position => 0;
             public override long Batch => 0;
-            public override ValueGetter<TValue> GetGetter<TValue>(int col) => _metadata.GetGetter<TValue>(col);
+            public override ValueGetter<TValue> GetGetter<TValue>(int col) => _annotations.GetGetter<TValue>(col);
             public override ValueGetter<DataViewRowId> GetIdGetter() => (ref DataViewRowId dst) => dst = default;
             public override bool IsColumnActive(int col) => true;
         }
 
         /// <summary>
-        /// Presents a <see cref="DataViewSchema.Metadata"/> as a an <see cref="DataViewRow"/>.
+        /// Presents a <see cref="DataViewSchema.Annotations"/> as a an <see cref="DataViewRow"/>.
         /// </summary>
-        /// <param name="metadata">The metadata to wrap.</param>
-        /// <returns>A row that wraps an input metadata.</returns>
+        /// <param name="annotations">The annotations to wrap.</param>
+        /// <returns>A row that wraps an input annotations.</returns>
         [BestFriend]
-        internal static DataViewRow MetadataAsRow(DataViewSchema.Metadata metadata)
+        internal static DataViewRow AnnotationsAsRow(DataViewSchema.Annotations annotations)
         {
-            Contracts.CheckValue(metadata, nameof(metadata));
-            return new MetadataRow(metadata);
+            Contracts.CheckValue(annotations, nameof(annotations));
+            return new AnnotationRow(annotations);
         }
     }
 }

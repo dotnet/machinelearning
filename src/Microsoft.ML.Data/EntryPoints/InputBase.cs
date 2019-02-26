@@ -95,7 +95,7 @@ namespace Microsoft.ML.EntryPoints
     public abstract class LearnerInputBaseWithWeight : LearnerInputBaseWithLabel
     {
         /// <summary>
-        /// Column to use for example weight.
+        /// The name of the example weight column.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public string WeightColumn = null;

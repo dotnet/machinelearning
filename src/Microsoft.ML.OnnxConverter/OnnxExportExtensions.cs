@@ -7,7 +7,7 @@ using System.IO;
 using Google.Protobuf;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Model.OnnxConverter;
-using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
+using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
 namespace Microsoft.ML
 {

@@ -87,7 +87,7 @@ namespace Microsoft.ML.Data
             public string Name;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Data type of the column.")]
-            public DataKind? Type;
+            public InternalDataKind? Type;
 
             [Argument(ArgumentType.Required, HelpText = "Index of the directory representing this column.")]
             public int Source;
@@ -118,8 +118,8 @@ namespace Microsoft.ML.Data
                     return false;
                 }
 
-                DataKind? kind = null;
-                if (kindStr != null && TypeParsingUtils.TryParseDataKind(kindStr, out DataKind parsedKind, out var keyCount))
+                InternalDataKind? kind = null;
+                if (kindStr != null && TypeParsingUtils.TryParseDataKind(kindStr, out InternalDataKind parsedKind, out var keyCount))
                 {
                     kind = parsedKind;
                 }
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Data
                 {
                     Name = "Path",
                     Source = FilePathColIndex,
-                    Type = DataKind.Text
+                    Type = InternalDataKind.Text
                 };
 
                 columns = columns.Concat(new[] { pathCol }).ToArray();

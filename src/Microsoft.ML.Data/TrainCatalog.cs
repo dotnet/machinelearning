@@ -623,7 +623,7 @@ namespace Microsoft.ML
         /// <param name="groupId">The name of the groupId column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public RankerMetrics Evaluate(IDataView data,
+        public RankingMetrics Evaluate(IDataView data,
             string label = DefaultColumnNames.Label,
             string groupId = DefaultColumnNames.GroupId,
             string score = DefaultColumnNames.Score)
@@ -633,7 +633,7 @@ namespace Microsoft.ML
             Environment.CheckNonEmpty(score, nameof(score));
             Environment.CheckNonEmpty(groupId, nameof(groupId));
 
-            var eval = new RankerEvaluator(Environment, new RankerEvaluator.Arguments() { });
+            var eval = new RankingEvaluator(Environment, new RankingEvaluator.Arguments() { });
             return eval.Evaluate(data, label, groupId, score);
         }
     }

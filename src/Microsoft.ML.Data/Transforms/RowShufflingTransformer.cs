@@ -529,7 +529,7 @@ namespace Microsoft.ML.Transforms
                         input.Schema[c].Type, RowCursorUtils.GetGetterAsDelegate(input, c));
                     _getters[ia] = CreateGetterDelegate(c);
                 }
-                var idPipe = _pipes[numActive + (int)ExtraIndex.Id] = ShufflePipe.Create(_pipeIndices.Length, NumberDataViewType.DataViewRowId, input.GetIdGetter());
+                var idPipe = _pipes[numActive + (int)ExtraIndex.Id] = ShufflePipe.Create(_pipeIndices.Length, RowIdDataViewType.Instance, input.GetIdGetter());
                 _idGetter = CreateGetterDelegate<DataViewRowId>(idPipe);
                 // Initially, after the preamble to MoveNextCore, we want:
                 // liveCount=0, deadCount=0, circularIndex=0. So we set these

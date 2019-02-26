@@ -9,7 +9,7 @@ using System.Text;
 using Google.Protobuf;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
+using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
 namespace Microsoft.ML.Model.OnnxConverter
 {
@@ -255,7 +255,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             model.Domain = domain;
             model.ProducerName = producerName;
             model.ProducerVersion = producerVersion;
-            model.IrVersion = (long)UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.Version.IrVersion;
+            model.IrVersion = (long)OnnxCSharpToProtoWrapper.Version.IrVersion;
             model.ModelVersion = modelVersion;
             model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "ai.onnx.ml", Version = 1 });
             model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "", Version = 7 });

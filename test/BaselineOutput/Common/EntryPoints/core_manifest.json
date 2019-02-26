@@ -191,8 +191,8 @@
                         "Desc": "Type of the items in the column",
                         "Required": false,
                         "SortOrder": 150.0,
-                        "IsNullable": true,
-                        "Default": null
+                        "IsNullable": false,
+                        "Default": "R4"
                       },
                       {
                         "Name": "Source",
@@ -2677,7 +2677,7 @@
       ]
     },
     {
-      "Name": "Models.RankerEvaluator",
+      "Name": "Models.RankingEvaluator",
       "Desc": "Evaluates a ranking scored dataset.",
       "FriendlyName": null,
       "ShortName": null,

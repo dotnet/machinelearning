@@ -26,8 +26,8 @@ namespace Microsoft.ML.Samples.Dynamic
             var reader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
-                        new TextLoader.Column("Sentiment", DataKind.R4, 0),
-                        new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                        new TextLoader.Column("Sentiment", DataKind.Single, 0),
+                        new TextLoader.Column("SentimentText", DataKind.String, 1)
                     },
                 hasHeader: true
             );

@@ -112,7 +112,7 @@ namespace Microsoft.ML.Functional.Tests
                 Assert.Equal(schemaPair.Item1.Index, schemaPair.Item2.Index);
                 Assert.Equal(schemaPair.Item1.IsHidden, schemaPair.Item2.IsHidden);
                 // Can probably do a better comparison of Metadata.
-                AssertEqual(schemaPair.Item1.Metadata.Schema, schemaPair.Item1.Metadata.Schema);
+                AssertEqual(schemaPair.Item1.Annotations.Schema, schemaPair.Item1.Annotations.Schema);
                 Assert.True((schemaPair.Item1.Type == schemaPair.Item2.Type) ||
                     (schemaPair.Item1.Type.RawType == schemaPair.Item2.Type.RawType));
             }
@@ -158,7 +158,6 @@ namespace Microsoft.ML.Functional.Tests
             Assert.True(testType1.Ts.Equals(testType2.Ts));
             Assert.True(testType1.Dt.Equals(testType2.Dt));
             Assert.True(testType1.Dz.Equals(testType2.Dz));
-            Assert.True(testType1.Ug.Equals(testType2.Ug));
         }
 
         /// <summary>
@@ -224,10 +223,10 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// Check that a <see cref="RankerMetrics"/> object is valid.
+        /// Check that a <see cref="RankingMetrics"/> object is valid.
         /// </summary>
         /// <param name="metrics">The metrics object.</param>
-        public static void AssertMetrics(RankerMetrics metrics)
+        public static void AssertMetrics(RankingMetrics metrics)
         {
             foreach (var dcg in metrics.Dcg)
                 Assert.True(dcg >= 0);

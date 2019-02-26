@@ -165,40 +165,40 @@ namespace Microsoft.ML.Core.Tests.UnitTests
 
                 switch (kind)
                 {
-                    case DataKind.I1:
+                    case InternalDataKind.I1:
                         return GetComparerVec<sbyte>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.U1:
+                    case InternalDataKind.U1:
                         return GetComparerVec<byte>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.I2:
+                    case InternalDataKind.I2:
                         return GetComparerVec<short>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.U2:
+                    case InternalDataKind.U2:
                         return GetComparerVec<ushort>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.I4:
+                    case InternalDataKind.I4:
                         return GetComparerVec<int>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.U4:
+                    case InternalDataKind.U4:
                         return GetComparerVec<uint>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.I8:
+                    case InternalDataKind.I8:
                         return GetComparerVec<long>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.U8:
+                    case InternalDataKind.U8:
                         return GetComparerVec<ulong>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.R4:
+                    case InternalDataKind.R4:
                         return GetComparerVec<Single>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                    case DataKind.R8:
+                    case InternalDataKind.R8:
                         if (exactDoubles)
                             return GetComparerVec<Double>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
                         else
                             return GetComparerVec<Double>(r1, r2, col, size, EqualWithEps);
-                    case DataKind.Text:
+                    case InternalDataKind.Text:
                         return GetComparerVec<ReadOnlyMemory<char>>(r1, r2, col, size, (a, b) => a.Span.SequenceEqual(b.Span));
-                    case DataKind.Bool:
+                    case InternalDataKind.Bool:
                         return GetComparerVec<bool>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.TimeSpan:
+                    case InternalDataKind.TimeSpan:
                         return GetComparerVec<TimeSpan>(r1, r2, col, size, (x, y) => x.Ticks == y.Ticks);
-                    case DataKind.DT:
+                    case InternalDataKind.DT:
                         return GetComparerVec<DateTime>(r1, r2, col, size, (x, y) => x.Ticks == y.Ticks);
-                    case DataKind.DZ:
+                    case InternalDataKind.DZ:
                         return GetComparerVec<DateTimeOffset>(r1, r2, col, size, (x, y) => x.Equals(y));
-                    case DataKind.UG:
+                    case InternalDataKind.UG:
                         return GetComparerVec<DataViewRowId>(r1, r2, col, size, (x, y) => x.Equals(y));
                 }
             }
@@ -208,40 +208,40 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 Contracts.Assert(result);
                 switch (kind)
                 {
-                    case DataKind.I1:
+                    case InternalDataKind.I1:
                         return GetComparerOne<sbyte>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.U1:
+                    case InternalDataKind.U1:
                         return GetComparerOne<byte>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.I2:
+                    case InternalDataKind.I2:
                         return GetComparerOne<short>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.U2:
+                    case InternalDataKind.U2:
                         return GetComparerOne<ushort>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.I4:
+                    case InternalDataKind.I4:
                         return GetComparerOne<int>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.U4:
+                    case InternalDataKind.U4:
                         return GetComparerOne<uint>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.I8:
+                    case InternalDataKind.I8:
                         return GetComparerOne<long>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.U8:
+                    case InternalDataKind.U8:
                         return GetComparerOne<ulong>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.R4:
+                    case InternalDataKind.R4:
                         return GetComparerOne<Single>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                    case DataKind.R8:
+                    case InternalDataKind.R8:
                         if (exactDoubles)
                             return GetComparerOne<Double>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
                         else
                             return GetComparerOne<Double>(r1, r2, col, EqualWithEps);
-                    case DataKind.Text:
+                    case InternalDataKind.Text:
                         return GetComparerOne<ReadOnlyMemory<char>>(r1, r2, col, (a, b) => a.Span.SequenceEqual(b.Span));
-                    case DataKind.Bool:
+                    case InternalDataKind.Bool:
                         return GetComparerOne<bool>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.TimeSpan:
+                    case InternalDataKind.TimeSpan:
                         return GetComparerOne<TimeSpan>(r1, r2, col, (x, y) => x.Ticks == y.Ticks);
-                    case DataKind.DT:
+                    case InternalDataKind.DT:
                         return GetComparerOne<DateTime>(r1, r2, col, (x, y) => x.Ticks == y.Ticks);
-                    case DataKind.DZ:
+                    case InternalDataKind.DZ:
                         return GetComparerOne<DateTimeOffset>(r1, r2, col, (x, y) => x.Equals(y));
-                    case DataKind.UG:
+                    case InternalDataKind.UG:
                         return GetComparerOne<DataViewRowId>(r1, r2, col, (x, y) => x.Equals(y));
                 }
             }

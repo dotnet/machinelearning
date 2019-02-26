@@ -10,7 +10,6 @@ using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Tools;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
 using Xunit;
 using Xunit.Abstractions;
@@ -58,13 +57,13 @@ namespace Microsoft.ML.Tests
             var loader = new TextLoader(ML, new TextLoader.Options
             {
                 Columns = new[]{
-                    new TextLoader.Column("float1", DataKind.R4, 9),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
-                    new TextLoader.Column("double1", DataKind.R8, 9),
-                    new TextLoader.Column("double4", DataKind.R8, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
-                    new TextLoader.Column("int1", DataKind.I4, 9),
-                    new TextLoader.Column("text1", DataKind.TX, 1),
-                    new TextLoader.Column("text2", DataKind.TX, new[]{new TextLoader.Range(1), new TextLoader.Range(2)}),
+                    new TextLoader.Column("float1", DataKind.Single, 9),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("double1", DataKind.Double, 9),
+                    new TextLoader.Column("double4", DataKind.Double, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("int1", DataKind.Int32, 9),
+                    new TextLoader.Column("text1", DataKind.String, 1),
+                    new TextLoader.Column("text2", DataKind.String, new[]{new TextLoader.Range(1), new TextLoader.Range(2)}),
                 },
                 Separator = "\t",
                 HasHeader = true

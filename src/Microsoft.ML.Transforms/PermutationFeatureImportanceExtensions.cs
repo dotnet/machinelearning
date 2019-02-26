@@ -285,7 +285,7 @@ namespace Microsoft.ML
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
         /// <param name="permutationCount">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
-        public static ImmutableArray<RankerMetricsStatistics>
+        public static ImmutableArray<RankingMetricsStatistics>
             PermutationFeatureImportance<TModel>(
                 this RankingCatalog catalog,
                 IPredictionTransformer<TModel> model,
@@ -297,7 +297,7 @@ namespace Microsoft.ML
                 int? topExamples = null,
                 int permutationCount = 1)
         {
-            return PermutationFeatureImportance<TModel, RankerMetrics, RankerMetricsStatistics>.GetImportanceMetricsMatrix(
+            return PermutationFeatureImportance<TModel, RankingMetrics, RankingMetricsStatistics>.GetImportanceMetricsMatrix(
                             CatalogUtils.GetEnvironment(catalog),
                             model,
                             data,
@@ -309,13 +309,13 @@ namespace Microsoft.ML
                             topExamples);
         }
 
-        private static RankerMetrics RankingDelta(
-            RankerMetrics a, RankerMetrics b)
+        private static RankingMetrics RankingDelta(
+            RankingMetrics a, RankingMetrics b)
         {
             var dcg = ComputeArrayDeltas(a.Dcg, b.Dcg);
             var ndcg = ComputeArrayDeltas(a.Ndcg, b.Ndcg);
 
-            return new RankerMetrics(dcg: dcg, ndcg: ndcg);
+            return new RankingMetrics(dcg: dcg, ndcg: ndcg);
         }
 
         #endregion
@@ -606,7 +606,7 @@ namespace Microsoft.ML
     /// The RankerMetricsStatistics class is computes summary
     /// statistics over multiple observations of regression evaluation metrics.
     /// </summary>
-    public sealed class RankerMetricsStatistics : MetricsStatisticsBase<RankerMetrics>
+    public sealed class RankingMetricsStatistics : MetricsStatisticsBase<RankingMetrics>
     {
         /// <summary>
         /// Summary Statistics for DCG
@@ -622,7 +622,7 @@ namespace Microsoft.ML
         /// Add a set of evaluation metrics to the set of observations.
         /// </summary>
         /// <param name="metrics">The observed regression evaluation metric</param>
-        public override void Add(RankerMetrics metrics)
+        public override void Add(RankingMetrics metrics)
         {
             if (Dcg == null)
                 Dcg = InitializeArray(metrics.Dcg.Length);

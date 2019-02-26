@@ -34,8 +34,8 @@ namespace Microsoft.ML.Samples.Dynamic
                 HasHeader = true,
                 Columns = new[]
                     {
-                        new TextLoader.Column("Sentiment", DataKind.BL, 0),
-                        new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                        new TextLoader.Column("Sentiment", DataKind.Boolean, 0),
+                        new TextLoader.Column("SentimentText", DataKind.String, 1)
                     }
             });
 

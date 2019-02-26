@@ -24,6 +24,18 @@ namespace Microsoft.ML.SamplesUtils
         }
 
         /// <summary>
+        /// Pretty-print CalibratedBinaryClassificationMetrics objects.
+        /// </summary>
+        /// <param name="metrics"><see cref="CalibratedBinaryClassificationMetrics"/> object.</param>
+        public static void PrintMetrics(CalibratedBinaryClassificationMetrics metrics)
+        {
+            PrintMetrics(metrics as BinaryClassificationMetrics);
+            Console.WriteLine($"LogLoss: {metrics.LogLoss:F2}");
+            Console.WriteLine($"LogLossReduction: {metrics.LogLossReduction:F2}");
+            Console.WriteLine($"Entropy: {metrics.Entropy:F2}");
+        }
+
+        /// <summary>
         /// Pretty-print RegressionMetrics objects.
         /// </summary>
         /// <param name="metrics">Regression metrics.</param>
