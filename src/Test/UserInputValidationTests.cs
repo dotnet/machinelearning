@@ -161,5 +161,21 @@ namespace Microsoft.ML.Auto.Test
             var dataView = new EmptyDataView(new MLContext(), schema);
             UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(), null);
         }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void ValidateTextColumnNotText()
+        {
+            const string TextPurposeColName = "TextColumn";
+            var schemaBuilder = new SchemaBuilder();
+            schemaBuilder.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single);
+            schemaBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single);
+            schemaBuilder.AddColumn(TextPurposeColName, NumberDataViewType.Double);
+            var schema = schemaBuilder.GetSchema();
+            var dataView = new EmptyDataView(new MLContext(), schema);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, 
+                new ColumnInformation() { TextColumns = new[] { TextPurposeColName } }, 
+                null);
+        }
     }
 }

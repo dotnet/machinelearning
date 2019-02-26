@@ -13,6 +13,14 @@ namespace Microsoft.ML.Auto
 {
     internal static class UserInputValidationUtil
     {
+        // column purpose names
+        private const string LabelColumnPurposeName = "label";
+        private const string WeightColumnPurposeName = "weight";
+        private const string NumericColumnPurposeName = "numeric";
+        private const string CategoricalColumnPurposeName = "categorical";
+        private const string TextColumnPurposeName = "text";
+        private const string IgnoredColumnPurposeName = "ignored";
+
         public static void ValidateExperimentExecuteArgs(IDataView trainData, ColumnInformation columnInformation,
             IDataView validationData)
         {
@@ -55,22 +63,25 @@ namespace Microsoft.ML.Auto
         private static void ValidateColumnInformation(IDataView trainData, ColumnInformation columnInformation)
         {
             ValidateColumnInformation(columnInformation);
-            ValidateTrainDataColumnExists(trainData, columnInformation.LabelColumn);
-            ValidateTrainDataColumnExists(trainData, columnInformation.WeightColumn);
-            ValidateTrainDataColumnsExist(trainData, columnInformation.CategoricalColumns);
-            ValidateTrainDataColumnsExist(trainData, columnInformation.NumericColumns);
-            ValidateTrainDataColumnsExist(trainData, columnInformation.TextColumns);
-            ValidateTrainDataColumnsExist(trainData, columnInformation.IgnoredColumns);
+            ValidateTrainDataColumn(trainData, columnInformation.LabelColumn, LabelColumnPurposeName);
+            ValidateTrainDataColumn(trainData, columnInformation.WeightColumn, WeightColumnPurposeName);
+            ValidateTrainDataColumns(trainData, columnInformation.CategoricalColumns, CategoricalColumnPurposeName,
+                new DataViewType[] { NumberDataViewType.Single, TextDataViewType.Instance });
+            ValidateTrainDataColumns(trainData, columnInformation.NumericColumns, NumericColumnPurposeName,
+                new DataViewType[] { NumberDataViewType.Single, BooleanDataViewType.Instance });
+            ValidateTrainDataColumns(trainData, columnInformation.TextColumns, TextColumnPurposeName,
+                new DataViewType[] { TextDataViewType.Instance });
+            ValidateTrainDataColumns(trainData, columnInformation.IgnoredColumns, IgnoredColumnPurposeName);
         }
 
         private static void ValidateColumnInformation(ColumnInformation columnInformation)
         {
             ValidateLabelColumn(columnInformation.LabelColumn);
 
-            ValidateColumnInfoEnumerationProperty(columnInformation.CategoricalColumns, "categorical");
-            ValidateColumnInfoEnumerationProperty(columnInformation.NumericColumns, "numeric");
-            ValidateColumnInfoEnumerationProperty(columnInformation.TextColumns, "text");
-            ValidateColumnInfoEnumerationProperty(columnInformation.IgnoredColumns, "ignored");
+            ValidateColumnInfoEnumerationProperty(columnInformation.CategoricalColumns, CategoricalColumnPurposeName);
+            ValidateColumnInfoEnumerationProperty(columnInformation.NumericColumns, NumericColumnPurposeName);
+            ValidateColumnInfoEnumerationProperty(columnInformation.TextColumns, TextColumnPurposeName);
+            ValidateColumnInfoEnumerationProperty(columnInformation.IgnoredColumns, IgnoredColumnPurposeName);
 
             // keep a list of all columns, to detect duplicates
             var allColumns = new List<string>();
@@ -88,11 +99,11 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        private static void ValidateColumnInfoEnumerationProperty(IEnumerable<string> columns, string propertyName)
+        private static void ValidateColumnInfoEnumerationProperty(IEnumerable<string> columns, string columnPurpose)
         {
             if (columns?.Contains(null) == true)
             {
-                throw new ArgumentException($"Null column string was specified as {propertyName} in column information");
+                throw new ArgumentException($"Null column string was specified as {columnPurpose} in column information");
             }
         }
 
@@ -155,7 +166,8 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        private static void ValidateTrainDataColumnsExist(IDataView trainData, IEnumerable<string> columnNames)
+        private static void ValidateTrainDataColumns(IDataView trainData, IEnumerable<string> columnNames, string columnPurpose,
+            IEnumerable<DataViewType> allowedTypes = null)
         {
             if (columnNames == null)
             {
@@ -164,15 +176,41 @@ namespace Microsoft.ML.Auto
 
             foreach (var columnName in columnNames)
             {
-                ValidateTrainDataColumnExists(trainData, columnName);
+                ValidateTrainDataColumn(trainData, columnName, columnPurpose, allowedTypes);
             }
         }
 
-        private static void ValidateTrainDataColumnExists(IDataView trainData, string columnName)
+        private static void ValidateTrainDataColumn(IDataView trainData, string columnName, string columnPurpose, IEnumerable<DataViewType> allowedTypes = null)
         {
-            if (columnName != null && trainData.Schema.GetColumnOrNull(columnName) == null)
+            if (columnName == null)
             {
-                throw new ArgumentException($"Provided column '{columnName}' not found in training data.");
+                return;
+            }
+
+            var nullableColumn = trainData.Schema.GetColumnOrNull(columnName);
+            if (nullableColumn == null)
+            {
+                throw new ArgumentException($"Provided {columnPurpose} column {columnName} '{columnName}' not found in training data.");
+            }
+
+            if(allowedTypes == null)
+            {
+                return;
+            }
+            var column = nullableColumn.Value;
+            var itemType = column.Type.GetItemType();
+            if (!allowedTypes.Contains(itemType))
+            {
+                if (allowedTypes.Count() == 1)
+                {
+                    throw new ArgumentException($"Provided {columnPurpose} column '{columnName}' was of type {itemType}, " +
+                        $"but only type {allowedTypes.First()} is allowed.");
+                }
+                else
+                {
+                    throw new ArgumentException($"Provided {columnPurpose} column '{columnName}' was of type {itemType}, " +
+                        $"but only types {string.Join(", ", allowedTypes)} are allowed.");
+                }
             }
         }
 
