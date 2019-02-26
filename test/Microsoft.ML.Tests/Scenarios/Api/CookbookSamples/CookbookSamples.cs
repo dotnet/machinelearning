@@ -483,7 +483,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var unigrams = transformedData.GetColumn(x => x.BagOfWords).Take(10).ToArray();
         }
 
-        [Fact(Skip = "This test is running for one minute")]
+        [Fact]
         public void TextFeaturization()
             => TextFeaturizationOn(GetDataPath("wikipedia-detox-250-line-data.tsv"));
 
