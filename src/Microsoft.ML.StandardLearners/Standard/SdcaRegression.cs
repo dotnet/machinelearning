@@ -32,6 +32,9 @@ namespace Microsoft.ML.Trainers
         internal const string ShortName = "sasdcar";
         internal const string Summary = "The SDCA linear regression trainer.";
 
+        /// <summary>
+        /// Options for the <see cref="SdcaRegressionTrainer"/>.
+        /// </summary>
         public sealed class Options : OptionsBase
         {
             /// <summary>
@@ -43,6 +46,9 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaRegressionLossFactory LossFunction = new SquaredLossFactory();
 
+            /// <summary>
+            /// Create the <see cref="Options"/> object.
+            /// </summary>
             public Options()
             {
                 // Using a higher default tolerance for better RMS.
