@@ -26,7 +26,7 @@ namespace Microsoft.ML.FactorizationMachine
 {
     /*
      Train a field-aware factorization machine using ADAGRAD (an advanced stochastic gradient method). See references below
-     for details. This trainer is essentially faster the one introduced in [2] because of some implementation tricks[3].
+     for details. This trainer is essentially faster than the one introduced in [2] because of some implementation tricks[3].
      [1] http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf
      [2] https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
      [3] https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
@@ -156,12 +156,12 @@ namespace Microsoft.ML.FactorizationMachine
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="featureColumns">The name of column hosting the features. The i-th element stores feature column of the i-th field.</param>
         /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="weights">The name of the optional weights' column.</param>
+        /// <param name="weightColumn">The name of the optional weights' column.</param>
         [BestFriend]
         internal FieldAwareFactorizationMachineTrainer(IHostEnvironment env,
             string[] featureColumns,
             string labelColumn = DefaultColumnNames.Label,
-            string weights = null)
+            string weightColumn = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoadName);
@@ -176,7 +176,7 @@ namespace Microsoft.ML.FactorizationMachine
                 FeatureColumns[i] = new SchemaShape.Column(featureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
             LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false);
-            WeightColumn = weights != null ? new SchemaShape.Column(weights, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false) : default;
+            WeightColumn = weightColumn != null ? new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false) : default;
         }
 
         /// <summary>
