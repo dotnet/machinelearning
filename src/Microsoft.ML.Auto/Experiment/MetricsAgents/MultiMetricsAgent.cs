@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
@@ -30,10 +29,33 @@ namespace Microsoft.ML.Auto
                     return metrics.LogLossReduction;
                 case MulticlassClassificationMetric.TopKAccuracy:
                     return metrics.TopKAccuracy;
+                default:
+                    throw MetricsAgentUtil.BuildMetricNotSupportedException(_optimizingMetric);
+            }
+        }
+
+        public bool IsModelPerfect(MultiClassClassifierMetrics metrics)
+        {
+            if (metrics == null)
+            {
+                return false;
             }
 
-            // never expected to reach here
-            throw new NotSupportedException($"{_optimizingMetric} is not a supported sweep metric");
+            switch (_optimizingMetric)
+            {
+                case MulticlassClassificationMetric.AccuracyMacro:
+                    return metrics.AccuracyMacro == 1;
+                case MulticlassClassificationMetric.AccuracyMicro:
+                    return metrics.AccuracyMicro == 1;
+                case MulticlassClassificationMetric.LogLoss:
+                    return metrics.LogLoss == 0;
+                case MulticlassClassificationMetric.LogLossReduction:
+                    return metrics.LogLossReduction == 1;
+                case MulticlassClassificationMetric.TopKAccuracy:
+                    return metrics.TopKAccuracy == 1;
+                default:
+                    throw MetricsAgentUtil.BuildMetricNotSupportedException(_optimizingMetric);
+            }
         }
     }
 }

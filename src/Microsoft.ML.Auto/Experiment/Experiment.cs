@@ -114,6 +114,13 @@ namespace Microsoft.ML.Auto
                 var iterationResult = runResult.ToIterationResult();
                 ReportProgress(iterationResult);
                 iterationResults.Add(iterationResult);
+
+                // if model is perfect, break
+                if (_metricsAgent.IsModelPerfect(iterationResult.Metrics))
+                {
+                    break;
+                }
+
             } while (_history.Count < _experimentSettings.MaxModels &&
                     !_experimentSettings.CancellationToken.IsCancellationRequested &&
                     stopwatch.Elapsed.TotalSeconds < _experimentSettings.MaxInferenceTimeInSeconds);

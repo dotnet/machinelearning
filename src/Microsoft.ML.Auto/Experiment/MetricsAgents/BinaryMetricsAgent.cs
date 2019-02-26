@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
@@ -36,10 +35,39 @@ namespace Microsoft.ML.Auto
                     return metrics.PositivePrecision;
                 case BinaryClassificationMetric.PositiveRecall:
                     return metrics.PositiveRecall;
+                default:
+                    throw MetricsAgentUtil.BuildMetricNotSupportedException(_optimizingMetric);
+            }
+        }
+
+        public bool IsModelPerfect(BinaryClassificationMetrics metrics)
+        {
+            if (metrics == null)
+            {
+                return false;
             }
 
-            // never expected to reach here
-            throw new NotSupportedException($"{_optimizingMetric} is not a supported sweep metric");
+            switch (_optimizingMetric)
+            {
+                case BinaryClassificationMetric.Accuracy:
+                    return metrics.Accuracy == 1;
+                case BinaryClassificationMetric.Auc:
+                    return metrics.Auc == 1;
+                case BinaryClassificationMetric.Auprc:
+                    return metrics.Auprc == 1;
+                case BinaryClassificationMetric.F1Score:
+                    return metrics.F1Score == 1;
+                case BinaryClassificationMetric.NegativePrecision:
+                    return metrics.NegativePrecision == 1;
+                case BinaryClassificationMetric.NegativeRecall:
+                    return metrics.NegativeRecall == 1;
+                case BinaryClassificationMetric.PositivePrecision:
+                    return metrics.PositivePrecision == 1;
+                case BinaryClassificationMetric.PositiveRecall:
+                    return metrics.PositiveRecall == 1;
+                default:
+                    throw MetricsAgentUtil.BuildMetricNotSupportedException(_optimizingMetric);
+            }
         }
     }
 }

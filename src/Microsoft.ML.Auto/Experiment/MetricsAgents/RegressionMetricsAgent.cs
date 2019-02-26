@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
@@ -28,10 +27,31 @@ namespace Microsoft.ML.Auto
                     return metrics.Rms;
                 case RegressionMetric.RSquared:
                     return metrics.RSquared;
+                default:
+                    throw MetricsAgentUtil.BuildMetricNotSupportedException(_optimizingMetric);
+            }
+        }
+
+        public bool IsModelPerfect(RegressionMetrics metrics)
+        {
+            if (metrics == null)
+            {
+                return false;
             }
 
-            // never expected to reach here
-            throw new NotSupportedException($"{_optimizingMetric} is not a supported sweep metric");
+            switch (_optimizingMetric)
+            {
+                case RegressionMetric.L1:
+                    return metrics.L1 == 0;
+                case RegressionMetric.L2:
+                    return metrics.L2 == 0;
+                case RegressionMetric.Rms:
+                    return metrics.Rms == 0;
+                case RegressionMetric.RSquared:
+                    return metrics.RSquared == 1;
+                default:
+                    throw MetricsAgentUtil.BuildMetricNotSupportedException(_optimizingMetric);
+            }
         }
     }
 }

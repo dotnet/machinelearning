@@ -7,5 +7,7 @@ namespace Microsoft.ML.Auto
     internal interface IMetricsAgent<T>
     {
         double GetScore(T metrics);
+
+        bool IsModelPerfect(T metrics);
     }
 }
