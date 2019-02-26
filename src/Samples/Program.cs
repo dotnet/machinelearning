@@ -12,12 +12,6 @@ namespace Samples
         {
             try
             {
-                Cancellation.Run();
-                Console.Clear();
-
-                ObserveProgress.Run();
-                Console.Clear();
-
                 AutoTrainRegression.Run();
                 Console.Clear();
 
@@ -28,6 +22,12 @@ namespace Samples
                 Console.Clear();
 
                 CustomizeTraining.Run();
+                Console.Clear();
+
+                ObserveProgress.Run();
+                Console.Clear();
+
+                Cancellation.Run();
                 Console.Clear();
 
                 Console.WriteLine("Done");
