@@ -50,9 +50,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // the "Features" column produced by FeaturizeText as the features column. 
             var pipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
                     .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                        labelColumnName: "Sentiment", 
-                        featureColumnName: "Features", 
-                        l2Const: 0.001f, 
+                        labelColumnName: "Sentiment",
+                        featureColumnName: "Features",
+                        l2Const: 0.001f,
                         loss: new HingeLoss())); // By specifying loss: new HingeLoss(), StochasticDualCoordinateAscent will train a support vector machine (SVM).
 
             // Fit the pipeline, and get a transformer that knows how to score new data.  
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Let's train a calibrator estimator on this scored dataset. The trained calibrator estimator produces a transformer
             // that can transform the scored data by adding a new column names "Probability". 
-            var calibratorEstimator = new PlattCalibratorEstimator(mlContext, "Sentiment", "Score");
+            var calibratorEstimator = mlContext.BinaryClassification.Calibrators.Platt("Sentiment", "Score");
             var calibratorTransformer = calibratorEstimator.Fit(scoredData);
 
             // Transform the scored data with a calibrator transfomer by adding a new column names "Probability". 
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Samples.Dynamic
         {
             var firstRows = data.RowView.Take(5);
 
-            foreach(Data.DataDebuggerPreview.RowInfo row in firstRows)
+            foreach (Data.DataDebuggerPreview.RowInfo row in firstRows)
             {
                 foreach (var kvPair in row.Values)
                 {

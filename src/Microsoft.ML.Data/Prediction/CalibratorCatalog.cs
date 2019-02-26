@@ -18,8 +18,8 @@ using Microsoft.ML.Trainers;
 [assembly: LoadableClass(typeof(CalibratorTransformer<NaiveCalibrator>), typeof(NaiveCalibratorTransformer), null,
     typeof(SignatureLoadModel), "", NaiveCalibratorTransformer.LoadName)]
 
-[assembly: LoadableClass(typeof(CalibratorTransformer<PavCalibrator>), typeof(PavCalibratorTransformer), null,
-    typeof(SignatureLoadModel), "", PavCalibratorTransformer.LoadName)]
+[assembly: LoadableClass(typeof(CalibratorTransformer<PavCalibrator>), typeof(PairAdjacentViolatorsCalibratorTransformer), null,
+    typeof(SignatureLoadModel), "", PairAdjacentViolatorsCalibratorTransformer.LoadName)]
 
 namespace Microsoft.ML.Calibrator
 {
@@ -270,16 +270,16 @@ namespace Microsoft.ML.Calibrator
         /// Initializes a new instance of <see cref="PlattCalibratorEstimator"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="labelColumn">The label column name. This is consumed when this estimator is fit,
-        /// but not consumed by the resulting transformer.</param>
-        /// <param name="scoreColumn">The score column name. This is consumed both when this estimator
+        ///  /// <param name="labelColumnName">The name of the label column.This is consumed both when this estimator
         /// is fit and when the estimator is consumed.</param>
-        /// <param name="weightColumn">The optional weight column name. Note that if specified this is
+        /// <param name="scoreColumnName">The name of the score column.This is consumed when this estimator is fit,
+        /// but not consumed by the resulting transformer.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional). Note that if specified this is
         /// consumed when this estimator is fit, but not consumed by the resulting transformer.</param>
-        public PlattCalibratorEstimator(IHostEnvironment env,
-            string labelColumn = DefaultColumnNames.Label,
-            string scoreColumn = DefaultColumnNames.Score,
-            string weightColumn = null) : base(env, new PlattCalibratorTrainer(env), labelColumn, scoreColumn, weightColumn)
+        internal PlattCalibratorEstimator(IHostEnvironment env,
+            string labelColumnName = DefaultColumnNames.Label,
+            string scoreColumnName = DefaultColumnNames.Score,
+            string exampleWeightColumnName = null) : base(env, new PlattCalibratorTrainer(env), labelColumnName, scoreColumnName, exampleWeightColumnName)
         {
         }
 
@@ -310,8 +310,8 @@ namespace Microsoft.ML.Calibrator
         /// <param name="offset">The offset in the function of the exponent of the sigmoid.</param>
         /// <param name="scoreColumn">The score column name. This is consumed both when this estimator
         /// is fit and when the estimator is consumed.</param>
-        public FixedPlattCalibratorEstimator(IHostEnvironment env,
-double slope = 1,
+        internal FixedPlattCalibratorEstimator(IHostEnvironment env,
+            double slope = 1,
             double offset = 0,
             string scoreColumn = DefaultColumnNames.Score)
             : base(env, new FixedPlattCalibratorTrainer(env, new FixedPlattCalibratorTrainer.Arguments()
@@ -368,7 +368,7 @@ double slope = 1,
         /// is fit and when the estimator is consumed.</param>
         /// <param name="weightColumn">The optional weight column name. Note that if specified this is
         /// consumed when this estimator is fit, but not consumed by the resulting transformer.</param>
-        public NaiveCalibratorEstimator(IHostEnvironment env,
+        internal NaiveCalibratorEstimator(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string scoreColumn = DefaultColumnNames.Score,
             string weightColumn = null) : base(env, new NaiveCalibratorTrainer(env), labelColumn, scoreColumn, weightColumn)
@@ -405,10 +405,10 @@ double slope = 1,
     /// <remarks>
     /// For the usage pattern see the example in <see cref="CalibratorEstimatorBase{TICalibrator}"/>.
     /// </remarks>
-    public sealed class PavCalibratorEstimator : CalibratorEstimatorBase<PavCalibrator>
+    public sealed class PairAdjacentViolatorsCalibratorEstimator : CalibratorEstimatorBase<PavCalibrator>
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="PavCalibratorEstimator"/>
+        /// Initializes a new instance of <see cref="PairAdjacentViolatorsCalibratorEstimator"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The label column name. This is consumed when this estimator is fit,
@@ -417,7 +417,7 @@ double slope = 1,
         /// is fit and when the estimator is consumed.</param>
         /// <param name="weightColumn">The optional weight column name. Note that if specified this is
         /// consumed when this estimator is fit, but not consumed by the resulting transformer.</param>
-        public PavCalibratorEstimator(IHostEnvironment env,
+        internal PairAdjacentViolatorsCalibratorEstimator(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string scoreColumn = DefaultColumnNames.Score,
             string weightColumn = null) : base(env, new PavCalibratorTrainer(env), labelColumn, scoreColumn, weightColumn)
@@ -426,26 +426,93 @@ double slope = 1,
 
         [BestFriend]
         private protected override CalibratorTransformer<PavCalibrator> Create(IHostEnvironment env, PavCalibrator calibrator)
-            => new PavCalibratorTransformer(env, calibrator);
+            => new PairAdjacentViolatorsCalibratorTransformer(env, calibrator);
 
     }
 
     /// <summary>
-    /// The <see cref="ITransformer"/> implementation obtained by training a <see cref="PavCalibratorEstimator"/>
+    /// The <see cref="ITransformer"/> implementation obtained by training a <see cref="PairAdjacentViolatorsCalibratorEstimator"/>
     /// </summary>
-    public sealed class PavCalibratorTransformer : CalibratorTransformer<PavCalibrator>
+    public sealed class PairAdjacentViolatorsCalibratorTransformer : CalibratorTransformer<PavCalibrator>
     {
         internal const string LoadName = "PavCalibratTransf";
 
-        internal PavCalibratorTransformer(IHostEnvironment env, PavCalibrator calibrator)
+        internal PairAdjacentViolatorsCalibratorTransformer(IHostEnvironment env, PavCalibrator calibrator)
           : base(env, calibrator, LoadName)
         {
         }
 
         // Factory method for SignatureLoadModel.
-        private PavCalibratorTransformer(IHostEnvironment env, ModelLoadContext ctx)
+        private PairAdjacentViolatorsCalibratorTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, ctx, LoadName)
         {
+        }
+    }
+}
+
+namespace Microsoft.ML
+{
+    public static class CalibratorsCatalog
+    {
+        /// <param name="catalog">The binary classification catalog calibrators object.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="scoreColumnName">The name of the score column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        public static NaiveCalibratorEstimator Naive(
+              this BinaryClassificationCatalog.CalibratorsSubCatalog catalog,
+              string labelColumnName = DefaultColumnNames.Label,
+              string scoreColumnName = DefaultColumnNames.Score,
+              string exampleWeightColumnName = null)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new NaiveCalibratorEstimator(env, labelColumnName, scoreColumnName, exampleWeightColumnName);
+        }
+
+        /// <param name="catalog">The binary classification catalog calibrators object.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="scoreColumnName">The name of the score column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <returns></returns>
+        public static PlattCalibratorEstimator Platt(
+              this BinaryClassificationCatalog.CalibratorsSubCatalog catalog,
+              string labelColumnName = DefaultColumnNames.Label,
+              string scoreColumnName = DefaultColumnNames.Score,
+              string exampleWeightColumnName = null)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new PlattCalibratorEstimator(env, labelColumnName, scoreColumnName, exampleWeightColumnName);
+        }
+
+        /// <param name="catalog">The binary classification catalog calibrators object.</param>
+        /// <param name="slope">The slope in the function of the exponent of the sigmoid.</param>
+        /// <param name="offset">The offset in the function of the exponent of the sigmoid.</param>
+        /// <param name="scoreColumnName">The name of the score column.</param>
+        public static FixedPlattCalibratorEstimator Platt(
+            this BinaryClassificationCatalog.CalibratorsSubCatalog catalog,
+            double slope,
+            double offset,
+            string scoreColumnName = DefaultColumnNames.Score)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new FixedPlattCalibratorEstimator(env, slope, offset, scoreColumnName);
+        }
+
+        /// <param name="catalog">The binary classification catalog calibrators object.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="scoreColumnName">The name of the score column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        public static PairAdjacentViolatorsCalibratorEstimator PairAdjacentViolators(
+            this BinaryClassificationCatalog.CalibratorsSubCatalog catalog,
+            string labelColumnName = DefaultColumnNames.Label,
+            string scoreColumnName = DefaultColumnNames.Score,
+            string exampleWeightColumnName = null)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new PairAdjacentViolatorsCalibratorEstimator(env, labelColumnName, scoreColumnName, exampleWeightColumnName);
         }
     }
 }

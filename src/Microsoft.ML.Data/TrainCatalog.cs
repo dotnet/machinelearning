@@ -269,6 +269,7 @@ namespace Microsoft.ML
         internal BinaryClassificationCatalog(IHostEnvironment env)
             : base(env, nameof(BinaryClassificationCatalog))
         {
+            Calibrators = new CalibratorsSubCatalog(this);
             Trainers = new BinaryClassificationTrainers(this);
         }
 
@@ -368,6 +369,20 @@ namespace Microsoft.ML
             return result.Select(x => new CrossValidationResult<CalibratedBinaryClassificationMetrics>(x.Model,
                 Evaluate(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
         }
+
+        /// <summary>
+        /// The list of trainers for performing binary classification.
+        /// </summary>
+        public CalibratorsSubCatalog Calibrators { get; }
+
+        public sealed class CalibratorsSubCatalog : CatalogInstantiatorBase
+        {
+            internal CalibratorsSubCatalog(BinaryClassificationCatalog catalog)
+                : base(catalog)
+            {
+            }
+        }
+
     }
 
     /// <summary>
