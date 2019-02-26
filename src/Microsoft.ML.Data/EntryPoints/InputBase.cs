@@ -21,6 +21,7 @@ namespace Microsoft.ML.EntryPoints
     /// The base class for all evaluators inputs.
     /// </summary>
     [TlcModule.EntryPointKind(typeof(CommonInputs.IEvaluatorInput))]
+    [BestFriend]
     internal abstract class EvaluateInputBase
     {
         [Argument(ArgumentType.Required, ShortName = "data", HelpText = "The data to be used for evaluation.", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
