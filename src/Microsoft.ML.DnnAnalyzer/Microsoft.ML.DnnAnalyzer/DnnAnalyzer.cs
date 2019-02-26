@@ -38,14 +38,14 @@ namespace Microsoft.ML.DnnAnalyzer
                 var name = schema[i].Name;
                 var type = schema[i].Type;
 
-                var metadataType = schema[i].Metadata.Schema.GetColumnOrNull("TensorflowOperatorType")?.Type;
+                var metadataType = schema[i].Annotations.Schema.GetColumnOrNull("TensorflowOperatorType")?.Type;
                 ReadOnlyMemory<char> opType = default;
-                schema[i].Metadata.GetValue("TensorflowOperatorType", ref opType);
-                metadataType = schema[i].Metadata.Schema.GetColumnOrNull("TensorflowUpstreamOperators")?.Type;
+                schema[i].Annotations.GetValue("TensorflowOperatorType", ref opType);
+                metadataType = schema[i].Annotations.Schema.GetColumnOrNull("TensorflowUpstreamOperators")?.Type;
                 VBuffer <ReadOnlyMemory<char>> inputOps = default;
                 if (metadataType != null)
                 {
-                    schema[i].Metadata.GetValue("TensorflowUpstreamOperators", ref inputOps);
+                    schema[i].Annotations.GetValue("TensorflowUpstreamOperators", ref inputOps);
                 }
 
                 string[] inputOpsResult = inputOps.DenseValues()
