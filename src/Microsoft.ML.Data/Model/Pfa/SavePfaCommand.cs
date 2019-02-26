@@ -120,7 +120,7 @@ namespace Microsoft.ML.Model.Pfa
 
         private void Run(IChannel ch)
         {
-            IDataLoader loader;
+            ILegacyDataLoader loader;
             IPredictor rawPred;
             RoleMappedSchema trainSchema;
 

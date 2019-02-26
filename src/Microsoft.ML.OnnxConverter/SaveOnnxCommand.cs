@@ -193,7 +193,7 @@ namespace Microsoft.ML.Model.OnnxConverter
 
         private void Run(IChannel ch)
         {
-            IDataLoader loader = null;
+            ILegacyDataLoader loader = null;
             IPredictor rawPred = null;
             IDataView view;
             RoleMappedSchema trainSchema = null;

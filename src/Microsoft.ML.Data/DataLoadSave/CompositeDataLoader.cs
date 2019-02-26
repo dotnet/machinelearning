@@ -13,10 +13,10 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 
-[assembly: LoadableClass(typeof(IDataLoader), typeof(CompositeDataLoader), typeof(CompositeDataLoader.Arguments), typeof(SignatureDataLoader),
+[assembly: LoadableClass(typeof(ILegacyDataLoader), typeof(CompositeDataLoader), typeof(CompositeDataLoader.Arguments), typeof(SignatureDataLoader),
     "Composite Data Loader", "CompositeDataLoader", "Composite", "PipeData", "Pipe", "PipeDataLoader")]
 
-[assembly: LoadableClass(typeof(IDataLoader), typeof(CompositeDataLoader), null, typeof(SignatureLoadDataLoader),
+[assembly: LoadableClass(typeof(ILegacyDataLoader), typeof(CompositeDataLoader), null, typeof(SignatureLoadDataLoader),
     "Pipe DataL Loader", CompositeDataLoader.LoaderSignature)]
 
 namespace Microsoft.ML.Data
@@ -29,12 +29,12 @@ namespace Microsoft.ML.Data
     /// when there are transforms to keep, otherwise they just return underlying loaders.
     /// </summary>
     [BestFriend]
-    internal sealed class CompositeDataLoader : IDataLoader, ITransposeDataView
+    internal sealed class CompositeDataLoader : ILegacyDataLoader, ITransposeDataView
     {
         public sealed class Arguments
         {
             [Argument(ArgumentType.Multiple, HelpText = "The data loader", ShortName = "loader", SignatureType = typeof(SignatureDataLoader))]
-            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
+            public IComponentFactory<IMultiStreamSource, ILegacyDataLoader> Loader;
 
             [Argument(ArgumentType.Multiple, HelpText = "Transform", Name = "Transform", ShortName = "xf", SignatureType = typeof(SignatureDataTransform))]
             public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] Transforms;
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Data
         }
 
         // The composition of loader plus transforms in order.
-        private readonly IDataLoader _loader;
+        private readonly ILegacyDataLoader _loader;
         private readonly TransformEx[] _transforms;
         private readonly ITransposeDataView _tview;
         private readonly IHost _host;
@@ -90,9 +90,9 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Creates a loader according to the specified <paramref name="args"/>.
         /// If there are transforms, then the result will be a <see cref="CompositeDataLoader"/>,
-        /// otherwise, it'll be whatever <see cref="IDataLoader"/> is specified in <c>args.loader</c>.
+        /// otherwise, it'll be whatever <see cref="ILegacyDataLoader"/> is specified in <c>args.loader</c>.
         /// </summary>
-        public static IDataLoader Create(IHostEnvironment env, Arguments args, IMultiStreamSource files)
+        public static ILegacyDataLoader Create(IHostEnvironment env, Arguments args, IMultiStreamSource files)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Data
         /// and follows with transforms created from the <paramref name="transformArgs"/> array.
         /// If there are no transforms, the <paramref name="srcLoader"/> is returned.
         /// </summary>
-        public static IDataLoader Create(IHostEnvironment env, IDataLoader srcLoader,
+        public static ILegacyDataLoader Create(IHostEnvironment env, ILegacyDataLoader srcLoader,
             params KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] transformArgs)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Data
             return CreateCore(h, srcLoader, transformArgs);
         }
 
-        private static IDataLoader CreateCore(IHost host, IDataLoader srcLoader,
+        private static ILegacyDataLoader CreateCore(IHost host, ILegacyDataLoader srcLoader,
             KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] transformArgs)
         {
             Contracts.AssertValue(host, "host");
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Data
         /// Delegate parameters are: host environment, transform index (0 to <c>tagData.Length</c>), source data view.
         /// It should return the <see cref="IDataView"/> that should share the same loader as the source data view.</param>
         /// <returns>The resulting data loader.</returns>
-        public static IDataLoader ApplyTransforms(IHostEnvironment env, IDataLoader srcLoader,
+        public static ILegacyDataLoader ApplyTransforms(IHostEnvironment env, ILegacyDataLoader srcLoader,
             KeyValuePair<string, string>[] tagData, Func<IHostEnvironment, int, IDataView, IDataView> createTransform)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Data
             return ApplyTransformsCore(h, srcLoader, tagData, createTransform);
         }
 
-        private static IDataLoader ApplyTransformsCore(IHost host, IDataLoader srcLoader,
+        private static ILegacyDataLoader ApplyTransformsCore(IHost host, ILegacyDataLoader srcLoader,
             KeyValuePair<string, string>[] tagData, Func<IHostEnvironment, int, IDataView, IDataView> createTransform)
         {
             Contracts.AssertValue(host, "host");
@@ -200,7 +200,7 @@ namespace Microsoft.ML.Data
             var exes = new List<TransformEx>();
             var composite = srcLoader as CompositeDataLoader;
             IDataView srcView;
-            IDataLoader pipeStart;
+            ILegacyDataLoader pipeStart;
             if (composite != null)
             {
                 srcView = composite.View;
@@ -273,7 +273,7 @@ namespace Microsoft.ML.Data
         /// The transform is created by invoking the lambda for a data source, and it should return an
         /// <see cref="IDataView"/> that shares the same loader as the provided source.
         /// </summary>
-        public static IDataLoader ApplyTransform(IHostEnvironment env, IDataLoader srcLoader,
+        public static ILegacyDataLoader ApplyTransform(IHostEnvironment env, ILegacyDataLoader srcLoader,
             string tag, string creationArgs, Func<IHostEnvironment, IDataView, IDataView> createTransform)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Data
         /// Loads the entire composite data loader (loader + transforms) from the context.
         /// If there are no transforms, the underlying loader is returned.
         /// </summary>
-        public static IDataLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
+        public static ILegacyDataLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
@@ -303,8 +303,8 @@ namespace Microsoft.ML.Data
             using (var ch = h.Start("Components"))
             {
                 // First, load the loader.
-                IDataLoader loader;
-                ctx.LoadModel<IDataLoader, SignatureLoadDataLoader>(h, out loader, "Loader", files);
+                ILegacyDataLoader loader;
+                ctx.LoadModel<ILegacyDataLoader, SignatureLoadDataLoader>(h, out loader, "Loader", files);
 
                 // Now the transforms.
                 h.Assert(!(loader is CompositeDataLoader));
@@ -313,14 +313,14 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Creates a <see cref="IDataLoader"/> from the specified source loader, followed by
+        /// Creates a <see cref="ILegacyDataLoader"/> from the specified source loader, followed by
         /// the transforms that are loaded from the <paramref name="ctx"/>, tags filtered by
         /// by the <paramref name="isTransformTagAccepted"/>.
         /// If the <paramref name="ctx"/> contains no accepted transforms, the <paramref name="srcLoader"/> is
         /// returned intact.
         /// </summary>
-        public static IDataLoader Create(IHostEnvironment env, ModelLoadContext ctx,
-            IDataLoader srcLoader, Func<string, bool> isTransformTagAccepted)
+        public static ILegacyDataLoader Create(IHostEnvironment env, ModelLoadContext ctx,
+            ILegacyDataLoader srcLoader, Func<string, bool> isTransformTagAccepted)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Data
 
             View = transforms[transforms.Length - 1].Transform;
             _tview = View as ITransposeDataView;
-            var srcLoader = transforms[0].Transform.Source as IDataLoader;
+            var srcLoader = transforms[0].Transform.Source as ILegacyDataLoader;
 
 #if DEBUG
             // Assert that the transforms array is consistent: first one starts with loader,
@@ -448,7 +448,7 @@ namespace Microsoft.ML.Data
         /// Loads all transforms from the <paramref name="ctx"/> that pass the <paramref name="isTransformTagAccepted"/> test,
         /// applies them sequentially to the <paramref name="srcLoader"/>, and returns the (composite) data loader.
         /// </summary>
-        private static IDataLoader LoadTransforms(ModelLoadContext ctx, IDataLoader srcLoader, IHost host, Func<string, bool> isTransformTagAccepted)
+        private static ILegacyDataLoader LoadTransforms(ModelLoadContext ctx, ILegacyDataLoader srcLoader, IHost host, Func<string, bool> isTransformTagAccepted)
         {
             Contracts.AssertValue(host, "host");
             host.AssertValue(srcLoader);

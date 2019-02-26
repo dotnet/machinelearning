@@ -909,7 +909,7 @@ namespace Microsoft.ML.RunTests
             string stopwordsFile = DeleteOutputPath("SavePipe", "CustomStopwordsRemover-stopwordsFile.txt");
             File.WriteAllLines(stopwordsFile, stopwordsList);
 
-            Action<IDataLoader> action
+            Action<ILegacyDataLoader> action
                 = pipe =>
                 {
                     VBuffer<ReadOnlyMemory<char>>[] expected = new VBuffer<ReadOnlyMemory<char>>[2];

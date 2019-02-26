@@ -14,10 +14,10 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 
-[assembly: LoadableClass(TextLoader.Summary, typeof(IDataLoader), typeof(TextLoader), typeof(TextLoader.Options), typeof(SignatureDataLoader),
+[assembly: LoadableClass(TextLoader.Summary, typeof(ILegacyDataLoader), typeof(TextLoader), typeof(TextLoader.Options), typeof(SignatureDataLoader),
     "Text Loader", "TextLoader", "Text", DocName = "loader/TextLoader.md")]
 
-[assembly: LoadableClass(TextLoader.Summary, typeof(IDataLoader), typeof(TextLoader), null, typeof(SignatureLoadDataLoader),
+[assembly: LoadableClass(TextLoader.Summary, typeof(ILegacyDataLoader), typeof(TextLoader), null, typeof(SignatureLoadDataLoader),
     "Text Loader", TextLoader.LoaderSignature)]
 
 namespace Microsoft.ML.Data
@@ -1224,7 +1224,7 @@ namespace Microsoft.ML.Data
         {
 #pragma warning disable 649 // never assigned
             [Argument(ArgumentType.Multiple, SignatureType = typeof(SignatureDataLoader))]
-            public IComponentFactory<IDataLoader> Loader;
+            public IComponentFactory<ILegacyDataLoader> Loader;
 #pragma warning restore 649 // never assigned
         }
 
@@ -1291,7 +1291,7 @@ namespace Microsoft.ML.Data
 
                 // Make sure the loader binds to us.
                 var info = host.ComponentCatalog.GetLoadableClassInfo<SignatureDataLoader>(loader.Name);
-                if (info.Type != typeof(IDataLoader) || info.ArgType != typeof(Options))
+                if (info.Type != typeof(ILegacyDataLoader) || info.ArgType != typeof(Options))
                     goto LDone;
 
                 var optionsNew = new Options();
@@ -1388,10 +1388,10 @@ namespace Microsoft.ML.Data
         }
 
         // These are legacy constructors needed for ComponentCatalog.
-        internal static IDataLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
-            => (IDataLoader)Create(env, ctx).Read(files);
-        internal static IDataLoader Create(IHostEnvironment env, Options options, IMultiStreamSource files)
-            => (IDataLoader)new TextLoader(env, options, files).Read(files);
+        internal static ILegacyDataLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
+            => (ILegacyDataLoader)Create(env, ctx).Read(files);
+        internal static ILegacyDataLoader Create(IHostEnvironment env, Options options, IMultiStreamSource files)
+            => (ILegacyDataLoader)new TextLoader(env, options, files).Read(files);
 
         /// <summary>
         /// Convenience method to create a <see cref="TextLoader"/> and use it to read a specified file.
@@ -1505,7 +1505,7 @@ namespace Microsoft.ML.Data
             return new TextLoader(host, options, dataSample: dataSample);
         }
 
-        private sealed class BoundLoader : IDataLoader
+        private sealed class BoundLoader : ILegacyDataLoader
         {
             private readonly TextLoader _reader;
             private readonly IHost _host;

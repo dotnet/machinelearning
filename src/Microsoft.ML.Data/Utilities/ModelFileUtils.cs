@@ -66,9 +66,9 @@ namespace Microsoft.ML.Model
             env.CheckValue(files, nameof(files));
             using (var ent = rep.OpenEntry(DirDataLoaderModel, ModelLoadContext.ModelStreamName))
             {
-                IDataLoader loader;
+                ILegacyDataLoader loader;
                 env.Assert(ent.Stream.Position == 0);
-                ModelLoadContext.LoadModel<IDataLoader, SignatureLoadDataLoader>(env, out loader, rep, ent, DirDataLoaderModel, files);
+                ModelLoadContext.LoadModel<ILegacyDataLoader, SignatureLoadDataLoader>(env, out loader, rep, ent, DirDataLoaderModel, files);
                 IDataView result = loader;
                 if (extractInnerPipe)
                 {
@@ -162,13 +162,13 @@ namespace Microsoft.ML.Model
         /// Loads data view (loader and transforms) from <paramref name="rep"/> if <paramref name="loadTransforms"/> is set to true,
         /// otherwise loads loader only.
         /// </summary>
-        public static IDataLoader LoadLoader(IHostEnvironment env, RepositoryReader rep, IMultiStreamSource files, bool loadTransforms)
+        public static ILegacyDataLoader LoadLoader(IHostEnvironment env, RepositoryReader rep, IMultiStreamSource files, bool loadTransforms)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(rep, nameof(rep));
             env.CheckValue(files, nameof(files));
 
-            IDataLoader loader;
+            ILegacyDataLoader loader;
 
             // If loadTransforms is false, load the loader only, not the transforms.
             Repository.Entry ent = null;
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Model
             using (ent)
             {
                 env.Assert(ent.Stream.Position == 0);
-                ModelLoadContext.LoadModel<IDataLoader, SignatureLoadDataLoader>(env, out loader, rep, ent, dir, files);
+                ModelLoadContext.LoadModel<ILegacyDataLoader, SignatureLoadDataLoader>(env, out loader, rep, ent, dir, files);
             }
             return loader;
         }

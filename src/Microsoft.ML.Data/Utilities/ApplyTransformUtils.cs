@@ -55,7 +55,7 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Walks back the Source chain of the <see cref="IDataTransform"/> up to the <paramref name="oldSource"/>
-        /// (or <see cref="IDataLoader"/> if <paramref name="oldSource"/> is <c>null</c>),
+        /// (or <see cref="ILegacyDataLoader"/> if <paramref name="oldSource"/> is <c>null</c>),
         /// and reapplies all transforms in the chain, to produce the same chain but bound to the different data.
         /// It is valid to have no transforms: in this case the result will be equal to <paramref name="newSource"/>
         /// If <paramref name="oldSource"/> is specified and not found in the pipe, an exception is thrown.

@@ -867,7 +867,7 @@ namespace Microsoft.ML.Trainers.FastTree
             /// operations on top of that structure.</returns>
             private Context Init(IChannel ch)
             {
-                IDataLoader loader;
+                ILegacyDataLoader loader;
                 IPredictor rawPred;
                 RoleMappedSchema schema;
                 LoadModelObjects(ch, true, out rawPred, true, out schema, out loader);

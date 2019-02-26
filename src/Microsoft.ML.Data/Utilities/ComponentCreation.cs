@@ -99,23 +99,25 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Creates a data loader from the arguments object.
         /// </summary>
-        public static IDataLoader CreateLoader<TArgs>(this IHostEnvironment env, TArgs arguments, IMultiStreamSource files)
+        [BestFriend]
+        internal static ILegacyDataLoader CreateLoader<TArgs>(this IHostEnvironment env, TArgs arguments, IMultiStreamSource files)
             where TArgs : class, new()
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(files, nameof(files));
-            return CreateCore<IDataLoader, TArgs, SignatureDataLoader>(env, arguments, files);
+            return CreateCore<ILegacyDataLoader, TArgs, SignatureDataLoader>(env, arguments, files);
         }
 
         /// <summary>
         /// Creates a data loader from the 'LoadName{settings}' string.
         /// </summary>
-        public static IDataLoader CreateLoader(this IHostEnvironment env, string settings, IMultiStreamSource files)
+        [BestFriend]
+        internal static ILegacyDataLoader CreateLoader(this IHostEnvironment env, string settings, IMultiStreamSource files)
         {
             Contracts.CheckValue(env, nameof(env));
             Contracts.CheckValue(files, nameof(files));
-            Type factoryType = typeof(IComponentFactory<IMultiStreamSource, IDataLoader>);
-            return CreateCore<IDataLoader>(env, factoryType, typeof(SignatureDataLoader), settings, files);
+            Type factoryType = typeof(IComponentFactory<IMultiStreamSource, ILegacyDataLoader>);
+            return CreateCore<ILegacyDataLoader>(env, factoryType, typeof(SignatureDataLoader), settings, files);
         }
 
         /// <summary>
