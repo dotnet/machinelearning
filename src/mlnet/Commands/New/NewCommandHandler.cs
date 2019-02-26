@@ -131,7 +131,7 @@ namespace Microsoft.ML.CLI.Commands.New
                     .CreateBinaryClassificationExperiment(new BinaryExperimentSettings()
                     {
                         MaxInferenceTimeInSeconds = options.MaxExplorationTime,
-                        ProgressCallback = progressReporter
+                        ProgressHandler = progressReporter
                     })
                     .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = labelName });
                 logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
@@ -147,7 +147,7 @@ namespace Microsoft.ML.CLI.Commands.New
                     .CreateRegressionExperiment(new RegressionExperimentSettings()
                     {
                         MaxInferenceTimeInSeconds = options.MaxExplorationTime,
-                        ProgressCallback = progressReporter
+                        ProgressHandler = progressReporter
                     }).Execute(trainData, validationData, new ColumnInformation() { LabelColumn = labelName });
                 logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
                 var bestIteration = result.Best();

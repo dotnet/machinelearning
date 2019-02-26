@@ -15,7 +15,7 @@ namespace Samples
                 Cancellation.Run();
                 Console.Clear();
 
-                ProgressHandler.Run();
+                ObserveProgress.Run();
                 Console.Clear();
 
                 AutoTrainRegression.Run();

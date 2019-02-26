@@ -12,7 +12,7 @@ namespace Microsoft.ML.Auto
 {
     public sealed class MulticlassExperimentSettings : ExperimentSettings
     {
-        public IProgress<RunResult<MultiClassClassifierMetrics>> ProgressCallback;
+        public IProgress<RunResult<MultiClassClassifierMetrics>> ProgressHandler;
         public MulticlassClassificationMetric OptimizingMetric = MulticlassClassificationMetric.AccuracyMicro;
         public MulticlassClassificationTrainer[] WhitelistedTrainers;
     }
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Auto
             // run autofit & get all pipelines run in that process
             var experiment = new Experiment<MultiClassClassifierMetrics>(context, TaskKind.MulticlassClassification, trainData, 
                 columnInfo, validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric),
-                _settings.ProgressCallback, _settings, new MultiMetricsAgent(_settings.OptimizingMetric),
+                _settings.ProgressHandler, _settings, new MultiMetricsAgent(_settings.OptimizingMetric),
                 TrainerExtensionUtil.GetTrainerNames(_settings.WhitelistedTrainers));
 
             return experiment.Execute();

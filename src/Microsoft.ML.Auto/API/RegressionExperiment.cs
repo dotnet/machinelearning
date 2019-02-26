@@ -12,7 +12,7 @@ namespace Microsoft.ML.Auto
 {
     public sealed class RegressionExperimentSettings : ExperimentSettings
     {
-        public IProgress<RunResult<RegressionMetrics>> ProgressCallback;
+        public IProgress<RunResult<RegressionMetrics>> ProgressHandler;
         public RegressionMetric OptimizingMetric = RegressionMetric.RSquared;
         public RegressionTrainer[] WhitelistedTrainers;
     }
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Auto
             // run autofit & get all pipelines run in that process
             var experiment = new Experiment<RegressionMetrics>(context, TaskKind.Regression, trainData, columnInfo, 
                 validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric), 
-                _settings.ProgressCallback, _settings, new RegressionMetricsAgent(_settings.OptimizingMetric),
+                _settings.ProgressHandler, _settings, new RegressionMetricsAgent(_settings.OptimizingMetric),
                 TrainerExtensionUtil.GetTrainerNames(_settings.WhitelistedTrainers));
 
             return experiment.Execute();

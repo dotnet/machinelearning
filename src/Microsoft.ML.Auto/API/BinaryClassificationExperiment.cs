@@ -12,7 +12,7 @@ namespace Microsoft.ML.Auto
 {
     public sealed class BinaryExperimentSettings : ExperimentSettings
     {
-        public IProgress<RunResult<BinaryClassificationMetrics>> ProgressCallback;
+        public IProgress<RunResult<BinaryClassificationMetrics>> ProgressHandler;
         public BinaryClassificationMetric OptimizingMetric = BinaryClassificationMetric.Accuracy;
         public BinaryClassificationTrainer[] WhitelistedTrainers;
     }
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Auto
 
             // run autofit & get all pipelines run in that process
             var experiment = new Experiment<BinaryClassificationMetrics>(context, TaskKind.BinaryClassification, trainData, columnInfo, 
-                validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric), _settings.ProgressCallback, 
+                validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric), _settings.ProgressHandler, 
                 _settings, new BinaryMetricsAgent(_settings.OptimizingMetric), 
                 TrainerExtensionUtil.GetTrainerNames(_settings.WhitelistedTrainers));
 
