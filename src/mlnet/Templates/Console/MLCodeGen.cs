@@ -27,18 +27,9 @@ namespace Microsoft.ML.CLI.Templates.Console
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write(@"// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-using System;
-using System.IO;
-using System.Linq;
-using Microsoft.ML;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.Data.DataView;
-");
+            this.Write("// This is an auto generated file by ML.NET CLI\r\n\r\nusing System;\r\nusing System.IO" +
+                    ";\r\nusing System.Linq;\r\nusing Microsoft.ML;\r\nusing Microsoft.ML.Core.Data;\r\nusing" +
+                    " Microsoft.ML.Data;\r\nusing Microsoft.Data.DataView;\r\n");
             this.Write(this.ToStringHelper.ToStringWithCulture(GeneratedUsings));
             this.Write("\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
