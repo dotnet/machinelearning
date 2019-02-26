@@ -18,7 +18,7 @@ namespace Microsoft.ML
         /// Create a new composite reader estimator, by appending another estimator to the end of this data reader estimator.
         /// </summary>
         public static CompositeReaderEstimator<TSource, TTrans> Append<TSource, TTrans>(
-            this IDataReaderEstimator<TSource, IDataReader<TSource>> start, IEstimator<TTrans> estimator)
+            this IDataLoaderEstimator<TSource, IDataLoader<TSource>> start, IEstimator<TTrans> estimator)
             where TTrans : class, ITransformer
         {
             Contracts.CheckValue(start, nameof(start));
@@ -31,13 +31,13 @@ namespace Microsoft.ML
         /// Create a new composite reader estimator, by appending an estimator to this data reader.
         /// </summary>
         public static CompositeReaderEstimator<TSource, TTrans> Append<TSource, TTrans>(
-            this IDataReader<TSource> start, IEstimator<TTrans> estimator)
+            this IDataLoader<TSource> start, IEstimator<TTrans> estimator)
             where TTrans : class, ITransformer
         {
             Contracts.CheckValue(start, nameof(start));
             Contracts.CheckValue(estimator, nameof(estimator));
 
-            return new TrivialReaderEstimator<TSource, IDataReader<TSource>>(start).Append(estimator);
+            return new TrivialReaderEstimator<TSource, IDataLoader<TSource>>(start).Append(estimator);
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Create a new composite reader, by appending a transformer to this data reader.
         /// </summary>
-        public static CompositeDataReader<TSource, TTrans> Append<TSource, TTrans>(this IDataReader<TSource> reader, TTrans transformer)
+        public static CompositeDataReader<TSource, TTrans> Append<TSource, TTrans>(this IDataLoader<TSource> reader, TTrans transformer)
             where TTrans : class, ITransformer
         {
             Contracts.CheckValue(reader, nameof(reader));

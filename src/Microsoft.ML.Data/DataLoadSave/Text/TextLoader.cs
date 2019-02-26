@@ -25,7 +25,7 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Loads a text file into an IDataView. Supports basic mapping from input columns to <see cref="IDataView"/> columns.
     /// </summary>
-    public sealed partial class TextLoader : IDataReader<IMultiStreamSource>, ICanSaveModel
+    public sealed partial class TextLoader : IDataLoader<IMultiStreamSource>, ICanSaveModel
     {
         /// <summary>
         /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.

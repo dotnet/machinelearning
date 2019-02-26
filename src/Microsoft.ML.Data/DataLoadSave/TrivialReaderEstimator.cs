@@ -5,10 +5,10 @@
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// The trivial wrapper for a <see cref="IDataReader{TSource}"/> that acts as an estimator and ignores the source.
+    /// The trivial wrapper for a <see cref="IDataLoader{TSource}"/> that acts as an estimator and ignores the source.
     /// </summary>
-    public sealed class TrivialReaderEstimator<TSource, TReader>: IDataReaderEstimator<TSource, TReader>
-        where TReader: IDataReader<TSource>
+    public sealed class TrivialReaderEstimator<TSource, TReader>: IDataLoaderEstimator<TSource, TReader>
+        where TReader: IDataLoader<TSource>
     {
         public TReader Reader { get; }
 

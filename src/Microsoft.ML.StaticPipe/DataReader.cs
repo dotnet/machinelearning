@@ -8,9 +8,9 @@ namespace Microsoft.ML.StaticPipe
 {
     public sealed class DataReader<TIn, TShape> : SchemaBearing<TShape>
     {
-        public IDataReader<TIn> AsDynamic { get; }
+        public IDataLoader<TIn> AsDynamic { get; }
 
-        internal DataReader(IHostEnvironment env, IDataReader<TIn> reader, StaticSchemaShape shape)
+        internal DataReader(IHostEnvironment env, IDataLoader<TIn> reader, StaticSchemaShape shape)
             : base(env, shape)
         {
             Env.AssertValue(reader);
@@ -19,13 +19,13 @@ namespace Microsoft.ML.StaticPipe
             Shape.Check(Env, AsDynamic.GetOutputSchema());
         }
 
-        public DataReaderEstimator<TIn, TNewOut, IDataReader<TIn>> Append<TNewOut, TTrans>(Estimator<TShape, TNewOut, TTrans> estimator)
+        public DataReaderEstimator<TIn, TNewOut, IDataLoader<TIn>> Append<TNewOut, TTrans>(Estimator<TShape, TNewOut, TTrans> estimator)
             where TTrans : class, ITransformer
         {
             Contracts.Assert(nameof(Append) == nameof(CompositeReaderEstimator<TIn, ITransformer>.Append));
 
             var readerEst = AsDynamic.Append(estimator.AsDynamic);
-            return new DataReaderEstimator<TIn, TNewOut, IDataReader<TIn>>(Env, readerEst, estimator.Shape);
+            return new DataReaderEstimator<TIn, TNewOut, IDataLoader<TIn>>(Env, readerEst, estimator.Shape);
         }
 
         public DataReader<TIn, TNewShape> Append<TNewShape, TTransformer>(Transformer<TShape, TNewShape, TTransformer> transformer)
@@ -44,7 +44,7 @@ namespace Microsoft.ML.StaticPipe
             // that there is an absolute case for insisting that the input type be a reference type, and much
             // less further that null inputs will never be correct. So we rely on the wrapping object to make
             // that determination.
-            Env.Assert(nameof(Read) == nameof(IDataReader<TIn>.Read));
+            Env.Assert(nameof(Read) == nameof(IDataLoader<TIn>.Read));
 
             var data = AsDynamic.Read(input);
             return new DataView<TShape>(Env, data, Shape);

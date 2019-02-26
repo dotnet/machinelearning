@@ -36,7 +36,7 @@ namespace Microsoft.ML.StaticPipe
             return new DataView<T>(env, view, schema);
         }
 
-        public static DataReader<TIn, T> AssertStatic<TIn, [IsShape] T>(this IDataReader<TIn> reader, IHostEnvironment env,
+        public static DataReader<TIn, T> AssertStatic<TIn, [IsShape] T>(this IDataLoader<TIn> reader, IHostEnvironment env,
             Func<SchemaAssertionContext, T> outputDecl)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -48,9 +48,9 @@ namespace Microsoft.ML.StaticPipe
         }
 
         public static DataReaderEstimator<TIn, T, TReader> AssertStatic<TIn, [IsShape] T, TReader>(
-            this IDataReaderEstimator<TIn, TReader> readerEstimator, IHostEnvironment env,
+            this IDataLoaderEstimator<TIn, TReader> readerEstimator, IHostEnvironment env,
             Func<SchemaAssertionContext, T> outputDecl)
-            where TReader : class, IDataReader<TIn>
+            where TReader : class, IDataLoader<TIn>
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(readerEstimator, nameof(readerEstimator));

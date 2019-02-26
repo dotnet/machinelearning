@@ -76,7 +76,7 @@ namespace Microsoft.ML.StaticPipe
                 _files = files;
             }
 
-            public override IDataReaderEstimator<IMultiStreamSource, IDataReader<IMultiStreamSource>> Reconcile(
+            public override IDataLoaderEstimator<IMultiStreamSource, IDataLoader<IMultiStreamSource>> Reconcile(
                 IHostEnvironment env, PipelineColumn[] toOutput, IReadOnlyDictionary<PipelineColumn, string> outputNames)
             {
                 Contracts.AssertValue(env);

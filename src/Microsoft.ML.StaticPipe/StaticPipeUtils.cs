@@ -20,7 +20,7 @@ namespace Microsoft.ML.StaticPipe
     public static class StaticPipeUtils
     {
         /// <summary>
-        /// This is a utility method intended to be used by authors of <see cref="IDataReaderEstimator{TSource,
+        /// This is a utility method intended to be used by authors of <see cref="IDataLoaderEstimator{TSource,
         /// TReader}"/> components to provide a strongly typed <see cref="DataReaderEstimator{TIn, TShape, TDataReader}"/>.
         /// This analysis tool provides a standard way for readers to exploit statically typed pipelines with the
         /// standard tuple-shape objects without having to write such code themselves.
@@ -38,7 +38,7 @@ namespace Microsoft.ML.StaticPipe
         /// which one can fetch or else retrieve </typeparam>
         /// <typeparam name="TOutShape">The schema shape type describing the output.</typeparam>
         /// <returns>The constructed wrapping data reader estimator.</returns>
-        public static DataReaderEstimator<TIn, TOutShape, IDataReader<TIn>>
+        public static DataReaderEstimator<TIn, TOutShape, IDataLoader<TIn>>
             ReaderEstimatorAnalyzerHelper<TIn, TDelegateInput, TOutShape>(
             IHostEnvironment env,
             IChannel ch,
@@ -48,10 +48,10 @@ namespace Microsoft.ML.StaticPipe
         {
             var readerEstimator = GeneralFunctionAnalyzer(env, ch, input, baseReconciler, mapper, out var est, col => null);
             var schema = StaticSchemaShape.Make<TOutShape>(mapper.Method.ReturnParameter);
-            return new DataReaderEstimator<TIn, TOutShape, IDataReader<TIn>>(env, readerEstimator, schema);
+            return new DataReaderEstimator<TIn, TOutShape, IDataLoader<TIn>>(env, readerEstimator, schema);
         }
 
-        internal static IDataReaderEstimator<TIn, IDataReader<TIn>>
+        internal static IDataLoaderEstimator<TIn, IDataLoader<TIn>>
             GeneralFunctionAnalyzer<TIn, TDelegateInput, TOutShape>(
             IHostEnvironment env,
             IChannel ch,

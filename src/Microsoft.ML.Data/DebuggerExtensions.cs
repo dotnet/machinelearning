@@ -56,7 +56,7 @@ namespace Microsoft.ML
         /// <param name="reader">The data reader to preview</param>
         /// <param name="source">The source to pull the data from</param>
         /// <param name="maxRows">Maximum number of rows to pull</param>
-        public static DataDebuggerPreview Preview<TSource>(this IDataReader<TSource> reader, TSource source, int maxRows = DataDebuggerPreview.Defaults.MaxRows)
+        public static DataDebuggerPreview Preview<TSource>(this IDataLoader<TSource> reader, TSource source, int maxRows = DataDebuggerPreview.Defaults.MaxRows)
             => new DataDebuggerPreview(reader.Read(source), maxRows);
     }
 }

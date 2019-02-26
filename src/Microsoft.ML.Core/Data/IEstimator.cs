@@ -224,7 +224,7 @@ namespace Microsoft.ML
     /// The 'data reader' takes a certain kind of input and turns it into an <see cref="IDataView"/>.
     /// </summary>
     /// <typeparam name="TSource">The type of input the reader takes.</typeparam>
-    public interface IDataReader<in TSource>
+    public interface IDataLoader<in TSource>
     {
         /// <summary>
         /// Produce the data view from the specified input.
@@ -239,18 +239,18 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// Sometimes we need to 'fit' an <see cref="IDataReader{TIn}"/>.
+    /// Sometimes we need to 'fit' an <see cref="IDataLoader{TIn}"/>.
     /// A DataReader estimator is the object that does it.
     /// </summary>
-    public interface IDataReaderEstimator<in TSource, out TReader>
-        where TReader : IDataReader<TSource>
+    public interface IDataLoaderEstimator<in TSource, out TLoader>
+        where TLoader : IDataLoader<TSource>
     {
         // REVIEW: you could consider the transformer to take a different <typeparamref name="TSource"/>, but we don't have such components
         // yet, so why complicate matters?
         /// <summary>
         /// Train and return a data reader.
         /// </summary>
-        TReader Fit(TSource input);
+        TLoader Fit(TSource input);
 
         /// <summary>
         /// The 'promise' of the output schema.

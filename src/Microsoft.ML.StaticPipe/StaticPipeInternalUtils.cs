@@ -37,7 +37,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 public Rec() : base() { }
 
-                public override IDataReaderEstimator<int, IDataReader<int>> Reconcile(
+                public override IDataLoaderEstimator<int, IDataLoader<int>> Reconcile(
                     IHostEnvironment env, PipelineColumn[] toOutput, IReadOnlyDictionary<PipelineColumn, string> outputNames)
                 {
                     Contracts.AssertValue(env);

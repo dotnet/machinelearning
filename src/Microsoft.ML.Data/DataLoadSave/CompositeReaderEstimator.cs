@@ -8,13 +8,13 @@ namespace Microsoft.ML.Data
     /// An estimator class for composite data reader.
     /// It can be used to build a 'trainable smart data reader', although this pattern is not very common.
     /// </summary>
-    public sealed class CompositeReaderEstimator<TSource, TLastTransformer> : IDataReaderEstimator<TSource, CompositeDataReader<TSource, TLastTransformer>>
+    public sealed class CompositeReaderEstimator<TSource, TLastTransformer> : IDataLoaderEstimator<TSource, CompositeDataReader<TSource, TLastTransformer>>
         where TLastTransformer : class, ITransformer
     {
-        private readonly IDataReaderEstimator<TSource, IDataReader<TSource>> _start;
+        private readonly IDataLoaderEstimator<TSource, IDataLoader<TSource>> _start;
         private readonly EstimatorChain<TLastTransformer> _estimatorChain;
 
-        public CompositeReaderEstimator(IDataReaderEstimator<TSource, IDataReader<TSource>> start, EstimatorChain<TLastTransformer> estimatorChain = null)
+        public CompositeReaderEstimator(IDataLoaderEstimator<TSource, IDataLoader<TSource>> start, EstimatorChain<TLastTransformer> estimatorChain = null)
         {
             Contracts.CheckValue(start, nameof(start));
             Contracts.CheckValueOrNull(estimatorChain);

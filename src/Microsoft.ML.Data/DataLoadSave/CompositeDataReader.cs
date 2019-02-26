@@ -12,19 +12,19 @@ namespace Microsoft.ML.Data
     /// This class represents a data reader that applies a transformer chain after reading.
     /// It also has methods to save itself to a repository.
     /// </summary>
-    public sealed class CompositeDataReader<TSource, TLastTransformer> : IDataReader<TSource>
+    public sealed class CompositeDataReader<TSource, TLastTransformer> : IDataLoader<TSource>
         where TLastTransformer : class, ITransformer
     {
         /// <summary>
         /// The underlying data reader.
         /// </summary>
-        public readonly IDataReader<TSource> Reader;
+        public readonly IDataLoader<TSource> Reader;
         /// <summary>
         /// The chain of transformers (possibly empty) that are applied to data upon reading.
         /// </summary>
         public readonly TransformerChain<TLastTransformer> Transformer;
 
-        public CompositeDataReader(IDataReader<TSource> reader, TransformerChain<TLastTransformer> transformerChain = null)
+        public CompositeDataReader(IDataLoader<TSource> reader, TransformerChain<TLastTransformer> transformerChain = null)
         {
             Contracts.CheckValue(reader, nameof(reader));
             Contracts.CheckValueOrNull(transformerChain);
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Save the contents to a stream, as a "model file".
         /// </summary>
-        public static void SaveTo<TSource>(this IDataReader<TSource> reader, IHostEnvironment env, Stream outputStream)
+        public static void SaveTo<TSource>(this IDataLoader<TSource> reader, IHostEnvironment env, Stream outputStream)
             => new CompositeDataReader<TSource, ITransformer>(reader).SaveTo(env, outputStream);
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Data
             using (var ch = env.Start("Loading pipeline"))
             {
                 ch.Trace("Loading data reader");
-                ModelLoadContext.LoadModel<IDataReader<IMultiStreamSource>, SignatureLoadModel>(env, out var reader, rep, "Reader");
+                ModelLoadContext.LoadModel<IDataLoader<IMultiStreamSource>, SignatureLoadModel>(env, out var reader, rep, "Reader");
 
                 ch.Trace("Loader transformer chain");
                 ModelLoadContext.LoadModel<TransformerChain<ITransformer>, SignatureLoadModel>(env, out var transformerChain, rep, TransformerChain.LoaderSignature);

@@ -11,7 +11,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// An object for <see cref="PipelineColumn"/> instances to indicate to the analysis code for static pipelines that
     /// they should be considered a single group of columns (through equality on the reconcilers), as well as how to
-    /// actually create the underlying dynamic structures, whether an <see cref="IDataReaderEstimator{TSource, TReader}"/>
+    /// actually create the underlying dynamic structures, whether an <see cref="IDataLoaderEstimator{TSource, TReader}"/>
     /// (for the <see cref="ReaderReconciler{TREaderIn}"/>) or a <see cref="IEstimator{TTransformer}"/>
     /// (for the <see cref="EstimatorReconciler"/>).
     /// </summary>
@@ -21,10 +21,10 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// Reconciler for column groups intended to resolve to a new <see cref="IDataReaderEstimator{TSource, TReader}"/>
-    /// or <see cref="IDataReader{TSource}"/>.
+    /// Reconciler for column groups intended to resolve to a new <see cref="IDataLoaderEstimator{TSource, TReader}"/>
+    /// or <see cref="IDataLoader{TSource}"/>.
     /// </summary>
-    /// <typeparam name="TIn">The input type of the <see cref="IDataReaderEstimator{TSource, TReader}"/>
+    /// <typeparam name="TIn">The input type of the <see cref="IDataLoaderEstimator{TSource, TReader}"/>
     /// object.</typeparam>
     public abstract class ReaderReconciler<TIn> : Reconciler
     {
@@ -38,7 +38,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="toOutput">The columns that the object created by the reconciler should output</param>
         /// <param name="outputNames">A map containing</param>
         /// <returns></returns>
-        public abstract IDataReaderEstimator<TIn, IDataReader<TIn>> Reconcile(
+        public abstract IDataLoaderEstimator<TIn, IDataLoader<TIn>> Reconcile(
             IHostEnvironment env, PipelineColumn[] toOutput, IReadOnlyDictionary<PipelineColumn, string> outputNames);
     }
 
