@@ -350,7 +350,7 @@ namespace Microsoft.ML.Data
                 case DataType.Int64:
                     return NumberDataViewType.Int64;
                 case DataType.Int96:
-                    return NumberDataViewType.DataViewRowId;
+                    return RowIdDataViewType.Instance;
                 case DataType.ByteArray:
                     return new VectorType(NumberDataViewType.Byte);
                 case DataType.String:

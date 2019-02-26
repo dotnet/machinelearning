@@ -115,7 +115,7 @@ namespace Microsoft.ML.Data
 
                     // Copy the selected column into output schema.
                     var selectedColumn = _sourceSchema[selectedIndex];
-                    schemaBuilder.AddColumn(selectedColumn.Name, selectedColumn.Type, selectedColumn.Metadata);
+                    schemaBuilder.AddColumn(selectedColumn.Name, selectedColumn.Type, selectedColumn.Annotations);
                 }
                 return schemaBuilder.ToSchema();
             }

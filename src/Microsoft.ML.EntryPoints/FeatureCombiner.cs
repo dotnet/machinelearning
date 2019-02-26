@@ -120,7 +120,7 @@ namespace Microsoft.ML.EntryPoints
             var col = schema.GetColumnOrNull(colName);
             if (!col.HasValue)
                 return null;
-            var type = col.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+            var type = col.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
             if (type == null || !type.IsKnownSize || !(type.ItemType is TextDataViewType))
                 return null;
             var metadata = default(VBuffer<ReadOnlyMemory<char>>);
@@ -185,7 +185,7 @@ namespace Microsoft.ML.EntryPoints
                         // This happens when the training is done on an XDF and the scoring is done on a data frame.
                         var colName = GetUniqueName();
                         concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
-                        Utils.Add(ref cvt, new TypeConvertingEstimator.ColumnInfo(colName, DataKind.R4, col.Name));
+                        Utils.Add(ref cvt, new TypeConvertingEstimator.ColumnInfo(colName, DataKind.Single, col.Name));
                         continue;
                     }
                 }
@@ -300,7 +300,7 @@ namespace Microsoft.ML.EntryPoints
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };
             }
 
-            var xf = new TypeConvertingTransformer(host, new TypeConvertingEstimator.ColumnInfo(input.LabelColumn, DataKind.R4, input.LabelColumn)).Transform(input.Data);
+            var xf = new TypeConvertingTransformer(host, new TypeConvertingEstimator.ColumnInfo(input.LabelColumn, DataKind.Single, input.LabelColumn)).Transform(input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
     }

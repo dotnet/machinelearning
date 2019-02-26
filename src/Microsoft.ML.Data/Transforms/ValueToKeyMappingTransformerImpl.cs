@@ -855,7 +855,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// Allows us to optionally register metadata. It is also perfectly legal for
             /// this to do nothing, which corresponds to there being no metadata.
             /// </summary>
-            public abstract void AddMetadata(DataViewSchema.Metadata.Builder builder);
+            public abstract void AddMetadata(DataViewSchema.Annotations.Builder builder);
 
             /// <summary>
             /// Writes out all terms we map to a text writer, with one line per mapped term.
@@ -1038,7 +1038,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     }
                 }
 
-                public override void AddMetadata(DataViewSchema.Metadata.Builder builder)
+                public override void AddMetadata(DataViewSchema.Annotations.Builder builder)
                 {
                     if (TypedMap.Count == 0)
                         return;
@@ -1081,13 +1081,13 @@ namespace Microsoft.ML.Transforms.Conversions
                     _host.Assert(TypedMap.ItemType is KeyType);
                 }
 
-                public override void AddMetadata(DataViewSchema.Metadata.Builder builder)
+                public override void AddMetadata(DataViewSchema.Annotations.Builder builder)
                 {
                     if (TypedMap.Count == 0)
                         return;
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].InputColumnName, out int srcCol);
-                    VectorType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+                    VectorType srcMetaType = _schema[srcCol].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
                     if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.GetKeyCountAsInt32(_host) ||
                         TypedMap.ItemType.GetKeyCountAsInt32(_host) == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
                     {
@@ -1096,7 +1096,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     }
                 }
 
-                private bool AddMetadataCore<TMeta>(DataViewType srcMetaType, DataViewSchema.Metadata.Builder builder)
+                private bool AddMetadataCore<TMeta>(DataViewType srcMetaType, DataViewSchema.Annotations.Builder builder)
                 {
                     _host.AssertValue(srcMetaType);
                     _host.Assert(srcMetaType.RawType == typeof(TMeta));
@@ -1168,7 +1168,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         return;
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].InputColumnName, out int srcCol);
-                    VectorType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+                    VectorType srcMetaType = _schema[srcCol].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
                     if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.GetKeyCountAsInt32(_host) ||
                         TypedMap.ItemType.GetKeyCountAsInt32(_host) == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, writer))
                     {

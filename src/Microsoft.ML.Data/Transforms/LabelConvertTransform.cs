@@ -165,7 +165,7 @@ namespace Microsoft.ML.Transforms
             // output column with KeyValues metadata, but maybe this output is actually useful?
             // Certainly there's nothing contractual requiring I suppress this. Should I suppress
             // anything else?
-            return kind != MetadataUtils.Kinds.KeyValues;
+            return kind != AnnotationUtils.Kinds.KeyValues;
         }
 
         protected override Delegate GetGetterCore(IChannel ch, DataViewRow input, int iinfo, out Action disposer)

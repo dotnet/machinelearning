@@ -168,7 +168,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 Columns = new[]
                 {
-                    new TextLoader.Column("Text", DataKind.TX, 1)
+                    new TextLoader.Column("Text", DataKind.String, 1)
                 }
             }, new MultiFileSource(sentimentDataPath));
 

@@ -192,19 +192,19 @@ namespace Microsoft.ML.Transforms
                      typeof(UInt32),
                      typeof(UInt64)
                 };
-        private static Dictionary<System.Type, DataKind> _typeToKindMap=
-            new Dictionary<System.Type, DataKind>
+        private static Dictionary<System.Type, InternalDataKind> _typeToKindMap=
+            new Dictionary<System.Type, InternalDataKind>
                 {
-                    { typeof(Single) , DataKind.R4},
-                    { typeof(Double) , DataKind.R8},
-                    { typeof(Int16) , DataKind.I2},
-                    { typeof(Int32) , DataKind.I4},
-                    { typeof(Int64) , DataKind.I8},
-                    { typeof(UInt16) , DataKind.U2},
-                    { typeof(UInt32) , DataKind.U4},
-                    { typeof(UInt64) , DataKind.U8},
-                    { typeof(String) , DataKind.TX},
-                    { typeof(Boolean) , DataKind.BL},
+                    { typeof(Single) , InternalDataKind.R4},
+                    { typeof(Double) , InternalDataKind.R8},
+                    { typeof(Int16) , InternalDataKind.I2},
+                    { typeof(Int32) , InternalDataKind.I4},
+                    { typeof(Int64) , InternalDataKind.I8},
+                    { typeof(UInt16) , InternalDataKind.U2},
+                    { typeof(UInt32) , InternalDataKind.U4},
+                    { typeof(UInt64) , InternalDataKind.U8},
+                    { typeof(String) , InternalDataKind.TX},
+                    { typeof(Boolean) , InternalDataKind.BL},
                 };
 
         /// <summary>

@@ -441,6 +441,11 @@ namespace Microsoft.ML.RunTests
             return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.Loader, modelPath, null, null, extraArgs, toCompare);
         }
 
+        protected bool TestInCore(RunContextBase ctx, string cmdName, string dataPath, OutputPath modelPath, string extraArgs, int digitsOfPrecision = DigitsOfPrecision, params PathArgument[] toCompare)
+        {
+            return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.Loader, modelPath, null, null, extraArgs, digitsOfPrecision, toCompare);
+        }
+
         /// <summary>
         /// Run one command loading the datafile loaded as defined by a model file, and comparing
         /// against standard output. This utility method will both load and save a model.
@@ -649,6 +654,11 @@ namespace Microsoft.ML.RunTests
         protected bool TestInCore(string cmdName, string dataPath, OutputPath modelPath, string extraArgs, params PathArgument[] toCompare)
         {
             return TestInCore(Params, cmdName, dataPath, modelPath, extraArgs, toCompare);
+        }
+
+        protected bool TestInCore(string cmdName, string dataPath, OutputPath modelPath, string extraArgs, int digitsOfPrecision = DigitsOfPrecision, params PathArgument[] toCompare)
+        {
+            return TestInCore(Params, cmdName, dataPath, modelPath, extraArgs, digitsOfPrecision, toCompare);
         }
 
         protected bool TestInOutCore(string cmdName, string dataPath, OutputPath modelPath, string extraArgs, params PathArgument[] toCompare)
@@ -1082,12 +1092,12 @@ namespace Microsoft.ML.RunTests
 
             string trainData = GetDataPath("adult.tiny.with-schema.txt");
             OutputPath trainModel = ModelPath();
-            TestCore("train", trainData, loaderArgs, extraArgs);
+            TestCore("train", trainData, loaderArgs, extraArgs, digitsOfPrecision: 5);
 
             _step++;
             // Save model summary.
             OutputPath modelSummary = CreateOutputPath("summary.txt");
-            TestInCore("savemodel", null, trainModel, "", modelSummary.Arg("sum"));
+            TestInCore("savemodel", null, trainModel, "", digitsOfPrecision: 4, modelSummary.Arg("sum"));
 
             Done();
         }

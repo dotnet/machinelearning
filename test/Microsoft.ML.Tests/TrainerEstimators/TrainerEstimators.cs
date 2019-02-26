@@ -34,7 +34,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Separator = "\t",
                 Columns = new[]
                 {
-                    new TextLoader.Column(featureColumn, DataKind.R4, new [] { new TextLoader.Range(1, 784) })
+                    new TextLoader.Column(featureColumn, DataKind.Single, new [] { new TextLoader.Range(1, 784) })
                 },
                 AllowSparse = true
             });
@@ -63,8 +63,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Separator = "\t",
                 Columns = new[]
                 {
-                    new TextLoader.Column(featureColumn, DataKind.R4, new [] { new TextLoader.Range(1, 784) }),
-                    new TextLoader.Column(weights, DataKind.R4, 0)
+                    new TextLoader.Column(featureColumn, DataKind.Single, new [] { new TextLoader.Range(1, 784) }),
+                    new TextLoader.Column(weights, DataKind.Single, 0),
                 },
                 AllowSparse = true
             });
@@ -168,8 +168,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                         HasHeader = true,
                         Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.BL, 0),
-                            new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                            new TextLoader.Column("Label", DataKind.Boolean, 0),
+                            new TextLoader.Column("SentimentText", DataKind.String, 1)
                         }
                     }).Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
@@ -188,9 +188,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Separator = "\t",
                 Columns = new[]
                      {
-                        new TextLoader.Column("Label", DataKind.R4, 0),
-                        new TextLoader.Column("Workclass", DataKind.Text, 1),
-                        new TextLoader.Column("NumericFeatures", DataKind.R4, new [] { new TextLoader.Range(9, 14) })
+                        new TextLoader.Column("Label", DataKind.Single, 0),
+                        new TextLoader.Column("Workclass", DataKind.String, 1),
+                        new TextLoader.Column("NumericFeatures", DataKind.Single, new [] { new TextLoader.Range(9, 14) })
                     }
             }).Read(GetDataPath(TestDatasets.adultRanking.trainFilename));
 
@@ -211,8 +211,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                         HasHeader = true,
                         Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.R4, 11),
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(0, 10) } )
+                            new TextLoader.Column("Label", DataKind.Single, 11),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(0, 10) } )
                         }
                     }).Read(GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename));
         }
@@ -225,8 +225,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 HasHeader = true,
                 Columns = new[]
                         {
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(0, 3) }),
-                            new TextLoader.Column("Label", DataKind.Text, 4)
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(0, 3) }),
+                            new TextLoader.Column("Label", DataKind.String, 4)
                         }
             };
         }
@@ -238,8 +238,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Separator = "comma",
                 Columns = new[]
                         {
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(0, 3) }),
-                            new TextLoader.Column("Label", DataKind.Text, 4)
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(0, 3) }),
+                            new TextLoader.Column("Label", DataKind.String, 4)
                         }
             }).Read(GetDataPath(IrisDataPath));
 

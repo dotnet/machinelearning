@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Trainers.Ensemble.DiversityMeasure;
-using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Trainers.Ensemble.SubModelSelector
 {
