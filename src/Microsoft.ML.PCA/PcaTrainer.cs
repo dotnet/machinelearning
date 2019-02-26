@@ -16,7 +16,6 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.PCA;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(RandomizedPcaTrainer.Summary, typeof(RandomizedPcaTrainer), typeof(RandomizedPcaTrainer.Options),
     new[] { typeof(SignatureAnomalyDetectorTrainer), typeof(SignatureTrainer) },
@@ -336,13 +335,13 @@ namespace Microsoft.ML.Trainers.PCA
                         SchemaShape.Column.VectorKind.Scalar,
                         NumberDataViewType.Single,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
 
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel,
                         SchemaShape.Column.VectorKind.Scalar,
                         BooleanDataViewType.Instance,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 

@@ -280,24 +280,24 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new DataViewSchema.Metadata.Builder();
+                    var builder = new DataViewSchema.Annotations.Builder();
                     AddMetadata(i, builder);
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.ToMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.ToAnnotations());
                 }
                 return result;
             }
 
-            private void AddMetadata(int iinfo, DataViewSchema.Metadata.Builder builder)
+            private void AddMetadata(int iinfo, DataViewSchema.Annotations.Builder builder)
             {
                 InputSchema.TryGetColumnIndex(_infos[iinfo].InputColumnName, out int srcCol);
-                var inputMetadata = InputSchema[srcCol].Metadata;
+                var inputMetadata = InputSchema[srcCol].Annotations;
 
                 var srcType = _infos[iinfo].TypeSrc;
                 int srcValueCount = srcType.GetValueCount();
 
                 VectorType typeNames = null;
                 int metaKeyValuesCol = 0;
-                if (inputMetadata.Schema.TryGetColumnIndex(MetadataUtils.Kinds.KeyValues, out metaKeyValuesCol))
+                if (inputMetadata.Schema.TryGetColumnIndex(AnnotationUtils.Kinds.KeyValues, out metaKeyValuesCol))
                     typeNames = inputMetadata.Schema[metaKeyValuesCol].Type as VectorType;
                 if (typeNames == null || !typeNames.IsKnownSize || !(typeNames.ItemType is TextDataViewType) ||
                     typeNames.Size != srcType.GetItemType().GetKeyCountAsInt32(Host))
@@ -323,7 +323,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             GetSlotNames(iinfo, ref dst);
                         };
                         var slotNamesType = new VectorType(TextDataViewType.Instance, _types[iinfo]);
-                        builder.Add(MetadataUtils.Kinds.SlotNames, slotNamesType, getter);
+                        builder.Add(AnnotationUtils.Kinds.SlotNames, slotNamesType, getter);
                     }
                 }
 
@@ -333,7 +333,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     {
                         GetCategoricalSlotRanges(iinfo, ref dst);
                     };
-                    builder.Add(MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.GetCategoricalType(srcValueCount), getter);
+                    builder.Add(AnnotationUtils.Kinds.CategoricalSlotRanges, AnnotationUtils.GetCategoricalType(srcValueCount), getter);
                 }
 
                 if (!_parent._columns[iinfo].Bag || srcValueCount == 1)
@@ -342,7 +342,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     {
                         dst = true;
                     };
-                    builder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, getter);
+                    builder.Add(AnnotationUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, getter);
                 }
             }
 
@@ -360,12 +360,12 @@ namespace Microsoft.ML.Transforms.Conversions
                 // Get the source slot names, defaulting to empty text.
                 var namesSlotSrc = default(VBuffer<ReadOnlyMemory<char>>);
 
-                var inputMetadata = InputSchema[_infos[iinfo].InputColumnName].Metadata;
+                var inputMetadata = InputSchema[_infos[iinfo].InputColumnName].Annotations;
                 Contracts.AssertValue(inputMetadata);
-                var typeSlotSrc = inputMetadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
+                var typeSlotSrc = inputMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType;
                 if (typeSlotSrc != null && typeSlotSrc.Size == typeSrc.Size && typeSlotSrc.ItemType is TextDataViewType)
                 {
-                    inputMetadata.GetValue(MetadataUtils.Kinds.SlotNames, ref namesSlotSrc);
+                    inputMetadata.GetValue(AnnotationUtils.Kinds.SlotNames, ref namesSlotSrc);
                     Host.Check(namesSlotSrc.Length == typeSrc.Size);
                 }
                 else
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 // Get the source key names, in an array (since we will use them multiple times).
                 var namesKeySrc = default(VBuffer<ReadOnlyMemory<char>>);
-                inputMetadata.GetValue(MetadataUtils.Kinds.KeyValues, ref namesKeySrc);
+                inputMetadata.GetValue(AnnotationUtils.Kinds.KeyValues, ref namesKeySrc);
                 Host.Check(namesKeySrc.Length == keyCount);
                 var keys = new ReadOnlyMemory<char>[keyCount];
                 namesKeySrc.CopyTo(keys);
@@ -793,13 +793,13 @@ namespace Microsoft.ML.Transforms.Conversions
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
 
                 var metadata = new List<SchemaShape.Column>();
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var keyMeta))
                     if (col.Kind != SchemaShape.Column.VectorKind.VariableVector && keyMeta.ItemType is TextDataViewType)
-                        metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
+                        metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
                 if (!colInfo.Bag && (col.Kind == SchemaShape.Column.VectorKind.Scalar || col.Kind == SchemaShape.Column.VectorKind.Vector))
-                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.CategoricalSlotRanges, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Int32, false));
+                    metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.CategoricalSlotRanges, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Int32, false));
                 if (!colInfo.Bag || (col.Kind == SchemaShape.Column.VectorKind.Scalar))
-                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
+                    metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
 
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(metadata));
             }

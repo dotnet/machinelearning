@@ -430,7 +430,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// features column. If the <c>IniContent</c> slotwise string metadata is present, that
         /// is used, or else default content is derived from the slot names.
         /// </summary>
-        /// <seealso cref="MetadataUtils.Kinds.SlotNames"/>
+        /// <seealso cref="AnnotationUtils.Kinds.SlotNames"/>
         public FeaturesToContentMap(RoleMappedSchema schema)
         {
             Contracts.AssertValue(schema);
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             var sch = schema.Schema;
             if (sch[feat.Index].HasSlotNames(featValueCount))
-                sch[feat.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _names);
+                sch[feat.Index].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref _names);
             else
                 _names = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(featValueCount);
 #if !CORECLR

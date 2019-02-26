@@ -75,7 +75,7 @@ namespace Microsoft.ML.Data
 
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
-            var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             var scoreType = score.Type as VectorType;
             if (scoreType == null || scoreType.Size < 2 || scoreType.ItemType != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "vector of two or more items of type float", scoreType.ToString());
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Data
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
-            var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             int numClasses = score.Type.GetVectorSize();
             Host.Assert(numClasses > 0);
             var classNames = GetClassNames(schema);
@@ -98,18 +98,18 @@ namespace Microsoft.ML.Data
         {
             ReadOnlyMemory<char>[] names;
             // Get the label names from the score column if they exist, or use the default names.
-            var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            var mdType = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
+            var scoreInfo = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
+            var mdType = schema.Schema[scoreInfo.Index].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType;
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
             if (mdType != null && mdType.IsKnownSize && mdType.ItemType is TextDataViewType)
             {
-                schema.Schema[scoreInfo.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref labelNames);
+                schema.Schema[scoreInfo.Index].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref labelNames);
                 names = new ReadOnlyMemory<char>[labelNames.Length];
                 labelNames.CopyTo(names);
             }
             else
             {
-                var score = schema.GetColumns(MetadataUtils.Const.ScoreValueKind.Score);
+                var score = schema.GetColumns(AnnotationUtils.Const.ScoreValueKind.Score);
                 Host.Assert(Utils.Size(score) == 1);
                 int numClasses = score[0].Type.GetVectorSize();
                 Host.Assert(numClasses > 0);
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Data
         private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Schema must contain a label column");
-            var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var scoreInfo = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             int numClasses = scoreInfo.Type.GetVectorSize();
             return new MultiClassPerInstanceEvaluator(Host, schema.Schema, scoreInfo, schema.Label.Value.Name);
         }
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Data
                 Host.Assert(PassNum < 1);
                 Host.Assert(schema.Label.HasValue);
 
-                var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+                var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
                 Host.Assert(score.Type.GetVectorSize() == _scoresArr.Length);
                 _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
                 _scoreGetter = row.GetGetter<VBuffer<float>>(score.Index);
@@ -514,8 +514,8 @@ namespace Microsoft.ML.Data
 
             var roles = new RoleMappedData(data, opt: false,
                 RoleMappedSchema.ColumnRole.Label.Bind(label),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, score),
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
 
             var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
@@ -579,7 +579,7 @@ namespace Microsoft.ML.Data
             if (schema[ScoreIndex].HasSlotNames(_numClasses))
             {
                 var classNames = default(VBuffer<ReadOnlyMemory<char>>);
-                schema[(int) ScoreIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref classNames);
+                schema[(int) ScoreIndex].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref classNames);
                 _classNames = new ReadOnlyMemory<char>[_numClasses];
                 classNames.CopyTo(_classNames);
             }
@@ -766,21 +766,21 @@ namespace Microsoft.ML.Data
         {
             var infos = new DataViewSchema.DetachedColumn[4];
 
-            var assignedColKeyValues = new DataViewSchema.Metadata.Builder();
+            var assignedColKeyValues = new DataViewSchema.Annotations.Builder();
             assignedColKeyValues.AddKeyValues(_numClasses, TextDataViewType.Instance, CreateKeyValueGetter());
-            infos[AssignedCol] = new DataViewSchema.DetachedColumn(Assigned, _types[AssignedCol], assignedColKeyValues.ToMetadata());
+            infos[AssignedCol] = new DataViewSchema.DetachedColumn(Assigned, _types[AssignedCol], assignedColKeyValues.ToAnnotations());
 
             infos[LogLossCol] = new DataViewSchema.DetachedColumn(LogLoss, _types[LogLossCol], null);
 
-            var sortedScores = new DataViewSchema.Metadata.Builder();
+            var sortedScores = new DataViewSchema.Annotations.Builder();
             sortedScores.AddSlotNames(_numClasses, CreateSlotNamesGetter(_numClasses, "Score"));
 
-            var sortedClasses = new DataViewSchema.Metadata.Builder();
+            var sortedClasses = new DataViewSchema.Annotations.Builder();
             sortedClasses.AddSlotNames(_numClasses, CreateSlotNamesGetter(_numClasses, "Class"));
             sortedClasses.AddKeyValues(_numClasses, TextDataViewType.Instance, CreateKeyValueGetter());
 
-            infos[SortedScoresCol] = new DataViewSchema.DetachedColumn(SortedScores, _types[SortedScoresCol], sortedScores.ToMetadata());
-            infos[SortedClassesCol] = new DataViewSchema.DetachedColumn(SortedClasses, _types[SortedClassesCol], sortedClasses.ToMetadata());
+            infos[SortedScoresCol] = new DataViewSchema.DetachedColumn(SortedScores, _types[SortedScoresCol], sortedScores.ToAnnotations());
+            infos[SortedClassesCol] = new DataViewSchema.DetachedColumn(SortedClasses, _types[SortedClassesCol], sortedClasses.ToAnnotations());
             return infos;
         }
 
@@ -852,7 +852,7 @@ namespace Microsoft.ML.Data
         private protected override IEvaluator Evaluator => _evaluator;
 
         public MultiClassMamlEvaluator(IHostEnvironment env, Arguments args)
-            : base(args, env, MetadataUtils.Const.ScoreColumnKind.MultiClassClassification, "MultiClassMamlEvaluator")
+            : base(args, env, AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification, "MultiClassMamlEvaluator")
         {
             Host.CheckValue(args, nameof(args));
             // REVIEW: why do we need to insist on at least 2?

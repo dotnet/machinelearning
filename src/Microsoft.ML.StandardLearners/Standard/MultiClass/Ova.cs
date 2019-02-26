@@ -19,7 +19,6 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Training;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(Ova.Summary, typeof(Ova), typeof(Ova.Options),

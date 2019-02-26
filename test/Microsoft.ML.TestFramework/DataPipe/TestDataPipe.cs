@@ -1033,7 +1033,7 @@ namespace Microsoft.ML.RunTests
                 new[]
                 {
                     "loader=Text{sparse+} xf=TrainScore{tr=AP{shuf-} scorer=fcc{str+}}"
-                }, digitsOfPrecision: 5);
+                }, digitsOfPrecision: 4);
 
             Done();
         }

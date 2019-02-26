@@ -259,7 +259,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             [VectorType(_columnNumber)]
             public float[] Features;
-            [KeyType(Count = _classNumber)]
+            [KeyType(_classNumber)]
             public uint Label;
             [VectorType(_classNumber)]
             public float[] Score;

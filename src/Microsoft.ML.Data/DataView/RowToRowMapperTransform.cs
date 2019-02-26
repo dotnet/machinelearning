@@ -101,7 +101,6 @@ namespace Microsoft.ML.Data
             _mapperFactory = mapperFactory;
             _bindings = new ColumnBindings(input.Schema, mapper.GetOutputColumns());
         }
-
         public static DataViewSchema GetOutputSchema(DataViewSchema inputSchema, IRowMapper mapper)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
@@ -143,10 +142,9 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Produces the set of active columns for the data view (as a bool[] of length bindings.ColumnCount),
-        /// a predicate for the needed active input columns, and a predicate for the needed active
-        /// output columns.
+        /// and the needed active input columns, given a predicate for the needed active output columns.
         /// </summary>
-        private bool[] GetActive(Func<int, bool> predicate, out Func<int, bool> predicateInput)
+        private bool[] GetActive(Func<int, bool> predicate, out IEnumerable<DataViewSchema.Column> inputColumns)
         {
             int n = _bindings.Schema.Count;
             var active = Utils.BuildArray(n, predicate);
@@ -162,8 +160,7 @@ namespace Microsoft.ML.Data
             var predicateIn = _mapper.GetDependencies(predicateOut);
 
             // Combine the two sets of input columns.
-            predicateInput =
-                col => 0 <= col && col < activeInput.Length && (activeInput[col] || predicateIn(col));
+            inputColumns = _bindings.InputSchema.Where(col => activeInput[col.Index] || predicateIn(col.Index));
 
             return active;
         }
@@ -192,10 +189,7 @@ namespace Microsoft.ML.Data
         protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
-
-            Func<int, bool> predicateInput;
-            var active = GetActive(predicate, out predicateInput);
-            var inputCols = Source.Schema.Where(x => predicateInput(x.Index));
+            var active = GetActive(predicate, out IEnumerable<DataViewSchema.Column> inputCols);
 
             return new Cursor(Host, Source.GetRowCursor(inputCols, rand), this, active);
         }
@@ -205,11 +199,8 @@ namespace Microsoft.ML.Data
             Host.CheckValueOrNull(rand);
 
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
+            var active = GetActive(predicate, out IEnumerable<DataViewSchema.Column> inputCols);
 
-            Func<int, bool> predicateInput;
-            var active = GetActive(predicate, out predicateInput);
-
-            var inputCols = Source.Schema.Where(x => predicateInput(x.Index));
             var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 
@@ -243,11 +234,14 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+        /// <summary>
+        /// Given a set of output columns, return the input columns that are needed to generate those output columns.
+        /// </summary>
+        IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
         {
-            Func<int, bool> predicateInput;
-            GetActive(predicate, out predicateInput);
-            return predicateInput;
+            var predicate = RowCursorUtils.FromColumnsToPredicate(dependingColumns, OutputSchema);
+            GetActive(predicate, out var inputColumns);
+            return inputColumns;
         }
 
         public DataViewSchema InputSchema => Source.Schema;

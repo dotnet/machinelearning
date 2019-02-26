@@ -138,7 +138,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 Contracts.Assert(physType == typeof(byte) || physType == typeof(ushort)
                     || physType == typeof(uint) || physType == typeof(ulong));
                 var keyType = typeof(Key<>).MakeGenericType(physType);
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var kvMeta))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var kvMeta))
                 {
                     var subtype = GetTypeOrNull(kvMeta);
                     if (subtype != null && subtype.IsGenericType)
@@ -246,8 +246,8 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 {
                     // Check to see if the column is normalized.
                     // Once we shift to metadata being a row globally we can also make this a bit more efficient:
-                    var meta = col.Metadata;
-                    if (meta.Schema.TryGetColumnIndex(MetadataUtils.Kinds.IsNormalized, out int normcol))
+                    var meta = col.Annotations;
+                    if (meta.Schema.TryGetColumnIndex(AnnotationUtils.Kinds.IsNormalized, out int normcol))
                     {
                         var normtype = meta.Schema[normcol].Type;
                         if (normtype == BooleanDataViewType.Instance)
@@ -275,8 +275,8 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 if (kt.Count > 0)
                 {
                     // Check to see if we have key value metadata of the appropriate type, size, and whatnot.
-                    var meta = col.Metadata;
-                    if (meta.Schema.TryGetColumnIndex(MetadataUtils.Kinds.KeyValues, out int kvcolIndex))
+                    var meta = col.Annotations;
+                    if (meta.Schema.TryGetColumnIndex(AnnotationUtils.Kinds.KeyValues, out int kvcolIndex))
                     {
                         var kvcol = meta.Schema[kvcolIndex];
                         var kvType = kvcol.Type;

@@ -645,8 +645,8 @@ namespace Microsoft.ML.Data
             /// </summary>
             public readonly ColInfo[] Infos;
             /// <summary>
-            /// <see cref="Infos"/>[i] stores the i-th column's metadata, named <see cref="MetadataUtils.Kinds.SlotNames"/>
-            /// in <see cref="DataViewSchema.Metadata"/>.
+            /// <see cref="Infos"/>[i] stores the i-th column's metadata, named <see cref="AnnotationUtils.Kinds.SlotNames"/>
+            /// in <see cref="DataViewSchema.Annotations"/>.
             /// </summary>
             private readonly VBuffer<ReadOnlyMemory<char>>[] _slotNames;
             /// <summary>
@@ -1007,9 +1007,9 @@ namespace Microsoft.ML.Data
                     if (names.Length > 0)
                     {
                         // Slot names present! Let's add them.
-                        var metadataBuilder = new DataViewSchema.Metadata.Builder();
+                        var metadataBuilder = new DataViewSchema.Annotations.Builder();
                         metadataBuilder.AddSlotNames(names.Length, (ref VBuffer<ReadOnlyMemory<char>> value) => names.CopyTo(ref value));
-                        schemaBuilder.AddColumn(info.Name, info.ColType, metadataBuilder.ToMetadata());
+                        schemaBuilder.AddColumn(info.Name, info.ColType, metadataBuilder.ToAnnotations());
                     }
                     else
                         // Slot names is empty.

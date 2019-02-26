@@ -12,7 +12,6 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Trainers.Ensemble.SubsetSelector;
-using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
