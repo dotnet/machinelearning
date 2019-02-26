@@ -166,8 +166,10 @@ namespace Microsoft.ML.Trainers.FastTree
                 Dataset.DatasetSkeleton.LabelGainMap = gain;
             }
 
-            ch.CheckUserArg((FastTreeTrainerOptions.EarlyStoppingRule == null && !FastTreeTrainerOptions.EnablePruning) || (FastTreeTrainerOptions.EarlyStoppingMetrics == 1 || FastTreeTrainerOptions.EarlyStoppingMetrics == 3), nameof(FastTreeTrainerOptions.EarlyStoppingMetrics),
-                "earlyStoppingMetrics should be 1 or 3.");
+            ch.CheckUserArg((FastTreeTrainerOptions.EarlyStoppingRule == null && !FastTreeTrainerOptions.EnablePruning) ||
+                (FastTreeTrainerOptions.EarlyStoppingMetrics == EarlyStoppingMetrics.RankingNdcg1 ||
+                 FastTreeTrainerOptions.EarlyStoppingMetrics == EarlyStoppingMetrics.RankingNdcg3), nameof(FastTreeTrainerOptions.EarlyStoppingMetrics),
+                "earlyStoppingMetrics should be EarlyStoppingMetrics.RankingNdcg1 or EarlyStoppingMetrics.RankingNdcg3");
 
             base.CheckOptions(ch);
         }

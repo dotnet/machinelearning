@@ -28,8 +28,8 @@ namespace Microsoft.ML.Trainers.FastTree
         public partial class Options : OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2)", ShortName = "pmetric")]
-            [TGUI(Description = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2")]
-            public int PruningMetrics = 2;
+            [TGUI(Description = "Metric for pruning. (For regression, EarlyStoppingMetrics.RegressionL1 or EarlyStoppingMetrics.RegressionL2; default L2")]
+            public EarlyStoppingMetrics PruningMetrics = EarlyStoppingMetrics.RegressionL2;
         }
 
         internal const string LoadNameValue = "RegressionGamTrainer";

@@ -117,8 +117,10 @@ namespace Microsoft.ML.Trainers.FastTree
             if (FastTreeTrainerOptions.EarlyStoppingMetrics > 0)
                 ch.Warning("For Tweedie regression, early stopping does not yet use the Tweedie distribution.");
 
-            ch.CheckUserArg((FastTreeTrainerOptions.EarlyStoppingRule == null && !FastTreeTrainerOptions.EnablePruning) || (FastTreeTrainerOptions.EarlyStoppingMetrics >= 1 && FastTreeTrainerOptions.EarlyStoppingMetrics <= 2), nameof(FastTreeTrainerOptions.EarlyStoppingMetrics),
-                    "earlyStoppingMetrics should be 1 or 2. (1: L1, 2: L2)");
+            ch.CheckUserArg((FastTreeTrainerOptions.EarlyStoppingRule == null && !FastTreeTrainerOptions.EnablePruning) ||
+                (FastTreeTrainerOptions.EarlyStoppingMetrics >= EarlyStoppingMetrics.RegressionL1 &&
+                FastTreeTrainerOptions.EarlyStoppingMetrics <= EarlyStoppingMetrics.RegressionL2), nameof(FastTreeTrainerOptions.EarlyStoppingMetrics),
+                    "earlyStoppingMetrics should be EarlyStoppingMetrics.RegressionL1 or EarlyStoppingMetrics.RegressionL2.");
         }
 
         private protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)

@@ -379,13 +379,13 @@ namespace Microsoft.ML.Trainers.FastTree
 
     internal class FastNdcgTest : NdcgTest
     {
-        protected readonly int NdcgTruncation;
+        protected readonly EarlyStoppingMetrics NdcgTruncation;
 
-        public FastNdcgTest(ScoreTracker scoreTracker, short[] labels, string sortingAlgorithm, int ndcgTruncation)
+        public FastNdcgTest(ScoreTracker scoreTracker, short[] labels, string sortingAlgorithm, EarlyStoppingMetrics ndcgTruncation)
             : base(scoreTracker, labels, sortingAlgorithm)
         {
-            Contracts.CheckParam(ndcgTruncation == 1 || ndcgTruncation == 3, nameof(ndcgTruncation),
-                nameof(FastNdcgTest) + " only supports NDCG1 & NDCG3");
+            Contracts.CheckParam(ndcgTruncation == EarlyStoppingMetrics.RankingNdcg1 || ndcgTruncation == EarlyStoppingMetrics.RankingNdcg3, nameof(ndcgTruncation),
+                nameof(FastNdcgTest) + " only supports EarlyStoppingMetrics.RankingNdcg1 or EarlyStoppingMetrics.RankingNdcg3");
             NdcgTruncation = ndcgTruncation;
         }
 
@@ -394,10 +394,10 @@ namespace Microsoft.ML.Trainers.FastTree
             double fastNdcg = 0;
             switch (NdcgTruncation)
             {
-                case 1:
+                case EarlyStoppingMetrics.RankingNdcg1:
                     fastNdcg = DcgCalculator.Ndcg1(Dataset, Labels, scores);
                     break;
-                case 3:
+                case EarlyStoppingMetrics.RankingNdcg3:
                     fastNdcg = DcgCalculator.Ndcg3(Dataset, Labels, scores);
                     break;
                 default:
@@ -419,7 +419,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private readonly ScoreTracker _trainingScores;
         private readonly FastTreeRankingTrainer.LambdaRankObjectiveFunction _rankingObjectiveFunction;
 
-        public FastNdcgTestForTrainSet(ScoreTracker trainingScores, FastTreeRankingTrainer.LambdaRankObjectiveFunction rankingObjectiveFunction, short[] labels, string sortingAlgorithm, int ndcgTruncation)
+        public FastNdcgTestForTrainSet(ScoreTracker trainingScores, FastTreeRankingTrainer.LambdaRankObjectiveFunction rankingObjectiveFunction, short[] labels, string sortingAlgorithm, EarlyStoppingMetrics ndcgTruncation)
             : base(trainingScores, labels, sortingAlgorithm, ndcgTruncation)
         {
             _trainingScores = trainingScores;
@@ -439,10 +439,10 @@ namespace Microsoft.ML.Trainers.FastTree
             double fastNdcg = 0;
             switch (NdcgTruncation)
             {
-                case 1:
+                case EarlyStoppingMetrics.RankingNdcg1:
                     fastNdcg = DcgCalculator.Ndcg1(Dataset, trainQueriesTopLabels);
                     break;
-                case 3:
+                case EarlyStoppingMetrics.RankingNdcg3:
                     fastNdcg = DcgCalculator.Ndcg3(Dataset, trainQueriesTopLabels);
                     break;
                 default:
@@ -516,11 +516,11 @@ namespace Microsoft.ML.Trainers.FastTree
     internal sealed class RegressionTest : Test
     {
         private readonly float[] _labels;
-        private readonly int? _resultType;
+        private readonly EarlyStoppingMetrics? _resultType;
 
         ///<param name="scoreTracker"></param>
-        /// <param name="resultType">1: L1, 2: L2. Otherwise, return all.</param>
-        public RegressionTest(ScoreTracker scoreTracker, int? resultType = null)
+        /// <param name="resultType">EarlyStoppingMetrics.RegressionL1 or EarlyStoppingMetrics.RegressionL2. Otherwise, return all.</param>
+        public RegressionTest(ScoreTracker scoreTracker, EarlyStoppingMetrics? resultType = null)
             : base(scoreTracker)
         {
             _labels = FastTreeRegressionTrainer.GetDatasetRegressionLabels(scoreTracker.Dataset);
@@ -565,14 +565,14 @@ namespace Microsoft.ML.Trainers.FastTree
 
             List<TestResult> result = new List<TestResult>();
 
-            Contracts.Assert(_resultType == null || _resultType == 1 || _resultType == 2);
+            Contracts.Assert(_resultType == null || _resultType == EarlyStoppingMetrics.RegressionL1 || _resultType == EarlyStoppingMetrics.RegressionL2);
 
             switch (_resultType)
             {
-                case 1:
+                case EarlyStoppingMetrics.RegressionL1:
                     result.Add(new TestResult("L1", totalL1Error, Dataset.NumDocs, true, TestResult.ValueOperator.Average));
                     break;
-                case 2:
+                case EarlyStoppingMetrics.RegressionL2:
                     result.Add(new TestResult("L2", totalL2Error, Dataset.NumDocs, true, TestResult.ValueOperator.SqrtAverage));
                     break;
                 default:

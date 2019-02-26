@@ -44,7 +44,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             public Options()
             {
-                EarlyStoppingMetrics = 1; // Use L1 by default.
+                EarlyStoppingMetrics = EarlyStoppingMetrics.RegressionL1; // Use L1 by default.
             }
 
             ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeRegressionTrainer(env, this);
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             public Options()
             {
-                EarlyStoppingMetrics = 1;
+                EarlyStoppingMetrics = EarlyStoppingMetrics.RegressionL1;
             }
 
             ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeRankingTrainer(env, this);
@@ -442,6 +442,17 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
+    /// <summary>
+    /// Early stopping metrics for Regression and Ranking tasks in <see cref="FastTree"/>
+    /// </summary>
+    public enum EarlyStoppingMetrics
+    {
+        RegressionL1 = 1,
+        RegressionL2 = 2,
+        RankingNdcg1 = 1,
+        RankingNdcg3 = 3
+    }
+
     public abstract class BoostedTreeOptions : TreeOptions
     {
         // REVIEW: TLC FR likes to call it bestStepRegressionTrees which might be more appropriate.
@@ -490,8 +501,9 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3).
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)", ShortName = "esmt")]
-        [TGUI(Description = "Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)")]
-        public int EarlyStoppingMetrics;
+        [TGUI(Description = "Early stopping metrics. (For regression, EarlyStoppingMetrics.RegressionL1 or EarlyStoppingMetrics.RegressionL2;" +
+            "for ranking, EarlyStoppingMetrics.RankingNdcg1 or EarlyStoppingMetrics.RankingNdcg2)")]
+        public EarlyStoppingMetrics EarlyStoppingMetrics;
 
         /// <summary>
         /// Enable post-training pruning to avoid overfitting. (a validation set is required).

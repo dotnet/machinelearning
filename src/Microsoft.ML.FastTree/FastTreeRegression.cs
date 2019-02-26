@@ -106,8 +106,10 @@ namespace Microsoft.ML.Trainers.FastTree
 
             base.CheckOptions(ch);
 
-            ch.CheckUserArg((FastTreeTrainerOptions.EarlyStoppingRule == null && !FastTreeTrainerOptions.EnablePruning) || (FastTreeTrainerOptions.EarlyStoppingMetrics >= 1 && FastTreeTrainerOptions.EarlyStoppingMetrics <= 2), nameof(FastTreeTrainerOptions.EarlyStoppingMetrics),
-                    "earlyStoppingMetrics should be 1 or 2. (1: L1, 2: L2)");
+            ch.CheckUserArg((FastTreeTrainerOptions.EarlyStoppingRule == null && !FastTreeTrainerOptions.EnablePruning) ||
+                (FastTreeTrainerOptions.EarlyStoppingMetrics >= EarlyStoppingMetrics.RegressionL1 &&
+                 FastTreeTrainerOptions.EarlyStoppingMetrics <= EarlyStoppingMetrics.RegressionL2), nameof(FastTreeTrainerOptions.EarlyStoppingMetrics),
+                    "earlyStoppingMetrics should be EarlyStoppingMetrics.RegressionL1 or EarlyStoppingMetrics.RegressionL2");
         }
 
         private static SchemaShape.Column MakeLabelColumn(string labelColumn)
