@@ -16,7 +16,6 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.PCA;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(RandomizedPcaTrainer.Summary, typeof(RandomizedPcaTrainer), typeof(RandomizedPcaTrainer.Options),
     new[] { typeof(SignatureAnomalyDetectorTrainer), typeof(SignatureTrainer) },
@@ -411,7 +410,7 @@ namespace Microsoft.ML.Trainers.PCA
         /// <param name="rank">The rank of the PCA approximation of the covariance matrix. This is the number of eigenvectors in the model.</param>
         /// <param name="eigenVectors">Array of eigenvectors.</param>
         /// <param name="mean">The mean vector of the training data.</param>
-        public PcaModelParameters(IHostEnvironment env, int rank, float[][] eigenVectors, in VBuffer<float> mean)
+        internal PcaModelParameters(IHostEnvironment env, int rank, float[][] eigenVectors, in VBuffer<float> mean)
             : base(env, RegistrationName)
         {
             _dimension = eigenVectors[0].Length;

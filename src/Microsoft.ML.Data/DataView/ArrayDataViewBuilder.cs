@@ -85,7 +85,7 @@ namespace Microsoft.ML.Data
             _host.CheckValue(getKeyValues, nameof(getKeyValues));
             _host.CheckParam(keyCount > 0, nameof(keyCount));
             CheckLength(name, values);
-            values.GetType().GetElementType().TryGetDataKind(out DataKind kind);
+            values.GetType().GetElementType().TryGetDataKind(out InternalDataKind kind);
             _columns.Add(new AssignmentColumn<T1>(new KeyType(kind.ToType(), keyCount), values));
             _getKeyValues.Add(name, getKeyValues);
             _names.Add(name);
@@ -215,20 +215,20 @@ namespace Microsoft.ML.Data
                 _host.Assert(builder._names.Count == builder._columns.Count);
                 _columns = builder._columns.ToArray();
 
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
                 for(int i=0; i< _columns.Length; i++)
                 {
-                    var meta = new MetadataBuilder();
+                    var meta = new DataViewSchema.Metadata.Builder();
 
                     if (builder._getSlotNames.TryGetValue(builder._names[i], out var slotNamesGetter))
                         meta.AddSlotNames(_columns[i].Type.GetVectorSize(), slotNamesGetter);
 
                     if (builder._getKeyValues.TryGetValue(builder._names[i], out var keyValueGetter))
                         meta.AddKeyValues(_columns[i].Type.GetKeyCountAsInt32(_host), TextDataViewType.Instance, keyValueGetter);
-                    schemaBuilder.AddColumn(builder._names[i], _columns[i].Type, meta.GetMetadata());
+                    schemaBuilder.AddColumn(builder._names[i], _columns[i].Type, meta.ToMetadata());
                 }
 
-                _schema = schemaBuilder.GetSchema();
+                _schema = schemaBuilder.ToSchema();
                 _rowCount = rowCount;
             }
 

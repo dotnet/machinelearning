@@ -11,7 +11,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.Training
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// Options for creating a <see cref="TrainingCursorBase"/> from a <see cref="RoleMappedData"/> with specified standard columns active.
@@ -385,17 +385,6 @@ namespace Microsoft.ML.Training
         public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn)
         {
             if (weightColumn == null)
-                return default;
-            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
-        }
-
-        /// <summary>
-        /// The <see cref="SchemaShape.Column"/> for the weight column.
-        /// </summary>
-        /// <param name="weightColumn">name of the weight column</param>
-        public static SchemaShape.Column MakeR4ScalarWeightColumn(Optional<string> weightColumn)
-        {
-            if (weightColumn == null || weightColumn.Value == null || !weightColumn.IsExplicit)
                 return default;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
         }

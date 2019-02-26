@@ -5,10 +5,9 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Training;
 
 namespace Microsoft.ML.LightGBM
 {
@@ -78,12 +77,8 @@ namespace Microsoft.ML.LightGBM
 
             LightGbmTrainerOptions.LabelColumn = label.Name;
             LightGbmTrainerOptions.FeatureColumn = featureColumn;
-
-            if (weightColumn != null)
-                LightGbmTrainerOptions.WeightColumn = Optional<string>.Explicit(weightColumn);
-
-            if (groupIdColumn != null)
-                LightGbmTrainerOptions.GroupIdColumn = Optional<string>.Explicit(groupIdColumn);
+            LightGbmTrainerOptions.WeightColumn = weightColumn;
+            LightGbmTrainerOptions.GroupIdColumn = groupIdColumn;
 
             InitParallelTraining();
         }

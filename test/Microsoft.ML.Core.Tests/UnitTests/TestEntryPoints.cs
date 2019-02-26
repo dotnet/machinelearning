@@ -56,8 +56,8 @@ namespace Microsoft.ML.RunTests
                 {
                     Columns = new[]
                     {
-                        new TextLoader.Column("Label", DataKind.R4, 0),
-                        new TextLoader.Column("Features", DataKind.R4,
+                        new TextLoader.Column("Label", DataKind.Single, 0),
+                        new TextLoader.Column("Features", DataKind.Single,
                             new [] { new TextLoader.Range(1, 9) })
                     }
                 },
@@ -77,10 +77,10 @@ namespace Microsoft.ML.RunTests
                     HasHeader = true,
                     Columns = new[]
                     {
-                        new TextLoader.Column("Label", type: null, 0),
-                        new TextLoader.Column("F1", DataKind.Text, 1),
-                        new TextLoader.Column("F2", DataKind.I4, 2),
-                        new TextLoader.Column("Rest", type: null, new [] { new TextLoader.Range(3, 9) })
+                        new TextLoader.Column("Label", DataKind.Single, 0),
+                        new TextLoader.Column("F1", DataKind.String, 1),
+                        new TextLoader.Column("F2", DataKind.Int32, 2),
+                        new TextLoader.Column("Rest", DataKind.Single, new [] { new TextLoader.Range(3, 9) })
                     }
                 },
 
@@ -391,17 +391,14 @@ namespace Microsoft.ML.RunTests
             Assert.True(weightType.Equals(typeof(string)));
 
             var instance = ib1.GetInstance() as LogisticRegression.Options;
-            Assert.True(!instance.WeightColumn.IsExplicit);
-            Assert.True(instance.WeightColumn.Value == DefaultColumnNames.Weight);
+            Assert.True(instance.WeightColumn == null);
 
             ib1.TrySetValue("WeightColumn", "OtherWeight");
-            Assert.True(instance.WeightColumn.IsExplicit);
-            Assert.Equal("OtherWeight", instance.WeightColumn.Value);
+            Assert.Equal("OtherWeight", instance.WeightColumn);
 
             var tok = (JToken)JValue.CreateString("AnotherWeight");
             ib1.TrySetValueJson("WeightColumn", tok);
-            Assert.True(instance.WeightColumn.IsExplicit);
-            Assert.Equal("AnotherWeight", instance.WeightColumn.Value);
+            Assert.Equal("AnotherWeight", instance.WeightColumn);
         }
 
         [Fact]
@@ -968,8 +965,8 @@ namespace Microsoft.ML.RunTests
                     HasHeader = true,
                     Columns = new[]
                     {
-                        new TextLoader.Column("Label", DataKind.TX, 0),
-                        new TextLoader.Column("Text", DataKind.TX, 3)
+                        new TextLoader.Column("Label", DataKind.String, 0),
+                        new TextLoader.Column("Text", DataKind.String, 3)
                     }
                 },
 
@@ -1179,8 +1176,8 @@ namespace Microsoft.ML.RunTests
                 {
                     Columns = new[]
                     {
-                        new TextLoader.Column("Label", DataKind.R4, 0),
-                        new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) })
+                        new TextLoader.Column("Label", DataKind.Single, 0),
+                        new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) })
                     }
                 },
 
@@ -1325,9 +1322,9 @@ namespace Microsoft.ML.RunTests
                         {
                             Columns = new[]
                             {
-                                new TextLoader.Column("Label", DataKind.R4, 0),
-                                new TextLoader.Column("Features", DataKind.R4, new[] { new TextLoader.Range(1, 8) }),
-                                new TextLoader.Column("Cat", DataKind.TX, 9)
+                                new TextLoader.Column("Label", DataKind.Single, 0),
+                                new TextLoader.Column("Features", DataKind.Single, new[] { new TextLoader.Range(1, 8) }),
+                                new TextLoader.Column("Cat", DataKind.String, 9)
                             },
                             HasHeader = true,
                         }
@@ -1897,7 +1894,7 @@ namespace Microsoft.ML.RunTests
                         }
                       },";
 
-            RunTrainScoreEvaluate("Trainers.FastTreeRanker", "Models.RankerEvaluator",
+            RunTrainScoreEvaluate("Trainers.FastTreeRanker", "Models.RankingEvaluator",
                 dataPath, warningsPath, overallMetricsPath, instanceMetricsPath,
                 splitterInput: "output_data3", transforms: transforms);
 
@@ -2411,7 +2408,7 @@ namespace Microsoft.ML.RunTests
                     'model' : '{1}'
                   }}
                 }}", EscapePath(dataPath), EscapePath(outputPath), trainerName,
-                string.IsNullOrWhiteSpace(loader) ? "" : string.Format(",'CustomSchema': '{0}'", loader),
+                string.IsNullOrWhiteSpace(loader) ? "" : string.Format(",'CustomSchema': 'sparse+ {0}'", loader),
                 string.IsNullOrWhiteSpace(trainerArgs) ? "" : trainerArgs
                 );
 
@@ -3333,8 +3330,8 @@ namespace Microsoft.ML.RunTests
                     HasHeader = true,
                     Columns = new[]
                     {
-                        new TextLoader.Column("Label", type: null, 0),
-                        new TextLoader.Column("Features", DataKind.Num, new [] { new TextLoader.Range(1, 9) })
+                        new TextLoader.Column("Label", DataKind.Single, 0),
+                        new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 9) })
                     }
                 },
 
@@ -3386,8 +3383,8 @@ namespace Microsoft.ML.RunTests
                     DataSaverUtils.SaveDataView(ch, saver, mcOutput.Stats, file);
             }
 
-            CheckEquality(@"../Common/EntryPoints", "lr-weights.txt", digitsOfPrecision: 6);
-            CheckEquality(@"../Common/EntryPoints", "lr-stats.txt", digitsOfPrecision: 6);
+            CheckEquality(@"../Common/EntryPoints", "lr-weights.txt", digitsOfPrecision: 4);
+            CheckEquality(@"../Common/EntryPoints", "lr-stats.txt", digitsOfPrecision: 3);
             CheckEquality(@"../Common/EntryPoints", "mc-lr-weights.txt", digitsOfPrecision: 3);
             CheckEquality(@"../Common/EntryPoints", "mc-lr-stats.txt", digitsOfPrecision: 5);
             Done();
@@ -3403,11 +3400,12 @@ namespace Microsoft.ML.RunTests
                 {
                     Arguments =
                 {
+                    AllowSparse = true,
                     Separators = new []{'\t' },
                     HasHeader = false,
                     Columns = new[]
                     {
-                        new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 784) })
+                        new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 784) })
                     }
                 },
 
@@ -3620,7 +3618,7 @@ namespace Microsoft.ML.RunTests
                     Separators = new []{' '},
                     Columns = new[]
                     {
-                        new TextLoader.Column("Text", DataKind.Text,
+                        new TextLoader.Column("Text", DataKind.String,
                             new [] { new TextLoader.Range() { Min = 0, VariableEnd=true, ForceVector=true} })
                     }
                 },
@@ -3858,8 +3856,8 @@ namespace Microsoft.ML.RunTests
                                 'UseThreads': true,
                                 'HeaderFile': null,
                                 'MaxRows': null,
-                                'AllowQuoting': true,
-                                'AllowSparse': true,
+                                'AllowQuoting': false,
+                                'AllowSparse': false,
                                 'InputSize': null,
                                 'Separator': [
                                     '\t'
@@ -3921,8 +3919,8 @@ namespace Microsoft.ML.RunTests
                                 'UseThreads': true,
                                 'HeaderFile': null,
                                 'MaxRows': null,
-                                'AllowQuoting': true,
-                                'AllowSparse': true,
+                                'AllowQuoting': false,
+                                'AllowSparse': false,
                                 'InputSize': null,
                                 'Separator': [
                                     '\t'
@@ -4170,10 +4168,7 @@ namespace Microsoft.ML.RunTests
                                         'NumThreads': 1,
                                         'DenseOptimizer': false,
                                         'EnforceNonNegativity': false,
-                                        'WeightColumn': {
-                                            'Value': 'Weight1',
-                                            'IsExplicit': true
-                                        },
+                                        'WeightColumn': 'Weight1',
                                         'LabelColumn': 'Label',
                                         'TrainingData': '$Var_8b36a1e70c9f4504973140ad15eac72f',
                                         'FeatureColumn': 'Features',
@@ -4207,10 +4202,7 @@ namespace Microsoft.ML.RunTests
                             'NumFolds': 2,
                             'Kind': 'SignatureRegressorTrainer',
                             'LabelColumn': 'Label',
-                            'WeightColumn': {
-                                'Value': 'Weight1',
-                                'IsExplicit': true
-                            },
+                            'WeightColumn': 'Weight1',
                             'GroupColumn': null,
                             'NameColumn': null
                         },
@@ -5061,10 +5053,7 @@ namespace Microsoft.ML.RunTests
                                     'PrintTestGraph': false,
                                     'PrintTrainValidGraph': false,
                                     'TestFrequency': 2147483647,
-                                    'GroupIdColumn': {
-                                        'Value': 'GroupId1',
-                                        'IsExplicit': true
-                                    },
+                                    'GroupIdColumn': 'GroupId1',
                                     'WeightColumn': null,
                                     'LabelColumn': 'Label1',
                                     'TrainingData': '$Var_8f51ed90f5b642b2a80eeb628d67a5b3',

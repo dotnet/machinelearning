@@ -27,7 +27,8 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(), hasHeader: true)
+            var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(),
+                    hasHeader: TestDatasets.housing.fileHasHeader, separatorChar: TestDatasets.housing.fileSeparator)
                 .Read(BaseTestClass.GetDataPath(TestDatasets.housing.trainFilename));
 
             // Create a pipeline to train on the sentiment data.
@@ -48,7 +49,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // And validate the metrics.
             foreach (var result in cvResult)
-                Common.CheckMetrics(result.Metrics);
+                Common.AssertMetrics(result.Metrics);
         }
 
         /// <summary>
@@ -60,7 +61,8 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(), hasHeader: true)
+            var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(),
+                    hasHeader: TestDatasets.housing.fileHasHeader, separatorChar: TestDatasets.housing.fileSeparator)
                 .Read(BaseTestClass.GetDataPath(TestDatasets.housing.trainFilename));
             var dataSplit = mlContext.Regression.TrainTestSplit(data, testFraction: 0.2);
             var trainData = dataSplit.TrainSet;
@@ -96,8 +98,8 @@ namespace Microsoft.ML.Functional.Tests
             var trainMetrics = mlContext.Regression.Evaluate(scoredTrainData);
             var validMetrics = mlContext.Regression.Evaluate(scoredValidData);
 
-            Common.CheckMetrics(trainMetrics);
-            Common.CheckMetrics(validMetrics);
+            Common.AssertMetrics(trainMetrics);
+            Common.AssertMetrics(validMetrics);
         }
     }
 }

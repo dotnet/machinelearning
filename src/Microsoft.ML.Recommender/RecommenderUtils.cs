@@ -38,7 +38,7 @@ namespace Microsoft.ML.Recommender
 
         /// <summary>
         /// Checks whether a column kind in a <see cref="RoleMappedData"/> is unique, and its type
-        /// is a <see cref="DataKind.U4"/> key of known cardinality.
+        /// is a <see cref="InternalDataKind.U4"/> key of known cardinality.
         /// </summary>
         /// <param name="data">The training examples</param>
         /// <param name="role">The column role to try to extract</param>

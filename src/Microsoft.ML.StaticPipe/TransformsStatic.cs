@@ -889,14 +889,14 @@ namespace Microsoft.ML.StaticPipe
         private interface IConvertCol
         {
             PipelineColumn Input { get; }
-            DataKind Kind { get; }
+            InternalDataKind Kind { get; }
         }
 
         private sealed class ImplScalar<T> : Scalar<float>, IConvertCol
         {
             public PipelineColumn Input { get; }
-            public DataKind Kind { get; }
-            public ImplScalar(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
+            public InternalDataKind Kind { get; }
+            public ImplScalar(PipelineColumn input, InternalDataKind kind) : base(Rec.Inst, input)
             {
                 Input = input;
                 Kind = kind;
@@ -906,8 +906,8 @@ namespace Microsoft.ML.StaticPipe
         private sealed class ImplVector<T> : Vector<float>, IConvertCol
         {
             public PipelineColumn Input { get; }
-            public DataKind Kind { get; }
-            public ImplVector(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
+            public InternalDataKind Kind { get; }
+            public ImplVector(PipelineColumn input, InternalDataKind kind) : base(Rec.Inst, input)
             {
                 Input = input;
                 Kind = kind;
@@ -917,8 +917,8 @@ namespace Microsoft.ML.StaticPipe
         private sealed class ImplVarVector<T> : VarVector<float>, IConvertCol
         {
             public PipelineColumn Input { get; }
-            public DataKind Kind { get; }
-            public ImplVarVector(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
+            public InternalDataKind Kind { get; }
+            public ImplVarVector(PipelineColumn input, InternalDataKind kind) : base(Rec.Inst, input)
             {
                 Input = input;
                 Kind = kind;
@@ -936,7 +936,7 @@ namespace Microsoft.ML.StaticPipe
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IConvertCol)toOutput[i];
-                    infos[i] = new TypeConvertingEstimator.ColumnInfo(outputNames[toOutput[i]], tcol.Kind, inputNames[tcol.Input]);
+                    infos[i] = new TypeConvertingEstimator.ColumnInfo(outputNames[toOutput[i]], tcol.Kind.ToDataKind(), inputNames[tcol.Input]);
                 }
                 return new TypeConvertingEstimator(env, infos);
             }

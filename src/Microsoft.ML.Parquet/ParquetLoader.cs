@@ -317,9 +317,9 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValue(ectx);
             Contracts.AssertValue(cols);
-            var builder = new SchemaBuilder();
+            var builder = new DataViewSchema.Builder();
             builder.AddColumns(cols.Select(c => new Microsoft.Data.DataView.DataViewSchema.DetachedColumn(c.Name, c.ColType, null)));
-            return builder.GetSchema();
+            return builder.ToSchema();
         }
 
         /// <summary>
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Data
                 case DataType.Int64:
                     return NumberDataViewType.Int64;
                 case DataType.Int96:
-                    return NumberDataViewType.DataViewRowId;
+                    return RowIdDataViewType.Instance;
                 case DataType.ByteArray:
                     return new VectorType(NumberDataViewType.Byte);
                 case DataType.String:

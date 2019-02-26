@@ -168,7 +168,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 isVectorType = true;
             }
 
-            if (!type.TryGetDataKind(out DataKind kind))
+            if (!type.TryGetDataKind(out InternalDataKind kind))
                 throw new InvalidOperationException($"Unsupported type {type} used in mapping.");
 
             return ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
@@ -490,14 +490,14 @@ namespace Microsoft.ML.Transforms.Conversions
                 }
             }
 
-            TextLoader.Column valueColumn = new TextLoader.Column(valueColumnName, DataKind.U4, 1);
+            TextLoader.Column valueColumn = new TextLoader.Column(valueColumnName, DataKind.UInt32, 1);
             if (keyMax < int.MaxValue)
                 valueColumn.KeyCount = new KeyCount(keyMax + 1);
             else if (keyMax < uint.MaxValue)
                 valueColumn.KeyCount = new KeyCount();
             else
             {
-                valueColumn.Type = DataKind.U8;
+                valueColumn.Type = DataKind.UInt64.ToInternalDataKind();
                 valueColumn.KeyCount = new KeyCount();
             }
 
@@ -598,8 +598,8 @@ namespace Microsoft.ML.Transforms.Conversions
                     // types unless ValueAsKeyType is specified.
                     if (options.ValuesAsKeyType)
                     {
-                        keyColumn = new TextLoader.Column(keyColumnName, DataKind.TXT, 0);
-                        valueColumn = new TextLoader.Column(valueColumnName, DataKind.TXT, 1);
+                        keyColumn = new TextLoader.Column(keyColumnName, DataKind.String, 0);
+                        valueColumn = new TextLoader.Column(valueColumnName, DataKind.String, 1);
                         var txtArgs = new TextLoader.Options()
                         {
                             Columns = new TextLoader.Column[]
@@ -621,8 +621,8 @@ namespace Microsoft.ML.Transforms.Conversions
                     }
                     else
                     {
-                        keyColumn = new TextLoader.Column(keyColumnName, DataKind.TXT, 0);
-                        valueColumn = new TextLoader.Column(valueColumnName, DataKind.R4, 1);
+                        keyColumn = new TextLoader.Column(keyColumnName, DataKind.String, 0);
+                        valueColumn = new TextLoader.Column(valueColumnName, DataKind.Single, 1);
                     }
 
                     loader = TextLoader.Create(
@@ -733,7 +733,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 isVectorType = true;
             }
 
-            if (!type.TryGetDataKind(out DataKind kind))
+            if (!type.TryGetDataKind(out InternalDataKind kind))
                 throw Contracts.Except($"Unsupported type {type} used in mapping.");
 
             return ColumnTypeExtensions.PrimitiveTypeFromKind(kind);

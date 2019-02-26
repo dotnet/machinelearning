@@ -440,7 +440,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             nameof(Options.TermsColumn), src);
                     }
                     keyData = new TextLoader(env,
-                        columns: new[] { new TextLoader.Column("Term", DataKind.TX, 0) },
+                        columns: new[] { new TextLoader.Column("Term", DataKind.String, 0) },
                         dataSample: fileSource)
                         .Read(fileSource);
                     src = "Term";
@@ -733,11 +733,11 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new MetadataBuilder();
+                    var builder = new DataViewSchema.Metadata.Builder();
                     _termMap[i].AddMetadata(builder);
 
                     builder.Add(InputSchema[colIndex].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.ToMetadata());
                 }
                 return result;
             }

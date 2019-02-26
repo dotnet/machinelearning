@@ -331,10 +331,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 public DataViewSchema.DetachedColumn[] GetOutputColumns()
                 {
-                    var meta = new MetadataBuilder();
+                    var meta = new DataViewSchema.Metadata.Builder();
                     meta.AddSlotNames(_parent.OutputLength, GetSlotNames);
                     var info = new DataViewSchema.DetachedColumn[1];
-                    info[0] = new DataViewSchema.DetachedColumn(_parent.OutputColumnName, new VectorType(NumberDataViewType.Double, _parent.OutputLength), meta.GetMetadata());
+                    info[0] = new DataViewSchema.DetachedColumn(_parent.OutputColumnName, new VectorType(NumberDataViewType.Double, _parent.OutputLength), meta.ToMetadata());
                     return info;
                 }
 
@@ -348,7 +348,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         return col => false;
                 }
 
-                public void Save(ModelSaveContext ctx) => _parent.SaveModel(ctx);
+                void ICanSaveModel.Save(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
                 public Delegate[] CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
                 {

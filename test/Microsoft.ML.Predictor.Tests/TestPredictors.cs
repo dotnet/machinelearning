@@ -237,9 +237,9 @@ namespace Microsoft.ML.RunTests
         [TestCategory("Multiclass")]
         public void MulticlassReductionTest()
         {
-            RunOneAllTests(TestLearners.Ova, TestDatasets.iris);
-            RunOneAllTests(TestLearners.OvaWithFastForest, TestDatasets.iris);
-            RunOneAllTests(TestLearners.Pkpd, TestDatasets.iris);
+            RunOneAllTests(TestLearners.Ova, TestDatasets.iris, digitsOfPrecision: 6);
+            RunOneAllTests(TestLearners.OvaWithFastForest, TestDatasets.iris, digitsOfPrecision: 6);
+            RunOneAllTests(TestLearners.Pkpd, TestDatasets.iris, digitsOfPrecision: 6);
 
             Done();
         }
@@ -1755,8 +1755,8 @@ output Out [3] from H all;
         [TestCategory("Anomaly")]
         public void PcaAnomalyTest()
         {
-            Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.mnistOneClass, digitsOfPrecision: 5);
-            Run_TrainTest(TestLearners.PCAAnomalyNoNorm, TestDatasets.mnistOneClass, digitsOfPrecision: 5);
+            Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.mnistOneClass, extraSettings: new[] { "loader=text{sparse+}" }, digitsOfPrecision: 5);
+            Run_TrainTest(TestLearners.PCAAnomalyNoNorm, TestDatasets.mnistOneClass, extraSettings: new[] { "loader=text{sparse+}" }, digitsOfPrecision: 5);
 
             // REVIEW: This next test was misbehaving in a strange way that seems to have gone away
             // mysteriously (bad build?).

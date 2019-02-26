@@ -89,15 +89,10 @@ namespace Microsoft.ML.ImageAnalytics
             public int ImageHeight;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Resizing method", ShortName = "scale")]
-            public ImageResizingEstimator.ResizingKind Resizing = ImageResizingEstimator.ResizingKind.IsoCrop;
+            public ImageResizingEstimator.ResizingKind Resizing = ImageResizingEstimator.Defaults.Resizing;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Anchor for cropping", ShortName = "anchor")]
-            public ImageResizingEstimator.Anchor CropAnchor = ImageResizingEstimator.Anchor.Center;
-        }
-        internal static class Defaults
-        {
-            public const ImageResizingEstimator.ResizingKind Resizing = ImageResizingEstimator.ResizingKind.IsoCrop;
-            public const ImageResizingEstimator.Anchor CropAnchor = ImageResizingEstimator.Anchor.Center;
+            public ImageResizingEstimator.Anchor CropAnchor = ImageResizingEstimator.Defaults.CropAnchor;
         }
 
         internal const string Summary = "Scales an image to specified dimensions using one of the three scale types: isotropic with padding, "
@@ -421,6 +416,12 @@ namespace Microsoft.ML.ImageAnalytics
     /// </remarks >
     public sealed class ImageResizingEstimator : TrivialEstimator<ImageResizingTransformer>
     {
+        internal static class Defaults
+        {
+            public const ResizingKind Resizing = ResizingKind.IsoCrop;
+            public const Anchor CropAnchor = Anchor.Center;
+        }
+
         /// <summary>
         /// Specifies how to resize the images: by croping them or padding in the direction needed to fill up.
         /// </summary>
@@ -497,8 +498,8 @@ namespace Microsoft.ML.ImageAnalytics
                 int width,
                 int height,
                 string inputColumnName = null,
-                ResizingKind resizing = ImageResizingTransformer.Defaults.Resizing,
-                Anchor anchor = ImageResizingTransformer.Defaults.CropAnchor)
+                ResizingKind resizing = Defaults.Resizing,
+                Anchor anchor = Defaults.CropAnchor)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 Contracts.CheckUserArg(width > 0, nameof(width));
@@ -531,8 +532,8 @@ namespace Microsoft.ML.ImageAnalytics
             int imageWidth,
             int imageHeight,
             string inputColumnName = null,
-            ResizingKind resizing = ImageResizingTransformer.Defaults.Resizing,
-            Anchor cropAnchor = ImageResizingTransformer.Defaults.CropAnchor)
+            ResizingKind resizing = Defaults.Resizing,
+            Anchor cropAnchor = Defaults.CropAnchor)
             : this(env, new ImageResizingTransformer(env, outputColumnName, imageWidth, imageHeight, inputColumnName, resizing, cropAnchor))
         {
         }

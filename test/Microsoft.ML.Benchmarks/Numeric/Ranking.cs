@@ -43,7 +43,7 @@ namespace Microsoft.ML.Benchmarks
                 " xf=HashTransform{col=GroupId} xf=NAHandleTransform{col=Features}" +
                 " tr=FastTreeRanking{}";
 
-            var environment = EnvironmentFactory.CreateRankingEnvironment<RankerEvaluator, TextLoader, HashingTransformer, FastTreeRankingTrainer, FastTreeRankingModelParameters>();
+            var environment = EnvironmentFactory.CreateRankingEnvironment<RankingEvaluator, TextLoader, HashingTransformer, FastTreeRankingTrainer, FastTreeRankingModelParameters>();
             cmd.ExecuteMamlCommand(environment);
         }
 
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Benchmarks
                 " xf=NAHandleTransform{col=Features}" +
                 " tr=LightGBMRanking{}";
 
-            var environment = EnvironmentFactory.CreateRankingEnvironment<RankerEvaluator, TextLoader, HashingTransformer, LightGbmMulticlassTrainer, OvaModelParameters>();
+            var environment = EnvironmentFactory.CreateRankingEnvironment<RankingEvaluator, TextLoader, HashingTransformer, LightGbmMulticlassTrainer, OvaModelParameters>();
             cmd.ExecuteMamlCommand(environment);
         }
     }
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Benchmarks
                 " tr=FastTreeRanking{}" +
                 " out={" + _modelPath_MSLR + "}";
 
-            var environment = EnvironmentFactory.CreateRankingEnvironment<RankerEvaluator, TextLoader, HashingTransformer, FastTreeRankingTrainer, FastTreeRankingModelParameters>();
+            var environment = EnvironmentFactory.CreateRankingEnvironment<RankingEvaluator, TextLoader, HashingTransformer, FastTreeRankingTrainer, FastTreeRankingModelParameters>();
             cmd.ExecuteMamlCommand(environment);
         }
 
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Benchmarks
             // This benchmark is profiling bulk scoring speed and not training speed. 
             string cmd = @"Test data=" + _mslrWeb10k_Test + " in=" + _modelPath_MSLR;
 
-            var environment = EnvironmentFactory.CreateRankingEnvironment<RankerEvaluator, TextLoader, HashingTransformer, FastTreeRankingTrainer, FastTreeRankingModelParameters>();
+            var environment = EnvironmentFactory.CreateRankingEnvironment<RankingEvaluator, TextLoader, HashingTransformer, FastTreeRankingTrainer, FastTreeRankingModelParameters>();
             cmd.ExecuteMamlCommand(environment);
         }
     }

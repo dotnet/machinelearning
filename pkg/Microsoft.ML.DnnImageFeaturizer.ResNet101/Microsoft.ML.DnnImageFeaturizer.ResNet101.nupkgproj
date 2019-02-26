@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.nupkgproj" />
+    <ProjectReference Include="..\Microsoft.ML.OnnxTransformer\Microsoft.ML.OnnxTransformer.nupkgproj" />
   </ItemGroup>
 
   <ItemGroup>  

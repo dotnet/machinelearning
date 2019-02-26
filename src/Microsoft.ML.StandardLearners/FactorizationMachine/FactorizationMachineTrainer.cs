@@ -13,7 +13,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.FactorizationMachine;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Training;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(FieldAwareFactorizationMachineTrainer.Summary, typeof(FieldAwareFactorizationMachineTrainer),
     typeof(FieldAwareFactorizationMachineTrainer.Options), new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) }
@@ -147,7 +147,7 @@ namespace Microsoft.ML.FactorizationMachine
                 FeatureColumns[i + 1] = new SchemaShape.Column(options.ExtraFeatureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
             LabelColumn = new SchemaShape.Column(options.LabelColumn, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false);
-            WeightColumn = options.WeightColumn.IsExplicit ? new SchemaShape.Column(options.WeightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false) : default;
+            WeightColumn = options.WeightColumn != null ? new SchemaShape.Column(options.WeightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false) : default;
         }
 
         /// <summary>

@@ -34,12 +34,12 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
 
             // This is the dictionary to convert words into the integer indexes.
             var lookupMap = mlContext.Data.ReadFromTextFile(Path.Combine(modelLocation, "imdb_word_index.csv"),
-                   columns: new[]
+                columns: new[]
                    {
-                        new TextLoader.Column("Words", DataKind.TX, 0),
-                        new TextLoader.Column("Ids", DataKind.I4, 1),
+                        new TextLoader.Column("Words", DataKind.String, 0),
+                        new TextLoader.Column("Ids", DataKind.Int32, 1),
                    },
-                   separatorChar: ','
+                separatorChar: ','
                );
 
             // Load the TensorFlow model once.

@@ -12,7 +12,6 @@ using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.Online;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(AveragedPerceptronTrainer.Summary, typeof(AveragedPerceptronTrainer), typeof(AveragedPerceptronTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -54,7 +53,7 @@ namespace Microsoft.ML.Trainers.Online
         private readonly Options _args;
 
         /// <summary>
-        /// Options for the averaged perceptron trainer.
+        /// Options for the <see cref="AveragedPerceptronTrainer"/>.
         /// </summary>
         public sealed class Options : AveragedLinearOptions
         {

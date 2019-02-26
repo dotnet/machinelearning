@@ -22,7 +22,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
-using Microsoft.ML.Training;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.TreePredictor;
@@ -124,12 +124,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
             FastTreeTrainerOptions.LabelColumn = label.Name;
             FastTreeTrainerOptions.FeatureColumn = featureColumn;
-
-            if (weightColumn != null)
-                FastTreeTrainerOptions.WeightColumn = Optional<string>.Explicit(weightColumn);
-
-            if (groupIdColumn != null)
-                FastTreeTrainerOptions.GroupIdColumn = Optional<string>.Explicit(groupIdColumn);
+            FastTreeTrainerOptions.WeightColumn = weightColumn;
+            FastTreeTrainerOptions.GroupIdColumn = groupIdColumn;
 
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
@@ -1379,7 +1375,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     }
                     // Convert the group column, if one exists.
                     if (examples.Schema.Group?.Name is string groupName)
-                        data = new TypeConvertingTransformer(Host, new TypeConvertingEstimator.ColumnInfo(groupName, DataKind.U8, groupName)).Transform(data);
+                        data = new TypeConvertingTransformer(Host, new TypeConvertingEstimator.ColumnInfo(groupName, DataKind.UInt64, groupName)).Transform(data);
 
                     // Since we've passed it through a few transforms, reconstitute the mapping on the
                     // newly transformed data.
@@ -3283,15 +3279,15 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
-            var metaBuilder = new MetadataBuilder();
+            var metaBuilder = new DataViewSchema.Metadata.Builder();
             metaBuilder.AddSlotNames(NumFeatures, names.CopyTo);
 
             var weights = default(VBuffer<Single>);
             ((IHaveFeatureWeights)this).GetFeatureWeights(ref weights);
-            var builder = new MetadataBuilder();
-            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.GetMetadata());
+            var builder = new DataViewSchema.Metadata.Builder();
+            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.ToMetadata());
 
-            return MetadataUtils.MetadataAsRow(builder.GetMetadata());
+            return MetadataUtils.MetadataAsRow(builder.ToMetadata());
         }
 
         DataViewRow ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema)

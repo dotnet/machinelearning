@@ -21,7 +21,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Trainers.LogisticRegression"/> trainer.
         /// </summary>
-        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
@@ -67,7 +67,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Trainers.LogisticRegression"/> trainer.
         /// </summary>
-        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
@@ -95,7 +95,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
-                    options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                    options.WeightColumn = weightsName;
 
                     var trainer = new LogisticRegression(env, options);
 
@@ -191,7 +191,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
-                    options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                    options.WeightColumn = weightsName;
 
                     var trainer = new PoissonRegression(env, options);
 
@@ -288,7 +288,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
-                    options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                    options.WeightColumn = weightsName;
 
                     var trainer = new MulticlassLogisticRegression(env, options);
 

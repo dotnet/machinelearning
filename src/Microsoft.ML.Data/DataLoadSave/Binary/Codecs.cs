@@ -159,7 +159,9 @@ namespace Microsoft.ML.Data.IO
             // Throws an exception if T is neither a TimeSpan nor a NumberType.
             private static DataViewType UnsafeColumnType(Type type)
             {
-                return type == typeof(TimeSpan) ? (DataViewType)TimeSpanDataViewType.Instance : ColumnTypeExtensions.NumberTypeFromType(type);
+                return type == typeof(TimeSpan) ?  TimeSpanDataViewType.Instance :
+                    type == typeof(DataViewRowId) ? (DataViewType)RowIdDataViewType.Instance :
+                    ColumnTypeExtensions.NumberTypeFromType(type);
             }
 
             public UnsafeTypeCodec(CodecFactory factory)
