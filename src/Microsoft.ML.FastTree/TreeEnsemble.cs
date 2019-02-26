@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.FastTree
+namespace Microsoft.ML.Trainers.FastTree
 {
     /// <summary>
     /// A list of <see cref="RegressionTreeBase"/>'s derived class. To compute the output value of a

@@ -4,7 +4,7 @@
 
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.ML.Calibrator;
+using Microsoft.ML.Calibrators;
 
 namespace Microsoft.ML.Internal.Utilities
 {

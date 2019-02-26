@@ -5,7 +5,7 @@
 using System;
 using Microsoft.Data.DataView;
 
-namespace Microsoft.ML.Data.Evaluators.Metrics
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Evaluation results for anomaly detection.

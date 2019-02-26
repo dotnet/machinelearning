@@ -4,9 +4,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.ML.Trainers.FastTree;
 
-namespace Microsoft.ML.FastTree
+namespace Microsoft.ML.Trainers.FastTree
 {
     /// <summary>
     /// A container base class for exposing <see cref="InternalRegressionTree"/>'s and

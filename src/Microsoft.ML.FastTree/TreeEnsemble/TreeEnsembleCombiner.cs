@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.ML;
-using Microsoft.ML.Calibrator;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.FastTree;
 
