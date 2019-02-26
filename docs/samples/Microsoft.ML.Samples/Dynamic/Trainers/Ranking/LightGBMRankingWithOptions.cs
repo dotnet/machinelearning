@@ -1,4 +1,5 @@
 ﻿using Microsoft.ML.LightGBM;
+using static Microsoft.ML.LightGBM.Options;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
 {
@@ -25,7 +26,11 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
                     NumLeaves = 4,
                     MinDataPerLeaf = 10,
                     LearningRate = 0.1,
-                    NumBoostRound = 2
+                    NumBoostRound = 2,
+                    Booster = new TreeBooster.Options
+                    {
+                        FeatureFraction = 0.9
+                    }
                 });
 
             // Fit this pipeline to the training Data.
@@ -37,9 +42,11 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
             var metrics = mlContext.Ranking.Evaluate(dataWithPredictions);
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
-            // Expected output:
-            //   DCG: @1:1.25, @2:2.69, @3:4.57
-            //   NDCG: @1:7.01, @2:9.57, @3:12.34
+            // NOTE:
+            //
+            // This sample is currently broken due to a bug in setting the GroupId column in LightGbm when using Options.
+            //
+            // Please follow GitHub issue 2652 to be notified of a fix: https://github.com/dotnet/machinelearning/issues/2652
         }
     }
 }

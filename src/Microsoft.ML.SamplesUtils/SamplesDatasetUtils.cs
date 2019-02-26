@@ -147,9 +147,9 @@ namespace Microsoft.ML.SamplesUtils
 
         public static string DownloadMslrWeb10k()
         {
-            var fileName = "MSLRWeb10KTrain720kRows.tsv";
+            var fileName = "MSLRWeb10KTrain10kRows.tsv";
             if (!File.Exists(fileName))
-                Download("https://tlcresources.blob.core.windows.net/datasets/MSLR-WEB10K/MSLR-WEB10K_Fold1.TRAIN.500MB_720k-rows.tsv", fileName);
+                Download("https://tlcresources.blob.core.windows.net/datasets/MSLR-WEB10K/MSLR-WEB10K%2BFold1.TRAIN.SMALL_10k-rows.tsv", fileName);
             return fileName;
         }
 

@@ -35,8 +35,8 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output:
-            //   DCG: @1:1.25, @2:2.69, @3:4.57
-            //   NDCG: @1:7.01, @2:9.57, @3:12.34
+            //   DCG: @1:1.71, @2:3.88, @3:7.93
+            //   NDCG: @1:7.98, @2:12.14, @3:16.62
         }
     }
 }
