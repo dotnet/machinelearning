@@ -9,7 +9,7 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Model;
 
 [assembly: EntryPointModule(typeof(SummarizePredictor))]
 

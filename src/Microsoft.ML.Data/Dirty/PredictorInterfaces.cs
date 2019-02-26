@@ -9,7 +9,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Internal.Internallearn
+namespace Microsoft.ML.Model
 {
     /// <summary>
     /// A generic interface for models that can average parameters from multiple instance of self

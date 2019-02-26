@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Trainers.FastTree;
 using Float = System.Single;
 
 [assembly: LoadableClass(typeof(TolerantEarlyStoppingCriterion), typeof(TolerantEarlyStoppingCriterion.Options), typeof(SignatureEarlyStoppingCriterion), "Tolerant (TR)", "tr")]
@@ -21,7 +21,7 @@ using Float = System.Single;
 [assembly: EntryPointModule(typeof(PQEarlyStoppingCriterion))]
 [assembly: EntryPointModule(typeof(UPEarlyStoppingCriterion))]
 
-namespace Microsoft.ML.Internal.Internallearn
+namespace Microsoft.ML.Trainers.FastTree
 {
     internal delegate void SignatureEarlyStoppingCriterion(bool lowerIsBetter);
 
