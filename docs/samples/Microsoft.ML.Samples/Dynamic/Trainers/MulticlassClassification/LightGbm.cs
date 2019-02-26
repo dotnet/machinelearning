@@ -3,9 +3,9 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.SamplesUtils;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
 {
-    class LightGbmMulticlassClassification
+    class LightGbm
     {
         // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
         public static void Example()
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //  - Convert the string labels into key types.
             //  - Apply LightGbm multiclass trainer.
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label")
-                        .Append(mlContext.MulticlassClassification.Trainers.LightGbm(labelColumn: "LabelIndex"))
+                        .Append(mlContext.MulticlassClassification.Trainers.LightGbm(labelColumnName: "LabelIndex"))
                         .Append(mlContext.Transforms.Conversion.MapValueToKey("PredictedLabelIndex", "PredictedLabel"))
                         .Append(mlContext.Transforms.CopyColumns("Scores", "Score"));
 
@@ -56,9 +56,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // IDataView with predictions, to an IEnumerable<DatasetUtils.MulticlassClassificationExample>.
             var nativePredictions = mlContext.CreateEnumerable<DatasetUtils.MulticlassClassificationExample>(dataWithPredictions, false).ToList();
 
-            // Get schema object out of the prediction. It contains metadata such as the mapping from predicted label index
+            // Get schema object out of the prediction. It contains annotations such as the mapping from predicted label index
             // (e.g., 1) to its actual label (e.g., "AA").
-            // The metadata can be used to get all the unique labels used during training.
+            // The annotations can be used to get all the unique labels used during training.
             var labelBuffer = new VBuffer<ReadOnlyMemory<char>>();
             dataWithPredictions.Schema["PredictedLabelIndex"].GetKeyValues(ref labelBuffer);
             // nativeLabels is { "AA" , "BB", "CC", "DD" }

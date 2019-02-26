@@ -391,7 +391,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             IEnumerable<CustomerChurnInfo> churnData = GetChurnInfo();
 
             // Turn the data into the ML.NET data view.
-            // We can use CreateDataView or CreateStreamingDataView, depending on whether 'churnData' is an IList, 
+            // We can use CreateDataView or ReadFromEnumerable, depending on whether 'churnData' is an IList, 
             // or merely an IEnumerable.
             var trainData = mlContext.Data.ReadFromEnumerable(churnData);
 

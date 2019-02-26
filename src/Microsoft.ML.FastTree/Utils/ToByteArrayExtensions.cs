@@ -194,18 +194,6 @@ namespace Microsoft.ML.Trainers.FastTree
             return a;
         }
 
-        // RowId
-
-        public static MD5Hash ToRowId(this byte[] buffer, ref int position)
-        {
-            MD5Hash a = new MD5Hash
-            {
-                Prefix = buffer.ToULong(ref position),
-                Suffix = buffer.ToULong(ref position)
-            };
-            return a;
-        }
-
         // float
 
         public static int SizeInBytes(this float a)
@@ -547,33 +535,6 @@ namespace Microsoft.ML.Trainers.FastTree
             }
             position += length * sizeof(ulong);
 
-            return a;
-        }
-
-        // RowId[]
-
-        public static int SizeInBytes(this MD5Hash[] array)
-        {
-            return sizeof(int) + Utils.Size(array) * MD5Hash.SizeInBytes();
-        }
-
-        public static void ToByteArray(this MD5Hash[] a, byte[] buffer, ref int position)
-        {
-            a.Length.ToByteArray(buffer, ref position);
-            for (int i = 0; i < a.Length; ++i)
-            {
-                a[i].ToByteArray(buffer, ref position);
-            }
-        }
-
-        public static unsafe MD5Hash[] ToRowIdArray(this byte[] buffer, ref int position)
-        {
-            int length = buffer.ToInt(ref position);
-            MD5Hash[] a = new MD5Hash[length];
-            for (int i = 0; i < length; ++i)
-            {
-                a[i] = buffer.ToRowId(ref position);
-            }
             return a;
         }
 

@@ -20,7 +20,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
-        /// <param name="weightColumn">The name of optional weight column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -31,7 +31,7 @@ namespace Microsoft.ML
         public static OlsLinearRegressionTrainer OrdinaryLeastSquares(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
-            string weightColumn = null)
+            string exampleWeightColumnName = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -39,7 +39,7 @@ namespace Microsoft.ML
             {
                 LabelColumn = labelColumnName,
                 FeatureColumn = featureColumnName,
-                WeightColumn = weightColumn
+                WeightColumn = exampleWeightColumnName
             };
 
             return new OlsLinearRegressionTrainer(env, options);

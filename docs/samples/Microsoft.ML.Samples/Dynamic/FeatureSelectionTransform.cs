@@ -33,8 +33,8 @@ namespace Microsoft.ML.Samples.Dynamic
             var reader = ml.Data.CreateTextLoader(
                 columns: new[]
                     {
-                        new TextLoader.Column("Label", DataKind.BL, 0),
-                        new TextLoader.Column("Features", DataKind.Num, new [] { new TextLoader.Range(1, 9) })
+                        new TextLoader.Column("Label", DataKind.Boolean, 0),
+                        new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 9) })
                     },
                 hasHeader: true
             );

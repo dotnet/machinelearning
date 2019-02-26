@@ -30,15 +30,9 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 Columns = new[]
                 {
-                    new TextLoader.Column("ScalarString", DataKind.TX, 1),
-                    new TextLoader.Column("VectorString", DataKind.TX, new[] {new TextLoader.Range(1, 4) }),
-                    new TextLoader.Column
-                    {
-                        Name="BareKey",
-                        Source = new[] { new TextLoader.Range(0) },
-                        Type = DataKind.U4,
-                        KeyCount = new KeyCount(6),
-                    }
+                    new TextLoader.Column("ScalarString", DataKind.String, 1),
+                    new TextLoader.Column("VectorString", DataKind.String, new[] {new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("BareKey", DataKind.UInt32, new[] { new TextLoader.Range(0) }, new KeyCount(6))
                 }
             });
 

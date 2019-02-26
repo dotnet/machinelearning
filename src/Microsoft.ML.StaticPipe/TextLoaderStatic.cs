@@ -131,7 +131,7 @@ namespace Microsoft.ML.StaticPipe
             /// </summary>
             /// <param name="ordinal">The zero-based index of the field to read from.</param>
             /// <returns>The column representation.</returns>
-            public Scalar<bool> LoadBool(int ordinal) => Load<bool>(DataKind.BL, ordinal);
+            public Scalar<bool> LoadBool(int ordinal) => Load<bool>(InternalDataKind.BL, ordinal);
 
             /// <summary>
             /// Reads a vector Boolean column from a range of fields in the text file.
@@ -141,7 +141,7 @@ namespace Microsoft.ML.StaticPipe
             /// Note that if this is <c>null</c>, it will read to the end of the line. The file(s)
             /// will be inspected to get the length of the type.</param>
             /// <returns>The column representation.</returns>
-            public Vector<bool> LoadBool(int minOrdinal, int? maxOrdinal) => Load<bool>(DataKind.BL, minOrdinal, maxOrdinal);
+            public Vector<bool> LoadBool(int minOrdinal, int? maxOrdinal) => Load<bool>(InternalDataKind.BL, minOrdinal, maxOrdinal);
 
             /// <summary>
             /// Create a representation for a key loaded from TextLoader as an unsigned integer (32 bits).
@@ -150,14 +150,14 @@ namespace Microsoft.ML.StaticPipe
             /// <param name="keyCount">If specified, it's the count or cardinality of valid key values.
             /// Using null initalizes <paramref name="keyCount"/> to uint.MaxValue</param>
             /// <returns>The column representation.</returns>
-            public Key<uint> LoadKey(int ordinal, ulong? keyCount) => Load<uint>(DataKind.U4, ordinal, keyCount);
+            public Key<uint> LoadKey(int ordinal, ulong? keyCount) => Load<uint>(InternalDataKind.U4, ordinal, keyCount);
 
             /// <summary>
             /// Reads a scalar single-precision floating point column from a single field in the text file.
             /// </summary>
             /// <param name="ordinal">The zero-based index of the field to read from.</param>
             /// <returns>The column representation.</returns>
-            public Scalar<float> LoadFloat(int ordinal) => Load<float>(DataKind.R4, ordinal);
+            public Scalar<float> LoadFloat(int ordinal) => Load<float>(InternalDataKind.R4, ordinal);
 
             /// <summary>
             /// Reads a vector single-precision column from a range of fields in the text file.
@@ -167,14 +167,14 @@ namespace Microsoft.ML.StaticPipe
             /// Note that if this is <c>null</c>, it will read to the end of the line. The file(s)
             /// will be inspected to get the length of the type.</param>
             /// <returns>The column representation.</returns>
-            public Vector<float> LoadFloat(int minOrdinal, int? maxOrdinal) => Load<float>(DataKind.R4, minOrdinal, maxOrdinal);
+            public Vector<float> LoadFloat(int minOrdinal, int? maxOrdinal) => Load<float>(InternalDataKind.R4, minOrdinal, maxOrdinal);
 
             /// <summary>
             /// Reads a scalar double-precision floating point column from a single field in the text file.
             /// </summary>
             /// <param name="ordinal">The zero-based index of the field to read from.</param>
             /// <returns>The column representation.</returns>
-            public Scalar<double> LoadDouble(int ordinal) => Load<double>(DataKind.R8, ordinal);
+            public Scalar<double> LoadDouble(int ordinal) => Load<double>(InternalDataKind.R8, ordinal);
 
             /// <summary>
             /// Reads a vector double-precision column from a range of fields in the text file.
@@ -184,14 +184,14 @@ namespace Microsoft.ML.StaticPipe
             /// Note that if this is <c>null</c>, it will read to the end of the line. The file(s)
             /// will be inspected to get the length of the type.</param>
             /// <returns>The column representation.</returns>
-            public Vector<double> LoadDouble(int minOrdinal, int? maxOrdinal) => Load<double>(DataKind.R8, minOrdinal, maxOrdinal);
+            public Vector<double> LoadDouble(int minOrdinal, int? maxOrdinal) => Load<double>(InternalDataKind.R8, minOrdinal, maxOrdinal);
 
             /// <summary>
             /// Reads a scalar textual column from a single field in the text file.
             /// </summary>
             /// <param name="ordinal">The zero-based index of the field to read from.</param>
             /// <returns>The column representation.</returns>
-            public Scalar<string> LoadText(int ordinal) => Load<string>(DataKind.TX, ordinal);
+            public Scalar<string> LoadText(int ordinal) => Load<string>(InternalDataKind.TX, ordinal);
 
             /// <summary>
             /// Reads a vector textual column from a range of fields in the text file.
@@ -201,15 +201,15 @@ namespace Microsoft.ML.StaticPipe
             /// Note that if this is <c>null</c>, it will read to the end of the line. The file(s)
             /// will be inspected to get the length of the type.</param>
             /// <returns>The column representation.</returns>
-            public Vector<string> LoadText(int minOrdinal, int? maxOrdinal) => Load<string>(DataKind.TX, minOrdinal, maxOrdinal);
+            public Vector<string> LoadText(int minOrdinal, int? maxOrdinal) => Load<string>(InternalDataKind.TX, minOrdinal, maxOrdinal);
 
-            private Scalar<T> Load<T>(DataKind kind, int ordinal)
+            private Scalar<T> Load<T>(InternalDataKind kind, int ordinal)
             {
                 Contracts.CheckParam(ordinal >= 0, nameof(ordinal), "Should be non-negative");
                 return new MyScalar<T>(_rec, kind, ordinal);
             }
 
-            private Vector<T> Load<T>(DataKind kind, int minOrdinal, int? maxOrdinal)
+            private Vector<T> Load<T>(InternalDataKind kind, int minOrdinal, int? maxOrdinal)
             {
                 Contracts.CheckParam(minOrdinal >= 0, nameof(minOrdinal), "Should be non-negative");
                 var v = maxOrdinal >= minOrdinal;
@@ -217,7 +217,7 @@ namespace Microsoft.ML.StaticPipe
                 return new MyVector<T>(_rec, kind, minOrdinal, maxOrdinal);
             }
 
-            private Key<T> Load<T>(DataKind kind, int ordinal, ulong? keyCount)
+            private Key<T> Load<T>(InternalDataKind kind, int ordinal, ulong? keyCount)
             {
                 Contracts.CheckParam(ordinal >= 0, nameof(ordinal), "Should be non-negative");
                 return new MyKey<T>(_rec, kind, ordinal, keyCount);
@@ -230,14 +230,14 @@ namespace Microsoft.ML.StaticPipe
             private class MyKey<T> : Key<T>, IPipelineArgColumn
             {
                 // The storage type that the targeted content would be loaded as.
-                private readonly DataKind _kind;
+                private readonly InternalDataKind _kind;
                 // The position where the key value gets read from.
                 private readonly int _oridinal;
                 // The count or cardinality of valid key values. Its value is null if unbounded.
                 private readonly ulong? _keyCount;
 
                 // Contstuct a representation for a key-typed column loaded from a text file. Key values are assumed to be contiguous.
-                public MyKey(Reconciler rec, DataKind kind, int oridinal, ulong? keyCount=null)
+                public MyKey(Reconciler rec, InternalDataKind kind, int oridinal, ulong? keyCount=null)
                     : base(rec, null)
                 {
                     _kind = kind;
@@ -259,10 +259,10 @@ namespace Microsoft.ML.StaticPipe
 
             private class MyScalar<T> : Scalar<T>, IPipelineArgColumn
             {
-                private readonly DataKind _kind;
+                private readonly InternalDataKind _kind;
                 private readonly int _ordinal;
 
-                public MyScalar(Reconciler rec, DataKind kind, int ordinal)
+                public MyScalar(Reconciler rec, InternalDataKind kind, int ordinal)
                     : base(rec, null)
                 {
                     _kind = kind;
@@ -281,11 +281,11 @@ namespace Microsoft.ML.StaticPipe
 
             private class MyVector<T> : Vector<T>, IPipelineArgColumn
             {
-                private readonly DataKind _kind;
+                private readonly InternalDataKind _kind;
                 private readonly int _min;
                 private readonly int? _max;
 
-                public MyVector(Reconciler rec, DataKind kind, int min, int? max)
+                public MyVector(Reconciler rec, InternalDataKind kind, int min, int? max)
                     : base(rec, null)
                 {
                     _kind = kind;

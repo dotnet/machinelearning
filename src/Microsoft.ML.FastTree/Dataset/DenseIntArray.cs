@@ -155,11 +155,6 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
-        public override MD5Hash MD5Hash
-        {
-            get { return MD5Hasher.Hash(Length); }
-        }
-
         /// <summary>
         /// Returns the number of bytes written by the member ToByteArray()
         /// </summary>
@@ -269,11 +264,6 @@ namespace Microsoft.ML.Trainers.FastTree
             ulong val = ((((ulong)value) & mask) << minor);
             _data[major] = (_data[major] & ~major0Mask) | (uint)val;
             _data[major + 1] = (_data[major + 1] & ~major1Mask) | (uint)(val >> 32);
-        }
-
-        public override MD5Hash MD5Hash
-        {
-            get { return MD5Hasher.Hash(_data); }
         }
 
         /// <summary>
@@ -414,8 +404,6 @@ namespace Microsoft.ML.Trainers.FastTree
             _data = values.Select(i => (byte)i).ToArray(len);
         }
 
-        public override MD5Hash MD5Hash => MD5Hasher.Hash(_data);
-
         /// <summary>
         /// Returns the number of bytes written by the member ToByteArray()
         /// </summary>
@@ -481,11 +469,6 @@ namespace Microsoft.ML.Trainers.FastTree
         private byte[] _data;
 
         public override IntArrayBits BitsPerItem { get { return IntArrayBits.Bits4; } }
-
-        public override MD5Hash MD5Hash
-        {
-            get { return MD5Hasher.Hash(_data); }
-        }
 
         public Dense4BitIntArray(int len)
             : base(len)
@@ -622,11 +605,6 @@ namespace Microsoft.ML.Trainers.FastTree
             _data = buffer.ToUShortArray(ref position);
         }
 
-        public override MD5Hash MD5Hash
-        {
-            get { return MD5Hasher.Hash(_data); }
-        }
-
         public override unsafe void Callback(Action<IntPtr> callback)
         {
             fixed (ushort* pData = _data)
@@ -717,11 +695,6 @@ namespace Microsoft.ML.Trainers.FastTree
             {
                 callback((IntPtr)pData);
             }
-        }
-
-        public override MD5Hash MD5Hash
-        {
-            get { return MD5Hasher.Hash(_data); }
         }
 
         /// <summary>

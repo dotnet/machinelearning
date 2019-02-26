@@ -18,19 +18,19 @@ namespace Microsoft.ML.Transforms.TensorFlow
     public static class TensorFlowUtils
     {
         /// <summary>
-        /// Key to access operator's type (a string) in <see cref="DataViewSchema.Column.Metadata"/>.
+        /// Key to access operator's type (a string) in <see cref="DataViewSchema.Column.Annotations"/>.
         /// Its value describes the Tensorflow operator that produces this <see cref="DataViewSchema.Column"/>.
         /// </summary>
         internal const string TensorflowOperatorTypeKind = "TensorflowOperatorType";
         /// <summary>
-        /// Key to access upstream operators' names (a string array) in <see cref="DataViewSchema.Column.Metadata"/>.
+        /// Key to access upstream operators' names (a string array) in <see cref="DataViewSchema.Column.Annotations"/>.
         /// Its value states operators that the associated <see cref="DataViewSchema.Column"/>'s generator depends on.
         /// </summary>
         internal const string TensorflowUpstreamOperatorsKind = "TensorflowUpstreamOperators";
 
         internal static DataViewSchema GetModelSchema(IExceptionContext ectx, TFGraph graph, string opType = null)
         {
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
             foreach (var op in graph)
             {
                 if (opType != null && opType != op.OpType)
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 //     these values are names of some upstream operators which should be evaluated before executing
                 //     the current operator. It's possible that one operator doesn't need any input, so this field
                 //     can be missing.
-                var metadataBuilder = new MetadataBuilder();
+                var metadataBuilder = new DataViewSchema.Annotations.Builder();
                 // Create the first metadata field.
                 metadataBuilder.Add(TensorflowOperatorTypeKind, TextDataViewType.Instance, (ref ReadOnlyMemory<char> value) => value = op.OpType.AsMemory());
                 if (op.NumInputs > 0)
@@ -79,9 +79,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
                         (ref VBuffer<ReadOnlyMemory<char>> value) => { upstreamOperatorNames.CopyTo(ref value); });
                 }
 
-                schemaBuilder.AddColumn(op.Name, columnType, metadataBuilder.GetMetadata());
+                schemaBuilder.AddColumn(op.Name, columnType, metadataBuilder.ToAnnotations());
             }
-            return schemaBuilder.GetSchema();
+            return schemaBuilder.ToSchema();
         }
 
         /// <summary>

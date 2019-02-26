@@ -251,11 +251,6 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public override IntArrayType Type { get { return IntArrayType.Sparse; } }
 
-        public override MD5Hash MD5Hash
-        {
-            get { return MD5Hasher.Hash(_deltas) ^ _values.MD5Hash; }
-        }
-
         public override IntArray Clone(IntArrayBits bitsPerItem, IntArrayType type)
         {
             if (type == IntArrayType.Sparse || type == IntArrayType.Current)

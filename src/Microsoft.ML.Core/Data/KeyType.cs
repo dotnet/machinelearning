@@ -85,7 +85,7 @@ namespace Microsoft.ML.Data
 
         public override string ToString()
         {
-            DataKind rawKind = this.GetRawKind();
+            InternalDataKind rawKind = this.GetRawKind();
             return string.Format("Key<{0}, {1}-{2}>", rawKind.GetString(), 0, Count - 1);
         }
     }

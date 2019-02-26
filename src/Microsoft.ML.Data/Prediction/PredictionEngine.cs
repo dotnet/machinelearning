@@ -116,8 +116,8 @@ namespace Microsoft.ML
             {
                 var pipe = DataViewConstructionUtils.LoadPipeWithPredictor(env, modelStream, new EmptyDataView(env, schema));
                 var transformer = new TransformWrapper(env, pipe);
-                env.CheckParam(transformer.IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");
-                return transformer.GetRowToRowMapper(schema);
+                env.CheckParam(((ITransformer)transformer).IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");
+                return ((ITransformer)transformer).GetRowToRowMapper(schema);
             };
         }
 

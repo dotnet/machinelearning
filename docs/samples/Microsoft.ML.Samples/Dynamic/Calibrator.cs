@@ -34,8 +34,8 @@ namespace Microsoft.ML.Samples.Dynamic
                 HasHeader = true,
                 Columns = new[]
                     {
-                        new TextLoader.Column("Sentiment", DataKind.BL, 0),
-                        new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                        new TextLoader.Column("Sentiment", DataKind.Boolean, 0),
+                        new TextLoader.Column("SentimentText", DataKind.String, 1)
                     }
             });
 
@@ -50,8 +50,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // the "Features" column produced by FeaturizeText as the features column. 
             var pipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
                     .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                        labelColumn: "Sentiment", 
-                        featureColumn: "Features", 
+                        labelColumnName: "Sentiment", 
+                        featureColumnName: "Features", 
                         l2Const: 0.001f, 
                         loss: new HingeLoss())); // By specifying loss: new HingeLoss(), StochasticDualCoordinateAscent will train a support vector machine (SVM).
 

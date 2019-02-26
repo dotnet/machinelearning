@@ -133,12 +133,15 @@ namespace Microsoft.ML.FactorizationMachine
             return new SimpleRow(OutputSchema, input, getters);
         }
 
-        public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+        /// <summary>
+        /// Given a set of columns, return the input columns that are needed to generate those output columns.
+        /// </summary>
+        IEnumerable<DataViewSchema.Column> ISchemaBoundRowMapper.GetDependenciesForNewColumns(IEnumerable<DataViewSchema.Column> columns)
         {
-            if (Enumerable.Range(0, OutputSchema.Count).Any(predicate))
-                return index => _inputColumnIndexes.Any(c => c == index);
-            else
-                return index => false;
+            if (columns.Count() == 0)
+                return Enumerable.Empty<DataViewSchema.Column>();
+
+            return InputSchema.Where(col => _inputColumnIndexes.Contains(col.Index));
         }
 
         public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()

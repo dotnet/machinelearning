@@ -59,7 +59,7 @@ namespace Microsoft.ML.Data
 
         private const string TransformDirTemplate = "Transform_{0:000}";
 
-        public bool IsRowToRowMapper => _transformers.All(t => t.IsRowToRowMapper);
+        bool ITransformer.IsRowToRowMapper => _transformers.All(t => t.IsRowToRowMapper);
 
         ITransformer[] ITransformerChainAccessor.Transformers => _transformers;
 
@@ -216,10 +216,11 @@ namespace Microsoft.ML.Data
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
+        IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
-            Contracts.Check(IsRowToRowMapper, nameof(GetRowToRowMapper) + " method called despite " + nameof(IsRowToRowMapper) + " being false.");
+            Contracts.Check(((ITransformer)this).IsRowToRowMapper, nameof(ITransformer.GetRowToRowMapper) + " method called despite " +
+                nameof(ITransformer.IsRowToRowMapper) + " being false.");
 
             IRowToRowMapper[] mappers = new IRowToRowMapper[_transformers.Length];
             DataViewSchema schema = inputSchema;

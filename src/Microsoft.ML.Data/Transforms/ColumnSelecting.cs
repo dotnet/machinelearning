@@ -138,7 +138,7 @@ namespace Microsoft.ML.Transforms
         private readonly IHost _host;
         private string[] _selectedColumns;
 
-        public bool IsRowToRowMapper => true;
+        bool ITransformer.IsRowToRowMapper => true;
 
         public IEnumerable<string> SelectColumns => _selectedColumns.AsReadOnly();
 
@@ -458,13 +458,13 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Constructs a row-to-row mapper based on an input schema. If <see cref="IsRowToRowMapper"/>
+        /// Constructs a row-to-row mapper based on an input schema. If <see cref="ITransformer.IsRowToRowMapper"/>
         /// is <c>false</c>, then an exception is thrown. If the input schema is in any way
         /// unsuitable for constructing the mapper, an exception should likewise be thrown.
         /// </summary>
         /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
         /// <returns>The row to row mapper.</returns>
-        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
+        IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             if (!IgnoreMissing && !IsSchemaValid(inputSchema.Select(x => x.Name),
@@ -644,13 +644,10 @@ namespace Microsoft.ML.Transforms
 
             public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
-                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
                 _host.AssertValueOrNull(rand);
 
                 // Build out the active state for the input
-                var inputPred = GetDependencies(predicate);
-                var inputCols = Source.Schema.Where(x => inputPred(x.Index));
-
+                var inputCols = ((IRowToRowMapper)this).GetDependencies(columnsNeeded);
                 var inputRowCursor = Source.GetRowCursor(inputCols, rand);
 
                 // Build the active state for the output
@@ -660,12 +657,10 @@ namespace Microsoft.ML.Transforms
 
             public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             {
-                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
                 _host.CheckValueOrNull(rand);
 
                 // Build out the active state for the input
-                var inputPred = GetDependencies(predicate);
-                var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+                var inputCols = ((IRowToRowMapper)this).GetDependencies(columnsNeeded);
                 var inputs = Source.GetRowCursorSet(inputCols, n, rand);
 
                 // Build out the acitve state for the output
@@ -681,17 +676,16 @@ namespace Microsoft.ML.Transforms
 
             void ICanSaveModel.Save(ModelSaveContext ctx) => _transform.SaveModel(ctx);
 
-            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> columns)
             {
                 var active = new bool[_mapper.InputSchema.Count];
-                var columnCount = _mapper.OutputSchema.Count;
-                for (int colIdx = 0; colIdx < columnCount; ++colIdx)
-                {
-                    if (activeOutput(colIdx))
-                        active[_mapper.GetInputIndex(colIdx)] = true;
-                }
+                foreach (var column in columns)
+                        active[_mapper.GetInputIndex(column.Index)] = true;
 
-                return col => active[col];
+                return _mapper.InputSchema.Where(col => col.Index < active.Length && active[col.Index]);
             }
 
             public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)

@@ -5,10 +5,9 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Training;
 
 namespace Microsoft.ML.LightGBM
 {
@@ -280,7 +279,7 @@ namespace Microsoft.ML.LightGBM
             if (useCat)
             {
                 var featureCol = trainData.Schema.Schema[DefaultColumnNames.Features];
-                MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureCol.Index, out categoricalFeatures);
+                AnnotationUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureCol.Index, out categoricalFeatures);
             }
             var colType = trainData.Schema.Feature.Value.Type;
             int rawNumCol = colType.GetVectorSize();

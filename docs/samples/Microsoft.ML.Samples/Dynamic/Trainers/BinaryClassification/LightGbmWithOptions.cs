@@ -1,10 +1,9 @@
 ﻿using Microsoft.ML.LightGBM;
-using Microsoft.ML.Transforms.Categorical;
 using static Microsoft.ML.LightGBM.Options;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
-    class LightGbmBinaryClassificationWithOptions
+    class LightGbmWithOptions
     {
         // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
         public static void Example()
@@ -22,8 +21,6 @@ namespace Microsoft.ML.Samples.Dynamic
             var pipeline = mlContext.BinaryClassification.Trainers.LightGbm(
                                 new Options
                                 {
-                                    LabelColumn = "IsOver50K",
-                                    FeatureColumn = "Features",
                                     Booster = new GossBooster.Options
                                     {
                                         TopRate = 0.3,
@@ -37,17 +34,17 @@ namespace Microsoft.ML.Samples.Dynamic
             // Evaluate how the model is doing on the test data.
             var dataWithPredictions = model.Transform(split.TestSet);
 
-            var metrics = mlContext.BinaryClassification.Evaluate(dataWithPredictions, "IsOver50K");
+            var metrics = mlContext.BinaryClassification.Evaluate(dataWithPredictions);
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
-            // Output:
-            // Accuracy: 0.88
-            // AUC: 0.93
-            // F1 Score: 0.71
-            // Negative Precision: 0.90
-            // Negative Recall: 0.94
-            // Positive Precision: 0.76
-            // Positive Recall: 0.67
+            // Expected output:
+            //   Accuracy: 0.88
+            //   AUC: 0.93
+            //   F1 Score: 0.71
+            //   Negative Precision: 0.90
+            //   Negative Recall: 0.94
+            //   Positive Precision: 0.76
+            //   Positive Recall: 0.67
         }
     }
 }

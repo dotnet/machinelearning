@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 
@@ -36,12 +38,15 @@ namespace Microsoft.ML.Data
             OutputSchema = Utils.Size(mappers) > 0 ? mappers[mappers.Length - 1].OutputSchema : inputSchema;
         }
 
-        public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+        /// <summary>
+        /// Given a set of columns, return the input columns that are needed to generate those output columns.
+        /// </summary>
+        IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> columnsNeeded)
         {
-            Func<int, bool> toReturn = predicate;
             for (int i = InnerMappers.Length - 1; i >= 0; --i)
-                toReturn = InnerMappers[i].GetDependencies(toReturn);
-            return toReturn;
+                columnsNeeded = InnerMappers[i].GetDependencies(columnsNeeded);
+
+            return columnsNeeded;
         }
 
         public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
@@ -71,7 +76,11 @@ namespace Microsoft.ML.Data
             var deps = new Func<int, bool>[InnerMappers.Length];
             deps[deps.Length - 1] = active;
             for (int i = deps.Length - 1; i >= 1; --i)
-                deps[i - 1] = InnerMappers[i].GetDependencies(deps[i]);
+            {
+                var outputColumns = InnerMappers[i].OutputSchema.Where(c => deps[i](c.Index));
+                var cols = InnerMappers[i].GetDependencies(outputColumns).ToArray();
+                deps[i - 1] = c => cols.Length > 0 ? cols.Any(col => col.Index == c) : false;
+            }
 
             DataViewRow result = input;
             for (int i = 0; i < InnerMappers.Length; ++i)

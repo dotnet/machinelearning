@@ -4,5 +4,6 @@
 
 namespace Microsoft.ML.Data
 {
-    public delegate bool InPredicate<T>(in T value);
+    [BestFriend]
+    internal delegate bool InPredicate<T>(in T value);
 }

@@ -20,7 +20,7 @@ using Microsoft.ML.Transforms;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
+using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
 namespace Microsoft.ML.Tests
 {
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tests
         }
 
         /// <summary>
-        /// In this test, we convert a trained <see cref="TransformerChain"/> into ONNX <see cref="UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ModelProto"/> file and then
+        /// In this test, we convert a trained <see cref="TransformerChain"/> into ONNX <see cref="ModelProto"/> file and then
         /// call <see cref="OnnxScoringEstimator"/> to evaluate that file. The outputs of <see cref="OnnxScoringEstimator"/> are checked against the original
         /// ML.NET model's outputs.
         /// </summary>
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Tests
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.Categorical.OneHotEncodingTransformer.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnInfo("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
-            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumn: "Label", featureColumn: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
+            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
 
             var model = pipeline.Fit(data);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
@@ -345,7 +345,7 @@ namespace Microsoft.ML.Tests
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.LightGbm(labelColumn: "Target", featureColumn: "FeatureVector", numBoostRound: 3, numLeaves: 16, minDataPerLeaf: 100));
+                .Append(mlContext.Regression.Trainers.LightGbm(labelColumnName: "Target", featureColumnName: "FeatureVector", numBoostRound: 3, numLeaves: 16, minDataPerLeaf: 100));
             var model = dynamicPipeline.Fit(data);
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a file.
@@ -408,7 +408,7 @@ namespace Microsoft.ML.Tests
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnInfo("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
             .Append(mlContext.Transforms.Normalize("Features"))
-            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumn: "Label", featureColumn: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
+            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
 
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);

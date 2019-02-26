@@ -162,7 +162,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             InternalTransform.Host.CheckDecode(InternalTransform.IsAdaptive == false);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             InternalTransform.Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             // *** Binary format ***
             // <base>
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
         }
 
         // Factory method for SignatureLoadRowMapper.
@@ -269,7 +269,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _options.Source, "float", col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
-                new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false)
+                new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false)
             };
             var resultDic = inputSchema.ToDictionary(x => x.Name);
             resultDic[_options.Name] = new SchemaShape.Column(

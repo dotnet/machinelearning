@@ -850,8 +850,8 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
             public const string RSquared = RegressionLossEvaluatorBase<MultiOutputRegressionEvaluator.Aggregator>.RSquared;
             public const string LogLoss = BinaryClassifierEvaluator.LogLoss;
             public const string LogLossReduction = BinaryClassifierEvaluator.LogLossReduction;
-            public const string Ndcg = RankerEvaluator.Ndcg;
-            public const string Dcg = RankerEvaluator.Dcg;
+            public const string Ndcg = RankingEvaluator.Ndcg;
+            public const string Dcg = RankingEvaluator.Dcg;
             public const string PositivePrecision = BinaryClassifierEvaluator.PosPrecName;
             public const string PositiveRecall = BinaryClassifierEvaluator.PosRecallName;
             public const string NegativePrecision = BinaryClassifierEvaluator.NegPrecName;

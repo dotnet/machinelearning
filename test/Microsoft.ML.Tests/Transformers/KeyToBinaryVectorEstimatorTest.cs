@@ -118,23 +118,23 @@ namespace Microsoft.ML.Tests.Transformers
             VBuffer<ReadOnlyMemory<char>> slots = default;
 
             var column = result.Schema["CatA"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.SlotNames });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[1] { AnnotationUtils.Kinds.SlotNames });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 6);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[6] { "[0].Bit2", "[0].Bit1", "[0].Bit0", "[1].Bit2", "[1].Bit1", "[1].Bit0" });
 
             column = result.Schema["CatB"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[2] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.IsNormalized });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "Bit1", "Bit0" });
             Assert.True(column.IsNormalized());
 
             column = result.Schema["CatC"];
-            Assert.Empty(column.Metadata.Schema);
+            Assert.Empty(column.Annotations.Schema);
 
             column = result.Schema["CatD"];
-            Assert.Equal(column.Metadata.Schema.Single().Name, MetadataUtils.Kinds.IsNormalized);
+            Assert.Equal(column.Annotations.Schema.Single().Name, AnnotationUtils.Kinds.IsNormalized);
             Assert.True(column.IsNormalized());
         }
 
