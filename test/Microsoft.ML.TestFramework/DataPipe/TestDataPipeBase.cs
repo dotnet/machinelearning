@@ -632,9 +632,9 @@ namespace Microsoft.ML.RunTests
             }
             catch (InvalidOperationException ex)
             {
-                if (ex.Message != "Invalid call to GetMetadata")
+                if (ex.Message != "Invalid call to 'GetValue'")
                 {
-                    Fail("Message from GetMetadata failed call doesn't match expected message: {0}", ex.Message);
+                    Fail("Message from GetValue failed call doesn't match expected message: {0}", ex.Message);
                     return Failed();
                 }
             }

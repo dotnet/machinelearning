@@ -237,7 +237,7 @@ namespace Microsoft.Data.DataView
             {
                 var column = Schema.GetColumnOrNull(kind);
                 if (column == null)
-                    throw new InvalidOperationException($"Invalid call to '{nameof(GetGetter)}'");
+                    throw new InvalidOperationException($"Invalid call to '{nameof(GetValue)}'");
                 GetGetter<TValue>(column.Value.Index)(ref value);
             }
 
