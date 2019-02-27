@@ -59,6 +59,13 @@ namespace Microsoft.ML.Data
         /// </summary>
         public ulong Count { get; }
 
+        /// <summary>
+        /// Determine if a KeyType instance is equal to another KeyType instance.
+        /// This checks if the other item is the type of KeyType, if the RawType
+        /// is the same, and if the Count is the same.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns>True if both objects are equal.</returns>
         public override bool Equals(DataViewType other)
         {
             if (other == this)
