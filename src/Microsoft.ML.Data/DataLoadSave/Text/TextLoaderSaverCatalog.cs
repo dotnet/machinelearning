@@ -82,7 +82,7 @@ namespace Microsoft.ML
                 allowSparse, trimWhitespace, dataSample: dataSample);
 
         /// <summary>
-        /// Read a data view from a text file using <see cref="TextLoader"/>.
+        /// Load a data view from a text file using <see cref="TextLoader"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="path">The path to the file.</param>
@@ -93,7 +93,7 @@ namespace Microsoft.ML
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
         /// <returns>The data view.</returns>
-        public static IDataView ReadFromTextFile(this DataOperationsCatalog catalog,
+        public static IDataView LoadFromTextFile(this DataOperationsCatalog catalog,
             string path,
             TextLoader.Column[] columns,
             char separatorChar = TextLoader.Defaults.Separator,
@@ -114,12 +114,12 @@ namespace Microsoft.ML
                 AllowSparse = allowSparse
             };
 
-            var reader = new TextLoader(CatalogUtils.GetEnvironment(catalog), options: options);
-            return reader.Read(new MultiFileSource(path));
+            var loader = new TextLoader(CatalogUtils.GetEnvironment(catalog), options: options);
+            return loader.Load(new MultiFileSource(path));
         }
 
         /// <summary>
-        /// Read a data view from a text file using <see cref="TextLoader"/>.
+        /// Load a data view from a text file using <see cref="TextLoader"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="path">The path to the file.</param>
@@ -135,7 +135,7 @@ namespace Microsoft.ML
         /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero
         /// except for 3rd and 5th columns which have values 6 and 3</param>
         /// <returns>The data view.</returns>
-        public static IDataView ReadFromTextFile<TInput>(this DataOperationsCatalog catalog,
+        public static IDataView LoadFromTextFile<TInput>(this DataOperationsCatalog catalog,
             string path,
             char separatorChar = TextLoader.Defaults.Separator,
             bool hasHeader = TextLoader.Defaults.HasHeader,
@@ -152,12 +152,12 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Read a data view from a text file using <see cref="TextLoader"/>.
+        /// Load a data view from a text file using <see cref="TextLoader"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
-        /// <param name="path">Specifies a file from which to read.</param>
+        /// <param name="path">Specifies a file from which to load.</param>
         /// <param name="options">Defines the settings of the load operation.</param>
-        public static IDataView ReadFromTextFile(this DataOperationsCatalog catalog, string path,
+        public static IDataView LoadFromTextFile(this DataOperationsCatalog catalog, string path,
             TextLoader.Options options = null)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
@@ -165,7 +165,7 @@ namespace Microsoft.ML
             var env = catalog.GetEnvironment();
             var source = new MultiFileSource(path);
 
-            return new TextLoader(env, options, dataSample: source).Read(source);
+            return new TextLoader(env, options, dataSample: source).Load(source);
         }
 
         /// <summary>

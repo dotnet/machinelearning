@@ -13,23 +13,23 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 
-[assembly: LoadableClass(typeof(ILegacyDataLoader), typeof(CompositeDataLoader), typeof(CompositeDataLoader.Arguments), typeof(SignatureDataLoader),
+[assembly: LoadableClass(typeof(ILegacyDataLoader), typeof(LegacyCompositeDataLoader), typeof(LegacyCompositeDataLoader.Arguments), typeof(SignatureDataLoader),
     "Composite Data Loader", "CompositeDataLoader", "Composite", "PipeData", "Pipe", "PipeDataLoader")]
 
-[assembly: LoadableClass(typeof(ILegacyDataLoader), typeof(CompositeDataLoader), null, typeof(SignatureLoadDataLoader),
-    "Pipe DataL Loader", CompositeDataLoader.LoaderSignature)]
+[assembly: LoadableClass(typeof(ILegacyDataLoader), typeof(LegacyCompositeDataLoader), null, typeof(SignatureLoadDataLoader),
+    "Pipe DataL Loader", LegacyCompositeDataLoader.LoaderSignature)]
 
 namespace Microsoft.ML.Data
 {
     /// <summary>
     /// A data loader that wraps an underlying loader plus a sequence of transforms.
-    /// It is not valid to have nested <see cref="CompositeDataLoader"/>'s: if a <see cref="CompositeDataLoader"/>
+    /// It is not valid to have nested <see cref="LegacyCompositeDataLoader"/>'s: if a <see cref="LegacyCompositeDataLoader"/>
     /// is an underlying loader, the resulting loader will 'flatten' the structure.
-    /// The family of <c>Create</c> methods only instantiate <see cref="CompositeDataLoader"/>'s
+    /// The family of <c>Create</c> methods only instantiate <see cref="LegacyCompositeDataLoader"/>'s
     /// when there are transforms to keep, otherwise they just return underlying loaders.
     /// </summary>
     [BestFriend]
-    internal sealed class CompositeDataLoader : ILegacyDataLoader, ITransposeDataView
+    internal sealed class LegacyCompositeDataLoader : ILegacyDataLoader, ITransposeDataView
     {
         public sealed class Arguments
         {
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Data
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(CompositeDataLoader).Assembly.FullName);
+                loaderAssemblyName: typeof(LegacyCompositeDataLoader).Assembly.FullName);
         }
 
         // The composition of loader plus transforms in order.
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Creates a loader according to the specified <paramref name="args"/>.
-        /// If there are transforms, then the result will be a <see cref="CompositeDataLoader"/>,
+        /// If there are transforms, then the result will be a <see cref="LegacyCompositeDataLoader"/>,
         /// otherwise, it'll be whatever <see cref="ILegacyDataLoader"/> is specified in <c>args.loader</c>.
         /// </summary>
         public static ILegacyDataLoader Create(IHostEnvironment env, Arguments args, IMultiStreamSource files)
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Creates a <see cref="CompositeDataLoader"/> that starts with the <paramref name="srcLoader"/>,
+        /// Creates a <see cref="LegacyCompositeDataLoader"/> that starts with the <paramref name="srcLoader"/>,
         /// and follows with transforms created from the <paramref name="transformArgs"/> array.
         /// If there are no transforms, the <paramref name="srcLoader"/> is returned.
         /// </summary>
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Data
                 .ToArray();
 
             // Warn if tags coincide with ones already present in the loader.
-            var composite = srcLoader as CompositeDataLoader;
+            var composite = srcLoader as LegacyCompositeDataLoader;
             if (composite != null)
             {
                 using (var ch = host.Start("TagValidation"))
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Appends transforms to the <paramref name="srcLoader"/> and returns a loader that contains these new transforms.
         /// If there are no transforms to append, returns <paramref name="srcLoader"/> intact, otherwise creates a
-        /// <see cref="CompositeDataLoader"/>. The transforms are created by sequentially invoking the provided lambda,
+        /// <see cref="LegacyCompositeDataLoader"/>. The transforms are created by sequentially invoking the provided lambda,
         /// one time for each element of <paramref name="tagData"/>.
         /// </summary>
         /// <param name="env">The host environment.</param>
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Data
 
             // If the loader is a composite, we need to start with its underlying pipeline end.
             var exes = new List<TransformEx>();
-            var composite = srcLoader as CompositeDataLoader;
+            var composite = srcLoader as LegacyCompositeDataLoader;
             IDataView srcView;
             ILegacyDataLoader pipeStart;
             if (composite != null)
@@ -265,7 +265,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            return view == srcView ? srcLoader : new CompositeDataLoader(host, exes.ToArray());
+            return view == srcView ? srcLoader : new LegacyCompositeDataLoader(host, exes.ToArray());
         }
 
         /// <summary>
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Data
                 ctx.LoadModel<ILegacyDataLoader, SignatureLoadDataLoader>(h, out loader, "Loader", files);
 
                 // Now the transforms.
-                h.Assert(!(loader is CompositeDataLoader));
+                h.Assert(!(loader is LegacyCompositeDataLoader));
                 return LoadTransforms(ctx, loader, h, x => true);
             }
         }
@@ -341,7 +341,7 @@ namespace Microsoft.ML.Data
         /// - it doesn't wrap the results into a loader, just returns the last transform in the chain.
         /// - it accepts <see cref="IDataView"/> as input, not necessarily a loader.
         /// - it throws away the tag information.
-        /// - it doesn't throw if the context is not representing a <see cref="CompositeDataLoader"/>: in this case it's assumed that no transforms
+        /// - it doesn't throw if the context is not representing a <see cref="LegacyCompositeDataLoader"/>: in this case it's assumed that no transforms
         ///   meet the test, and the <paramref name="srcView"/> is returned.
         /// Essentially, this is a helper method for the LoadTransform class.
         /// </summary>
@@ -420,7 +420,7 @@ namespace Microsoft.ML.Data
             return result;
         }
 
-        private CompositeDataLoader(IHost host, TransformEx[] transforms)
+        private LegacyCompositeDataLoader(IHost host, TransformEx[] transforms)
         {
             Contracts.AssertValue(host, "host");
             _host = host;
@@ -437,7 +437,7 @@ namespace Microsoft.ML.Data
                 _host.Assert(transforms[i].Transform.Source == transforms[i - 1].Transform, "Transforms are not linked");
 
             _host.AssertValue(srcLoader, "loader", "Transform chain doesn't start with a loader");
-            _host.Assert(!(srcLoader is CompositeDataLoader), "Can't have composite source loader");
+            _host.Assert(!(srcLoader is LegacyCompositeDataLoader), "Can't have composite source loader");
 #endif
 
             _loader = srcLoader;
@@ -512,7 +512,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Save the loader and transforms (if any) to the repository.
         /// This is intended to be used by API, where the components are not part of the same
-        /// <see cref="CompositeDataLoader"/>.
+        /// <see cref="LegacyCompositeDataLoader"/>.
         /// </summary>
         /// <param name="env">Environment context</param>
         /// <param name="ctx">The context to write to.</param>

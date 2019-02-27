@@ -12,33 +12,33 @@ namespace Microsoft.ML
     public static class BinaryLoaderSaverCatalog
     {
         /// <summary>
-        /// Read a data view from an <see cref="IMultiStreamSource"/> on a binary file using <see cref="BinaryLoader"/>.
+        /// Load a data view from an <see cref="IMultiStreamSource"/> on a binary file.
         /// </summary>
         /// <param name="catalog">The catalog.</param>
-        /// <param name="fileSource">The file source to read from. This can be a <see cref="MultiFileSource"/>, for example.</param>
-        public static IDataView ReadFromBinary(this DataOperationsCatalog catalog, IMultiStreamSource fileSource)
+        /// <param name="fileSource">The file source to load from. This can be a <see cref="MultiFileSource"/>, for example.</param>
+        public static IDataView LoadFromBinary(this DataOperationsCatalog catalog, IMultiStreamSource fileSource)
         {
             Contracts.CheckValue(fileSource, nameof(fileSource));
 
             var env = catalog.GetEnvironment();
 
-            var reader = new BinaryLoader(env, new BinaryLoader.Arguments(), fileSource);
-            return reader;
+            var loader = new BinaryLoader(env, new BinaryLoader.Arguments(), fileSource);
+            return loader;
         }
 
         /// <summary>
-        /// Read a data view from a binary file using <see cref="BinaryLoader"/>.
+        /// Load a data view from a binary file.
         /// </summary>
         /// <param name="catalog">The catalog.</param>
-        /// <param name="path">The path to the file to read from.</param>
-        public static IDataView ReadFromBinary(this DataOperationsCatalog catalog, string path)
+        /// <param name="path">The path to the file to load from.</param>
+        public static IDataView LoadFromBinary(this DataOperationsCatalog catalog, string path)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
             var env = catalog.GetEnvironment();
 
-            var reader = new BinaryLoader(env, new BinaryLoader.Arguments(), path);
-            return reader;
+            var loader = new BinaryLoader(env, new BinaryLoader.Arguments(), path);
+            return loader;
         }
 
         /// <summary>

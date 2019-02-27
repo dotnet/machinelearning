@@ -7,18 +7,18 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// The trivial wrapper for a <see cref="IDataLoader{TSource}"/> that acts as an estimator and ignores the source.
     /// </summary>
-    public sealed class TrivialReaderEstimator<TSource, TReader>: IDataLoaderEstimator<TSource, TReader>
-        where TReader: IDataLoader<TSource>
+    public sealed class TrivialLoaderEstimator<TSource, TLoader> : IDataLoaderEstimator<TSource, TLoader>
+        where TLoader : IDataLoader<TSource>
     {
-        public TReader Reader { get; }
+        public TLoader Loader { get; }
 
-        public TrivialReaderEstimator(TReader reader)
+        public TrivialLoaderEstimator(TLoader loader)
         {
-            Reader = reader;
+            Loader = loader;
         }
 
-        public TReader Fit(TSource input) => Reader;
+        public TLoader Fit(TSource input) => Loader;
 
-        public SchemaShape GetOutputSchema() => SchemaShape.Create(Reader.GetOutputSchema());
+        public SchemaShape GetOutputSchema() => SchemaShape.Create(Loader.GetOutputSchema());
     }
 }

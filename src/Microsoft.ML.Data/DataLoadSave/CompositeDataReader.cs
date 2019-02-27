@@ -9,53 +9,53 @@ using Microsoft.ML.Model;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// This class represents a data reader that applies a transformer chain after reading.
+    /// This class represents a data loader that applies a transformer chain after loading.
     /// It also has methods to save itself to a repository.
     /// </summary>
-    public sealed class CompositeDataReader<TSource, TLastTransformer> : IDataLoader<TSource>
+    public sealed class CompositeDataLoader<TSource, TLastTransformer> : IDataLoader<TSource>
         where TLastTransformer : class, ITransformer
     {
         /// <summary>
-        /// The underlying data reader.
+        /// The underlying data loader.
         /// </summary>
-        public readonly IDataLoader<TSource> Reader;
+        public readonly IDataLoader<TSource> Loader;
         /// <summary>
-        /// The chain of transformers (possibly empty) that are applied to data upon reading.
+        /// The chain of transformers (possibly empty) that are applied to data upon loading.
         /// </summary>
         public readonly TransformerChain<TLastTransformer> Transformer;
 
-        public CompositeDataReader(IDataLoader<TSource> reader, TransformerChain<TLastTransformer> transformerChain = null)
+        public CompositeDataLoader(IDataLoader<TSource> loader, TransformerChain<TLastTransformer> transformerChain = null)
         {
-            Contracts.CheckValue(reader, nameof(reader));
+            Contracts.CheckValue(loader, nameof(loader));
             Contracts.CheckValueOrNull(transformerChain);
 
-            Reader = reader;
+            Loader = loader;
             Transformer = transformerChain ?? new TransformerChain<TLastTransformer>();
         }
 
-        public IDataView Read(TSource input)
+        public IDataView Load(TSource input)
         {
-            var idv = Reader.Read(input);
+            var idv = Loader.Load(input);
             idv = Transformer.Transform(idv);
             return idv;
         }
 
         public DataViewSchema GetOutputSchema()
         {
-            var s = Reader.GetOutputSchema();
+            var s = Loader.GetOutputSchema();
             return Transformer.GetOutputSchema(s);
         }
 
         /// <summary>
         /// Append a new transformer to the end.
         /// </summary>
-        /// <returns>The new composite data reader</returns>
-        public CompositeDataReader<TSource, TNewLast> AppendTransformer<TNewLast>(TNewLast transformer)
+        /// <returns>The new composite data loader</returns>
+        public CompositeDataLoader<TSource, TNewLast> AppendTransformer<TNewLast>(TNewLast transformer)
             where TNewLast : class, ITransformer
         {
             Contracts.CheckValue(transformer, nameof(transformer));
 
-            return new CompositeDataReader<TSource, TNewLast>(Reader, Transformer.Append(transformer));
+            return new CompositeDataLoader<TSource, TNewLast>(Loader, Transformer.Append(transformer));
         }
 
         /// <summary>
@@ -71,8 +71,8 @@ namespace Microsoft.ML.Data
             {
                 using (var rep = RepositoryWriter.CreateNew(outputStream, ch))
                 {
-                    ch.Trace("Saving data reader");
-                    ModelSaveContext.SaveModel(rep, Reader, "Reader");
+                    ch.Trace("Saving data loader");
+                    ModelSaveContext.SaveModel(rep, Loader, "Reader");
 
                     ch.Trace("Saving transformer chain");
                     ModelSaveContext.SaveModel(rep, Transformer, TransformerChain.LoaderSignature);
@@ -85,18 +85,19 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Utility class to facilitate loading from a stream.
     /// </summary>
-    public static class CompositeDataReader
+    [BestFriend]
+    internal static class CompositeDataLoader
     {
         /// <summary>
         /// Save the contents to a stream, as a "model file".
         /// </summary>
-        public static void SaveTo<TSource>(this IDataLoader<TSource> reader, IHostEnvironment env, Stream outputStream)
-            => new CompositeDataReader<TSource, ITransformer>(reader).SaveTo(env, outputStream);
+        public static void SaveTo<TSource>(this IDataLoader<TSource> loader, IHostEnvironment env, Stream outputStream)
+            => new CompositeDataLoader<TSource, ITransformer>(loader).SaveTo(env, outputStream);
 
         /// <summary>
         /// Load the pipeline from stream.
         /// </summary>
-        public static CompositeDataReader<IMultiStreamSource, ITransformer> LoadFrom(IHostEnvironment env, Stream stream)
+        public static CompositeDataLoader<IMultiStreamSource, ITransformer> LoadFrom(IHostEnvironment env, Stream stream)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(stream, nameof(stream));
@@ -105,12 +106,12 @@ namespace Microsoft.ML.Data
             using (var rep = RepositoryReader.Open(stream, env))
             using (var ch = env.Start("Loading pipeline"))
             {
-                ch.Trace("Loading data reader");
-                ModelLoadContext.LoadModel<IDataLoader<IMultiStreamSource>, SignatureLoadModel>(env, out var reader, rep, "Reader");
+                ch.Trace("Loading data loader");
+                ModelLoadContext.LoadModel<IDataLoader<IMultiStreamSource>, SignatureLoadModel>(env, out var loader, rep, "Reader");
 
                 ch.Trace("Loader transformer chain");
                 ModelLoadContext.LoadModel<TransformerChain<ITransformer>, SignatureLoadModel>(env, out var transformerChain, rep, TransformerChain.LoaderSignature);
-                return new CompositeDataReader<IMultiStreamSource, ITransformer>(reader, transformerChain);
+                return new CompositeDataLoader<IMultiStreamSource, ITransformer>(loader, transformerChain);
             }
         }
     }

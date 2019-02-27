@@ -1090,7 +1090,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="options">Defines the settings of the load operation.</param>
-        /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
+        /// <param name="dataSample">Allows to expose items that can be used for loading.</param>
         internal TextLoader(IHostEnvironment env, Options options = null, IMultiStreamSource dataSample = null)
         {
             options = options ?? new Options();
@@ -1389,15 +1389,15 @@ namespace Microsoft.ML.Data
 
         // These are legacy constructors needed for ComponentCatalog.
         internal static ILegacyDataLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
-            => (ILegacyDataLoader)Create(env, ctx).Read(files);
+            => (ILegacyDataLoader)Create(env, ctx).Load(files);
         internal static ILegacyDataLoader Create(IHostEnvironment env, Options options, IMultiStreamSource files)
-            => (ILegacyDataLoader)new TextLoader(env, options, files).Read(files);
+            => (ILegacyDataLoader)new TextLoader(env, options, files).Load(files);
 
         /// <summary>
-        /// Convenience method to create a <see cref="TextLoader"/> and use it to read a specified file.
+        /// Convenience method to create a <see cref="TextLoader"/> and use it to load a specified file.
         /// </summary>
-        internal static IDataView ReadFile(IHostEnvironment env, Options options, IMultiStreamSource fileSource)
-            => new TextLoader(env, options, fileSource).Read(fileSource);
+        internal static IDataView LoadFile(IHostEnvironment env, Options options, IMultiStreamSource fileSource)
+            => new TextLoader(env, options, fileSource).Load(fileSource);
 
         void ICanSaveModel.Save(ModelSaveContext ctx)
         {
@@ -1430,10 +1430,10 @@ namespace Microsoft.ML.Data
         public DataViewSchema GetOutputSchema() => _bindings.OutputSchema;
 
         /// <summary>
-        /// Reads data from <paramref name="source"/> into an <see cref="IDataView"/>.
+        /// Loads data from <paramref name="source"/> into an <see cref="IDataView"/>.
         /// </summary>
         /// <param name="source">The source from which to load data.</param>
-        public IDataView Read(IMultiStreamSource source) => new BoundLoader(this, source);
+        public IDataView Load(IMultiStreamSource source) => new BoundLoader(this, source);
 
         internal static TextLoader CreateTextLoader<TInput>(IHostEnvironment host,
            bool hasHeader = Defaults.HasHeader,

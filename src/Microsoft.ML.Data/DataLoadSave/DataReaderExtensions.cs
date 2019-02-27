@@ -7,14 +7,14 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML
 {
-    public static class DataReaderExtensions
+    public static class DataLoaderExtensions
     {
         /// <summary>
         /// Reads data from one or more file <paramref name="path"/> into an <see cref="IDataView"/>.
         /// </summary>
-        /// <param name="reader">The reader to use.</param>
+        /// <param name="loader">The loader to use.</param>
         /// <param name="path">One or more paths from which to load data.</param>
-        public static IDataView Read(this IDataLoader<IMultiStreamSource> reader, params string[] path)
-            => reader.Read(new MultiFileSource(path));
+        public static IDataView Load(this IDataLoader<IMultiStreamSource> loader, params string[] path)
+            => loader.Load(new MultiFileSource(path));
     }
 }
