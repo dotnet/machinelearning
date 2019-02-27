@@ -78,7 +78,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // The same extension method also applies to the dynamic-typed data, except you have to
             // specify the column name and type:
             var dynamicData = transformedData.AsDynamic;
-            var sameFeatureColumns = dynamicData.GetColumn<string[]>(mlContext, "AllFeatures")
+            var sameFeatureColumns = dynamicData.GetColumn<string[]>(dynamicData.Schema["AllFeatures"])
                 .Take(20).ToArray();
         }
 

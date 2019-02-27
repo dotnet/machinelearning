@@ -60,7 +60,7 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             // Preview of the DefaultKeys column obtained after processing the input.
-            var defaultColumn = transformedData_default.GetColumn<VBuffer<uint>>(ml, defaultColumnName);
+            var defaultColumn = transformedData_default.GetColumn<VBuffer<uint>>(transformedData_default.Schema[defaultColumnName]);
             printHelper(defaultColumnName, defaultColumn);
 
             // DefaultKeys column obtained post-transformation.
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // 9 10 11 12 13 6
 
             // Previewing the CustomizedKeys column obtained after processing the input.
-            var customizedColumn = transformedData_customized.GetColumn<VBuffer<uint>>(ml, customizedColumnName);
+            var customizedColumn = transformedData_customized.GetColumn<VBuffer<uint>>(transformedData_customized.Schema[customizedColumnName]);
             printHelper(customizedColumnName, customizedColumn);
 
             // CustomizedKeys column obtained post-transformation.
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Samples.Dynamic
             transformedData_default = pipeline.Fit(trainData).Transform(trainData);
 
             // Preview of the DefaultColumnName column obtained.
-            var originalColumnBack = transformedData_default.GetColumn<VBuffer<ReadOnlyMemory<char>>>(ml, defaultColumnName);
+            var originalColumnBack = transformedData_default.GetColumn<VBuffer<ReadOnlyMemory<char>>>(transformedData_default.Schema[defaultColumnName]);
 
             foreach (var row in originalColumnBack)
             {

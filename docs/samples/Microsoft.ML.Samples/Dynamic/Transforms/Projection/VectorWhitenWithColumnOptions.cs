@@ -44,7 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // The transformed (projected) data.
             var transformedData = whiteningPipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.
-            var whitening = transformedData.GetColumn<VBuffer<float>>(ml, nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features));
+            var whitening = transformedData.GetColumn<VBuffer<float>>(transformedData.Schema[nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features)]);
 
             printHelper(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), whitening);
 

@@ -31,9 +31,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var src = new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename));
             var data = pipeline.Fit(src).Load(src);
 
-            var textColumn = data.GetColumn<string>(ml, "SentimentText").Take(20);
-            var transformedTextColumn = data.GetColumn<string[]>(ml, "Features_TransformedText").Take(20);
-            var features = data.GetColumn<float[]>(ml, "Features").Take(20);
+            var textColumn = data.GetColumn<string>(data.Schema["SentimentText"]).Take(20);
+            var transformedTextColumn = data.GetColumn<string[]>(data.Schema["Features_TransformedText"]).Take(20);
+            var features = data.GetColumn<float[]>(data.Schema["Features"]).Take(20);
         }
     }
 }
