@@ -7,11 +7,9 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Newtonsoft.Json.Linq;
-using Float = System.Single;
 
 [assembly: LoadableClass(typeof(BinaryClassifierScorer), typeof(BinaryClassifierScorer.Arguments), typeof(SignatureDataScorer),
     "Binary Classifier Scorer", "BinaryClassifierScorer", "BinaryClassifier", "Binary",
@@ -46,7 +44,7 @@ namespace Microsoft.ML.Data
 
         private const string RegistrationName = "BinaryClassifierScore";
 
-        private readonly Float _threshold;
+        private readonly float _threshold;
 
         /// <summary>
         /// This function performs a number of checks on the inputs and, if appropriate and possible, will produce
@@ -148,11 +146,11 @@ namespace Microsoft.ML.Data
 
             // *** Binary format ***
             // <base info>
-            // int: sizeof(Float)
-            // Float: threshold
+            // int: sizeof(float)
+            // float: threshold
 
             int cbFloat = ctx.Reader.ReadInt32();
-            Contracts.CheckDecode(cbFloat == sizeof(Float));
+            Contracts.CheckDecode(cbFloat == sizeof(float));
             _threshold = ctx.Reader.ReadFloat();
         }
 
@@ -174,11 +172,11 @@ namespace Microsoft.ML.Data
 
             // *** Binary format ***
             // <base info>
-            // int: sizeof(Float)
-            // Float: threshold
+            // int: sizeof(float)
+            // float: threshold
 
             base.SaveCore(ctx);
-            ctx.Writer.Write(sizeof(Float));
+            ctx.Writer.Write(sizeof(float));
             ctx.Writer.Write(_threshold);
         }
 
@@ -224,13 +222,13 @@ namespace Microsoft.ML.Data
             Host.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
             Host.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
 
-            ValueGetter<Float> mapperScoreGetter = output.GetGetter<Float>(Bindings.ScoreColumnIndex);
+            ValueGetter<float> mapperScoreGetter = output.GetGetter<float>(Bindings.ScoreColumnIndex);
 
             long cachedPosition = -1;
-            Float score = 0;
+            float score = 0;
 
-            ValueGetter<Float> scoreFn =
-                (ref Float dst) =>
+            ValueGetter<float> scoreFn =
+                (ref float dst) =>
                 {
                     EnsureCachedPosition(ref cachedPosition, ref score, output, mapperScoreGetter);
                     dst = score;
@@ -257,13 +255,13 @@ namespace Microsoft.ML.Data
             return predFn;
         }
 
-        private void GetPredictedLabelCore(Float score, ref bool value)
+        private void GetPredictedLabelCore(float score, ref bool value)
         {
             //Behavior for NA values is undefined.
             value = score > _threshold;
         }
 
-        private void GetPredictedLabelCoreAsKey(Float score, ref uint value)
+        private void GetPredictedLabelCoreAsKey(float score, ref uint value)
         {
             value = (uint)(score > _threshold ? 2 : score <= _threshold ? 1 : 0);
         }

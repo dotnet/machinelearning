@@ -7,11 +7,9 @@ using System.Collections.Generic;
 using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Newtonsoft.Json.Linq;
-using Float = System.Single;
 
 namespace Microsoft.ML.Data
 {
@@ -24,7 +22,7 @@ namespace Microsoft.ML.Data
         public abstract class ThresholdArgumentsBase : ScorerArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Value for classification thresholding", ShortName = "t")]
-            public Float Threshold;
+            public float Threshold;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Specify which predictor output to use for classification thresholding", ShortName = "tcol")]
             public string ThresholdColumn = AnnotationUtils.Const.ScoreValueKind.Score;
