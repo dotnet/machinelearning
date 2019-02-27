@@ -16,7 +16,6 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Newtonsoft.Json.Linq;
-using Float = System.Single;
 
 [assembly: LoadableClass(typeof(SchemaBindablePredictorWrapper), null, typeof(SignatureLoadModel),
     "Bindable Mapper", SchemaBindablePredictorWrapper.LoaderSignature)]
@@ -440,7 +439,7 @@ namespace Microsoft.ML.Data
 
         private void CheckValid(out IValueMapperDist distMapper)
         {
-            Contracts.Check(ScoreType == NumberDataViewType.Single, "Expected predictor result type to be Float");
+            Contracts.Check(ScoreType == NumberDataViewType.Single, "Expected predictor result type to be float");
 
             distMapper = Predictor as IValueMapperDist;
             if (distMapper == null)
@@ -467,7 +466,7 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// The <see cref="ISchemaBoundRowMapper"/> implementation for distribution predictor wrappers that produce
-        /// two Float-valued output columns. Note that the Bindable wrapper does input schema validation.
+        /// two float-valued output columns. Note that the Bindable wrapper does input schema validation.
         /// </summary>
         private sealed class CalibratedRowMapper : ISchemaBoundRowMapper
         {
@@ -525,18 +524,18 @@ namespace Microsoft.ML.Data
                 if (active[0] || active[1])
                 {
                     // Put all captured locals at this scope.
-                    var featureGetter = InputRoleMappedSchema.Feature?.Index is int idx ? input.GetGetter<VBuffer<Float>>(idx) : null;
-                    Float prob = 0;
-                    Float score = 0;
+                    var featureGetter = InputRoleMappedSchema.Feature?.Index is int idx ? input.GetGetter<VBuffer<float>>(idx) : null;
+                    float prob = 0;
+                    float score = 0;
                     long cachedPosition = -1;
-                    var features = default(VBuffer<Float>);
-                    ValueMapper<VBuffer<Float>, Float, Float> mapper;
+                    var features = default(VBuffer<float>);
+                    ValueMapper<VBuffer<float>, float, float> mapper;
 
-                    mapper = _parent._distMapper.GetMapper<VBuffer<Float>, Float, Float>();
+                    mapper = _parent._distMapper.GetMapper<VBuffer<float>, float, float>();
                     if (active[0])
                     {
-                        ValueGetter<Float> getScore =
-                            (ref Float dst) =>
+                        ValueGetter<float> getScore =
+                            (ref float dst) =>
                             {
                                 EnsureCachedResultValueMapper(mapper, ref cachedPosition, featureGetter, ref features, ref score, ref prob, input);
                                 dst = score;
@@ -545,8 +544,8 @@ namespace Microsoft.ML.Data
                     }
                     if (active[1])
                     {
-                        ValueGetter<Float> getProb =
-                            (ref Float dst) =>
+                        ValueGetter<float> getProb =
+                            (ref float dst) =>
                             {
                                 EnsureCachedResultValueMapper(mapper, ref cachedPosition, featureGetter, ref features, ref score, ref prob, input);
                                 dst = prob;
@@ -557,9 +556,9 @@ namespace Microsoft.ML.Data
                 return getters;
             }
 
-            private static void EnsureCachedResultValueMapper(ValueMapper<VBuffer<Float>, Float, Float> mapper,
-                ref long cachedPosition, ValueGetter<VBuffer<Float>> featureGetter, ref VBuffer<Float> features,
-                ref Float score, ref Float prob, DataViewRow input)
+            private static void EnsureCachedResultValueMapper(ValueMapper<VBuffer<float>, float, float> mapper,
+                ref long cachedPosition, ValueGetter<VBuffer<float>> featureGetter, ref VBuffer<float> features,
+                ref float score, ref float prob, DataViewRow input)
             {
                 Contracts.AssertValue(mapper);
                 if (cachedPosition != input.Position)
@@ -672,17 +671,17 @@ namespace Microsoft.ML.Data
                 typeSrc.Size == ValueMapper.InputType.GetVectorSize() || ValueMapper.InputType.GetVectorSize() == 0);
             Contracts.Assert(Utils.Size(_quantiles) > 0);
 
-            var featureGetter = input.GetGetter<VBuffer<Float>>(colSrc);
+            var featureGetter = input.GetGetter<VBuffer<float>>(colSrc);
             var featureCount = ValueMapper != null ? ValueMapper.InputType.GetVectorSize() : 0;
 
-            var quantiles = new Float[_quantiles.Length];
+            var quantiles = new float[_quantiles.Length];
             for (int i = 0; i < quantiles.Length; i++)
-                quantiles[i] = (Float)_quantiles[i];
+                quantiles[i] = (float)_quantiles[i];
             var map = _qpred.GetMapper(quantiles);
 
-            var features = default(VBuffer<Float>);
-            ValueGetter<VBuffer<Float>> del =
-                (ref VBuffer<Float> value) =>
+            var features = default(VBuffer<float>);
+            ValueGetter<VBuffer<float>> del =
+                (ref VBuffer<float> value) =>
                 {
                     featureGetter(ref features);
                     Contracts.Check(features.Length == featureCount || featureCount == 0);
