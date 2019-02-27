@@ -55,8 +55,8 @@ namespace Microsoft.ML.SamplesUtils
         /// <param name="metrics">Ranker metrics.</param>
         public static void PrintMetrics(RankingMetrics metrics)
         {
-            Console.WriteLine($"DCG: {string.Join(", ", metrics.Dcg.Select((d, i) => $"@{i + 1}:{d:F2}").ToArray())}");
-            Console.WriteLine($"NDCG: {string.Join(", ", metrics.Ndcg.Select((d, i) => $"@{i + 1}:{d:F2}").ToArray())}");
+            Console.WriteLine($"DCG: {string.Join(", ", metrics.DiscountedCumulativeGains.Select((d, i) => $"@{i + 1}:{d:F2}").ToArray())}");
+            Console.WriteLine($"NDCG: {string.Join(", ", metrics.NormalizedDiscountedCumulativeGains.Select((d, i) => $"@{i + 1}:{d:F2}").ToArray())}");
         }
     }
 }

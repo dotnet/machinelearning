@@ -9,7 +9,7 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Evaluation results for rankers.
     /// </summary>
-    public sealed class RankerMetrics
+    public sealed class RankingMetrics
     {
         /// <summary>
         /// Array of normalized discounted cumulative gains where i-th element represent NDCG@i.
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Data
         /// Note that unline the Wikipedia article, ML.Net uses the natural logarithm.
         /// <image src="https://github.com/dotnet/machinelearning/tree/master/docs/images/DCG.png"></image>
         /// </summary>
-        /// <remarks><a href="https://en.wikipedia.org/wiki/Discounted_cumulative_gain">Discounted Cumulative gain</a></remarks>
+        /// <remarks><a href="https://en.wikipedia.org/wiki/Discounted_cumulative_gain">Discounted Cumulative gain.</a></remarks>
         public double[] DiscountedCumulativeGains { get; }
 
         private static T Fetch<T>(IExceptionContext ectx, DataViewRow row, string name)
@@ -40,8 +40,8 @@ namespace Microsoft.ML.Data
         {
             VBuffer<double> Fetch(string name) => Fetch<VBuffer<double>>(ectx, overallResult, name);
 
-            DiscountedCumulativeGains = Fetch(RankerEvaluator.Dcg).GetValues().ToArray();
-            NormalizedDiscountedCumulativeGains = Fetch(RankerEvaluator.Ndcg).GetValues().ToArray();
+            DiscountedCumulativeGains = Fetch(RankingEvaluator.Dcg).GetValues().ToArray();
+            NormalizedDiscountedCumulativeGains = Fetch(RankingEvaluator.Ndcg).GetValues().ToArray();
         }
 
         internal RankingMetrics(double[] dcg, double[] ndcg)

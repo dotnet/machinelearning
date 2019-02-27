@@ -16,7 +16,7 @@ namespace Microsoft.ML.Data
         /// This metric is only calculated if the Label column is provided.
         /// </summary>
         /// <value> Its value ranged from 0 to 1, where higher numbers are better.</value>
-        /// <remarks><a href="http://en.wikipedia.org/wiki/Mutual_information#Normalized_variants">Normalized variants</a></remarks>
+        /// <remarks><a href="http://en.wikipedia.org/wiki/Mutual_information#Normalized_variants">Normalized variants.</a></remarks>
         public double NormalizedMutualInformation { get; }
 
         /// <summary>
