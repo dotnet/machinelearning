@@ -66,7 +66,7 @@ namespace Microsoft.ML.FactorizationMachine
             public bool Norm = true;
 
             /// <summary>
-            /// Extra feature column names. The column named <see cref="LearnerInputBase.FeatureColumn"/> stores features from the first field.
+            /// Extra feature column names. The column named <see cref="TrainerInputBase.FeatureColumn"/> stores features from the first field.
             /// The i-th string in <see cref="ExtraFeatureColumns"/> stores the name of the (i+1)-th field's feature column.
             /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "Extra columns to use for feature vectors. The i-th specified string denotes the column containing features form the (i+1)-th field." +

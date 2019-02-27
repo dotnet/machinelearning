@@ -14,7 +14,7 @@ using Microsoft.ML.Internal.Calibration;
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
-    /// The base class for all learner inputs.
+    /// The base class for all trainer inputs.
     /// </summary>
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInput))]
     public abstract class TrainerInputBase
