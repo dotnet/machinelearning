@@ -182,12 +182,12 @@ namespace Microsoft.ML.Trainers
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="featureColumnNames">The name of column hosting the features. The i-th element stores feature column of the i-th field.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
-        /// <param name="weightColumnName">The name of the weight column (optional).</param>
+        /// <param name="exampleWeightColumnName">The name of the weight column (optional).</param>
         [BestFriend]
         internal FieldAwareFactorizationMachineBinaryClassificationTrainer(IHostEnvironment env,
             string[] featureColumnNames,
             string labelColumnName = DefaultColumnNames.Label,
-            string weightColumnName = null)
+            string exampleWeightColumnName = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoadName);
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Trainers
                 FeatureColumns[i] = new SchemaShape.Column(featureColumnNames[i], SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
             LabelColumn = new SchemaShape.Column(labelColumnName, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false);
-            WeightColumn = weightColumnName != null ? new SchemaShape.Column(weightColumnName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false) : default;
+            WeightColumn = exampleWeightColumnName != null ? new SchemaShape.Column(exampleWeightColumnName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false) : default;
         }
 
         /// <summary>
