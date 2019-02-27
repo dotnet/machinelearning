@@ -49,18 +49,19 @@ namespace Microsoft.ML.Data
             return columnsNeeded;
         }
 
-        public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
+        public DataViewRow GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
         {
             Contracts.CheckValue(input, nameof(input));
-            Contracts.CheckValue(active, nameof(active));
+            Contracts.CheckValue(activeColumns, nameof(activeColumns));
             Contracts.CheckParam(input.Schema == InputSchema, nameof(input), "Schema did not match original schema");
 
+            var activeIndices = activeColumns.Select(c => c.Index).ToArray();
             if (InnerMappers.Length == 0)
             {
                 bool differentActive = false;
                 for (int c = 0; c < input.Schema.Count; ++c)
                 {
-                    bool wantsActive = active(c);
+                    bool wantsActive = activeIndices.Contains(c);
                     bool isActive = input.IsColumnActive(c);
                     differentActive |= wantsActive != isActive;
 
@@ -73,14 +74,10 @@ namespace Microsoft.ML.Data
             // For each of the inner mappers, we will be calling their GetRow method, but to do so we need to know
             // what we need from them. The last one will just have the input, but the rest will need to be
             // computed based on the dependencies of the next one in the chain.
-            var deps = new Func<int, bool>[InnerMappers.Length];
-            deps[deps.Length - 1] = active;
+            IEnumerable<DataViewSchema.Column>[] deps = new IEnumerable<DataViewSchema.Column>[InnerMappers.Length];
+            deps[deps.Length - 1] = OutputSchema.Where(c => activeIndices.Contains(c.Index));
             for (int i = deps.Length - 1; i >= 1; --i)
-            {
-                var outputColumns = InnerMappers[i].OutputSchema.Where(c => deps[i](c.Index));
-                var cols = InnerMappers[i].GetDependencies(outputColumns).ToArray();
-                deps[i - 1] = c => cols.Length > 0 ? cols.Any(col => col.Index == c) : false;
-            }
+                deps[i - 1] = InnerMappers[i].GetDependencies(deps[i]);
 
             DataViewRow result = input;
             for (int i = 0; i < InnerMappers.Length; ++i)

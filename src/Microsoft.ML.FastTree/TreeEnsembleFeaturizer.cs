@@ -144,23 +144,24 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(OutputSchema[OutputColumnNames.Paths].Index == PathIdsColumnId);
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 _ectx.CheckValue(input, nameof(input));
-                _ectx.CheckValue(predicate, nameof(predicate));
-                return new SimpleRow(OutputSchema, input, CreateGetters(input, predicate));
+                _ectx.CheckValue(activeColumns, nameof(activeColumns));
+                return new SimpleRow(OutputSchema, input, CreateGetters(input, activeColumns));
             }
 
-            private Delegate[] CreateGetters(DataViewRow input, Func<int, bool> predicate)
+            private Delegate[] CreateGetters(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 _ectx.AssertValue(input);
-                _ectx.AssertValue(predicate);
+                _ectx.AssertValue(activeColumns);
 
                 var delegates = new Delegate[3];
 
-                var treeValueActive = predicate(TreeValuesColumnId);
-                var leafIdActive = predicate(LeafIdsColumnId);
-                var pathIdActive = predicate(PathIdsColumnId);
+                var activeIndices = activeColumns.Select(c => c.Index);
+                var treeValueActive = activeIndices.Contains(TreeValuesColumnId);
+                var leafIdActive = activeIndices.Contains(LeafIdsColumnId);
+                var pathIdActive = activeIndices.Contains(PathIdsColumnId);
 
                 if (!treeValueActive && !leafIdActive && !pathIdActive)
                     return delegates;

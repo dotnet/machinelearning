@@ -171,23 +171,22 @@ namespace Microsoft.ML.Data
             => GetDependenciesCore(dependingColumns);
 
         protected abstract IEnumerable<DataViewSchema.Column> GetDependenciesCore(IEnumerable<DataViewSchema.Column> dependingColumns);
-
         public DataViewSchema InputSchema => Source.Schema;
 
-        public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
+        DataViewRow IRowToRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
         {
             Host.CheckValue(input, nameof(input));
-            Host.CheckValue(active, nameof(active));
+            Host.CheckValue(activeColumns, nameof(activeColumns));
             Host.Check(input.Schema == Source.Schema, "Schema of input row must be the same as the schema the mapper is bound to");
 
             using (var ch = Host.Start("GetEntireRow"))
             {
-                var getters = CreateGetters(input, active, out Action disp);
+                var getters = CreateGetters(input, activeColumns, out Action disp);
                 return new RowImpl(input, this, OutputSchema, getters, disp);
             }
         }
 
-        protected abstract Delegate[] CreateGetters(DataViewRow input, Func<int, bool> active, out Action disp);
+        protected abstract Delegate[] CreateGetters(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns, out Action disp);
 
         protected abstract int MapColumnIndex(out bool isSrc, int col);
 
@@ -799,13 +798,13 @@ namespace Microsoft.ML.Data
         protected override IEnumerable<DataViewSchema.Column> GetDependenciesCore(IEnumerable<DataViewSchema.Column> dependingColumns)
             => _bindings.GetDependencies(dependingColumns);
 
-        protected override Delegate[] CreateGetters(DataViewRow input, Func<int, bool> active, out Action disposer)
+        protected override Delegate[] CreateGetters(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns, out Action disposer)
         {
             Func<int, bool> activeInfos =
                 iinfo =>
                 {
                     int col = _bindings.MapIinfoToCol(iinfo);
-                    return active(col);
+                    return activeColumns.Select(c => c.Index).Contains(col);
                 };
 
             var getters = new Delegate[_bindings.InfoCount];

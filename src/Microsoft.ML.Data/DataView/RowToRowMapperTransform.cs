@@ -246,17 +246,20 @@ namespace Microsoft.ML.Data
 
         public DataViewSchema InputSchema => Source.Schema;
 
-        public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
+        public DataViewRow GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
         {
             Host.CheckValue(input, nameof(input));
-            Host.CheckValue(active, nameof(active));
+            Host.CheckValue(activeColumns, nameof(activeColumns));
             Host.Check(input.Schema == Source.Schema, "Schema of input row must be the same as the schema the mapper is bound to");
 
             using (var ch = Host.Start("GetEntireRow"))
             {
                 var activeArr = new bool[OutputSchema.Count];
-                for (int i = 0; i < OutputSchema.Count; i++)
-                    activeArr[i] = active(i);
+                foreach (var column in activeColumns)
+                {
+                    Host.Assert(column.Index < activeArr.Length, $"The columns {activeColumns.Select(c => c.Name)} are not suitable for the OutputSchema.");
+                    activeArr[column.Index] = true;
+                }
                 var pred = GetActiveOutputColumns(activeArr);
                 var getters = _mapper.CreateGetters(input, pred, out Action disp);
                 return new RowImpl(input, this, OutputSchema, getters, disp);

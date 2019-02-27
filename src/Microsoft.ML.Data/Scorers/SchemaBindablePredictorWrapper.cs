@@ -232,13 +232,13 @@ namespace Microsoft.ML.Data
 
             public DataViewSchema InputSchema => InputRoleMappedSchema.Schema;
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 Contracts.AssertValue(input);
-                Contracts.AssertValue(predicate);
+                Contracts.AssertValue(activeColumns);
 
                 var getters = new Delegate[1];
-                if (predicate(0))
+                if (activeColumns.Select(c => c.Index).Contains(0))
                     getters[0] = _parent.GetPredictionGetter(input, InputRoleMappedSchema.Feature.Value.Index);
                 return new SimpleRow(OutputSchema, input, getters);
             }
@@ -571,10 +571,10 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 Contracts.AssertValue(input);
-                var active = Utils.BuildArray(OutputSchema.Count, predicate);
+                var active = Utils.BuildArray(OutputSchema.Count, activeColumns);
                 var getters = CreateGetters(input, active);
                 return new SimpleRow(OutputSchema, input, getters);
             }

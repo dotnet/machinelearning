@@ -488,8 +488,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return InputSchema;
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
+            public DataViewRow GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
+                var active = RowCursorUtils.FromColumnsToPredicate(activeColumns, OutputSchema);
                 var getters = _mapper.CreateGetters(input, active, out Action disposer);
                 var pingers = _mapper.CreatePinger(input, active, out Action pingerDisposer);
                 return new RowImpl(_bindings.Schema, input, getters, pingers, disposer + pingerDisposer);
@@ -786,17 +787,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         DataViewSchema IRowToRowMapper.InputSchema => Source.Schema;
 
-        public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
+        DataViewRow IRowToRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
         {
             Host.CheckValue(input, nameof(input));
-            Host.CheckValue(active, nameof(active));
+            Host.CheckValue(activeColumns, nameof(activeColumns));
             Host.Check(input.Schema == Source.Schema, "Schema of input row must be the same as the schema the mapper is bound to");
 
             using (var ch = Host.Start("GetEntireRow"))
             {
-                var activeArr = new bool[OutputSchema.Count];
-                for (int i = 0; i < OutputSchema.Count; i++)
-                    activeArr[i] = active(i);
+                var activeArr = Utils.BuildArray(OutputSchema.Count, activeColumns);
                 var pred = GetActiveOutputColumns(activeArr);
                 var getters = _mapper.CreateGetters(input, pred, out Action disp);
                 var pingers = _mapper.CreatePinger(input, pred, out Action pingerDisp);

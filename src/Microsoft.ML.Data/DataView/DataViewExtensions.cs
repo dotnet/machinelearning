@@ -50,8 +50,18 @@ namespace Microsoft.ML.Data
         public static DataViewRowCursor GetRowCursor(this IDataView dv) =>  dv.GetRowCursor(Enumerable.Empty<DataViewSchema.Column>());
 
         /// <summary>
-        /// Get a row cursor including all the columns of the <see cref="IDataView"/> it is called upon..
+        /// Get a row cursor including all the columns of the <see cref="IDataView"/>.
         /// </summary>
         public static DataViewRowCursor GetRowCursorForAllColumns(this IDataView dv) => dv.GetRowCursor(dv.Schema);
+
+        /// <summary>
+        /// Extension method.
+        /// </summary>
+        /// <param name="rowMapper"></param>
+        /// <param name="input"></param>
+        /// <param name="activeColumns"></param>
+        /// <returns></returns>
+        public static DataViewRow GetRow(this IRowToRowMapper rowMapper, DataViewRow input, params DataViewSchema.Column[] activeColumns)
+            => rowMapper.GetRow(input, activeColumns);
     }
 }

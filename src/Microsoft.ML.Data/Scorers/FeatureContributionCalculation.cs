@@ -360,21 +360,21 @@ namespace Microsoft.ML.Data
                 return Enumerable.Repeat(FeatureColumn, 1);
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
+            public DataViewRow GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 Contracts.AssertValue(input);
-                Contracts.AssertValue(active);
+                Contracts.AssertValue(activeColumns);
                 var totalColumnsCount = 1 + _outputGenericSchema.Count;
                 var getters = new Delegate[totalColumnsCount];
 
-                if (active(totalColumnsCount - 1))
+                if (activeColumns.Select(c => c.Index).Contains(totalColumnsCount - 1))
                 {
                     getters[totalColumnsCount - 1] = _parent.Stringify
                         ? _parent.GetTextContributionGetter(input, FeatureColumn.Index, _slotNames)
                         : _parent.GetContributionGetter(input, FeatureColumn.Index);
                 }
 
-                var genericRow = _genericRowMapper.GetRow(input, GetGenericPredicate(active));
+                var genericRow = _genericRowMapper.GetRow(input, activeColumns);
                 for (var i = 0; i < _outputGenericSchema.Count; i++)
                 {
                     if (genericRow.IsColumnActive(i))
@@ -385,9 +385,7 @@ namespace Microsoft.ML.Data
             }
 
             public Func<int, bool> GetGenericPredicate(Func<int, bool> predicate)
-            {
-                return col => predicate(col);
-            }
+                => col => predicate(col);
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {

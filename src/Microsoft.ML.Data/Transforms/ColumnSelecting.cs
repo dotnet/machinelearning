@@ -686,10 +686,8 @@ namespace Microsoft.ML.Transforms
                 return _mapper.InputSchema.Where(col => col.Index < active.Length && active[col.Index]);
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
-            {
-                return new RowImpl(input, _mapper);
-            }
+            DataViewRow IRowToRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
+                => new RowImpl(input, _mapper);
 
             IDataTransform ITransformTemplate.ApplyToData(IHostEnvironment env, IDataView newSource)
                 => new SelectColumnsDataTransform(env, _transform, new Mapper(_transform, newSource.Schema), newSource);

@@ -334,9 +334,9 @@ namespace Microsoft.ML.Data
 
                 public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles() => _mapper.GetInputColumnRoles();
 
-                public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
+                DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
                 {
-                    var innerRow = _mapper.GetRow(input, predicate);
+                    var innerRow = _mapper.GetRow(input, activeColumns);
                     return new RowImpl(innerRow, OutputSchema);
                 }
 

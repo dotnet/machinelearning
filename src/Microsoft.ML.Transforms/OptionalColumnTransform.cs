@@ -363,13 +363,13 @@ namespace Microsoft.ML.Transforms
             return _bindings.MapColumnIndex(out isSrc, col);
         }
 
-        protected override Delegate[] CreateGetters(DataViewRow input, Func<int, bool> active, out Action disposer)
+        protected override Delegate[] CreateGetters(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns, out Action disposer)
         {
             Func<int, bool> activeInfos =
                 iinfo =>
                 {
                     int col = _bindings.MapIinfoToCol(iinfo);
-                    return active(col);
+                    return activeColumns.Select(c => c.Index).Contains(col);
                 };
 
             var getters = new Delegate[_bindings.InfoCount];
