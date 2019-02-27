@@ -3528,8 +3528,8 @@ namespace Microsoft.ML.RunTests
             var fastTree = Trainers.FastTree.FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Options
             {
                 FeatureColumnName = "Features",
-                NumTrees = 5,
-                NumLeaves = 4,
+                NumberOfTrees = 5,
+                NumberOfLeaves = 4,
                 LabelColumnName = DefaultColumnNames.Label,
                 TrainingData = concat.OutputData
             });

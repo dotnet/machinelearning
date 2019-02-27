@@ -28,10 +28,10 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+            int numLeaves = Defaults.NumberOfLeaves,
+            int numTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves,
+            double learningRate = Defaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -68,10 +68,10 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+            int numLeaves = Defaults.NumberOfLeaves,
+            int numTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves,
+            double learningRate = Defaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -110,10 +110,10 @@ namespace Microsoft.ML
             string featureColumnName = DefaultColumnNames.Features,
             string rowGroupColumnName = DefaultColumnNames.GroupId,
             string exampleWeightColumnName = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+            int numLeaves = Defaults.NumberOfLeaves,
+            int numTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves,
+            double learningRate = Defaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -222,10 +222,10 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+            int numLeaves = Defaults.NumberOfLeaves,
+            int numTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves,
+            double learningRate = Defaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -261,9 +261,9 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves)
+            int numLeaves = Defaults.NumberOfLeaves,
+            int numTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -299,9 +299,9 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves)
+            int numLeaves = Defaults.NumberOfLeaves,
+            int numTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);

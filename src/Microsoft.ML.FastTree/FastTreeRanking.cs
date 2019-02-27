@@ -74,10 +74,10 @@ namespace Microsoft.ML.Trainers.FastTree
             string featureColumn = DefaultColumnNames.Features,
             string groupIdColumn = DefaultColumnNames.GroupId,
             string weightColumn = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+            int numLeaves = Defaults.NumberOfLeaves,
+            int numTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves,
+            double learningRate = Defaults.LearningRate)
             : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, numLeaves, numTrees, minDatapointsInLeaves, learningRate)
         {
             Host.CheckNonEmpty(groupIdColumn, nameof(groupIdColumn));
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Trainers.FastTree
             if (FastTreeTrainerOptions.CompressEnsemble)
             {
                 _ensembleCompressor = new LassoBasedEnsembleCompressor();
-                _ensembleCompressor.Initialize(FastTreeTrainerOptions.NumTrees, TrainSet, TrainSet.Ratings, FastTreeTrainerOptions.RngSeed);
+                _ensembleCompressor.Initialize(FastTreeTrainerOptions.NumberOfTrees, TrainSet, TrainSet.Ratings, FastTreeTrainerOptions.RandomSeed);
             }
         }
 
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Trainers.FastTree
             if (FastTreeTrainerOptions.UseLineSearch)
             {
                 _specialTrainSetTest = new FastNdcgTest(optimizationAlgorithm.TrainingScores, TrainSet.Ratings, FastTreeTrainerOptions.SortingAlgorithm, FastTreeTrainerOptions.EarlyStoppingMetrics);
-                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(_specialTrainSetTest, 0, FastTreeTrainerOptions.NumPostBracketSteps, FastTreeTrainerOptions.MinStepSize);
+                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(_specialTrainSetTest, 0, FastTreeTrainerOptions.MaxNumberOfLinearSearchSteps, FastTreeTrainerOptions.MinStepSize);
             }
             return optimizationAlgorithm;
         }
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override BaggingProvider CreateBaggingProvider()
         {
             Host.Assert(FastTreeTrainerOptions.BaggingSize > 0);
-            return new RankingBaggingProvider(TrainSet, FastTreeTrainerOptions.NumLeaves, FastTreeTrainerOptions.RngSeed, FastTreeTrainerOptions.BaggingTrainFraction);
+            return new RankingBaggingProvider(TrainSet, FastTreeTrainerOptions.NumberOfLeaves, FastTreeTrainerOptions.RandomSeed, FastTreeTrainerOptions.BaggingExampleFraction);
         }
 
         private protected override void PrepareLabels(IChannel ch)
@@ -552,12 +552,12 @@ namespace Microsoft.ML.Trainers.FastTree
 
             public LambdaRankObjectiveFunction(Dataset trainset, short[] labels, Options options, IParallelTraining parallelTraining)
                 : base(trainset,
-                    options.LearningRates,
+                    options.LearningRate,
                     options.Shrinkage,
                     options.MaxTreeOutput,
                     options.GetDerivativesSampleRate,
                     options.BestStepRankingRegressionTrees,
-                    options.RngSeed)
+                    options.RandomSeed)
             {
 
                 _labels = labels;
@@ -607,7 +607,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 FillGainLabels();
 
                 #region parameters
-                _sigmoidParam = options.LearningRates;
+                _sigmoidParam = options.LearningRate;
                 _costFunctionParam = options.CostFunctionParam;
                 _distanceWeight2 = options.DistanceWeight2;
                 _normalizeQueryLambdas = options.NormalizeQueryLambdas;
@@ -676,7 +676,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 uint[] vals = new uint[ffmap.RawFeatureCount];
                 int iInd = Array.IndexOf(ffnames, "I");
                 int tInd = Array.IndexOf(ffnames, "T");
-                int totalTrees = options.NumTrees;
+                int totalTrees = options.NumberOfTrees;
                 if (tInd >= 0)
                     vals[tInd] = (uint)totalTrees;
                 _baselineAlpha = Enumerable.Range(0, totalTrees).Select(i =>

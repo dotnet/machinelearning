@@ -63,10 +63,10 @@ namespace Microsoft.ML.Trainers.FastTree
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+            int numLeaves = Defaults.NumberOfLeaves,
+            int numTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves,
+            double learningRate = Defaults.LearningRate)
             : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, learningRate)
         {
         }
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Trainers.FastTree
             {
                 var lossCalculator = new RegressionTest(optimizationAlgorithm.TrainingScores);
                 // REVIEW: We should make loss indices an enum in BinaryClassificationTest.
-                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, 1 /*L2 error*/, FastTreeTrainerOptions.NumPostBracketSteps, FastTreeTrainerOptions.MinStepSize);
+                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, 1 /*L2 error*/, FastTreeTrainerOptions.MaxNumberOfLinearSearchSteps, FastTreeTrainerOptions.MinStepSize);
             }
 
             return optimizationAlgorithm;
@@ -403,12 +403,12 @@ namespace Microsoft.ML.Trainers.FastTree
             public ObjectiveImpl(Dataset trainData, Options options)
                 : base(
                     trainData,
-                    options.LearningRates,
+                    options.LearningRate,
                     options.Shrinkage,
                     options.MaxTreeOutput,
                     options.GetDerivativesSampleRate,
                     options.BestStepRankingRegressionTrees,
-                    options.RngSeed)
+                    options.RandomSeed)
             {
                 if (options.DropoutRate > 0 && LearningRate > 0) // Don't do shrinkage if dropouts are used.
                     Shrinkage = 1.0 / LearningRate;

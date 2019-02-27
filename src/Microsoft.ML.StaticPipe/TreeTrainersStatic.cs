@@ -39,10 +39,10 @@ namespace Microsoft.ML.StaticPipe
         /// </example>
         public static Scalar<float> FastTree(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates,
+            int numLeaves = Defaults.NumberOfLeaves,
+            int numTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves,
+            double learningRate = Defaults.LearningRate,
             Action<FastTreeRegressionModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate, onFit);
@@ -132,10 +132,10 @@ namespace Microsoft.ML.StaticPipe
         /// </example>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) FastTree(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates,
+            int numLeaves = Defaults.NumberOfLeaves,
+            int numTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves,
+            double learningRate = Defaults.LearningRate,
             Action<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate, onFit);
@@ -224,10 +224,10 @@ namespace Microsoft.ML.StaticPipe
         /// <returns>The Score output column indicating the predicted value.</returns>
         public static Scalar<float> FastTree<TVal>(this RankingCatalog.RankingTrainers catalog,
             Scalar<float> label, Vector<float> features, Key<uint, TVal> groupId, Scalar<float> weights = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates,
+            int numLeaves = Defaults.NumberOfLeaves,
+            int numTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves,
+            double learningRate = Defaults.LearningRate,
             Action<FastTreeRankingModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate, onFit);

@@ -597,8 +597,8 @@ namespace Microsoft.ML.RunTests
                 fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
                 {
                     FeatureColumnName = "Features",
-                    NumTrees = 5,
-                    NumLeaves = 4,
+                    NumberOfTrees = 5,
+                    NumberOfLeaves = 4,
                     LabelColumnName = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel;
@@ -619,8 +619,8 @@ namespace Microsoft.ML.RunTests
                 fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
                 {
                     FeatureColumnName = "Features",
-                    NumTrees = 5,
-                    NumLeaves = 4,
+                    NumberOfTrees = 5,
+                    NumberOfLeaves = 4,
                     CategoricalSplit = true,
                     LabelColumnName = DefaultColumnNames.Label,
                     TrainingData = cat
@@ -719,8 +719,8 @@ namespace Microsoft.ML.RunTests
                 FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
                 {
                     FeatureColumnName = "Features",
-                    NumTrees = 5,
-                    NumLeaves = 4,
+                    NumberOfTrees = 5,
+                    NumberOfLeaves = 4,
                     LabelColumnName = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,

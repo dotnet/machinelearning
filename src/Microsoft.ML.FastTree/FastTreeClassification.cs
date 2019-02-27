@@ -130,14 +130,14 @@ namespace Microsoft.ML.Trainers.FastTree
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+            int numLeaves = Defaults.NumberOfLeaves,
+            int numTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves,
+            double learningRate = Defaults.LearningRate)
             : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, learningRate)
         {
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
-            _sigmoidParameter = 2.0 * FastTreeTrainerOptions.LearningRates;
+            _sigmoidParameter = 2.0 * FastTreeTrainerOptions.LearningRate;
         }
 
         /// <summary>
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
-            _sigmoidParameter = 2.0 * FastTreeTrainerOptions.LearningRates;
+            _sigmoidParameter = 2.0 * FastTreeTrainerOptions.LearningRate;
         }
 
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -191,14 +191,14 @@ namespace Microsoft.ML.Trainers.FastTree
             return new ObjectiveImpl(
                 TrainSet,
                 _trainSetLabels,
-                FastTreeTrainerOptions.LearningRates,
+                FastTreeTrainerOptions.LearningRate,
                 FastTreeTrainerOptions.Shrinkage,
                 _sigmoidParameter,
                 FastTreeTrainerOptions.UnbalancedSets,
                 FastTreeTrainerOptions.MaxTreeOutput,
                 FastTreeTrainerOptions.GetDerivativesSampleRate,
                 FastTreeTrainerOptions.BestStepRankingRegressionTrees,
-                FastTreeTrainerOptions.RngSeed,
+                FastTreeTrainerOptions.RandomSeed,
                 ParallelTraining);
         }
 
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Trainers.FastTree
             {
                 var lossCalculator = new BinaryClassificationTest(optimizationAlgorithm.TrainingScores, _trainSetLabels, _sigmoidParameter);
                 // REVIEW: we should makeloss indices an enum in BinaryClassificationTest
-                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, FastTreeTrainerOptions.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/, FastTreeTrainerOptions.NumPostBracketSteps, FastTreeTrainerOptions.MinStepSize);
+                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, FastTreeTrainerOptions.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/, FastTreeTrainerOptions.MaxNumberOfLinearSearchSteps, FastTreeTrainerOptions.MinStepSize);
             }
             return optimizationAlgorithm;
         }

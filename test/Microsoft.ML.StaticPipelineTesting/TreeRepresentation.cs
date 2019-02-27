@@ -28,9 +28,9 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var opts = new FastTreeRegressionTrainer.Options()
             {
-                NumTrees = 10,
-                NumLeaves = 5,
-                NumThreads = 1
+                NumberOfTrees = 10,
+                NumberOfLeaves = 5,
+                NumberOfThreads = 1
             };
 
             FastTreeRegressionModelParameters pred = null;
@@ -108,12 +108,12 @@ namespace Microsoft.ML.StaticPipelineTesting
             var opts = new FastTreeRegressionTrainer.Options()
             {
                 CategoricalSplit = true,
-                NumTrees = 3,
-                NumLeaves = 5,
-                NumThreads = 1,
+                NumberOfTrees = 3,
+                NumberOfLeaves = 5,
+                NumberOfThreads = 1,
                 // This is the minimal samples to form a split (i.e., generating two extra nodes/leaves). For a small data set,
                 // we should set a small value. Otherwise, the trained trees could be empty.
-                MinDocumentsInLeafs = 2
+                MinExampleCountPerLeaf = 2
             };
 
             var est = reader.MakeNewEstimator()

@@ -82,7 +82,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Train the model with a validation set.
             var trainedModel = mlContext.Regression.Trainers.FastTree(new Trainers.FastTree.FastTreeRegressionTrainer.Options {
-                    NumTrees = 2,
+                    NumberOfTrees = 2,
                     EarlyStoppingMetrics = 2,
                     EarlyStoppingRule = new GLEarlyStoppingCriterion.Options()
                 })

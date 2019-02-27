@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             FeatureFraction = 0.7;
             BaggingSize = 1;
-            SplitFraction = 0.7;
+            FeatureFractionPerSplit = 0.7;
         }
     }
 
@@ -145,9 +145,9 @@ namespace Microsoft.ML.Trainers.FastTree
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves)
+            int numLeaves = Defaults.NumberOfLeaves,
+            int numTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves)
             : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));

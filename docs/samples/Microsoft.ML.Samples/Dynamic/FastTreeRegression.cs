@@ -36,16 +36,6 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get the trained model parameters.
             var modelParams = model.LastTransformer.Model;
-
-            // Let's see where an example with Parity = 1 and Induced = 1 would end up in the single trained tree.
-            var testRow = new VBuffer<float>(2, new[] { 1.0f, 1.0f });
-            // Use the path object to pass to GetLeaf, which will populate path with the IDs of th nodes from root to leaf.
-            List<int> path = default;
-            // Get the ID of the leaf this example ends up in tree 0.
-            var leafID = modelParams.GetLeaf(0, in testRow, ref path);
-            // Get the leaf value for this leaf ID in tree 0.
-            var leafValue = modelParams.GetLeafValue(0, leafID);
-            Console.WriteLine("The leaf value in tree 0 is: " + leafValue);
         }
     }
 }
