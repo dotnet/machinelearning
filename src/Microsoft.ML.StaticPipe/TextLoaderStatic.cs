@@ -11,7 +11,7 @@ namespace Microsoft.ML.StaticPipe
     public static class TextLoaderStatic
     {
         /// <summary>
-        /// Configures a reader for text files.
+        /// Configures a loader for text files.
         /// </summary>
         /// <typeparam name="TShape">The type shape parameter, which must be a valid-schema shape. As a practical
         /// matter this is generally not explicitly defined from the user, but is instead inferred from the return
@@ -33,8 +33,8 @@ namespace Microsoft.ML.StaticPipe
         /// denote an empty value.</param>
         /// <param name="allowSparse">Whether the input may include sparse representations.</param>
         /// <param name="trimWhitspace">Remove trailing whitespace from lines.</param>
-        /// <returns>A configured statically-typed reader for text files.</returns>
-        public static DataReader<IMultiStreamSource, TShape> CreateReader<[IsShape] TShape>(
+        /// <returns>A configured statically-typed loader for text files.</returns>
+        public static DataLoader<IMultiStreamSource, TShape> CreateLoader<[IsShape] TShape>(
             IHostEnvironment env, Func<Context, TShape> func, IMultiStreamSource files = null,
             char separator = '\t', bool hasHeader = false, bool allowQuoting = true, bool allowSparse = true,
             bool trimWhitspace = false)
@@ -56,13 +56,13 @@ namespace Microsoft.ML.StaticPipe
 
             using (var ch = env.Start("Initializing " + nameof(TextLoader)))
             {
-                var readerEst = StaticPipeUtils.ReaderEstimatorAnalyzerHelper(env, ch, ctx, rec, func);
-                Contracts.AssertValue(readerEst);
-                return readerEst.Fit(files);
+                var loaderEst = StaticPipeUtils.LoaderEstimatorAnalyzerHelper(env, ch, ctx, rec, func);
+                Contracts.AssertValue(loaderEst);
+                return loaderEst.Fit(files);
             }
         }
 
-        private sealed class TextReconciler : ReaderReconciler<IMultiStreamSource>
+        private sealed class TextReconciler : LoaderReconciler<IMultiStreamSource>
         {
             private readonly TextLoader.Options _args;
             private readonly IMultiStreamSource _files;
@@ -76,7 +76,7 @@ namespace Microsoft.ML.StaticPipe
                 _files = files;
             }
 
-            public override IDataReaderEstimator<IMultiStreamSource, IDataReader<IMultiStreamSource>> Reconcile(
+            public override IDataLoaderEstimator<IMultiStreamSource, IDataLoader<IMultiStreamSource>> Reconcile(
                 IHostEnvironment env, PipelineColumn[] toOutput, IReadOnlyDictionary<PipelineColumn, string> outputNames)
             {
                 Contracts.AssertValue(env);
@@ -97,7 +97,7 @@ namespace Microsoft.ML.StaticPipe
                     cols[i] = Create(toOutput[i]);
 
                 var orig = new TextLoader(env, _args, _files);
-                return new TrivialReaderEstimator<IMultiStreamSource, TextLoader>(orig);
+                return new TrivialLoaderEstimator<IMultiStreamSource, TextLoader>(orig);
             }
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Context object by which a user can indicate what fields they want to read from a text file, and what data type they ought to have.
         /// Instances of this class are never made but the user, but rather are fed into the delegate in
-        /// <see cref="CreateReader{TShape}(IHostEnvironment, Func{Context, TShape}, IMultiStreamSource, char, bool, bool, bool, bool)"/>.
+        /// <see cref="CreateLoader{TShape}(IHostEnvironment, Func{Context, TShape}, IMultiStreamSource, char, bool, bool, bool, bool)"/>.
         /// </summary>
         public sealed class Context
         {

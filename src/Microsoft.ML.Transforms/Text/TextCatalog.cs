@@ -73,8 +73,8 @@ namespace Microsoft.ML
 
         public static TokenizingByCharactersEstimator TokenizeCharacters(this TransformsCatalog.TextTransforms catalog,
             bool useMarkerCharacters = CharTokenizingDefaults.UseMarkerCharacters,
-            params SimpleColumnInfo[] columns)
-            => new TokenizingByCharactersEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), useMarkerCharacters, SimpleColumnInfo.ConvertToValueTuples(columns));
+            params ColumnOptions[] columns)
+            => new TokenizingByCharactersEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), useMarkerCharacters, ColumnOptions.ConvertToValueTuples(columns));
 
         /// <summary>
         /// Normalizes incoming text in <paramref name="inputColumnName"/> by changing case, removing diacritical marks, punctuation marks and/or numbers
@@ -147,7 +147,7 @@ namespace Microsoft.ML
         /// </example>
         public static WordEmbeddingsExtractingEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
            WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe,
-           params WordEmbeddingsExtractingEstimator.ColumnInfo[] columns)
+           params WordEmbeddingsExtractingEstimator.ColumnOptions[] columns)
             => new WordEmbeddingsExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), modelKind, columns);
 
         /// <summary>
@@ -181,7 +181,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
         public static WordTokenizingEstimator TokenizeWords(this TransformsCatalog.TextTransforms catalog,
-            params WordTokenizingEstimator.ColumnInfo[] columns)
+            params WordTokenizingEstimator.ColumnOptions[] columns)
           => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
         /// <summary>
@@ -242,7 +242,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="columns">Pairs of columns to run the ngram process on.</param>
         public static NgramExtractingEstimator ProduceNgrams(this TransformsCatalog.TextTransforms catalog,
-             params NgramExtractingEstimator.ColumnInfo[] columns)
+             params NgramExtractingEstimator.ColumnOptions[] columns)
           => new NgramExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
         /// <summary>
@@ -623,7 +623,7 @@ namespace Microsoft.ML
         /// <param name="columns">Describes the parameters of LDA for each column pair.</param>
         public static LatentDirichletAllocationEstimator LatentDirichletAllocation(
             this TransformsCatalog.TextTransforms catalog,
-            params LatentDirichletAllocationEstimator.ColumnInfo[] columns)
+            params LatentDirichletAllocationEstimator.ColumnOptions[] columns)
             => new LatentDirichletAllocationEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

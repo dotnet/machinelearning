@@ -9,7 +9,6 @@ using Microsoft.ML.Data.IO;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -36,11 +35,11 @@ namespace Microsoft.ML.Tests.Transformers
                 }
             });
 
-            var data = reader.Read(dataPath);
+            var data = reader.Load(dataPath);
 
             data = new ValueToKeyMappingEstimator(Env, new[] {
-                new ValueToKeyMappingEstimator.ColumnInfo("A", "ScalarString"),
-                new ValueToKeyMappingEstimator.ColumnInfo("B", "VectorString") }).Fit(data).Transform(data);
+                new ValueToKeyMappingEstimator.ColumnOptions("A", "ScalarString"),
+                new ValueToKeyMappingEstimator.ColumnOptions("B", "VectorString") }).Fit(data).Transform(data);
 
             var badData1 = new ColumnCopyingTransformer(Env, ("A", "BareKey")).Transform(data);
             var badData2 = new ColumnCopyingTransformer(Env, ("B", "VectorString")).Transform(data);
@@ -67,17 +66,17 @@ namespace Microsoft.ML.Tests.Transformers
         public void KeyToValuePigsty()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(Env, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(Env, ctx => (
                 ScalarString: ctx.LoadText(1),
                 VectorString: ctx.LoadText(1, 4)
             ));
 
-            var data = reader.Read(dataPath);
+            var data = reader.Load(dataPath);
 
             // Non-pigsty Term.
             var dynamicData = new ValueToKeyMappingEstimator(Env, new[] {
-                new ValueToKeyMappingEstimator.ColumnInfo("A", "ScalarString"),
-                new ValueToKeyMappingEstimator.ColumnInfo("B", "VectorString") })
+                new ValueToKeyMappingEstimator.ColumnOptions("A", "ScalarString"),
+                new ValueToKeyMappingEstimator.ColumnOptions("B", "VectorString") })
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
 
             var data2 = dynamicData.AssertStatic(Env, ctx => (

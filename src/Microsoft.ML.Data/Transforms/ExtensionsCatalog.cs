@@ -9,24 +9,24 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {
-    public sealed class SimpleColumnInfo
+    public sealed class ColumnOptions
     {
         private readonly string _outputColumnName;
         private readonly string _inputColumnName;
 
-        public SimpleColumnInfo(string outputColumnName, string inputColumnName)
+        public ColumnOptions(string outputColumnName, string inputColumnName)
         {
             _outputColumnName = outputColumnName;
             _inputColumnName = inputColumnName;
         }
 
-        public static implicit operator SimpleColumnInfo((string outputColumnName, string inputColumnName) value)
+        public static implicit operator ColumnOptions((string outputColumnName, string inputColumnName) value)
         {
-            return new SimpleColumnInfo(value.outputColumnName, value.inputColumnName);
+            return new ColumnOptions(value.outputColumnName, value.inputColumnName);
         }
 
         [BestFriend]
-        internal static (string outputColumnName, string inputColumnName)[] ConvertToValueTuples(SimpleColumnInfo[] infos)
+        internal static (string outputColumnName, string inputColumnName)[] ConvertToValueTuples(ColumnOptions[] infos)
         {
             return infos.Select(info => (info._outputColumnName, info._inputColumnName)).ToArray();
         }
@@ -66,8 +66,8 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params SimpleColumnInfo[] columns)
-            => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), SimpleColumnInfo.ConvertToValueTuples(columns));
+        public static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params ColumnOptions[] columns)
+            => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columns));
 
         /// <summary>
         /// Concatenates columns together.

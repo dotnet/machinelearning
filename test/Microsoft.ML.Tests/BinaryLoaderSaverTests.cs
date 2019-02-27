@@ -23,7 +23,7 @@ namespace Microsoft.ML.Tests
             // Checks that we can load IDataViews defined with unknown cardinality KeyType.
             // schema-codec-test.idv was generated with the following command before simplifying the KeyType:
             // dotnet MML.dll savedata loader=text{col=A:U4[0-2]:0 col=B:U4[0-5]:0 col=C:U1[0-10]:0 col=D:U2[0-*]:0 col=E:U4[0-*]:0 col=F:U8[0-*]:0} dout=codectest.idv
-            var data = ML.Data.ReadFromBinary(GetDataPath("schema-codec-test.idv"));
+            var data = ML.Data.LoadFromBinary(GetDataPath("schema-codec-test.idv"));
 
             var outputPath = GetOutputPath("BinaryLoaderSaver", "OldKeyTypeCodecTest.txt");
             using (var ch = Env.Start("save"))

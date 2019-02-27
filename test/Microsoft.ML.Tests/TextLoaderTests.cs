@@ -145,13 +145,13 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt"));
-            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: true));
-            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false));
-            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, trimWhitespace: false, allowSparse: false));
-            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowSparse: false));
-            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowQuoting: false));
-            Assert.NotNull(mlContext.Data.ReadFromTextFile<InputWithUnderscore>("fakeFile.txt"));
+            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt"));
+            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt", hasHeader: true));
+            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt", hasHeader: false));
+            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt", hasHeader: false, trimWhitespace: false, allowSparse: false));
+            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowSparse: false));
+            Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowQuoting: false));
+            Assert.NotNull(mlContext.Data.LoadFromTextFile<InputWithUnderscore>("fakeFile.txt"));
         }
 
         [Fact]
@@ -591,7 +591,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
             try
             {
-                mlContext.Data.ReadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt");
+                mlContext.Data.LoadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt");
             }
             // REVIEW: the issue of different exceptions being thrown is tracked under #2037.
             catch (Xunit.Sdk.TrueException) { }
@@ -721,7 +721,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             var irisFirstRowValues = irisFirstRow.Values.GetEnumerator();
 
             // Simple load
-            var dataIris = mlContext.Data.CreateTextLoader<Iris>(separatorChar: ',').Read(dataPath);
+            var dataIris = mlContext.Data.CreateTextLoader<Iris>(separatorChar: ',').Load(dataPath);
             var previewIris = dataIris.Preview(1);
 
             Assert.Equal(5, previewIris.ColumnView.Length);
@@ -737,7 +737,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal("Iris-setosa", previewIris.RowView[0].Values[index].Value.ToString());
 
             // Load with start and end indexes
-            var dataIrisStartEnd = mlContext.Data.CreateTextLoader<IrisStartEnd>(separatorChar: ',').Read(dataPath);
+            var dataIrisStartEnd = mlContext.Data.CreateTextLoader<IrisStartEnd>(separatorChar: ',').Load(dataPath);
             var previewIrisStartEnd = dataIrisStartEnd.Preview(1);
 
             Assert.Equal(2, previewIrisStartEnd.ColumnView.Length);
@@ -754,7 +754,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
 
             // load setting the distinct columns. Loading column 0 and 2
-            var dataIrisColumnIndices = mlContext.Data.CreateTextLoader<IrisColumnIndices>(separatorChar: ',').Read(dataPath);
+            var dataIrisColumnIndices = mlContext.Data.CreateTextLoader<IrisColumnIndices>(separatorChar: ',').Load(dataPath);
             var previewIrisColumnIndices = dataIrisColumnIndices.Preview(1);
 
             Assert.Equal(2, previewIrisColumnIndices.ColumnView.Length);

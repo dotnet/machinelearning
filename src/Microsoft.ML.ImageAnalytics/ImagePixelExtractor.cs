@@ -37,7 +37,7 @@ namespace Microsoft.ML.ImageAnalytics
     /// <remarks>
     ///  During the transformation, the columns of <see cref="ImageType"/> are converted them into a vector representing the image pixels
     ///  than can be further used as features by the algorithms added to the pipeline.
-    /// <seealso cref="ImageEstimatorsCatalog.ExtractPixels(TransformsCatalog, ImagePixelExtractingEstimator.ColumnInfo[])" />
+    /// <seealso cref="ImageEstimatorsCatalog.ExtractPixels(TransformsCatalog, ImagePixelExtractingEstimator.ColumnOptions[])" />
     /// <seealso cref="ImageEstimatorsCatalog.ExtractPixels(TransformsCatalog, string, string, ImagePixelExtractingEstimator.ColorBits, ImagePixelExtractingEstimator.ColorsOrder, bool, float, float, bool)" />
     /// <seealso cref="ImageEstimatorsCatalog"/>
     /// </remarks>
@@ -150,12 +150,12 @@ namespace Microsoft.ML.ImageAnalytics
 
         private const string RegistrationName = "ImagePixelExtractor";
 
-        private readonly ImagePixelExtractingEstimator.ColumnInfo[] _columns;
+        private readonly ImagePixelExtractingEstimator.ColumnOptions[] _columns;
 
         /// <summary>
         /// The columns passed to this <see cref="ITransformer"/>.
         /// </summary>
-        public IReadOnlyCollection<ImagePixelExtractingEstimator.ColumnInfo> Columns => _columns.AsReadOnly();
+        public IReadOnlyCollection<ImagePixelExtractingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
 
         ///<summary>
         /// Extract pixels values from image and produce array of values.
@@ -179,7 +179,7 @@ namespace Microsoft.ML.ImageAnalytics
             float offset = ImagePixelExtractingEstimator.Defaults.Offset,
             float scale = ImagePixelExtractingEstimator.Defaults.Scale,
             bool asFloat = ImagePixelExtractingEstimator.Defaults.Convert)
-            : this(env, new ImagePixelExtractingEstimator.ColumnInfo(outputColumnName, inputColumnName, colors, order, interleave, offset, scale, asFloat))
+            : this(env, new ImagePixelExtractingEstimator.ColumnOptions(outputColumnName, inputColumnName, colors, order, interleave, offset, scale, asFloat))
         {
         }
 
@@ -188,13 +188,13 @@ namespace Microsoft.ML.ImageAnalytics
         ///</summary>
         /// <param name="env">The host environment.</param>
         /// <param name="columns">Describes the parameters of pixel extraction for each column pair.</param>
-        internal ImagePixelExtractingTransformer(IHostEnvironment env, params ImagePixelExtractingEstimator.ColumnInfo[] columns)
+        internal ImagePixelExtractingTransformer(IHostEnvironment env, params ImagePixelExtractingEstimator.ColumnOptions[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
         }
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ImagePixelExtractingEstimator.ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ImagePixelExtractingEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
@@ -209,11 +209,11 @@ namespace Microsoft.ML.ImageAnalytics
 
             env.CheckValue(options.Columns, nameof(options.Columns));
 
-            var columns = new ImagePixelExtractingEstimator.ColumnInfo[options.Columns.Length];
+            var columns = new ImagePixelExtractingEstimator.ColumnOptions[options.Columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
                 var item = options.Columns[i];
-                columns[i] = new ImagePixelExtractingEstimator.ColumnInfo(item, options);
+                columns[i] = new ImagePixelExtractingEstimator.ColumnOptions(item, options);
             }
 
             var transformer = new ImagePixelExtractingTransformer(env, columns);
@@ -238,11 +238,11 @@ namespace Microsoft.ML.ImageAnalytics
             // <base>
 
             // for each added column
-            //   ColumnInfo
+            //   ColumnOptions
 
-            _columns = new ImagePixelExtractingEstimator.ColumnInfo[ColumnPairs.Length];
+            _columns = new ImagePixelExtractingEstimator.ColumnOptions[ColumnPairs.Length];
             for (int i = 0; i < _columns.Length; i++)
-                _columns[i] = new ImagePixelExtractingEstimator.ColumnInfo(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, ctx);
+                _columns[i] = new ImagePixelExtractingEstimator.ColumnOptions(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, ctx);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -264,7 +264,7 @@ namespace Microsoft.ML.ImageAnalytics
             // <base>
 
             // for each added column
-            //   ColumnInfo
+            //   ColumnOptions
 
             base.SaveColumns(ctx);
 
@@ -485,7 +485,7 @@ namespace Microsoft.ML.ImageAnalytics
     /// </summary>
     /// <remarks>
     /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="ImagePixelExtractingTransformer"/>.
-    /// <seealso cref="ImageEstimatorsCatalog.ExtractPixels(TransformsCatalog, ImagePixelExtractingEstimator.ColumnInfo[])" />
+    /// <seealso cref="ImageEstimatorsCatalog.ExtractPixels(TransformsCatalog, ImagePixelExtractingEstimator.ColumnOptions[])" />
     /// <seealso cref="ImageEstimatorsCatalog.ExtractPixels(TransformsCatalog, string, string, ColorBits, ColorsOrder, bool, float, float, bool)" />
     /// <seealso cref="ImageEstimatorsCatalog"/>
     /// </remarks>
@@ -564,7 +564,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <summary>
         /// Describes how the transformer handles one image pixel extraction column pair.
         /// </summary>
-        public sealed class ColumnInfo
+        public sealed class ColumnOptions
         {
             /// <summary>Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
             public readonly string Name;
@@ -595,7 +595,7 @@ namespace Microsoft.ML.ImageAnalytics
 
             internal readonly byte Planes;
 
-            internal ColumnInfo(ImagePixelExtractingTransformer.Column item, ImagePixelExtractingTransformer.Options options)
+            internal ColumnOptions(ImagePixelExtractingTransformer.Column item, ImagePixelExtractingTransformer.Options options)
             {
                 Contracts.CheckValue(item, nameof(item));
                 Contracts.CheckValue(options, nameof(options));
@@ -638,7 +638,7 @@ namespace Microsoft.ML.ImageAnalytics
             /// <param name="offset">Offset color pixel value by this amount. Applied to color value first.</param>
             /// <param name="scale">Scale color pixel value by this amount. Applied to color value second.</param>
             /// <param name="asFloat">Output array as float array. If false, output as byte array and ignores <paramref name="offset"/> and <paramref name="scale"/>.</param>
-            public ColumnInfo(string name,
+            public ColumnOptions(string name,
                 string inputColumnName = null,
                 ColorBits colors = Defaults.Colors,
                 ColorsOrder order = Defaults.Order,
@@ -676,7 +676,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.CheckParam(FloatUtils.IsFiniteNonZero(Scale), nameof(scale));
             }
 
-            internal ColumnInfo(string name, string inputColumnName, ModelLoadContext ctx)
+            internal ColumnOptions(string name, string inputColumnName, ModelLoadContext ctx)
             {
                 Contracts.AssertNonEmpty(name);
                 Contracts.AssertNonEmpty(inputColumnName);
@@ -784,7 +784,7 @@ namespace Microsoft.ML.ImageAnalytics
         ///</summary>
         /// <param name="env">The host environment.</param>
         /// <param name="columns">Describes the parameters of pixel extraction for each column pair.</param>
-        internal ImagePixelExtractingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        internal ImagePixelExtractingEstimator(IHostEnvironment env, params ColumnOptions[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)), new ImagePixelExtractingTransformer(env, columns))
         {
         }

@@ -31,7 +31,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // 14. Column: native-country (text/categorical)
             // 15. Column: Column [Label]: IsOver50K (boolean)
 
-            var reader = ml.Data.CreateTextLoader(new TextLoader.Options
+            var loader = ml.Data.CreateTextLoader(new TextLoader.Options
             {
                 Separators = new[] { ',' },
                 HasHeader = true,
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 }
             });
 
-            IDataView data = reader.Read(dataFilePath);
+            IDataView data = loader.Load(dataFilePath);
 
             var split = ml.BinaryClassification.TrainTestSplit(data, testFraction: 0.2);
 

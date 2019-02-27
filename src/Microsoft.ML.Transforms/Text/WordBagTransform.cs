@@ -11,7 +11,6 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(WordBagBuildingTransformer.Summary, typeof(IDataTransform), typeof(WordBagBuildingTransformer), typeof(WordBagBuildingTransformer.Options), typeof(SignatureDataTransform),
@@ -115,7 +114,7 @@ namespace Microsoft.ML.Transforms.Text
             // REVIEW: In order to make it possible to output separate bags for different columns
             // using the same dictionary, we need to find a way to make ConcatTransform remember the boundaries.
 
-            var tokenizeColumns = new WordTokenizingEstimator.ColumnInfo[options.Columns.Length];
+            var tokenizeColumns = new WordTokenizingEstimator.ColumnOptions[options.Columns.Length];
 
             var extractorArgs =
                 new NgramExtractorTransform.Options()
@@ -135,7 +134,7 @@ namespace Microsoft.ML.Transforms.Text
                 h.CheckUserArg(Utils.Size(column.Source) > 0, nameof(column.Source));
                 h.CheckUserArg(column.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(column.Source));
 
-                tokenizeColumns[iinfo] = new WordTokenizingEstimator.ColumnInfo(column.Name, column.Source.Length > 1 ? column.Name : column.Source[0]);
+                tokenizeColumns[iinfo] = new WordTokenizingEstimator.ColumnOptions(column.Name, column.Source.Length > 1 ? column.Name : column.Source[0]);
 
                 extractorArgs.Columns[iinfo] =
                     new NgramExtractorTransform.Column()
@@ -340,11 +339,11 @@ namespace Microsoft.ML.Transforms.Text
                     view = new MissingValueDroppingTransformer(h, missingDropColumns.Select(x => (x, x)).ToArray()).Transform(view);
             }
 
-            var ngramColumns = new NgramExtractingEstimator.ColumnInfo[options.Columns.Length];
+            var ngramColumns = new NgramExtractingEstimator.ColumnOptions[options.Columns.Length];
             for (int iinfo = 0; iinfo < options.Columns.Length; iinfo++)
             {
                 var column = options.Columns[iinfo];
-                ngramColumns[iinfo] = new NgramExtractingEstimator.ColumnInfo(column.Name,
+                ngramColumns[iinfo] = new NgramExtractingEstimator.ColumnOptions(column.Name,
                     column.NgramLength ?? options.NgramLength,
                     column.SkipLength ?? options.SkipLength,
                     column.AllLengths ?? options.AllLengths,
@@ -416,7 +415,7 @@ namespace Microsoft.ML.Transforms.Text
         public string DataFile;
 
         [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureDataLoader))]
-        internal IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
+        internal IComponentFactory<IMultiStreamSource, ILegacyDataLoader> Loader;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the text column containing the terms", ShortName = "termCol", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
         public string TermsColumn;
@@ -505,7 +504,7 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(input, nameof(input));
 
             IDataView view = input;
-            var concatColumns = new List<ColumnConcatenatingTransformer.ColumnInfo>();
+            var concatColumns = new List<ColumnConcatenatingTransformer.ColumnOptions>();
             foreach (var col in columns)
             {
                 env.CheckUserArg(col != null, nameof(WordBagBuildingTransformer.Options.Columns));
@@ -513,7 +512,7 @@ namespace Microsoft.ML.Transforms.Text
                 env.CheckUserArg(Utils.Size(col.Source) > 0, nameof(col.Source));
                 env.CheckUserArg(col.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(col.Source));
                 if (col.Source.Length > 1)
-                    concatColumns.Add(new ColumnConcatenatingTransformer.ColumnInfo(col.Name, col.Source));
+                    concatColumns.Add(new ColumnConcatenatingTransformer.ColumnOptions(col.Name, col.Source));
             }
             if (concatColumns.Count > 0)
                 return new ColumnConcatenatingTransformer(env, concatColumns.ToArray()).Transform(view);

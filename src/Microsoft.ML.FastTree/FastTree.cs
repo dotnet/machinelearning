@@ -21,7 +21,6 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.TreePredictor;
 using Newtonsoft.Json.Linq;
 
@@ -1372,7 +1371,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     }
                     // Convert the group column, if one exists.
                     if (examples.Schema.Group?.Name is string groupName)
-                        data = new TypeConvertingTransformer(Host, new TypeConvertingEstimator.ColumnInfo(groupName, DataKind.UInt64, groupName)).Transform(data);
+                        data = new TypeConvertingTransformer(Host, new TypeConvertingEstimator.ColumnOptions(groupName, DataKind.UInt64, groupName)).Transform(data);
 
                     // Since we've passed it through a few transforms, reconstitute the mapping on the
                     // newly transformed data.
