@@ -9,15 +9,8 @@ namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// This class holds the information related to TensorFlow model and session.
-    /// It provides a convenient way to query model schema as follows.
-    /// <list type="bullet">
-    ///    <item>
-    ///      <description>Get complete schema by calling <see cref="GetModelSchema()"/>.</description>
-    ///    </item>
-    ///    <item>
-    ///      <description>Get schema related to model input(s) by calling <see cref="GetInputSchema()"/>.</description>
-    ///    </item>
-    /// </list>
+    /// It provides some convenient methods to query model schema as well as
+    /// creation of <see cref="TensorFlowEstimator"/> object.
     /// </summary>
     public sealed class TensorFlowModel
     {
@@ -54,6 +47,48 @@ namespace Microsoft.ML.Transforms
         public DataViewSchema GetInputSchema()
         {
             return TensorFlowUtils.GetModelSchema(_env, Session.Graph, "Placeholder");
+        }
+
+        /// <summary>
+        /// Scores a dataset using a pre-traiend <a href="https://www.tensorflow.org/">TensorFlow</a> model.
+        /// </summary>
+        /// <param name="inputColumnName"> The name of the model input.</param>
+        /// <param name="outputColumnName">The name of the requested model output.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TensorFlowTransform.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public TensorFlowEstimator ScoreTensorFlowModel(string outputColumnName, string inputColumnName)
+            => new TensorFlowEstimator(_env, new[] { outputColumnName }, new[] { inputColumnName }, ModelPath);
+
+        /// <summary>
+        /// Scores a dataset using a pre-traiend TensorFlow model.
+        /// </summary>
+        /// <param name="inputColumnNames"> The names of the model inputs.</param>
+        /// <param name="outputColumnNames">The names of the requested model outputs.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TensorFlow/ImageClassification.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public TensorFlowEstimator ScoreTensorFlowModel(string[] outputColumnNames, string[] inputColumnNames)
+            => new TensorFlowEstimator(_env, outputColumnNames, inputColumnNames, ModelPath);
+
+        /// <summary>
+        /// Create the <see cref="TensorFlowEstimator"/> for scoring or retraining using the tensorflow model.
+        /// The model is not loaded again instead the information contained in <see cref="TensorFlowModel"/> class is reused
+        /// (c.f. <see cref="TensorFlowModel.ModelPath"/> and <see cref="TensorFlowModel.Session"/>).
+        /// </summary>
+        /// <param name="options">The <see cref="TensorFlowEstimator.Options"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
+        public TensorFlowEstimator CreateTensorFlowEstimator(TensorFlowEstimator.Options options)
+        {
+            options.ModelLocation = ModelPath;
+            return new TensorFlowEstimator(_env, options, this);
         }
     }
 }
