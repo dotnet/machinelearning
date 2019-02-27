@@ -46,8 +46,8 @@ namespace Microsoft.ML
         /// </example>
         public static NormalizingEstimator Normalize(this TransformsCatalog catalog,
             NormalizingEstimator.NormalizerMode mode,
-            params SimpleColumnInfo[] columns)
-            => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), mode, SimpleColumnInfo.ConvertToValueTuples(columns));
+            params ColumnOptions[] columns)
+            => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), mode, ColumnOptions.ConvertToValueTuples(columns));
 
         /// <summary>
         /// Normalize (rescale) columns according to specified custom parameters.
@@ -55,7 +55,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The normalization settings for all the columns</param>
         public static NormalizingEstimator Normalize(this TransformsCatalog catalog,
-            params NormalizingEstimator.ColumnBase[] columns)
+            params NormalizingEstimator.ColumnOptionsBase[] columns)
             => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

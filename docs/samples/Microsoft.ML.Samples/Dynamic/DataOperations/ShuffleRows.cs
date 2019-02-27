@@ -38,7 +38,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var shuffledData = mlContext.Data.ShuffleRows(data, seed: 123);
 
             // Look at the shuffled data and observe that the rows are in a randomized order.
-            var enumerable = mlContext.CreateEnumerable<DatasetUtils.SampleTemperatureData>(shuffledData, reuseRowObject: true);
+            var enumerable = mlContext.Data.CreateEnumerable<DatasetUtils.SampleTemperatureData>(shuffledData, reuseRowObject: true);
             Console.WriteLine($"Date\tTemperature");
             foreach (var row in enumerable)
             {

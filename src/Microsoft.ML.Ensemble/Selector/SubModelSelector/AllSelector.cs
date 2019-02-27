@@ -5,11 +5,10 @@
 using System;
 using Microsoft.ML;
 using Microsoft.ML.Trainers.Ensemble;
-using Microsoft.ML.Trainers.Ensemble.SubModelSelector;
 
 [assembly: LoadableClass(typeof(AllSelector), null, typeof(SignatureEnsembleSubModelSelector), AllSelector.UserName, AllSelector.LoadName)]
 
-namespace Microsoft.ML.Trainers.Ensemble.SubModelSelector
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal sealed class AllSelector : BaseSubModelSelector<Single>, IBinarySubModelSelector, IRegressionSubModelSelector
     {

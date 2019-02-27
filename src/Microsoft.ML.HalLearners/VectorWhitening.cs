@@ -136,7 +136,7 @@ namespace Microsoft.ML.Transforms.Projections
                 loaderAssemblyName: typeof(VectorWhiteningTransformer).Assembly.FullName);
         }
 
-        private readonly VectorWhiteningEstimator.ColumnInfo[] _columns;
+        private readonly VectorWhiteningEstimator.ColumnOptions[] _columns;
 
         /// <summary>
         /// Initializes a new <see cref="VectorWhiteningTransformer"/> object.
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Transforms.Projections
         /// <param name="models">An array of whitening matrices where models[i] is learned from the i-th element of <paramref name="columns"/>.</param>
         /// <param name="invModels">An array of inverse whitening matrices, the i-th element being the inverse matrix of models[i].</param>
         /// <param name="columns">Describes the parameters of the whitening process for each column pair.</param>
-        internal VectorWhiteningTransformer(IHostEnvironment env, float[][] models, float[][] invModels, params VectorWhiteningEstimator.ColumnInfo[] columns)
+        internal VectorWhiteningTransformer(IHostEnvironment env, float[][] models, float[][] invModels, params VectorWhiteningEstimator.ColumnOptions[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorWhiteningTransformer)), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
@@ -162,15 +162,15 @@ namespace Microsoft.ML.Transforms.Projections
             // *** Binary format ***
             // <base>
             // foreach column pair
-            //   ColumnInfo
+            //   ColumnOptions
             // foreach model
             //   whitening matrix
             //   recovery matrix
 
             Host.AssertNonEmpty(ColumnPairs);
-            _columns = new VectorWhiteningEstimator.ColumnInfo[ColumnPairs.Length];
+            _columns = new VectorWhiteningEstimator.ColumnOptions[ColumnPairs.Length];
             for (int i = 0; i < _columns.Length; i++)
-                _columns[i] = new VectorWhiteningEstimator.ColumnInfo(ctx);
+                _columns[i] = new VectorWhiteningEstimator.ColumnOptions(ctx);
 
             _models = new float[ColumnPairs.Length][];
             _invModels = new float[ColumnPairs.Length][];
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Transforms.Projections
         // Factory method for SignatureDataTransform.
         internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
-            var infos = options.Columns.Select(colPair => new VectorWhiteningEstimator.ColumnInfo(colPair, options)).ToArray();
+            var infos = options.Columns.Select(colPair => new VectorWhiteningEstimator.ColumnOptions(colPair, options)).ToArray();
             (var models, var invModels) = TrainVectorWhiteningTransform(env, input, infos);
             return new VectorWhiteningTransformer(env, models, invModels, infos).MakeDataTransform(input);
         }
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Transforms.Projections
         internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(VectorWhiteningEstimator.ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(VectorWhiteningEstimator.ColumnOptions[] columns)
             => columns.Select(c => (c.Name, c.InputColumnName ?? c.Name)).ToArray();
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
@@ -243,7 +243,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         // Sometime GetRowCount doesn't really return the number of rows in the associated IDataView.
         // A more reliable solution is to turely iterate through all rows via a RowCursor.
-        private static long GetRowCount(IDataView inputData, params VectorWhiteningEstimator.ColumnInfo[] columns)
+        private static long GetRowCount(IDataView inputData, params VectorWhiteningEstimator.ColumnOptions[] columns)
         {
             long? rows = inputData.GetRowCount();
             if (rows != null)
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Transforms.Projections
         }
 
         // Computes the transformation matrices needed for whitening process from training data.
-        internal static (float[][] models, float[][] invModels) TrainVectorWhiteningTransform(IHostEnvironment env, IDataView inputData, params VectorWhiteningEstimator.ColumnInfo[] columns)
+        internal static (float[][] models, float[][] invModels) TrainVectorWhiteningTransform(IHostEnvironment env, IDataView inputData, params VectorWhiteningEstimator.ColumnOptions[] columns)
         {
             var models = new float[columns.Length][];
             var invModels = new float[columns.Length][];
@@ -276,7 +276,7 @@ namespace Microsoft.ML.Transforms.Projections
         }
 
         // Extracts the indices and types of the input columns to the whitening transform.
-        private static void GetColTypesAndIndex(IHostEnvironment env, IDataView inputData, VectorWhiteningEstimator.ColumnInfo[] columns, out DataViewType[] srcTypes, out int[] cols)
+        private static void GetColTypesAndIndex(IHostEnvironment env, IDataView inputData, VectorWhiteningEstimator.ColumnOptions[] columns, out DataViewType[] srcTypes, out int[] cols)
         {
             cols = new int[columns.Length];
             srcTypes = new DataViewType[columns.Length];
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         // Loads all relevant data for whitening training into memory.
         private static float[][] LoadDataAsDense(IHostEnvironment env, IChannel ch, IDataView inputData, out int[] actualRowCounts,
-            DataViewType[] srcTypes, int[] cols, params VectorWhiteningEstimator.ColumnInfo[] columns)
+            DataViewType[] srcTypes, int[] cols, params VectorWhiteningEstimator.ColumnOptions[] columns)
         {
             long crowData = GetRowCount(inputData, columns);
 
@@ -365,7 +365,7 @@ namespace Microsoft.ML.Transforms.Projections
         // will have dimension input_vec_size x input_vec_size. In the getter, the matrix will be truncated to only keep
         // PcaNum columns, and thus produce the desired output size.
         private static void TrainModels(IHostEnvironment env, IChannel ch, float[][] columnData, int[] rowCounts,
-            ref float[][] models, ref float[][] invModels, DataViewType[] srcTypes, params VectorWhiteningEstimator.ColumnInfo[] columns)
+            ref float[][] models, ref float[][] invModels, DataViewType[] srcTypes, params VectorWhiteningEstimator.ColumnOptions[] columns)
         {
             ch.Assert(columnData.Length == rowCounts.Length);
 
@@ -471,7 +471,7 @@ namespace Microsoft.ML.Transforms.Projections
             // *** Binary format ***
             // <base>
             // foreach column pair
-            //   ColumnInfo
+            //   ColumnOptions
             // foreach model
             //   whitening matrix
             //   recovery matrix
@@ -683,7 +683,7 @@ namespace Microsoft.ML.Transforms.Projections
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnInfo
+        public sealed class ColumnOptions
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
@@ -720,7 +720,7 @@ namespace Microsoft.ML.Transforms.Projections
             /// <param name="eps">Whitening constant, prevents division by zero.</param>
             /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
             /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
-            public ColumnInfo(string name, string inputColumnName = null, WhiteningKind kind = Defaults.Kind, float eps = Defaults.Eps,
+            public ColumnOptions(string name, string inputColumnName = null, WhiteningKind kind = Defaults.Kind, float eps = Defaults.Eps,
                 int maxRows = Defaults.MaxRows, int pcaNum = Defaults.PcaNum)
             {
                 Name = name;
@@ -738,7 +738,7 @@ namespace Microsoft.ML.Transforms.Projections
                 Contracts.CheckUserArg(PcaNum >= 0, nameof(PcaNum));
             }
 
-            internal ColumnInfo(VectorWhiteningTransformer.Column item, VectorWhiteningTransformer.Options options)
+            internal ColumnOptions(VectorWhiteningTransformer.Column item, VectorWhiteningTransformer.Options options)
             {
                 Name = item.Name;
                 Contracts.CheckValue(Name, nameof(Name));
@@ -755,7 +755,7 @@ namespace Microsoft.ML.Transforms.Projections
                 Contracts.CheckUserArg(PcaNum >= 0, nameof(item.PcaNum));
             }
 
-            internal ColumnInfo(ModelLoadContext ctx)
+            internal ColumnOptions(ModelLoadContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
@@ -799,12 +799,12 @@ namespace Microsoft.ML.Transforms.Projections
         }
 
         private readonly IHost _host;
-        private readonly ColumnInfo[] _infos;
+        private readonly ColumnOptions[] _infos;
 
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Describes the parameters of the whitening process for each column pair.</param>
-        internal VectorWhiteningEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        internal VectorWhiteningEstimator(IHostEnvironment env, params ColumnOptions[] columns)
         {
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorWhiteningEstimator));
             _infos = columns;
@@ -823,7 +823,7 @@ namespace Microsoft.ML.Transforms.Projections
             float eps = Defaults.Eps,
             int maxRows = Defaults.MaxRows,
             int pcaNum = Defaults.PcaNum)
-            : this(env, new ColumnInfo(outputColumnName, inputColumnName, kind, eps, maxRows, pcaNum))
+            : this(env, new ColumnOptions(outputColumnName, inputColumnName, kind, eps, maxRows, pcaNum))
         {
         }
 

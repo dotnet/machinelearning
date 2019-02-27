@@ -57,8 +57,8 @@ namespace Microsoft.ML.Tests.Transformers
             var invalidData = new[] { new TestWrong() { A =1, B = new float[2] { 2,3 } } };
             var invalidDataView = ML.Data.ReadFromEnumerable(invalidData);
             var pipe = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizingEstimator.ColumnInfo("TokenizeA", "A"),
-                    new WordTokenizingEstimator.ColumnInfo("TokenizeB", "B"),
+                    new WordTokenizingEstimator.ColumnOptions("TokenizeA", "A"),
+                    new WordTokenizingEstimator.ColumnOptions("TokenizeB", "B"),
                 });
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataView);
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Tests.Transformers
             var result = pipe.Fit(dataView).Transform(dataView);
 
             // Extract the transformed result of the first row (the only row we have because data contains only one TestClass) as a native class.
-            var nativeResult = ML.CreateEnumerable<NativeResult>(result, false).First();
+            var nativeResult = ML.Data.CreateEnumerable<NativeResult>(result, false).First();
 
             // Check the tokenization of A. Expected result is { "This", "is", "a", "good", "sentence." }.
             var tokenizeA = new[] { "This", "is", "a", "good", "sentence." };
@@ -99,8 +99,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizingEstimator.ColumnInfo("TokenizeA", "A"),
-                    new WordTokenizingEstimator.ColumnInfo("TokenizeB", "B"),
+                    new WordTokenizingEstimator.ColumnOptions("TokenizeA", "A"),
+                    new WordTokenizingEstimator.ColumnOptions("TokenizeB", "B"),
                 });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

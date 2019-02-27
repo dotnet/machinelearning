@@ -7,15 +7,16 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.FactorizationMachine;
-using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.LightGBM.StaticPipe;
+using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FactorizationMachine;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Trainers.Recommender;
@@ -1255,7 +1256,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(0.86507936507936511, metrics.AccuracyMicro, 6);
 
             // Convert prediction in ML.NET format to native C# class.
-            var nativePredictions = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.MulticlassClassificationExample>(prediction.AsDynamic, false).ToList();
+            var nativePredictions = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.MulticlassClassificationExample>(prediction.AsDynamic, false).ToList();
 
             // Get schema object of the prediction. It contains metadata such as the mapping from predicted label index
             // (e.g., 1) to its actual label (e.g., "AA").

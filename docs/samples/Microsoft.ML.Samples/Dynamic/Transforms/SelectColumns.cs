@@ -45,7 +45,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //  There are 2 columns in the dataset.
 
             // We can extract the newly created column as an IEnumerable of SampleInfertDataTransformed, the class we define below.
-            var rowEnumerable = mlContext.CreateEnumerable<SampleInfertDataTransformed>(transformedData, reuseRowObject: false);
+            var rowEnumerable = mlContext.Data.CreateEnumerable<SampleInfertDataTransformed>(transformedData, reuseRowObject: false);
 
             // And finally, we can write out the rows of the dataset, looking at the columns of interest.
             Console.WriteLine($"Age and Educations columns obtained post-transformation.");

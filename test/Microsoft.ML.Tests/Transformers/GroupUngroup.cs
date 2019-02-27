@@ -50,7 +50,7 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ML.Data.ReadFromEnumerable(data);
 
             var groupTransform = new GroupTransform(Env, dataView, "Age", "UserName", "Gender");
-            var grouped = ML.CreateEnumerable<UngroupExample>(groupTransform, false).ToList();
+            var grouped = ML.Data.CreateEnumerable<UngroupExample>(groupTransform, false).ToList();
 
             // Expected content of grouped should contains two rows.
             // Age, UserName, Gender
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ML.Data.ReadFromEnumerable(data);
 
             var ungroupTransform = new UngroupTransform(Env, dataView, UngroupTransform.UngroupMode.Inner, "UserName", "Gender");
-            var ungrouped = ML.CreateEnumerable<GroupExample>(ungroupTransform, false).ToList();
+            var ungrouped = ML.Data.CreateEnumerable<GroupExample>(ungroupTransform, false).ToList();
 
             Assert.Equal(4, ungrouped.Count);
 

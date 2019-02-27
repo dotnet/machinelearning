@@ -5,16 +5,16 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
 
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
-    /// The base class for all learner inputs.
+    /// The base class for all trainer inputs.
     /// </summary>
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInput))]
     public abstract class TrainerInputBase

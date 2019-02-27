@@ -142,7 +142,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 var threshold = ComputeThreshold(scores, _slotsInOutput, out int tiedScoresToKeep);
 
                 // If no slots should be dropped in a column, use CopyColumn to generate the corresponding output column.
-                SlotsDroppingTransformer.ColumnInfo[] dropSlotsColumns;
+                SlotsDroppingTransformer.ColumnOptions[] dropSlotsColumns;
                 (string outputColumnName, string inputColumnName)[] copyColumnPairs;
                 CreateDropAndCopyColumns(colArr.Length, scores, threshold, tiedScoresToKeep, _columns.Where(col => colSet.Contains(col.inputColumnName)).ToArray(), out int[] selectedCount, out dropSlotsColumns, out copyColumnPairs);
 
@@ -258,14 +258,14 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         }
 
         private static void CreateDropAndCopyColumns(int size, float[][] scores, float threshold, int tiedScoresToKeep, (string outputColumnName, string inputColumnName)[] cols,
-            out int[] selectedCount, out SlotsDroppingTransformer.ColumnInfo[] dropSlotsColumns, out (string outputColumnName, string inputColumnName)[] copyColumnsPairs)
+            out int[] selectedCount, out SlotsDroppingTransformer.ColumnOptions[] dropSlotsColumns, out (string outputColumnName, string inputColumnName)[] copyColumnsPairs)
         {
             Contracts.Assert(size > 0);
             Contracts.Assert(Utils.Size(scores) == size);
             Contracts.Assert(Utils.Size(cols) == size);
             Contracts.Assert(threshold > 0 || (threshold == 0 && tiedScoresToKeep == 0));
 
-            var dropCols = new List<SlotsDroppingTransformer.ColumnInfo>();
+            var dropCols = new List<SlotsDroppingTransformer.ColumnOptions>();
             var copyCols = new List<(string outputColumnName, string inputColumnName)>();
             selectedCount = new int[scores.Length];
             for (int i = 0; i < size; i++)
@@ -311,7 +311,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 if (slots.Count <= 0)
                     copyCols.Add(cols[i]);
                 else
-                    dropCols.Add(new SlotsDroppingTransformer.ColumnInfo(cols[i].outputColumnName, cols[i].inputColumnName, slots.ToArray()));
+                    dropCols.Add(new SlotsDroppingTransformer.ColumnOptions(cols[i].outputColumnName, cols[i].inputColumnName, slots.ToArray()));
             }
             dropSlotsColumns = dropCols.ToArray();
             copyColumnsPairs = copyCols.ToArray();

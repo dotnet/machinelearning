@@ -146,9 +146,9 @@ namespace Microsoft.ML.Transforms.Projections
             }
         }
 
-        private sealed class ColumnInfoLoaded : LpNormalizingEstimatorBase.ColumnInfoBase
+        private sealed class ColumnOptionsLoaded : LpNormalizingEstimatorBase.ColumnOptionsBase
         {
-            internal ColumnInfoLoaded(ModelLoadContext ctx, string name, string inputColumnName, bool normKindSerialized)
+            internal ColumnOptionsLoaded(ModelLoadContext ctx, string name, string inputColumnName, bool normKindSerialized)
                 : base(ctx, name, inputColumnName, normKindSerialized)
             {
 
@@ -193,10 +193,10 @@ namespace Microsoft.ML.Transforms.Projections
         /// <summary>
         /// The objects describing how the transformation is applied on the input data.
         /// </summary>
-        public IReadOnlyCollection<LpNormalizingEstimatorBase.ColumnInfoBase> Columns => _columns.AsReadOnly();
-        private readonly LpNormalizingEstimatorBase.ColumnInfoBase[] _columns;
+        public IReadOnlyCollection<LpNormalizingEstimatorBase.ColumnOptionsBase> Columns => _columns.AsReadOnly();
+        private readonly LpNormalizingEstimatorBase.ColumnOptionsBase[] _columns;
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(LpNormalizingEstimatorBase.ColumnInfoBase[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(LpNormalizingEstimatorBase.ColumnOptionsBase[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Transforms.Projections
         /// <summary>
         /// Create a <see cref="LpNormalizingTransformer"/> that takes multiple pairs of columns.
         /// </summary>
-        internal LpNormalizingTransformer(IHostEnvironment env, params LpNormalizingEstimatorBase.ColumnInfoBase[] columns) :
+        internal LpNormalizingTransformer(IHostEnvironment env, params LpNormalizingEstimatorBase.ColumnOptionsBase[] columns) :
            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LpNormalizingTransformer)), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
@@ -225,13 +225,13 @@ namespace Microsoft.ML.Transforms.Projections
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(options.Columns, nameof(options.Columns));
-            var cols = new GlobalContrastNormalizingEstimator.GcnColumnInfo[options.Columns.Length];
+            var cols = new GlobalContrastNormalizingEstimator.GcnColumnOptions[options.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var item = options.Columns[i];
-                    cols[i] = new GlobalContrastNormalizingEstimator.GcnColumnInfo(
+                    cols[i] = new GlobalContrastNormalizingEstimator.GcnColumnOptions(
                         item.Name,
                         item.Source ?? item.Name,
                         item.SubMean ?? options.SubMean,
@@ -252,13 +252,13 @@ namespace Microsoft.ML.Transforms.Projections
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(options.Columns, nameof(options.Columns));
-            var cols = new LpNormalizingEstimator.LpNormColumnInfo[options.Columns.Length];
+            var cols = new LpNormalizingEstimator.LpNormColumnOptions[options.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var item = options.Columns[i];
-                    cols[i] = new LpNormalizingEstimator.LpNormColumnInfo(
+                    cols[i] = new LpNormalizingEstimator.LpNormColumnOptions(
                         item.Name,
                         item.Source ?? item.Name,
                         item.SubMean ?? options.SubMean,
@@ -300,9 +300,9 @@ namespace Microsoft.ML.Transforms.Projections
             // <base>
             // <columns>
             var columnsLength = ColumnPairs.Length;
-            _columns = new ColumnInfoLoaded[columnsLength];
+            _columns = new ColumnOptionsLoaded[columnsLength];
             for (int i = 0; i < columnsLength; i++)
-                _columns[i] = new ColumnInfoLoaded(ctx, ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, ctx.Header.ModelVerWritten >= VerVectorNormalizerSupported);
+                _columns[i] = new ColumnOptionsLoaded(ctx, ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, ctx.Header.ModelVerWritten >= VerVectorNormalizerSupported);
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -660,7 +660,7 @@ namespace Microsoft.ML.Transforms.Projections
         /// <summary>
         /// Describes base class for one column pair.
         /// </summary>
-        public abstract class ColumnInfoBase
+        public abstract class ColumnOptionsBase
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
@@ -683,7 +683,7 @@ namespace Microsoft.ML.Transforms.Projections
             /// </summary>
             public readonly float Scale;
 
-            internal ColumnInfoBase(string name, string inputColumnName, bool substractMean, NormalizerKind normalizerKind, float scale)
+            internal ColumnOptionsBase(string name, string inputColumnName, bool substractMean, NormalizerKind normalizerKind, float scale)
             {
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
                 Contracts.CheckNonWhiteSpace(inputColumnName, nameof(inputColumnName));
@@ -695,7 +695,7 @@ namespace Microsoft.ML.Transforms.Projections
                 NormKind = normalizerKind;
             }
 
-            internal ColumnInfoBase(ModelLoadContext ctx, string name, string inputColumnName, bool normKindSerialized)
+            internal ColumnOptionsBase(ModelLoadContext ctx, string name, string inputColumnName, bool normKindSerialized)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.CheckNonWhiteSpace(inputColumnName, nameof(inputColumnName));
@@ -748,7 +748,7 @@ namespace Microsoft.ML.Transforms.Projections
         /// <summary>
         /// Create a <see cref="LpNormalizingEstimatorBase"/> that takes multiple pairs of columns.
         /// </summary>
-        internal LpNormalizingEstimatorBase(IHostEnvironment env, params ColumnInfoBase[] columns)
+        internal LpNormalizingEstimatorBase(IHostEnvironment env, params ColumnOptionsBase[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LpNormalizingEstimator)), new LpNormalizingTransformer(env, columns))
         {
         }
@@ -801,7 +801,7 @@ namespace Microsoft.ML.Transforms.Projections
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class LpNormColumnInfo : ColumnInfoBase
+        public sealed class LpNormColumnOptions : ColumnOptionsBase
         {
             /// <summary>
             /// Describes how the transformer handles one column pair.
@@ -810,7 +810,7 @@ namespace Microsoft.ML.Transforms.Projections
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="substractMean">Subtract mean from each value before normalizing.</param>
             /// <param name="normalizerKind">The norm to use to normalize each sample.</param>
-            public LpNormColumnInfo(string name, string inputColumnName = null,
+            public LpNormColumnOptions(string name, string inputColumnName = null,
                 bool substractMean = Defaults.LpSubstractMean,
                 NormalizerKind normalizerKind = Defaults.NormKind)
                 : base(name, inputColumnName ?? name, substractMean, normalizerKind, 1)
@@ -836,14 +836,14 @@ namespace Microsoft.ML.Transforms.Projections
         /// <param name="substractMean">Subtract mean from each value before normalizing.</param>
         internal LpNormalizingEstimator(IHostEnvironment env, (string outputColumnName, string inputColumnName)[] columns,
             NormalizerKind normKind = Defaults.NormKind, bool substractMean = Defaults.LpSubstractMean)
-             : this(env, columns.Select(x => new LpNormColumnInfo(x.outputColumnName, x.inputColumnName, substractMean, normKind)).ToArray())
+             : this(env, columns.Select(x => new LpNormColumnOptions(x.outputColumnName, x.inputColumnName, substractMean, normKind)).ToArray())
         {
         }
 
         /// <summary>
         /// Create a <see cref="LpNormalizingEstimator"/> that takes multiple pairs of columns.
         /// </summary>
-        internal LpNormalizingEstimator(IHostEnvironment env, params LpNormColumnInfo[] columns)
+        internal LpNormalizingEstimator(IHostEnvironment env, params LpNormColumnOptions[] columns)
             : base(env, columns)
         {
         }
@@ -857,7 +857,7 @@ namespace Microsoft.ML.Transforms.Projections
         /// <summary>
         /// Describes how the transformer handles one Gcn column pair.
         /// </summary>
-        public sealed class GcnColumnInfo : ColumnInfoBase
+        public sealed class GcnColumnOptions : ColumnOptionsBase
         {
             /// <summary>
             /// Describes how the transformer handles one Gcn column pair.
@@ -867,7 +867,7 @@ namespace Microsoft.ML.Transforms.Projections
             /// <param name="substractMean">Subtract mean from each value before normalizing.</param>
             /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
             /// <param name="scale">Scale features by this value.</param>
-            public GcnColumnInfo(string name, string inputColumnName = null,
+            public GcnColumnOptions(string name, string inputColumnName = null,
                 bool substractMean = Defaults.GcnSubstractMean,
                 bool useStdDev = Defaults.UseStdDev,
                 float scale = Defaults.Scale)
@@ -897,14 +897,14 @@ namespace Microsoft.ML.Transforms.Projections
         /// <param name="scale">Scale features by this value.</param>
         internal GlobalContrastNormalizingEstimator(IHostEnvironment env, (string outputColumnName, string inputColumnName)[] columns,
             bool substractMean = Defaults.GcnSubstractMean, bool useStdDev = Defaults.UseStdDev, float scale = Defaults.Scale)
-            : this(env, columns.Select(x => new GcnColumnInfo(x.outputColumnName, x.inputColumnName, substractMean, useStdDev, scale)).ToArray())
+            : this(env, columns.Select(x => new GcnColumnOptions(x.outputColumnName, x.inputColumnName, substractMean, useStdDev, scale)).ToArray())
         {
         }
 
         /// <summary>
         /// Create a <see cref="GlobalContrastNormalizingEstimator"/> that takes multiple pairs of columns.
         /// </summary>
-        internal GlobalContrastNormalizingEstimator(IHostEnvironment env, params GcnColumnInfo[] columns) :
+        internal GlobalContrastNormalizingEstimator(IHostEnvironment env, params GcnColumnOptions[] columns) :
             base(env, columns)
         {
         }

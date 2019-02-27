@@ -109,7 +109,7 @@ namespace Microsoft.ML.Transforms.Projections
             private readonly TauswortheHybrid _rand;
             private readonly TauswortheHybrid.State _state;
 
-            public TransformInfo(IHost host, RandomFourierFeaturizingEstimator.ColumnInfo column, int d, float avgDist)
+            public TransformInfo(IHost host, RandomFourierFeaturizingEstimator.ColumnOptions column, int d, float avgDist)
             {
                 Contracts.AssertValue(host);
 
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Transforms.Projections
             return "Expected vector of floats with known size";
         }
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(RandomFourierFeaturizingEstimator.ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(RandomFourierFeaturizingEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
@@ -255,7 +255,7 @@ namespace Microsoft.ML.Transforms.Projections
                     new VectorType(NumberDataViewType.Single, _transformInfos[col].SrcDim).ToString(), type.ToString());
         }
 
-        internal RandomFourierFeaturizingTransformer(IHostEnvironment env, IDataView input, RandomFourierFeaturizingEstimator.ColumnInfo[] columns)
+        internal RandomFourierFeaturizingTransformer(IHostEnvironment env, IDataView input, RandomFourierFeaturizingEstimator.ColumnOptions[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RandomFourierFeaturizingTransformer)), GetColumnPairs(columns))
         {
             var avgDistances = GetAvgDistances(columns, input);
@@ -281,7 +281,7 @@ namespace Microsoft.ML.Transforms.Projections
             return cblob * cfltAlign;
         }
 
-        private float[] GetAvgDistances(RandomFourierFeaturizingEstimator.ColumnInfo[] columns, IDataView input)
+        private float[] GetAvgDistances(RandomFourierFeaturizingEstimator.ColumnOptions[] columns, IDataView input)
         {
             var avgDistances = new float[columns.Length];
             const int reservoirSize = 5000;
@@ -420,14 +420,14 @@ namespace Microsoft.ML.Transforms.Projections
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(options.Columns, nameof(options.Columns));
-            var cols = new RandomFourierFeaturizingEstimator.ColumnInfo[options.Columns.Length];
+            var cols = new RandomFourierFeaturizingEstimator.ColumnOptions[options.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
 
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var item = options.Columns[i];
-                    cols[i] = new RandomFourierFeaturizingEstimator.ColumnInfo(
+                    cols[i] = new RandomFourierFeaturizingEstimator.ColumnOptions(
                         item.Name,
                         item.NewDim ?? options.NewDim,
                         item.UseSin ?? options.UseSin,
@@ -618,7 +618,7 @@ namespace Microsoft.ML.Transforms.Projections
         /// <summary>
         /// Describes how the transformer handles one Gcn column pair.
         /// </summary>
-        public sealed class ColumnInfo
+        public sealed class ColumnOptions
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
@@ -654,7 +654,7 @@ namespace Microsoft.ML.Transforms.Projections
             /// <param name="inputColumnName">Name of column to transform. </param>
             /// <param name="generator">Which fourier generator to use.</param>
             /// <param name="seed">The seed of the random number generator for generating the new features (if unspecified, the global random is used).</param>
-            public ColumnInfo(string name, int newDim, bool useSin, string inputColumnName = null, KernelBase generator = null, int? seed = null)
+            public ColumnOptions(string name, int newDim, bool useSin, string inputColumnName = null, KernelBase generator = null, int? seed = null)
             {
                 Contracts.CheckUserArg(newDim > 0, nameof(newDim), "must be positive.");
                 InputColumnName = inputColumnName ?? name;
@@ -667,7 +667,7 @@ namespace Microsoft.ML.Transforms.Projections
         }
 
         private readonly IHost _host;
-        private readonly ColumnInfo[] _columns;
+        private readonly ColumnOptions[] _columns;
 
         /// <summary>
         /// Convinence constructor for simple one column case.
@@ -678,11 +678,11 @@ namespace Microsoft.ML.Transforms.Projections
         /// <param name="newDim">The number of random Fourier features to create.</param>
         /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
         internal RandomFourierFeaturizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int newDim = Defaults.NewDim, bool useSin = Defaults.UseSin)
-            : this(env, new ColumnInfo(outputColumnName, newDim, useSin, inputColumnName ?? outputColumnName))
+            : this(env, new ColumnOptions(outputColumnName, newDim, useSin, inputColumnName ?? outputColumnName))
         {
         }
 
-        internal RandomFourierFeaturizingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        internal RandomFourierFeaturizingEstimator(IHostEnvironment env, params ColumnOptions[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(RandomFourierFeaturizingEstimator));

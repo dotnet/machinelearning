@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
@@ -22,6 +23,65 @@ namespace Microsoft.ML
         {
             Contracts.AssertValue(env);
             Environment = env;
+        }
+
+        /// <summary>
+        /// Create a new <see cref="IDataView"/> over an enumerable of the items of user-defined type.
+        /// The user maintains ownership of the <paramref name="data"/> and the resulting data view will
+        /// never alter the contents of the <paramref name="data"/>.
+        /// Since <see cref="IDataView"/> is assumed to be immutable, the user is expected to support
+        /// multiple enumeration of the <paramref name="data"/> that would return the same results, unless
+        /// the user knows that the data will only be cursored once.
+        ///
+        /// One typical usage for streaming data view could be: create the data view that lazily loads data
+        /// as needed, then apply pre-trained transformations to it and cursor through it for transformation
+        /// results.
+        /// </summary>
+        /// <typeparam name="TRow">The user-defined item type.</typeparam>
+        /// <param name="data">The data to wrap around.</param>
+        /// <param name="schemaDefinition">The optional schema definition of the data view to create. If <c>null</c>,
+        /// the schema definition is inferred from <typeparamref name="TRow"/>.</param>
+        /// <returns>The constructed <see cref="IDataView"/>.</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[BootstrapSample](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/DataViewEnumerable.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public IDataView ReadFromEnumerable<TRow>(IEnumerable<TRow> data, SchemaDefinition schemaDefinition = null)
+            where TRow : class
+        {
+            Environment.CheckValue(data, nameof(data));
+            Environment.CheckValueOrNull(schemaDefinition);
+            return DataViewConstructionUtils.CreateFromEnumerable(Environment, data, schemaDefinition);
+        }
+
+        /// <summary>
+        /// Convert an <see cref="IDataView"/> into a strongly-typed <see cref="IEnumerable{TRow}"/>.
+        /// </summary>
+        /// <typeparam name="TRow">The user-defined row type.</typeparam>
+        /// <param name="data">The underlying data view.</param>
+        /// <param name="reuseRowObject">Whether to return the same object on every row, or allocate a new one per row.</param>
+        /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
+        /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
+        /// <returns>The <see cref="IEnumerable{TRow}"/> that holds the data in <paramref name="data"/>. It can be enumerated multiple times.</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[BootstrapSample](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/DataViewEnumerable.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public IEnumerable<TRow> CreateEnumerable<TRow>(IDataView data, bool reuseRowObject,
+            bool ignoreMissingColumns = false, SchemaDefinition schemaDefinition = null)
+            where TRow : class, new()
+        {
+            Environment.CheckValue(data, nameof(data));
+            Environment.CheckValueOrNull(schemaDefinition);
+
+            var engine = new PipeEngine<TRow>(Environment, data, ignoreMissingColumns, schemaDefinition);
+            return engine.RunPipe(reuseRowObject);
         }
 
         /// <summary>

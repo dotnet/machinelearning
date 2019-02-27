@@ -53,8 +53,8 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ML.Data.ReadFromEnumerable(data);
 
             var pipe = ML.Transforms.Projection.CreateRandomFourierFeatures(new[]{
-                    new RandomFourierFeaturizingEstimator.ColumnInfo("RffA", 5, false, "A"),
-                    new RandomFourierFeaturizingEstimator.ColumnInfo("RffB", 10, true, "A", new LaplacianKernel())
+                    new RandomFourierFeaturizingEstimator.ColumnOptions("RffA", 5, false, "A"),
+                    new RandomFourierFeaturizingEstimator.ColumnOptions("RffB", 10, true, "A", new LaplacianKernel())
                 });
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidData, validForFitNotValidForTransformInput: validFitInvalidData);
@@ -103,8 +103,8 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ML.Data.ReadFromEnumerable(data);
 
             var est = ML.Transforms.Projection.CreateRandomFourierFeatures(new[]{
-                    new RandomFourierFeaturizingEstimator.ColumnInfo("RffA", 5, false, "A"),
-                    new RandomFourierFeaturizingEstimator.ColumnInfo("RffB", 10, true, "A", new LaplacianKernel())
+                    new RandomFourierFeaturizingEstimator.ColumnOptions("RffA", 5, false, "A"),
+                    new RandomFourierFeaturizingEstimator.ColumnOptions("RffB", 10, true, "A", new LaplacianKernel())
                 });
             var result = est.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
