@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Data;
-using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Samples.Dynamic
 {

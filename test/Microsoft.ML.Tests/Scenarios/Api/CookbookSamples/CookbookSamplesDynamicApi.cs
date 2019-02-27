@@ -12,8 +12,6 @@ using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;

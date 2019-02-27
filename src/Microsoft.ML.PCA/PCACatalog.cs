@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.PCA;
-using Microsoft.ML.Transforms.Projections;
-using static Microsoft.ML.Trainers.PCA.RandomizedPcaTrainer;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
+using static Microsoft.ML.Trainers.RandomizedPcaTrainer;
 
 namespace Microsoft.ML
 {

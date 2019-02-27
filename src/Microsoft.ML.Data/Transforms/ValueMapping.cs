@@ -13,8 +13,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ValueMappingTransformer.Summary, typeof(IDataTransform), typeof(ValueMappingTransformer),
     typeof(ValueMappingTransformer.Options), typeof(SignatureDataTransform),
@@ -30,7 +29,7 @@ using Microsoft.ML.Transforms.Conversions;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(ValueMappingTransformer), null, typeof(SignatureLoadRowMapper),
     ValueMappingTransformer.UserName, ValueMappingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms.Conversions
+namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="ValueMappingEstimator"]/*' />
     public class ValueMappingEstimator : TrivialEstimator<ValueMappingTransformer>

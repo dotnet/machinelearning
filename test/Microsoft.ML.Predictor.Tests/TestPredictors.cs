@@ -20,10 +20,8 @@ namespace Microsoft.ML.RunTests
     using Microsoft.ML.LightGBM;
     using Microsoft.ML.TestFramework;
     using Microsoft.ML.Trainers;
-    using Microsoft.ML.Trainers.Ensemble;
     using Microsoft.ML.Trainers.FastTree;
     using Microsoft.ML.Trainers.HalLearners;
-    using Microsoft.ML.Trainers.Online;
     using Xunit;
     using Xunit.Abstractions;
     using TestLearners = TestLearnersBase;

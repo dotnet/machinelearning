@@ -5,9 +5,8 @@
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Trainers.KMeans;
-using Microsoft.ML.Trainers.PCA;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;

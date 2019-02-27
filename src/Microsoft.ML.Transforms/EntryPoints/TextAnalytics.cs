@@ -5,7 +5,6 @@
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(typeof(void), typeof(TextAnalytics), null, typeof(SignatureEntryPointModule), "TextAnalytics")]

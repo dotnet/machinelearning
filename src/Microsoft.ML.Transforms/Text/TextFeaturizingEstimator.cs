@@ -14,8 +14,6 @@ using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(TextFeaturizingEstimator.Summary, typeof(IDataTransform), typeof(TextFeaturizingEstimator), typeof(TextFeaturizingEstimator.Arguments), typeof(SignatureDataTransform),

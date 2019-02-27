@@ -12,7 +12,6 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Data
 {

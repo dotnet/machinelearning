@@ -12,7 +12,7 @@ using Microsoft.ML.Numeric;
 
 // TODO: Check if it works properly if Averaged is set to false
 
-namespace Microsoft.ML.Trainers.Online
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// Arguments class for averaged linear trainers.

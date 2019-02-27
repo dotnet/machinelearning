@@ -7,7 +7,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios

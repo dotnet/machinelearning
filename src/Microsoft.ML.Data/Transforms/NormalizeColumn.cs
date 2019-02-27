@@ -13,10 +13,9 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
-using Microsoft.ML.Transforms.Normalizers;
+using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(NormalizeTransform.MinMaxNormalizerSummary, typeof(IDataTransform), typeof(NormalizeTransform), typeof(NormalizeTransform.MinMaxArguments), typeof(SignatureDataTransform),
@@ -40,7 +39,7 @@ using Newtonsoft.Json.Linq;
 [assembly: LoadableClass(NormalizeTransform.BinNormalizerSummary, typeof(NormalizeTransform.BinColumnFunction), null, typeof(SignatureLoadColumnFunction),
     "Bin Normalizer", NormalizeTransform.BinColumnFunction.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms.Normalizers
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// The normalize transform for support of normalization via the <see cref="IDataTransform"/> mechanism.

@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML.Transforms.Projections;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.HalLearners.StaticPipe
 {

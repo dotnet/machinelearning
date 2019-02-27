@@ -10,12 +10,11 @@ using System.Runtime.CompilerServices;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.Transforms.Normalizers
+namespace Microsoft.ML.Transforms
 {
     // !!! WARNING !!!
     // This file contains the Double version for normalizers and is almost identical with NormalizeColumnSng.cs
