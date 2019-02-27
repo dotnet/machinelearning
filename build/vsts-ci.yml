@@ -4,7 +4,7 @@
 
 resources:
   containers:
-  - container: LinuxContainer
+  - container: CentosContainer
     image: microsoft/dotnet-buildtools-prereqs:centos-7-b46d863-20180719033416
 
 phases:
@@ -21,7 +21,7 @@ phases:
     name: DotNet-Build
     demands:
     - agent.os -equals linux
-    container: LinuxContainer
+    container: CentosContainer
   steps:
   # Only build native assets to avoid conflicts.
   - script: ./build.sh -buildNative -$(BuildConfig) -skipRIDAgnosticAssets

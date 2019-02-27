@@ -12,16 +12,15 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(MissingValueReplacingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueReplacingTransformer), typeof(MissingValueReplacingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(MissingValueReplacingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueReplacingTransformer), typeof(MissingValueReplacingTransformer.Options), typeof(SignatureDataTransform),
     MissingValueReplacingTransformer.FriendlyName, MissingValueReplacingTransformer.LoadName, "NAReplace", MissingValueReplacingTransformer.ShortName, DocName = "transform/NAHandle.md")]
 
 [assembly: LoadableClass(MissingValueReplacingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueReplacingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -43,7 +42,7 @@ namespace Microsoft.ML.Transforms
     /// <include file='doc.xml' path='doc/members/member[@name="NAReplace"]/*' />
     public sealed partial class MissingValueReplacingTransformer : OneToOneTransformerBase
     {
-        public enum ReplacementKind : byte
+        internal enum ReplacementKind : byte
         {
             // REVIEW: What should the full list of options for this transform be?
             DefaultValue = 0,
@@ -73,7 +72,7 @@ namespace Microsoft.ML.Transforms
         // *mean: use domain value closest to the mean
         // Potentially also min/max; probably will not include median due to its relatively low value and high computational cost.
         // Note: Will need to support different replacement values for different slots to implement this.
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             // REVIEW: Should flexibility for different replacement values for slots be introduced?
             [Argument(ArgumentType.AtMostOnce, HelpText = "Replacement value for NAs (uses default value if not given)", ShortName = "rep")]
@@ -114,10 +113,10 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:rep:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:rep:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The replacement method to utilize", ShortName = "kind")]
             public ReplacementKind ReplacementKind = (ReplacementKind)MissingValueReplacingEstimator.Defaults.ReplacementMode;
@@ -127,7 +126,7 @@ namespace Microsoft.ML.Transforms
             public bool ImputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot;
         }
 
-        public const string LoadName = "NAReplaceTransform";
+        internal const string LoadName = "NAReplaceTransform";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -148,15 +147,15 @@ namespace Microsoft.ML.Transforms
         internal const string FriendlyName = "NA Replace Transform";
         internal const string ShortName = "NARep";
 
-        internal static string TestType(ColumnType type)
+        internal static string TestType(DataViewType type)
         {
             // Item type must have an NA value that exists and is not equal to its default value.
-            Func<ColumnType, string> func = TestType<int>;
+            Func<DataViewType, string> func = TestType<int>;
             var itemType = type.GetItemType();
             return Utils.MarshalInvoke(func, itemType.RawType, itemType);
         }
 
-        private static string TestType<T>(ColumnType type)
+        private static string TestType<T>(DataViewType type)
         {
             Contracts.Assert(type.GetItemType().RawType == typeof(T));
             if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(type.GetItemType(), out InPredicate<T> isNA))
@@ -174,54 +173,14 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        /// <summary>
-        /// Describes how the transformer handles one column pair.
-        /// </summary>
-        public sealed class ColumnInfo
-        {
-            public enum ReplacementMode : byte
-            {
-                DefaultValue = 0,
-                Mean = 1,
-                Minimum = 2,
-                Maximum = 3,
-            }
-
-            public readonly string Name;
-            public readonly string InputColumnName;
-            public readonly bool ImputeBySlot;
-            public readonly ReplacementMode Replacement;
-
-            /// <summary>
-            /// Describes how the transformer handles one column pair.
-            /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-            /// <param name="replacementMode">What to replace the missing value with.</param>
-            /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
-            /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
-            /// where imputation is always for the entire column.</param>
-            public ColumnInfo(string name, string inputColumnName = null, ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
-                bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
-            {
-                Contracts.CheckNonWhiteSpace(name, nameof(name));
-                Name = name;
-                InputColumnName = inputColumnName ?? name;
-                ImputeBySlot = imputeBySlot;
-                Replacement = replacementMode;
-            }
-
-            internal string ReplacementString { get; set; }
-        }
-
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(MissingValueReplacingEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
         // The output column types, parallel to Infos.
-        private readonly ColumnType[] _replaceTypes;
+        private readonly DataViewType[] _replaceTypes;
 
         // The replacementValues for the columns, parallel to Infos.
         // The elements of this array can be either primitive values or arrays of primitive values. When replacing a scalar valued column in Infos,
@@ -235,7 +194,7 @@ namespace Microsoft.ML.Transforms
         // REVIEW: Currently these arrays are constructed on load but could be changed to being constructed lazily.
         private readonly BitArray[] _repIsDefault;
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             string reason = TestType(type);
@@ -243,7 +202,7 @@ namespace Microsoft.ML.Transforms
                 throw Host.ExceptParam(nameof(inputSchema), reason);
         }
 
-        public MissingValueReplacingTransformer(IHostEnvironment env, IDataView input, params ColumnInfo[] columns)
+        internal MissingValueReplacingTransformer(IHostEnvironment env, IDataView input, params MissingValueReplacingEstimator.ColumnOptions[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueReplacingTransformer)), GetColumnPairs(columns))
         {
             // Check that all the input columns are present and correct.
@@ -262,11 +221,11 @@ namespace Microsoft.ML.Transforms
             var columnsLength = ColumnPairs.Length;
             _repValues = new object[columnsLength];
             _repIsDefault = new BitArray[columnsLength];
-            _replaceTypes = new ColumnType[columnsLength];
+            _replaceTypes = new DataViewType[columnsLength];
             var saver = new BinarySaver(Host, new BinarySaver.Arguments());
             for (int i = 0; i < columnsLength; i++)
             {
-                if (!saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out ColumnType savedType, out object repValue))
+                if (!saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out DataViewType savedType, out object repValue))
                     throw Host.ExceptDecode();
                 _replaceTypes[i] = savedType;
                 if (savedType is VectorType savedVectorType)
@@ -310,18 +269,18 @@ namespace Microsoft.ML.Transforms
         /// Vectors default to by-slot imputation unless otherwise specified, except for unknown sized vectors
         /// which force across-slot imputation.
         /// </summary>
-        private void GetReplacementValues(IDataView input, ColumnInfo[] columns, out object[] repValues, out BitArray[] slotIsDefault, out ColumnType[] types)
+        private void GetReplacementValues(IDataView input, MissingValueReplacingEstimator.ColumnOptions[] columns, out object[] repValues, out BitArray[] slotIsDefault, out DataViewType[] types)
         {
             repValues = new object[columns.Length];
             slotIsDefault = new BitArray[columns.Length];
-            types = new ColumnType[columns.Length];
+            types = new DataViewType[columns.Length];
             var sources = new int[columns.Length];
             ReplacementKind[] imputationModes = new ReplacementKind[columns.Length];
 
             List<int> columnsToImpute = null;
             // REVIEW: Would like to get rid of the sourceColumns list but seems to be the best way to provide
             // the cursor with what columns to cursor through.
-           var sourceColumns = new List<Schema.Column>();
+           var sourceColumns = new List<DataViewSchema.Column>();
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)
             {
                 input.Schema.TryGetColumnIndex(columns[iinfo].InputColumnName, out int colSrc);
@@ -343,7 +302,7 @@ namespace Microsoft.ML.Transforms
                     case ReplacementKind.Mean:
                     case ReplacementKind.Minimum:
                     case ReplacementKind.Maximum:
-                        if (!(type.GetItemType() is NumberType))
+                        if (!(type.GetItemType() is NumberDataViewType))
                             throw Host.Except("Cannot perform mean imputations on non-numeric '{0}'", type.GetItemType());
                         imputationModes[iinfo] = kind;
                         Utils.Add(ref columnsToImpute, iinfo);
@@ -394,14 +353,14 @@ namespace Microsoft.ML.Transforms
                 int slot = columnsToImpute[ii];
                 if (repValues[slot] is Array)
                 {
-                    Func<ColumnType, int[], BitArray> func = ComputeDefaultSlots<int>;
+                    Func<DataViewType, int[], BitArray> func = ComputeDefaultSlots<int>;
                     var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(types[slot].GetItemType().RawType);
                     slotIsDefault[slot] = (BitArray)meth.Invoke(this, new object[] { types[slot], repValues[slot] });
                 }
             }
         }
 
-        private BitArray ComputeDefaultSlots<T>(ColumnType type, T[] values)
+        private BitArray ComputeDefaultSlots<T>(DataViewType type, T[] values)
         {
             Host.Assert(values.Length == type.GetVectorSize());
             BitArray defaultSlots = new BitArray(values.Length);
@@ -414,7 +373,7 @@ namespace Microsoft.ML.Transforms
             return defaultSlots;
         }
 
-        private object GetDefault(ColumnType type)
+        private object GetDefault(DataViewType type)
         {
             Func<object> func = GetDefault<int>;
             var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.GetItemType().RawType);
@@ -429,33 +388,33 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Returns the isNA predicate for the respective type.
         /// </summary>
-        private Delegate GetIsNADelegate(ColumnType type)
+        private Delegate GetIsNADelegate(DataViewType type)
         {
-            Func<ColumnType, Delegate> func = GetIsNADelegate<int>;
+            Func<DataViewType, Delegate> func = GetIsNADelegate<int>;
             return Utils.MarshalInvoke(func, type.GetItemType().RawType, type);
         }
 
-        private Delegate GetIsNADelegate<T>(ColumnType type)
+        private Delegate GetIsNADelegate<T>(DataViewType type)
             => Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.GetItemType());
 
         /// <summary>
         /// Converts a string to its respective value in the corresponding type.
         /// </summary>
-        private object GetSpecifiedValue(string srcStr, ColumnType dstType, Delegate isNA)
+        private object GetSpecifiedValue(string srcStr, DataViewType dstType, Delegate isNA)
         {
-            Func<string, ColumnType, InPredicate<int>, object> func = GetSpecifiedValue<int>;
+            Func<string, DataViewType, InPredicate<int>, object> func = GetSpecifiedValue<int>;
             var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(dstType.GetItemType().RawType);
             return meth.Invoke(this, new object[] { srcStr, dstType, isNA });
         }
 
-        private object GetSpecifiedValue<T>(string srcStr, ColumnType dstType, InPredicate<T> isNA)
+        private object GetSpecifiedValue<T>(string srcStr, DataViewType dstType, InPredicate<T> isNA)
         {
             var val = default(T);
             if (!string.IsNullOrEmpty(srcStr))
             {
                 // Handles converting input strings to correct types.
                 var srcTxt = srcStr.AsMemory();
-                var strToT = Data.Conversion.Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextType.Instance, dstType.GetItemType(), out bool identity);
+                var strToT = Data.Conversion.Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextDataViewType.Instance, dstType.GetItemType(), out bool identity);
                 strToT(in srcTxt, ref val);
                 // Make sure that the srcTxt can legitimately be converted to dstType, throw error otherwise.
                 if (isNA(in val))
@@ -466,32 +425,32 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new ColumnInfo[args.Column.Length];
+            env.CheckValue(options.Columns, nameof(options.Columns));
+            var cols = new MissingValueReplacingEstimator.ColumnOptions[options.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
-                var item = args.Column[i];
-                var kind = item.Kind ?? args.ReplacementKind;
+                var item = options.Columns[i];
+                var kind = item.Kind ?? options.ReplacementKind;
                 if (!Enum.IsDefined(typeof(ReplacementKind), kind))
-                    throw env.ExceptUserArg(nameof(args.ReplacementKind), "Undefined sorting criteria '{0}' detected for column '{1}'", kind, item.Name);
+                    throw env.ExceptUserArg(nameof(options.ReplacementKind), "Undefined sorting criteria '{0}' detected for column '{1}'", kind, item.Name);
 
-                cols[i] = new ColumnInfo(
+                cols[i] = new MissingValueReplacingEstimator.ColumnOptions(
                     item.Name,
                     item.Source,
-                    (ColumnInfo.ReplacementMode)(item.Kind ?? args.ReplacementKind),
-                    item.Slot ?? args.ImputeBySlot);
-                cols[i].ReplacementString = item.ReplacementString;
+                    (MissingValueReplacingEstimator.ColumnOptions.ReplacementMode)(item.Kind ?? options.ReplacementKind),
+                    item.Slot ?? options.ImputeBySlot,
+                    item.ReplacementString);
             };
             return new MissingValueReplacingTransformer(env, input, cols).MakeDataTransform(input);
         }
 
-        internal static IDataTransform Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns)
+        internal static IDataTransform Create(IHostEnvironment env, IDataView input, params MissingValueReplacingEstimator.ColumnOptions[] columns)
         {
             return new MissingValueReplacingTransformer(env, input, columns).MakeDataTransform(input);
         }
@@ -513,7 +472,7 @@ namespace Microsoft.ML.Transforms
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private VBuffer<T> CreateVBuffer<T>(T[] array)
@@ -522,7 +481,7 @@ namespace Microsoft.ML.Transforms
             return new VBuffer<T>(array.Length, array);
         }
 
-        private void WriteTypeAndValue<T>(Stream stream, BinarySaver saver, ColumnType type, T rep)
+        private void WriteTypeAndValue<T>(Stream stream, BinarySaver saver, DataViewType type, T rep)
         {
             Host.AssertValue(stream);
             Host.AssertValue(saver);
@@ -532,7 +491,7 @@ namespace Microsoft.ML.Transforms
                 throw Host.Except("We do not know how to serialize terms of type '{0}'", type);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
 
@@ -555,14 +514,14 @@ namespace Microsoft.ML.Transforms
                 }
                 Host.Assert(!(repValue is Array));
                 object[] args = new object[] { ctx.Writer.BaseStream, saver, repType, repValue };
-                Action<Stream, BinarySaver, ColumnType, int> func = WriteTypeAndValue<int>;
+                Action<Stream, BinarySaver, DataViewType, int> func = WriteTypeAndValue<int>;
                 Host.Assert(repValue.GetType() == _replaceTypes[iinfo].RawType || repValue.GetType() == _replaceTypes[iinfo].GetItemType().RawType);
                 var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(repValue.GetType());
                 meth.Invoke(this, args);
             }
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
@@ -570,9 +529,9 @@ namespace Microsoft.ML.Transforms
             {
                 public readonly string Name;
                 public readonly string InputColumnName;
-                public readonly ColumnType TypeSrc;
+                public readonly DataViewType TypeSrc;
 
-                public ColInfo(string outputColumnName, string inputColumnName, ColumnType type)
+                public ColInfo(string outputColumnName, string inputColumnName, DataViewType type)
                 {
                     Name = outputColumnName;
                     InputColumnName = inputColumnName;
@@ -582,17 +541,17 @@ namespace Microsoft.ML.Transforms
 
             private readonly MissingValueReplacingTransformer _parent;
             private readonly ColInfo[] _infos;
-            private readonly ColumnType[] _types;
+            private readonly DataViewType[] _types;
             // The isNA delegates, parallel to Infos.
             private readonly Delegate[] _isNAs;
             public bool CanSaveOnnx(OnnxContext ctx) => true;
 
-            public Mapper(MissingValueReplacingTransformer parent, Schema inputSchema)
+            public Mapper(MissingValueReplacingTransformer parent, DataViewSchema inputSchema)
              : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
                 _infos = CreateInfos(inputSchema);
-                _types = new ColumnType[_parent.ColumnPairs.Length];
+                _types = new DataViewType[_parent.ColumnPairs.Length];
                 _isNAs = new Delegate[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
@@ -624,7 +583,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private ColInfo[] CreateInfos(Schema inputSchema)
+            private ColInfo[] CreateInfos(DataViewSchema inputSchema)
             {
                 Host.AssertValue(inputSchema);
                 var infos = new ColInfo[_parent.ColumnPairs.Length];
@@ -639,21 +598,21 @@ namespace Microsoft.ML.Transforms
                 return infos;
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new MetadataBuilder();
-                    builder.Add(InputSchema[colIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames || x == MetadataUtils.Kinds.IsNormalized);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
+                    var builder = new DataViewSchema.Annotations.Builder();
+                    builder.Add(InputSchema[colIndex].Annotations, x => x == AnnotationUtils.Kinds.SlotNames || x == AnnotationUtils.Kinds.IsNormalized);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.ToAnnotations());
                 }
                 return result;
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
@@ -667,13 +626,13 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Getter generator for single valued inputs.
             /// </summary>
-            private Delegate ComposeGetterOne(Row input, int iinfo)
+            private Delegate ComposeGetterOne(DataViewRow input, int iinfo)
                 => Utils.MarshalInvoke(ComposeGetterOne<int>, _infos[iinfo].TypeSrc.RawType, input, iinfo);
 
             /// <summary>
             ///  Replaces NA values for scalars.
             /// </summary>
-            private Delegate ComposeGetterOne<T>(Row input, int iinfo)
+            private Delegate ComposeGetterOne<T>(DataViewRow input, int iinfo)
             {
                 var getSrc = input.GetGetter<T>(ColMapNewToOld[iinfo]);
                 var src = default(T);
@@ -693,13 +652,13 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Getter generator for vector valued inputs.
             /// </summary>
-            private Delegate ComposeGetterVec(Row input, int iinfo)
+            private Delegate ComposeGetterVec(DataViewRow input, int iinfo)
                 => Utils.MarshalInvoke(ComposeGetterVec<int>, _infos[iinfo].TypeSrc.GetItemType().RawType, input, iinfo);
 
             /// <summary>
             ///  Replaces NA values for vectors.
             /// </summary>
-            private Delegate ComposeGetterVec<T>(Row input, int iinfo)
+            private Delegate ComposeGetterVec<T>(DataViewRow input, int iinfo)
             {
                 var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
                 var isNA = (InPredicate<T>)_isNAs[iinfo];
@@ -933,28 +892,107 @@ namespace Microsoft.ML.Transforms
 
     public sealed class MissingValueReplacingEstimator : IEstimator<MissingValueReplacingTransformer>
     {
-        public static class Defaults
+        [BestFriend]
+        internal static class Defaults
         {
-            public const MissingValueReplacingTransformer.ColumnInfo.ReplacementMode ReplacementMode = MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.DefaultValue;
+            public const ColumnOptions.ReplacementMode ReplacementMode = ColumnOptions.ReplacementMode.DefaultValue;
             public const bool ImputeBySlot = true;
         }
 
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
+        public sealed class ColumnOptions
+        {
+            /// <summary>
+            /// The possible ways to replace missing values.
+            /// </summary>
+            public enum ReplacementMode : byte
+            {
+                /// <summary>
+                /// Replace with the default value of the column based on its type. For example, 'zero' for numeric and 'empty' for string/text columns.
+                /// </summary>
+                DefaultValue = 0,
+                /// <summary>
+                /// Replace with the mean value of the column. Supports only numeric/time span/ DateTime columns.
+                /// </summary>
+                Mean = 1,
+                /// <summary>
+                /// Replace with the minimum value of the column. Supports only numeric/time span/ DateTime columns.
+                /// </summary>
+                Minimum = 2,
+                /// <summary>
+                /// Replace with the maximum value of the column. Supports only numeric/time span/ DateTime columns.
+                /// </summary>
+                Maximum = 3,
+            }
+
+            /// <summary> Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
+            public readonly string Name;
+            /// <summary> Name of column to transform. </summary>
+            public readonly string InputColumnName;
+            /// <summary>
+            /// If true, per-slot imputation of replacement is performed.
+            /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
+            /// where imputation is always for the entire column.
+            /// </summary>
+            public readonly bool ImputeBySlot;
+            /// <summary> How to replace the missing values.</summary>
+            public readonly ReplacementMode Replacement;
+            /// <summary> Replacement value for missing values (only used in entrypoing and command line API).</summary>
+            internal readonly string ReplacementString;
+
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="replacementMode">How to replace the missing values.</param>
+            /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
+            /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
+            /// where imputation is always for the entire column.</param>
+            public ColumnOptions(string name, string inputColumnName = null, ReplacementMode replacementMode = Defaults.ReplacementMode,
+                bool imputeBySlot = Defaults.ImputeBySlot)
+            {
+                Contracts.CheckNonWhiteSpace(name, nameof(name));
+                Name = name;
+                InputColumnName = inputColumnName ?? name;
+                ImputeBySlot = imputeBySlot;
+                Replacement = replacementMode;
+            }
+
+            /// <summary>
+            /// This constructor is used internally to convert from <see cref="MissingValueReplacingTransformer.Options"/> to <see cref="ColumnOptions"/>
+            /// as we support <paramref name="replacementString"/> in command line and entrypoint API only.
+            /// </summary>
+            internal ColumnOptions(string name, string inputColumnName, ReplacementMode replacementMode, bool imputeBySlot, string replacementString)
+                : this(name, inputColumnName, replacementMode, imputeBySlot)
+            {
+                ReplacementString = replacementString;
+            }
+        }
+
         private readonly IHost _host;
-        private readonly MissingValueReplacingTransformer.ColumnInfo[] _columns;
+        private readonly ColumnOptions[] _columns;
 
-        public MissingValueReplacingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementKind = Defaults.ReplacementMode)
-            : this(env, new MissingValueReplacingTransformer.ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, replacementKind))
-            {
+        internal MissingValueReplacingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, ColumnOptions.ReplacementMode replacementKind = Defaults.ReplacementMode)
+            : this(env, new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, replacementKind))
+        {
 
-            }
+        }
 
-            public MissingValueReplacingEstimator(IHostEnvironment env, params MissingValueReplacingTransformer.ColumnInfo[] columns)
-            {
-                Contracts.CheckValue(env, nameof(env));
-                _host = env.Register(nameof(MissingValueReplacingEstimator));
-                _columns = columns;
-            }
+        [BestFriend]
+        internal MissingValueReplacingEstimator(IHostEnvironment env, params ColumnOptions[] columns)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(MissingValueReplacingEstimator));
+            _columns = columns;
+        }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -967,9 +1005,9 @@ namespace Microsoft.ML.Transforms
                 if (reason != null)
                     throw _host.ExceptParam(nameof(inputSchema), reason);
                 var metadata = new List<SchemaShape.Column>();
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.IsNormalized, out var normalized))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.IsNormalized, out var normalized))
                     metadata.Add(normalized);
                 var type = !(col.ItemType is VectorType vectorType) ?
                     col.ItemType :
@@ -979,7 +1017,9 @@ namespace Microsoft.ML.Transforms
             return new SchemaShape(result.Values);
         }
 
-            public MissingValueReplacingTransformer Fit(IDataView input) => new MissingValueReplacingTransformer(_host, input, _columns);
-        }
-
+        /// <summary>
+        /// Trains and returns a <see cref="MissingValueReplacingTransformer"/>.
+        /// </summary>
+        public MissingValueReplacingTransformer Fit(IDataView input) => new MissingValueReplacingTransformer(_host, input, _columns);
     }
+}

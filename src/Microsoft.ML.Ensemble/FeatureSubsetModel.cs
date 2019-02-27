@@ -6,20 +6,25 @@ using System.Collections;
 using System.Collections.Generic;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Ensemble
+namespace Microsoft.ML.Trainers.Ensemble
 {
-    public sealed class FeatureSubsetModel<TPredictor> where TPredictor : IPredictor
+    internal sealed class FeatureSubsetModel<TOutput>
     {
-        public readonly TPredictor Predictor;
+        public readonly IPredictorProducing<TOutput> Predictor;
         public readonly BitArray SelectedFeatures;
         public readonly int Cardinality;
 
         public KeyValuePair<string, double>[] Metrics { get; set; }
 
-        public FeatureSubsetModel(TPredictor predictor, BitArray features = null,
+        public FeatureSubsetModel(IPredictorProducing<TOutput> predictor, BitArray features = null,
             KeyValuePair<string, double>[] metrics = null)
         {
-            Predictor = predictor;
+            if (!(predictor is IPredictorProducing<TOutput> predictorProducing))
+            {
+                throw Contracts.ExceptParam(nameof(predictor),
+                    $"Input predictor did not have the expected output type {typeof(TOutput).Name}.");
+            }
+            Predictor = predictorProducing;
             int card;
             if (features != null && (card = Utils.GetCardinality(features)) < features.Count)
             {

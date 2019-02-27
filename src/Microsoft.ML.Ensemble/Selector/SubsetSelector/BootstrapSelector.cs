@@ -6,9 +6,9 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.Selector;
-using Microsoft.ML.Ensemble.Selector.SubsetSelector;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Trainers.Ensemble;
+using Microsoft.ML.Trainers.Ensemble.SubsetSelector;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(BootstrapSelector), typeof(BootstrapSelector.Arguments),
@@ -16,7 +16,7 @@ using Microsoft.ML.Transforms;
 
 [assembly: EntryPointModule(typeof(BootstrapSelector))]
 
-namespace Microsoft.ML.Ensemble.Selector.SubsetSelector
+namespace Microsoft.ML.Trainers.Ensemble.SubsetSelector
 {
     internal sealed class BootstrapSelector : BaseSubsetSelector<BootstrapSelector.Arguments>
     {
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Ensemble.Selector.SubsetSelector
             for (int i = 0; i < Size; i++)
             {
                 // REVIEW: Consider ways to reintroduce "balanced" samples.
-                var viewTrain = new BootstrapSamplingTransformer(Host, new BootstrapSamplingTransformer.Arguments(), Data.Data);
+                var viewTrain = new BootstrapSamplingTransformer(Host, new BootstrapSamplingTransformer.Options(), Data.Data);
                 var dataTrain = new RoleMappedData(viewTrain, Data.Schema.GetColumnRoleNames());
                 yield return FeatureSelector.SelectFeatures(dataTrain, rand);
             }

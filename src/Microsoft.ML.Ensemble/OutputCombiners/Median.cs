@@ -4,19 +4,19 @@
 
 using System;
 using Microsoft.ML;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(Median), null, typeof(SignatureCombiner), Median.UserName, Median.LoadName)]
 [assembly: LoadableClass(typeof(Median), null, typeof(SignatureLoadModel), Median.UserName, Median.LoaderSignature)]
 
-namespace Microsoft.ML.Ensemble.OutputCombiners
+namespace Microsoft.ML.Trainers.Ensemble
 {
     /// <summary>
     /// Generic interface for combining outputs of multiple models
     /// </summary>
-    public sealed class Median : IRegressionOutputCombiner, IBinaryOutputCombiner, ICanSaveModel
+    internal sealed class Median : IRegressionOutputCombiner, IBinaryOutputCombiner, ICanSaveModel
     {
         private readonly IHost _host;
         public const string UserName = "Median";
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
             return new Median(env, ctx);
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

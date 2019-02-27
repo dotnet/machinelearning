@@ -8,11 +8,8 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble;
-using Microsoft.ML.Ensemble.EntryPoints;
-using Microsoft.ML.Ensemble.OutputCombiners;
-using Microsoft.ML.Ensemble.Selector;
 using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.Online;
 
 [assembly: LoadableClass(typeof(RegressionEnsembleTrainer), typeof(RegressionEnsembleTrainer.Arguments),
@@ -23,7 +20,7 @@ using Microsoft.ML.Trainers.Online;
 [assembly: LoadableClass(typeof(RegressionEnsembleTrainer), typeof(RegressionEnsembleTrainer.Arguments), typeof(SignatureModelCombiner),
     "Regression Ensemble Model Combiner", RegressionEnsembleTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Ensemble
+namespace Microsoft.ML.Trainers.Ensemble
 {
     using TScalarPredictor = IPredictorProducing<Single>;
     internal sealed class RegressionEnsembleTrainer : EnsembleTrainerBase<Single, TScalarPredictor,
@@ -54,7 +51,11 @@ namespace Microsoft.ML.Ensemble
                 BasePredictors = new[]
                 {
                     ComponentFactoryUtils.CreateFromFunction(
-                        env => new OnlineGradientDescentTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features))
+                        env => {
+                            var trainerEstimator = new OnlineGradientDescentTrainer(env);
+                            return TrainerUtils.MapTrainerEstimatorToTrainer<OnlineGradientDescentTrainer,
+                                LinearRegressionModelParameters, LinearRegressionModelParameters>(env, trainerEstimator);
+                        })
                 };
             }
         }
@@ -75,9 +76,9 @@ namespace Microsoft.ML.Ensemble
             Host.CheckParam(predictionKind == PredictionKind.Regression, nameof(PredictionKind));
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<TScalarPredictor>> models)
+        private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<float>> models)
         {
             return new EnsembleModelParameters(Host, PredictionKind, CreateModels<TScalarPredictor>(models), Combiner);
         }
@@ -91,7 +92,7 @@ namespace Microsoft.ML.Ensemble
             var p = models.First();
 
             var predictor = new EnsembleModelParameters(Host, p.PredictionKind,
-                    models.Select(k => new FeatureSubsetModel<TScalarPredictor>((TScalarPredictor)k)).ToArray(), combiner);
+                    models.Select(k => new FeatureSubsetModel<float>((TScalarPredictor)k)).ToArray(), combiner);
 
             return predictor;
         }

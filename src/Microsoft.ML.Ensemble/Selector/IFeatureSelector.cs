@@ -6,14 +6,14 @@ using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 
-namespace Microsoft.ML.Ensemble.Selector
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal interface IFeatureSelector
     {
         Subset SelectFeatures(RoleMappedData data, Random rand);
     }
 
-    public delegate void SignatureEnsembleFeatureSelector();
+    internal delegate void SignatureEnsembleFeatureSelector();
 
     [TlcModule.ComponentKind("EnsembleFeatureSelector")]
     internal interface ISupportFeatureSelectorFactory : IComponentFactory<IFeatureSelector>

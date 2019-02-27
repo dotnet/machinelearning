@@ -8,12 +8,12 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Core.Data
+namespace Microsoft.ML
 {
     /// <summary>
     /// A set of 'requirements' to the incoming schema, as well as a set of 'promises' of the outgoing schema.
-    /// This is more relaxed than the proper <see cref="Schema"/>, since it's only a subset of the columns,
-    /// and also since it doesn't specify exact <see cref="ColumnType"/>'s for vectors and keys.
+    /// This is more relaxed than the proper <see cref="DataViewSchema"/>, since it's only a subset of the columns,
+    /// and also since it doesn't specify exact <see cref="DataViewType"/>'s for vectors and keys.
     /// </summary>
     public sealed class SchemaShape : IReadOnlyList<SchemaShape.Column>
     {
@@ -47,22 +47,22 @@ namespace Microsoft.ML.Core.Data
             /// <summary>
             /// The 'raw' type of column item: must be a primitive type or a structured type.
             /// </summary>
-            public readonly ColumnType ItemType;
+            public readonly DataViewType ItemType;
             /// <summary>
             /// The flag whether the column is actually a key. If yes, <see cref="ItemType"/> is representing
             /// the underlying primitive type.
             /// </summary>
             public readonly bool IsKey;
             /// <summary>
-            /// The metadata that is present for this column.
+            /// The annotations that are present for this column.
             /// </summary>
-            public readonly SchemaShape Metadata;
+            public readonly SchemaShape Annotations;
 
             [BestFriend]
-            internal Column(string name, VectorKind vecKind, ColumnType itemType, bool isKey, SchemaShape metadata = null)
+            internal Column(string name, VectorKind vecKind, DataViewType itemType, bool isKey, SchemaShape annotations = null)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
-                Contracts.CheckValueOrNull(metadata);
+                Contracts.CheckValueOrNull(annotations);
                 Contracts.CheckParam(!(itemType is KeyType), nameof(itemType), "Item type cannot be a key");
                 Contracts.CheckParam(!(itemType is VectorType), nameof(itemType), "Item type cannot be a vector");
                 Contracts.CheckParam(!isKey || KeyType.IsValidDataType(itemType.RawType), nameof(itemType), "The item type must be valid for a key");
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Core.Data
                 Kind = vecKind;
                 ItemType = itemType;
                 IsKey = isKey;
-                Metadata = metadata ?? _empty;
+                Annotations = annotations ?? _empty;
             }
 
             /// <summary>
@@ -80,8 +80,8 @@ namespace Microsoft.ML.Core.Data
             ///
             /// Namely, it returns true iff:
             ///  - The <see cref="Name"/>, <see cref="Kind"/>, <see cref="ItemType"/>, <see cref="IsKey"/> fields match.
-            ///  - The columns of <see cref="Metadata"/> of <paramref name="source"/> is a superset of our <see cref="Metadata"/> columns.
-            ///  - Each such metadata column is itself compatible with the input metadata column.
+            ///  - The columns of <see cref="Annotations"/> of <paramref name="source"/> is a superset of our <see cref="Annotations"/> columns.
+            ///  - Each such annotation column is itself compatible with the input annotation column.
             /// </summary>
             [BestFriend]
             internal bool IsCompatibleWith(Column source)
@@ -95,11 +95,11 @@ namespace Microsoft.ML.Core.Data
                     return false;
                 if (IsKey != source.IsKey)
                     return false;
-                foreach (var metaCol in Metadata)
+                foreach (var annotationCol in Annotations)
                 {
-                    if (!source.Metadata.TryFindColumn(metaCol.Name, out var inputMetaCol))
+                    if (!source.Annotations.TryFindColumn(annotationCol.Name, out var inputAnnotationCol))
                         return false;
-                    if (!metaCol.IsCompatibleWith(inputMetaCol))
+                    if (!annotationCol.IsCompatibleWith(inputAnnotationCol))
                         return false;
                 }
                 return true;
@@ -142,9 +142,9 @@ namespace Microsoft.ML.Core.Data
         /// <param name="itemType">The item type of <paramref name="type"/>.</param>
         /// <param name="isKey">Whether <paramref name="type"/> (or its item type) is a key.</param>
         [BestFriend]
-        internal static void GetColumnTypeShape(ColumnType type,
+        internal static void GetColumnTypeShape(DataViewType type,
             out Column.VectorKind vecKind,
-            out ColumnType itemType,
+            out DataViewType itemType,
             out bool isKey)
         {
             if (type is VectorType vectorType)
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Core.Data
         /// Create a schema shape out of the fully defined schema.
         /// </summary>
         [BestFriend]
-        internal static SchemaShape Create(Schema schema)
+        internal static SchemaShape Create(DataViewSchema schema)
         {
             Contracts.CheckValue(schema, nameof(schema));
             var cols = new List<Column>();
@@ -184,17 +184,17 @@ namespace Microsoft.ML.Core.Data
             {
                 if (!schema[iCol].IsHidden)
                 {
-                    // First create the metadata.
+                    // First create the annotations.
                     var mCols = new List<Column>();
-                    foreach (var metaColumn in schema[iCol].Metadata.Schema)
+                    foreach (var annotationColumn in schema[iCol].Annotations.Schema)
                     {
-                        GetColumnTypeShape(metaColumn.Type, out var mVecKind, out var mItemType, out var mIsKey);
-                        mCols.Add(new Column(metaColumn.Name, mVecKind, mItemType, mIsKey));
+                        GetColumnTypeShape(annotationColumn.Type, out var mVecKind, out var mItemType, out var mIsKey);
+                        mCols.Add(new Column(annotationColumn.Name, mVecKind, mItemType, mIsKey));
                     }
-                    var metadata = mCols.Count > 0 ? new SchemaShape(mCols) : _empty;
+                    var annotations = mCols.Count > 0 ? new SchemaShape(mCols) : _empty;
                     // Next create the single column.
                     GetColumnTypeShape(schema[iCol].Type, out var vecKind, out var itemType, out var isKey);
-                    cols.Add(new Column(schema[iCol].Name, vecKind, itemType, isKey, metadata));
+                    cols.Add(new Column(schema[iCol].Name, vecKind, itemType, isKey, annotations));
                 }
             }
             return new SchemaShape(cols);
@@ -221,36 +221,36 @@ namespace Microsoft.ML.Core.Data
     }
 
     /// <summary>
-    /// The 'data reader' takes a certain kind of input and turns it into an <see cref="IDataView"/>.
+    /// The 'data loader' takes a certain kind of input and turns it into an <see cref="IDataView"/>.
     /// </summary>
-    /// <typeparam name="TSource">The type of input the reader takes.</typeparam>
-    public interface IDataReader<in TSource>
+    /// <typeparam name="TSource">The type of input the loader takes.</typeparam>
+    public interface IDataLoader<in TSource>
     {
         /// <summary>
         /// Produce the data view from the specified input.
-        /// Note that <see cref="IDataView"/>'s are lazy, so no actual reading happens here, just schema validation.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual loading happens here, just schema validation.
         /// </summary>
-        IDataView Read(TSource input);
+        IDataView Load(TSource input);
 
         /// <summary>
-        /// The output schema of the reader.
+        /// The output schema of the loader.
         /// </summary>
-        Schema GetOutputSchema();
+        DataViewSchema GetOutputSchema();
     }
 
     /// <summary>
-    /// Sometimes we need to 'fit' an <see cref="IDataReader{TIn}"/>.
-    /// A DataReader estimator is the object that does it.
+    /// Sometimes we need to 'fit' an <see cref="IDataLoader{TIn}"/>.
+    /// A DataLoader estimator is the object that does it.
     /// </summary>
-    public interface IDataReaderEstimator<in TSource, out TReader>
-        where TReader : IDataReader<TSource>
+    public interface IDataLoaderEstimator<in TSource, out TLoader>
+        where TLoader : IDataLoader<TSource>
     {
         // REVIEW: you could consider the transformer to take a different <typeparamref name="TSource"/>, but we don't have such components
         // yet, so why complicate matters?
         /// <summary>
-        /// Train and return a data reader.
+        /// Train and return a data loader.
         /// </summary>
-        TReader Fit(TSource input);
+        TLoader Fit(TSource input);
 
         /// <summary>
         /// The 'promise' of the output schema.
@@ -263,13 +263,13 @@ namespace Microsoft.ML.Core.Data
     /// The transformer is a component that transforms data.
     /// It also supports 'schema propagation' to answer the question of 'how will the data with this schema look, after you transform it?'.
     /// </summary>
-    public interface ITransformer
+    public interface ITransformer : ICanSaveModel
     {
         /// <summary>
         /// Schema propagation for transformers.
         /// Returns the output schema of the data, if the input schema is like the one provided.
         /// </summary>
-        Schema GetOutputSchema(Schema inputSchema);
+        DataViewSchema GetOutputSchema(DataViewSchema inputSchema);
 
         /// <summary>
         /// Take the data in, make transformations, output the data.
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Core.Data
         IDataView Transform(IDataView input);
 
         /// <summary>
-        /// Whether a call to <see cref="GetRowToRowMapper(Schema)"/> should succeed, on an
+        /// Whether a call to <see cref="GetRowToRowMapper(DataViewSchema)"/> should succeed, on an
         /// appropriate schema.
         /// </summary>
         bool IsRowToRowMapper { get; }
@@ -290,13 +290,13 @@ namespace Microsoft.ML.Core.Data
         /// </summary>
         /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
         /// <returns>The row to row mapper.</returns>
-        IRowToRowMapper GetRowToRowMapper(Schema inputSchema);
+        IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema);
     }
 
     /// <summary>
     /// The estimator (in Spark terminology) is an 'untrained transformer'. It needs to 'fit' on the data to manufacture
     /// a transformer.
-    /// It also provides the 'schema propagation' like transformers do, but over <see cref="SchemaShape"/> instead of <see cref="Schema"/>.
+    /// It also provides the 'schema propagation' like transformers do, but over <see cref="SchemaShape"/> instead of <see cref="DataViewSchema"/>.
     /// </summary>
     public interface IEstimator<out TTransformer>
         where TTransformer : ITransformer

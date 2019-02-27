@@ -6,13 +6,10 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Tools;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 using Xunit;
@@ -77,9 +74,9 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
                                new TestClass() { A = 2, B = new int[2] { 3,4 } }};
-            var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("ConvA", DataKind.R4, "A"),
-                new TypeConvertingTransformer.ColumnInfo("ConvB", DataKind.R4, "B")});
+            var dataView = ML.Data.LoadFromEnumerable(data);
+            var pipe = ML.Transforms.Conversion.ConvertType(columns: new[] {new TypeConvertingEstimator.ColumnOptions("ConvA", DataKind.Single, "A"),
+                new TypeConvertingEstimator.ColumnOptions("ConvB", DataKind.Single, "B")});
 
             TestEstimatorCore(pipe, dataView);
             var allTypesData = new[]
@@ -116,31 +113,27 @@ namespace Microsoft.ML.Tests.Transformers
                 }
             };
 
-            var allTypesDataView = ML.Data.ReadFromEnumerable(allTypesData);
-            var allTypesPipe = new TypeConvertingEstimator(Env, columns: new[] {
-                new TypeConvertingTransformer.ColumnInfo("ConvA", DataKind.R4, "AA"),
-                new TypeConvertingTransformer.ColumnInfo("ConvB", DataKind.R4, "AB"),
-                new TypeConvertingTransformer.ColumnInfo("ConvC", DataKind.R4, "AC"),
-                new TypeConvertingTransformer.ColumnInfo("ConvD", DataKind.R4, "AD"),
-                new TypeConvertingTransformer.ColumnInfo("ConvE", DataKind.R4, "AE"),
-                new TypeConvertingTransformer.ColumnInfo("ConvF", DataKind.R4, "AF"),
-                new TypeConvertingTransformer.ColumnInfo("ConvG", DataKind.R4, "AG"),
-                new TypeConvertingTransformer.ColumnInfo("ConvH", DataKind.R4, "AH"),
-                new TypeConvertingTransformer.ColumnInfo("ConvK", DataKind.R4, "AK"),
-                new TypeConvertingTransformer.ColumnInfo("ConvL", DataKind.R4, "AL"),
-                new TypeConvertingTransformer.ColumnInfo("ConvM", DataKind.R4, "AM"),
-                new TypeConvertingTransformer.ColumnInfo("ConvN", DataKind.R4, "AN")}
+            var allTypesDataView = ML.Data.LoadFromEnumerable(allTypesData);
+            var allTypesPipe = ML.Transforms.Conversion.ConvertType(columns: new[] {
+                new TypeConvertingEstimator.ColumnOptions("ConvA", DataKind.Single, "AA"),
+                new TypeConvertingEstimator.ColumnOptions("ConvB", DataKind.Single, "AB"),
+                new TypeConvertingEstimator.ColumnOptions("ConvC", DataKind.Single, "AC"),
+                new TypeConvertingEstimator.ColumnOptions("ConvD", DataKind.Single, "AD"),
+                new TypeConvertingEstimator.ColumnOptions("ConvE", DataKind.Single, "AE"),
+                new TypeConvertingEstimator.ColumnOptions("ConvF", DataKind.Single, "AF"),
+                new TypeConvertingEstimator.ColumnOptions("ConvG", DataKind.Single, "AG"),
+                new TypeConvertingEstimator.ColumnOptions("ConvH", DataKind.Single, "AH"),
+                new TypeConvertingEstimator.ColumnOptions("ConvK", DataKind.Single, "AK"),
+                new TypeConvertingEstimator.ColumnOptions("ConvL", DataKind.Single, "AL"),
+                new TypeConvertingEstimator.ColumnOptions("ConvM", DataKind.Single, "AM"),
+                new TypeConvertingEstimator.ColumnOptions("ConvN", DataKind.Single, "AN")}
             );
             TestEstimatorCore(allTypesPipe, allTypesDataView);
 
             var outputPath = GetOutputPath("Convert", "Types.tsv");
-            using (var ch = Env.Start("save"))
-            {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
-                var savedData = TakeFilter.Create(Env, allTypesPipe.Fit(allTypesDataView).Transform(allTypesDataView), 2);
-                using (var fs = File.Create(outputPath))
-                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
-            }
+            var savedData = ML.Data.TakeRows(allTypesPipe.Fit(allTypesDataView).Transform(allTypesDataView), 2);
+            using (var fs = File.Create(outputPath))
+                ML.Data.SaveAsText(savedData, fs, headerRow: true, keepHidden: true);
 
             CheckEquality("Convert", "Types.tsv");
             Done();
@@ -156,19 +149,19 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestStringClass() { A = "Stay" }, new TestStringClass() { A = "awhile and listen" } };
 
             var mlContext = new MLContext();
-            var dataView = mlContext.Data.ReadFromEnumerable(data);
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
 
             var sideDataBuilder = new ArrayDataViewBuilder(mlContext);
             sideDataBuilder.AddColumn("Hello", "hello", "my", "friend");
             var sideData = sideDataBuilder.GetDataView();
 
             // For some reason the column info is on the *transformer*, not the estimator. Already tracked as issue #1760.
-            var ci = new ValueToKeyMappingTransformer.ColumnInfo("CatA", "A");
+            var ci = new ValueToKeyMappingEstimator.ColumnOptions("CatA", "A");
             var pipe = mlContext.Transforms.Conversion.MapValueToKey(new[] { ci }, sideData);
             var output = pipe.Fit(dataView).Transform(dataView);
 
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
-            output.Schema["CatA"].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref slotNames);
+            output.Schema["CatA"].Annotations.GetValue(AnnotationUtils.Kinds.KeyValues, ref slotNames);
 
             Assert.Equal(3, slotNames.Length);
             Assert.Equal("hello", slotNames.GetItemOrDefault(0).ToString());
@@ -191,9 +184,9 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
                                new TestClass() { A = 2, B = new int[2] { 3,4 } }};
-            var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("ConvA", DataKind.R8, "A"),
-                new TypeConvertingTransformer.ColumnInfo("ConvB", DataKind.R8, "B")});
+            var dataView = ML.Data.LoadFromEnumerable(data);
+            var pipe = ML.Transforms.Conversion.ConvertType(columns: new[] {new TypeConvertingEstimator.ColumnOptions("ConvA", typeof(double), "A"),
+                new TypeConvertingEstimator.ColumnOptions("ConvB", typeof(double), "B")});
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -210,28 +203,28 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new MetaClass() { A = 1, B = "A" },
                                new MetaClass() { A = 2, B = "B" }};
-            var pipe = new OneHotEncodingEstimator(Env, new[] {
-                new OneHotEncodingEstimator.ColumnInfo("CatA", "A", OneHotEncodingTransformer.OutputKind.Ind),
-                new OneHotEncodingEstimator.ColumnInfo("CatB", "B", OneHotEncodingTransformer.OutputKind.Key)
-            }).Append(new TypeConvertingEstimator(Env, new[] {
-                new TypeConvertingTransformer.ColumnInfo("ConvA", DataKind.R8, "CatA"),
-                new TypeConvertingTransformer.ColumnInfo("ConvB", DataKind.U2, "CatB")
+            var pipe = ML.Transforms.Categorical.OneHotEncoding(new[] {
+                new OneHotEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingTransformer.OutputKind.Ind),
+                new OneHotEncodingEstimator.ColumnOptions("CatB", "B", OneHotEncodingTransformer.OutputKind.Key)
+            }).Append(ML.Transforms.Conversion.ConvertType(new[] {
+                new TypeConvertingEstimator.ColumnOptions("ConvA", DataKind.Double, "CatA"),
+                new TypeConvertingEstimator.ColumnOptions("ConvB", DataKind.UInt16, "CatB")
             }));
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             dataView = pipe.Fit(dataView).Transform(dataView);
             ValidateMetadata(dataView);
         }
 
         private void ValidateMetadata(IDataView result)
         {
-            Assert.Equal(result.Schema["ConvA"].Metadata.Schema.Select(x => x.Name), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(result.Schema["ConvA"].Annotations.Schema.Select(x => x.Name), new string[2] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.IsNormalized });
             VBuffer<ReadOnlyMemory<char>> slots = default;
             result.Schema["ConvA"].GetSlotNames(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "1", "2" });
             Assert.True(result.Schema["ConvA"].IsNormalized());
 
-            Assert.Equal(result.Schema["ConvB"].Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.KeyValues });
+            Assert.Equal(result.Schema["ConvB"].Annotations.Schema.Select(x => x.Name), new string[1] { AnnotationUtils.Kinds.KeyValues });
             result.Schema["ConvB"].GetKeyValues(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "A", "B" });
@@ -241,7 +234,7 @@ namespace Microsoft.ML.Tests.Transformers
         public class SimpleSchemaUIntColumn
         {
             [LoadColumn(0)]
-            [KeyType(Count = 4)]
+            [KeyType(4)]
             public uint key;
         }
 
@@ -249,8 +242,8 @@ namespace Microsoft.ML.Tests.Transformers
         public void TypeConvertKeyBackCompatTest()
         {
             // Model generated using the following command before the change removing Min and Count from KeyType.
-            // ML.Transforms.Conversion.ConvertType(new[] { new TypeConvertingTransformer.ColumnInfo("key", "convertedKey",
-            //      DataKind.U8, new KeyCount(4)) }).Fit(dataView);
+            // ML.Transforms.Conversion.ConvertType(new[] { new TypeConvertingEstimator.ColumnOptions("key", "convertedKey",
+            //      DataKind.UInt64, new KeyCount(4)) }).Fit(dataView);
             var dataArray = new[]
             {
                 new SimpleSchemaUIntColumn() { key = 0 },
@@ -260,7 +253,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             };
 
-            var dataView = ML.Data.ReadFromEnumerable(dataArray);
+            var dataView = ML.Data.LoadFromEnumerable(dataArray);
 
             // Check old model can be loaded.
             var modelPath = GetDataPath("backcompat", "type-convert-key-model.zip");
@@ -268,12 +261,12 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("load"))
             {
                 using (var fs = File.OpenRead(modelPath))
-                     modelOld = ML.Model.Load(fs);
+                    modelOld = ML.Model.Load(fs);
             }
-            var outDataOld = modelOld.Transform(dataView); 
+            var outDataOld = modelOld.Transform(dataView);
 
-            var modelNew = ML.Transforms.Conversion.ConvertType(new[] { new TypeConvertingTransformer.ColumnInfo("convertedKey",
-                DataKind.U8, "key", new KeyCount(4)) }).Fit(dataView);
+            var modelNew = ML.Transforms.Conversion.ConvertType(new[] { new TypeConvertingEstimator.ColumnOptions("convertedKey",
+                DataKind.UInt64, "key", new KeyCount(4)) }).Fit(dataView);
             var outDataNew = modelNew.Transform(dataView);
 
             // Check that old and new model produce the same result.

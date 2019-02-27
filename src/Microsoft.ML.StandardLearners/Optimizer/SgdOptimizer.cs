@@ -14,12 +14,12 @@ namespace Microsoft.ML.Numeric
     /// </summary>
     /// <param name="x">Current iterate</param>
     /// <returns>True if search should terminate</returns>
-    public delegate bool DTerminate(in VBuffer<Float> x);
+    internal delegate bool DTerminate(in VBuffer<Float> x);
 
     /// <summary>
     /// Stochastic gradient descent with variations (minibatch, momentum, averaging).
     /// </summary>
-    public sealed class SgdOptimizer
+    internal sealed class SgdOptimizer
     {
         private int _batchSize;
 
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Numeric
     /// <summary>
     /// Deterministic gradient descent with line search
     /// </summary>
-    public class GDOptimizer
+    internal class GDOptimizer
     {
         /// <summary>
         /// Line search to use.

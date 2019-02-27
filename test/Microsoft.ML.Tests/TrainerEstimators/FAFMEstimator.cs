@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.FactorizationMachine;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.SamplesUtils;
+using Microsoft.ML.Trainers.FactorizationMachine;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -18,9 +17,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var mlContext = new MLContext(seed: 0);
             var data = DatasetUtils.GenerateFfmSamples(500);
-            var dataView = mlContext.Data.ReadFromEnumerable(data);
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
 
-            var ffmArgs = new FieldAwareFactorizationMachineTrainer.Options();
+            var ffmArgs = new FieldAwareFactorizationMachineBinaryClassificationTrainer.Options();
 
             // Customized the field names.
             ffmArgs.FeatureColumn = nameof(DatasetUtils.FfmExample.Field0); // First field.
@@ -43,38 +42,38 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void FieldAwareFactorizationMachine_Estimator()
         {
             var data = new TextLoader(Env, GetFafmBCLoaderArgs())
-                    .Read(GetDataPath(TestDatasets.breastCancer.trainFilename));
+                    .Load(GetDataPath(TestDatasets.breastCancer.trainFilename));
 
-            var ffmArgs = new FieldAwareFactorizationMachineTrainer.Options {
+            var ffmArgs = new FieldAwareFactorizationMachineBinaryClassificationTrainer.Options {
                 FeatureColumn = "Feature1", // Features from the 1st field.
                 ExtraFeatureColumns = new[] { "Feature2", "Feature3",  "Feature4" }, // 2nd field's feature column, 3rd field's feature column, 4th field's feature column.
                 Shuffle = false,
-                Iters = 3,
-                LatentDim = 7,
+                NumberOfIterations = 3,
+                LatentDimension = 7,
             };
 
             var est = ML.BinaryClassification.Trainers.FieldAwareFactorizationMachine(ffmArgs);
 
             TestEstimatorCore(est, data);
             var model = est.Fit(data);
-            var anotherModel = est.Train(data, data, model.Model);
+            var anotherModel = est.Fit(data, data, model.Model);
 
             Done();
         }
 
-        private TextLoader.Arguments GetFafmBCLoaderArgs()
+        private TextLoader.Options GetFafmBCLoaderArgs()
         {
-            return new TextLoader.Arguments()
+            return new TextLoader.Options()
             {
                 Separator = "\t",
                 HasHeader = false,
-                Column = new[]
+                Columns = new[]
                 {
-                    new TextLoader.Column("Feature1", DataKind.R4, new [] { new TextLoader.Range(1, 2) }),
-                    new TextLoader.Column("Feature2", DataKind.R4, new [] { new TextLoader.Range(3, 4) }),
-                    new TextLoader.Column("Feature3", DataKind.R4, new [] { new TextLoader.Range(5, 6) }),
-                    new TextLoader.Column("Feature4", DataKind.R4, new [] { new TextLoader.Range(7, 9) }),
-                    new TextLoader.Column("Label", DataKind.BL, 0)
+                    new TextLoader.Column("Feature1", DataKind.Single, new [] { new TextLoader.Range(1, 2) }),
+                    new TextLoader.Column("Feature2", DataKind.Single, new [] { new TextLoader.Range(3, 4) }),
+                    new TextLoader.Column("Feature3", DataKind.Single, new [] { new TextLoader.Range(5, 6) }),
+                    new TextLoader.Column("Feature4", DataKind.Single, new [] { new TextLoader.Range(7, 9) }),
+                    new TextLoader.Column("Label", DataKind.Boolean, 0)
                 }
             };
         }

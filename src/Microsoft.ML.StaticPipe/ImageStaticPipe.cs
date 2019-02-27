@@ -71,14 +71,14 @@ namespace Microsoft.ML.StaticPipe
         /// <returns>The now uniformly sized images</returns>
         /// <seealso cref="ImageResizingEstimator"/>
         public static Custom<Bitmap> Resize(this Custom<UnknownSizeBitmap> input, int width, int height,
-            ImageResizerTransformer.ResizingKind resizing = ImageResizerTransformer.ResizingKind.IsoCrop,
-            ImageResizerTransformer.Anchor cropAnchor = ImageResizerTransformer.Anchor.Center)
+            ImageResizingEstimator.ResizingKind resizing = ImageResizingEstimator.ResizingKind.IsoCrop,
+            ImageResizingEstimator.Anchor cropAnchor = ImageResizingEstimator.Anchor.Center)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckParam(width > 0, nameof(width), "Must be positive");
             Contracts.CheckParam(height > 0, nameof(height), "Must be positive");
-            Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransformer.ResizingKind), resizing), nameof(resizing), "Undefined value detected");
-            Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransformer.Anchor), cropAnchor), nameof(cropAnchor), "Undefined value detected");
+            Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizingEstimator.ResizingKind), resizing), nameof(resizing), "Undefined value detected");
+            Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizingEstimator.Anchor), cropAnchor), nameof(cropAnchor), "Undefined value detected");
 
             return new ImageResizingStaticExtensions.OutPipelineColumn(input, width, height, resizing, cropAnchor);
         }
@@ -94,14 +94,14 @@ namespace Microsoft.ML.StaticPipe
         /// <returns>The resized images</returns>
         /// <seealso cref="ImageResizingEstimator"/>
         public static Custom<Bitmap> Resize(this Custom<Bitmap> input, int width, int height,
-            ImageResizerTransformer.ResizingKind resizing = ImageResizerTransformer.ResizingKind.IsoCrop,
-            ImageResizerTransformer.Anchor cropAnchor = ImageResizerTransformer.Anchor.Center)
+            ImageResizingEstimator.ResizingKind resizing = ImageResizingEstimator.ResizingKind.IsoCrop,
+            ImageResizingEstimator.Anchor cropAnchor = ImageResizingEstimator.Anchor.Center)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckParam(width > 0, nameof(width), "Must be positive");
             Contracts.CheckParam(height > 0, nameof(height), "Must be positive");
-            Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransformer.ResizingKind), resizing), nameof(resizing), "Undefined value detected");
-            Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransformer.Anchor), cropAnchor), nameof(cropAnchor), "Undefined value detected");
+            Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizingEstimator.ResizingKind), resizing), nameof(resizing), "Undefined value detected");
+            Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizingEstimator.Anchor), cropAnchor), nameof(cropAnchor), "Undefined value detected");
 
             return new ImageResizingStaticExtensions.OutPipelineColumn(input, width, height, resizing, cropAnchor);
         }
@@ -109,28 +109,29 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Vectorizes the image as the numeric values of its pixels converted and possibly transformed to floating point values.
         /// The output vector is output in height then width major order, with the channels being the most minor (if
-        /// <paramref name="interleaveArgb"/> is true) or major (if <paramref name="interleaveArgb"/> is false) dimension.
+        /// <paramref name="interleave"/> is true) or major (if <paramref name="interleave"/> is false) dimension.
         /// </summary>
         /// <param name="input">The input image to extract</param>
         /// <param name="useAlpha">Whether the alpha channel should be extracted</param>
         /// <param name="useRed">Whether the red channel should be extracted</param>
         /// <param name="useGreen">Whether the green channel should be extracted</param>
         /// <param name="useBlue">Whether the blue channel should be extracted</param>
-        /// <param name="interleaveArgb">Whether the pixel values should be interleaved, as opposed to being separated by channel</param>
+        /// <param name="order">In which order extract channels.</param>
+        /// <param name="interleave">Whether the pixel values should be interleaved, as opposed to being separated by channel</param>
         /// <param name="scale">Scale the normally 0 through 255 pixel values by this amount</param>
         /// <param name="offset">Add this amount to the pixel values, before scaling</param>
         /// <returns>The vectorized image</returns>
         /// <seealso cref="ImagePixelExtractingEstimator"/>
         public static Vector<float> ExtractPixels(this Custom<Bitmap> input, bool useAlpha = false, bool useRed = true,
-            bool useGreen = true, bool useBlue = true, bool interleaveArgb = false, float scale = 1.0f, float offset = 0.0f)
+            bool useGreen = true, bool useBlue = true, ImagePixelExtractingEstimator.ColorsOrder order = ImagePixelExtractingEstimator.Defaults.Order, bool interleave = false, float scale = 1.0f, float offset = 0.0f)
         {
-            var colParams = new ImagePixelExtractorTransformer.Column
+            var colParams = new ImagePixelExtractingTransformer.Column
             {
                 UseAlpha = useAlpha,
                 UseRed = useRed,
                 UseGreen = useGreen,
                 UseBlue = useBlue,
-                InterleaveArgb = interleaveArgb,
+                Interleave = interleave,
                 Scale = scale,
                 Offset = offset,
                 Convert = true
@@ -141,26 +142,27 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Vectorizes the image as the numeric byte values of its pixels.
         /// The output vector is output in height then width major order, with the channels being the most minor (if
-        /// <paramref name="interleaveArgb"/> is true) or major (if <paramref name="interleaveArgb"/> is false) dimension.
+        /// <paramref name="interleave"/> is true) or major (if <paramref name="interleave"/> is false) dimension.
         /// </summary>
         /// <param name="input">The input image to extract</param>
         /// <param name="useAlpha">Whether the alpha channel should be extracted</param>
         /// <param name="useRed">Whether the red channel should be extracted</param>
         /// <param name="useGreen">Whether the green channel should be extracted</param>
         /// <param name="useBlue">Whether the blue channel should be extracted</param>
-        /// <param name="interleaveArgb">Whether the pixel values should be interleaved, as opposed to being separated by channel</param>
+        /// <param name="order">In which order extract channels.</param>
+        /// <param name="interleave">Whether the pixel values should be interleaved, as opposed to being separated by channel</param>
         /// <returns>The vectorized image</returns>
         /// <seealso cref="ImagePixelExtractingEstimator"/>
         public static Vector<byte> ExtractPixelsAsBytes(this Custom<Bitmap> input, bool useAlpha = false, bool useRed = true,
-            bool useGreen = true, bool useBlue = true, bool interleaveArgb = false)
+            bool useGreen = true, bool useBlue = true, ImagePixelExtractingEstimator.ColorsOrder order = ImagePixelExtractingEstimator.Defaults.Order, bool interleave = false)
         {
-            var colParams = new ImagePixelExtractorTransformer.Column
+            var colParams = new ImagePixelExtractingTransformer.Column
             {
                 UseAlpha = useAlpha,
                 UseRed = useRed,
                 UseGreen = useGreen,
                 UseBlue = useBlue,
-                InterleaveArgb = interleaveArgb,
+                Interleave = interleave,
                 Convert = false
             };
             return new ImagePixelExtractingStaticExtensions.OutPipelineColumn<byte>(input, colParams);

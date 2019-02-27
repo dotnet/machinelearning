@@ -5,19 +5,19 @@
 using System;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(MultiVoting), null, typeof(SignatureCombiner), Voting.UserName, MultiVoting.LoadName)]
 [assembly: LoadableClass(typeof(MultiVoting), null, typeof(SignatureLoadModel), Voting.UserName, MultiVoting.LoaderSignature)]
 
-namespace Microsoft.ML.Ensemble.OutputCombiners
+namespace Microsoft.ML.Trainers.Ensemble
 {
     // REVIEW: Why is MultiVoting based on BaseMultiCombiner? Normalizing the model outputs
     // is senseless, so the base adds no real functionality.
-    public sealed class MultiVoting : BaseMultiCombiner, ICanSaveModel
+    internal sealed class MultiVoting : BaseMultiCombiner
     {
         public const string LoadName = "MultiVoting";
         public const string LoaderSignature = "MultiVotingCombiner";
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
                 loaderAssemblyName: typeof(MultiVoting).Assembly.FullName);
         }
 
-        private sealed class Arguments : ArgumentsBase
+        private sealed class Arguments : OptionsBase
         {
         }
 

@@ -8,21 +8,22 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Newtonsoft.Json.Linq;
 using Float = System.Single;
 
 [assembly: LoadableClass(typeof(BinaryClassifierScorer), typeof(BinaryClassifierScorer.Arguments), typeof(SignatureDataScorer),
     "Binary Classifier Scorer", "BinaryClassifierScorer", "BinaryClassifier", "Binary",
-    "bin", MetadataUtils.Const.ScoreColumnKind.BinaryClassification)]
+    "bin", AnnotationUtils.Const.ScoreColumnKind.BinaryClassification)]
 
 [assembly: LoadableClass(typeof(BinaryClassifierScorer), null, typeof(SignatureLoadDataTransform),
     "Binary Classifier Scorer", BinaryClassifierScorer.LoaderSignature)]
 
 namespace Microsoft.ML.Data
 {
-    public sealed class BinaryClassifierScorer : PredictedLabelScorerBase, ITransformCanSaveOnnx
+    [BestFriend]
+    internal sealed class BinaryClassifierScorer : PredictedLabelScorerBase, ITransformCanSaveOnnx
     {
         public sealed class Arguments : ThresholdArgumentsBase
         {
@@ -64,7 +65,7 @@ namespace Microsoft.ML.Data
 
             if (trainSchema?.Label == null)
                 return mapper; // We don't even have a label identified in a training schema.
-            var keyType = trainSchema.Label.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+            var keyType = trainSchema.Label.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
             if (keyType == null || !CanWrap(mapper, keyType))
                 return mapper;
 
@@ -84,7 +85,7 @@ namespace Microsoft.ML.Data
         /// from the model of a bindable mapper)</param>
         /// <returns>Whether we can call <see cref="MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound{T}"/> with
         /// this mapper and expect it to succeed</returns>
-        private static bool CanWrap(ISchemaBoundMapper mapper, ColumnType labelNameType)
+        private static bool CanWrap(ISchemaBoundMapper mapper, DataViewType labelNameType)
         {
             Contracts.AssertValue(mapper);
             Contracts.AssertValue(labelNameType);
@@ -94,9 +95,9 @@ namespace Microsoft.ML.Data
                 return false; // We could cover this case, but it is of no practical worth as far as I see, so I decline to do so.
 
             int scoreIdx;
-            if (!mapper.OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIdx))
+            if (!mapper.OutputSchema.TryGetColumnIndex(AnnotationUtils.Const.ScoreValueKind.Score, out scoreIdx))
                 return false; // The mapper doesn't even publish a score column to attach the metadata to.
-            if (mapper.OutputSchema[scoreIdx].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.TrainingLabelValues)?.Type != null)
+            if (mapper.OutputSchema[scoreIdx].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.TrainingLabelValues)?.Type != null)
                 return false; // The mapper publishes a score column, and already produces its own slot names.
 
             return labelNameType is VectorType vectorType && vectorType.Size == 2;
@@ -112,19 +113,19 @@ namespace Microsoft.ML.Data
             var labelColumn = trainSchema.Label.Value;
 
             // Key values from the training schema label, will map to slot names of the score output.
-            var type = labelColumn.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+            var type = labelColumn.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
             env.AssertValue(type);
 
             // Wrap the fetching of the metadata as a simple getter.
             ValueGetter<VBuffer<T>> getter = (ref VBuffer<T> value) =>
                 labelColumn.GetKeyValues(ref value);
 
-            return MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type, getter, MetadataUtils.Kinds.TrainingLabelValues, CanWrap);
+            return MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type, getter, AnnotationUtils.Kinds.TrainingLabelValues, CanWrap);
         }
 
         [BestFriend]
         internal BinaryClassifierScorer(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
-            : base(args, env, data, WrapIfNeeded(env, mapper, trainSchema), trainSchema, RegistrationName, MetadataUtils.Const.ScoreColumnKind.BinaryClassification,
+            : base(args, env, data, WrapIfNeeded(env, mapper, trainSchema), trainSchema, RegistrationName, AnnotationUtils.Const.ScoreColumnKind.BinaryClassification,
                 Contracts.CheckRef(args, nameof(args)).ThresholdColumn, OutputTypeMatches, GetPredColType)
         {
             Contracts.CheckValue(args, nameof(args));
@@ -209,7 +210,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public override IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
+        private protected override IDataTransform ApplyToDataCore(IHostEnvironment env, IDataView newSource)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(newSource, nameof(newSource));
@@ -217,7 +218,7 @@ namespace Microsoft.ML.Data
             return new BinaryClassifierScorer(env, this, newSource);
         }
 
-        protected override Delegate GetPredictedLabelGetter(Row output, out Delegate scoreGetter)
+        protected override Delegate GetPredictedLabelGetter(DataViewRow output, out Delegate scoreGetter)
         {
             Host.AssertValue(output);
             Host.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
@@ -285,15 +286,15 @@ namespace Microsoft.ML.Data
                 PfaUtils.If(PfaUtils.Call("<=", scoreToken, _threshold), falseVal, nullVal));
         }
 
-        private static ColumnType GetPredColType(ColumnType scoreType, ISchemaBoundRowMapper mapper)
+        private static DataViewType GetPredColType(DataViewType scoreType, ISchemaBoundRowMapper mapper)
         {
             var labelNameBindableMapper = mapper.Bindable as MultiClassClassifierScorer.LabelNameBindableMapper;
             if (labelNameBindableMapper == null)
-                return BoolType.Instance;
+                return BooleanDataViewType.Instance;
             return new KeyType(typeof(uint), labelNameBindableMapper.Type.Size);
         }
 
-        private static bool OutputTypeMatches(ColumnType scoreType)
-            => scoreType == NumberType.Float;
+        private static bool OutputTypeMatches(DataViewType scoreType)
+            => scoreType == NumberDataViewType.Single;
     }
 }

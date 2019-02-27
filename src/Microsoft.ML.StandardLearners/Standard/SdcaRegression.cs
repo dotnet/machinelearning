@@ -6,15 +6,12 @@ using System;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
+using Microsoft.ML.Model;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(SdcaRegressionTrainer.Summary, typeof(SdcaRegressionTrainer), typeof(SdcaRegressionTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -32,7 +29,7 @@ namespace Microsoft.ML.Trainers
         internal const string ShortName = "sasdcar";
         internal const string Summary = "The SDCA linear regression trainer.";
 
-        public sealed class Options : ArgumentsBase
+        public sealed class Options : OptionsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaRegressionLossFactory LossFunction = new SquaredLossFactory();
@@ -49,7 +46,7 @@ namespace Microsoft.ML.Trainers
 
         private readonly ISupportSdcaRegressionLoss _loss;
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         /// <summary>
         /// Initializes a new instance of <see cref="SdcaRegressionTrainer"/>
@@ -75,7 +72,7 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            _loss = loss ?? Args.LossFunction.CreateComponent(env);
+            _loss = loss ?? SdcaTrainerOptions.LossFunction.CreateComponent(env);
             Loss = _loss;
         }
 
@@ -94,7 +91,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        protected override LinearRegressionModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        private protected override LinearRegressionModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
             Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
@@ -103,7 +100,7 @@ namespace Microsoft.ML.Trainers
             VBuffer<float> maybeSparseWeights = default;
             // below should be `in weights[0]`, but can't because of https://github.com/dotnet/roslyn/issues/29371
             VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
-                Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
+                Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
 
             return new LinearRegressionModelParameters(Host, in maybeSparseWeights, bias[0]);
         }
@@ -132,7 +129,7 @@ namespace Microsoft.ML.Trainers
         }
 
         // Using a different logic for default L2 parameter in regression.
-        protected override float TuneDefaultL2(IChannel ch, int maxIterations, long rowCount, int numThreads)
+        private protected override float TuneDefaultL2(IChannel ch, int maxIterations, long rowCount, int numThreads)
         {
             Contracts.AssertValue(ch);
             Contracts.Assert(maxIterations > 0);
@@ -151,15 +148,15 @@ namespace Microsoft.ML.Trainers
             return l2;
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
-        protected override RegressionPredictionTransformer<LinearRegressionModelParameters> MakeTransformer(LinearRegressionModelParameters model, Schema trainSchema)
+        private protected override RegressionPredictionTransformer<LinearRegressionModelParameters> MakeTransformer(LinearRegressionModelParameters model, DataViewSchema trainSchema)
             => new RegressionPredictionTransformer<LinearRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
     }
 
@@ -171,9 +168,7 @@ namespace Microsoft.ML.Trainers
         [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentRegressor",
             Desc = SdcaRegressionTrainer.Summary,
             UserName = SdcaRegressionTrainer.UserNameValue,
-            ShortName = SdcaRegressionTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""SDCA""]/*' />",
-                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/example[@name=""StochasticDualCoordinateAscentRegressor""]/*' />" })]
+            ShortName = SdcaRegressionTrainer.ShortName)]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, SdcaRegressionTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));

@@ -9,48 +9,48 @@ using System.Linq;
 namespace Microsoft.Data.DataView
 {
     /// <summary>
-    /// The debugger proxy for <see cref="Schema"/>.
+    /// The debugger proxy for <see cref="DataViewSchema"/>.
     /// </summary>
     internal sealed class SchemaDebuggerProxy
     {
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public Schema.Column[] Columns { get; }
+        public DataViewSchema.Column[] Columns { get; }
 
-        public SchemaDebuggerProxy(Schema schema)
+        public SchemaDebuggerProxy(DataViewSchema schema)
         {
             Columns = Enumerable.Range(0, schema.Count).Select(x => schema[x]).ToArray();
         }
     }
 
     /// <summary>
-    /// The debugger proxy for <see cref="Schema.Metadata"/>.
+    /// The debugger proxy for <see cref="DataViewSchema.Annotations"/>.
     /// </summary>
-    internal sealed class MetadataDebuggerProxy
+    internal sealed class AnnotationsDebuggerProxy
     {
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
         public IReadOnlyList<KeyValuePair<string, object>> Values { get; }
 
-        public MetadataDebuggerProxy(Schema.Metadata metadata)
+        public AnnotationsDebuggerProxy(DataViewSchema.Annotations annotations)
         {
-            Values = BuildValues(metadata);
+            Values = BuildValues(annotations);
         }
 
-        private static List<KeyValuePair<string, object>> BuildValues(Schema.Metadata metadata)
+        private static List<KeyValuePair<string, object>> BuildValues(DataViewSchema.Annotations annotations)
         {
             var result = new List<KeyValuePair<string, object>>();
-            foreach (var column in metadata.Schema)
+            foreach (var column in annotations.Schema)
             {
                 var name = column.Name;
-                var value = Utils.MarshalInvoke(GetValue<int>, column.Type.RawType, metadata, column.Index);
+                var value = Utils.MarshalInvoke(GetValue<int>, column.Type.RawType, annotations, column.Index);
                 result.Add(new KeyValuePair<string, object>(name, value));
             }
             return result;
         }
 
-        private static object GetValue<T>(Schema.Metadata metadata, int columnIndex)
+        private static object GetValue<T>(DataViewSchema.Annotations annotations, int columnIndex)
         {
             T value = default;
-            metadata.GetGetter<T>(columnIndex)(ref value);
+            annotations.GetGetter<T>(columnIndex)(ref value);
             return value;
         }
     }

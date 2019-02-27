@@ -5,9 +5,10 @@
 using System;
 using System.Text;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
-    public class VectorUtils
+    [BestFriend]
+    internal class VectorUtils
     {
         public static double GetVectorSize(double[] vector)
         {

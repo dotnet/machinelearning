@@ -1,9 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML</IncludeInPackage>
-	<DefineConstants>$(DefineConstants);USE_FASTTREENATIVE;NO_STORE;CORECLR</DefineConstants>
+    <DefineConstants>$(DefineConstants);USE_FASTTREENATIVE;NO_STORE;CORECLR</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -11,7 +11,6 @@
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.csproj" />
   </ItemGroup>
   
 </Project>

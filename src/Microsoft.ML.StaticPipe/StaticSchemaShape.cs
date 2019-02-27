@@ -6,10 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.StaticPipe.Runtime
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// A schema shape with names corresponding to a type parameter in one of the typed variants
@@ -51,7 +50,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
         /// </summary>
         /// <param name="ectx">The context on which to throw exceptions</param>
         /// <param name="schema">The schema to check</param>
-        public void Check(IExceptionContext ectx, Schema schema)
+        public void Check(IExceptionContext ectx, DataViewSchema schema)
         {
             Contracts.AssertValue(ectx);
             ectx.AssertValue(schema);
@@ -139,7 +138,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 Contracts.Assert(physType == typeof(byte) || physType == typeof(ushort)
                     || physType == typeof(uint) || physType == typeof(ulong));
                 var keyType = typeof(Key<>).MakeGenericType(physType);
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var kvMeta))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var kvMeta))
                 {
                     var subtype = GetTypeOrNull(kvMeta);
                     if (subtype != null && subtype.IsGenericType)
@@ -157,7 +156,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 return vecType?.MakeGenericType(keyType) ?? keyType;
             }
 
-            if (col.ItemType is PrimitiveType pt)
+            if (col.ItemType is PrimitiveDataViewType pt)
             {
                 Type physType = GetPhysicalType(pt);
                 // Though I am unaware of any existing instances, it is theoretically possible for a
@@ -165,11 +164,11 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 // not be one of the built in types. (For example, an outside analogy to the key types.) For this
                 // reason, we must be certain that when we return here we are covering one fo the builtin types.
                 if (physType != null && (
-                    pt == NumberType.I1 || pt == NumberType.I2 || pt == NumberType.I4 || pt == NumberType.I4 ||
-                    pt == NumberType.U1 || pt == NumberType.U2 || pt == NumberType.U4 || pt == NumberType.U4 ||
-                    pt == NumberType.R4 || pt == NumberType.R8 || pt == NumberType.UG || pt == BoolType.Instance ||
-                    pt == DateTimeType.Instance || pt == DateTimeOffsetType.Instance || pt == TimeSpanType.Instance ||
-                    pt == TextType.Instance))
+                    pt == NumberDataViewType.SByte || pt == NumberDataViewType.Int16 || pt == NumberDataViewType.Int32 || pt == NumberDataViewType.Int32 ||
+                    pt == NumberDataViewType.Byte || pt == NumberDataViewType.UInt16 || pt == NumberDataViewType.UInt32 || pt == NumberDataViewType.UInt32 ||
+                    pt == NumberDataViewType.Single || pt == NumberDataViewType.Double || pt == RowIdDataViewType.Instance || pt == BooleanDataViewType.Instance ||
+                    pt == DateTimeDataViewType.Instance || pt == DateTimeOffsetDataViewType.Instance || pt == TimeSpanDataViewType.Instance ||
+                    pt == TextDataViewType.Instance))
                 {
                     return (vecType ?? typeof(Scalar<>)).MakeGenericType(physType);
                 }
@@ -233,8 +232,8 @@ namespace Microsoft.ML.StaticPipe.Runtime
         /// </summary>
         /// <param name="col">The column</param>
         /// <returns>The .NET type for the static pipelines that should be used to reflect this type, given
-        /// both the characteristics of the <see cref="ColumnType"/> as well as one or two crucial pieces of metadata</returns>
-        private static Type GetTypeOrNull(Schema.Column col)
+        /// both the characteristics of the <see cref="DataViewType"/> as well as one or two crucial pieces of metadata</returns>
+        private static Type GetTypeOrNull(DataViewSchema.Column col)
         {
             var t = col.Type;
 
@@ -247,11 +246,11 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 {
                     // Check to see if the column is normalized.
                     // Once we shift to metadata being a row globally we can also make this a bit more efficient:
-                    var meta = col.Metadata;
-                    if (meta.Schema.TryGetColumnIndex(MetadataUtils.Kinds.IsNormalized, out int normcol))
+                    var meta = col.Annotations;
+                    if (meta.Schema.TryGetColumnIndex(AnnotationUtils.Kinds.IsNormalized, out int normcol))
                     {
                         var normtype = meta.Schema[normcol].Type;
-                        if (normtype == BoolType.Instance)
+                        if (normtype == BooleanDataViewType.Instance)
                         {
                             bool val = default;
                             meta.GetGetter<bool>(normcol)(ref val);
@@ -276,8 +275,8 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 if (kt.Count > 0)
                 {
                     // Check to see if we have key value metadata of the appropriate type, size, and whatnot.
-                    var meta = col.Metadata;
-                    if (meta.Schema.TryGetColumnIndex(MetadataUtils.Kinds.KeyValues, out int kvcolIndex))
+                    var meta = col.Annotations;
+                    if (meta.Schema.TryGetColumnIndex(AnnotationUtils.Kinds.KeyValues, out int kvcolIndex))
                     {
                         var kvcol = meta.Schema[kvcolIndex];
                         var kvType = kvcol.Type;
@@ -302,7 +301,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 return vecType?.MakeGenericType(keyType) ?? keyType;
             }
 
-            if (t is PrimitiveType pt)
+            if (t is PrimitiveDataViewType pt)
             {
                 Type physType = GetPhysicalType(pt);
                 // Though I am unaware of any existing instances, it is theoretically possible for a
@@ -310,11 +309,11 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 // not be one of the built in types. (For example, an outside analogy to the key types.) For this
                 // reason, we must be certain that when we return here we are covering one fo the builtin types.
                 if (physType != null && (
-                    pt == NumberType.I1 || pt == NumberType.I2 || pt == NumberType.I4 || pt == NumberType.I8 ||
-                    pt == NumberType.U1 || pt == NumberType.U2 || pt == NumberType.U4 || pt == NumberType.U8 ||
-                    pt == NumberType.R4 || pt == NumberType.R8 || pt == NumberType.UG || pt == BoolType.Instance ||
-                    pt == DateTimeType.Instance || pt == DateTimeOffsetType.Instance || pt == TimeSpanType.Instance ||
-                    pt == TextType.Instance))
+                    pt == NumberDataViewType.SByte || pt == NumberDataViewType.Int16 || pt == NumberDataViewType.Int32 || pt == NumberDataViewType.Int64 ||
+                    pt == NumberDataViewType.Byte || pt == NumberDataViewType.UInt16 || pt == NumberDataViewType.UInt32 || pt == NumberDataViewType.UInt64 ||
+                    pt == NumberDataViewType.Single || pt == NumberDataViewType.Double || pt == RowIdDataViewType.Instance || pt == BooleanDataViewType.Instance ||
+                    pt == DateTimeDataViewType.Instance || pt == DateTimeOffsetDataViewType.Instance || pt == TimeSpanDataViewType.Instance ||
+                    pt == TextDataViewType.Instance))
                 {
                     return (vecType ?? typeof(Scalar<>)).MakeGenericType(physType);
                 }
@@ -325,22 +324,22 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
         /// <summary>
         /// Note that this can return a different type than the actual physical representation type, for example, for
-        /// <see cref="DataKind.Text"/> the return type is <see cref="string"/>, even though we do not use that
+        /// <see cref="InternalDataKind.Text"/> the return type is <see cref="string"/>, even though we do not use that
         /// type for communicating text.
         /// </summary>
         /// <returns>The basic type used to represent an item type in the static pipeline</returns>
-        private static Type GetPhysicalType(ColumnType columnType)
+        private static Type GetPhysicalType(DataViewType columnType)
         {
             switch (columnType)
             {
-                case NumberType numberType:
+                case NumberDataViewType numberType:
                 case KeyType keyType:
-                case TimeSpanType timeSpanType:
-                case DateTimeType dateTimeType:
-                case DateTimeOffsetType dateTimeOffsetType:
-                case BoolType boolType:
+                case TimeSpanDataViewType timeSpanType:
+                case DateTimeDataViewType dateTimeType:
+                case DateTimeOffsetDataViewType dateTimeOffsetType:
+                case BooleanDataViewType boolType:
                     return columnType.RawType;
-                case TextType textType:
+                case TextDataViewType textType:
                     return typeof(string);
 
                 default:

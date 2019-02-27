@@ -7,24 +7,21 @@ using System.Threading.Tasks;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(EnsembleModelParameters), null, typeof(SignatureLoadModel), EnsembleModelParameters.UserName,
     EnsembleModelParameters.LoaderSignature)]
 
 [assembly: EntryPointModule(typeof(EnsembleModelParameters))]
 
-namespace Microsoft.ML.Ensemble
+namespace Microsoft.ML.Trainers.Ensemble
 {
-    using TScalarPredictor = IPredictorProducing<Single>;
-
     /// <summary>
     /// A class for artifacts of ensembled models.
     /// </summary>
-    public sealed class EnsembleModelParameters : EnsembleModelParametersBase<TScalarPredictor, Single>, IValueMapper
+    internal sealed class EnsembleModelParameters : EnsembleModelParametersBase<Single>, IValueMapper
     {
         internal const string UserName = "Ensemble Executor";
         internal const string LoaderSignature = "EnsembleFloatExec";
@@ -46,9 +43,9 @@ namespace Microsoft.ML.Ensemble
         private readonly IValueMapper[] _mappers;
 
         private readonly VectorType _inputType;
-        ColumnType IValueMapper.InputType => _inputType;
-        ColumnType IValueMapper.OutputType => NumberType.Float;
-        public override PredictionKind PredictionKind { get; }
+        DataViewType IValueMapper.InputType => _inputType;
+        DataViewType IValueMapper.OutputType => NumberDataViewType.Single;
+        private protected override PredictionKind PredictionKind { get; }
 
         /// <summary>
         /// Instantiate new ensemble model from existing sub-models.
@@ -58,8 +55,8 @@ namespace Microsoft.ML.Ensemble
         /// <param name="models">Array of sub-models that you want to ensemble together.</param>
         /// <param name="combiner">The combiner class to use to ensemble the models.</param>
         /// <param name="weights">The weights assigned to each model to be ensembled.</param>
-        public EnsembleModelParameters(IHostEnvironment env, PredictionKind kind,
-            FeatureSubsetModel<TScalarPredictor>[] models, IOutputCombiner<Single> combiner, Single[] weights = null)
+        internal EnsembleModelParameters(IHostEnvironment env, PredictionKind kind,
+            FeatureSubsetModel<float>[] models, IOutputCombiner<Single> combiner, Single[] weights = null)
             : base(env, LoaderSignature, models, combiner, weights)
         {
             PredictionKind = kind;
@@ -94,14 +91,14 @@ namespace Microsoft.ML.Ensemble
                 mappers[i] = vm;
             }
 
-            return inputType ?? new VectorType(NumberType.Float);
+            return inputType ?? new VectorType(NumberDataViewType.Single);
         }
 
         private bool IsValid(IValueMapper mapper, out VectorType inputType)
         {
             if (mapper != null
-                && mapper.InputType is VectorType inputVectorType && inputVectorType.ItemType == NumberType.Float
-                && mapper.OutputType == NumberType.Float)
+                && mapper.InputType is VectorType inputVectorType && inputVectorType.ItemType == NumberDataViewType.Single
+                && mapper.OutputType == NumberDataViewType.Single)
             {
                 inputType = inputVectorType;
                 return true;

@@ -13,41 +13,41 @@ using Microsoft.ML.EntryPoints;
 
 namespace Microsoft.ML.LightGBM
 {
-    public sealed class SingleTrainer : IParallel
+    internal sealed class SingleTrainer : IParallel
     {
-        public AllgatherFunction GetAllgatherFunction()
+        AllgatherFunction IParallel.GetAllgatherFunction()
         {
             return null;
         }
 
-        public ReduceScatterFunction GetReduceScatterFunction()
+        ReduceScatterFunction IParallel.GetReduceScatterFunction()
         {
             return null;
         }
 
-        public int NumMachines()
+        int IParallel.NumMachines()
         {
             return 1;
         }
 
-        public string ParallelType()
+        string IParallel.ParallelType()
         {
             return "serial";
         }
 
-        public int Rank()
+        int IParallel.Rank()
         {
             return 0;
         }
 
-        public Dictionary<string, string> AdditionalParams()
+        Dictionary<string, string> IParallel.AdditionalParams()
         {
             return null;
         }
     }
 
     [TlcModule.Component(Name = "Single", Desc = "Single node machine learning process.")]
-    public sealed class SingleTrainerFactory : ISupportParallel
+    internal sealed class SingleTrainerFactory : ISupportParallel
     {
         public IParallel CreateComponent(IHostEnvironment env) => new SingleTrainer();
     }

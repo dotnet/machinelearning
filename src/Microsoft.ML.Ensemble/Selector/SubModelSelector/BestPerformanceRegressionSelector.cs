@@ -6,15 +6,14 @@ using System;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.Selector;
-using Microsoft.ML.Ensemble.Selector.SubModelSelector;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(BestPerformanceRegressionSelector), typeof(BestPerformanceRegressionSelector.Arguments),
     typeof(SignatureEnsembleSubModelSelector), BestPerformanceRegressionSelector.UserName, BestPerformanceRegressionSelector.LoadName)]
 
-namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal sealed class BestPerformanceRegressionSelector : BaseBestPerformanceSelector<Single>, IRegressionSubModelSelector
     {

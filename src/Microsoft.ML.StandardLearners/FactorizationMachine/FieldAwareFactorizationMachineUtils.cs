@@ -10,7 +10,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.FactorizationMachine
+namespace Microsoft.ML.Trainers.FactorizationMachine
 {
     internal sealed class FieldAwareFactorizationMachineUtils
     {
@@ -60,24 +60,24 @@ namespace Microsoft.ML.FactorizationMachine
 
         public RoleMappedSchema InputRoleMappedSchema { get; }
 
-        public Schema OutputSchema { get; }
+        public DataViewSchema OutputSchema { get; }
 
-        public Schema InputSchema => InputRoleMappedSchema.Schema;
+        public DataViewSchema InputSchema => InputRoleMappedSchema.Schema;
 
         public ISchemaBindableMapper Bindable => _pred;
 
-        private readonly Schema.Column[] _columns;
+        private readonly DataViewSchema.Column[] _columns;
         private readonly List<int> _inputColumnIndexes;
         private readonly IHostEnvironment _env;
 
         public FieldAwareFactorizationMachineScalarRowMapper(IHostEnvironment env, RoleMappedSchema schema,
-            Schema outputSchema, FieldAwareFactorizationMachineModelParameters pred)
+            DataViewSchema outputSchema, FieldAwareFactorizationMachineModelParameters pred)
         {
             Contracts.AssertValue(env);
             Contracts.AssertValue(schema);
             Contracts.CheckParam(outputSchema.Count == 2, nameof(outputSchema));
-            Contracts.CheckParam(outputSchema[0].Type is NumberType, nameof(outputSchema));
-            Contracts.CheckParam(outputSchema[1].Type is NumberType, nameof(outputSchema));
+            Contracts.CheckParam(outputSchema[0].Type is NumberDataViewType, nameof(outputSchema));
+            Contracts.CheckParam(outputSchema[1].Type is NumberDataViewType, nameof(outputSchema));
             Contracts.AssertValue(pred);
 
             _env = env;
@@ -96,7 +96,7 @@ namespace Microsoft.ML.FactorizationMachine
             }
         }
 
-        public Row GetRow(Row input, Func<int, bool> predicate)
+        public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
         {
             var latentSum = new AlignedArray(_pred.FieldCount * _pred.FieldCount * _pred.LatentDimAligned, 16);
             var featureBuffer = new VBuffer<float>();
@@ -133,12 +133,15 @@ namespace Microsoft.ML.FactorizationMachine
             return new SimpleRow(OutputSchema, input, getters);
         }
 
-        public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+        /// <summary>
+        /// Given a set of columns, return the input columns that are needed to generate those output columns.
+        /// </summary>
+        IEnumerable<DataViewSchema.Column> ISchemaBoundRowMapper.GetDependenciesForNewColumns(IEnumerable<DataViewSchema.Column> columns)
         {
-            if (Enumerable.Range(0, OutputSchema.Count).Any(predicate))
-                return index => _inputColumnIndexes.Any(c => c == index);
-            else
-                return index => false;
+            if (columns.Count() == 0)
+                return Enumerable.Empty<DataViewSchema.Column>();
+
+            return InputSchema.Where(col => _inputColumnIndexes.Contains(col.Index));
         }
 
         public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()

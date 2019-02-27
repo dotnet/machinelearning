@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.TestFramework;
 using Xunit;
@@ -32,11 +33,13 @@ namespace Microsoft.ML.CpuMath.UnitTests
         static CpuMathUtilsUnitTests()
         {
             // Padded array whose length is a multiple of 4
-            float[] testArray1 = new float[16] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f, 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f };
+            float[] testArray1 = new float[32] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f, 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f, 1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 15f, 16f };
             // Unpadded array whose length is not a multiple of 4.
-            float[] testArray2 = new float[15] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f, 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f };
-            _testArrays = new float[][] { testArray1, testArray2 };
-            _testIndexArray = new int[9] { 0, 2, 5, 6, 8, 11, 12, 13, 14 };
+            float[] testArray2 = new float[30] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f, 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 15f };
+            // Small Input Size Array
+            float[] testArray3 = new float[15] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f, 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f };
+            _testArrays = new float[][] { testArray1, testArray2, testArray3 };
+            _testIndexArray = new int[18] { 0, 2, 5, 6, 8, 11, 12, 13, 14, 16, 18, 21, 22, 24, 26, 27, 28, 29};
             _comparer = new FloatEqualityComparer();
             _matMulComparer = new FloatEqualityComparerForMatMul();
 
@@ -124,7 +127,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
         {
             {  defaultMode, "0", null },
             {  defaultMode, "1", null },
-
+            {  defaultMode, "2", null },
 #if NETCOREAPP3_0
             { disableAvx, "0", DisableAvxEnvironmentVariables },
             { disableAvx, "1", DisableAvxEnvironmentVariables },
@@ -138,9 +141,10 @@ namespace Microsoft.ML.CpuMath.UnitTests
         {
             {  defaultMode, "0", "1.7", null },
             {  defaultMode, "1", "1.7", null },
+            {  defaultMode, "2", "1.7", null },
             {  defaultMode, "0", "-1.7", null },
             {  defaultMode, "1", "-1.7", null },
-
+            {  defaultMode, "2", "-1.7", null },
 #if NETCOREAPP3_0
             {  disableAvx, "0", "1.7", DisableAvxEnvironmentVariables },
             {  disableAvx, "1", "1.7", DisableAvxEnvironmentVariables },
@@ -271,7 +275,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] dst = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] expected = (float[])dst.Clone();
 
@@ -294,7 +298,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] dst = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] expected = (float[])dst.Clone();
 
@@ -317,7 +321,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
                 float[] expected = (float[])dst.Clone();
@@ -341,7 +345,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] dst = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] expected = (float[])dst.Clone();
 
@@ -365,7 +369,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
                 float[] expected = (float[])dst.Clone();
@@ -389,14 +393,15 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
                 int[] idx = _testIndexArray;
+                int limit = int.Parse(arg1) == 2 ? 9 : 18;
                 float[] expected = (float[])dst.Clone();
 
-                CpuMathUtils.AddScale(defaultScale, src, idx, dst, idx.Length);
-                for (int i = 0; i < idx.Length; i++)
+                CpuMathUtils.AddScale(defaultScale, src, idx, dst, limit);
+                for (int i = 0; i < limit; i++)
                 {
                     int index = idx[i];
                     expected[index] += defaultScale * src[i];
@@ -414,7 +419,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
                 float[] result = (float[])dst.Clone();
@@ -471,19 +476,16 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
                 int[] idx = _testIndexArray;
+                int limit = int.Parse(arg1) == 2 ? 9 : 18;
                 float[] expected = (float[])dst.Clone();
 
-                expected[0] = 3.92f;
-                expected[2] = -12.14f;
-                expected[5] = -36.69f;
-                expected[6] = 46.29f;
-                expected[8] = -104.41f;
-                expected[11] = -13.09f;
-                expected[12] = -73.92f;
-                expected[13] = -23.64f;
-                expected[14] = 34.41f;
+                for (int i = 0; i < limit; i++)
+                {
+                    int index = idx[i];
+                    expected[index] += src[i];
+                }
 
-                CpuMathUtils.Add(src, idx, dst, idx.Length);
+                CpuMathUtils.Add(src, idx, dst, limit);
                 var actual = dst;
                 Assert.Equal(expected, actual, _comparer);
                 return RemoteExecutor.SuccessExitCode;
@@ -568,7 +570,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 var actual = CpuMathUtils.SumSq(defaultScale, src);
 
@@ -578,7 +580,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                     expected += (src[i] - defaultScale) * (src[i] - defaultScale);
                 }
 
-                Assert.Equal(expected, actual, 2);
+                Assert.Equal(expected, actual, 1);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, scale, new RemoteInvokeOptions(environmentVariables));
         }
@@ -610,7 +612,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 var actual = CpuMathUtils.SumAbs(defaultScale, src);
 
@@ -657,7 +659,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 var actual = CpuMathUtils.MaxAbsDiff(defaultScale, src);
 
@@ -712,6 +714,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
                 int[] idx = _testIndexArray;
+                int limit = int.Parse(arg1) == 2 ? 9 : 18;
 
                 // Ensures src and dst are different arrays
                 for (int i = 0; i < dst.Length; i++)
@@ -720,13 +723,13 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 }
 
                 float expected = 0;
-                for (int i = 0; i < idx.Length; i++)
+                for (int i = 0; i < limit; i++)
                 {
                     int index = idx[i];
                     expected += src[index] * dst[i];
                 }
 
-                var actual = CpuMathUtils.DotProductSparse(src, dst, idx, idx.Length);
+                var actual = CpuMathUtils.DotProductSparse(src, dst, idx, limit);
                 Assert.Equal(expected, actual, 2);
                 return RemoteExecutor.SuccessExitCode;
             }, mode, test, new RemoteInvokeOptions(environmentVariables));
@@ -796,7 +799,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] v = (float[])src.Clone();
                 float[] w = (float[])src.Clone();
@@ -823,21 +826,22 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] v = (float[])src.Clone();
                 float[] w = (float[])src.Clone();
                 int[] idx = _testIndexArray;
+                int limit = int.Parse(arg1) == 2 ? 9 : 18;
                 float[] expected = (float[])w.Clone();
 
-                for (int i = 0; i < idx.Length; i++)
+                for (int i = 0; i < limit; i++)
                 {
                     int index = idx[i];
                     float value = v[index] + src[i] * defaultScale;
                     expected[index] = Math.Abs(value) > defaultScale ? (value > 0 ? value - defaultScale : value + defaultScale) : 0;
                 }
 
-                CpuMathUtils.SdcaL1UpdateSparse(defaultScale, idx.Length, src, idx, defaultScale, v, w);
+                CpuMathUtils.SdcaL1UpdateSparse(defaultScale, limit, src, idx, defaultScale, v, w);
                 var actual = w;
                 Assert.Equal(expected, actual, _comparer);
                 return RemoteExecutor.SuccessExitCode;

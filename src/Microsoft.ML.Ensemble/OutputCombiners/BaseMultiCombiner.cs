@@ -9,13 +9,13 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 
-namespace Microsoft.ML.Ensemble.OutputCombiners
+namespace Microsoft.ML.Trainers.Ensemble
 {
-    public abstract class BaseMultiCombiner : IMultiClassOutputCombiner
+    internal abstract class BaseMultiCombiner : IMultiClassOutputCombiner, ICanSaveModel
     {
         protected readonly IHost Host;
 
-        public abstract class ArgumentsBase
+        public abstract class OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to normalize the output of base models before combining them",
                 ShortName = "norm", SortOrder = 50)]
@@ -24,14 +24,14 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
 
         protected readonly bool Normalize;
 
-        internal BaseMultiCombiner(IHostEnvironment env, string name, ArgumentsBase args)
+        internal BaseMultiCombiner(IHostEnvironment env, string name, OptionsBase options)
         {
             Contracts.AssertValue(env);
             env.AssertNonWhiteSpace(name);
             Host = env.Register(name);
-            Host.CheckValue(args, nameof(args));
+            Host.CheckValue(options, nameof(options));
 
-            Normalize = args.Normalize;
+            Normalize = options.Normalize;
         }
 
         internal BaseMultiCombiner(IHostEnvironment env, string name, ModelLoadContext ctx)
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
             Normalize = ctx.Reader.ReadBoolByte();
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

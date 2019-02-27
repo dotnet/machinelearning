@@ -9,13 +9,12 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms.Conversions;
 
-[assembly: LoadableClass(KeyToBinaryVectorMappingTransformer.Summary, typeof(IDataTransform), typeof(KeyToBinaryVectorMappingTransformer), typeof(KeyToBinaryVectorMappingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(KeyToBinaryVectorMappingTransformer.Summary, typeof(IDataTransform), typeof(KeyToBinaryVectorMappingTransformer), typeof(KeyToBinaryVectorMappingTransformer.Options), typeof(SignatureDataTransform),
     "Key To Binary Vector Transform", KeyToBinaryVectorMappingTransformer.UserName, "KeyToBinary", "ToBinaryVector", DocName = "transform/KeyToBinaryVectorTransform.md")]
 
 [assembly: LoadableClass(KeyToBinaryVectorMappingTransformer.Summary, typeof(IDataTransform), typeof(KeyToBinaryVectorMappingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -29,36 +28,16 @@ using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Transforms.Conversions
 {
+    /// <summary>
+    ///  Converts the key types back to binary vectors.
+    /// </summary>
     public sealed class KeyToBinaryVectorMappingTransformer : OneToOneTransformerBase
     {
-        public sealed class Arguments
+        internal sealed class Options
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)",
-                ShortName = "col", SortOrder = 1)]
-            public KeyToVectorMappingTransformer.Column[] Column;
-        }
-
-        /// <summary>
-        /// Describes how the transformer handles one column pair.
-        /// </summary>
-        public sealed class ColumnInfo
-        {
-            public readonly string Name;
-            public readonly string InputColumnName;
-
-            /// <summary>
-            /// Describes how the transformer handles one column pair.
-            /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-            /// <param name="inputColumnName">Name of the column to transform.
-            /// If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-
-            public ColumnInfo(string name, string inputColumnName = null)
-            {
-                Contracts.CheckNonWhiteSpace(name, nameof(name));
-                Name = name;
-                InputColumnName = inputColumnName ?? name;
-            }
+                Name = "Column", ShortName = "col", SortOrder = 1)]
+            public KeyToVectorMappingTransformer.Column[] Columns;
         }
 
         internal const string Summary = "Converts a key column to a binary encoded vector.";
@@ -78,23 +57,19 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private const string RegistrationName = "KeyToBinary";
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
-        {
-            Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
-        }
+        /// <summary>
+        /// The names of the output and input column pairs on which the transformation is performed.
+        /// </summary>
+        public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
-        public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
-        private readonly ColumnInfo[] _columns;
-
-        private string TestIsKey(ColumnType type)
+        private string TestIsKey(DataViewType type)
         {
             if (type.GetItemType().GetKeyCount() > 0)
                 return null;
             return "key type of known cardinality";
         }
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             string reason = TestIsKey(type);
@@ -102,14 +77,12 @@ namespace Microsoft.ML.Transforms.Conversions
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, reason, type.ToString());
         }
 
-        public KeyToBinaryVectorMappingTransformer(IHostEnvironment env, params ColumnInfo[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
+        internal KeyToBinaryVectorMappingTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
-            _columns = columns.ToArray();
-
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
 
@@ -136,29 +109,26 @@ namespace Microsoft.ML.Transforms.Conversions
         private KeyToBinaryVectorMappingTransformer(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
-            _columns = new ColumnInfo[ColumnPairs.Length];
-            for (int i = 0; i < ColumnPairs.Length; i++)
-                _columns[i] = new ColumnInfo(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName);
         }
 
-        private static IDataTransform Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns) =>
+        private static IDataTransform Create(IHostEnvironment env, IDataView input, params (string outputColumnName, string inputColumnName)[] columns) =>
             new KeyToBinaryVectorMappingTransformer(env, columns).MakeDataTransform(input);
 
         // Factory method for SignatureDataTransform.
-        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new ColumnInfo[args.Column.Length];
+            env.CheckValue(options.Columns, nameof(options.Columns));
+            var cols = new (string outputColumnName, string inputColumnName)[options.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
                 for (int i = 0; i < cols.Length; i++)
                 {
-                    var item = args.Column[i];
-                    cols[i] = new ColumnInfo(item.Name, item.Source ?? item.Name);
+                    var item = options.Columns[i];
+                    cols[i] = (item.Name, item.Source ?? item.Name);
                 };
             }
             return new KeyToBinaryVectorMappingTransformer(env, cols).MakeDataTransform(input);
@@ -169,10 +139,10 @@ namespace Microsoft.ML.Transforms.Conversions
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
@@ -180,9 +150,9 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 public readonly string Name;
                 public readonly string InputColumnName;
-                public readonly ColumnType TypeSrc;
+                public readonly DataViewType TypeSrc;
 
-                public ColInfo(string name, string inputColumnName, ColumnType type)
+                public ColInfo(string name, string inputColumnName, DataViewType type)
                 {
                     Name = name;
                     InputColumnName = inputColumnName;
@@ -195,7 +165,7 @@ namespace Microsoft.ML.Transforms.Conversions
             private readonly VectorType[] _types;
             private readonly int[] _bitsPerKey;
 
-            public Mapper(KeyToBinaryVectorMappingTransformer parent, Schema inputSchema)
+            public Mapper(KeyToBinaryVectorMappingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -210,13 +180,13 @@ namespace Microsoft.ML.Transforms.Conversions
                     int srcValueCount = _infos[i].TypeSrc.GetValueCount();
                     if (srcValueCount == 1)
                         // Output is a single vector computed as the sum of the output indicator vectors.
-                        _types[i] = new VectorType(NumberType.Float, _bitsPerKey[i]);
+                        _types[i] = new VectorType(NumberDataViewType.Single, _bitsPerKey[i]);
                     else
                         // Output is the concatenation of the multiple output indicator vectors.
-                        _types[i] = new VectorType(NumberType.Float, srcValueCount, _bitsPerKey[i]);
+                        _types[i] = new VectorType(NumberDataViewType.Single, srcValueCount, _bitsPerKey[i]);
                 }
             }
-            private ColInfo[] CreateInfos(Schema inputSchema)
+            private ColInfo[] CreateInfos(DataViewSchema inputSchema)
             {
                 Host.AssertValue(inputSchema);
                 var infos = new ColInfo[_parent.ColumnPairs.Length];
@@ -231,33 +201,33 @@ namespace Microsoft.ML.Transforms.Conversions
                 return infos;
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new MetadataBuilder();
+                    var builder = new DataViewSchema.Annotations.Builder();
                     AddMetadata(i, builder);
 
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.ToAnnotations());
                 }
                 return result;
             }
 
-            private void AddMetadata(int iinfo, MetadataBuilder builder)
+            private void AddMetadata(int iinfo, DataViewSchema.Annotations.Builder builder)
             {
                 InputSchema.TryGetColumnIndex(_infos[iinfo].InputColumnName, out int srcCol);
-                var inputMetadata = InputSchema[srcCol].Metadata;
+                var inputMetadata = InputSchema[srcCol].Annotations;
                 var srcType = _infos[iinfo].TypeSrc;
                 // See if the source has key names.
 
                 VectorType typeNames = null;
                 int metaKeyValuesCol = 0;
-                if (inputMetadata.Schema.TryGetColumnIndex(MetadataUtils.Kinds.KeyValues, out metaKeyValuesCol))
+                if (inputMetadata.Schema.TryGetColumnIndex(AnnotationUtils.Kinds.KeyValues, out metaKeyValuesCol))
                     typeNames = inputMetadata.Schema[metaKeyValuesCol].Type as VectorType;
-                if (typeNames == null || !typeNames.IsKnownSize || !(typeNames.ItemType is TextType) ||
+                if (typeNames == null || !typeNames.IsKnownSize || !(typeNames.ItemType is TextDataViewType) ||
                     typeNames.Size != _infos[iinfo].TypeSrc.GetItemType().GetKeyCountAsInt32(Host))
                 {
                     typeNames = null;
@@ -272,7 +242,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             GenerateBitSlotName(iinfo, ref dst);
                         };
 
-                        var slotNamesType = new VectorType(TextType.Instance, _types[iinfo]);
+                        var slotNamesType = new VectorType(TextDataViewType.Instance, _types[iinfo]);
                         builder.AddSlotNames(slotNamesType.Size, getter);
                     }
 
@@ -280,7 +250,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     {
                         dst = true;
                     };
-                    builder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, normalizeGetter);
+                    builder.Add(AnnotationUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, normalizeGetter);
                 }
                 else
                 {
@@ -290,8 +260,8 @@ namespace Microsoft.ML.Transforms.Conversions
                         {
                             GetSlotNames(iinfo, ref dst);
                         };
-                        var slotNamesType = new VectorType(TextType.Instance, _types[iinfo]);
-                        builder.Add(MetadataUtils.Kinds.SlotNames, slotNamesType, getter);
+                        var slotNamesType = new VectorType(TextDataViewType.Instance, _types[iinfo]);
+                        builder.Add(AnnotationUtils.Kinds.SlotNames, slotNamesType, getter);
                     }
                 }
             }
@@ -320,13 +290,13 @@ namespace Microsoft.ML.Transforms.Conversions
                 // Get the source slot names, defaulting to empty text.
                 var namesSlotSrc = default(VBuffer<ReadOnlyMemory<char>>);
 
-                var inputMetadata = InputSchema[_infos[iinfo].InputColumnName].Metadata;
+                var inputMetadata = InputSchema[_infos[iinfo].InputColumnName].Annotations;
                 VectorType typeSlotSrc = null;
                 if (inputMetadata != null)
-                    typeSlotSrc = inputMetadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
-                if (typeSlotSrc != null && typeSlotSrc.Size == srcVectorSize && typeSlotSrc.ItemType is TextType)
+                    typeSlotSrc = inputMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType;
+                if (typeSlotSrc != null && typeSlotSrc.Size == srcVectorSize && typeSlotSrc.ItemType is TextDataViewType)
                 {
-                    inputMetadata.GetValue(MetadataUtils.Kinds.SlotNames, ref namesSlotSrc);
+                    inputMetadata.GetValue(AnnotationUtils.Kinds.SlotNames, ref namesSlotSrc);
                     Host.Check(namesSlotSrc.Length == srcVectorSize);
                 }
                 else
@@ -364,7 +334,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 dst = editor.Commit();
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
@@ -379,7 +349,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <summary>
             /// This is for the scalar case.
             /// </summary>
-            private ValueGetter<VBuffer<float>> MakeGetterOne(Row input, int iinfo)
+            private ValueGetter<VBuffer<float>> MakeGetterOne(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(_infos[iinfo].TypeSrc is KeyType);
@@ -391,7 +361,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(dstLength > 0);
                 input.Schema.TryGetColumnIndex(_infos[iinfo].InputColumnName, out int srcCol);
                 Host.Assert(srcCol >= 0);
-                var getSrc = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, input, srcCol);
+                var getSrc = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, input, srcCol);
                 var src = default(uint);
                 var bldr = new BufferBuilder<float>(R4Adder.Instance);
                 return
@@ -409,7 +379,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <summary>
             /// This is for the indicator case - vector input and outputs should be concatenated.
             /// </summary>
-            private ValueGetter<VBuffer<float>> MakeGetterInd(Row input, int iinfo, VectorType typeSrc)
+            private ValueGetter<VBuffer<float>> MakeGetterInd(DataViewRow input, int iinfo, VectorType typeSrc)
             {
                 Host.AssertValue(input);
                 Host.AssertValue(typeSrc);
@@ -419,7 +389,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(cv >= 0);
                 input.Schema.TryGetColumnIndex(_infos[iinfo].InputColumnName, out int srcCol);
                 Host.Assert(srcCol >= 0);
-                var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberType.U4, input, srcCol);
+                var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.UInt32, input, srcCol);
                 var src = default(VBuffer<uint>);
                 var bldr = new BufferBuilder<float>(R4Adder.Instance);
                 int bitsPerKey = _bitsPerKey[iinfo];
@@ -456,16 +426,18 @@ namespace Microsoft.ML.Transforms.Conversions
         }
     }
 
+    /// <summary>
+    ///  Converts the key types back to binary vectors.
+    /// </summary>
     public sealed class KeyToBinaryVectorMappingEstimator : TrivialEstimator<KeyToBinaryVectorMappingTransformer>
     {
-
-        public KeyToBinaryVectorMappingEstimator(IHostEnvironment env, params KeyToBinaryVectorMappingTransformer.ColumnInfo[] columns)
+        internal KeyToBinaryVectorMappingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : this(env, new KeyToBinaryVectorMappingTransformer(env, columns))
         {
         }
 
-        public KeyToBinaryVectorMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null)
-            : this(env, new KeyToBinaryVectorMappingTransformer(env, new KeyToBinaryVectorMappingTransformer.ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName)))
+        internal KeyToBinaryVectorMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null)
+            : this(env, new KeyToBinaryVectorMappingTransformer(env, (outputColumnName, inputColumnName ?? outputColumnName)))
         {
         }
 
@@ -474,24 +446,28 @@ namespace Microsoft.ML.Transforms.Conversions
         {
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
-                if (!(col.ItemType is VectorType || col.ItemType is PrimitiveType))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
+                if (!inputSchema.TryFindColumn(colInfo.inputColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName);
+                if (!(col.ItemType is VectorType || col.ItemType is PrimitiveDataViewType))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName);
 
                 var metadata = new List<SchemaShape.Column>();
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))
-                    if (col.Kind != SchemaShape.Column.VectorKind.VariableVector && keyMeta.ItemType is TextType)
-                        metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var keyMeta))
+                    if (col.Kind != SchemaShape.Column.VectorKind.VariableVector && keyMeta.ItemType is TextDataViewType)
+                        metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
                 if (col.Kind == SchemaShape.Column.VectorKind.Scalar)
-                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(metadata));
+                    metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
+                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(metadata));
             }
 
             return new SchemaShape(result.Values);

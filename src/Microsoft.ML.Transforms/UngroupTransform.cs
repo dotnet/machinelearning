@@ -15,7 +15,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(UngroupTransform.Summary, typeof(UngroupTransform), typeof(UngroupTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(UngroupTransform.Summary, typeof(UngroupTransform), typeof(UngroupTransform.Options), typeof(SignatureDataTransform),
     UngroupTransform.UserName, UngroupTransform.ShortName)]
 
 [assembly: LoadableClass(UngroupTransform.Summary, typeof(UngroupTransform), null, typeof(SignatureLoadDataTransform),
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Transforms
     // All metadata is preserved for the retained columns. For 'unrolled' columns, all known metadata
     // except slot names is preserved.
     /// <include file='doc.xml' path='doc/members/member[@name="Ungroup"]/*' />
-    public sealed class UngroupTransform : TransformBase
+    internal sealed class UngroupTransform : TransformBase
     {
         public const string Summary = "Un-groups vector columns into sequences of rows, inverse of Group transform";
         public const string LoaderSignature = "UngroupTransform";
@@ -84,10 +84,10 @@ namespace Microsoft.ML.Transforms
             First
         }
 
-        public sealed class Arguments : TransformInputBase
+        public sealed class Options : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to unroll, or 'pivot'", ShortName = "col")]
-            public string[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to unroll, or 'pivot'", Name = "Column", ShortName = "col")]
+            public string[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Specifies how to unroll multiple pivot columns of different size.")]
             public UngroupMode Mode = UngroupMode.Inner;
@@ -103,19 +103,19 @@ namespace Microsoft.ML.Transforms
         /// <param name="mode">Specifies how to unroll multiple pivot columns of different size.</param>
         /// <param name="columns">Columns to unroll, or 'pivot'</param>
         public UngroupTransform(IHostEnvironment env, IDataView input, UngroupMode mode, params string[] columns)
-            : this(env, new Arguments() { Column = columns, Mode = mode }, input)
+            : this(env, new Options() { Columns = columns, Mode = mode }, input)
         {
         }
 
-        public UngroupTransform(IHostEnvironment env, Arguments args, IDataView input)
+        public UngroupTransform(IHostEnvironment env, Options options, IDataView input)
             : base(env, LoaderSignature, input)
         {
-            Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column), "There must be at least one pivot column");
-            Host.CheckUserArg(args.Column.Distinct().Count() == args.Column.Length, nameof(args.Column),
+            Host.CheckValue(options, nameof(options));
+            Host.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), "There must be at least one pivot column");
+            Host.CheckUserArg(options.Columns.Distinct().Count() == options.Columns.Length, nameof(options.Columns),
                 "Duplicate pivot columns are not allowed");
 
-            _ungroupBinding = new UngroupBinding(Host, Source.Schema, args.Mode, args.Column);
+            _ungroupBinding = new UngroupBinding(Host, Source.Schema, options.Mode, options.Columns);
         }
 
         public static UngroupTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Transforms
             _ungroupBinding = UngroupBinding.Create(ctx, host, input.Schema);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -162,7 +162,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        public override Schema OutputSchema => _ungroupBinding.OutputSchema;
+        public override DataViewSchema OutputSchema => _ungroupBinding.OutputSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Transforms
             get { return false; }
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var activeInput = _ungroupBinding.GetActiveInput(predicate);
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, inputCursor, _ungroupBinding, predicate);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded,
+        public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded,
             int n, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -196,7 +196,7 @@ namespace Microsoft.ML.Transforms
 
             var inputCols = Source.Schema.Where(x => activeInput[x.Index]);
             var inputCursors = Source.GetRowCursorSet(inputCols, n, null);
-            return Utils.BuildArray<RowCursor>(inputCursors.Length,
+            return Utils.BuildArray<DataViewRowCursor>(inputCursors.Length,
                 x => new Cursor(Host, inputCursors[x], _ungroupBinding, predicate));
         }
 
@@ -206,26 +206,26 @@ namespace Microsoft.ML.Transforms
             {
                 switch (kind)
                 {
-                    case MetadataUtils.Kinds.IsNormalized:
-                    case MetadataUtils.Kinds.KeyValues:
-                    case MetadataUtils.Kinds.ScoreColumnSetId:
-                    case MetadataUtils.Kinds.ScoreColumnKind:
-                    case MetadataUtils.Kinds.ScoreValueKind:
-                    case MetadataUtils.Kinds.IsUserVisible:
+                    case AnnotationUtils.Kinds.IsNormalized:
+                    case AnnotationUtils.Kinds.KeyValues:
+                    case AnnotationUtils.Kinds.ScoreColumnSetId:
+                    case AnnotationUtils.Kinds.ScoreColumnKind:
+                    case AnnotationUtils.Kinds.ScoreValueKind:
+                    case AnnotationUtils.Kinds.IsUserVisible:
                         return true;
                     default:
                         return false;
                 }
             }
 
-            public readonly struct PivotColumnInfo
+            public readonly struct PivotColumnOptions
             {
                 public readonly string Name;
                 public readonly int Index;
                 public readonly int Size;
-                public readonly PrimitiveType ItemType;
+                public readonly PrimitiveDataViewType ItemType;
 
-                public PivotColumnInfo(string name, int index, int size, PrimitiveType itemType)
+                public PivotColumnOptions(string name, int index, int size, PrimitiveDataViewType itemType)
                 {
                     Contracts.AssertNonEmpty(name);
                     Contracts.Assert(index >= 0);
@@ -238,13 +238,13 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private readonly Schema _inputSchema;
+            private readonly DataViewSchema _inputSchema;
             private readonly IExceptionContext _ectx;
 
             /// <summary>
             /// Information of columns to be ungrouped in <see cref="_inputSchema"/>.
             /// </summary>
-            private readonly PivotColumnInfo[] _infos;
+            private readonly PivotColumnOptions[] _infos;
 
             /// <summary>
             /// <see cref="_pivotIndex"/>[i] is -1 means that the i-th column in both of <see cref="_inputSchema"/> and <see cref="OutputSchema"/>
@@ -263,12 +263,12 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             public readonly UngroupMode Mode;
             /// <summary>
-            /// Output data's <see cref="Schema"/> produced by this <see cref="UngroupTransform"/>
+            /// Output data's <see cref="DataViewSchema"/> produced by this <see cref="UngroupTransform"/>
             /// when input data's schema is <see cref="_inputSchema"/>.
             /// </summary>
-            public Schema OutputSchema { get; }
+            public DataViewSchema OutputSchema { get; }
 
-            public UngroupBinding(IExceptionContext ectx, Schema inputSchema, UngroupMode mode, string[] pivotColumns)
+            public UngroupBinding(IExceptionContext ectx, DataViewSchema inputSchema, UngroupMode mode, string[] pivotColumns)
             {
                 Contracts.AssertValueOrNull(ectx);
                 _ectx = ectx;
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Transforms
                     _pivotIndex[info.Index] = i;
                 }
 
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
                 // Iterate through input columns. Input columns which are not pivot columns will be copied to output schema with the same column index unchanged.
                 // Input columns which are pivot columns would also be copied but with different data types and different metadata.
                 for (int i = 0; i < InputColumnCount; ++i)
@@ -296,13 +296,13 @@ namespace Microsoft.ML.Transforms
                     if (_pivotIndex[i] < 0)
                     {
                         // i-th input column is not a pivot column. Let's do a naive copy.
-                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type, inputSchema[i].Metadata);
+                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type, inputSchema[i].Annotations);
                     }
                     else
                     {
                         // i-th input column is a pivot column. Let's calculate proper type and metadata for it.
-                        var metadataBuilder = new MetadataBuilder();
-                        metadataBuilder.Add(inputSchema[i].Metadata, metadataName => ShouldPreserveMetadata(metadataName));
+                        var metadataBuilder = new DataViewSchema.Annotations.Builder();
+                        metadataBuilder.Add(inputSchema[i].Annotations, metadataName => ShouldPreserveMetadata(metadataName));
                         // To explain the output type of pivot columns, let's consider a row
                         //   Age UserID
                         //   18  {"Amy", "Willy"}
@@ -312,36 +312,36 @@ namespace Microsoft.ML.Transforms
                         //   18  "Amy"
                         //   18  "Willy"
                         // One can see that "UserID" column (in output data) has a type identical to the element's type of the "UserID" column in input data.
-                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type.GetItemType(), metadataBuilder.GetMetadata());
+                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type.GetItemType(), metadataBuilder.ToAnnotations());
                     }
                 }
-                OutputSchema = schemaBuilder.GetSchema();
+                OutputSchema = schemaBuilder.ToSchema();
             }
 
-            private static void Bind(IExceptionContext ectx, Schema inputSchema,
-                string[] pivotColumns, out PivotColumnInfo[] infos)
+            private static void Bind(IExceptionContext ectx, DataViewSchema inputSchema,
+                string[] pivotColumns, out PivotColumnOptions[] infos)
             {
                 Contracts.AssertValueOrNull(ectx);
                 ectx.AssertValue(inputSchema);
                 ectx.AssertNonEmpty(pivotColumns);
 
-                infos = new PivotColumnInfo[pivotColumns.Length];
+                infos = new PivotColumnOptions[pivotColumns.Length];
                 for (int i = 0; i < pivotColumns.Length; i++)
                 {
                     var name = pivotColumns[i];
                     // REVIEW: replace Check with CheckUser, once existing CheckUser is renamed to CheckUserArg or something.
-                    ectx.CheckUserArg(!string.IsNullOrEmpty(name), nameof(Arguments.Column), "Column name cannot be empty");
+                    ectx.CheckUserArg(!string.IsNullOrEmpty(name), nameof(Options.Columns), "Column name cannot be empty");
                     int col;
                     if (!inputSchema.TryGetColumnIndex(name, out col))
-                        throw ectx.ExceptUserArg(nameof(Arguments.Column), "Pivot column '{0}' is not found", name);
+                        throw ectx.ExceptUserArg(nameof(Options.Columns), "Pivot column '{0}' is not found", name);
                     if (!(inputSchema[col].Type is VectorType colType))
-                        throw ectx.ExceptUserArg(nameof(Arguments.Column),
+                        throw ectx.ExceptUserArg(nameof(Options.Columns),
                             "Pivot column '{0}' has type '{1}', but must be a vector of primitive types", name, inputSchema[col].Type);
-                    infos[i] = new PivotColumnInfo(name, col, colType.Size, colType.ItemType);
+                    infos[i] = new PivotColumnOptions(name, col, colType.Size, colType.ItemType);
                 }
             }
 
-            public static UngroupBinding Create(ModelLoadContext ctx, IExceptionContext ectx, Schema inputSchema)
+            public static UngroupBinding Create(ModelLoadContext ctx, IExceptionContext ectx, DataViewSchema inputSchema)
             {
                 Contracts.AssertValueOrNull(ectx);
                 ectx.AssertValue(ctx);
@@ -365,7 +365,7 @@ namespace Microsoft.ML.Transforms
                 return new UngroupBinding(ectx, inputSchema, mode, pivotColumns);
             }
 
-            public void Save(ModelSaveContext ctx)
+            internal void Save(ModelSaveContext ctx)
             {
                 _ectx.AssertValue(ctx);
 
@@ -399,13 +399,13 @@ namespace Microsoft.ML.Transforms
                 get { return _infos.Length; }
             }
 
-            public PivotColumnInfo GetPivotColumnInfo(int iinfo)
+            public PivotColumnOptions GetPivotColumnOptions(int iinfo)
             {
                 _ectx.Assert(0 <= iinfo && iinfo < _infos.Length);
                 return _infos[iinfo];
             }
 
-            public PivotColumnInfo GetPivotColumnInfoByCol(int col)
+            public PivotColumnOptions GetPivotColumnOptionsByCol(int col)
             {
                 _ectx.Assert(0 <= col && col < _inputSchema.Count);
                 _ectx.Assert(_pivotIndex[col] >= 0);
@@ -474,7 +474,7 @@ namespace Microsoft.ML.Transforms
             // Parallel to columns.
             private int[] _colSizes;
 
-            public Cursor(IChannelProvider provider, RowCursor input, UngroupBinding schema, Func<int, bool> predicate)
+            public Cursor(IChannelProvider provider, DataViewRowCursor input, UngroupBinding schema, Func<int, bool> predicate)
                 : base(provider, input)
             {
                 _ungroupBinding = schema;
@@ -487,7 +487,7 @@ namespace Microsoft.ML.Transforms
                 var needed = new List<Func<int>>();
                 for (int i = 0; i < sizeColumnsLim; i++)
                 {
-                    var info = _ungroupBinding.GetPivotColumnInfo(i);
+                    var info = _ungroupBinding.GetPivotColumnOptions(i);
                     if (info.Size > 0)
                     {
                         if (_fixedSize == 0)
@@ -516,13 +516,13 @@ namespace Microsoft.ML.Transforms
 
             public override long Batch => Input.Batch;
 
-            public override ValueGetter<RowId> GetIdGetter()
+            public override ValueGetter<DataViewRowId> GetIdGetter()
             {
                 var idGetter = Input.GetIdGetter();
-                return (ref RowId val) =>
+                return (ref DataViewRowId val) =>
                 {
                     idGetter(ref val);
-                    val = val.Combine(new RowId((ulong)_pivotColPosition, 0));
+                    val = val.Combine(new DataViewRowId((ulong)_pivotColPosition, 0));
                 };
             }
 
@@ -591,7 +591,7 @@ namespace Microsoft.ML.Transforms
                     };
             }
 
-            public override Schema Schema => _ungroupBinding.OutputSchema;
+            public override DataViewSchema Schema => _ungroupBinding.OutputSchema;
 
             public override bool IsColumnActive(int col)
             {
@@ -615,14 +615,14 @@ namespace Microsoft.ML.Transforms
                     return Input.GetGetter<TValue>(col);
 
                 if (_cachedGetters[col] == null)
-                    _cachedGetters[col] = MakeGetter<TValue>(col, _ungroupBinding.GetPivotColumnInfoByCol(col).ItemType);
+                    _cachedGetters[col] = MakeGetter<TValue>(col, _ungroupBinding.GetPivotColumnOptionsByCol(col).ItemType);
 
                 var result = _cachedGetters[col] as ValueGetter<TValue>;
                 Ch.Check(result != null, "Unexpected getter type requested");
                 return result;
             }
 
-            private ValueGetter<T> MakeGetter<T>(int col, PrimitiveType itemType)
+            private ValueGetter<T> MakeGetter<T>(int col, PrimitiveDataViewType itemType)
             {
                 var srcGetter = Input.GetGetter<VBuffer<T>>(col);
                 // The position of the source cursor. Used to extract the source row once.
@@ -675,10 +675,8 @@ namespace Microsoft.ML.Transforms
         [TlcModule.EntryPoint(Name = "Transforms.Segregator",
             Desc = UngroupTransform.Summary,
             UserName = UngroupTransform.UserName,
-            ShortName = UngroupTransform.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""Ungroup""]/*' />",
-                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""Ungroup""]/*' />"})]
-        public static CommonOutputs.TransformOutput Ungroup(IHostEnvironment env, UngroupTransform.Arguments input)
+            ShortName = UngroupTransform.ShortName)]
+        public static CommonOutputs.TransformOutput Ungroup(IHostEnvironment env, UngroupTransform.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));

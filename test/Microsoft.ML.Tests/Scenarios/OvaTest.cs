@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Learners;
-using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.Online;
 using Xunit;
@@ -21,23 +19,21 @@ namespace Microsoft.ML.Scenarios
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
-            var reader = new TextLoader(mlContext, new TextLoader.Arguments()
+            var reader = new TextLoader(mlContext, new TextLoader.Options()
             {
-                Column = new[]
+                Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
+                            new TextLoader.Column("Label", DataKind.Single, 0),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
 
             // Data
-            var data = reader.Read(GetDataPath(dataPath));
+            var data = reader.Load(GetDataPath(dataPath));
 
             // Pipeline
-            var pipeline = new Ova(
-                mlContext, 
-                mlContext.BinaryClassification.Trainers.LogisticRegression(),
-                useProbabilities: false);
+            var logReg = mlContext.BinaryClassification.Trainers.LogisticRegression();
+            var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(logReg, useProbabilities: false);
 
             var model = pipeline.Fit(data);
             var predictions = model.Transform(data);
@@ -55,24 +51,22 @@ namespace Microsoft.ML.Scenarios
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
-            var reader = new TextLoader(mlContext, new TextLoader.Arguments()
+            var reader = new TextLoader(mlContext, new TextLoader.Options()
             {
-                Column = new[]
+                Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
+                            new TextLoader.Column("Label", DataKind.Single, 0),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
 
             // Data
-            var data = mlContext.Data.Cache(reader.Read(GetDataPath(dataPath)));
+            var data = mlContext.Data.Cache(reader.Load(GetDataPath(dataPath)));
 
             // Pipeline
-            var pipeline = new Ova(
-                mlContext,
-                mlContext.BinaryClassification.Trainers.AveragedPerceptron(
-                    new AveragedPerceptronTrainer.Options { Shuffle = true, Calibrator = null }),
-                useProbabilities: false);
+            var ap = mlContext.BinaryClassification.Trainers.AveragedPerceptron(
+                    new AveragedPerceptronTrainer.Options { Shuffle = true });
+            var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(ap, useProbabilities: false);
 
             var model = pipeline.Fit(data);
             var predictions = model.Transform(data);
@@ -90,21 +84,20 @@ namespace Microsoft.ML.Scenarios
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
-            var reader = new TextLoader(mlContext, new TextLoader.Arguments()
+            var reader = new TextLoader(mlContext, new TextLoader.Options()
             {
-                Column = new[]
+                Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
+                            new TextLoader.Column("Label", DataKind.Single, 0),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
 
             // Data
-            var data = reader.Read(GetDataPath(dataPath));
+            var data = reader.Load(GetDataPath(dataPath));
 
             // Pipeline
-            var pipeline = new Ova(
-                mlContext,
+            var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(
                 mlContext.BinaryClassification.Trainers.FastTree(new FastTreeBinaryClassificationTrainer.Options { NumThreads = 1 }),
                 useProbabilities: false);
 
@@ -124,21 +117,21 @@ namespace Microsoft.ML.Scenarios
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
-            var reader = new TextLoader(mlContext, new TextLoader.Arguments()
+            var reader = new TextLoader(mlContext, new TextLoader.Options()
             {
-                Column = new[]
+                Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
+                            new TextLoader.Column("Label", DataKind.Single, 0),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
 
             // Data
-            var data = mlContext.Data.Cache(reader.Read(GetDataPath(dataPath)));
+            var data = mlContext.Data.Cache(reader.Load(GetDataPath(dataPath)));
 
             // Pipeline
-            var pipeline = new Ova(mlContext, 
-                mlContext.BinaryClassification.Trainers.LinearSupportVectorMachines(new LinearSvmTrainer.Options { NumIterations = 100 }),
+            var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(
+                mlContext.BinaryClassification.Trainers.LinearSupportVectorMachines(new LinearSvmTrainer.Options { NumberOfIterations = 100 }),
                 useProbabilities: false);
 
             var model = pipeline.Fit(data);

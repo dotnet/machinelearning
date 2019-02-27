@@ -5,9 +5,9 @@
 using System.IO;
 using System.IO.Compression;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
-    public static class StreamExtensions
+    internal static class StreamExtensions
     {
         /// <summary>
         /// A stream class that suppresses the dispose signal

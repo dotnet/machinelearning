@@ -11,14 +11,13 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms.Text;
 
-[assembly: LoadableClass(NgramExtractingTransformer.Summary, typeof(IDataTransform), typeof(NgramExtractingTransformer), typeof(NgramExtractingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(NgramExtractingTransformer.Summary, typeof(IDataTransform), typeof(NgramExtractingTransformer), typeof(NgramExtractingTransformer.Options), typeof(SignatureDataTransform),
     "Ngram Transform", "NgramTransform", "Ngram")]
 
 [assembly: LoadableClass(NgramExtractingTransformer.Summary, typeof(IDataTransform), typeof(NgramExtractingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -38,7 +37,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class NgramExtractingTransformer : OneToOneTransformerBase
     {
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum ngram length", ShortName = "ngram")]
             public int? NgramLength;
@@ -77,10 +76,10 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum ngram length", ShortName = "ngram")]
             public int NgramLength = NgramExtractingEstimator.Defaults.NgramLength;
@@ -122,81 +121,6 @@ namespace Microsoft.ML.Transforms.Text
                 loaderAssemblyName: typeof(NgramExtractingTransformer).Assembly.FullName);
         }
 
-        /// <summary>
-        /// Describes how the transformer handles one column pair.
-        /// </summary>
-        public sealed class ColumnInfo
-        {
-            public readonly string Name;
-            public readonly string InputColumnName;
-            public readonly int NgramLength;
-            public readonly int SkipLength;
-            public readonly bool AllLengths;
-            public readonly NgramExtractingEstimator.WeightingCriteria Weighting;
-            /// <summary>
-            /// Contains the maximum number of grams to store in the dictionary, for each level of ngrams,
-            /// from 1 (in position 0) up to ngramLength (in position ngramLength-1)
-            /// </summary>
-            public readonly ImmutableArray<int> Limits;
-
-            /// <summary>
-            /// Describes how the transformer handles one Gcn column pair.
-            /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-            /// <param name="ngramLength">Maximum ngram length.</param>
-            /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-            /// <param name="allLengths">"Whether to store all ngram lengths up to ngramLength, or only ngramLength.</param>
-            /// <param name="weighting">The weighting criteria.</param>
-            /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
-            public ColumnInfo(string name, string inputColumnName = null,
-                int ngramLength = NgramExtractingEstimator.Defaults.NgramLength,
-                int skipLength = NgramExtractingEstimator.Defaults.SkipLength,
-                bool allLengths = NgramExtractingEstimator.Defaults.AllLengths,
-                NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.Defaults.Weighting,
-                int maxNumTerms = NgramExtractingEstimator.Defaults.MaxNumTerms)
-                : this(name, ngramLength, skipLength, allLengths, weighting, new int[] { maxNumTerms }, inputColumnName ?? name)
-            {
-            }
-
-            internal ColumnInfo(string name,
-                int ngramLength,
-                int skipLength,
-                bool allLengths,
-                NgramExtractingEstimator.WeightingCriteria weighting,
-                int[] maxNumTerms,
-                string inputColumnName = null)
-            {
-                Name = name;
-                InputColumnName = inputColumnName ?? name;
-                NgramLength = ngramLength;
-                Contracts.CheckUserArg(0 < NgramLength && NgramLength <= NgramBufferBuilder.MaxSkipNgramLength, nameof(ngramLength));
-                SkipLength = skipLength;
-                if (NgramLength + SkipLength > NgramBufferBuilder.MaxSkipNgramLength)
-                {
-                    throw Contracts.ExceptUserArg(nameof(skipLength),
-                        $"The sum of skipLength and ngramLength must be less than or equal to {NgramBufferBuilder.MaxSkipNgramLength}");
-                }
-                AllLengths = allLengths;
-                Weighting = weighting;
-                var limits = new int[ngramLength];
-                if (!AllLengths)
-                {
-                    Contracts.CheckUserArg(Utils.Size(maxNumTerms) == 0 ||
-                        Utils.Size(maxNumTerms) == 1 && maxNumTerms[0] > 0, nameof(maxNumTerms));
-                    limits[ngramLength - 1] = Utils.Size(maxNumTerms) == 0 ? NgramExtractingEstimator.Defaults.MaxNumTerms : maxNumTerms[0];
-                }
-                else
-                {
-                    Contracts.CheckUserArg(Utils.Size(maxNumTerms) <= ngramLength, nameof(maxNumTerms));
-                    Contracts.CheckUserArg(Utils.Size(maxNumTerms) == 0 || maxNumTerms.All(i => i >= 0) && maxNumTerms[maxNumTerms.Length - 1] > 0, nameof(maxNumTerms));
-                    var extend = Utils.Size(maxNumTerms) == 0 ? NgramExtractingEstimator.Defaults.MaxNumTerms : maxNumTerms[maxNumTerms.Length - 1];
-                    limits = Utils.BuildArray(ngramLength, i => i < Utils.Size(maxNumTerms) ? maxNumTerms[i] : extend);
-                }
-                Limits = ImmutableArray.Create(limits);
-            }
-        }
-
         private sealed class TransformInfo
         {
             // Position i, indicates whether the pool contains any (i+1)-grams
@@ -207,7 +131,7 @@ namespace Microsoft.ML.Transforms.Text
 
             public bool RequireIdf => Weighting == NgramExtractingEstimator.WeightingCriteria.Idf || Weighting == NgramExtractingEstimator.WeightingCriteria.TfIdf;
 
-            public TransformInfo(ColumnInfo info)
+            public TransformInfo(NgramExtractingEstimator.ColumnOptions info)
             {
                 NgramLength = info.NgramLength;
                 SkipLength = info.SkipLength;
@@ -237,7 +161,7 @@ namespace Microsoft.ML.Transforms.Text
                 NonEmptyLevels = ctx.Reader.ReadBoolArray(NgramLength);
             }
 
-            public void Save(ModelSaveContext ctx)
+            internal void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
@@ -267,20 +191,20 @@ namespace Microsoft.ML.Transforms.Text
         // Ngram inverse document frequencies
         private readonly double[][] _invDocFreqs;
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(NgramExtractingEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             if (!NgramExtractingEstimator.IsColumnTypeValid(type))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, NgramExtractingEstimator.ExpectedColumnType, type.ToString());
         }
 
-        internal NgramExtractingTransformer(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
+        internal NgramExtractingTransformer(IHostEnvironment env, IDataView input, NgramExtractingEstimator.ColumnOptions[] columns)
            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NgramExtractingTransformer)), GetColumnPairs(columns))
         {
             var transformInfos = new TransformInfo[columns.Length];
@@ -294,7 +218,7 @@ namespace Microsoft.ML.Transforms.Text
             _ngramMaps = Train(Host, columns, _transformInfos, input, out _invDocFreqs);
         }
 
-        private static SequencePool[] Train(IHostEnvironment env, ColumnInfo[] columns, ImmutableArray<TransformInfo> transformInfos, IDataView trainingData, out double[][] invDocFreqs)
+        private static SequencePool[] Train(IHostEnvironment env, NgramExtractingEstimator.ColumnOptions[] columns, ImmutableArray<TransformInfo> transformInfos, IDataView trainingData, out double[][] invDocFreqs)
         {
             var helpers = new NgramBufferBuilder[columns.Length];
             var getters = new ValueGetter<VBuffer<uint>>[columns.Length];
@@ -304,8 +228,8 @@ namespace Microsoft.ML.Transforms.Text
             // i in _counts counts how many (i+1)-grams are in the pool for column iinfo.
             var counts = new int[columns.Length][];
             var ngramMaps = new SequencePool[columns.Length];
-            var activeCols = new List<Schema.Column>();
-            var srcTypes = new ColumnType[columns.Length];
+            var activeCols = new List<DataViewSchema.Column>();
+            var srcTypes = new DataViewType[columns.Length];
             var srcCols = new int[columns.Length];
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)
             {
@@ -322,7 +246,7 @@ namespace Microsoft.ML.Transforms.Text
                     var ngramLength = columns[iinfo].NgramLength;
                     var skipLength = columns[iinfo].SkipLength;
 
-                    getters[iinfo] = RowCursorUtils.GetVecGetterAs<uint>(NumberType.U4, cursor, srcCols[iinfo]);
+                    getters[iinfo] = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.UInt32, cursor, srcCols[iinfo]);
                     src[iinfo] = default;
                     counts[iinfo] = new int[ngramLength];
                     ngramMaps[iinfo] = new SequencePool();
@@ -449,7 +373,7 @@ namespace Microsoft.ML.Transforms.Text
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private NgramExtractingTransformer(IHost host, ModelLoadContext ctx) :
@@ -482,27 +406,27 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new ColumnInfo[args.Column.Length];
+            env.CheckValue(options.Columns, nameof(options.Columns));
+            var cols = new NgramExtractingEstimator.ColumnOptions[options.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
 
                 for (int i = 0; i < cols.Length; i++)
                 {
-                    var item = args.Column[i];
-                    var maxNumTerms = Utils.Size(item.MaxNumTerms) > 0 ? item.MaxNumTerms : args.MaxNumTerms;
-                    cols[i] = new ColumnInfo(
+                    var item = options.Columns[i];
+                    var maxNumTerms = Utils.Size(item.MaxNumTerms) > 0 ? item.MaxNumTerms : options.MaxNumTerms;
+                    cols[i] = new NgramExtractingEstimator.ColumnOptions(
                         item.Name,
-                        item.NgramLength ?? args.NgramLength,
-                        item.SkipLength ?? args.SkipLength,
-                        item.AllLengths ?? args.AllLengths,
-                        item.Weighting ?? args.Weighting,
+                        item.NgramLength ?? options.NgramLength,
+                        item.SkipLength ?? options.SkipLength,
+                        item.AllLengths ?? options.AllLengths,
+                        item.Weighting ?? options.Weighting,
                         maxNumTerms,
                         item.Source ?? item.Name);
                 };
@@ -526,7 +450,7 @@ namespace Microsoft.ML.Transforms.Text
             return new NgramExtractingTransformer(host, ctx);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -546,53 +470,53 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
-            private readonly ColumnType[] _srcTypes;
+            private readonly DataViewType[] _srcTypes;
             private readonly int[] _srcCols;
-            private readonly ColumnType[] _types;
+            private readonly DataViewType[] _types;
             private readonly NgramExtractingTransformer _parent;
 
-            public Mapper(NgramExtractingTransformer parent, Schema inputSchema)
+            public Mapper(NgramExtractingTransformer parent, DataViewSchema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _types = new ColumnType[_parent.ColumnPairs.Length];
-                _srcTypes = new ColumnType[_parent.ColumnPairs.Length];
+                _types = new DataViewType[_parent.ColumnPairs.Length];
+                _srcTypes = new DataViewType[_parent.ColumnPairs.Length];
                 _srcCols = new int[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    _types[i] = new VectorType(NumberType.Float, _parent._ngramMaps[i].Count);
+                    _types[i] = new VectorType(NumberDataViewType.Single, _parent._ngramMaps[i].Count);
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _srcCols[i]);
                     _srcTypes[i] = inputSchema[_srcCols[i]].Type;
                 }
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    var builder = new MetadataBuilder();
+                    var builder = new DataViewSchema.Annotations.Builder();
                     AddMetadata(i, builder);
 
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.ToAnnotations());
                 }
                 return result;
             }
 
-            private void AddMetadata(int iinfo, MetadataBuilder builder)
+            private void AddMetadata(int iinfo, DataViewSchema.Annotations.Builder builder)
             {
-                if (InputSchema[_srcCols[iinfo]].HasKeyValues(_srcTypes[iinfo].GetItemType()))
+                if (InputSchema[_srcCols[iinfo]].HasKeyValues())
                 {
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                     {
                         GetSlotNames(iinfo, _parent._ngramMaps[iinfo].Count, ref dst);
                     };
 
-                    var slotNamesType = new VectorType(TextType.Instance, _parent._ngramMaps[iinfo].Count);
+                    var slotNamesType = new VectorType(TextDataViewType.Instance, _parent._ngramMaps[iinfo].Count);
                     builder.AddSlotNames(_parent._ngramMaps[iinfo].Count, getter);
                 }
             }
@@ -601,7 +525,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 var itemType = _srcTypes[iinfo].GetItemType();
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                Host.Assert(InputSchema[_srcCols[iinfo]].HasKeyValues(itemType));
+                Host.Assert(InputSchema[_srcCols[iinfo]].HasKeyValues());
 
                 var unigramNames = new VBuffer<ReadOnlyMemory<char>>();
 
@@ -671,13 +595,13 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
 
-                var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberType.U4, input, _srcCols[iinfo]);
+                var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.UInt32, input, _srcCols[iinfo]);
                 var src = default(VBuffer<uint>);
                 var bldr = new NgramBufferBuilder(_parent._transformInfos[iinfo].NgramLength, _parent._transformInfos[iinfo].SkipLength,
                     _parent._ngramMaps[iinfo].Count, GetNgramIdFinder(iinfo));
@@ -752,7 +676,7 @@ namespace Microsoft.ML.Transforms.Text
     public sealed class NgramExtractingEstimator : IEstimator<NgramExtractingTransformer>
     {
         /// <summary>
-        /// Weighting criteria: a statistical measure used to evaluate how important a word is to a document in a corpus.
+        /// A statistical measure used to evaluate how important a word is to a document in a corpus.
         /// This enumeration is serialized.
         /// </summary>
         public enum WeightingCriteria
@@ -777,7 +701,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         private readonly IHost _host;
-        private readonly NgramExtractingTransformer.ColumnInfo[] _columns;
+        private readonly ColumnOptions[] _columns;
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumnName"/>
@@ -791,7 +715,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
-        public NgramExtractingEstimator(IHostEnvironment env,
+        internal NgramExtractingEstimator(IHostEnvironment env,
             string outputColumnName, string inputColumnName = null,
             int ngramLength = Defaults.NgramLength,
             int skipLength = Defaults.SkipLength,
@@ -813,14 +737,14 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
-        public NgramExtractingEstimator(IHostEnvironment env,
+        internal NgramExtractingEstimator(IHostEnvironment env,
             (string outputColumnName, string inputColumnName)[] columns,
             int ngramLength = Defaults.NgramLength,
             int skipLength = Defaults.SkipLength,
             bool allLengths = Defaults.AllLengths,
             int maxNumTerms = Defaults.MaxNumTerms,
             WeightingCriteria weighting = Defaults.Weighting)
-            : this(env, columns.Select(x => new NgramExtractingTransformer.ColumnInfo(x.outputColumnName, x.inputColumnName, ngramLength, skipLength, allLengths, weighting, maxNumTerms)).ToArray())
+            : this(env, columns.Select(x => new ColumnOptions(x.outputColumnName, x.inputColumnName, ngramLength, skipLength, allLengths, weighting, maxNumTerms)).ToArray())
         {
         }
 
@@ -830,16 +754,19 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Array of columns with information how to transform data.</param>
-        public NgramExtractingEstimator(IHostEnvironment env, params NgramExtractingTransformer.ColumnInfo[] columns)
+        internal NgramExtractingEstimator(IHostEnvironment env, params ColumnOptions[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(NgramExtractingEstimator));
             _columns = columns;
         }
 
+        /// <summary>
+        /// Trains and returns a <see cref="NgramExtractingTransformer"/>.
+        /// </summary>
         public NgramExtractingTransformer Fit(IDataView input) => new NgramExtractingTransformer(_host, input, _columns);
 
-        internal static bool IsColumnTypeValid(ColumnType type)
+        internal static bool IsColumnTypeValid(DataViewType type)
         {
             if (!(type is VectorType vectorType))
                 return false;
@@ -865,6 +792,91 @@ namespace Microsoft.ML.Transforms.Text
 
         internal const string ExpectedColumnType = "Expected vector of Key type, and Key is convertible to U4";
 
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
+        public sealed class ColumnOptions
+        {
+            /// <summary>Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
+            public readonly string Name;
+            /// <summary>Name of column to transform.</summary>
+            public readonly string InputColumnName;
+            /// <summary>Maximum ngram length.</summary>
+            public readonly int NgramLength;
+            /// <summary>Maximum number of tokens to skip when constructing an ngram.</summary>
+            public readonly int SkipLength;
+            /// <summary>Whether to store all ngram lengths up to ngramLength, or only ngramLength.</summary>
+            public readonly bool AllLengths;
+            /// <summary>The weighting criteria.</summary>
+            public readonly WeightingCriteria Weighting;
+            /// <summary>
+            /// Contains the maximum number of grams to store in the dictionary, for each level of ngrams,
+            /// from 1 (in position 0) up to ngramLength (in position ngramLength-1)
+            /// </summary>
+            public readonly ImmutableArray<int> Limits;
+
+            /// <summary>
+            /// Describes how the transformer handles one Gcn column pair.
+            /// </summary>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="ngramLength">Maximum ngram length.</param>
+            /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
+            /// <param name="allLengths">Whether to store all ngram lengths up to ngramLength, or only ngramLength.</param>
+            /// <param name="weighting">The weighting criteria.</param>
+            /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
+            public ColumnOptions(string name, string inputColumnName = null,
+                int ngramLength = Defaults.NgramLength,
+                int skipLength = Defaults.SkipLength,
+                bool allLengths = Defaults.AllLengths,
+                WeightingCriteria weighting = Defaults.Weighting,
+                int maxNumTerms = Defaults.MaxNumTerms)
+                : this(name, ngramLength, skipLength, allLengths, weighting, new int[] { maxNumTerms }, inputColumnName ?? name)
+            {
+            }
+
+            internal ColumnOptions(string name,
+                int ngramLength,
+                int skipLength,
+                bool allLengths,
+                WeightingCriteria weighting,
+                int[] maxNumTerms,
+                string inputColumnName = null)
+            {
+                Name = name;
+                InputColumnName = inputColumnName ?? name;
+                NgramLength = ngramLength;
+                Contracts.CheckUserArg(0 < NgramLength && NgramLength <= NgramBufferBuilder.MaxSkipNgramLength, nameof(ngramLength));
+                SkipLength = skipLength;
+                if (NgramLength + SkipLength > NgramBufferBuilder.MaxSkipNgramLength)
+                {
+                    throw Contracts.ExceptUserArg(nameof(skipLength),
+                        $"The sum of skipLength and ngramLength must be less than or equal to {NgramBufferBuilder.MaxSkipNgramLength}");
+                }
+                AllLengths = allLengths;
+                Weighting = weighting;
+                var limits = new int[ngramLength];
+                if (!AllLengths)
+                {
+                    Contracts.CheckUserArg(Utils.Size(maxNumTerms) == 0 ||
+                        Utils.Size(maxNumTerms) == 1 && maxNumTerms[0] > 0, nameof(maxNumTerms));
+                    limits[ngramLength - 1] = Utils.Size(maxNumTerms) == 0 ? Defaults.MaxNumTerms : maxNumTerms[0];
+                }
+                else
+                {
+                    Contracts.CheckUserArg(Utils.Size(maxNumTerms) <= ngramLength, nameof(maxNumTerms));
+                    Contracts.CheckUserArg(Utils.Size(maxNumTerms) == 0 || maxNumTerms.All(i => i >= 0) && maxNumTerms[maxNumTerms.Length - 1] > 0, nameof(maxNumTerms));
+                    var extend = Utils.Size(maxNumTerms) == 0 ? Defaults.MaxNumTerms : maxNumTerms[maxNumTerms.Length - 1];
+                    limits = Utils.BuildArray(ngramLength, i => i < Utils.Size(maxNumTerms) ? maxNumTerms[i] : extend);
+                }
+                Limits = ImmutableArray.Create(limits);
+            }
+        }
+
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -877,8 +889,8 @@ namespace Microsoft.ML.Transforms.Text
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, ExpectedColumnType, col.GetTypeString());
                 var metadata = new List<SchemaShape.Column>();
                 if (col.HasKeyValues())
-                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(metadata));
+                    metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(metadata));
             }
             return new SchemaShape(result.Values);
         }

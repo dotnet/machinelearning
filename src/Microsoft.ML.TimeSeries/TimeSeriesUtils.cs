@@ -2,7 +2,7 @@
 using System.IO;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.TimeSeries
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     internal static class TimeSeriesUtils
     {

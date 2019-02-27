@@ -8,17 +8,15 @@ using System.Runtime.InteropServices;
 using System.Security;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
-using Microsoft.ML.Trainers.SymSgd;
-using Microsoft.ML.Training;
+using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.HalLearners;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(SymSgdClassificationTrainer), typeof(SymSgdClassificationTrainer.Options),
@@ -29,18 +27,18 @@ using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(void), typeof(SymSgdClassificationTrainer), null, typeof(SignatureEntryPointModule), SymSgdClassificationTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Trainers.SymSgd
+namespace Microsoft.ML.Trainers.HalLearners
 {
-    using TPredictor = IPredictorWithFeatureWeights<float>;
+    using TPredictor = CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>;
 
     /// <include file='doc.xml' path='doc/members/member[@name="SymSGD"]/*' />
-    [BestFriend]
     public sealed class SymSgdClassificationTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<TPredictor>, TPredictor>
     {
         internal const string LoadNameValue = "SymbolicSGD";
         internal const string UserNameValue = "Symbolic SGD (binary)";
         internal const string ShortName = "SymSGD";
 
+        ///<summary> Advanced options for trainer.</summary>
         public sealed class Options : LearnerInputBaseWithLabel
         {
             /// <summary>
@@ -57,14 +55,14 @@ namespace Microsoft.ML.Trainers.SymSgd
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of passes over the data.", ShortName = "iter", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "1,5,10,20,30,40,50")]
             [TlcModule.SweepableDiscreteParam("NumberOfIterations", new object[] { 1, 5, 10, 20, 30, 40, 50 })]
-            public int NumberOfIterations = 50;
+            public int NumberOfIterations = Defaults.NumberOfIterations;
 
             /// <summary>
             /// Tolerance for difference in average loss in consecutive passes.
             /// If the reduction on loss is smaller than the specified tolerance in one iteration, the training process will be terminated.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance for difference in average loss in consecutive passes.", ShortName = "tol")]
-            public float Tolerance = 1e-4f;
+            public float Tolerance = Defaults.Tolerance;
 
             /// <summary>
             /// Learning rate. A larger value can potentially reduce the training time but incur numerical instability and over-fitting.
@@ -80,7 +78,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization", ShortName = "l2", SortOrder = 52)]
             [TGUI(SuggestedSweeps = "0.0,1e-5,1e-5,1e-6,1e-7")]
             [TlcModule.SweepableDiscreteParam("L2Regularization", new object[] { 0.0f, 1e-5f, 1e-5f, 1e-6f, 1e-7f })]
-            public float L2Regularization;
+            public float L2Regularization = Defaults.L2Regularization;
 
             /// <summary>
             /// The number of iterations each thread learns a local model until combining it with the
@@ -96,19 +94,19 @@ namespace Microsoft.ML.Trainers.SymSgd
             /// The acceleration memory budget in MB.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The acceleration memory budget in MB", ShortName = "accelMemBudget")]
-            public long MemorySize = 1024;
+            public long MemorySize = Defaults.MemorySize;
 
             /// <summary>
             /// Set to <see langword="true" /> causes the data to shuffle.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data?", ShortName = "shuf")]
-            public bool Shuffle = true;
+            public bool Shuffle = Defaults.Shuffle;
 
             /// <summary>
             /// Apply weight to the positive class, for imbalanced data.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
-            public float PositiveInstanceWeight = 1;
+            public float PositiveInstanceWeight = Defaults.PositiveInstanceWeight;
 
             internal void Check(IExceptionContext ectx)
             {
@@ -119,7 +117,19 @@ namespace Microsoft.ML.Trainers.SymSgd
             }
         }
 
+        [BestFriend]
+        internal static class Defaults
+        {
+            public const float PositiveInstanceWeight = 1;
+            public const bool Shuffle = true;
+            public const long MemorySize = 1024;
+            public const float L2Regularization = 0;
+            public const float Tolerance = 1e-4f;
+            public const int NumberOfIterations = 50;
+        }
+
         public override TrainerInfo Info { get; }
+
         private readonly Options _options;
 
         /// <summary>
@@ -142,7 +152,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                 idvToFeedTrain = idvToShuffle;
             else
             {
-                var shuffleArgs = new RowShufflingTransformer.Arguments
+                var shuffleArgs = new RowShufflingTransformer.Options
                 {
                     PoolOnly = false,
                     ForceShuffle = _options.Shuffle
@@ -169,17 +179,20 @@ namespace Microsoft.ML.Trainers.SymSgd
             Host.CheckValue(context, nameof(context));
             using (var ch = Host.Start("Training"))
             {
-                var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
                 var initPred = context.InitialPredictor;
-                var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearModelParameters;
-                linInitPred = linInitPred ?? initPred as LinearModelParameters;
-                Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
+                var linearInitPred = initPred as LinearModelParameters;
+                // If initial predictor is set, it must be a linear model.
+                // If initPred is null (i.e., not set), the following check will always be bypassed.
+                // If initPred is not null, then the following checks if a LinearModelParameters is loaded to linearInitPred.
+                Host.CheckParam(initPred == null || linearInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");
-                return TrainCore(ch, preparedData, linInitPred, weightSetCount);
+
+                var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
+                return TrainCore(ch, preparedData, linearInitPred, weightSetCount);
             }
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         /// <summary>
         /// Initializes a new instance of <see cref="SymSgdClassificationTrainer"/>
@@ -201,32 +214,35 @@ namespace Microsoft.ML.Trainers.SymSgd
 
             VBuffer<float> maybeSparseWeights = default;
             VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights,
-                Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.R4));
+                Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
             var predictor = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias);
-            return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
+            return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator>(Host, predictor, new PlattCalibrator(Host, -1, 0));
         }
 
-        protected override BinaryPredictionTransformer<TPredictor> MakeTransformer(TPredictor model, Schema trainSchema)
+        private protected override BinaryPredictionTransformer<TPredictor> MakeTransformer(TPredictor model, DataViewSchema trainSchema)
              => new BinaryPredictionTransformer<TPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<TPredictor> Train(IDataView trainData, TPredictor initialPredictor = null)
-            => TrainTransformer(trainData, initPredictor: initialPredictor);
+        /// <summary>
+        /// Continues the training of a <see cref="SymSgdClassificationTrainer"/> using an already trained <paramref name="modelParameters"/>
+        /// a <see cref="BinaryPredictionTransformer"/>.
+        /// </summary>
+        public BinaryPredictionTransformer<TPredictor> Fit(IDataView trainData, LinearModelParameters modelParameters)
+            => TrainTransformer(trainData, initPredictor: modelParameters);
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.SymSgdBinaryClassifier",
             Desc = "Train a symbolic SGD.",
             UserName = SymSgdClassificationTrainer.UserNameValue,
-            ShortName = SymSgdClassificationTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name=""SymSGD""]/*' />" })]
+            ShortName = SymSgdClassificationTrainer.ShortName)]
         internal static CommonOutputs.BinaryClassificationOutput TrainSymSgd(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));

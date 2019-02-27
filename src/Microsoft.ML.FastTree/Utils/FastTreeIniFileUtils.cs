@@ -3,17 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Text;
-using Microsoft.ML.Calibrator;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
     internal static class FastTreeIniFileUtils
     {
         public static string TreeEnsembleToIni(
-            IHost host, TreeEnsemble ensemble, RoleMappedSchema schema, ICalibrator calibrator,
+            IHost host, InternalTreeEnsemble ensemble, RoleMappedSchema schema, ICalibrator calibrator,
             string trainingParams, bool appendFeatureGain, bool includeZeroGainFeatures)
         {
             host.CheckValue(ensemble, nameof(ensemble));

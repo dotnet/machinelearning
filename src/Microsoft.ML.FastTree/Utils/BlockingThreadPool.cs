@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
     /// <summary>
     /// This class wraps the standard .NET ThreadPool and adds the following functionality:
@@ -13,7 +13,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     /// 4) a work item knows the index of the thread it is running on - this can be used if the threads share \
     ///    common resources
     /// </summary>
-    public static class BlockingThreadPool
+    internal static class BlockingThreadPool
     {
         private static int _numThreads;
 

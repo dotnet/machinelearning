@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Trainers.HalLearners;
-using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Transforms.Projections;
 
 namespace Microsoft.ML
@@ -20,21 +18,28 @@ namespace Microsoft.ML
         /// Predict a target using a linear regression model trained with the <see cref="OlsLinearRegressionTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The features column.</param>
-        /// <param name="weights">The weights column.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[OrdinaryLeastSquares](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/OrdinaryLeastSquares.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static OlsLinearRegressionTrainer OrdinaryLeastSquares(this RegressionCatalog.RegressionTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weights = null)
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string exampleWeightColumnName = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
             var options = new OlsLinearRegressionTrainer.Options
             {
-                LabelColumn = labelColumn,
-                FeatureColumn = featureColumn,
-                WeightColumn = weights != null ? Optional<string>.Explicit(weights) : Optional<string>.Implicit(DefaultColumnNames.Weight)
+                LabelColumn = labelColumnName,
+                FeatureColumn = featureColumnName,
+                WeightColumn = exampleWeightColumnName
             };
 
             return new OlsLinearRegressionTrainer(env, options);
@@ -45,6 +50,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="options">Algorithm advanced options. See <see cref="OlsLinearRegressionTrainer.Options"/>.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[OrdinaryLeastSquares](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/OrdinaryLeastSquaresWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static OlsLinearRegressionTrainer OrdinaryLeastSquares(
             this RegressionCatalog.RegressionTrainers catalog,
             OlsLinearRegressionTrainer.Options options)
@@ -60,19 +72,28 @@ namespace Microsoft.ML
         ///  Predict a target using a linear binary classification model trained with the <see cref="SymSgdClassificationTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The features column.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="numberOfIterations">Number of training iterations.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SymbolicStochasticGradientDescent](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SymbolicStochasticGradientDescent.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static SymSgdClassificationTrainer SymbolicStochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features)
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            int numberOfIterations = SymSgdClassificationTrainer.Defaults.NumberOfIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
 
             var options = new SymSgdClassificationTrainer.Options
             {
-                LabelColumn = labelColumn,
-                FeatureColumn = featureColumn,
+                LabelColumn = labelColumnName,
+                FeatureColumn = featureColumnName,
             };
 
             return new SymSgdClassificationTrainer(env, options);
@@ -83,6 +104,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="options">Algorithm advanced options. See <see cref="SymSgdClassificationTrainer.Options"/>.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SymbolicStochasticGradientDescent](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SymbolicStochasticGradientDescentWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static SymSgdClassificationTrainer SymbolicStochasticGradientDescent(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             SymSgdClassificationTrainer.Options options)
@@ -107,15 +135,15 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[VectorWhiten](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ProjectionTransforms.cs?range=1-6,12-112)]
+        /// [!code-csharp[VectorWhiten](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Projection/VectorWhiten.cs)]
         /// ]]>
         /// </format>
         /// </example>
         public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, string outputColumnName, string inputColumnName = null,
-            WhiteningKind kind = VectorWhiteningTransformer.Defaults.Kind,
-            float eps = VectorWhiteningTransformer.Defaults.Eps,
-            int maxRows = VectorWhiteningTransformer.Defaults.MaxRows,
-            int pcaNum = VectorWhiteningTransformer.Defaults.PcaNum)
+            WhiteningKind kind = VectorWhiteningEstimator.Defaults.Kind,
+            float eps = VectorWhiteningEstimator.Defaults.Eps,
+            int maxRows = VectorWhiteningEstimator.Defaults.MaxRows,
+            int pcaNum = VectorWhiteningEstimator.Defaults.PcaNum)
                 => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, kind, eps, maxRows, pcaNum);
 
         /// <summary>
@@ -124,7 +152,14 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Describes the parameters of the whitening process for each column pair.</param>
-        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, params VectorWhiteningTransformer.ColumnInfo[] columns)
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[VectorWhiten](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Projection/VectorWhitenWithColumnOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, params VectorWhiteningEstimator.ColumnOptions[] columns)
             => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
     }

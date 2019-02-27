@@ -7,18 +7,15 @@ using System.Threading.Tasks;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(EnsembleMultiClassModelParameters), null, typeof(SignatureLoadModel),
     EnsembleMultiClassModelParameters.UserName, EnsembleMultiClassModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.Ensemble
+namespace Microsoft.ML.Trainers.Ensemble
 {
-    using TVectorPredictor = IPredictorProducing<VBuffer<Single>>;
-
-    public sealed class EnsembleMultiClassModelParameters : EnsembleModelParametersBase<TVectorPredictor, VBuffer<Single>>, IValueMapper
+    internal sealed class EnsembleMultiClassModelParameters : EnsembleModelParametersBase<VBuffer<Single>>, IValueMapper
     {
         internal const string UserName = "Ensemble Multiclass Executor";
         internal const string LoaderSignature = "EnsemMcExec";
@@ -41,8 +38,8 @@ namespace Microsoft.ML.Ensemble
         private readonly VectorType _outputType;
         private readonly IValueMapper[] _mappers;
 
-        ColumnType IValueMapper.InputType => _inputType;
-        ColumnType IValueMapper.OutputType => _outputType;
+        DataViewType IValueMapper.InputType => _inputType;
+        DataViewType IValueMapper.OutputType => _outputType;
 
         /// <summary>
         /// Instantiate new ensemble model from existing sub-models.
@@ -51,7 +48,7 @@ namespace Microsoft.ML.Ensemble
         /// <param name="models">Array of sub-models that you want to ensemble together.</param>
         /// <param name="combiner">The combiner class to use to ensemble the models.</param>
         /// <param name="weights">The weights assigned to each model to be ensembled.</param>
-        public EnsembleMultiClassModelParameters(IHostEnvironment env, FeatureSubsetModel<TVectorPredictor>[] models,
+        internal EnsembleMultiClassModelParameters(IHostEnvironment env, FeatureSubsetModel<VBuffer<float>>[] models,
             IMultiClassOutputCombiner combiner, Single[] weights = null)
             : base(env, RegistrationName, models, combiner, weights)
         {
@@ -92,7 +89,7 @@ namespace Microsoft.ML.Ensemble
             Host.AssertValue(outputType);
 
             if (inputType == null)
-                inputType = new VectorType(NumberType.Float);
+                inputType = new VectorType(NumberDataViewType.Single);
         }
 
         private static EnsembleMultiClassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -109,7 +106,7 @@ namespace Microsoft.ML.Ensemble
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
@@ -159,9 +156,9 @@ namespace Microsoft.ML.Ensemble
         private bool IsValid(IValueMapper mapper, out VectorType inputType, out VectorType outputType)
         {
             if (mapper != null
-                && mapper.InputType is VectorType inVectorType && inVectorType.ItemType == NumberType.Float
+                && mapper.InputType is VectorType inVectorType && inVectorType.ItemType == NumberDataViewType.Single
                 && mapper.OutputType is VectorType outVectorType
-                && outVectorType.Size > 0 && outVectorType.ItemType == NumberType.Float)
+                && outVectorType.Size > 0 && outVectorType.ItemType == NumberDataViewType.Single)
             {
                 inputType = inVectorType;
                 outputType = outVectorType;

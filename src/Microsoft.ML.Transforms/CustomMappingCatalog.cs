@@ -23,6 +23,12 @@ namespace Microsoft.ML
         /// <param name="contractName">The contract name, used by ML.NET for loading the model. If <c>null</c> is specified, such a trained model would not be save-able.</param>
         /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data.</param>
         /// <param name="outputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TDst"/> and output data.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CustomMapping.cs)]
+        /// ]]></format>
+        /// </example>
         public static CustomMappingEstimator<TSrc, TDst> CustomMapping<TSrc, TDst>(this TransformsCatalog catalog, Action<TSrc, TDst> mapAction, string contractName,
                 SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             where TSrc : class, new()
@@ -41,6 +47,12 @@ namespace Microsoft.ML
         /// <param name="contractName">The contract name, used by ML.NET for loading the model. If <c>null</c> is specified, such a trained model would not be save-able.</param>
         /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data.</param>
         /// <param name="outputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TDst"/> and output data.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CustomMapping.cs)]
+        /// ]]></format>
+        /// </example>
         public static CustomMappingTransformer<TSrc, TDst> CustomMappingTransformer<TSrc, TDst>(this TransformsCatalog catalog, Action<TSrc, TDst> mapAction, string contractName,
                 SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             where TSrc : class, new()

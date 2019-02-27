@@ -70,9 +70,9 @@ namespace Microsoft.ML.RunTests
 
             int col = viewCol;
             VectorType type = trans.GetSlotType(col);
-            ColumnType colType = trans.Schema[col].Type;
+            DataViewType colType = trans.Schema[col].Type;
             Assert.Equal(view.Schema[viewCol].Name, trans.Schema[col].Name);
-            ColumnType expectedType = view.Schema[viewCol].Type;
+            DataViewType expectedType = view.Schema[viewCol].Type;
             Assert.Equal(expectedType, colType);
             string desc = string.Format("Column {0} named '{1}'", col, trans.Schema[col].Name);
             Assert.Equal(DataViewUtils.ComputeRowCount(view), type.Size);
@@ -159,17 +159,17 @@ namespace Microsoft.ML.RunTests
             // A is to check the splitting of a sparse-ish column.
             var dataA = GenerateHelper(rowCount, 0.1, rgen, () => (int)rgen.Next(), 50, 5, 10, 15);
             dataA[rowCount / 2] = new VBuffer<int>(50, 0, null, null); // Coverage for the null vbuffer case.
-            builder.AddColumn("A", NumberType.I4, dataA);
+            builder.AddColumn("A", NumberDataViewType.Int32, dataA);
             // B is to check the splitting of a dense-ish column.
-            builder.AddColumn("B", NumberType.R8, GenerateHelper(rowCount, 0.8, rgen, rgen.NextDouble, 50, 0, 25, 49));
+            builder.AddColumn("B", NumberDataViewType.Double, GenerateHelper(rowCount, 0.8, rgen, rgen.NextDouble, 50, 0, 25, 49));
             // C is to just have some column we do nothing with.
-            builder.AddColumn("C", NumberType.I2, GenerateHelper(rowCount, 0.1, rgen, () => (short)1, 30, 3, 10, 24));
+            builder.AddColumn("C", NumberDataViewType.Int16, GenerateHelper(rowCount, 0.1, rgen, () => (short)1, 30, 3, 10, 24));
             // D is to check some column we don't have to split because it's sufficiently small.
-            builder.AddColumn("D", NumberType.R8, GenerateHelper(rowCount, 0.1, rgen, rgen.NextDouble, 3, 1));
+            builder.AddColumn("D", NumberDataViewType.Double, GenerateHelper(rowCount, 0.1, rgen, rgen.NextDouble, 3, 1));
             // E is to check a sparse scalar column.
-            builder.AddColumn("E", NumberType.U4, GenerateHelper(rowCount, 0.1, rgen, () => (uint)rgen.Next(int.MinValue, int.MaxValue)));
+            builder.AddColumn("E", NumberDataViewType.UInt32, GenerateHelper(rowCount, 0.1, rgen, () => (uint)rgen.Next(int.MinValue, int.MaxValue)));
             // F is to check a dense-ish scalar column.
-            builder.AddColumn("F", NumberType.I4, GenerateHelper(rowCount, 0.8, rgen, () => rgen.Next()));
+            builder.AddColumn("F", NumberDataViewType.Int32, GenerateHelper(rowCount, 0.8, rgen, () => rgen.Next()));
 
             IDataView view = builder.GetDataView();
 
@@ -225,17 +225,17 @@ namespace Microsoft.ML.RunTests
             // A is to check the splitting of a sparse-ish column.
             var dataA = GenerateHelper(rowCount, 0.1, rgen, () => (int)rgen.Next(), 50, 5, 10, 15);
             dataA[rowCount / 2] = new VBuffer<int>(50, 0, null, null); // Coverage for the null vbuffer case.
-            builder.AddColumn("A", NumberType.I4, dataA);
+            builder.AddColumn("A", NumberDataViewType.Int32, dataA);
             // B is to check the splitting of a dense-ish column.
-            builder.AddColumn("B", NumberType.R8, GenerateHelper(rowCount, 0.8, rgen, rgen.NextDouble, 50, 0, 25, 49));
+            builder.AddColumn("B", NumberDataViewType.Double, GenerateHelper(rowCount, 0.8, rgen, rgen.NextDouble, 50, 0, 25, 49));
             // C is to just have some column we do nothing with.
-            builder.AddColumn("C", NumberType.I2, GenerateHelper(rowCount, 0.1, rgen, () => (short)1, 30, 3, 10, 24));
+            builder.AddColumn("C", NumberDataViewType.Int16, GenerateHelper(rowCount, 0.1, rgen, () => (short)1, 30, 3, 10, 24));
             // D is to check some column we don't have to split because it's sufficiently small.
-            builder.AddColumn("D", NumberType.R8, GenerateHelper(rowCount, 0.1, rgen, rgen.NextDouble, 3, 1));
+            builder.AddColumn("D", NumberDataViewType.Double, GenerateHelper(rowCount, 0.1, rgen, rgen.NextDouble, 3, 1));
             // E is to check a sparse scalar column.
-            builder.AddColumn("E", NumberType.U4, GenerateHelper(rowCount, 0.1, rgen, () => (uint)rgen.Next(int.MinValue, int.MaxValue)));
+            builder.AddColumn("E", NumberDataViewType.UInt32, GenerateHelper(rowCount, 0.1, rgen, () => (uint)rgen.Next(int.MinValue, int.MaxValue)));
             // F is to check a dense-ish scalar column.
-            builder.AddColumn("F", NumberType.I4, GenerateHelper(rowCount, 0.8, rgen, () => (int)rgen.Next()));
+            builder.AddColumn("F", NumberDataViewType.Int32, GenerateHelper(rowCount, 0.8, rgen, () => (int)rgen.Next()));
 
             IDataView view = builder.GetDataView();
 

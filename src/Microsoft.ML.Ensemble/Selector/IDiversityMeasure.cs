@@ -6,38 +6,37 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.Selector.DiversityMeasure;
 using Microsoft.ML.EntryPoints;
 
-namespace Microsoft.ML.Ensemble.Selector
+namespace Microsoft.ML.Trainers.Ensemble
 {
-    public interface IDiversityMeasure<TOutput>
+    internal interface IDiversityMeasure<TOutput>
     {
-        List<ModelDiversityMetric<TOutput>> CalculateDiversityMeasure(IList<FeatureSubsetModel<IPredictorProducing<TOutput>>> models,
-            ConcurrentDictionary<FeatureSubsetModel<IPredictorProducing<TOutput>>, TOutput[]> predictions);
+        List<ModelDiversityMetric<TOutput>> CalculateDiversityMeasure(IList<FeatureSubsetModel<TOutput>> models,
+            ConcurrentDictionary<FeatureSubsetModel<TOutput>, TOutput[]> predictions);
     }
 
-    public delegate void SignatureEnsembleDiversityMeasure();
+    internal delegate void SignatureEnsembleDiversityMeasure();
 
-    public interface IBinaryDiversityMeasure : IDiversityMeasure<Single>
+    internal interface IBinaryDiversityMeasure : IDiversityMeasure<Single>
     { }
-    public interface IRegressionDiversityMeasure : IDiversityMeasure<Single>
+    internal interface IRegressionDiversityMeasure : IDiversityMeasure<Single>
     { }
-    public interface IMulticlassDiversityMeasure : IDiversityMeasure<VBuffer<Single>>
+    internal interface IMulticlassDiversityMeasure : IDiversityMeasure<VBuffer<Single>>
     { }
 
     [TlcModule.ComponentKind("EnsembleBinaryDiversityMeasure")]
-    public interface ISupportBinaryDiversityMeasureFactory : IComponentFactory<IBinaryDiversityMeasure>
+    internal interface ISupportBinaryDiversityMeasureFactory : IComponentFactory<IBinaryDiversityMeasure>
     {
     }
 
     [TlcModule.ComponentKind("EnsembleRegressionDiversityMeasure")]
-    public interface ISupportRegressionDiversityMeasureFactory : IComponentFactory<IRegressionDiversityMeasure>
+    internal interface ISupportRegressionDiversityMeasureFactory : IComponentFactory<IRegressionDiversityMeasure>
     {
     }
 
     [TlcModule.ComponentKind("EnsembleMulticlassDiversityMeasure")]
-    public interface ISupportMulticlassDiversityMeasureFactory : IComponentFactory<IMulticlassDiversityMeasure>
+    internal interface ISupportMulticlassDiversityMeasureFactory : IComponentFactory<IMulticlassDiversityMeasure>
     {
     }
 }

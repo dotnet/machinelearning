@@ -8,7 +8,7 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal abstract class BaseSubModelSelector<TOutput> : ISubModelSelector<TOutput>
     {
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
             Host = env.Register(name);
         }
 
-        protected void Print(IChannel ch, IList<FeatureSubsetModel<IPredictorProducing<TOutput>>> models, string metricName)
+        protected void Print(IChannel ch, IList<FeatureSubsetModel<TOutput>> models, string metricName)
         {
             // REVIEW: The output format was faithfully reproduced from the original format, but it's unclear
             // to me that this is right. Why have two bars in the header line, but only one bar in the results?
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
             }
         }
 
-        public virtual IList<FeatureSubsetModel<IPredictorProducing<TOutput>>> Prune(IList<FeatureSubsetModel<IPredictorProducing<TOutput>>> models)
+        public virtual IList<FeatureSubsetModel<TOutput>> Prune(IList<FeatureSubsetModel<TOutput>> models)
         {
             return models;
         }
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
             }
         }
 
-        public virtual void CalculateMetrics(FeatureSubsetModel<IPredictorProducing<TOutput>> model,
+        public virtual void CalculateMetrics(FeatureSubsetModel<TOutput> model,
             ISubsetSelector subsetSelector, Subset subset, Batch batch, bool needMetrics)
         {
             if (!needMetrics || model == null || model.Metrics != null)
@@ -100,32 +100,32 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
         }
 
         private IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetColumnRoles(
-            RoleMappedSchema testSchema, Schema scoredSchema)
+            RoleMappedSchema testSchema, DataViewSchema scoredSchema)
         {
             switch (PredictionKind)
             {
                 case PredictionKind.BinaryClassification:
                     yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, testSchema.Label.Value.Name);
                     var scoreCol = EvaluateUtils.GetScoreColumn(Host, scoredSchema, null, nameof(BinaryClassifierMamlEvaluator.ArgumentsBase.ScoreColumn),
-                        MetadataUtils.Const.ScoreColumnKind.BinaryClassification);
-                    yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreCol.Name);
+                        AnnotationUtils.Const.ScoreColumnKind.BinaryClassification);
+                    yield return RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, scoreCol.Name);
                     // Get the optional probability column.
                     var probCol = EvaluateUtils.GetOptAuxScoreColumn(Host, scoredSchema, null, nameof(BinaryClassifierMamlEvaluator.Arguments.ProbabilityColumn),
-                        scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberType.Float.Equals);
+                        scoreCol.Index, AnnotationUtils.Const.ScoreValueKind.Probability, NumberDataViewType.Single.Equals);
                     if (probCol.HasValue)
-                        yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probCol.Value.Name);
+                        yield return RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Probability, probCol.Value.Name);
                     yield break;
                 case PredictionKind.Regression:
                     yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, testSchema.Label.Value.Name);
                     scoreCol = EvaluateUtils.GetScoreColumn(Host, scoredSchema, null, nameof(RegressionMamlEvaluator.Arguments.ScoreColumn),
-                        MetadataUtils.Const.ScoreColumnKind.Regression);
-                    yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreCol.Name);
+                        AnnotationUtils.Const.ScoreColumnKind.Regression);
+                    yield return RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, scoreCol.Name);
                     yield break;
                 case PredictionKind.MultiClassClassification:
                     yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, testSchema.Label.Value.Name);
                     scoreCol = EvaluateUtils.GetScoreColumn(Host, scoredSchema, null, nameof(MultiClassMamlEvaluator.Arguments.ScoreColumn),
-                        MetadataUtils.Const.ScoreColumnKind.MultiClassClassification);
-                    yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreCol.Name);
+                        AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification);
+                    yield return RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, scoreCol.Name);
                     yield break;
                 default:
                     throw Host.Except("Unrecognized prediction kind '{0}'", PredictionKind);

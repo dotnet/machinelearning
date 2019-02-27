@@ -11,7 +11,7 @@ namespace Microsoft.ML.Benchmarks.Harness
     /// which we want to run on the CI.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public class CIBenchmark : Attribute
+    public sealed class CIBenchmark : Attribute
     {
     }
 }

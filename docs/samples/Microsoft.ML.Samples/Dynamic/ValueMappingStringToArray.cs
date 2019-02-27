@@ -6,7 +6,7 @@ using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class ValueMappingStringToArrayExample
+    public static class ValueMappingStringToArray
     {
         /// <summary>
         /// Helper class for retrieving the resulting data
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Samples.Dynamic
         ///     0-5yrs  -> 1, 2, 3
         ///     6-11yrs -> 5, 6, 7
         ///     12+yrs  -> 42,32,64
-        public static void Run()
+        public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable.
             IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();
-            IDataView trainData = mlContext.Data.ReadFromEnumerable(data);
+            IDataView trainData = mlContext.Data.LoadFromEnumerable(data);
 
             // If the list of keys and values are known, they can be passed to the API. The ValueMappingEstimator can also get the mapping through an IDataView
             // Creating a list of keys based on the Education values from the dataset
@@ -52,13 +52,13 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             // Constructs the ValueMappingEstimator making the ML.net pipeline
-            var pipeline = new ValueMappingEstimator<string, int>(mlContext, educationKeys, educationValues, ("EducationFeature", "Education"));
+            var pipeline = mlContext.Transforms.Conversion.ValueMap<string, int>(educationKeys, educationValues, ("EducationFeature", "Education"));
 
             // Fits the ValueMappingEstimator and transforms the data adding the EducationFeature column.
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);
 
             // Getting the resulting data as an IEnumerable of SampleInfertDataWithIntArray. This will contain the newly created column EducationCategory
-            IEnumerable<SampleInfertDataWithIntArray> featuresColumn = mlContext.CreateEnumerable<SampleInfertDataWithIntArray>(transformedData, reuseRowObject: false);
+            IEnumerable<SampleInfertDataWithIntArray> featuresColumn = mlContext.Data.CreateEnumerable<SampleInfertDataWithIntArray>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"Example of mapping string->array");
             Console.WriteLine($"Age\tEducation\tEducationFeature");

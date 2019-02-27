@@ -5,7 +5,7 @@
 using System.Linq;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.EntryPoints.JsonUtils
+namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
     /// This class runs a graph of entry points with the specified inputs, and produces the specified outputs.
@@ -16,7 +16,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
     /// REVIEW: currently, the graph is executed synchronously, one node at a time. This is an implementation choice, we
     /// probably need to consider parallel asynchronous execution, once we agree on an acceptable syntax for it.
     /// </summary>
-    public sealed class GraphRunner
+    internal sealed class GraphRunner
     {
         private const string RegistrationName = "GraphRunner";
         private readonly IHost _host;

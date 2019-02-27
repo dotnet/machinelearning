@@ -8,15 +8,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints.JsonUtils;
 using Microsoft.ML.Internal.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.EntryPoints
 {
-    public class VarSerializer : JsonConverter
+    internal class VarSerializer : JsonConverter
     {
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
@@ -53,7 +51,8 @@ namespace Microsoft.ML.EntryPoints
     /// in an entry point graph.
     /// </summary>
     [JsonConverter(typeof(VarSerializer))]
-    public sealed class Var<T> : IVarSerializationHelper
+    [BestFriend]
+    internal sealed class Var<T> : IVarSerializationHelper
     {
         public string VarName { get; set; }
         bool IVarSerializationHelper.IsValue { get; }
@@ -90,7 +89,8 @@ namespace Microsoft.ML.EntryPoints
     /// in an entry point graph.
     /// </summary>
     [JsonConverter(typeof(VarSerializer))]
-    public sealed class ArrayVar<T> : IVarSerializationHelper
+    [BestFriend]
+    internal sealed class ArrayVar<T> : IVarSerializationHelper
     {
         public string VarName { get; set; }
         private readonly bool _isValue;
@@ -127,7 +127,7 @@ namespace Microsoft.ML.EntryPoints
     /// in an entry point graph.
     /// </summary>
     [JsonConverter(typeof(VarSerializer))]
-    public sealed class DictionaryVar<T> : IVarSerializationHelper
+    internal sealed class DictionaryVar<T> : IVarSerializationHelper
     {
         public string VarName { get; set; }
         bool IVarSerializationHelper.IsValue { get; }
@@ -153,7 +153,8 @@ namespace Microsoft.ML.EntryPoints
     /// <summary>
     /// A descriptor of one 'variable' of the graph (input or output that is referenced as a $variable in the graph definition).
     /// </summary>
-    public sealed class EntryPointVariable
+    [BestFriend]
+    internal sealed class EntryPointVariable
     {
         private readonly IExceptionContext _ectx;
         public readonly string Name;
@@ -257,7 +258,8 @@ namespace Microsoft.ML.EntryPoints
     /// This is populated by individual nodes when they parse their respective JSON definitions, and then the values are updated
     /// during the node execution.
     /// </summary>
-    public sealed class RunContext
+    [BestFriend]
+    internal sealed class RunContext
     {
         private readonly Dictionary<string, EntryPointVariable> _vars;
         private readonly IExceptionContext _ectx;
@@ -404,7 +406,8 @@ namespace Microsoft.ML.EntryPoints
     /// <summary>
     /// A representation of one graph node.
     /// </summary>
-    public sealed class EntryPointNode
+    [BestFriend]
+    internal sealed class EntryPointNode
     {
         // The unique node ID, generated at compilation.
         public readonly string Id;
@@ -983,7 +986,8 @@ namespace Microsoft.ML.EntryPoints
         }
     }
 
-    public sealed class EntryPointGraph
+    [BestFriend]
+    internal sealed class EntryPointGraph
     {
         private const string RegistrationName = "EntryPointGraph";
         private readonly IHost _host;
@@ -1049,7 +1053,8 @@ namespace Microsoft.ML.EntryPoints
     /// or a array-indexed or dictionary-keyed value from the variable, assuming it is
     /// of an Array or Dictionary type.
     /// </summary>
-    public abstract class VariableBinding
+    [BestFriend]
+    internal abstract class VariableBinding
     {
         public string VariableName { get; private set; }
 
@@ -1124,7 +1129,8 @@ namespace Microsoft.ML.EntryPoints
         public override string ToString() => VariableName;
     }
 
-    public sealed class SimpleVariableBinding
+    [BestFriend]
+    internal sealed class SimpleVariableBinding
         : VariableBinding
     {
         public SimpleVariableBinding(string name)
@@ -1143,7 +1149,7 @@ namespace Microsoft.ML.EntryPoints
         }
     }
 
-    public sealed class DictionaryKeyVariableBinding
+    internal sealed class DictionaryKeyVariableBinding
         : VariableBinding
     {
         public readonly string Key;
@@ -1168,7 +1174,8 @@ namespace Microsoft.ML.EntryPoints
         }
     }
 
-    public sealed class ArrayIndexVariableBinding
+    [BestFriend]
+    internal sealed class ArrayIndexVariableBinding
         : VariableBinding
     {
         public readonly int Index;
@@ -1199,7 +1206,8 @@ namespace Microsoft.ML.EntryPoints
     /// of a yet-to-be-constructed array or dictionary EntryPoint input parameter
     /// (for example, "myVar": ["$var1", "$var2"] would yield two <see cref="ArrayIndexParameterBinding"/>: (myVar, 0), (myVar, 1))
     /// </summary>
-    public abstract class ParameterBinding
+    [BestFriend]
+    internal abstract class ParameterBinding
     {
         public readonly string ParameterName;
 
@@ -1212,7 +1220,8 @@ namespace Microsoft.ML.EntryPoints
         public override string ToString() => ParameterName;
     }
 
-    public sealed class SimpleParameterBinding
+    [BestFriend]
+    internal sealed class SimpleParameterBinding
         : ParameterBinding
     {
         public SimpleParameterBinding(string name)
@@ -1233,7 +1242,7 @@ namespace Microsoft.ML.EntryPoints
         }
     }
 
-    public sealed class DictionaryKeyParameterBinding
+    internal sealed class DictionaryKeyParameterBinding
         : ParameterBinding
     {
         public readonly string Key;
@@ -1261,7 +1270,8 @@ namespace Microsoft.ML.EntryPoints
         }
     }
 
-    public sealed class ArrayIndexParameterBinding
+    [BestFriend]
+    internal sealed class ArrayIndexParameterBinding
         : ParameterBinding
     {
         public readonly int Index;

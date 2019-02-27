@@ -4,9 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Recommender;
 
@@ -32,7 +30,7 @@ namespace Microsoft.ML.StaticPipe
         public static Scalar<float> MatrixFactorization<T>(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label, Key<T> matrixColumnIndex, Key<T> matrixRowIndex,
             MatrixFactorizationTrainer.Options options,
-            Action<MatrixFactorizationPredictor> onFit = null)
+            Action<MatrixFactorizationModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(matrixColumnIndex, nameof(matrixColumnIndex));

@@ -14,7 +14,7 @@ using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Data
 {
-    public abstract class SourceNameColumnBase
+    internal abstract class SourceNameColumnBase
     {
         [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the new column", ShortName = "name")]
         public string Name;
@@ -103,13 +103,15 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public abstract class OneToOneColumn : SourceNameColumnBase
+    [BestFriend]
+    internal abstract class OneToOneColumn : SourceNameColumnBase
     {
         [BestFriend]
         private protected OneToOneColumn() { }
     }
 
-    public abstract class ManyToOneColumn
+    [BestFriend]
+    internal abstract class ManyToOneColumn
     {
         [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the new column", ShortName = "name")]
         public string Name;
@@ -242,12 +244,12 @@ namespace Microsoft.ML.Data
     /// Base class that abstracts passing input columns through (with possibly different indices) and adding
     /// InfoCount additional columns. If an added column has the same name as a non-hidden input column, it hides
     /// the input column, and is placed immediately after the input column. Otherwise, the added column is placed
-    /// at the end. By default, newly added columns have no metadata (but this can be overriden).
+    /// at the end. By default, newly added columns have no annotations (but this can be overriden).
     /// </summary>
     [BestFriend]
     internal abstract class ColumnBindingsBase
     {
-        public readonly Schema Input;
+        public readonly DataViewSchema Input;
 
         // Mapping from name to index into Infos for the columns that we "generate".
         // Some of these might "hide" input columns.
@@ -264,32 +266,32 @@ namespace Microsoft.ML.Data
         private readonly int[] _colMap;
 
         // Conversion to the eager schema.
-        private readonly Lazy<Schema> _convertedSchema;
+        private readonly Lazy<DataViewSchema> _convertedSchema;
 
-        public Schema AsSchema => _convertedSchema.Value;
+        public DataViewSchema AsSchema => _convertedSchema.Value;
 
-        private static Schema CreateSchema(ColumnBindingsBase inputBindings)
+        private static DataViewSchema CreateSchema(ColumnBindingsBase inputBindings)
         {
             Contracts.CheckValue(inputBindings, nameof(inputBindings));
 
-            var builder = new SchemaBuilder();
+            var builder = new DataViewSchema.Builder();
             for (int i = 0; i < inputBindings.ColumnCount; i++)
             {
-                var meta = new MetadataBuilder();
-                foreach (var kvp in inputBindings.GetMetadataTypes(i))
+                var meta = new DataViewSchema.Annotations.Builder();
+                foreach (var kvp in inputBindings.GetAnnotationTypes(i))
                 {
-                    var getter = Utils.MarshalInvoke(GetMetadataGetterDelegate<int>, kvp.Value.RawType, inputBindings, i, kvp.Key);
+                    var getter = Utils.MarshalInvoke(GetAnnotationGetterDelegate<int>, kvp.Value.RawType, inputBindings, i, kvp.Key);
                     meta.Add(kvp.Key, kvp.Value, getter);
                 }
-                builder.AddColumn(inputBindings.GetColumnName(i), inputBindings.GetColumnType(i), meta.GetMetadata());
+                builder.AddColumn(inputBindings.GetColumnName(i), inputBindings.GetColumnType(i), meta.ToAnnotations());
             }
 
-            return builder.GetSchema();
+            return builder.ToSchema();
         }
 
-        private static Delegate GetMetadataGetterDelegate<TValue>(ColumnBindingsBase bindings, int col, string kind)
+        private static Delegate GetAnnotationGetterDelegate<TValue>(ColumnBindingsBase bindings, int col, string kind)
         {
-            ValueGetter<TValue> getter = (ref TValue value) => bindings.GetMetadata(kind, col, ref value);
+            ValueGetter<TValue> getter = (ref TValue value) => bindings.GetAnnotation(kind, col, ref value);
             return getter;
         }
 
@@ -299,7 +301,7 @@ namespace Microsoft.ML.Data
         /// in schemaInput. For error reporting, this assumes that the names come from a user-supplied
         /// parameter named "column". This takes ownership of the params array of names.
         /// </summary>
-        protected ColumnBindingsBase(Schema input, bool user, params string[] names)
+        protected ColumnBindingsBase(DataViewSchema input, bool user, params string[] names)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckNonEmpty(names, nameof(names));
@@ -311,9 +313,9 @@ namespace Microsoft.ML.Data
             // In lieu of actual protections, I have the following silly asserts, so we can have some
             // warning if we decide to rename this argument, and so know to change the below hard-coded
             // standard column name.
-            const string standardColumnArgName = "Column";
-            Contracts.Assert(nameof(ValueToKeyMappingTransformer.Arguments.Column) == standardColumnArgName);
-            Contracts.Assert(nameof(ColumnConcatenatingTransformer.Arguments.Column) == standardColumnArgName);
+            const string standardColumnArgName = "Columns";
+            Contracts.Assert(nameof(ValueToKeyMappingTransformer.Options.Columns) == standardColumnArgName);
+            Contracts.Assert(nameof(ColumnConcatenatingTransformer.Options.Columns) == standardColumnArgName);
 
             for (int iinfo = 0; iinfo < names.Length; iinfo++)
             {
@@ -339,10 +341,10 @@ namespace Microsoft.ML.Data
             Contracts.Assert(_nameToInfoIndex.Count == names.Length);
 
             ComputeColumnMapping(Input, names, out _colMap, out _mapIinfoToCol);
-            _convertedSchema = new Lazy<Schema>(() => CreateSchema(this), LazyThreadSafetyMode.PublicationOnly);
+            _convertedSchema = new Lazy<DataViewSchema>(() => CreateSchema(this), LazyThreadSafetyMode.PublicationOnly);
         }
 
-        private static void ComputeColumnMapping(Schema input, string[] names, out int[] colMap, out int[] mapIinfoToCol)
+        private static void ComputeColumnMapping(DataViewSchema input, string[] names, out int[] colMap, out int[] mapIinfoToCol)
         {
             // To compute the column mapping information, first populate:
             // * _colMap[src] with the ~ of the iinfo that hides src (zero for none).
@@ -493,7 +495,7 @@ namespace Microsoft.ML.Data
             return GetColumnNameCore(index);
         }
 
-        public ColumnType GetColumnType(int col)
+        public DataViewType GetColumnType(int col)
         {
             Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
 
@@ -504,19 +506,19 @@ namespace Microsoft.ML.Data
             return GetColumnTypeCore(index);
         }
 
-        public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
+        public IEnumerable<KeyValuePair<string, DataViewType>> GetAnnotationTypes(int col)
         {
             Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
 
             bool isSrc;
             int index = MapColumnIndex(out isSrc, col);
             if (isSrc)
-                return Input[index].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
+                return Input[index].Annotations.Schema.Select(c => new KeyValuePair<string, DataViewType>(c.Name, c.Type));
             Contracts.Assert(0 <= index && index < InfoCount);
-            return GetMetadataTypesCore(index);
+            return GetAnnotationTypesCore(index);
         }
 
-        public ColumnType GetMetadataTypeOrNull(string kind, int col)
+        public DataViewType GetAnnotationTypeOrNull(string kind, int col)
         {
             Contracts.CheckNonEmpty(kind, nameof(kind));
             Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
@@ -524,12 +526,12 @@ namespace Microsoft.ML.Data
             bool isSrc;
             int index = MapColumnIndex(out isSrc, col);
             if (isSrc)
-                return Input[index].Metadata.Schema.GetColumnOrNull(kind)?.Type;
+                return Input[index].Annotations.Schema.GetColumnOrNull(kind)?.Type;
             Contracts.Assert(0 <= index && index < InfoCount);
-            return GetMetadataTypeCore(kind, index);
+            return GetAnnotationTypeCore(kind, index);
         }
 
-        public void GetMetadata<TValue>(string kind, int col, ref TValue value)
+        public void GetAnnotation<TValue>(string kind, int col, ref TValue value)
         {
             Contracts.CheckNonEmpty(kind, nameof(kind));
             Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
@@ -537,11 +539,11 @@ namespace Microsoft.ML.Data
             bool isSrc;
             int index = MapColumnIndex(out isSrc, col);
             if (isSrc)
-                Input[index].Metadata.GetValue(kind, ref value);
+                Input[index].Annotations.GetValue(kind, ref value);
             else
             {
                 Contracts.Assert(0 <= index && index < InfoCount);
-                GetMetadataCore(kind, index, ref value);
+                GetAnnotationCore(kind, index, ref value);
             }
         }
 
@@ -557,26 +559,26 @@ namespace Microsoft.ML.Data
             return _names[iinfo];
         }
 
-        protected abstract ColumnType GetColumnTypeCore(int iinfo);
+        protected abstract DataViewType GetColumnTypeCore(int iinfo);
 
-        protected virtual IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypesCore(int iinfo)
+        protected virtual IEnumerable<KeyValuePair<string, DataViewType>> GetAnnotationTypesCore(int iinfo)
         {
             Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
-            return Enumerable.Empty<KeyValuePair<string, ColumnType>>();
+            return Enumerable.Empty<KeyValuePair<string, DataViewType>>();
         }
 
-        protected virtual ColumnType GetMetadataTypeCore(string kind, int iinfo)
+        protected virtual DataViewType GetAnnotationTypeCore(string kind, int iinfo)
         {
             Contracts.AssertNonEmpty(kind);
             Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
             return null;
         }
 
-        protected virtual void GetMetadataCore<TValue>(string kind, int iinfo, ref TValue value)
+        protected virtual void GetAnnotationCore<TValue>(string kind, int iinfo, ref TValue value)
         {
             Contracts.AssertNonEmpty(kind);
             Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
-            throw MetadataUtils.ExceptGetMetadata();
+            throw AnnotationUtils.ExceptGetAnnotation();
         }
 
         /// <summary>
@@ -585,9 +587,13 @@ namespace Microsoft.ML.Data
         /// predicate on each column index.
         /// </summary>
         public bool[] GetActive(Func<int, bool> predicate)
-        {
-            return Utils.BuildArray(ColumnCount, predicate);
-        }
+            => Utils.BuildArray(ColumnCount, predicate);
+
+        /// <summary>
+        /// This builds an array of bools of length ColumnCount indicating the index of the active column.
+        /// </summary>
+        public bool[] GetActive(IEnumerable<DataViewSchema.Column> columns)
+            => Utils.BuildArray(ColumnCount, columns);
 
         /// <summary>
         /// The given predicate maps from output column index to whether the column is active.
@@ -607,6 +613,18 @@ namespace Microsoft.ML.Data
                     active[src] = true;
             }
             return active;
+        }
+
+        /// <summary>
+        /// This builds an array of bools of length Input.ColumnCount containing indicating the index of the
+        /// active input columns, given the actual columns.
+        /// </summary>
+        public bool[] GetActiveInput(IEnumerable<DataViewSchema.Column> inputColumns)
+        {
+            Contracts.AssertValue(inputColumns);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(inputColumns, AsSchema);
+
+            return GetActiveInput(predicate);
         }
 
         /// <summary>
@@ -646,19 +664,19 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// The input schema.
         /// </summary>
-        public Schema InputSchema { get; }
+        public DataViewSchema InputSchema { get; }
 
         /// <summary>
         /// The merged schema.
         /// </summary>
-        public Schema Schema { get; }
+        public DataViewSchema Schema { get; }
 
         /// <summary>
         /// Create a new instance of <see cref="ColumnBindings"/>.
         /// </summary>
         /// <param name="input">The input schema that we're adding columns to.</param>
         /// <param name="addedColumns">The columns being added.</param>
-        public ColumnBindings(Schema input, Schema.DetachedColumn[] addedColumns)
+        public ColumnBindings(DataViewSchema input, DataViewSchema.DetachedColumn[] addedColumns)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValue(addedColumns, nameof(addedColumns));
@@ -699,7 +717,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(indices.Count == addedColumns.Length + input.Count);
 
             // Create the output schema.
-            var schemaColumns = indices.Select(idx => idx >= 0 ? new Schema.DetachedColumn(input[idx]) : addedColumns[~idx]);
+            var schemaColumns = indices.Select(idx => idx >= 0 ? new DataViewSchema.DetachedColumn(input[idx]) : addedColumns[~idx]);
             Schema = SchemaExtensions.MakeSchema(schemaColumns);
 
             // Memorize column maps.

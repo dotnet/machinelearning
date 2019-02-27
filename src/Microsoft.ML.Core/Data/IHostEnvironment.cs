@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Composition.Hosting;
 
 namespace Microsoft.ML
 {
@@ -21,6 +20,33 @@ namespace Microsoft.ML
         /// Start a generic information pipe.
         /// </summary>
         IPipe<TMessage> StartPipe<TMessage>(string name);
+    }
+
+    /// <summary>
+    /// Utility class for IHostEnvironment
+    /// </summary>
+    [BestFriend]
+    internal static class HostEnvironmentExtensions
+    {
+        /// <summary>
+        /// Return a file handle for an input "file".
+        /// </summary>
+        public static IFileHandle OpenInputFile(this IHostEnvironment env, string path)
+        {
+            Contracts.AssertValue(env);
+            Contracts.CheckNonWhiteSpace(path, nameof(path));
+            return new SimpleFileHandle(env, path, needsWrite: false, autoDelete: false);
+        }
+
+        /// <summary>
+        /// Create an output "file" and return a handle to it.
+        /// </summary>
+        public static IFileHandle CreateOutputFile(this IHostEnvironment env, string path)
+        {
+            Contracts.AssertValue(env);
+            Contracts.CheckNonWhiteSpace(path, nameof(path));
+            return new SimpleFileHandle(env, path, needsWrite: true, autoDelete: false);
+        }
     }
 
     /// <summary>
@@ -51,36 +77,6 @@ namespace Microsoft.ML
         /// The catalog of loadable components (<see cref="LoadableClassAttribute"/>) that are available in this host.
         /// </summary>
         ComponentCatalog ComponentCatalog { get; }
-
-        /// <summary>
-        /// Return a file handle for an input "file".
-        /// </summary>
-        IFileHandle OpenInputFile(string path);
-
-        /// <summary>
-        /// Create an output "file" and return a handle to it.
-        /// </summary>
-        IFileHandle CreateOutputFile(string path);
-
-        /// <summary>
-        /// Create a temporary "file" and return a handle to it. Generally temp files are expected to be
-        /// written to exactly once, and then can be read multiple times.
-        /// Note that IFileHandle derives from IDisposable. Clients may dispose the IFileHandle when it is
-        /// no longer needed, but they are not required to. The host environment should track all temp file
-        /// handles and ensure that they are disposed properly when the environment is "shut down".
-        ///
-        /// The suffix and prefix are optional. A common use for suffix is to specify an extension, eg, ".txt".
-        /// The use of suffix and prefix, including whether they have any affect, is up to the host environment.
-        /// </summary>
-        [Obsolete("The host environment is not disposable, so it is inappropriate to use this method. " +
-            "Please handle your own temporary files within the component yourself, including their proper disposal and deletion.")]
-        IFileHandle CreateTempFile(string suffix = null, string prefix = null);
-
-        /// <summary>
-        /// Get the MEF composition container. This can be used to instantiate user-provided 'parts' when the model
-        /// is being loaded, or the components are otherwise created via dependency injection.
-        /// </summary>
-        CompositionContainer GetCompositionContainer();
     }
 
     /// <summary>
@@ -153,7 +149,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// For messages that contain information like column names from datasets.
-        /// Note that, despite being part of the schema, metadata should be treated
+        /// Note that, despite being part of the schema, annotations should be treated
         /// as user data, since it is often derived from user data. Note also that
         /// types, despite being part of the schema, are not considered "sensitive"
         /// as such, in the same way that column names might be.

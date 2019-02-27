@@ -14,7 +14,10 @@ phases:
       _arch: ${{ parameters.architecture }}
       _codeCoverage: ${{ parameters.codeCoverage }}
     queue:
-      timeoutInMinutes: 45
+      ${{ if eq(variables._codeCoverage, 'false') }}:
+        timeoutInMinutes: 30
+      ${{ if eq(variables._codeCoverage, 'true') }}:
+        timeoutInMinutes: 60
       parallel: 99
       matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:

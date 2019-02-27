@@ -2,15 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
+using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
+    Microsoft.ML.InternalCodeAnalyzer.TypeParamNameAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
-    public sealed class TypeParamNameTest : DiagnosticVerifier<TypeParamNameAnalyzer>
+    public sealed class TypeParamNameTest
     {
         [Fact]
-        public void TypeParamName()
+        public async Task TypeParamName()
         {
             const string test = @"
 namespace TestNamespace
@@ -24,17 +28,15 @@ namespace TestNamespace
         public static void Bar<YourType, TArg>() {}
     }
 }";
-            var analyzer = GetCSharpDiagnosticAnalyzer();
-            var diag = analyzer.SupportedDiagnostics[0];
 
             var expected = new DiagnosticResult[] {
-                diag.CreateDiagnosticResult(3, 26, "hello"),
-                diag.CreateDiagnosticResult(5, 21, "Tom"),
-                diag.CreateDiagnosticResult(7, 22, "mytype"),
-                diag.CreateDiagnosticResult(9, 32, "YourType"),
+                VerifyCS.Diagnostic().WithLocation(4, 26).WithArguments("hello"),
+                VerifyCS.Diagnostic().WithLocation(6, 21).WithArguments("Tom"),
+                VerifyCS.Diagnostic().WithLocation(8, 22).WithArguments("mytype"),
+                VerifyCS.Diagnostic().WithLocation(10, 32).WithArguments("YourType"),
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCS.VerifyAnalyzerAsync(test, expected);
         }
     }
 }

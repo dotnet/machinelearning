@@ -5,13 +5,12 @@
 using System;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.Selector;
-using Microsoft.ML.Ensemble.Selector.SubModelSelector;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(AllSelectorMultiClass), null, typeof(SignatureEnsembleSubModelSelector),
     AllSelectorMultiClass.UserName, AllSelectorMultiClass.LoadName)]
 
-namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal sealed class AllSelectorMultiClass : BaseSubModelSelector<VBuffer<Single>>, IMulticlassSubModelSelector
     {

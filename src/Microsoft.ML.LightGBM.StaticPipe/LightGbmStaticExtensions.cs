@@ -3,11 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.LightGBM.StaticPipe
@@ -89,7 +86,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
                {
                    options.LabelColumn = labelName;
                    options.FeatureColumn = featuresName;
-                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                   options.WeightColumn = weightsName;
 
                    var trainer = new LightGbmRegressorTrainer(env, options);
                    if (onFit != null)
@@ -130,7 +127,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             int? minDataPerLeaf = null,
             double? learningRate = null,
             int numBoostRound = Options.Defaults.NumBoostRound,
-            Action<IPredictorWithFeatureWeights<float>> onFit = null)
+            Action<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, onFit);
 
@@ -167,7 +164,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
             Options options,
-            Action<IPredictorWithFeatureWeights<float>> onFit = null)
+            Action<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             CheckUserValues(label, features, weights, options, onFit);
 
@@ -176,7 +173,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
                {
                    options.LabelColumn = labelName;
                    options.FeatureColumn = featuresName;
-                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                   options.WeightColumn = weightsName;
 
                    var trainer = new LightGbmBinaryTrainer(env, options);
 
@@ -263,7 +260,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
                    options.LabelColumn = labelName;
                    options.FeatureColumn = featuresName;
                    options.GroupIdColumn = groupIdName;
-                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                   options.WeightColumn = weightsName;
 
                    var trainer = new LightGbmRankingTrainer(env, options);
 
@@ -355,7 +352,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
-                    options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                    options.WeightColumn = weightsName;
 
                     var trainer = new LightGbmMulticlassTrainer(env, options);
 

@@ -8,20 +8,15 @@ using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.EntryPoints;
-using Microsoft.ML.Ensemble.Selector;
-using Microsoft.ML.Ensemble.Selector.DiversityMeasure;
-using Microsoft.ML.Ensemble.Selector.SubModelSelector;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(BestDiverseSelectorMultiClass), typeof(BestDiverseSelectorMultiClass.Arguments),
     typeof(SignatureEnsembleSubModelSelector), BestDiverseSelectorMultiClass.UserName, BestDiverseSelectorMultiClass.LoadName)]
 
-namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
+namespace Microsoft.ML.Trainers.Ensemble
 {
-    using TVectorPredictor = IPredictorProducing<VBuffer<Single>>;
-
     internal sealed class BestDiverseSelectorMultiClass : BaseDiverseSelector<VBuffer<Single>, IDiversityMeasure<VBuffer<Single>>>, IMulticlassSubModelSelector
     {
         public const string UserName = "Best Diverse Selector";
@@ -43,8 +38,8 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
 
         protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        public override List<ModelDiversityMetric<VBuffer<Single>>> CalculateDiversityMeasure(IList<FeatureSubsetModel<TVectorPredictor>> models,
-            ConcurrentDictionary<FeatureSubsetModel<TVectorPredictor>, VBuffer<Single>[]> predictions)
+        public override List<ModelDiversityMetric<VBuffer<Single>>> CalculateDiversityMeasure(IList<FeatureSubsetModel<VBuffer<float>>> models,
+            ConcurrentDictionary<FeatureSubsetModel<VBuffer<float>>, VBuffer<Single>[]> predictions)
         {
             Host.Assert(models.Count > 1);
             Host.Assert(predictions.Count == models.Count);
