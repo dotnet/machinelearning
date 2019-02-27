@@ -6,7 +6,6 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Transforms;
 using Xunit;
 

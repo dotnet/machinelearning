@@ -5,7 +5,7 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.SamplesUtils;
-using Microsoft.ML.Trainers.FactorizationMachine;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
