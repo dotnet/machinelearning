@@ -66,11 +66,25 @@ namespace Microsoft.ML.Tests.Scenarios
             mustFail(() => data.AsDynamic.GetColumn<int?>(data.AsDynamic.Schema["floatScalar"]));
             mustFail(() => data.AsDynamic.GetColumn<string>(data.AsDynamic.Schema["floatScalar"]));
 
+
             // Static types.
             var enum8 = data.GetColumn(r => r.floatScalar);
             var enum9 = data.GetColumn(r => r.floatVector);
             var enum10 = data.GetColumn(r => r.stringScalar);
             var enum11 = data.GetColumn(r => r.stringVector);
+
+            var data1 = TextLoaderStatic.CreateLoader(env, ctx => (
+                floatScalar: ctx.LoadText(1),
+                anotherFloatVector: ctx.LoadFloat(2, 6),
+                stringVector: ctx.LoadText(5, 7)
+            )).Load(path);
+
+            // Type wrong. Load float as string.
+            mustFail(() => data.AsDynamic.GetColumn<float>(data1.AsDynamic.Schema["floatScalar"]));
+            // Name wrong. Load anotherFloatVector from floatVector column.
+            mustFail(() => data.AsDynamic.GetColumn<float>(data1.AsDynamic.Schema["anotherFloatVector"]));
+            // Index wrong. stringVector is indexed by 3 in data but 2 in data1.
+            mustFail(() => data.AsDynamic.GetColumn<string[]>(data1.AsDynamic.Schema["stringVector"]).ToArray());
         }
     }
 }
