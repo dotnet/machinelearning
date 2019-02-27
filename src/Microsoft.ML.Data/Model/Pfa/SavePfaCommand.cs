@@ -101,7 +101,7 @@ namespace Microsoft.ML.Model.Pfa
         private void GetPipe(IChannel ch, IDataView end, out IDataView source, out IDataView trueEnd, out LinkedList<ITransformCanSavePfa> transforms)
         {
             Host.AssertValue(end);
-            source = trueEnd = (end as CompositeDataLoader)?.View ?? end;
+            source = trueEnd = (end as LegacyCompositeDataLoader)?.View ?? end;
             IDataTransform transform = source as IDataTransform;
             transforms = new LinkedList<ITransformCanSavePfa>();
             while (transform != null)
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Model.Pfa
 
         private void Run(IChannel ch)
         {
-            IDataLoader loader;
+            ILegacyDataLoader loader;
             IPredictor rawPred;
             RoleMappedSchema trainSchema;
 

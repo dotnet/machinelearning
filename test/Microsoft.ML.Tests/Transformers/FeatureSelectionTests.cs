@@ -29,15 +29,15 @@ namespace Microsoft.ML.Tests.Transformers
         public void FeatureSelectionWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var data = TextLoaderStatic.CreateReader(ML, ctx => (
+            var data = TextLoaderStatic.CreateLoader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(sentimentDataPath);
+                .Load(sentimentDataPath);
 
-            var invalidData = TextLoaderStatic.CreateReader(ML, ctx => (
+            var invalidData = TextLoaderStatic.CreateLoader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
-                .Read(sentimentDataPath);
+                .Load(sentimentDataPath);
 
             var est = new WordBagEstimator(ML, "bag_of_words", "text")
                 .AppendCacheCheckpoint(ML)
@@ -63,14 +63,14 @@ namespace Microsoft.ML.Tests.Transformers
         public void DropSlotsTransform()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
                 ScalarFloat: ctx.LoadFloat(1),
                 ScalarDouble: ctx.LoadDouble(1),
                 VectorFloat: ctx.LoadFloat(1, 4),
                 VectorDouble: ctx.LoadDouble(4, 8)
             ));
 
-            var data = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
+            var data = reader.Load(new MultiFileSource(dataPath)).AsDynamic;
 
             var columns = new[]
             {
@@ -106,13 +106,13 @@ namespace Microsoft.ML.Tests.Transformers
         public void CountFeatureSelectionWorkout()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
                 ScalarFloat: ctx.LoadFloat(6),
                 VectorFloat: ctx.LoadFloat(1, 4),
                 VectorDouble: ctx.LoadDouble(4, 8)
             ));
 
-            var data = ML.Data.Cache(reader.Read(new MultiFileSource(dataPath)).AsDynamic);
+            var data = ML.Data.Cache(reader.Load(new MultiFileSource(dataPath)).AsDynamic);
 
             var columns = new[] {
                 new CountFeatureSelectingEstimator.ColumnOptions("FeatureSelectDouble", "VectorDouble", minCount: 1),
@@ -149,12 +149,12 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestCountSelectOldSavingAndLoading()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
                 Label: ctx.LoadKey(0, 3),
                 VectorFloat: ctx.LoadFloat(1, 4)
             ));
 
-            var dataView = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
+            var dataView = reader.Load(new MultiFileSource(dataPath)).AsDynamic;
 
             var pipe = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("FeatureSelect", "VectorFloat", count: 1);
 
@@ -173,14 +173,14 @@ namespace Microsoft.ML.Tests.Transformers
         public void MutualInformationSelectionWorkout()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
                 Label: ctx.LoadKey(0, 3),
                 ScalarFloat: ctx.LoadFloat(6),
                 VectorFloat: ctx.LoadFloat(1, 4),
                 VectorDouble: ctx.LoadDouble(4, 8)
             ));
 
-            var data = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
+            var data = reader.Load(new MultiFileSource(dataPath)).AsDynamic;
 
             var est = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("FeatureSelect", "VectorFloat", slotsInOutput: 1, labelColumn: "Label")
                 .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation(labelColumn: "Label", slotsInOutput: 2, numBins: 100,
@@ -213,12 +213,12 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestMutualInformationOldSavingAndLoading()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
                 Label: ctx.LoadKey(0, 3),
                 VectorFloat: ctx.LoadFloat(1, 4)
             ));
 
-            var dataView = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
+            var dataView = reader.Load(new MultiFileSource(dataPath)).AsDynamic;
 
             var pipe = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("FeatureSelect", "VectorFloat", slotsInOutput: 1, labelColumn: "Label");
 

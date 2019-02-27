@@ -41,7 +41,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 data.Add(new SsaChangePointData(i * 100));
 
             // Convert data to IDataView.
-            var dataView = ml.Data.ReadFromEnumerable(data);
+            var dataView = ml.Data.LoadFromEnumerable(data);
 
             // Setup SsaChangePointDetector arguments
             var inputColumnName = nameof(SsaChangePointData.Value);
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Samples.Dynamic
                     data.Add(new SsaChangePointData(j));
 
             // Convert data to IDataView.
-            var dataView = ml.Data.ReadFromEnumerable(data);
+            var dataView = ml.Data.LoadFromEnumerable(data);
 
             // Setup SsaChangePointDetector arguments
             var inputColumnName = nameof(SsaChangePointData.Value);

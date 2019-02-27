@@ -48,7 +48,7 @@ namespace Microsoft.ML.Data
     ///             data1.parquet
     /// </example>
     [BestFriend]
-    internal sealed class PartitionedFileLoader : IDataLoader
+    internal sealed class PartitionedFileLoader : ILegacyDataLoader
     {
         internal const string Summary = "Loads a horizontally partitioned file set.";
         internal const string UserName = "Partitioned Loader";
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Data
             public IPartitionedPathParserFactory PathParserFactory = new ParquetPartitionedPathParserFactory();
 
             [Argument(ArgumentType.Multiple, HelpText = "The data loader.", SignatureType = typeof(SignatureDataLoader))]
-            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
+            public IComponentFactory<IMultiStreamSource, ILegacyDataLoader> Loader;
         }
 
         public sealed class Column
@@ -312,7 +312,7 @@ namespace Microsoft.ML.Data
         /// <param name="cols">The partitioned columns.</param>
         /// <param name="subLoader">The sub loader.</param>
         /// <returns>The resulting schema.</returns>
-        private DataViewSchema CreateSchema(IExceptionContext ectx, Column[] cols, IDataLoader subLoader)
+        private DataViewSchema CreateSchema(IExceptionContext ectx, Column[] cols, ILegacyDataLoader subLoader)
         {
             Contracts.AssertValue(cols);
             Contracts.AssertValue(subLoader);
@@ -339,7 +339,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private byte[] SaveLoaderToBytes(IDataLoader loader)
+        private byte[] SaveLoaderToBytes(ILegacyDataLoader loader)
         {
             Contracts.CheckValue(loader, nameof(loader));
 
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private IDataLoader CreateLoaderFromBytes(byte[] loaderBytes, IMultiStreamSource files)
+        private ILegacyDataLoader CreateLoaderFromBytes(byte[] loaderBytes, IMultiStreamSource files)
         {
             Contracts.CheckValue(loaderBytes, nameof(loaderBytes));
             Contracts.CheckValue(files, nameof(files));
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Data
                         return false;
                     }
 
-                    IDataLoader loader = null;
+                    ILegacyDataLoader loader = null;
                     try
                     {
                         // Load the sub cursor and reset the data.

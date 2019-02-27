@@ -2168,7 +2168,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -2399,7 +2398,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -4218,7 +4216,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -4623,7 +4620,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -4825,7 +4821,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -5027,7 +5022,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -5244,7 +5238,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -5895,7 +5888,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -6538,7 +6530,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -7450,7 +7441,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -8443,7 +8433,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -9343,7 +9332,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -10264,7 +10252,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -10489,7 +10476,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -10790,7 +10776,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -11021,7 +11006,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -11325,7 +11309,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -11829,7 +11812,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -12333,7 +12315,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -12837,7 +12818,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -13234,7 +13214,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -13503,7 +13482,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -13815,7 +13793,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -14115,7 +14092,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -14213,7 +14189,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -14539,7 +14514,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -14670,7 +14644,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -14849,7 +14822,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -15184,7 +15156,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -15489,7 +15460,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -15759,7 +15729,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -15994,7 +15963,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -16267,7 +16235,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -17829,47 +17796,6 @@
           "Name": "Model",
           "Type": "TransformModel",
           "Desc": "Transform model"
-        }
-      ],
-      "InputKind": [
-        "ITransformInput"
-      ]
-    },
-    {
-      "Name": "Transforms.DataCache",
-      "Desc": "Caches using the specified cache option.",
-      "FriendlyName": "Cache Data",
-      "ShortName": null,
-      "Inputs": [
-        {
-          "Name": "Data",
-          "Type": "DataView",
-          "Desc": "Input dataset",
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Caching",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "Memory",
-              "Disk"
-            ]
-          },
-          "Desc": "Caching strategy",
-          "Required": true,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": "Memory"
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "OutputData",
-          "Type": "DataView",
-          "Desc": "Dataset"
         }
       ],
       "InputKind": [
@@ -25302,7 +25228,6 @@
                 "Values": [
                   "Auto",
                   "Memory",
-                  "Disk",
                   "None"
                 ]
               },
@@ -26196,7 +26121,6 @@
                 "Values": [
                   "Auto",
                   "Memory",
-                  "Disk",
                   "None"
                 ]
               },
@@ -27171,7 +27095,6 @@
                 "Values": [
                   "Auto",
                   "Memory",
-                  "Disk",
                   "None"
                 ]
               },
@@ -28053,7 +27976,6 @@
                 "Values": [
                   "Auto",
                   "Memory",
-                  "Disk",
                   "None"
                 ]
               },

@@ -5,7 +5,7 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.SamplesUtils;
-using Microsoft.ML.Trainers.FactorizationMachine;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -17,7 +17,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var mlContext = new MLContext(seed: 0);
             var data = DatasetUtils.GenerateFfmSamples(500);
-            var dataView = mlContext.Data.ReadFromEnumerable(data);
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
 
             var ffmArgs = new FieldAwareFactorizationMachineBinaryClassificationTrainer.Options();
 
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void FieldAwareFactorizationMachine_Estimator()
         {
             var data = new TextLoader(Env, GetFafmBCLoaderArgs())
-                    .Read(GetDataPath(TestDatasets.breastCancer.trainFilename));
+                    .Load(GetDataPath(TestDatasets.breastCancer.trainFilename));
 
             var ffmArgs = new FieldAwareFactorizationMachineBinaryClassificationTrainer.Options {
                 FeatureColumnName = "Feature1", // Features from the 1st field.

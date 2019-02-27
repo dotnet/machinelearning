@@ -17,7 +17,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             var mlContext = new MLContext();
             var data = GetTensorData();
-            var idv = mlContext.Data.ReadFromEnumerable(data);
+            var idv = mlContext.Data.LoadFromEnumerable(data);
 
             // Create a ML pipeline.
             var pipeline = mlContext.Transforms.ScoreTensorFlowModel(

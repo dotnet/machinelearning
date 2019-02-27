@@ -6,9 +6,7 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -80,9 +78,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Columns = TestDatasets.irisData.GetLoaderColumns(),
                 Separators = new[] { ',' },
             };
-            var reader = new TextLoader(Env, options: options);
+            var loader = new TextLoader(Env, options: options);
 
-            var data = reader.Read(GetDataPath(TestDatasets.irisData.trainFilename));
+            var data = loader.Load(GetDataPath(TestDatasets.irisData.trainFilename));
 
             var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
                 new SdcaNonCalibratedBinaryTrainer.Options {

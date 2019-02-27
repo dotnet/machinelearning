@@ -12,7 +12,7 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
 
-namespace Microsoft.ML.Trainers.Online
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// Arguments class for online linear trainers.

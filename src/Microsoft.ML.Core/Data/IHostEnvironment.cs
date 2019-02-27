@@ -77,20 +77,6 @@ namespace Microsoft.ML
         /// The catalog of loadable components (<see cref="LoadableClassAttribute"/>) that are available in this host.
         /// </summary>
         ComponentCatalog ComponentCatalog { get; }
-
-        /// <summary>
-        /// Create a temporary "file" and return a handle to it. Generally temp files are expected to be
-        /// written to exactly once, and then can be read multiple times.
-        /// Note that IFileHandle derives from IDisposable. Clients may dispose the IFileHandle when it is
-        /// no longer needed, but they are not required to. The host environment should track all temp file
-        /// handles and ensure that they are disposed properly when the environment is "shut down".
-        ///
-        /// The suffix and prefix are optional. A common use for suffix is to specify an extension, eg, ".txt".
-        /// The use of suffix and prefix, including whether they have any affect, is up to the host environment.
-        /// </summary>
-        [Obsolete("The host environment is not disposable, so it is inappropriate to use this method. " +
-            "Please handle your own temporary files within the component yourself, including their proper disposal and deletion.")]
-        IFileHandle CreateTempFile(string suffix = null, string prefix = null);
     }
 
     /// <summary>

@@ -13,7 +13,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 
 [assembly: LoadableClass(typeof(void), typeof(FeatureCombiner), null, typeof(SignatureEntryPointModule), "FeatureCombiner")]
 

@@ -38,9 +38,9 @@ namespace Microsoft.ML.Tests.Transformers
         public void CharTokenizeWorkout()
         {
             var data = new[] { new TestClass() { A = "This is a good sentence.", B = new string[2] { "Much words", "Wow So Cool" } } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var invalidData = new[] { new TestWrong() { A = 1, B = new float[2] { 2,3} } };
-            var invalidDataView = ML.Data.ReadFromEnumerable(invalidData);
+            var invalidDataView = ML.Data.LoadFromEnumerable(invalidData);
             var pipe = new TokenizingByCharactersEstimator(Env, columns: new[] { ("TokenizeA", "A"), ("TokenizeB", "B") });
 
             TestEstimatorCore(pipe, dataView, invalidInput:invalidDataView);
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = "This is a good sentence.", B = new string[2] { "Much words", "Wow So Cool" } } };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = new TokenizingByCharactersEstimator(Env, columns: new[] { ("TokenizeA", "A"), ("TokenizeB", "B") });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

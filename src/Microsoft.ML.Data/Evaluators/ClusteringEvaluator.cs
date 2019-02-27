@@ -11,9 +11,8 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
-using Microsoft.ML.Transforms.FeatureSelection;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(ClusteringEvaluator), typeof(ClusteringEvaluator), typeof(ClusteringEvaluator.Arguments), typeof(SignatureEvaluator),
     "Clustering Evaluator", ClusteringEvaluator.LoadName, "Clustering")]

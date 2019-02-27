@@ -20,7 +20,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable.
             IEnumerable<MulticlassClassificationExample> enumerableOfData = DatasetUtils.GenerateRandomMulticlassClassificationExamples(10);
-            var data = mlContext.Data.ReadFromEnumerable(enumerableOfData);
+            var data = mlContext.Data.LoadFromEnumerable(enumerableOfData);
 
             // Convert the string labels to keys
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label");

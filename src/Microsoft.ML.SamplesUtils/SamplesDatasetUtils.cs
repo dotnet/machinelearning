@@ -29,8 +29,8 @@ namespace Microsoft.ML.SamplesUtils
             // Download the file
             string dataFile = DownloadHousingRegressionDataset();
 
-            // Define the columns to read
-            var reader = mlContext.Data.CreateTextLoader(
+            // Define the columns to load
+            var loader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
                         new TextLoader.Column("MedianHomeValue", DataKind.Single, 0),
@@ -49,8 +49,8 @@ namespace Microsoft.ML.SamplesUtils
                 hasHeader: true
             );
 
-            // Read the data into an IDataView
-            var data = reader.Read(dataFile);
+            // Load the data into an IDataView
+            var data = loader.Load(dataFile);
 
             return data;
         }
@@ -100,8 +100,8 @@ namespace Microsoft.ML.SamplesUtils
             // Download the files
             var dataFiles = DownloadSentimentDataset();
 
-            // Define the columns to read
-            var reader = mlContext.Data.CreateTextLoader(
+            // Define the columns to load
+            var loader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
                         new TextLoader.Column("Sentiment", DataKind.Boolean, 0),
@@ -113,10 +113,10 @@ namespace Microsoft.ML.SamplesUtils
             // Create data featurizing pipeline
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText");
 
-            var data = reader.Read(dataFiles[0]);
+            var data = loader.Load(dataFiles[0]);
             var model = pipeline.Fit(data);
             var featurizedDataTrain = model.Transform(data);
-            var featurizedDataTest = model.Transform(reader.Read(dataFiles[1]));
+            var featurizedDataTest = model.Transform(loader.Load(dataFiles[1]));
             return new[] { featurizedDataTrain, featurizedDataTest };
         }
 
@@ -133,8 +133,8 @@ namespace Microsoft.ML.SamplesUtils
             // Download the file
             string dataFile = DownloadAdultDataset();
 
-            // Define the columns to read
-            var reader = mlContext.Data.CreateTextLoader(
+            // Define the columns to load
+            var loader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
                         new TextLoader.Column("age", DataKind.Single, 0),
@@ -174,7 +174,7 @@ namespace Microsoft.ML.SamplesUtils
                 // Min-max normalize all the features
                 .Append(mlContext.Transforms.Normalize("Features"));
 
-            var data = reader.Read(dataFile);
+            var data = loader.Load(dataFile);
             var featurizedData = pipeline.Fit(data).Transform(data);
             return featurizedData;
         }
@@ -192,8 +192,8 @@ namespace Microsoft.ML.SamplesUtils
             // Download the training and validation files.
             string dataFile = DownloadMslrWeb10k();
 
-            // Create the reader to read the data.
-            var reader = mlContext.Data.CreateTextLoader(
+            // Create the loader to load the data.
+            var loader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                 {
                     new TextLoader.Column("Label", DataKind.Single, 0),
@@ -203,7 +203,7 @@ namespace Microsoft.ML.SamplesUtils
             );
 
             // Load the raw dataset.
-            var data = reader.Read(dataFile);
+            var data = loader.Load(dataFile);
 
             // Create the featurization pipeline. First, hash the GroupId column.
             var pipeline = mlContext.Transforms.Conversion.Hash("GroupId")

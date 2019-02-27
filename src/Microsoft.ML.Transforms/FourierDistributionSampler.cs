@@ -7,9 +7,8 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
-using Microsoft.ML.Transforms.Projections;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(GaussianKernel), typeof(GaussianKernel.Options), typeof(SignatureKernelBase),
     "Gaussian Kernel", GaussianKernel.LoadName, "Gaussian")]
@@ -25,7 +24,7 @@ using Microsoft.ML.Transforms.Projections;
 [assembly: LoadableClass(typeof(LaplacianKernel.RandomNumberGenerator), null, typeof(SignatureLoadModel),
     "Laplacian Fourier Sampler Executor", "LaplacianSamplerExecutor", LaplacianKernel.RandomNumberGenerator.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms.Projections
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// Signature for a <see cref="KernelBase"/> constructor.

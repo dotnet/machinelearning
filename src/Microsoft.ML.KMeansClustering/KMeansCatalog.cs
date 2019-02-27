@@ -5,7 +5,7 @@
 using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Trainers.KMeans;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML
 {

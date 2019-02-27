@@ -7,7 +7,6 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML
 {

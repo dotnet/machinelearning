@@ -20,7 +20,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             var examples = DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);
 
             // Convert native C# class to IDataView, a consumble format to ML.NET functions.
-            var dataView = mlContext.Data.ReadFromEnumerable(examples);
+            var dataView = mlContext.Data.LoadFromEnumerable(examples);
 
             //////////////////// Data Preview ////////////////////
             // Label    Features

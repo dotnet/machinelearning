@@ -13,7 +13,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             var data = SamplesUtils.DatasetUtils.GetInfertData();
-            var trainData = mlContext.Data.ReadFromEnumerable(data);
+            var trainData = mlContext.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
             //

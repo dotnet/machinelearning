@@ -10,7 +10,6 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
@@ -23,7 +22,7 @@ using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(void), typeof(FeatureContributionEntryPoint), null, typeof(SignatureEntryPointModule), FeatureContributionCalculatingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Data
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// The FeatureContributionCalculationTransformer computes model-specific per-feature contributions to the score of each example.

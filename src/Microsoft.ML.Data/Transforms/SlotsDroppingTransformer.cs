@@ -13,8 +13,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Transforms.FeatureSelection;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(SlotsDroppingTransformer.Summary, typeof(IDataTransform), typeof(SlotsDroppingTransformer), typeof(SlotsDroppingTransformer.Options), typeof(SignatureDataTransform),
     SlotsDroppingTransformer.FriendlyName, SlotsDroppingTransformer.LoaderSignature, "DropSlots")]
@@ -28,7 +27,7 @@ using Microsoft.ML.Transforms.FeatureSelection;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(SlotsDroppingTransformer), null, typeof(SignatureLoadRowMapper),
    SlotsDroppingTransformer.FriendlyName, SlotsDroppingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms.FeatureSelection
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// Transform to drop slots from columns. If the column is scalar, the only slot that can be dropped is slot 0.

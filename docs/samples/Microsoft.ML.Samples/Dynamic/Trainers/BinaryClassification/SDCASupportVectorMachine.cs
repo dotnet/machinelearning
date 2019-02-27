@@ -32,7 +32,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var mlContext = new MLContext();
 
             // Step 1: Read the data as an IDataView.
-            var data = mlContext.Data.ReadFromEnumerable(rawData);
+            var data = mlContext.Data.LoadFromEnumerable(rawData);
 
             // ML.NET doesn't cache data set by default. Caching is always recommended when using the
             // StochasticDualCoordinateAscent algorithm because it may incur multiple data passes.

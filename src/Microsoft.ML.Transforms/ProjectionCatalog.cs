@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms.Projections;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {

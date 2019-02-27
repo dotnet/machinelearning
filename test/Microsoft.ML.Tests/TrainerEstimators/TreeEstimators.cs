@@ -12,7 +12,7 @@ using Microsoft.ML.LightGBM;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }
 
             var mlContext = new MLContext(seed: 0, conc: 1);
-            var dataView = mlContext.Data.ReadFromEnumerable(dataList);
+            var dataView = mlContext.Data.LoadFromEnumerable(dataList);
             int numberOfTrainingIterations = 3;
             var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, new Options
             {

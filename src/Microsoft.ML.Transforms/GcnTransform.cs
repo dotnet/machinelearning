@@ -13,8 +13,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Transforms.Projections;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(LpNormalizingTransformer.GcnSummary, typeof(IDataTransform), typeof(LpNormalizingTransformer), typeof(LpNormalizingTransformer.GcnOptions), typeof(SignatureDataTransform),
     LpNormalizingTransformer.UserNameGn, "GcnTransform", LpNormalizingTransformer.ShortNameGn)]
@@ -33,7 +32,7 @@ using Microsoft.ML.Transforms.Projections;
 
 [assembly: EntryPointModule(typeof(LpNormalization))]
 
-namespace Microsoft.ML.Transforms.Projections
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// Lp-Norm (vector/row-wise) normalization transform. Has the following two set of arguments:

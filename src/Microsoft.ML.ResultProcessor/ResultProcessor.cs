@@ -1156,7 +1156,7 @@ namespace Microsoft.ML.ResultProcessor
         public static int Main(string[] args)
         {
             string currentDirectory = Path.GetDirectoryName(typeof(ResultProcessor).Module.FullyQualifiedName);
-            using (var env = new ConsoleEnvironment(42))
+            var env = new ConsoleEnvironment(42);
 #pragma warning disable CS0618 // The result processor is an internal command line processing utility anyway, so this is, while not great, OK.
             using (AssemblyLoadingUtils.CreateAssemblyRegistrar(env, currentDirectory))
 #pragma warning restore CS0618
