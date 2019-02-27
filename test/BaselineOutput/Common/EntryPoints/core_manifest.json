@@ -2677,7 +2677,7 @@
       ]
     },
     {
-      "Name": "Models.RankerEvaluator",
+      "Name": "Models.RankingEvaluator",
       "Desc": "Evaluates a ranking scored dataset.",
       "FriendlyName": null,
       "ShortName": null,

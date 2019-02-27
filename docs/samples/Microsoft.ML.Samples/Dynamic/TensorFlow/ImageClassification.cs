@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic.TensorFlow
+namespace Microsoft.ML.Samples.Dynamic
 {
     public static class ImageClassification
     {

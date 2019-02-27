@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints.JsonUtils;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
@@ -149,7 +148,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt"));
             Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: true));
             Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false));
-            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowSparse: false, trimWhitespace: false));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, trimWhitespace: false, allowSparse: false));
             Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowSparse: false));
             Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowQuoting: false));
             Assert.NotNull(mlContext.Data.ReadFromTextFile<InputWithUnderscore>("fakeFile.txt"));
@@ -691,7 +690,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         public class IrisStartEnd
         {
-            [LoadColumn(start:0, end:3), ColumnName("Features")]
+            [LoadColumn(start: 0, end: 3), ColumnName("Features")]
             public float Features;
 
             [LoadColumn(4), ColumnName("Label")]
@@ -700,7 +699,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         public class IrisColumnIndices
         {
-            [LoadColumn(columnIndexes: new[] { 0, 2 })]
+            [LoadColumn(new[] { 0, 2 })]
             public float Features;
 
             [LoadColumn(4), ColumnName("Label")]
@@ -719,7 +718,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             irisFirstRow["PetalLength"] = 1.4f;
             irisFirstRow["PetalWidth"] = 0.2f;
 
-           var irisFirstRowValues = irisFirstRow.Values.GetEnumerator();
+            var irisFirstRowValues = irisFirstRow.Values.GetEnumerator();
 
             // Simple load
             var dataIris = mlContext.Data.CreateTextLoader<Iris>(separatorChar: ',').Read(dataPath);

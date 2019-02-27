@@ -142,7 +142,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
             var deps = new Func<int, bool>[innerMappers.Length];
             deps[deps.Length - 1] = active;
             for (int i = deps.Length - 1; i >= 1; --i)
-                deps[i - 1] = innerMappers[i].GetDependencies(deps[i]);
+            {
+                var inputCols = innerMappers[i].OutputSchema.Where(c => deps[i](c.Index));
+                var cols = innerMappers[i].GetDependencies(inputCols).ToArray();
+                deps[i - 1] = c => cols.Length > 0 ? cols.Any(col => col.Index == c) : false;
+            }
 
             DataViewRow result = input;
             for (int i = 0; i < innerMappers.Length; ++i)

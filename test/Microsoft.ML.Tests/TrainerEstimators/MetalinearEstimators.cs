@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Calibrator;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers;
@@ -74,8 +74,15 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void MetacomponentsFeaturesRenamed()
         {
-            var data = new TextLoader(Env, TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',')
-                .Read(GetDataPath(TestDatasets.irisData.trainFilename));
+            // Create text loader.
+            var options = new TextLoader.Options()
+            {
+                Columns = TestDatasets.irisData.GetLoaderColumns(),
+                Separators = new[] { ',' },
+            };
+            var reader = new TextLoader(Env, options: options);
+
+            var data = reader.Read(GetDataPath(TestDatasets.irisData.trainFilename));
 
             var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
                 new SdcaNonCalibratedBinaryTrainer.Options {

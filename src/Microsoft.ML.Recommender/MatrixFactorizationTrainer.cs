@@ -15,7 +15,6 @@ using Microsoft.ML.Recommender;
 using Microsoft.ML.Recommender.Internal;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Recommender;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(MatrixFactorizationTrainer.Summary, typeof(MatrixFactorizationTrainer), typeof(MatrixFactorizationTrainer.Options),
     new Type[] { typeof(SignatureTrainer), typeof(SignatureMatrixRecommendingTrainer) },
@@ -564,7 +563,7 @@ namespace Microsoft.ML.Trainers
 
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
             };
         }
     }

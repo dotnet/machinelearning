@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.StaticPipe
@@ -110,7 +107,7 @@ namespace Microsoft.ML.StaticPipe
 
         /// <summary>
         /// FastTree <see cref="BinaryClassificationCatalog"/> extension method.
-        /// Predict a target using a decision tree binary classificaiton model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
+        /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="label">The label column.</param>
@@ -160,7 +157,7 @@ namespace Microsoft.ML.StaticPipe
 
         /// <summary>
         /// FastTree <see cref="BinaryClassificationCatalog"/> extension method.
-        /// Predict a target using a decision tree binary classificaiton model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
+        /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="label">The label column.</param>

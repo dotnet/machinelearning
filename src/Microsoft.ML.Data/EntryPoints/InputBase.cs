@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.Internal.Calibration;
 
 namespace Microsoft.ML.EntryPoints
 {
@@ -95,7 +95,7 @@ namespace Microsoft.ML.EntryPoints
     public abstract class LearnerInputBaseWithWeight : LearnerInputBaseWithLabel
     {
         /// <summary>
-        /// Column to use for example weight.
+        /// The name of the example weight column.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public string WeightColumn = null;

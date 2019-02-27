@@ -60,7 +60,7 @@ namespace Microsoft.ML.Trainers.Online
         public bool DoLazyUpdates = true;
 
         /// <summary>
-        /// L2 weight for <a href='tmpurl_regularization'>regularization</a>.
+        /// The L2 weight for <a href='tmpurl_regularization'>regularization</a>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization Weight", ShortName = "reg", SortOrder = 50)]
         [TGUI(Label = "L2 Regularization Weight")]

@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.UniversalModelFormat.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 
 namespace Microsoft.ML.Model.OnnxConverter
 {

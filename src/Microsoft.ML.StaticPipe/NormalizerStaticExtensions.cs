@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Normalizers;
 
 namespace Microsoft.ML.StaticPipe

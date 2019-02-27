@@ -227,7 +227,7 @@ namespace Microsoft.ML.Data
                     throw Host.ExceptSchemaMismatch(nameof(schema), "feature", _parent.ColumnPairs[0].inputColumnName, "vector of float.", _featureColumnType.ItemType.ToString());
 
                 if (InputSchema[_featureColumnIndex].HasSlotNames(_featureColumnType.Size))
-                    InputSchema[_featureColumnIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
+                    InputSchema[_featureColumnIndex].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref _slotNames);
                 else
                     _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(_featureColumnType.Size);
             }
@@ -237,9 +237,9 @@ namespace Microsoft.ML.Data
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
                 // Add FeatureContributions column.
-                var builder = new DataViewSchema.Metadata.Builder();
-                builder.Add(InputSchema[_featureColumnIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames);
-                return new[] { new DataViewSchema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberDataViewType.Single, _featureColumnType.Size), builder.ToMetadata()) };
+                var builder = new DataViewSchema.Annotations.Builder();
+                builder.Add(InputSchema[_featureColumnIndex].Annotations, x => x == AnnotationUtils.Kinds.SlotNames);
+                return new[] { new DataViewSchema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberDataViewType.Single, _featureColumnType.Size), builder.ToAnnotations()) };
             }
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> active, out Action disposer)
@@ -330,7 +330,7 @@ namespace Microsoft.ML.Data
 
             // Add FeatureContributions column.
             var featContributionMetadata = new List<SchemaShape.Column>();
-            if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+            if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                 featContributionMetadata.Add(slotMeta);
             result[DefaultColumnNames.FeatureContributions] = new SchemaShape.Column(
                 DefaultColumnNames.FeatureContributions, col.Kind, col.ItemType, false, new SchemaShape(featContributionMetadata));

@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 namespace Microsoft.Data.DataView
 {
     /// <summary>
-    /// A structure serving as a sixteen-byte unsigned integer. It is used as the row id of <see cref="IDataView"/>.
+    /// A structure serving as the identifier of a row of <see cref="IDataView"/>.
     /// For datasets with millions of records, those IDs need to be unique, therefore the need for such a large structure to hold the values.
     /// Those Ids are derived from other Ids of the previous components of the pipelines, and dividing the structure in two: high order and low order of bits,
     /// and reduces the changes of those collisions even further.
@@ -53,68 +53,11 @@ namespace Microsoft.Data.DataView
 
         public override bool Equals(object obj)
         {
-            if (obj != null && obj is DataViewRowId)
+            if (obj is DataViewRowId other)
             {
-                var item = (DataViewRowId)obj;
-                return Equals(item);
+                return Equals(other);
             }
             return false;
-        }
-
-        public static DataViewRowId operator +(DataViewRowId first, ulong second)
-        {
-            ulong resHi = first.High;
-            ulong resLo = first.Low + second;
-            if (resLo < second)
-                resHi++;
-            return new DataViewRowId(resLo, resHi);
-        }
-
-        public static DataViewRowId operator -(DataViewRowId first, ulong second)
-        {
-            ulong resHi = first.High;
-            ulong resLo = first.Low - second;
-            if (resLo > first.Low)
-                resHi--;
-            return new DataViewRowId(resLo, resHi);
-        }
-
-        public static bool operator ==(DataViewRowId first, ulong second)
-        {
-            return first.High == 0 && first.Low == second;
-        }
-
-        public static bool operator !=(DataViewRowId first, ulong second)
-        {
-            return !(first == second);
-        }
-
-        public static bool operator <(DataViewRowId first, ulong second)
-        {
-            return first.High == 0 && first.Low < second;
-        }
-
-        public static bool operator >(DataViewRowId first, ulong second)
-        {
-            return first.High > 0 || first.Low > second;
-        }
-
-        public static bool operator <=(DataViewRowId first, ulong second)
-        {
-            return first.High == 0 && first.Low <= second;
-        }
-
-        public static bool operator >=(DataViewRowId first, ulong second)
-        {
-            return first.High > 0 || first.Low >= second;
-        }
-
-        public static explicit operator double(DataViewRowId x)
-        {
-            // REVIEW: The 64-bit JIT has a bug where rounding might be not quite
-            // correct when converting a ulong to double with the high bit set. Should we
-            // care and compensate? See the DoubleParser code for a work-around.
-            return x.High * ((double)(1UL << 32) * (1UL << 32)) + x.Low;
         }
 
         public override int GetHashCode()

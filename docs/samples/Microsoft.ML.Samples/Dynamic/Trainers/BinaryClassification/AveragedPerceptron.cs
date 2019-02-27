@@ -1,11 +1,9 @@
-﻿using Microsoft.ML;
-
-namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
+﻿namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class AveragedPerceptron
     {
         // In this examples we will use the adult income dataset. The goal is to predict
-        // if a person's income is above $50K or not, based on different pieces of information about that person.
+        // if a person's income is above $50K or not, based on demographic information about that person.
         // For more details about this dataset, please see https://archive.ics.uci.edu/ml/datasets/adult.
         public static void Example()
         {

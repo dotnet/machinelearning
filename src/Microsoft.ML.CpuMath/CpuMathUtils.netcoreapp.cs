@@ -20,6 +20,8 @@ namespace Microsoft.ML.Internal.CpuMath
         // The count of bytes in a 32-bit float, corresponding to _cbAlign in AlignedArray
         private const int FloatAlignment = 4;
 
+        private const int MinInputSize = 16;
+
         // If neither AVX nor SSE is supported, return basic alignment for a 4-byte float.
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         public static int GetVectorAlignment()
@@ -156,24 +158,25 @@ namespace Microsoft.ML.Internal.CpuMath
         /// </summary>
         /// <param name="value">The value to add.</param>
         /// <param name="destination">The destination to add the value to.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Add(float value, Span<float> destination)
         {
             Contracts.AssertNonEmpty(destination);
 
-            if (Avx.IsSupported)
-            {
-                AvxIntrinsics.AddScalarU(value, destination);
-            }
-            else if (Sse.IsSupported)
-            {
-                SseIntrinsics.AddScalarU(value, destination);
-            }
-            else
+            if (destination.Length < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < destination.Length; i++)
                 {
                     destination[i] += value;
                 }
+            }
+            else if (Avx.IsSupported)
+            {
+                AvxIntrinsics.AddScalarU(value, destination);
+            }
+            else
+            {
+                SseIntrinsics.AddScalarU(value, destination);
             }
         }
 
@@ -182,24 +185,25 @@ namespace Microsoft.ML.Internal.CpuMath
         /// </summary>
         /// <param name="value">The value to add.</param>
         /// <param name="destination">The destination to add the value to.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Scale(float value, Span<float> destination)
         {
             Contracts.AssertNonEmpty(destination);
 
-            if (Avx.IsSupported)
-            {
-                AvxIntrinsics.Scale(value, destination);
-            }
-            else if (Sse.IsSupported)
-            {
-                SseIntrinsics.Scale(value, destination);
-            }
-            else
+            if (destination.Length < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < destination.Length; i++)
                 {
                     destination[i] *= value;
                 }
+            }
+            else if (Avx.IsSupported)
+            {
+                AvxIntrinsics.Scale(value, destination);
+            }
+            else
+            {
+                SseIntrinsics.Scale(value, destination);
             }
         }
 
@@ -211,6 +215,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="source">The source values.</param>
         /// <param name="destination">The destination.</param>
         /// <param name="count">The count of items.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Scale(float value, ReadOnlySpan<float> source, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -219,20 +224,20 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= destination.Length);
 
-            if (Avx.IsSupported)
-            {
-                AvxIntrinsics.ScaleSrcU(value, source, destination, count);
-            }
-            else if (Sse.IsSupported)
-            {
-                SseIntrinsics.ScaleSrcU(value, source, destination, count);
-            }
-            else
+            if (destination.Length < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
                     destination[i] = value * source[i];
                 }
+            }
+            else if (Avx.IsSupported)
+            {
+                AvxIntrinsics.ScaleSrcU(value, source, destination, count);
+            }
+            else
+            {
+                SseIntrinsics.ScaleSrcU(value, source, destination, count);
             }
         }
 
@@ -245,24 +250,25 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="scale">The scale to add by.</param>
         /// <param name="addend">The added value.</param>
         /// <param name="destination">The destination.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ScaleAdd(float scale, float addend, Span<float> destination)
         {
             Contracts.AssertNonEmpty(destination);
 
-            if (Avx.IsSupported)
-            {
-                AvxIntrinsics.ScaleAddU(scale, addend, destination);
-            }
-            else if (Sse.IsSupported)
-            {
-                SseIntrinsics.ScaleAddU(scale, addend, destination);
-            }
-            else
+            if (destination.Length < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < destination.Length; i++)
                 {
                     destination[i] = scale * (destination[i] + addend);
                 }
+            }
+            else if (Avx.IsSupported)
+            {
+                AvxIntrinsics.ScaleAddU(scale, addend, destination);
+            }
+            else
+            {
+                SseIntrinsics.ScaleAddU(scale, addend, destination);
             }
         }
 
@@ -273,6 +279,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="source">The source values.</param>
         /// <param name="destination">The destination values.</param>
         /// <param name="count">The count of items.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddScale(float scale, ReadOnlySpan<float> source, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -281,20 +288,20 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= destination.Length);
 
-            if (Avx.IsSupported)
-            {
-                AvxIntrinsics.AddScaleU(scale, source, destination, count);
-            }
-            else if (Sse.IsSupported)
-            {
-                SseIntrinsics.AddScaleU(scale, source, destination, count);
-            }
-            else
+            if (destination.Length < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
                     destination[i] += scale * source[i];
                 }
+            }
+            else if (Avx.IsSupported)
+            {
+                AvxIntrinsics.AddScaleU(scale, source, destination, count);
+            }
+            else
+            {
+                SseIntrinsics.AddScaleU(scale, source, destination, count);
             }
         }
 
@@ -306,6 +313,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="indices">The indices of value collection.</param>
         /// <param name="destination">The destination values.</param>
         /// <param name="count">The count of items.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddScale(float scale, ReadOnlySpan<float> source, ReadOnlySpan<int> indices, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -316,21 +324,21 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= indices.Length);
             Contracts.Assert(count < destination.Length);
 
-            if (Avx.IsSupported)
-            {
-                AvxIntrinsics.AddScaleSU(scale, source, indices, destination, count);
-            }
-            else if (Sse.IsSupported)
-            {
-                SseIntrinsics.AddScaleSU(scale, source, indices, destination, count);
-            }
-            else
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
                     int index = indices[i];
                     destination[index] += scale * source[i];
                 }
+            }
+            else if (Avx.IsSupported)
+            {
+                AvxIntrinsics.AddScaleSU(scale, source, indices, destination, count);
+            }
+            else
+            {
+                SseIntrinsics.AddScaleSU(scale, source, indices, destination, count);
             }
         }
 
@@ -342,6 +350,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="destination">The destination values.</param>
         /// <param name="result">A new collection of values to be returned.</param>
         /// <param name="count">The count of items.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddScaleCopy(float scale, ReadOnlySpan<float> source, ReadOnlySpan<float> destination, Span<float> result, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -352,20 +361,20 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= destination.Length);
             Contracts.Assert(count <= result.Length);
 
-            if (Avx.IsSupported)
-            {
-                AvxIntrinsics.AddScaleCopyU(scale, source, destination, result, count);
-            }
-            else if (Sse.IsSupported)
-            {
-                SseIntrinsics.AddScaleCopyU(scale, source, destination, result, count);
-            }
-            else
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
                     result[i] = scale * source[i] + destination[i];
                 }
+            }
+            else if (Avx.IsSupported)
+            {
+                AvxIntrinsics.AddScaleCopyU(scale, source, destination, result, count);
+            }
+            else
+            {
+                SseIntrinsics.AddScaleCopyU(scale, source, destination, result, count);
             }
         }
 
@@ -375,6 +384,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="source">The source values.</param>
         /// <param name="destination">The destination values.</param>
         /// <param name="count">The count of items.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Add(ReadOnlySpan<float> source, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -383,20 +393,20 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= destination.Length);
 
-            if (Avx.IsSupported)
-            {
-                AvxIntrinsics.AddU(source, destination, count);
-            }
-            else if (Sse.IsSupported)
-            {
-                SseIntrinsics.AddU(source, destination, count);
-            }
-            else
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
                     destination[i] += source[i];
                 }
+            }
+            else if (Avx.IsSupported)
+            {
+                AvxIntrinsics.AddU(source, destination, count);
+            }
+            else
+            {
+                SseIntrinsics.AddU(source, destination, count);
             }
         }
 
@@ -407,6 +417,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="indices"></param>
         /// <param name="destination">The destination values.</param>
         /// <param name="count">The count of items.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Add(ReadOnlySpan<float> source, ReadOnlySpan<int> indices, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -417,21 +428,21 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= indices.Length);
             Contracts.Assert(count < destination.Length);
 
-            if (Avx.IsSupported)
-            {
-                AvxIntrinsics.AddSU(source, indices, destination, count);
-            }
-            else if (Sse.IsSupported)
-            {
-                SseIntrinsics.AddSU(source, indices, destination, count);
-            }
-            else
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
                     int index = indices[i];
                     destination[index] += source[i];
                 }
+            }
+            else if (Avx.IsSupported)
+            {
+                AvxIntrinsics.AddSU(source, indices, destination, count);
+            }
+            else
+            {
+                SseIntrinsics.AddSU(source, indices, destination, count);
             }
         }
 
@@ -442,6 +453,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="right">The right element.</param>
         /// <param name="destination">The destination values.</param>
         /// <param name="count">The count of items.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void MulElementWise(ReadOnlySpan<float> left, ReadOnlySpan<float> right, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(left);
@@ -452,20 +464,20 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= right.Length);
             Contracts.Assert(count <= destination.Length);
 
-            if (Avx.IsSupported)
-            {
-                AvxIntrinsics.MulElementWiseU(left, right, destination, count);
-            }
-            else if (Sse.IsSupported)
-            {
-                SseIntrinsics.MulElementWiseU(left, right, destination, count);
-            }
-            else
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
                     destination[i] = left[i] * right[i];
                 }
+            }
+            else if (Avx.IsSupported)
+            {
+                AvxIntrinsics.MulElementWiseU(left, right, destination, count);
+            }
+            else
+            {
+                SseIntrinsics.MulElementWiseU(left, right, destination, count);
             }
         }
 
@@ -474,19 +486,12 @@ namespace Microsoft.ML.Internal.CpuMath
         /// </summary>
         /// <param name="source">The source values.</param>
         /// <returns>The sum of all items in <paramref name="source"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Sum(ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
 
-            if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.Sum(source);
-            }
-            else if (Sse.IsSupported)
-            {
-                return SseIntrinsics.Sum(source);
-            }
-            else
+            if (source.Length < MinInputSize || !Sse.IsSupported)
             {
                 float sum = 0;
                 for (int i = 0; i < source.Length; i++)
@@ -495,6 +500,14 @@ namespace Microsoft.ML.Internal.CpuMath
                 }
                 return sum;
             }
+            else if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.Sum(source);
+            }
+            else
+            {
+                return SseIntrinsics.Sum(source);
+            }
         }
 
         /// <summary>
@@ -502,19 +515,12 @@ namespace Microsoft.ML.Internal.CpuMath
         /// </summary>
         /// <param name="source">The source values.</param>
         /// <returns>The sum of the squares of all items in <paramref name="source"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float SumSq(ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
 
-            if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.SumSqU(source);
-            }
-            else if (Sse.IsSupported)
-            {
-                return SseIntrinsics.SumSqU(source);
-            }
-            else
+            if (source.Length < MinInputSize || !Sse.IsSupported)
             {
                 float result = 0;
                 for (int i = 0; i < source.Length; i++)
@@ -522,6 +528,14 @@ namespace Microsoft.ML.Internal.CpuMath
                     result += source[i] * source[i];
                 }
                 return result;
+            }
+            else if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.SumSqU(source);
+            }
+            else
+            {
+                return SseIntrinsics.SumSqU(source);
             }
         }
 
@@ -531,19 +545,12 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="mean">The mean value.</param>
         /// <param name="source">The source values.</param>
         /// <returns>The sum of all items in <paramref name="source"/> by <paramref name="mean"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float SumSq(float mean, ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
 
-            if (Avx.IsSupported)
-            {
-                return (mean == 0) ? AvxIntrinsics.SumSqU(source) : AvxIntrinsics.SumSqDiffU(mean, source);
-            }
-            else if (Sse.IsSupported)
-            {
-                return (mean == 0) ? SseIntrinsics.SumSqU(source) : SseIntrinsics.SumSqDiffU(mean, source);
-            }
-            else
+            if (source.Length < MinInputSize || !Sse.IsSupported)
             {
                 float result = 0;
                 for (int i = 0; i < source.Length; i++)
@@ -552,6 +559,14 @@ namespace Microsoft.ML.Internal.CpuMath
                 }
                 return result;
             }
+            else if (Avx.IsSupported)
+            {
+                return (mean == 0) ? AvxIntrinsics.SumSqU(source) : AvxIntrinsics.SumSqDiffU(mean, source);
+            }
+            else
+            {
+                return (mean == 0) ? SseIntrinsics.SumSqU(source) : SseIntrinsics.SumSqDiffU(mean, source);
+            }
         }
 
         /// <summary>
@@ -559,19 +574,12 @@ namespace Microsoft.ML.Internal.CpuMath
         /// </summary>
         /// <param name="source">The source values.</param>
         /// <returns>The sum of all absolute value of the items in <paramref name="source"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float SumAbs(ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
 
-            if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.SumAbsU(source);
-            }
-            else if (Sse.IsSupported)
-            {
-                return SseIntrinsics.SumAbsU(source);
-            }
-            else
+            if (source.Length < MinInputSize || !Sse.IsSupported)
             {
                 float sum = 0;
                 for (int i = 0; i < source.Length; i++)
@@ -579,6 +587,14 @@ namespace Microsoft.ML.Internal.CpuMath
                     sum += Math.Abs(source[i]);
                 }
                 return sum;
+            }
+            else if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.SumAbsU(source);
+            }
+            else
+            {
+                return SseIntrinsics.SumAbsU(source);
             }
         }
 
@@ -588,19 +604,12 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="mean">The mean value.</param>
         /// <param name="source">The source values.</param>
         /// <returns>The sum of all items by absolute value in <paramref name="source"/> subtracted by <paramref name="mean"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float SumAbs(float mean, ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
 
-            if (Avx.IsSupported)
-            {
-                return (mean == 0) ? AvxIntrinsics.SumAbsU(source) : AvxIntrinsics.SumAbsDiffU(mean, source);
-            }
-            else if (Sse.IsSupported)
-            {
-                return (mean == 0) ? SseIntrinsics.SumAbsU(source) : SseIntrinsics.SumAbsDiffU(mean, source);
-            }
-            else
+            if (source.Length < MinInputSize || !Sse.IsSupported)
             {
                 float sum = 0;
                 for (int i = 0; i < source.Length; i++)
@@ -609,6 +618,14 @@ namespace Microsoft.ML.Internal.CpuMath
                 }
                 return sum;
             }
+            else if (Avx.IsSupported)
+            {
+                return (mean == 0) ? AvxIntrinsics.SumAbsU(source) : AvxIntrinsics.SumAbsDiffU(mean, source);
+            }
+            else
+            {
+                return (mean == 0) ? SseIntrinsics.SumAbsU(source) : SseIntrinsics.SumAbsDiffU(mean, source);
+            }
         }
 
         /// <summary>
@@ -616,19 +633,12 @@ namespace Microsoft.ML.Internal.CpuMath
         /// </summary>
         /// <param name="source">The source values.</param>
         /// <returns>The max of all absolute value items in <paramref name="source"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float MaxAbs(ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
 
-            if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.MaxAbsU(source);
-            }
-            else if (Sse.IsSupported)
-            {
-                return SseIntrinsics.MaxAbsU(source);
-            }
-            else
+            if (source.Length < MinInputSize || !Sse.IsSupported)
             {
                 float max = 0;
                 for (int i = 0; i < source.Length; i++)
@@ -641,6 +651,14 @@ namespace Microsoft.ML.Internal.CpuMath
                 }
                 return max;
             }
+            else if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.MaxAbsU(source);
+            }
+            else
+            {
+                return SseIntrinsics.MaxAbsU(source);
+            }
         }
 
         /// <summary>
@@ -649,19 +667,12 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="mean">The mean value.</param>
         /// <param name="source">The source values.</param>
         /// <returns>The sum of all absolute value items in <paramref name="source"/> subtracted by <paramref name="mean"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float MaxAbsDiff(float mean, ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
 
-            if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.MaxAbsDiffU(mean, source);
-            }
-            else if (Sse.IsSupported)
-            {
-                return SseIntrinsics.MaxAbsDiffU(mean, source);
-            }
-            else
+            if (source.Length < MinInputSize || !Sse.IsSupported)
             {
                 float max = 0;
                 for (int i = 0; i < source.Length; i++)
@@ -674,6 +685,14 @@ namespace Microsoft.ML.Internal.CpuMath
                 }
                 return max;
             }
+            else if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.MaxAbsDiffU(mean, source);
+            }
+            else
+            {
+                return SseIntrinsics.MaxAbsDiffU(mean, source);
+            }
         }
 
         /// <summary>
@@ -683,6 +702,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="right">The right span.</param>
         /// <param name="count">The count of items.</param>
         /// <returns>The dot product.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float DotProductDense(ReadOnlySpan<float> left, ReadOnlySpan<float> right, int count)
         {
             Contracts.AssertNonEmpty(left);
@@ -691,15 +711,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(left.Length >= count);
             Contracts.Assert(right.Length >= count);
 
-            if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.DotU(left, right, count);
-            }
-            else if (Sse.IsSupported)
-            {
-                return SseIntrinsics.DotU(left, right, count);
-            }
-            else
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 float result = 0;
                 for (int i = 0; i < count; i++)
@@ -707,6 +719,14 @@ namespace Microsoft.ML.Internal.CpuMath
                     result += left[i] * right[i];
                 }
                 return result;
+            }
+            else if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.DotU(left, right, count);
+            }
+            else
+            {
+                return SseIntrinsics.DotU(left, right, count);
             }
         }
 
@@ -718,6 +738,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="indices">The indicies of the left span.</param>
         /// <param name="count">The count of items.</param>
         /// <returns>The dot product.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float DotProductSparse(ReadOnlySpan<float> left, ReadOnlySpan<float> right, ReadOnlySpan<int> indices, int count)
         {
             Contracts.AssertNonEmpty(left);
@@ -728,15 +749,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= right.Length);
             Contracts.Assert(count <= indices.Length);
 
-            if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.DotSU(left, right, indices, count);
-            }
-            else if (Sse.IsSupported)
-            {
-                return SseIntrinsics.DotSU(left, right, indices, count);
-            }
-            else
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 float result = 0;
                 for (int i = 0; i < count; i++)
@@ -745,6 +758,14 @@ namespace Microsoft.ML.Internal.CpuMath
                     result += left[index] * right[i];
                 }
                 return result;
+            }
+            else if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.DotSU(left, right, indices, count);
+            }
+            else
+            {
+                return SseIntrinsics.DotSU(left, right, indices, count);
             }
         }
 
@@ -755,6 +776,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="right">The right span.</param>
         /// <param name="count">The count of items.</param>
         /// <returns>The squared distance value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float L2DistSquared(ReadOnlySpan<float> left, ReadOnlySpan<float> right, int count)
         {
             Contracts.AssertNonEmpty(left);
@@ -763,15 +785,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= left.Length);
             Contracts.Assert(count <= right.Length);
 
-            if (Avx.IsSupported)
-            {
-                return AvxIntrinsics.Dist2(left, right, count);
-            }
-            else if (Sse.IsSupported)
-            {
-                return SseIntrinsics.Dist2(left, right, count);
-            }
-            else
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 float norm = 0;
                 for (int i = 0; i < count; i++)
@@ -780,6 +794,14 @@ namespace Microsoft.ML.Internal.CpuMath
                     norm += distance * distance;
                 }
                 return norm;
+            }
+            else if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.Dist2(left, right, count);
+            }
+            else
+            {
+                return SseIntrinsics.Dist2(left, right, count);
             }
         }
 
@@ -864,6 +886,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="threshold">The threshold value.</param>
         /// <param name="v">The v span.</param>
         /// <param name="w">The w span.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SdcaL1UpdateDense(float primalUpdate, int count, ReadOnlySpan<float> source, float threshold, Span<float> v, Span<float> w)
         {
             Contracts.AssertNonEmpty(source);
@@ -874,15 +897,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= v.Length);
             Contracts.Assert(count <= w.Length);
 
-            if (Avx.IsSupported)
-            {
-                AvxIntrinsics.SdcaL1UpdateU(primalUpdate, count, source, threshold, v, w);
-            }
-            else if (Sse.IsSupported)
-            {
-                SseIntrinsics.SdcaL1UpdateU(primalUpdate, count, source, threshold, v, w);
-            }
-            else
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
@@ -890,6 +905,14 @@ namespace Microsoft.ML.Internal.CpuMath
                     float value = v[i];
                     w[i] = Math.Abs(value) > threshold ? (value > 0 ? value - threshold : value + threshold) : 0;
                 }
+            }
+            else if (Avx.IsSupported)
+            {
+                AvxIntrinsics.SdcaL1UpdateU(primalUpdate, count, source, threshold, v, w);
+            }
+            else
+            {
+                SseIntrinsics.SdcaL1UpdateU(primalUpdate, count, source, threshold, v, w);
             }
         }
 
@@ -903,6 +926,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="threshold">The threshold.</param>
         /// <param name="v">The v span.</param>
         /// <param name="w">The w span.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SdcaL1UpdateSparse(float primalUpdate, int count, ReadOnlySpan<float> source, ReadOnlySpan<int> indices, float threshold, Span<float> v, Span<float> w)
         {
             Contracts.AssertNonEmpty(source);
@@ -915,15 +939,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= v.Length);
             Contracts.Assert(count <= w.Length);
 
-            if (Avx.IsSupported)
-            {
-                AvxIntrinsics.SdcaL1UpdateSU(primalUpdate, count, source, indices, threshold, v, w);
-            }
-            else if (Sse.IsSupported)
-            {
-                SseIntrinsics.SdcaL1UpdateSU(primalUpdate, count, source, indices, threshold, v, w);
-            }
-            else
+            if (count < MinInputSize || !Sse.IsSupported)
             {
                 for (int i = 0; i < count; i++)
                 {
@@ -932,6 +948,14 @@ namespace Microsoft.ML.Internal.CpuMath
                     float value = v[index];
                     w[index] = Math.Abs(value) > threshold ? (value > 0 ? value - threshold : value + threshold) : 0;
                 }
+            }
+            else if (Avx.IsSupported)
+            {
+                AvxIntrinsics.SdcaL1UpdateSU(primalUpdate, count, source, indices, threshold, v, w);
+            }
+            else
+            {
+                SseIntrinsics.SdcaL1UpdateSU(primalUpdate, count, source, indices, threshold, v, w);
             }
         }
     }

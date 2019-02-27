@@ -438,10 +438,10 @@ namespace Microsoft.ML.Transforms.Conversions
                 var result = new DataViewSchema.DetachedColumn[_parent._columns.Length];
                 for (int i = 0; i < _parent._columns.Length; i++)
                 {
-                    var builder = new DataViewSchema.Metadata.Builder();
+                    var builder = new DataViewSchema.Annotations.Builder();
                     var srcType = InputSchema[_srcCols[i]].Type;
                     if (_types[i].IsKnownSizeVector())
-                        builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
+                        builder.Add(InputSchema[ColMapNewToOld[i]].Annotations, name => name == AnnotationUtils.Kinds.SlotNames);
 
                     DataViewType srcItemType = srcType.GetItemType();
                     DataViewType currentItemType = _types[i].GetItemType();
@@ -451,17 +451,17 @@ namespace Microsoft.ML.Transforms.Conversions
                     if (srcItemKeyType != null && currentItemKeyType != null &&
                         srcItemKeyType.Count > 0 && srcItemKeyType.Count == currentItemKeyType.Count)
                     {
-                        builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.KeyValues);
+                        builder.Add(InputSchema[ColMapNewToOld[i]].Annotations, name => name == AnnotationUtils.Kinds.KeyValues);
                     }
 
                     if (srcItemType is NumberDataViewType && currentItemType is NumberDataViewType)
-                        builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.IsNormalized);
+                        builder.Add(InputSchema[ColMapNewToOld[i]].Annotations, name => name == AnnotationUtils.Kinds.IsNormalized);
                     if (srcType is BooleanDataViewType && currentItemType is NumberDataViewType)
                     {
                         ValueGetter<bool> getter = (ref bool dst) => dst = true;
-                        builder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, getter);
+                        builder.Add(AnnotationUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, getter);
                     }
-                    result[i] = new DataViewSchema.DetachedColumn(_parent._columns[i].Name, _types[i], builder.ToMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent._columns[i].Name, _types[i], builder.ToAnnotations());
                 }
                 return result;
             }
@@ -619,17 +619,17 @@ namespace Microsoft.ML.Transforms.Conversions
                     throw Host.ExceptParam(nameof(inputSchema), $"Don't know how to convert {colInfo.InputColumnName} into {newType.ToString()}");
                 var metadata = new List<SchemaShape.Column>();
                 if (col.ItemType is BooleanDataViewType && newType is NumberDataViewType)
-                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                    metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                     if (col.Kind == SchemaShape.Column.VectorKind.Vector)
-                        metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, slotMeta.ItemType, false));
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))
+                        metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, slotMeta.ItemType, false));
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var keyMeta))
                     if (col.ItemType is KeyType)
-                        metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.IsNormalized, out var normMeta))
+                        metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.IsNormalized, out var normMeta))
                     if (col.ItemType is NumberDataViewType && newType is NumberDataViewType)
-                        metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, normMeta.ItemType, false));
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.Kind, newType, false, col.Metadata);
+                        metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, normMeta.ItemType, false));
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.Kind, newType, false, col.Annotations);
             }
             return new SchemaShape(result.Values);
         }

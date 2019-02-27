@@ -8,17 +8,17 @@ using Microsoft.Data.DataView;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Extension methods to facilitate easy consumption of popular contents of <see cref="DataViewSchema.Column.Metadata"/>.
+    /// Extension methods to facilitate easy consumption of popular contents of <see cref="DataViewSchema.Column.Annotations"/>.
     /// </summary>
     public static class SchemaAnnotationsExtensions
     {
         /// <summary>
         /// Returns <see langword="true"/> if the input column is of <see cref="VectorType"/>, and that has
-        /// <c>SlotNames</c> metadata of a <see cref="VectorType"/> whose <see cref="VectorType.ItemType"/>
+        /// <c>SlotNames</c> annotation of a <see cref="VectorType"/> whose <see cref="VectorType.ItemType"/>
         /// is of <see cref="TextDataViewType"/>, and further whose <see cref="VectorType.Size"/> matches
         /// this input vector size.
         /// </summary>
-        /// <param name="column">The column whose <see cref="DataViewSchema.Column.Metadata"/> will be queried.</param>
+        /// <param name="column">The column whose <see cref="DataViewSchema.Column.Annotations"/> will be queried.</param>
         /// <seealso cref="GetSlotNames(DataViewSchema.Column, ref VBuffer{ReadOnlyMemory{char}})"/>
         public static bool HasSlotNames(this DataViewSchema.Column column)
             => column.Type is VectorType vectorType
@@ -30,18 +30,18 @@ namespace Microsoft.ML.Data
         /// Otherwise it will throw an exception.
         /// </summary>
         /// <seealso cref="HasSlotNames(DataViewSchema.Column)"/>
-        /// <param name="column">The column whose <see cref="DataViewSchema.Column.Metadata"/> will be queried.</param>
+        /// <param name="column">The column whose <see cref="DataViewSchema.Column.Annotations"/> will be queried.</param>
         /// <param name="slotNames">The <see cref="VBuffer{T}"/> into which the slot names will be stored.</param>
         public static void GetSlotNames(this DataViewSchema.Column column, ref VBuffer<ReadOnlyMemory<char>> slotNames)
-            => column.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNames);
+            => column.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref slotNames);
 
         /// <summary>
         /// Returns <see langword="true"/> if the input column is of <see cref="VectorType"/>, and that has
-        /// <c>SlotNames</c> metadata of a <see cref="VectorType"/> whose <see cref="VectorType.ItemType"/>
+        /// <c>SlotNames</c> annotation of a <see cref="VectorType"/> whose <see cref="VectorType.ItemType"/>
         /// is of <see cref="TextDataViewType"/>, and further whose <see cref="VectorType.Size"/> matches
         /// this input vector size.
         /// </summary>
-        /// <param name="column">The column whose <see cref="DataViewSchema.Column.Metadata"/> will be queried.</param>
+        /// <param name="column">The column whose <see cref="DataViewSchema.Column.Annotations"/> will be queried.</param>
         /// <param name="keyValueItemType">The type of the individual key-values to query. A common,
         /// though not universal, type to provide is <see cref="TextDataViewType.Instance"/>, so if left unspecified
         /// this will be assumed to have the value <see cref="TextDataViewType.Instance"/>.</param>
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Data
             if (keyValueItemType == null)
                 keyValueItemType = TextDataViewType.Instance;
 
-            var metaColumn = column.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues);
+            var metaColumn = column.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues);
             return
                 metaColumn != null
                 && metaColumn.Value.Type is VectorType vectorType
@@ -66,26 +66,26 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Stores the key values of the input colum into the provided buffer, if this is of key type and whose
         /// key values are of <see cref="VectorType.ItemType"/> whose <see cref="DataViewType.RawType"/> matches
-        /// <typeparamref name="TValue"/>. If there is no matching key valued metadata this will throw an exception.
+        /// <typeparamref name="TValue"/>. If there is no matching key valued annotation this will throw an exception.
         /// </summary>
         /// <typeparam name="TValue">The type of the key values.</typeparam>
-        /// <param name="column">The column whose <see cref="DataViewSchema.Column.Metadata"/> will be queried.</param>
+        /// <param name="column">The column whose <see cref="DataViewSchema.Column.Annotations"/> will be queried.</param>
         /// <param name="keyValues">The <see cref="VBuffer{T}"/> into which the key values will be stored.</param>
         public static void GetKeyValues<TValue>(this DataViewSchema.Column column, ref VBuffer<TValue> keyValues)
-            => column.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyValues);
+            => column.Annotations.GetValue(AnnotationUtils.Kinds.KeyValues, ref keyValues);
 
         /// <summary>
-        /// Returns <see langword="true"/> if and only if <paramref name="column"/> has <c>IsNormalized</c> metadata
+        /// Returns <see langword="true"/> if and only if <paramref name="column"/> has <c>IsNormalized</c> annotation
         /// set to <see langword="true"/>.
         /// </summary>
         public static bool IsNormalized(this DataViewSchema.Column column)
         {
-            var metaColumn = column.Metadata.Schema.GetColumnOrNull((MetadataUtils.Kinds.IsNormalized));
+            var metaColumn = column.Annotations.Schema.GetColumnOrNull((AnnotationUtils.Kinds.IsNormalized));
             if (metaColumn == null || !(metaColumn.Value.Type is BooleanDataViewType))
                 return false;
 
             bool value = default;
-            column.Metadata.GetValue(MetadataUtils.Kinds.IsNormalized, ref value);
+            column.Annotations.GetValue(AnnotationUtils.Kinds.IsNormalized, ref value);
             return value;
         }
     }
