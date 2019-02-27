@@ -13,13 +13,13 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Numeric;
-using Microsoft.ML.Trainers.KMeans;
+using Microsoft.ML.Trainers;
 using Float = System.Single;
 
 [assembly: LoadableClass(typeof(KMeansModelParameters), null, typeof(SignatureLoadModel),
     "KMeans predictor", KMeansModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.Trainers.KMeans
+namespace Microsoft.ML.Trainers
 {
     /// <example>
     /// <format type="text/markdown">

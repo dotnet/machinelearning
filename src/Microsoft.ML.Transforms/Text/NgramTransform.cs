@@ -131,7 +131,7 @@ namespace Microsoft.ML.Transforms.Text
 
             public bool RequireIdf => Weighting == NgramExtractingEstimator.WeightingCriteria.Idf || Weighting == NgramExtractingEstimator.WeightingCriteria.TfIdf;
 
-            public TransformInfo(NgramExtractingEstimator.ColumnInfo info)
+            public TransformInfo(NgramExtractingEstimator.ColumnOptions info)
             {
                 NgramLength = info.NgramLength;
                 SkipLength = info.SkipLength;
@@ -191,7 +191,7 @@ namespace Microsoft.ML.Transforms.Text
         // Ngram inverse document frequencies
         private readonly double[][] _invDocFreqs;
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(NgramExtractingEstimator.ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(NgramExtractingEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Transforms.Text
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, NgramExtractingEstimator.ExpectedColumnType, type.ToString());
         }
 
-        internal NgramExtractingTransformer(IHostEnvironment env, IDataView input, NgramExtractingEstimator.ColumnInfo[] columns)
+        internal NgramExtractingTransformer(IHostEnvironment env, IDataView input, NgramExtractingEstimator.ColumnOptions[] columns)
            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NgramExtractingTransformer)), GetColumnPairs(columns))
         {
             var transformInfos = new TransformInfo[columns.Length];
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Transforms.Text
             _ngramMaps = Train(Host, columns, _transformInfos, input, out _invDocFreqs);
         }
 
-        private static SequencePool[] Train(IHostEnvironment env, NgramExtractingEstimator.ColumnInfo[] columns, ImmutableArray<TransformInfo> transformInfos, IDataView trainingData, out double[][] invDocFreqs)
+        private static SequencePool[] Train(IHostEnvironment env, NgramExtractingEstimator.ColumnOptions[] columns, ImmutableArray<TransformInfo> transformInfos, IDataView trainingData, out double[][] invDocFreqs)
         {
             var helpers = new NgramBufferBuilder[columns.Length];
             var getters = new ValueGetter<VBuffer<uint>>[columns.Length];
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(options.Columns, nameof(options.Columns));
-            var cols = new NgramExtractingEstimator.ColumnInfo[options.Columns.Length];
+            var cols = new NgramExtractingEstimator.ColumnOptions[options.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
 
@@ -421,7 +421,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var item = options.Columns[i];
                     var maxNumTerms = Utils.Size(item.MaxNumTerms) > 0 ? item.MaxNumTerms : options.MaxNumTerms;
-                    cols[i] = new NgramExtractingEstimator.ColumnInfo(
+                    cols[i] = new NgramExtractingEstimator.ColumnOptions(
                         item.Name,
                         item.NgramLength ?? options.NgramLength,
                         item.SkipLength ?? options.SkipLength,
@@ -701,7 +701,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         private readonly IHost _host;
-        private readonly ColumnInfo[] _columns;
+        private readonly ColumnOptions[] _columns;
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumnName"/>
@@ -744,7 +744,7 @@ namespace Microsoft.ML.Transforms.Text
             bool allLengths = Defaults.AllLengths,
             int maxNumTerms = Defaults.MaxNumTerms,
             WeightingCriteria weighting = Defaults.Weighting)
-            : this(env, columns.Select(x => new ColumnInfo(x.outputColumnName, x.inputColumnName, ngramLength, skipLength, allLengths, weighting, maxNumTerms)).ToArray())
+            : this(env, columns.Select(x => new ColumnOptions(x.outputColumnName, x.inputColumnName, ngramLength, skipLength, allLengths, weighting, maxNumTerms)).ToArray())
         {
         }
 
@@ -754,7 +754,7 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Array of columns with information how to transform data.</param>
-        internal NgramExtractingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        internal NgramExtractingEstimator(IHostEnvironment env, params ColumnOptions[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(NgramExtractingEstimator));
@@ -795,7 +795,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnInfo
+        public sealed class ColumnOptions
         {
             /// <summary>Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
             public readonly string Name;
@@ -825,7 +825,7 @@ namespace Microsoft.ML.Transforms.Text
             /// <param name="allLengths">Whether to store all ngram lengths up to ngramLength, or only ngramLength.</param>
             /// <param name="weighting">The weighting criteria.</param>
             /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
-            public ColumnInfo(string name, string inputColumnName = null,
+            public ColumnOptions(string name, string inputColumnName = null,
                 int ngramLength = Defaults.NgramLength,
                 int skipLength = Defaults.SkipLength,
                 bool allLengths = Defaults.AllLengths,
@@ -835,7 +835,7 @@ namespace Microsoft.ML.Transforms.Text
             {
             }
 
-            internal ColumnInfo(string name,
+            internal ColumnOptions(string name,
                 int ngramLength,
                 int skipLength,
                 bool allLengths,

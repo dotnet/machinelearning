@@ -5,7 +5,6 @@
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Trainers.Online;
 
 namespace Microsoft.ML
 {

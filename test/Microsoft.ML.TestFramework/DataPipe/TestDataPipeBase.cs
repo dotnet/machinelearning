@@ -168,21 +168,21 @@ namespace Microsoft.ML.RunTests
         /// * pathData defaults to breast-cancer.txt.
         /// * actLoader is invoked for extra validation (if non-null).
         /// </summary>
-        internal IDataLoader TestCore(string pathData, bool keepHidden, string[] argsPipe,
-            Action<IDataLoader> actLoader = null, string suffix = "", string suffixBase = null, bool checkBaseline = true,
+        internal ILegacyDataLoader TestCore(string pathData, bool keepHidden, string[] argsPipe,
+            Action<ILegacyDataLoader> actLoader = null, string suffix = "", string suffixBase = null, bool checkBaseline = true,
             bool forceDense = false, bool logCurs = false, bool roundTripText = true,
             bool checkTranspose = false, bool checkId = true, bool baselineSchema = true, int digitsOfPrecision = DigitsOfPrecision)
         {
             Contracts.AssertValue(Env);
 
             MultiFileSource files;
-            IDataLoader compositeLoader;
+            ILegacyDataLoader compositeLoader;
             var pipe1 = compositeLoader = CreatePipeDataLoader(_env, pathData, argsPipe, out files);
 
             actLoader?.Invoke(compositeLoader);
 
             // Re-apply pipe to the loader and check equality.
-            var comp = compositeLoader as CompositeDataLoader;
+            var comp = compositeLoader as LegacyCompositeDataLoader;
             IDataView srcLoader = null;
             if (comp != null)
             {
@@ -300,7 +300,7 @@ namespace Microsoft.ML.RunTests
             return pipe1;
         }
 
-        private IDataLoader CreatePipeDataLoader(IHostEnvironment env, string pathData, string[] argsPipe, out MultiFileSource files)
+        private ILegacyDataLoader CreatePipeDataLoader(IHostEnvironment env, string pathData, string[] argsPipe, out MultiFileSource files)
         {
             VerifyArgParsing(env, argsPipe);
 
@@ -309,7 +309,7 @@ namespace Microsoft.ML.RunTests
                 pathData = GetDataPath("breast-cancer.txt");
 
             files = new MultiFileSource(pathData == "<none>" ? null : pathData);
-            var sub = new SubComponent<IDataLoader, SignatureDataLoader>("Pipe", argsPipe);
+            var sub = new SubComponent<ILegacyDataLoader, SignatureDataLoader>("Pipe", argsPipe);
             var pipe = sub.CreateInstance(env, files);
             if (!CheckMetadataTypes(pipe.Schema))
                 Failed();
@@ -320,7 +320,7 @@ namespace Microsoft.ML.RunTests
         protected void VerifyArgParsing(IHostEnvironment env, string[] strs)
         {
             string str = CmdParser.CombineSettings(strs);
-            var args = new CompositeDataLoader.Arguments();
+            var args = new LegacyCompositeDataLoader.Arguments();
             if (!CmdParser.ParseArguments(Env, str, args))
             {
                 Fail("Parsing arguments failed!");
@@ -412,7 +412,7 @@ namespace Microsoft.ML.RunTests
 
             // Note that we don't pass in "args", but pass in a default args so we test
             // the auto-schema parsing.
-            var loadedData = ML.Data.ReadFromTextFile(pathData, options: args);
+            var loadedData = ML.Data.LoadFromTextFile(pathData, options: args);
             if (!CheckMetadataTypes(loadedData.Schema))
                 Failed();
 
@@ -423,7 +423,7 @@ namespace Microsoft.ML.RunTests
             return true;
         }
 
-        protected private string SavePipe(IDataLoader pipe, string suffix = "", string dir = "Pipeline")
+        protected private string SavePipe(ILegacyDataLoader pipe, string suffix = "", string dir = "Pipeline")
         {
             string name = TestName + suffix + ".zip";
             string pathModel = DeleteOutputPath("SavePipe", name);
@@ -446,14 +446,14 @@ namespace Microsoft.ML.RunTests
             return res;
         }
 
-        private IDataLoader LoadPipe(string pathModel, IHostEnvironment env, IMultiStreamSource files)
+        private ILegacyDataLoader LoadPipe(string pathModel, IHostEnvironment env, IMultiStreamSource files)
         {
             using (var file = Env.OpenInputFile(pathModel))
             using (var strm = file.OpenReadStream())
             using (var rep = RepositoryReader.Open(strm, env))
             {
-                IDataLoader pipe;
-                ModelLoadContext.LoadModel<IDataLoader, SignatureLoadDataLoader>(env,
+                ILegacyDataLoader pipe;
+                ModelLoadContext.LoadModel<ILegacyDataLoader, SignatureLoadDataLoader>(env,
                     out pipe, rep, "Pipeline", files);
                 return pipe;
             }

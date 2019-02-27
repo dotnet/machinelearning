@@ -20,7 +20,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             var examples = DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);
 
             // Convert native C# class to IDataView, a consumble format to ML.NET functions.
-            var dataView = mlContext.Data.ReadFromEnumerable(examples);
+            var dataView = mlContext.Data.LoadFromEnumerable(examples);
 
             //////////////////// Data Preview ////////////////////
             // Label    Features
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             //   Macro accuracy: 0.8619, Micro accuracy: 0.8611.
 
             // IDataView with predictions, to an IEnumerable<DatasetUtils.MulticlassClassificationExample>.
-            var nativePredictions = mlContext.CreateEnumerable<DatasetUtils.MulticlassClassificationExample>(dataWithPredictions, false).ToList();
+            var nativePredictions = mlContext.Data.CreateEnumerable<DatasetUtils.MulticlassClassificationExample>(dataWithPredictions, false).ToList();
 
             // Get schema object out of the prediction. It contains metadata such as the mapping from predicted label index
             // (e.g., 1) to its actual label (e.g., "AA").

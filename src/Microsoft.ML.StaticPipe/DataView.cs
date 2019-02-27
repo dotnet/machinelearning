@@ -49,7 +49,8 @@ namespace Microsoft.ML.StaticPipe
             var indexer = StaticPipeUtils.GetIndexer(data);
             string columnName = indexer.Get(column(indexer.Indices));
 
-            return data.AsDynamic.GetColumn<TOut>(env, columnName);
+            var dynamicData = data.AsDynamic;
+            return dynamicData.GetColumn<TOut>(dynamicData.Schema[columnName]);
         }
 
         public static IEnumerable<TItem> GetColumn<TItem, TShape>(this DataView<TShape> data, Func<TShape, Scalar<TItem>> column)

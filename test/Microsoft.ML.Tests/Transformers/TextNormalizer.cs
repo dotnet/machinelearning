@@ -42,20 +42,20 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = "A 1, b. c! йЁ 24 ", B = new string[2] { "~``ё 52ds й vc", "6ksj94 vd ё dakl Юds Ё q й" } },
                                new TestClass() { A = null, B =new string[2]  { null, string.Empty }  } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = new TextNormalizingEstimator(ML, columns: new[] { ("NormA", "A"), ("NormB", "B") });
 
             var invalidData = new[] { new TestClassB() { A = 1, B = new float[2] { 1,4 } },
                                new TestClassB() { A = 2, B =new float[2]  { 3,4 }  } };
-            var invalidDataView = ML.Data.ReadFromEnumerable(invalidData);
+            var invalidDataView = ML.Data.LoadFromEnumerable(invalidData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataView);
 
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
-            dataView = reader.Read(dataSource).AsDynamic;
+            dataView = reader.Load(dataSource).AsDynamic;
 
             var pipeVariations = new TextNormalizingEstimator(ML, columns: new[] { ("NormText", "text") }).Append(
                                 new TextNormalizingEstimator(ML, textCase: TextNormalizingEstimator.CaseNormalizationMode.Upper, columns: new[] { ("UpperText", "text") })).Append(
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = "A 1, b. c! йЁ 24 ", B = new string[2] { "~``ё 52ds й vc", "6ksj94 vd ё dakl Юds Ё q й" } } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = new TextNormalizingEstimator(Env, columns: new[] { ("NormA", "A"), ("NormB", "B") });
 
             var result = pipe.Fit(dataView).Transform(dataView);

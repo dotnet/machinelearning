@@ -17,6 +17,7 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(GamModelParametersBase.VisualizationCommand), typeof(GamModelParametersBase.VisualizationCommand.Arguments), typeof(SignatureCommand),
     "GAM Vizualization Command", GamModelParametersBase.VisualizationCommand.LoadName, "gamviz", DocName = "command/GamViz.md")]
@@ -867,7 +868,7 @@ namespace Microsoft.ML.Trainers.FastTree
             /// operations on top of that structure.</returns>
             private Context Init(IChannel ch)
             {
-                IDataLoader loader;
+                ILegacyDataLoader loader;
                 IPredictor rawPred;
                 RoleMappedSchema schema;
                 LoadModelObjects(ch, true, out rawPred, true, out schema, out loader);

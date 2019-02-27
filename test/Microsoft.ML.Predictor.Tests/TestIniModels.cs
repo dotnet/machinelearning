@@ -525,7 +525,7 @@ namespace Microsoft.ML.RunTests
                             new TextLoader.Column("Label", DataKind.Single, 0),
                             new TextLoader.Column("Features", DataKind.Single, 1, 9)
                         }
-                    }).Read(GetDataPath("breast-cancer.txt"));
+                    }).Load(GetDataPath("breast-cancer.txt"));
 
             var pipeline = mlContext.Transforms.ReplaceMissingValues("Features")
                 .Append(mlContext.Regression.Trainers.GeneralizedAdditiveModels());
@@ -564,7 +564,7 @@ namespace Microsoft.ML.RunTests
                             new TextLoader.Column("Label", DataKind.Boolean, 0),
                             new TextLoader.Column("Features", DataKind.Single, 1, 9)
                         }
-                    }).Read(GetDataPath("breast-cancer.txt"));
+                    }).Load(GetDataPath("breast-cancer.txt"));
 
             var pipeline = mlContext.Transforms.ReplaceMissingValues("Features")
                 .Append(mlContext.BinaryClassification.Trainers.GeneralizedAdditiveModels());

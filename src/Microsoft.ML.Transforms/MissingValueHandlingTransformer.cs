@@ -12,7 +12,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 
 [assembly: LoadableClass(MissingValueHandlingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueHandlingTransformer),
     typeof(MissingValueHandlingTransformer.Options), typeof(SignatureDataTransform),
@@ -140,9 +139,9 @@ namespace Microsoft.ML.Transforms
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns));
 
-            var replaceCols = new List<MissingValueReplacingEstimator.ColumnInfo>();
+            var replaceCols = new List<MissingValueReplacingEstimator.ColumnOptions>();
             var naIndicatorCols = new List<MissingValueIndicatorTransformer.Column>();
-            var naConvCols = new List<TypeConvertingEstimator.ColumnInfo>();
+            var naConvCols = new List<TypeConvertingEstimator.ColumnOptions>();
             var concatCols = new List<ColumnConcatenatingTransformer.TaggedColumn>();
             var dropCols = new List<string>();
             var tmpIsMissingColNames = input.Schema.GetTempColumnNames(options.Columns.Length, "IsMissing");
@@ -154,8 +153,8 @@ namespace Microsoft.ML.Transforms
                 var addInd = column.ConcatIndicator ?? options.Concat;
                 if (!addInd)
                 {
-                    replaceCols.Add(new MissingValueReplacingEstimator.ColumnInfo(column.Name, column.Source,
-                        (MissingValueReplacingEstimator.ColumnInfo.ReplacementMode)(column.Kind ?? options.ReplaceWith), column.ImputeBySlot ?? options.ImputeBySlot));
+                    replaceCols.Add(new MissingValueReplacingEstimator.ColumnOptions(column.Name, column.Source,
+                        (MissingValueReplacingEstimator.ColumnOptions.ReplacementMode)(column.Kind ?? options.ReplaceWith), column.ImputeBySlot ?? options.ImputeBySlot));
                     continue;
                 }
 
@@ -185,12 +184,12 @@ namespace Microsoft.ML.Transforms
                     {
                         throw h.Except("Cannot get a DataKind for type '{0}'", replaceItemType.RawType);
                     }
-                    naConvCols.Add(new TypeConvertingEstimator.ColumnInfo(tmpIsMissingColName, replaceItemTypeKind.ToDataKind(), tmpIsMissingColName));
+                    naConvCols.Add(new TypeConvertingEstimator.ColumnOptions(tmpIsMissingColName, replaceItemTypeKind.ToDataKind(), tmpIsMissingColName));
                 }
 
                 // Add the NAReplaceTransform column.
-                replaceCols.Add(new MissingValueReplacingEstimator.ColumnInfo(tmpReplacementColName, column.Source,
-                    (MissingValueReplacingEstimator.ColumnInfo.ReplacementMode)(column.Kind ?? options.ReplaceWith), column.ImputeBySlot ?? options.ImputeBySlot));
+                replaceCols.Add(new MissingValueReplacingEstimator.ColumnOptions(tmpReplacementColName, column.Source,
+                    (MissingValueReplacingEstimator.ColumnOptions.ReplacementMode)(column.Kind ?? options.ReplaceWith), column.ImputeBySlot ?? options.ImputeBySlot));
 
                 // Add the ConcatTransform column.
                 if (replaceType is VectorType)

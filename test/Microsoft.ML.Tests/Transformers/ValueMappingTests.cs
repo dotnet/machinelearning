@@ -6,12 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Tools;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -51,7 +50,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMapOneValueTest()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
             var values = new List<int>() { 1, 2, 3, 4 };
@@ -81,13 +80,13 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMapInputIsVectorTest()
         {
             var data = new[] { new TestClass() { A = "bar test foo", B = "test", C = "foo" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
             var values = new List<int>() { 1, 2, 3, 4 };
 
             var estimator = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizingEstimator.ColumnInfo("TokenizeA", "A")
+                    new WordTokenizingEstimator.ColumnOptions("TokenizeA", "A")
                 }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("VecD", "TokenizeA"), ("E", "B"), ("F", "C") }));
             var schema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
             Assert.True(schema.TryFindColumn("VecD", out var originalColumn));
@@ -117,13 +116,13 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMapInputIsVectorAndValueAsStringKeyTypeTest()
         {
             var data = new[] { new TestClass() { A = "bar test foo", B = "test", C = "foo" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
             var values = new List<ReadOnlyMemory<char>>() { "a".AsMemory(), "b".AsMemory(), "c".AsMemory(), "d".AsMemory() };
 
             var estimator = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizingEstimator.ColumnInfo("TokenizeA", "A")
+                    new WordTokenizingEstimator.ColumnOptions("TokenizeA", "A")
                 }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("VecD", "TokenizeA"), ("E", "B"), ("F", "C") }));
             var t = estimator.Fit(dataView);
 
@@ -150,7 +149,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMapVectorValueTest()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             IEnumerable<string> keys = new List<string>() { "foo", "bar", "test" };
             List<int[]> values = new List<int[]>() {
@@ -197,14 +196,14 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMapDataViewAsMapTest()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             var map = new[] { new Map() { Key = "foo", Value = 1 },
                               new Map() { Key = "bar", Value = 2 },
                               new Map() { Key = "test", Value = 3 },
                               new Map() { Key = "wahoo", Value = 4 }
                             };
-            var mapView = ML.Data.ReadFromEnumerable(map);
+            var mapView = ML.Data.LoadFromEnumerable(map);
 
             var estimator = new ValueMappingEstimator(Env, mapView, "Key", "Value", new[] { ("D", "A"), ("E", "B"), ("F", "C") });
             var t = estimator.Fit(dataView);
@@ -231,7 +230,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMapVectorStringValueTest()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             IEnumerable<string> keys = new List<string>() { "foo", "bar", "test" };
             List<string[]> values = new List<string[]>() {
@@ -267,7 +266,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingMissingKey()
         {
             var data = new[] { new TestClass() { A = "barTest", B = "test", C = "foo" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
             var values = new List<int>() { 1, 2, 3, 4 };
@@ -297,7 +296,7 @@ namespace Microsoft.ML.Tests.Transformers
         void TestDuplicateKeys()
         {
             var data = new[] { new TestClass() { A = "barTest", B = "test", C = "foo" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             var keys = new List<string>() { "foo", "foo" };
             var values = new List<int>() { 1, 2 };
@@ -309,7 +308,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingOutputSchema()
         {
             var data = new[] { new TestClass() { A = "barTest", B = "test", C = "foo" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
             var values = new List<int>() { 1, 2, 3, 4 };
@@ -336,7 +335,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingWithValuesAsKeyTypesOutputSchema()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
             var values = new List<string>() { "t", "s", "u", "v" };
@@ -364,7 +363,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingValuesAsUintKeyTypes()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test2", C = "wahoo" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
 
@@ -403,7 +402,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingValuesAsUlongKeyTypes()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test2", C = "wahoo" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
 
@@ -441,7 +440,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingValuesAsStringKeyTypes()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "notfound" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
 
@@ -478,7 +477,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingValuesAsKeyTypesReverseLookup()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "notfound" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
 
@@ -504,15 +503,15 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingWorkout()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var badData = new[] { new TestWrong() { A = "bar", B = 1.2f } };
-            var badDataView = ML.Data.ReadFromEnumerable(badData);
+            var badDataView = ML.Data.LoadFromEnumerable(badData);
 
             var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
             var values = new List<int>() { 1, 2, 3, 4 };
 
             // Workout on value mapping
-            var est = ML.Transforms.Conversion.ValueMap(keys, values, new SimpleColumnInfo[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var est = ML.Transforms.Conversion.ValueMap(keys, values, new ColumnOptions[] { ("D", "A"), ("E", "B"), ("F", "C") });
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
@@ -520,9 +519,9 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingValueTypeIsVectorWorkout()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var badData = new[] { new TestWrong() { A = "bar", B = 1.2f } };
-            var badDataView = ML.Data.ReadFromEnumerable(badData);
+            var badDataView = ML.Data.LoadFromEnumerable(badData);
 
             var keys = new List<string>() { "foo", "bar", "test" };
             var values = new List<int[]>() {
@@ -531,7 +530,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new int[] {400, 500, 600, 700 }};
 
             // Workout on value mapping
-            var est = ML.Transforms.Conversion.ValueMap(keys, values, new SimpleColumnInfo[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var est = ML.Transforms.Conversion.ValueMap(keys, values, new ColumnOptions[] { ("D", "A"), ("E", "B"), ("F", "C") });
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
@@ -539,16 +538,16 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingInputIsVectorWorkout()
         {
             var data = new[] { new TestClass() { B = "bar test foo" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             var badData = new[] { new TestWrong() { B = 1.2f } };
-            var badDataView = ML.Data.ReadFromEnumerable(badData);
+            var badDataView = ML.Data.LoadFromEnumerable(badData);
 
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
             var values = new List<int>() { 1, 2, 3, 4 };
 
             var est = ML.Transforms.Text.TokenizeWords("TokenizeB", "B")
-                .Append(ML.Transforms.Conversion.ValueMap(keys, values, new SimpleColumnInfo[] { ("VecB", "TokenizeB") }));
+                .Append(ML.Transforms.Conversion.ValueMap(keys, values, new ColumnOptions[] { ("VecB", "TokenizeB") }));
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
@@ -592,7 +591,7 @@ namespace Microsoft.ML.Tests.Transformers
         void TestSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = "bar", B = "foo", C = "test", } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var est = new ValueMappingEstimator<string, int>(Env, 
                                                 new List<string>() { "foo", "bar", "test" }, 
                                                 new List<int>() { 2, 43, 56 }, 
@@ -618,7 +617,7 @@ namespace Microsoft.ML.Tests.Transformers
             // Model generated with: xf=drop{col=A} 
             // Expected output: Features Label B C
             var data = new[] { new TestTermLookup() { Label = "good", GroupId = 1 } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             string termLookupModelPath = GetDataPath("backcompat/termlookup.zip");
             using (FileStream fs = File.OpenRead(termLookupModelPath))
             {
@@ -635,7 +634,7 @@ namespace Microsoft.ML.Tests.Transformers
             // Model generated with: xf=drop{col=A} 
             // Expected output: Features Label B C
             var data = new[] { new TestTermLookup() { Label = "Good", GroupId = 1 } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             string termLookupModelPath = GetDataPath("backcompat/termlookup_with_key.zip");
             using (FileStream fs = File.OpenRead(termLookupModelPath))
             {
@@ -647,7 +646,7 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(result.Schema[labelIdx].Type is KeyType);
                 Assert.Equal((ulong)5, result.Schema[labelIdx].Type.GetItemType().GetKeyCount());
 
-                var t = result.GetColumn<uint>(Env, "Label");
+                var t = result.GetColumn<uint>(result.Schema["Label"]);
                 uint s = t.First();
                 Assert.Equal((uint)3, s);
             }
