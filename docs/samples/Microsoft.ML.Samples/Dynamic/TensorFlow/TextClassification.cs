@@ -33,7 +33,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var dataView = mlContext.Data.ReadFromEnumerable(data);
 
             // This is the dictionary to convert words into the integer indexes.
-            var lookupMap = mlContext.Data.ReadFromTextFile(Path.Combine(modelLocation, "imdb_word_index.csv"),
+            var lookupMap = mlContext.Data.LoadFromTextFile(Path.Combine(modelLocation, "imdb_word_index.csv"),
                 columns: new[]
                    {
                         new TextLoader.Column("Words", DataKind.String, 0),

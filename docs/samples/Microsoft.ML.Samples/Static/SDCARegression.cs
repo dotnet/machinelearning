@@ -17,22 +17,22 @@ namespace Microsoft.ML.Samples.Static
             // Creating the ML.Net IHostEnvironment object, needed for the pipeline
             var mlContext = new MLContext();
 
-            // Creating a data reader, based on the format of the data
-            var reader = TextLoaderStatic.CreateReader(mlContext, c => (
+            // Creating a data loader, based on the format of the data
+            var loader = TextLoaderStatic.CreateLoader(mlContext, c => (
                         label: c.LoadFloat(0),
                         features: c.LoadFloat(1, 6)
                     ),
                 separator: '\t', hasHeader: true);
 
-            // Read the data, and leave 10% out, so we can use them for testing
-            var data = reader.Read(dataFile);
+            // Load the data, and leave 10% out, so we can use them for testing
+            var data = loader.Load(dataFile);
             var (trainData, testData) = mlContext.Regression.TrainTestSplit(data, testFraction: 0.1);
 
             // The predictor that gets produced out of training
             LinearRegressionModelParameters pred = null;
 
             // Create the estimator
-            var learningPipeline = reader.MakeNewEstimator()
+            var learningPipeline = loader.MakeNewEstimator()
                 .Append(r => (r.label, score: mlContext.Regression.Trainers.Sdca(
                                             r.label,
                                             r.features,
