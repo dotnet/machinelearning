@@ -817,17 +817,17 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
-                    var meta = new DataViewSchema.Metadata.Builder();
+                    var meta = new DataViewSchema.Annotations.Builder();
 
-                    meta.Add(InputSchema[colIndex].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
+                    meta.Add(InputSchema[colIndex].Annotations, name => name == AnnotationUtils.Kinds.SlotNames);
 
                     if (_parent._kvTypes != null && _parent._kvTypes[i] != null)
                         AddMetaKeyValues(i, meta);
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.ToMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.ToAnnotations());
                 }
                 return result;
             }
-            private void AddMetaKeyValues(int i, DataViewSchema.Metadata.Builder builder)
+            private void AddMetaKeyValues(int i, DataViewSchema.Annotations.Builder builder)
             {
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
@@ -1270,10 +1270,10 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (!IsColumnTypeValid(col.ItemType))
                     throw _host.ExceptParam(nameof(inputSchema), ExpectedColumnType);
                 var metadata = new List<SchemaShape.Column>();
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
                 if (colInfo.InvertHash != 0)
-                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
+                    metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.ItemType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, new SchemaShape(metadata));
             }
             return new SchemaShape(result.Values);

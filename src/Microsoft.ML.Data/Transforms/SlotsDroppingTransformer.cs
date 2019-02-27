@@ -826,7 +826,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new DataViewSchema.Metadata.Builder();
+                    var builder = new DataViewSchema.Annotations.Builder();
 
                     // Add SlotNames metadata.
                     if (_srcTypes[iinfo] is VectorType vectorType && vectorType.IsKnownSize)
@@ -839,14 +839,14 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                         {
                             // Add slot name metadata.
                             ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter = (ref VBuffer<ReadOnlyMemory<char>> dst) => GetSlotNames(iinfo, ref dst);
-                            builder.Add(MetadataUtils.Kinds.SlotNames, new VectorType(TextDataViewType.Instance, dstLength), slotNamesGetter);
+                            builder.Add(AnnotationUtils.Kinds.SlotNames, new VectorType(TextDataViewType.Instance, dstLength), slotNamesGetter);
                         }
                     }
 
                     // Add CategoricalSlotRanges metadata.
                     if (!_suppressed[iinfo])
                     {
-                        if (MetadataUtils.TryGetCategoricalFeatureIndices(InputSchema, _cols[iinfo], out _categoricalRanges[iinfo]))
+                        if (AnnotationUtils.TryGetCategoricalFeatureIndices(InputSchema, _cols[iinfo], out _categoricalRanges[iinfo]))
                         {
                             VBuffer<int> dst = default(VBuffer<int>);
                             GetCategoricalSlotRangesCore(iinfo, _slotDropper[iinfo].SlotsMin, _slotDropper[iinfo].SlotsMax, _categoricalRanges[iinfo], ref dst);
@@ -856,15 +856,15 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                                 Contracts.Assert(dst.Length % 2 == 0);
                                 // Add slot name metadata.
                                 ValueGetter<VBuffer<int>> categoricalSlotRangesGetter = (ref VBuffer<int> dest) => GetCategoricalSlotRanges(iinfo, ref dest);
-                                builder.Add(MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.GetCategoricalType(dst.Length / 2), categoricalSlotRangesGetter);
+                                builder.Add(AnnotationUtils.Kinds.CategoricalSlotRanges, AnnotationUtils.GetCategoricalType(dst.Length / 2), categoricalSlotRangesGetter);
                             }
                         }
                     }
 
                     // Add isNormalize and KeyValues metadata.
-                    builder.Add(InputSchema[_cols[iinfo]].Metadata, x => x == MetadataUtils.Kinds.KeyValues || x == MetadataUtils.Kinds.IsNormalized);
+                    builder.Add(InputSchema[_cols[iinfo]].Annotations, x => x == AnnotationUtils.Kinds.KeyValues || x == AnnotationUtils.Kinds.IsNormalized);
 
-                    result[iinfo] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, _dstTypes[iinfo], builder.ToMetadata());
+                    result[iinfo] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, _dstTypes[iinfo], builder.ToAnnotations());
                 }
                 return result;
             }

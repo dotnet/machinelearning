@@ -8,7 +8,7 @@ For a better understanding of `IDataView` principles and type system please refe
 
 ## Introduction
 
-Every dataset in ML.NET is represented as an `IDataView`, which is, for the purposes of this document, a collection of rows that share the same columns. The set of columns, their names, types and other metadata is known as the *schema* of the `IDataView`, and it's represented as an `ISchema` object.
+Every dataset in ML.NET is represented as an `IDataView`, which is, for the purposes of this document, a collection of rows that share the same columns. The set of columns, their names, types and other annotations is known as the *schema* of the `IDataView`, and it's represented as an `ISchema` object.
 
 In this document, we will be using the terms *data view* and `IDataView` interchangeably, same for *schema* and `ISchema`.
 
@@ -16,9 +16,9 @@ Before any new data enters ML.NET, the user needs to somehow define how the sche
 To do this, the following questions need to be answered:
 - What are the column names?
 - What are their types?
-- What other metadata is associated with the columns?
+- What other annotations are associated with the columns?
 
-These items above are very similar to the definition of fields in a C# class: names and types of columns correspond to names and types of fields, and metadata can correspond to field attributes. 
+These items above are very similar to the definition of fields in a C# class: names and types of columns correspond to names and types of fields, and annotations can correspond to field attributes. 
 Because of this similarity, ML.NET offers a common convenient mechanism for creating a schema: it is done via defining a C# class.
 
 For example, the below class definition can be used to define a data view with 5 float columns:
@@ -201,10 +201,10 @@ var dataView = env.CreateDataView<IrisVectorData>(arr, schemaDef);
 var predictionEngine = env.CreatePredictionEngine<IrisData, IrisVectorData>(dv, outputSchemaDefinition: schemaDef);
 ```
 
-In addition to the above, you can use `SchemaDefinition` to add per-column metadata:
+In addition to the above, you can use `SchemaDefinition` to add per-column annotations:
 ```C#
-// Add column metadata.
-schemaDef["Label"].AddMetadata(MetadataUtils.Kinds.HasMissingValues, false);
+// Add column annotation.
+schemaDef["Label"].AddAnnotation(MetadataUtils.Kinds.HasMissingValues, false);
 ```
 
 ## Limitations
@@ -216,7 +216,7 @@ Here is the list of things that are only possible via the low-level interface:
 * Creating or reading a data view, where even column *types* are not known at compile time (so you cannot create a C# class to define the schema)
   * This can happen if you write a general-purpose machine learning tool that can ingest different kinds of datasets.
 * Reading a subset of columns that differs from one row to another: the cursor always populates the entire row object.
-* Reading column metadata from the data view.
+* Reading column annotations from the data view.
 * Accessing the 'hidden' data view columns by index. 
   * Hidden columns are those that have the same name as other columns and a smaller index. They are not accessible by name.
 * Creating 'cursor sets': this is a feature that lets you iterate over data in multiple parallel threads by splitting the data between multiple 'sibling' cursors.

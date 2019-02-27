@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.Evaluators.Metrics;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Xunit;
 
@@ -112,7 +111,7 @@ namespace Microsoft.ML.Functional.Tests
                 Assert.Equal(schemaPair.Item1.Index, schemaPair.Item2.Index);
                 Assert.Equal(schemaPair.Item1.IsHidden, schemaPair.Item2.IsHidden);
                 // Can probably do a better comparison of Metadata.
-                AssertEqual(schemaPair.Item1.Metadata.Schema, schemaPair.Item1.Metadata.Schema);
+                AssertEqual(schemaPair.Item1.Annotations.Schema, schemaPair.Item1.Annotations.Schema);
                 Assert.True((schemaPair.Item1.Type == schemaPair.Item2.Type) ||
                     (schemaPair.Item1.Type.RawType == schemaPair.Item2.Type.RawType));
             }

@@ -9,11 +9,10 @@ using System.Linq;
 using System.Threading;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
-using Microsoft.ML.Calibrator;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -369,7 +368,7 @@ namespace Microsoft.ML.Trainers.FastTree
             writer.WriteLine("-1\tIntercept");
 
             var names = default(VBuffer<ReadOnlyMemory<char>>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numInputFeatures, ref names);
+            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numInputFeatures, ref names);
 
             for (int internalIndex = 0; internalIndex < NumShapeFunctions; internalIndex++)
             {
@@ -635,7 +634,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     ch.Check(len == _pred._numInputFeatures);
 
                     if (featCol.HasSlotNames(len))
-                        featCol.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _featNames);
+                        featCol.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref _featNames);
                     else
                         _featNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
 
@@ -680,11 +679,11 @@ namespace Microsoft.ML.Trainers.FastTree
                         builder.AddColumn(DefaultColumnNames.Score, NumberDataViewType.Single, _scores);
                         _dataForEvaluator = new RoleMappedData(builder.GetDataView(), opt: false,
                             RoleMappedSchema.ColumnRole.Label.Bind(DefaultColumnNames.Label),
-                            new RoleMappedSchema.ColumnRole(MetadataUtils.Const.ScoreValueKind.Score).Bind(DefaultColumnNames.Score));
+                            new RoleMappedSchema.ColumnRole(AnnotationUtils.Const.ScoreValueKind.Score).Bind(DefaultColumnNames.Score));
                     }
 
                     var featureCol = _data.Schema.Schema[DefaultColumnNames.Features];
-                    MetadataUtils.TryGetCategoricalFeatureIndices(_data.Schema.Schema, featureCol.Index, out _catsMap);
+                    AnnotationUtils.TryGetCategoricalFeatureIndices(_data.Schema.Schema, featureCol.Index, out _catsMap);
                 }
 
                 public FeatureInfo GetInfoForIndex(int index) => FeatureInfo.GetInfoForIndex(this, index);

@@ -137,12 +137,49 @@ namespace Microsoft.ML.SamplesUtils
                 .Append(mlContext.Transforms.Concatenate("Features", "workclass", "education", "marital-status",
                     "occupation", "relationship", "ethnicity", "native-country", "age", "education-num",
                     "capital-gain", "capital-loss", "hours-per-week"))
-                // Min-max normalized all the features
+                // Min-max normalize all the features
                 .Append(mlContext.Transforms.Normalize("Features"));
 
             var data = reader.Read(dataFile);
             var featurizedData = pipeline.Fit(data).Transform(data);
             return featurizedData;
+        }
+
+        public static string DownloadMslrWeb10k()
+        {
+            var fileName = "MSLRWeb10KTrain10kRows.tsv";
+            if (!File.Exists(fileName))
+                Download("https://tlcresources.blob.core.windows.net/datasets/MSLR-WEB10K/MSLR-WEB10K%2BFold1.TRAIN.SMALL_10k-rows.tsv", fileName);
+            return fileName;
+        }
+
+        public static IDataView LoadFeaturizedMslrWeb10kDataset(MLContext mlContext)
+        {
+            // Download the training and validation files.
+            string dataFile = DownloadMslrWeb10k();
+
+            // Create the reader to read the data.
+            var reader = mlContext.Data.CreateTextLoader(
+                columns: new[]
+                {
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("GroupId", DataKind.String, 1),
+                    new TextLoader.Column("Features", DataKind.Single, new[] { new TextLoader.Range(2, 138) })
+                }
+            );
+
+            // Load the raw dataset.
+            var data = reader.Read(dataFile);
+
+            // Create the featurization pipeline. First, hash the GroupId column.
+            var pipeline = mlContext.Transforms.Conversion.Hash("GroupId")
+                // Replace missing values in Features column with the default replacement value for its type.
+                .Append(mlContext.Transforms.ReplaceMissingValues("Features"));
+
+            // Fit the pipeline and transform the dataset.
+            var transformedData = pipeline.Fit(data).Transform(data);
+
+            return transformedData;
         }
 
         /// <summary>
@@ -643,19 +680,19 @@ namespace Microsoft.ML.SamplesUtils
         // and MatrixRowIndex=0 in MatrixElement below specifies the value at the upper-left corner in the training matrix). If user's row index
         // starts with 1, their row index 1 would be mapped to the 2nd row in matrix factorization module and their first row may contain no values.
         // This behavior is also true to column index.
-        private const int _synthesizedMatrixFirstColumnIndex = 1;
-        private const int _synthesizedMatrixFirstRowIndex = 1;
-        private const int _synthesizedMatrixColumnCount = 60;
-        private const int _synthesizedMatrixRowCount = 100;
+        private const uint _synthesizedMatrixFirstColumnIndex = 1;
+        private const uint _synthesizedMatrixFirstRowIndex = 1;
+        private const uint _synthesizedMatrixColumnCount = 60;
+        private const uint _synthesizedMatrixRowCount = 100;
 
         // A data structure used to encode a single value in matrix
         public class MatrixElement
         {
             // Matrix column index is at most _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex.
-            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(_synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
             // Matrix row index is at most _synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex.
-            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex)]
+            [KeyType(_synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex)]
             public uint MatrixRowIndex;
             // The value at the column MatrixColumnIndex and row MatrixRowIndex.
             public float Value;
@@ -665,9 +702,9 @@ namespace Microsoft.ML.SamplesUtils
         // renamed to Score because Score is the default name of matrix factorization's output.
         public class MatrixElementForScore
         {
-            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(_synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
-            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex)]
+            [KeyType(_synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex)]
             public uint MatrixRowIndex;
             public float Score;
         }

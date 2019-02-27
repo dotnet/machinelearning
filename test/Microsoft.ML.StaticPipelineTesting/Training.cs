@@ -7,15 +7,16 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.FactorizationMachine;
-using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.LightGBM.StaticPipe;
+using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FactorizationMachine;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Trainers.Recommender;
@@ -1263,7 +1264,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Retrieve the mapping from labels to label indexes.
             var labelBuffer = new VBuffer<ReadOnlyMemory<char>>();
-            schema[nameof(SamplesUtils.DatasetUtils.MulticlassClassificationExample.PredictedLabelIndex)].Metadata.GetValue("KeyValues", ref labelBuffer);
+            schema[nameof(SamplesUtils.DatasetUtils.MulticlassClassificationExample.PredictedLabelIndex)].Annotations.GetValue("KeyValues", ref labelBuffer);
             var nativeLabels = labelBuffer.DenseValues().ToList(); // nativeLabels[nativePrediction.PredictedLabelIndex-1] is the original label indexed by nativePrediction.PredictedLabelIndex.
 
             // Show prediction result for the 3rd example.

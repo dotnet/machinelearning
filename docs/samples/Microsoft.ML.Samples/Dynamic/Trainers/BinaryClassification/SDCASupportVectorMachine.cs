@@ -2,7 +2,7 @@
 using System.Linq;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class SDCASupportVectorMachine
     {

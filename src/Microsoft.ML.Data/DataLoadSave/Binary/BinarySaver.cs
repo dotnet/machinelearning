@@ -275,7 +275,7 @@ namespace Microsoft.ML.Data.IO
             // track of the location and size of each for when we write the metadata table of contents.
             // (To be clear, this specific layout is not required by the format.)
 
-            foreach (var metaColumn in schema[col].Metadata.Schema)
+            foreach (var metaColumn in schema[col].Annotations.Schema)
             {
                 _host.Check(!string.IsNullOrEmpty(metaColumn.Name), "Metadata with null or empty kind detected, disallowed");
                 _host.Check(metaColumn.Type != null, "Metadata with null type detected, disallowed");
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Data.IO
             }
             IValueCodec<T> codec = (IValueCodec<T>)generalCodec;
             T value = default(T);
-            schema[col].Metadata.GetValue(kind, ref value);
+            schema[col].Annotations.GetValue(kind, ref value);
 
             // Metadatas will often be pretty small, so that compression makes no sense.
             // We try both a compressed and uncompressed version of metadata and

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
@@ -222,20 +223,23 @@ namespace Microsoft.ML.EntryPoints
                 return true;
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
                 _ectx.Assert(IsCompositeRowToRowMapper(_chain));
 
                 var transform = _chain as IDataTransform;
-                var pred = predicate;
+                var cols = dependingColumns;
                 while (transform != null)
                 {
                     var mapper = transform as IRowToRowMapper;
                     _ectx.AssertValue(mapper);
-                    pred = mapper.GetDependencies(pred);
+                    cols = mapper.GetDependencies(cols);
                     transform = transform.Source as IDataTransform;
                 }
-                return pred;
+                return cols;
             }
 
             public DataViewSchema InputSchema => _rootSchema;
@@ -258,7 +262,8 @@ namespace Microsoft.ML.EntryPoints
                     _ectx.AssertValue(mapper);
                     mappers.Add(mapper);
                     actives.Add(activeCur);
-                    activeCur = mapper.GetDependencies(activeCur);
+                    var activeCurCol = mapper.GetDependencies(mapper.OutputSchema.Where(col => activeCur(col.Index)));
+                    activeCur = RowCursorUtils.FromColumnsToPredicate(activeCurCol, mapper.InputSchema);
                     transform = transform.Source as IDataTransform;
                 }
                 mappers.Reverse();

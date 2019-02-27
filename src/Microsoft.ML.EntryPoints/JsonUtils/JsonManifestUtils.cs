@@ -10,7 +10,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Utilities;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.EntryPoints.JsonUtils
+namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
     /// Utilities to generate JSON manifests for entry points and other components.

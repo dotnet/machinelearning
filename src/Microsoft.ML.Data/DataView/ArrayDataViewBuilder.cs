@@ -77,7 +77,7 @@ namespace Microsoft.ML.Data
         /// by being assigned.
         /// </summary>
         /// <param name="name">The name of the column.</param>
-        /// <param name="getKeyValues">The delegate that does a reverse lookup based upon the given key. This is for metadata creation</param>
+        /// <param name="getKeyValues">The delegate that does a reverse lookup based upon the given key. This is for annotation creation</param>
         /// <param name="keyCount">The count of unique keys specified in values</param>
         /// <param name="values">The values to add to the column. Note that since this is creating a <see cref="KeyType"/> column, the values will be offset by 1.</param>
         public void AddColumn<T1>(string name, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKeyValues, ulong keyCount, params T1[] values)
@@ -218,14 +218,14 @@ namespace Microsoft.ML.Data
                 var schemaBuilder = new DataViewSchema.Builder();
                 for(int i=0; i< _columns.Length; i++)
                 {
-                    var meta = new DataViewSchema.Metadata.Builder();
+                    var meta = new DataViewSchema.Annotations.Builder();
 
                     if (builder._getSlotNames.TryGetValue(builder._names[i], out var slotNamesGetter))
                         meta.AddSlotNames(_columns[i].Type.GetVectorSize(), slotNamesGetter);
 
                     if (builder._getKeyValues.TryGetValue(builder._names[i], out var keyValueGetter))
                         meta.AddKeyValues(_columns[i].Type.GetKeyCountAsInt32(_host), TextDataViewType.Instance, keyValueGetter);
-                    schemaBuilder.AddColumn(builder._names[i], _columns[i].Type, meta.ToMetadata());
+                    schemaBuilder.AddColumn(builder._names[i], _columns[i].Type, meta.ToAnnotations());
                 }
 
                 _schema = schemaBuilder.ToSchema();

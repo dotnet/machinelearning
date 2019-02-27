@@ -495,7 +495,7 @@ namespace Microsoft.ML.Data
                     if (isNormalized && !inputSchema[srcCol].IsNormalized())
                         isNormalized = false;
 
-                    if (MetadataUtils.TryGetCategoricalFeatureIndices(inputSchema, srcCol, out int[] typeCat))
+                    if (AnnotationUtils.TryGetCategoricalFeatureIndices(inputSchema, srcCol, out int[] typeCat))
                     {
                         Contracts.Assert(typeCat.Length > 0);
                         catCount += typeCat.Length;
@@ -558,11 +558,11 @@ namespace Microsoft.ML.Data
 
                     _hasSlotNames = hasSlotNames;
                     if (_hasSlotNames)
-                        _slotNamesType = MetadataUtils.GetNamesType(slotCount);
+                        _slotNamesType = AnnotationUtils.GetNamesType(slotCount);
 
                     _hasCategoricals = hasCategoricals;
                     if (_hasCategoricals)
-                        _categoricalRangeType = MetadataUtils.GetCategoricalType(catCount / 2);
+                        _categoricalRangeType = AnnotationUtils.GetCategoricalType(catCount / 2);
                 }
 
                 public DataViewSchema.DetachedColumn MakeSchemaColumn()
@@ -570,18 +570,18 @@ namespace Microsoft.ML.Data
                     if (_isIdentity)
                     {
                         var inputCol = _inputSchema[SrcIndices[0]];
-                        return new DataViewSchema.DetachedColumn(_columnInfo.Name, inputCol.Type, inputCol.Metadata);
+                        return new DataViewSchema.DetachedColumn(_columnInfo.Name, inputCol.Type, inputCol.Annotations);
                     }
 
-                    var metadata = new DataViewSchema.Metadata.Builder();
+                    var metadata = new DataViewSchema.Annotations.Builder();
                     if (_isNormalized)
-                        metadata.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ValueGetter<bool>)GetIsNormalized);
+                        metadata.Add(AnnotationUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ValueGetter<bool>)GetIsNormalized);
                     if (_hasSlotNames)
                         metadata.AddSlotNames(_slotNamesType.Size, GetSlotNames);
                     if (_hasCategoricals)
-                        metadata.Add(MetadataUtils.Kinds.CategoricalSlotRanges, _categoricalRangeType, (ValueGetter<VBuffer<int>>)GetCategoricalSlotRanges);
+                        metadata.Add(AnnotationUtils.Kinds.CategoricalSlotRanges, _categoricalRangeType, (ValueGetter<VBuffer<int>>)GetCategoricalSlotRanges);
 
-                    return new DataViewSchema.DetachedColumn(_columnInfo.Name, OutputType, metadata.ToMetadata());
+                    return new DataViewSchema.DetachedColumn(_columnInfo.Name, OutputType, metadata.ToAnnotations());
                 }
 
                 private void GetIsNormalized(ref bool value) => value = _isNormalized;
@@ -598,7 +598,7 @@ namespace Microsoft.ML.Data
                         if (i > 0)
                             slotCount += _srcTypes[i - 1].GetValueCount();
 
-                        if (MetadataUtils.TryGetCategoricalFeatureIndices(_inputSchema, SrcIndices[i], out int[] values))
+                        if (AnnotationUtils.TryGetCategoricalFeatureIndices(_inputSchema, SrcIndices[i], out int[] values))
                         {
                             Contracts.Assert(values.Length > 0 && values.Length % 2 == 0);
 
@@ -642,13 +642,13 @@ namespace Microsoft.ML.Data
                         Contracts.Assert(vectorTypeSrc.IsKnownSize);
                         VectorType typeNames = null;
 
-                        var inputMetadata = _inputSchema[colSrc].Metadata;
-                        if (inputMetadata != null && inputMetadata.Schema.TryGetColumnIndex(MetadataUtils.Kinds.SlotNames, out int idx))
+                        var inputMetadata = _inputSchema[colSrc].Annotations;
+                        if (inputMetadata != null && inputMetadata.Schema.TryGetColumnIndex(AnnotationUtils.Kinds.SlotNames, out int idx))
                             typeNames = inputMetadata.Schema[idx].Type as VectorType;
 
                         if (typeNames != null && typeNames.Size == vectorTypeSrc.Size && typeNames.ItemType is TextDataViewType)
                         {
-                            inputMetadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
+                            inputMetadata.GetValue(AnnotationUtils.Kinds.SlotNames, ref names);
                             sb.Clear();
                             if (_columnInfo.Sources[i].alias != colName)
                                 sb.Append(nameSrc).Append(".");

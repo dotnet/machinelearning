@@ -8,7 +8,7 @@
 using pb = global::Google.Protobuf;
 using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
-namespace Microsoft.ML.UniversalModelFormat.Onnx
+namespace Microsoft.ML.Model.OnnxConverter
 {
     internal class OnnxCSharpToProtoWrapper
     {
@@ -89,19 +89,19 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                       "Lk1MLlJ1bnRpbWUuVW5pdmVyc2FsTW9kZWxGb3JtYXQuT25ueGIGcHJvdG8z"));
                 descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
                     new pbr::FileDescriptor[] { },
-                    new pbr::GeneratedClrTypeInfo(new[] { typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.Version), }, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.AttributeProto), global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.AttributeProto.Parser, new[]{ "Name", "RefAttrName", "DocString", "Type", "F", "I", "S", "T", "G", "Floats", "Ints", "Strings", "Tensors", "Graphs" }, null, new[]{ typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType) }, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ValueInfoProto), global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ValueInfoProto.Parser, new[]{ "Name", "Type", "DocString" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.NodeProto), global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.NodeProto.Parser, new[]{ "Input", "Output", "Name", "OpType", "Domain", "Attribute", "DocString" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ModelProto), global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ModelProto.Parser, new[]{ "IrVersion", "OpsetImport", "ProducerName", "ProducerVersion", "Domain", "ModelVersion", "DocString", "Graph", "MetadataProps" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.StringStringEntryProto), global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.StringStringEntryProto.Parser, new[]{ "Key", "Value" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.GraphProto), global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.GraphProto.Parser, new[]{ "Node", "Name", "Initializer", "DocString", "Input", "Output", "ValueInfo" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto), global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Parser, new[]{ "Dims", "DataType", "Segment", "FloatData", "Int32Data", "StringData", "Int64Data", "Name", "DocString", "RawData", "DoubleData", "Uint64Data" }, null, new[]{ typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType) }, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment), global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment.Parser, new[]{ "Begin", "End" }, null, null, null)}),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorShapeProto), global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorShapeProto.Parser, new[]{ "Dim" }, null, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension), global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension.Parser, new[]{ "DimValue", "DimParam", "Denotation" }, new[]{ "Value" }, null, null)}),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto), global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Parser, new[]{ "TensorType", "SequenceType", "MapType", "Denotation" }, new[]{ "Value" }, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor), global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor.Parser, new[]{ "ElemType", "Shape" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence), global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence.Parser, new[]{ "ElemType" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Map), global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Map.Parser, new[]{ "KeyType", "ValueType" }, null, null, null)}),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.OperatorSetIdProto), global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.OperatorSetIdProto.Parser, new[]{ "Domain", "Version" }, null, null, null)
+                    new pbr::GeneratedClrTypeInfo(new[] { typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.Version), }, new pbr::GeneratedClrTypeInfo[] {
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Parser, new[]{ "Name", "RefAttrName", "DocString", "Type", "F", "I", "S", "T", "G", "Floats", "Ints", "Strings", "Tensors", "Graphs" }, null, new[]{ typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType) }, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto.Parser, new[]{ "Name", "Type", "DocString" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.NodeProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.NodeProto.Parser, new[]{ "Input", "Output", "Name", "OpType", "Domain", "Attribute", "DocString" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ModelProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ModelProto.Parser, new[]{ "IrVersion", "OpsetImport", "ProducerName", "ProducerVersion", "Domain", "ModelVersion", "DocString", "Graph", "MetadataProps" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto.Parser, new[]{ "Key", "Value" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto.Parser, new[]{ "Node", "Name", "Initializer", "DocString", "Input", "Output", "ValueInfo" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Parser, new[]{ "Dims", "DataType", "Segment", "FloatData", "Int32Data", "StringData", "Int64Data", "Name", "DocString", "RawData", "DoubleData", "Uint64Data" }, null, new[]{ typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType) }, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment.Parser, new[]{ "Begin", "End" }, null, null, null)}),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto.Parser, new[]{ "Dim" }, null, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension.Parser, new[]{ "DimValue", "DimParam", "Denotation" }, new[]{ "Value" }, null, null)}),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Parser, new[]{ "TensorType", "SequenceType", "MapType", "Denotation" }, new[]{ "Value" }, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor.Parser, new[]{ "ElemType", "Shape" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence.Parser, new[]{ "ElemType" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Map), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Map.Parser, new[]{ "KeyType", "ValueType" }, null, null, null)}),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OperatorSetIdProto), global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OperatorSetIdProto.Parser, new[]{ "Domain", "Version" }, null, null, null)
                     }));
             }
             #endregion
@@ -167,7 +167,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public static pbr::MessageDescriptor Descriptor
             {
-                get { return global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[0]; }
+                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[0]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -263,7 +263,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
             /// <summary>Field number for the "type" field.</summary>
             public const int TypeFieldNumber = 20;
-            private global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType type_ = 0;
+            private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType type_ = 0;
             /// <summary>
             /// The type field MUST be present for this version of the IR.
             /// For 0.0.1 versions of the IR, this field was not defined, and
@@ -273,7 +273,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
             /// change was made to accomodate proto3 implementations.
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType Type
+            public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType Type
             {
                 get { return type_; }
                 set
@@ -332,12 +332,12 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
             /// <summary>Field number for the "t" field.</summary>
             public const int TFieldNumber = 5;
-            private global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto t_;
+            private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto t_;
             /// <summary>
             /// tensor value
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto T
+            public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto T
             {
                 get { return t_; }
                 set
@@ -348,12 +348,12 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
             /// <summary>Field number for the "g" field.</summary>
             public const int GFieldNumber = 6;
-            private global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.GraphProto g_;
+            private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto g_;
             /// <summary>
             /// graph
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.GraphProto G
+            public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto G
             {
                 get { return g_; }
                 set
@@ -406,28 +406,28 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
             /// <summary>Field number for the "tensors" field.</summary>
             public const int TensorsFieldNumber = 10;
-            private static readonly pb::FieldCodec<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto> _repeated_tensors_codec
-                = pb::FieldCodec.ForMessage(82, global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Parser);
-            private readonly pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto> tensors_ = new pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto>();
+            private static readonly pb::FieldCodec<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto> _repeated_tensors_codec
+                = pb::FieldCodec.ForMessage(82, global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Parser);
+            private readonly pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto> tensors_ = new pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto>();
             /// <summary>
             /// list of tensors
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto> Tensors
+            public pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto> Tensors
             {
                 get { return tensors_; }
             }
 
             /// <summary>Field number for the "graphs" field.</summary>
             public const int GraphsFieldNumber = 11;
-            private static readonly pb::FieldCodec<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.GraphProto> _repeated_graphs_codec
-                = pb::FieldCodec.ForMessage(90, global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.GraphProto.Parser);
-            private readonly pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.GraphProto> graphs_ = new pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.GraphProto>();
+            private static readonly pb::FieldCodec<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto> _repeated_graphs_codec
+                = pb::FieldCodec.ForMessage(90, global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto.Parser);
+            private readonly pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto> graphs_ = new pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto>();
             /// <summary>
             /// list of graph
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.GraphProto> Graphs
+            public pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto> Graphs
             {
                 get { return graphs_; }
             }
@@ -647,7 +647,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                 {
                     if (t_ == null)
                     {
-                        t_ = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto();
+                        t_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto();
                     }
                     T.MergeFrom(other.T);
                 }
@@ -655,7 +655,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                 {
                     if (g_ == null)
                     {
-                        g_ = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.GraphProto();
+                        g_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto();
                     }
                     G.MergeFrom(other.G);
                 }
@@ -702,7 +702,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                             {
                                 if (t_ == null)
                                 {
-                                    t_ = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto();
+                                    t_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto();
                                 }
                                 input.ReadMessage(t_);
                                 break;
@@ -711,7 +711,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                             {
                                 if (g_ == null)
                                 {
-                                    g_ = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.GraphProto();
+                                    g_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto();
                                 }
                                 input.ReadMessage(g_);
                                 break;
@@ -750,7 +750,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                             }
                         case 160:
                             {
-                                type_ = (global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType)input.ReadEnum();
+                                type_ = (global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Types.AttributeType)input.ReadEnum();
                                 break;
                             }
                         case 170:
@@ -805,7 +805,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public static pbr::MessageDescriptor Descriptor
             {
-                get { return global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[1]; }
+                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[1]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -855,12 +855,12 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
             /// <summary>Field number for the "type" field.</summary>
             public const int TypeFieldNumber = 2;
-            private global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto type_;
+            private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto type_;
             /// <summary>
             /// This field MUST be present in this version of the IR.
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto Type
+            public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto Type
             {
                 get { return type_; }
                 set
@@ -990,7 +990,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                 {
                     if (type_ == null)
                     {
-                        type_ = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto();
+                        type_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
                     }
                     Type.MergeFrom(other.Type);
                 }
@@ -1021,7 +1021,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                             {
                                 if (type_ == null)
                                 {
-                                    type_ = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto();
+                                    type_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
                                 }
                                 input.ReadMessage(type_);
                                 break;
@@ -1056,7 +1056,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public static pbr::MessageDescriptor Descriptor
             {
-                get { return global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[2]; }
+                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[2]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1171,14 +1171,14 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
             /// <summary>Field number for the "attribute" field.</summary>
             public const int AttributeFieldNumber = 5;
-            private static readonly pb::FieldCodec<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.AttributeProto> _repeated_attribute_codec
-                = pb::FieldCodec.ForMessage(42, global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.AttributeProto.Parser);
-            private readonly pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.AttributeProto> attribute_ = new pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.AttributeProto>();
+            private static readonly pb::FieldCodec<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto> _repeated_attribute_codec
+                = pb::FieldCodec.ForMessage(42, global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto.Parser);
+            private readonly pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto> attribute_ = new pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto>();
             /// <summary>
             /// Additional named attributes.
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.AttributeProto> Attribute
+            public pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.AttributeProto> Attribute
             {
                 get { return attribute_; }
             }
@@ -1411,7 +1411,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public static pbr::MessageDescriptor Descriptor
             {
-                get { return global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[3]; }
+                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[3]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1468,9 +1468,9 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
             /// <summary>Field number for the "opset_import" field.</summary>
             public const int OpsetImportFieldNumber = 8;
-            private static readonly pb::FieldCodec<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.OperatorSetIdProto> _repeated_opsetImport_codec
-                = pb::FieldCodec.ForMessage(66, global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.OperatorSetIdProto.Parser);
-            private readonly pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.OperatorSetIdProto> opsetImport_ = new pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.OperatorSetIdProto>();
+            private static readonly pb::FieldCodec<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OperatorSetIdProto> _repeated_opsetImport_codec
+                = pb::FieldCodec.ForMessage(66, global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OperatorSetIdProto.Parser);
+            private readonly pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OperatorSetIdProto> opsetImport_ = new pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OperatorSetIdProto>();
             /// <summary>
             /// The OperatorSets this model relies on.
             /// All ModelProtos MUST have at least one entry that
@@ -1482,7 +1482,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
             /// in the referenced operator sets.
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.OperatorSetIdProto> OpsetImport
+            public pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OperatorSetIdProto> OpsetImport
             {
                 get { return opsetImport_; }
             }
@@ -1578,12 +1578,12 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
             /// <summary>Field number for the "graph" field.</summary>
             public const int GraphFieldNumber = 7;
-            private global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.GraphProto graph_;
+            private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto graph_;
             /// <summary>
             /// The parameterized graph that is evaluated to execute the model.
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.GraphProto Graph
+            public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto Graph
             {
                 get { return graph_; }
                 set
@@ -1594,14 +1594,14 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
             /// <summary>Field number for the "metadata_props" field.</summary>
             public const int MetadataPropsFieldNumber = 14;
-            private static readonly pb::FieldCodec<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.StringStringEntryProto> _repeated_metadataProps_codec
-                = pb::FieldCodec.ForMessage(114, global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.StringStringEntryProto.Parser);
-            private readonly pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.StringStringEntryProto> metadataProps_ = new pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.StringStringEntryProto>();
+            private static readonly pb::FieldCodec<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto> _repeated_metadataProps_codec
+                = pb::FieldCodec.ForMessage(114, global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto.Parser);
+            private readonly pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto> metadataProps_ = new pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto>();
             /// <summary>
             /// Named metadata values; keys should be distinct.
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.StringStringEntryProto> MetadataProps
+            public pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.StringStringEntryProto> MetadataProps
             {
                 get { return metadataProps_; }
             }
@@ -1784,7 +1784,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                 {
                     if (graph_ == null)
                     {
-                        graph_ = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.GraphProto();
+                        graph_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto();
                     }
                     Graph.MergeFrom(other.Graph);
                 }
@@ -1837,7 +1837,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                             {
                                 if (graph_ == null)
                                 {
-                                    graph_ = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.GraphProto();
+                                    graph_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.GraphProto();
                                 }
                                 input.ReadMessage(graph_);
                                 break;
@@ -1872,7 +1872,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public static pbr::MessageDescriptor Descriptor
             {
-                get { return global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[4]; }
+                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[4]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2071,7 +2071,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public static pbr::MessageDescriptor Descriptor
             {
-                get { return global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[5]; }
+                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[5]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2109,14 +2109,14 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
             /// <summary>Field number for the "node" field.</summary>
             public const int NodeFieldNumber = 1;
-            private static readonly pb::FieldCodec<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.NodeProto> _repeated_node_codec
-                = pb::FieldCodec.ForMessage(10, global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.NodeProto.Parser);
-            private readonly pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.NodeProto> node_ = new pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.NodeProto>();
+            private static readonly pb::FieldCodec<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.NodeProto> _repeated_node_codec
+                = pb::FieldCodec.ForMessage(10, global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.NodeProto.Parser);
+            private readonly pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.NodeProto> node_ = new pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.NodeProto>();
             /// <summary>
             /// The nodes in the graph, sorted topologically.
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.NodeProto> Node
+            public pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.NodeProto> Node
             {
                 get { return node_; }
             }
@@ -2139,16 +2139,16 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
             /// <summary>Field number for the "initializer" field.</summary>
             public const int InitializerFieldNumber = 5;
-            private static readonly pb::FieldCodec<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto> _repeated_initializer_codec
-                = pb::FieldCodec.ForMessage(42, global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Parser);
-            private readonly pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto> initializer_ = new pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto>();
+            private static readonly pb::FieldCodec<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto> _repeated_initializer_codec
+                = pb::FieldCodec.ForMessage(42, global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Parser);
+            private readonly pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto> initializer_ = new pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto>();
             /// <summary>
             /// A list of named tensor values, used to specify constant inputs of the graph.
             /// Each TensorProto entry must have a distinct name (within the list) that
             /// also appears in the input list.
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto> Initializer
+            public pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto> Initializer
             {
                 get { return initializer_; }
             }
@@ -2171,40 +2171,40 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
             /// <summary>Field number for the "input" field.</summary>
             public const int InputFieldNumber = 11;
-            private static readonly pb::FieldCodec<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ValueInfoProto> _repeated_input_codec
-                = pb::FieldCodec.ForMessage(90, global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ValueInfoProto.Parser);
-            private readonly pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ValueInfoProto> input_ = new pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ValueInfoProto>();
+            private static readonly pb::FieldCodec<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto> _repeated_input_codec
+                = pb::FieldCodec.ForMessage(90, global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto.Parser);
+            private readonly pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto> input_ = new pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto>();
             /// <summary>
             /// The inputs and outputs of the graph.
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ValueInfoProto> Input
+            public pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto> Input
             {
                 get { return input_; }
             }
 
             /// <summary>Field number for the "output" field.</summary>
             public const int OutputFieldNumber = 12;
-            private static readonly pb::FieldCodec<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ValueInfoProto> _repeated_output_codec
-                = pb::FieldCodec.ForMessage(98, global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ValueInfoProto.Parser);
-            private readonly pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ValueInfoProto> output_ = new pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ValueInfoProto>();
+            private static readonly pb::FieldCodec<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto> _repeated_output_codec
+                = pb::FieldCodec.ForMessage(98, global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto.Parser);
+            private readonly pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto> output_ = new pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto>();
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ValueInfoProto> Output
+            public pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto> Output
             {
                 get { return output_; }
             }
 
             /// <summary>Field number for the "value_info" field.</summary>
             public const int ValueInfoFieldNumber = 13;
-            private static readonly pb::FieldCodec<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ValueInfoProto> _repeated_valueInfo_codec
-                = pb::FieldCodec.ForMessage(106, global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ValueInfoProto.Parser);
-            private readonly pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ValueInfoProto> valueInfo_ = new pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ValueInfoProto>();
+            private static readonly pb::FieldCodec<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto> _repeated_valueInfo_codec
+                = pb::FieldCodec.ForMessage(106, global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto.Parser);
+            private readonly pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto> valueInfo_ = new pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto>();
             /// <summary>
             /// Information for the values in the graph. The ValueInfoProto.name's
             /// must be distinct. It is optional for a value to appear in value_info list.
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ValueInfoProto> ValueInfo
+            public pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.ValueInfoProto> ValueInfo
             {
                 get { return valueInfo_; }
             }
@@ -2398,7 +2398,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public static pbr::MessageDescriptor Descriptor
             {
-                get { return global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[6]; }
+                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[6]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2455,12 +2455,12 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
             /// <summary>Field number for the "data_type" field.</summary>
             public const int DataTypeFieldNumber = 2;
-            private global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType dataType_ = 0;
+            private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType dataType_ = 0;
             /// <summary>
             /// The data type of the tensor.
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType DataType
+            public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType DataType
             {
                 get { return dataType_; }
                 set
@@ -2471,9 +2471,9 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
             /// <summary>Field number for the "segment" field.</summary>
             public const int SegmentFieldNumber = 3;
-            private global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment segment_;
+            private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment segment_;
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment Segment
+            public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment Segment
             {
                 get { return segment_; }
                 set
@@ -2807,7 +2807,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                 {
                     if (segment_ == null)
                     {
-                        segment_ = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment();
+                        segment_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment();
                     }
                     Segment.MergeFrom(other.Segment);
                 }
@@ -2851,14 +2851,14 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                             }
                         case 16:
                             {
-                                dataType_ = (global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType)input.ReadEnum();
+                                dataType_ = (global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType)input.ReadEnum();
                                 break;
                             }
                         case 26:
                             {
                                 if (segment_ == null)
                                 {
-                                    segment_ = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment();
+                                    segment_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.Segment();
                                 }
                                 input.ReadMessage(segment_);
                                 break;
@@ -2993,7 +2993,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
                     public static pbr::MessageDescriptor Descriptor
                     {
-                        get { return global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Descriptor.NestedTypes[0]; }
+                        get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Descriptor.NestedTypes[0]; }
                     }
 
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3194,7 +3194,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public static pbr::MessageDescriptor Descriptor
             {
-                get { return global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[7]; }
+                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[7]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3226,11 +3226,11 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
             /// <summary>Field number for the "dim" field.</summary>
             public const int DimFieldNumber = 1;
-            private static readonly pb::FieldCodec<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension> _repeated_dim_codec
-                = pb::FieldCodec.ForMessage(10, global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension.Parser);
-            private readonly pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension> dim_ = new pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension>();
+            private static readonly pb::FieldCodec<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension> _repeated_dim_codec
+                = pb::FieldCodec.ForMessage(10, global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension.Parser);
+            private readonly pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension> dim_ = new pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension>();
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public pbc::RepeatedField<global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension> Dim
+            public pbc::RepeatedField<global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension> Dim
             {
                 get { return dim_; }
             }
@@ -3342,7 +3342,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
                     public static pbr::MessageDescriptor Descriptor
                     {
-                        get { return global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorShapeProto.Descriptor.NestedTypes[0]; }
+                        get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto.Descriptor.NestedTypes[0]; }
                     }
 
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3621,7 +3621,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public static pbr::MessageDescriptor Descriptor
             {
-                get { return global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[8]; }
+                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[8]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3670,9 +3670,9 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
             /// The type of a tensor.
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor TensorType
+            public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor TensorType
             {
-                get { return valueCase_ == ValueOneofCase.TensorType ? (global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor)value_ : null; }
+                get { return valueCase_ == ValueOneofCase.TensorType ? (global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor)value_ : null; }
                 set
                 {
                     value_ = value;
@@ -3686,9 +3686,9 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
             /// The type of a sequence.
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence SequenceType
+            public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence SequenceType
             {
-                get { return valueCase_ == ValueOneofCase.SequenceType ? (global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence)value_ : null; }
+                get { return valueCase_ == ValueOneofCase.SequenceType ? (global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence)value_ : null; }
                 set
                 {
                     value_ = value;
@@ -3702,9 +3702,9 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
             /// The type of a map.
             /// </summary>
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-            public global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Map MapType
+            public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Map MapType
             {
-                get { return valueCase_ == ValueOneofCase.MapType ? (global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Map)value_ : null; }
+                get { return valueCase_ == ValueOneofCase.MapType ? (global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Map)value_ : null; }
                 set
                 {
                     value_ = value;
@@ -3873,21 +3873,21 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                     case ValueOneofCase.TensorType:
                         if (TensorType == null)
                         {
-                            TensorType = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor();
+                            TensorType = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor();
                         }
                         TensorType.MergeFrom(other.TensorType);
                         break;
                     case ValueOneofCase.SequenceType:
                         if (SequenceType == null)
                         {
-                            SequenceType = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence();
+                            SequenceType = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence();
                         }
                         SequenceType.MergeFrom(other.SequenceType);
                         break;
                     case ValueOneofCase.MapType:
                         if (MapType == null)
                         {
-                            MapType = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Map();
+                            MapType = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Map();
                         }
                         MapType.MergeFrom(other.MapType);
                         break;
@@ -3909,7 +3909,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                             break;
                         case 10:
                             {
-                                global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor subBuilder = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor();
+                                global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor subBuilder = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Tensor();
                                 if (valueCase_ == ValueOneofCase.TensorType)
                                 {
                                     subBuilder.MergeFrom(TensorType);
@@ -3920,7 +3920,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                             }
                         case 34:
                             {
-                                global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence subBuilder = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence();
+                                global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence subBuilder = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Sequence();
                                 if (valueCase_ == ValueOneofCase.SequenceType)
                                 {
                                     subBuilder.MergeFrom(SequenceType);
@@ -3931,7 +3931,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                             }
                         case 42:
                             {
-                                global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Map subBuilder = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Types.Map();
+                                global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Map subBuilder = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Types.Map();
                                 if (valueCase_ == ValueOneofCase.MapType)
                                 {
                                     subBuilder.MergeFrom(MapType);
@@ -3964,7 +3964,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
                     public static pbr::MessageDescriptor Descriptor
                     {
-                        get { return global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Descriptor.NestedTypes[0]; }
+                        get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Descriptor.NestedTypes[0]; }
                     }
 
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3997,13 +3997,13 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
                     /// <summary>Field number for the "elem_type" field.</summary>
                     public const int ElemTypeFieldNumber = 1;
-                    private global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType elemType_ = 0;
+                    private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType elemType_ = 0;
                     /// <summary>
                     /// This field MUST NOT have the value of UNDEFINED
                     /// This field MUST be present for this version of the IR.
                     /// </summary>
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-                    public global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType ElemType
+                    public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType ElemType
                     {
                         get { return elemType_; }
                         set
@@ -4014,9 +4014,9 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
                     /// <summary>Field number for the "shape" field.</summary>
                     public const int ShapeFieldNumber = 2;
-                    private global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorShapeProto shape_;
+                    private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto shape_;
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-                    public global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorShapeProto Shape
+                    public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto Shape
                     {
                         get { return shape_; }
                         set
@@ -4119,7 +4119,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                         {
                             if (shape_ == null)
                             {
-                                shape_ = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorShapeProto();
+                                shape_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto();
                             }
                             Shape.MergeFrom(other.Shape);
                         }
@@ -4139,14 +4139,14 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                                     break;
                                 case 8:
                                     {
-                                        elemType_ = (global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType)input.ReadEnum();
+                                        elemType_ = (global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType)input.ReadEnum();
                                         break;
                                     }
                                 case 18:
                                     {
                                         if (shape_ == null)
                                         {
-                                            shape_ = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorShapeProto();
+                                            shape_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto();
                                         }
                                         input.ReadMessage(shape_);
                                         break;
@@ -4170,7 +4170,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
                     public static pbr::MessageDescriptor Descriptor
                     {
-                        get { return global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Descriptor.NestedTypes[1]; }
+                        get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Descriptor.NestedTypes[1]; }
                     }
 
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4202,13 +4202,13 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
                     /// <summary>Field number for the "elem_type" field.</summary>
                     public const int ElemTypeFieldNumber = 1;
-                    private global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto elemType_;
+                    private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto elemType_;
                     /// <summary>
                     /// The type and optional shape of each element of the sequence.
                     /// This field MUST be present for this version of the IR.
                     /// </summary>
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-                    public global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto ElemType
+                    public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto ElemType
                     {
                         get { return elemType_; }
                         set
@@ -4296,7 +4296,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                         {
                             if (elemType_ == null)
                             {
-                                elemType_ = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto();
+                                elemType_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
                             }
                             ElemType.MergeFrom(other.ElemType);
                         }
@@ -4318,7 +4318,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                                     {
                                         if (elemType_ == null)
                                         {
-                                            elemType_ = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto();
+                                            elemType_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
                                         }
                                         input.ReadMessage(elemType_);
                                         break;
@@ -4342,7 +4342,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
                     public static pbr::MessageDescriptor Descriptor
                     {
-                        get { return global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto.Descriptor.NestedTypes[2]; }
+                        get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto.Descriptor.NestedTypes[2]; }
                     }
 
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4375,13 +4375,13 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
                     /// <summary>Field number for the "key_type" field.</summary>
                     public const int KeyTypeFieldNumber = 1;
-                    private global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType keyType_ = 0;
+                    private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType keyType_ = 0;
                     /// <summary>
                     /// This field MUST be present for this version of the IR.
                     /// This field MUST refer to an integral type ([U]INT{8|16|32|64}) or STRING
                     /// </summary>
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-                    public global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType KeyType
+                    public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType KeyType
                     {
                         get { return keyType_; }
                         set
@@ -4392,12 +4392,12 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
 
                     /// <summary>Field number for the "value_type" field.</summary>
                     public const int ValueTypeFieldNumber = 2;
-                    private global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto valueType_;
+                    private global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto valueType_;
                     /// <summary>
                     /// This field MUST be present for this version of the IR.
                     /// </summary>
                     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-                    public global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto ValueType
+                    public global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto ValueType
                     {
                         get { return valueType_; }
                         set
@@ -4500,7 +4500,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                         {
                             if (valueType_ == null)
                             {
-                                valueType_ = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto();
+                                valueType_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
                             }
                             ValueType.MergeFrom(other.ValueType);
                         }
@@ -4520,14 +4520,14 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
                                     break;
                                 case 8:
                                     {
-                                        keyType_ = (global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType)input.ReadEnum();
+                                        keyType_ = (global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorProto.Types.DataType)input.ReadEnum();
                                         break;
                                     }
                                 case 18:
                                     {
                                         if (valueType_ == null)
                                         {
-                                            valueType_ = new global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.TypeProto();
+                                            valueType_ = new global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TypeProto();
                                         }
                                         input.ReadMessage(valueType_);
                                         break;
@@ -4558,7 +4558,7 @@ namespace Microsoft.ML.UniversalModelFormat.Onnx
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             public static pbr::MessageDescriptor Descriptor
             {
-                get { return global::Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[9]; }
+                get { return global::Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.OnnxMlReflection.Descriptor.MessageTypes[9]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

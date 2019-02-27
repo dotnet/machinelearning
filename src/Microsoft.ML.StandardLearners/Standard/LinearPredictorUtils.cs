@@ -8,8 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Utilities;
 using Float = System.Single;
 
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckValueOrNull(schema);
 
             var featureNames = default(VBuffer<ReadOnlyMemory<char>>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, weights.Length, ref featureNames);
+            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, weights.Length, ref featureNames);
 
             int numNonZeroWeights = 0;
             writer.Write(codeVariable);
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Trainers
             StringBuilder weightsBuilder = new StringBuilder("Weights=");
 
             var featureNames = default(VBuffer<ReadOnlyMemory<char>>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, weights.Length, ref featureNames);
+            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, weights.Length, ref featureNames);
 
             int numNonZeroWeights = 0;
             const string weightsSep = "\t";
@@ -229,7 +229,7 @@ namespace Microsoft.ML.Trainers
             in VBuffer<Float> weights, Float bias, RoleMappedSchema schema, List<KeyValuePair<string, object>> results)
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, weights.Length, ref names);
+            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, weights.Length, ref names);
 
             var pairs = GetSortedLinearModelFeatureNamesAndWeights(bias, in weights, in names);
 

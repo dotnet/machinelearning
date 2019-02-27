@@ -153,14 +153,14 @@ namespace Microsoft.ML.Data
                     if (!type.IsKnownSizeVector())
                         continue;
                     DataViewType typeNames;
-                    if ((typeNames = schema[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type) == null)
+                    if ((typeNames = schema[col].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type) == null)
                         continue;
                     if (typeNames.GetVectorSize() != type.GetVectorSize() || !(typeNames.GetItemType() is TextDataViewType))
                     {
                         Contracts.Assert(false, "Unexpected slot names type");
                         continue;
                     }
-                    schema[col].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
+                    schema[col].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref names);
                     if (names.Length != type.GetVectorSize())
                     {
                         Contracts.Assert(false, "Unexpected length of slot names vector");
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Data
 
             using (itw.Nest())
             {
-                foreach (var metaColumn in schema[col].Metadata.Schema.OrderBy(mcol => mcol.Name))
+                foreach (var metaColumn in schema[col].Annotations.Schema.OrderBy(mcol => mcol.Name))
                 {
                     var type = metaColumn.Type;
                     itw.Write("Metadata '{0}': {1}", metaColumn.Name, type);
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Data
 
             var value = default(T);
             var sb = default(StringBuilder);
-            schema[col].Metadata.GetValue(kind, ref value);
+            schema[col].Annotations.GetValue(kind, ref value);
             conv(in value, ref sb);
 
             itw.Write(": '{0}'", sb);
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Data
             var conv = Conversions.Instance.GetStringConversion<T>(type.ItemType);
 
             var value = default(VBuffer<T>);
-            schema[col].Metadata.GetValue(kind, ref value);
+            schema[col].Annotations.GetValue(kind, ref value);
 
             itw.Write(": Length={0}, Count={0}", value.Length, value.GetValues().Length);
 

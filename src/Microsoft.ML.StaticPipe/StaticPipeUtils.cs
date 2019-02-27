@@ -9,7 +9,7 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.StaticPipe.Runtime
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// Utility methods for components that want to expose themselves in the idioms of the statically-typed pipelines.
