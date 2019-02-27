@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers.PCA
         }
 
         internal RandomizedPcaTrainer(IHostEnvironment env, Options options)
-            :this(env, options, options.FeatureColumn, options.WeightColumn)
+            :this(env, options, options.FeatureColumnName, options.ExampleWeightColumnName)
         {
 
         }
@@ -361,7 +361,7 @@ namespace Microsoft.ML.Trainers.PCA
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.AnomalyDetectionOutput>(host, input,
                 () => new RandomizedPcaTrainer(host, input),
-                getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+                getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
     }
 

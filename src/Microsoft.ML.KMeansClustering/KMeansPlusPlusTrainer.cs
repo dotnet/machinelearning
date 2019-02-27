@@ -116,12 +116,12 @@ namespace Microsoft.ML.Trainers.KMeans
         /// <param name="env">The <see cref="IHostEnvironment"/> to use.</param>
         /// <param name="options">The advanced options of the algorithm.</param>
         internal KMeansPlusPlusTrainer(IHostEnvironment env, Options options)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), default, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), default, TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName))
         {
             Host.CheckValue(options, nameof(options));
             Host.CheckUserArg(options.ClustersCount > 0, nameof(options.ClustersCount), "Must be positive");
 
-            _featureColumn = options.FeatureColumn;
+            _featureColumn = options.FeatureColumnName;
 
             _k = options.ClustersCount;
 
@@ -250,7 +250,7 @@ namespace Microsoft.ML.Trainers.KMeans
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.ClusteringOutput>(host, input,
                 () => new KMeansPlusPlusTrainer(host, input),
-                getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+                getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

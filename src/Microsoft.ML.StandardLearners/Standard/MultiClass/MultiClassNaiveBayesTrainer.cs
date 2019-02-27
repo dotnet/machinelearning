@@ -68,8 +68,8 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="MultiClassNaiveBayesTrainer"/>
         /// </summary>
         internal MultiClassNaiveBayesTrainer(IHostEnvironment env, Options options)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(options.FeatureColumn),
-                  TrainerUtils.MakeU4ScalarColumn(options.LabelColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName),
+                  TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
         {
             Host.CheckValue(options, nameof(options));
         }
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Trainers
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
                 () => new MultiClassNaiveBayesTrainer(host, input),
-                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName));
         }
     }
 

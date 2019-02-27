@@ -84,7 +84,7 @@ namespace Microsoft.ML.Trainers
         }
 
         internal SdcaMultiClassTrainer(IHostEnvironment env, Options options)
-            : this(env, options, options.FeatureColumn, options.LabelColumn)
+            : this(env, options, options.FeatureColumnName, options.LabelColumnName)
         {
         }
 
@@ -455,7 +455,7 @@ namespace Microsoft.ML.Trainers
 
             return TrainerEntryPointsUtils.Train<SdcaMultiClassTrainer.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
                 () => new SdcaMultiClassTrainer(host, input),
-                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName));
         }
     }
 }

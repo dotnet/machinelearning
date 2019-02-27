@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers.Online
         }
 
         internal AveragedPerceptronTrainer(IHostEnvironment env, Options options)
-            : base(options, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
+            : base(options, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             _args = options;
             LossFunction = _args.LossFunction.CreateComponent(env);
@@ -137,8 +137,8 @@ namespace Microsoft.ML.Trainers.Online
             int numIterations = Options.AveragedDefault.NumIterations)
             : this(env, new Options
             {
-                LabelColumn = labelColumn,
-                FeatureColumn = featureColumn,
+                LabelColumnName = labelColumn,
+                FeatureColumnName = featureColumn,
                 LearningRate = learningRate,
                 DecreaseLearningRate = decreaseLearningRate,
                 L2RegularizerWeight = l2RegularizerWeight,
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Trainers.Online
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new AveragedPerceptronTrainer(host, input),
-                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }
     }

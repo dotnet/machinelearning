@@ -9,7 +9,6 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.EntryPoints
@@ -72,7 +71,7 @@ namespace Microsoft.ML.EntryPoints
             using (var ch = host.Start("Training"))
             {
                 var schema = input.TrainingData.Schema;
-                var feature = FindColumn(ch, schema, input.FeatureColumn);
+                var feature = FindColumn(ch, schema, input.FeatureColumnName);
                 var label = getLabel?.Invoke();
                 var weight = getWeight?.Invoke();
                 var group = getGroup?.Invoke();

@@ -43,7 +43,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Todo #2465: Allow the setting of threshold and thresholdColumn for scoring.
             // This is no longer possible in the API
-            //var newModel = new BinaryPredictionTransformer<IPredictorProducing<float>>(ml, model.Model, trainData.Schema, model.FeatureColumn, threshold: 0.01f, thresholdColumn: DefaultColumnNames.Probability);
+            //var newModel = new BinaryPredictionTransformer<IPredictorProducing<float>>(ml, model.Model, trainData.Schema, model.FeatureColumnName, threshold: 0.01f, thresholdColumn: DefaultColumnNames.Probability);
             //var newScoredTest = newModel.Transform(pipeline.Transform(testData));
             //var newMetrics = mlContext.BinaryClassification.Evaluate(scoredTest);
             // And the Threshold and ThresholdColumn properties are not settable.

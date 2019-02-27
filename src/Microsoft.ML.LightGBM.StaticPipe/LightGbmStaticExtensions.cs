@@ -84,9 +84,9 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
                {
-                   options.LabelColumn = labelName;
-                   options.FeatureColumn = featuresName;
-                   options.WeightColumn = weightsName;
+                   options.LabelColumnName = labelName;
+                   options.FeatureColumnName = featuresName;
+                   options.ExampleWeightColumnName = weightsName;
 
                    var trainer = new LightGbmRegressorTrainer(env, options);
                    if (onFit != null)
@@ -171,9 +171,9 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
                {
-                   options.LabelColumn = labelName;
-                   options.FeatureColumn = featuresName;
-                   options.WeightColumn = weightsName;
+                   options.LabelColumnName = labelName;
+                   options.FeatureColumnName = featuresName;
+                   options.ExampleWeightColumnName = weightsName;
 
                    var trainer = new LightGbmBinaryTrainer(env, options);
 
@@ -257,10 +257,10 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
                (env, labelName, featuresName, groupIdName, weightsName) =>
                {
-                   options.LabelColumn = labelName;
-                   options.FeatureColumn = featuresName;
-                   options.GroupIdColumn = groupIdName;
-                   options.WeightColumn = weightsName;
+                   options.LabelColumnName = labelName;
+                   options.FeatureColumnName = featuresName;
+                   options.RowGroupColumnName = groupIdName;
+                   options.ExampleWeightColumnName = weightsName;
 
                    var trainer = new LightGbmRankingTrainer(env, options);
 
@@ -350,9 +350,9 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.LabelColumn = labelName;
-                    options.FeatureColumn = featuresName;
-                    options.WeightColumn = weightsName;
+                    options.LabelColumnName = labelName;
+                    options.FeatureColumnName = featuresName;
+                    options.ExampleWeightColumnName = weightsName;
 
                     var trainer = new LightGbmMulticlassTrainer(env, options);
 

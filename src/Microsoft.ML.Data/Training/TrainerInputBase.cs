@@ -34,7 +34,7 @@ namespace Microsoft.ML.Trainers
         /// Column to use for features.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for features", ShortName = "feat", SortOrder = 2, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public string FeatureColumn = DefaultColumnNames.Features;
+        public string FeatureColumnName = DefaultColumnNames.Features;
 
         /// <summary>
         /// Normalize option for the feature column. Used only in entry-points, since in the API the user is expected to do this themselves.
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Trainers
         /// Column to use for labels.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public string LabelColumn = DefaultColumnNames.Label;
+        public string LabelColumnName = DefaultColumnNames.Label;
     }
 
     // REVIEW: This is a known antipattern, but the solution involves the decorator pattern which can't be used in this case.
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Trainers
         /// Column to use for example weight.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public string WeightColumn = null;
+        public string ExampleWeightColumnName = null;
     }
 
     /// <summary>
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Trainers
         /// Column to use for example weight.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public string WeightColumn = null;
+        public string ExampleWeightColumnName = null;
     }
 
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInputWithGroupId))]
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Column to use for example groupId.
         /// </summary>
-        [Argument(ArgumentType.AtMostOnce, Name = "GroupIdColumn", HelpText = "Column to use for example groupId", ShortName = "groupId", SortOrder = 5, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public string GroupIdColumn = null;
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example groupId", ShortName = "groupId", SortOrder = 5, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+        public string RowGroupColumnName = null;
     }
 }

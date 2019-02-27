@@ -143,13 +143,13 @@ namespace Microsoft.ML.EntryPoints
             using (var ch = host.Start("CombineOvaModels"))
             {
                 var schema = normalizedView.Schema;
-                var label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.LabelColumn),
-                    input.LabelColumn,
+                var label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.LabelColumnName),
+                    input.LabelColumnName,
                     DefaultColumnNames.Label);
-                var feature = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.FeatureColumn),
-                    input.FeatureColumn, DefaultColumnNames.Features);
-                var weight = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.WeightColumn),
-                    input.WeightColumn, DefaultColumnNames.Weight);
+                var feature = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.FeatureColumnName),
+                    input.FeatureColumnName, DefaultColumnNames.Features);
+                var weight = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.ExampleWeightColumnName),
+                    input.ExampleWeightColumnName, DefaultColumnNames.Weight);
                 var data = new RoleMappedData(normalizedView, label, feature, null, weight);
 
                 return new PredictorModelOutput

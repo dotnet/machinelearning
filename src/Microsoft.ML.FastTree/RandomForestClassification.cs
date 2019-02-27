@@ -160,7 +160,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="env">The instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="options">Algorithm advanced settings.</param>
         internal FastForestClassification(IHostEnvironment env, Options options)
-            : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
+            : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
         }
 
@@ -261,9 +261,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
             return TrainerEntryPointsUtils.Train<FastForestClassification.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new FastForestClassification(host, input),
-                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),
-                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.GroupIdColumn),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.RowGroupColumnName),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
 
         }

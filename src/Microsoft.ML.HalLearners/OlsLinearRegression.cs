@@ -76,8 +76,8 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// Initializes a new instance of <see cref="OlsLinearRegressionTrainer"/>
         /// </summary>
         internal OlsLinearRegressionTrainer(IHostEnvironment env, Options options)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumn),
-                  TrainerUtils.MakeR4ScalarColumn(options.LabelColumn), TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName),
+                  TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName), TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName))
         {
             Host.CheckValue(options, nameof(options));
             Host.CheckUserArg(options.L2Weight >= 0, nameof(options.L2Weight), "L2 regularization term cannot be negative");
@@ -501,8 +501,8 @@ namespace Microsoft.ML.Trainers.HalLearners
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, options,
                 () => new OlsLinearRegressionTrainer(host, options),
-                () => TrainerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.LabelColumn),
-                () => TrainerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.WeightColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.LabelColumnName),
+                () => TrainerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.ExampleWeightColumnName));
         }
     }
 

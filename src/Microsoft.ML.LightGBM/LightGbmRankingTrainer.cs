@@ -81,7 +81,7 @@ namespace Microsoft.ML.LightGBM
         private protected override PredictionKind PredictionKind => PredictionKind.Ranking;
 
         internal LightGbmRankingTrainer(IHostEnvironment env, Options options)
-             : base(env, LoadNameValue, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumn))
+             : base(env, LoadNameValue, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName))
         {
         }
 
@@ -203,9 +203,9 @@ namespace Microsoft.ML.LightGBM
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.RankingOutput>(host, input,
                 () => new LightGbmRankingTrainer(host, input),
-                getLabel: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),
-                getGroup: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.GroupIdColumn));
+                getLabel: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
+                getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName),
+                getGroup: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.RowGroupColumnName));
         }
     }
 }

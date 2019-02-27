@@ -98,7 +98,7 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="LogisticRegression"/>
         /// </summary>
         internal LogisticRegression(IHostEnvironment env, Options options)
-            : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
+            : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             _posWeight = 0;
             ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStats;
@@ -421,8 +421,8 @@ namespace Microsoft.ML.Trainers
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new LogisticRegression(host, input),
-                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
     }
 

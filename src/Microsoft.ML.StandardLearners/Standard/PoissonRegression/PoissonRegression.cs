@@ -70,7 +70,7 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="PoissonRegression"/>
         /// </summary>
         internal PoissonRegression(IHostEnvironment env, Options options)
-            : base(env, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumn))
+            : base(env, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName))
         {
         }
 
@@ -184,8 +184,8 @@ namespace Microsoft.ML.Trainers
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, input,
                 () => new PoissonRegression(host, input),
-                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
     }
 }

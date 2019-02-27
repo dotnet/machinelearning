@@ -35,8 +35,8 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label")
                         .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new Options
                         {
-                            LabelColumn = "LabelIndex",
-                            FeatureColumn = "Features",
+                            LabelColumnName = "LabelIndex",
+                            FeatureColumnName = "Features",
                             Booster = new DartBooster.Options
                             {
                                 DropRate = 0.15,

@@ -241,8 +241,8 @@ namespace Microsoft.ML.Trainers.Online
             int numIterations = Options.OnlineDefault.NumIterations)
             : this(env, new Options
             {
-                LabelColumn = labelColumn,
-                FeatureColumn = featureColumn,
+                LabelColumnName = labelColumn,
+                FeatureColumnName = featureColumn,
                 WeightColumn = weightColumn,
                 NumberOfIterations = numIterations,
             })
@@ -250,7 +250,7 @@ namespace Microsoft.ML.Trainers.Online
         }
 
         internal LinearSvmTrainer(IHostEnvironment env, Options options)
-            : base(options, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
+            : base(options, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             Contracts.CheckUserArg(options.Lambda > 0, nameof(options.Lambda), UserErrorPositive);
             Contracts.CheckUserArg(options.BatchSize > 0, nameof(options.BatchSize), UserErrorPositive);
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Trainers.Online
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new LinearSvmTrainer(host, input),
-                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }
 

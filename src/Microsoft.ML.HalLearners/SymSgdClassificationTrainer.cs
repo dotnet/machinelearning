@@ -198,8 +198,8 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// Initializes a new instance of <see cref="SymSgdClassificationTrainer"/>
         /// </summary>
         internal SymSgdClassificationTrainer(IHostEnvironment env, Options options)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumn),
-                  TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName),
+                  TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             Host.CheckValue(options, nameof(options));
             options.Check(Host);
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Trainers.HalLearners
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, options,
                 () => new SymSgdClassificationTrainer(host, options),
-                () => TrainerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.LabelColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.LabelColumnName));
         }
 
         // We buffer instances from the cursor (limited to memorySize) and passes that buffer to

@@ -77,7 +77,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="env">The instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="options">Algorithm advanced settings.</param>
         internal FastTreeRegressionTrainer(IHostEnvironment env, Options options)
-            : base(env, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumn))
+            : base(env, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName))
         {
         }
 
@@ -509,9 +509,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
             return TrainerEntryPointsUtils.Train<FastTreeRegressionTrainer.Options, CommonOutputs.RegressionOutput>(host, input,
                 () => new FastTreeRegressionTrainer(host, input),
-                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),
-                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.GroupIdColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.RowGroupColumnName));
         }
     }
 }

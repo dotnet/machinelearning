@@ -387,18 +387,18 @@ namespace Microsoft.ML.RunTests
 
             InputBuilder ib1 = new InputBuilder(Env, typeof(LogisticRegression.Options), catalog);
             // Ensure that InputBuilder unwraps the Optional<string> correctly.
-            var weightType = ib1.GetFieldTypeOrNull("WeightColumn");
+            var weightType = ib1.GetFieldTypeOrNull("ExampleWeightColumnName");
             Assert.True(weightType.Equals(typeof(string)));
 
             var instance = ib1.GetInstance() as LogisticRegression.Options;
-            Assert.True(instance.WeightColumn == null);
+            Assert.True(instance.ExampleWeightColumnName == null);
 
-            ib1.TrySetValue("WeightColumn", "OtherWeight");
-            Assert.Equal("OtherWeight", instance.WeightColumn);
+            ib1.TrySetValue("ExampleWeightColumnName", "OtherWeight");
+            Assert.Equal("OtherWeight", instance.ExampleWeightColumnName);
 
             var tok = (JToken)JValue.CreateString("AnotherWeight");
-            ib1.TrySetValueJson("WeightColumn", tok);
-            Assert.Equal("AnotherWeight", instance.WeightColumn);
+            ib1.TrySetValueJson("ExampleWeightColumnName", tok);
+            Assert.Equal("AnotherWeight", instance.ExampleWeightColumnName);
         }
 
         [Fact]
@@ -1869,7 +1869,7 @@ namespace Microsoft.ML.RunTests
                         'Name': 'Transforms.LabelColumnKeyBooleanConverter',
                         'Inputs': {
                             'Data': '$output_data1',
-                            'LabelColumn': 'Label',
+                            'LabelColumnName': 'Label',
                             'TextKeyValues': false
                         },
                         'Outputs': {
@@ -3456,7 +3456,7 @@ namespace Microsoft.ML.RunTests
                       'Name': 'Transforms.LabelColumnKeyBooleanConverter',
                       'Inputs': {{
                         'Data': '$data1',
-                        'LabelColumn': 'Label'
+                        'LabelColumnName': 'Label'
                       }},
                       'Outputs': {{
                         'OutputData': '$data2'
@@ -3549,10 +3549,10 @@ namespace Microsoft.ML.RunTests
 
             var fastTree = Trainers.FastTree.FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Options
             {
-                FeatureColumn = "Features",
+                FeatureColumnName = "Features",
                 NumTrees = 5,
                 NumLeaves = 4,
-                LabelColumn = DefaultColumnNames.Label,
+                LabelColumnName = DefaultColumnNames.Label,
                 TrainingData = concat.OutputData
             });
 
@@ -3997,9 +3997,9 @@ namespace Microsoft.ML.RunTests
                             'Shuffle': false,
                             'CheckFrequency': null,
                             'BiasLearningRate': 0.0,
-                            'LabelColumn': 'Label',
+                            'LabelColumnName': 'Label',
                             'TrainingData': '$Var_51d3ddc9792d4c6eb975e600e87b8cbc',
-                            'FeatureColumn': 'Features',
+                            'FeatureColumnName': 'Features',
                             'NormalizeFeatures': 'Auto',
                             'Caching': 'Auto'
                         },
@@ -4026,8 +4026,8 @@ namespace Microsoft.ML.RunTests
                             'NumRocExamples': 100000,
                             'MaxAucExamples': -1,
                             'NumAuPrcExamples': 100000,
-                            'LabelColumn': null,
-                            'WeightColumn': null,
+                            'LabelColumnName': null,
+                            'ExampleWeightColumnName': null,
                             'ScoreColumn': null,
                             'StratColumn': null,
                             'Data': '$Var_be77f9c4e45c43b7a67984304c291bf5',
@@ -4168,10 +4168,10 @@ namespace Microsoft.ML.RunTests
                                         'NumThreads': 1,
                                         'DenseOptimizer': false,
                                         'EnforceNonNegativity': false,
-                                        'WeightColumn': 'Weight1',
-                                        'LabelColumn': 'Label',
+                                        'ExampleWeightColumnName': 'Weight1',
+                                        'LabelColumnName': 'Label',
                                         'TrainingData': '$Var_8b36a1e70c9f4504973140ad15eac72f',
-                                        'FeatureColumn': 'Features',
+                                        'FeatureColumnName': 'Features',
                                         'NormalizeFeatures': 'Auto',
                                         'Caching': 'Auto'
                                     },
@@ -4201,8 +4201,8 @@ namespace Microsoft.ML.RunTests
                             'StratificationColumn': null,
                             'NumFolds': 2,
                             'Kind': 'SignatureRegressorTrainer',
-                            'LabelColumn': 'Label',
-                            'WeightColumn': 'Weight1',
+                            'LabelColumnName': 'Label',
+                            'ExampleWeightColumnName': 'Weight1',
                             'GroupColumn': null,
                             'NameColumn': null
                         },
@@ -4354,9 +4354,9 @@ namespace Microsoft.ML.RunTests
                                         'Shuffle': true,
                                         'CheckFrequency': null,
                                         'BiasLearningRate': 0.0,
-                                        'LabelColumn': 'Label',
+                                        'LabelColumnName': 'Label',
                                         'TrainingData': '$Var_a060169d8a924964b71447904c0d2ee9',
-                                        'FeatureColumn': 'Features',
+                                        'FeatureColumnName': 'Features',
                                         'NormalizeFeatures': 'Auto',
                                         'Caching': 'Auto'
                                     },
@@ -4385,8 +4385,8 @@ namespace Microsoft.ML.RunTests
                             'StratificationColumn': null,
                             'NumFolds': 2,
                             'Kind': 'SignatureMultiClassClassifierTrainer',
-                            'LabelColumn': 'Label',
-                            'WeightColumn': null,
+                            'LabelColumnName': 'Label',
+                            'ExampleWeightColumnName': null,
                             'GroupColumn': null,
                             'NameColumn': null
                         },
@@ -4591,10 +4591,10 @@ namespace Microsoft.ML.RunTests
                                         'NumThreads': 1,
                                         'DenseOptimizer': false,
                                         'EnforceNonNegativity': false,
-                                        'WeightColumn': null,
-                                        'LabelColumn': 'Label',
+                                        'ExampleWeightColumnName': null,
+                                        'LabelColumnName': 'Label',
                                         'TrainingData': '$Var_fb8137cb48ac49a7b1b56aa3ed5e0b23',
-                                        'FeatureColumn': 'Features',
+                                        'FeatureColumnName': 'Features',
                                         'NormalizeFeatures': 'Auto',
                                         'Caching': 'Auto'
                                     },
@@ -4612,8 +4612,8 @@ namespace Microsoft.ML.RunTests
                             'StratificationColumn': 'Strat',
                             'NumFolds': 2,
                             'Kind': 'SignatureMultiClassClassifierTrainer',
-                            'LabelColumn': 'Label',
-                            'WeightColumn': null,
+                            'LabelColumnName': 'Label',
+                            'ExampleWeightColumnName': null,
                             'GroupColumn': null,
                             'NameColumn': null
                         },
@@ -4761,9 +4761,9 @@ namespace Microsoft.ML.RunTests
                                         'Shuffle': true,
                                         'CheckFrequency': null,
                                         'BiasLearningRate': 0.0,
-                                        'LabelColumn': 'Label',
+                                        'LabelColumnName': 'Label',
                                         'TrainingData': '$Var_44f5c60e439b49fe9e5bf372be4613ee',
-                                        'FeatureColumn': 'Features',
+                                        'FeatureColumnName': 'Features',
                                         'NormalizeFeatures': 'Auto',
                                         'Caching': 'Auto'
                                     },
@@ -4792,8 +4792,8 @@ namespace Microsoft.ML.RunTests
                             'StratificationColumn': 'Strat',
                             'NumFolds': 2,
                             'Kind': 'SignatureBinaryClassifierTrainer',
-                            'LabelColumn': 'Label',
-                            'WeightColumn': null,
+                            'LabelColumnName': 'Label',
+                            'ExampleWeightColumnName': null,
                             'GroupColumn': null,
                             'NameColumn': null
                         },
@@ -5053,11 +5053,11 @@ namespace Microsoft.ML.RunTests
                                     'PrintTestGraph': false,
                                     'PrintTrainValidGraph': false,
                                     'TestFrequency': 2147483647,
-                                    'GroupIdColumn': 'GroupId1',
-                                    'WeightColumn': null,
-                                    'LabelColumn': 'Label1',
+                                    'RowGroupColumnName': 'GroupId1',
+                                    'ExampleWeightColumnName': null,
+                                    'LabelColumnName': 'Label1',
                                     'TrainingData': '$Var_8f51ed90f5b642b2a80eeb628d67a5b3',
-                                    'FeatureColumn': 'Features',
+                                    'FeatureColumnName': 'Features',
                                     'NormalizeFeatures': 'Auto',
                                     'Caching': 'Auto'
                                 },
@@ -5087,8 +5087,8 @@ namespace Microsoft.ML.RunTests
                         'StratificationColumn': null,
                         'NumFolds': 2,
                         'Kind': 'SignatureRankerTrainer',
-                        'LabelColumn': 'Label1',
-                        'WeightColumn': null,
+                        'LabelColumnName': 'Label1',
+                        'ExampleWeightColumnName': null,
                         'GroupColumn': {
                             'Value': 'GroupId1',
                             'IsExplicit': true
@@ -5269,9 +5269,9 @@ namespace Microsoft.ML.RunTests
                                         'Shuffle': true,
                                         'CheckFrequency': null,
                                         'BiasLearningRate': 0.0,
-                                        'LabelColumn': 'Label',
+                                        'LabelColumnName': 'Label',
                                         'TrainingData': '$Var_9aa1732198964d7f979a0bbec5db66c2',
-                                        'FeatureColumn': 'Features',
+                                        'FeatureColumnName': 'Features',
                                         'NormalizeFeatures': 'Auto',
                                         'Caching': 'Auto'
                                     },
@@ -5284,10 +5284,10 @@ namespace Microsoft.ML.RunTests
                                 'Model': '$Var_a229f40df6494a93a794ffd5480d5549'
                             },
                             'UseProbabilities': true,
-                            'WeightColumn': null,
-                            'LabelColumn': 'Label',
+                            'ExampleWeightColumnName': null,
+                            'LabelColumnName': 'Label',
                             'TrainingData': '$Var_672f860e44304ba8bd1c1a6e4b5ba9c5',
-                            'FeatureColumn': 'Features',
+                            'FeatureColumnName': 'Features',
                             'NormalizeFeatures': 'Auto',
                             'Caching': 'Auto'
                         },
@@ -5312,8 +5312,8 @@ namespace Microsoft.ML.RunTests
                             'NumTopClassesToOutput': 3,
                             'NumClassesConfusionMatrix': 10,
                             'OutputPerClassStatistics': false,
-                            'LabelColumn': null,
-                            'WeightColumn': null,
+                            'LabelColumnName': null,
+                            'ExampleWeightColumnName': null,
                             'ScoreColumn': null,
                             'StratColumn': null,
                             'Data': '$Var_5454fd8c353c40288dd8c2d104be788f',
@@ -5439,9 +5439,9 @@ namespace Microsoft.ML.RunTests
                                         'InitialWeights': null,
                                         'InitialWeightsDiameter': 0.0,
                                         'Shuffle': false,
-                                        'LabelColumn': 'Label',
+                                        'LabelColumnName': 'Label',
                                         'TrainingData': '$Var_9ccc8bce4f6540eb8a244ab40585602a',
-                                        'FeatureColumn': 'Features',
+                                        'FeatureColumnName': 'Features',
                                         'NormalizeFeatures': 'Auto',
                                         'Caching': 'Auto'
                                     },
@@ -5454,10 +5454,10 @@ namespace Microsoft.ML.RunTests
                                 'Model': '$Var_b47f7facc1c540e39d8b82ab64df6592'
                             },
                             'UseProbabilities': true,
-                            'WeightColumn': null,
-                            'LabelColumn': 'Label',
+                            'ExampleWeightColumnName': null,
+                            'LabelColumnName': 'Label',
                             'TrainingData': '$Var_f38b99289df746319edd57a3ccfb85a2',
-                            'FeatureColumn': 'Features',
+                            'FeatureColumnName': 'Features',
                             'NormalizeFeatures': 'Auto',
                             'Caching': 'Auto'
                         },
@@ -5482,8 +5482,8 @@ namespace Microsoft.ML.RunTests
                             'NumTopClassesToOutput': 3,
                             'NumClassesConfusionMatrix': 10,
                             'OutputPerClassStatistics': false,
-                            'LabelColumn': null,
-                            'WeightColumn': null,
+                            'LabelColumnName': null,
+                            'ExampleWeightColumnName': null,
                             'ScoreColumn': null,
                             'StratColumn': null,
                             'Data': '$Var_a20e37dc58d84bf5a1cb13ed13eae5ba',
@@ -5591,7 +5591,7 @@ namespace Microsoft.ML.RunTests
                             'OutputColumns': [
                                 'Softmax'
                             ],
-                            'LabelColumn': null,
+                            'LabelColumnName': null,
                             'TensorFlowLabel': null,
                             'OptimizationOperation': null,
                             'LossOperation': null,

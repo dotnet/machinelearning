@@ -111,8 +111,8 @@ namespace Microsoft.ML.Trainers.Online
                 DecreaseLearningRate = decreaseLearningRate,
                 L2RegularizerWeight = l2RegularizerWeight,
                 NumberOfIterations = numIterations,
-                LabelColumn = labelColumn,
-                FeatureColumn = featureColumn,
+                LabelColumnName = labelColumn,
+                FeatureColumnName = featureColumn,
                 LossFunction = new TrivialFactory(lossFunction ?? new SquaredLoss())
             })
         {
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Trainers.Online
         }
 
         internal OnlineGradientDescentTrainer(IHostEnvironment env, Options options)
-        : base(options, env, UserNameValue, TrainerUtils.MakeR4ScalarColumn(options.LabelColumn))
+        : base(options, env, UserNameValue, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName))
         {
             LossFunction = options.LossFunction.CreateComponent(env);
         }
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Trainers.Online
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, input,
                 () => new OnlineGradientDescentTrainer(host, input),
-                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName));
         }
 
         private protected override RegressionPredictionTransformer<LinearRegressionModelParameters> MakeTransformer(LinearRegressionModelParameters model, DataViewSchema trainSchema)

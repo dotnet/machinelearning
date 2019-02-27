@@ -107,7 +107,7 @@ namespace Microsoft.ML.LightGBM
         }
 
         internal LightGbmRegressorTrainer(IHostEnvironment env, Options options)
-             : base(env, LoadNameValue, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumn))
+             : base(env, LoadNameValue, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName))
         {
         }
 
@@ -176,8 +176,8 @@ namespace Microsoft.ML.LightGBM
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, input,
                 () => new LightGbmRegressorTrainer(host, input),
-                getLabel: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+                getLabel: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
+                getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
     }
 }

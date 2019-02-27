@@ -32,8 +32,8 @@ namespace Microsoft.ML.Samples.Dynamic
                     FieldAwareFactorizationMachine(
                         new FieldAwareFactorizationMachineBinaryClassificationTrainer.Options
                         {
-                            FeatureColumn = "Features",
-                            LabelColumn = "Sentiment",
+                            FeatureColumnName = "Features",
+                            LabelColumnName = "Sentiment",
                             LearningRate = 0.1f,
                             NumberOfIterations = 10
                         }));

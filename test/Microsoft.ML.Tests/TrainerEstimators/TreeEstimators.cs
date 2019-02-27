@@ -114,9 +114,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var trainer = ML.Ranking.Trainers.FastTree(
                 new FastTreeRankingTrainer.Options
                 {
-                    FeatureColumn = "NumericFeatures",
+                    FeatureColumnName = "NumericFeatures",
                     NumTrees = 10,
-                    GroupIdColumn = "Group"
+                    RowGroupColumnName = "Group"
                 });
 
             var pipeWithTrainer = pipe.Append(trainer);
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetRankingPipeline();
 
-            var trainer = ML.Ranking.Trainers.LightGbm(new Options() { LabelColumn = "Label0", FeatureColumn = "NumericFeatures", GroupIdColumn = "Group", LearningRate = 0.4 });
+            var trainer = ML.Ranking.Trainers.LightGbm(new Options() { LabelColumnName = "Label0", FeatureColumnName = "NumericFeatures", RowGroupColumnName = "Group", LearningRate = 0.4 });
 
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
