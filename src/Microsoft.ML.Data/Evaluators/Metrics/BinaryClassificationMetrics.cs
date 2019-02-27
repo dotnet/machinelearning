@@ -9,7 +9,7 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Evaluation results for binary classifiers, excluding probabilistic metrics.
     /// </summary>
-    public class BinaryClassificationMetrics
+    public sealed class BinaryClassificationMetrics
     {
         /// <summary>
         /// Gets the area under the ROC curve.

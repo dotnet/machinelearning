@@ -54,9 +54,6 @@ namespace Microsoft.ML.Data
         /// <remarks>
         /// The micro-average is the fraction of instances predicted correctly.
         /// The micro-average does not take class membership into account.
-        ///
-        /// The micro-average metric weighs each class according to the number of instances that belong
-        /// to it in the dataset.
         /// </remarks>
         public double MicroAccuracy { get; }
 
