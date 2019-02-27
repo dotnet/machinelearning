@@ -266,12 +266,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Ensemble", "Mi
 		pkg\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.symbols.nupkgproj = pkg\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.symbols.nupkgproj
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.FastTree", "Microsoft.ML.FastTree", "{273823D2-042D-4F98-B7D2-FCC5E74D1586}"
-	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.FastTree\Microsoft.ML.FastTree.nupkgproj = pkg\Microsoft.ML.FastTree\Microsoft.ML.FastTree.nupkgproj
-		pkg\Microsoft.ML.FastTree\Microsoft.ML.FastTree.symbols.nupkgproj = pkg\Microsoft.ML.FastTree\Microsoft.ML.FastTree.symbols.nupkgproj
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1039,7 +1033,6 @@ Global
 		{31D38B21-102B-41C0-9E0A-2FE0BF68D123} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{5E920CAC-5A28-42FB-936E-49C472130953} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 		{AD7058C9-5608-49A8-BE23-58C33A74EE91} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
-		{273823D2-042D-4F98-B7D2-FCC5E74D1586} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}
