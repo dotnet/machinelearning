@@ -108,7 +108,7 @@ The .NET AutoML API will be used for the most important foundational features th
 - Future versions will be able to run AutoML compute and other compute processes (such as a regular model training) in Azure.
 - The ML.NET CLI  will consume the AutoML API (Microsoft.ML.Auto NuGet package) which will only consume public surface of ML.NET.
 - The CLI proposed here will not provide for “continue sweeping” after sweeping has ended.
-- When running locally with the by default behaviour (no Azure), the CLI will not make any webservice calls and will not require any authentication.
+- When running locally with the by default behaviour (no Azure), the CLI will be able to work without needing to make any remote service call or requiring any authentication from the user.
 - The CLI will provide feedback output (such as % work done or high level details on what's happening under the covers) while working on the long-running tasks.
 - The ML.NET CLI will be aligned and integrated to the [.NET Core CLI](https://docs.microsoft.com/en-us/dotnet/core/tools/?tabs=netcore2x). A good approach is to implement the ML.NET CLI as a [.NET Core Global Tool](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools) (i.e. named "mlnet" package) on top of the "dotnet CLI". 
   - [System-Command-Line](https://github.com/dotnet/command-line-api) package can precisely help on those typical CLI console apps features (CLI plumbing) so if can be implemented a lot easier than by implementing a CLI app from scratch in features like command line parsing, invocation and rendering of terminal output. Otherwise, a CLI implementation starting from scratch can be significantly more costly to develop.
@@ -324,7 +324,8 @@ mlnet new
 [--verbosity <value>]
 
 [--name <value>]
-[--list-ml-tasks]
+[--output-path <value>]
+
 [-h|--help]
 
 -------------- (v0.2) --------------------
@@ -332,8 +333,8 @@ mlnet new
 [--model-settings-file <value>]
 [<RSP FILE NAME>]
 [--best-models-count]
+[--list-ml-tasks]
 [--app-type <value>]
-[--output-folder <value>]
 [--force]
 
 -------------- (v1.0) --------------------
@@ -502,6 +503,12 @@ If the request is to create multiple models/projects, the name of each folder an
 
 ----------------------------------------------------------
 
+`--output-path` (string) - (*Release 0.1*)
+
+Location/folder to place the generated output. The default is the current directory.
+
+----------------------------------------------------------
+
 `--verbosity` (string) - (*Release 0.1*)
 
 Sets the verbosity level of the in the std output. 
@@ -538,12 +545,6 @@ Lists the supported ML tasks in the current version of the ML.NET CLI being used
 - 1 or 2 or 3 or 4 or 5
 
 If multiple models have to be returned, then multiple folders of generated code/projects will need to be created in addition to the models themselves (.ZIP files).
-
-----------------------------------------------------------
-
-`--output-folder` (string) - (*Release 0.2*)
-
-Location/folder to place the generated output. The default is the current directory.
 
 ----------------------------------------------------------
 
