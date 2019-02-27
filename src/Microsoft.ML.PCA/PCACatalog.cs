@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.PCA;
-using Microsoft.ML.Transforms.Projections;
+using Microsoft.ML.Transforms;
 using static Microsoft.ML.Trainers.PCA.RandomizedPcaTrainer;
 
 namespace Microsoft.ML

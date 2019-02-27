@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
