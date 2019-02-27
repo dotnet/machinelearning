@@ -10,7 +10,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Downloading the dataset from github.com/dotnet/machinelearning.
             // This will create a sentiment.tsv file in the filesystem.
             // You can open this file, if you want to see the data. 
-            string dataFile = SamplesUtils.DatasetUtils.DownloadSentimentDataset();
+            string dataFile = SamplesUtils.DatasetUtils.DownloadSentimentDataset()[0];
 
             // A preview of the data. 
             // Sentiment	SentimentText

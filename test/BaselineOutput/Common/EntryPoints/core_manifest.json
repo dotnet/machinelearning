@@ -10119,10 +10119,11 @@
           "IsNullable": false
         },
         {
-          "Name": "Iters",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Number of training iterations",
           "Aliases": [
+            "iters",
             "iter"
           ],
           "Required": false,
@@ -10148,7 +10149,7 @@
           "Default": "Features"
         },
         {
-          "Name": "LatentDim",
+          "Name": "LatentDimension",
           "Type": "Int",
           "Desc": "Latent space dimension",
           "Aliases": [
@@ -10245,7 +10246,7 @@
           "Default": "Auto"
         },
         {
-          "Name": "Norm",
+          "Name": "Normalize",
           "Type": "Bool",
           "Desc": "Whether to normalize the input vectors so that the concatenation of all fields' feature vectors is unit-length",
           "Aliases": [

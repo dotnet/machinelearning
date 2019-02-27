@@ -39,7 +39,7 @@ namespace Microsoft.ML.StaticPipe
 
             var rec = new CustomReconciler((env, labelCol, featureCols) =>
             {
-                var trainer = new FieldAwareFactorizationMachineTrainer(env, featureCols, labelCol);
+                var trainer = new FieldAwareFactorizationMachineBinaryClassificationTrainer(env, featureCols, labelCol);
 
                 if (onFit != null)
                     return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -65,7 +65,7 @@ namespace Microsoft.ML.StaticPipe
         /// <returns>The predicted output.</returns>
         public static (Scalar<float> score, Scalar<bool> predictedLabel) FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float>[] features,
-            FieldAwareFactorizationMachineTrainer.Options options,
+            FieldAwareFactorizationMachineBinaryClassificationTrainer.Options options,
             Action<FieldAwareFactorizationMachineModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -76,7 +76,7 @@ namespace Microsoft.ML.StaticPipe
 
             var rec = new CustomReconciler((env, labelCol, featureCols) =>
             {
-                var trainer = new FieldAwareFactorizationMachineTrainer(env, options);
+                var trainer = new FieldAwareFactorizationMachineBinaryClassificationTrainer(env, options);
                 if (onFit != null)
                     return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                 else

@@ -77,14 +77,48 @@ namespace Microsoft.ML.SamplesUtils
         /// <summary>
         /// Downloads the wikipedia detox dataset from the ML.NET repo.
         /// </summary>
-        public static string DownloadSentimentDataset()
-         => Download("https://raw.githubusercontent.com/dotnet/machinelearning/76cb2cdf5cc8b6c88ca44b8969153836e589df04/test/data/wikipedia-detox-250-line-data.tsv", "sentiment.tsv");
+        public static string[] DownloadSentimentDataset()
+        {
+            var trainFile = Download("https://raw.githubusercontent.com/dotnet/machinelearning/76cb2cdf5cc8b6c88ca44b8969153836e589df04/test/data/wikipedia-detox-250-line-data.tsv", "sentiment.tsv");
+            var testFile = Download("https://raw.githubusercontent.com/dotnet/machinelearning/76cb2cdf5cc8b6c88ca44b8969153836e589df04/test/data/wikipedia-detox-250-line-test.tsv", "sentimenttest.tsv");
+            return new[] { trainFile, testFile };
+        }
+
+            /// <summary>
+            /// Downloads the adult dataset from the ML.NET repo.
+            /// </summary>
+            public static string DownloadAdultDataset()
+            => Download("https://raw.githubusercontent.com/dotnet/machinelearning/244a8c2ac832657af282aa312d568211698790aa/test/data/adult.train", "adult.txt");
 
         /// <summary>
-        /// Downloads the adult dataset from the ML.NET repo.
+        /// Downloads the  wikipedia detox dataset and featurizes it to be suitable for sentiment classification tasks.
         /// </summary>
-        public static string DownloadAdultDataset()
-            => Download("https://raw.githubusercontent.com/dotnet/machinelearning/244a8c2ac832657af282aa312d568211698790aa/test/data/adult.train", "adult.txt");
+        /// <param name="mlContext"><see cref="MLContext"/> used for data loading and processing.</param>
+        /// <returns>Featurized train and test dataset.</returns>
+        public static IDataView[] LoadFeaturizedSentimentDataset(MLContext mlContext)
+        {
+            // Download the files
+            var dataFiles = DownloadSentimentDataset();
+
+            // Define the columns to read
+            var reader = mlContext.Data.CreateTextLoader(
+                columns: new[]
+                    {
+                        new TextLoader.Column("Sentiment", DataKind.Boolean, 0),
+                        new TextLoader.Column("SentimentText", DataKind.String, 1)
+                    },
+                hasHeader: true
+            );
+
+            // Create data featurizing pipeline
+            var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText");
+
+            var data = reader.Read(dataFiles[0]);
+            var model = pipeline.Fit(data);
+            var featurizedDataTrain = model.Transform(data);
+            var featurizedDataTest = model.Transform(reader.Read(dataFiles[1]));
+            return new[] { featurizedDataTrain, featurizedDataTest };
+        }
 
         /// <summary>
         /// Downloads the Adult UCI dataset and featurizes it to be suitable for classification tasks.
