@@ -8,7 +8,6 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
@@ -276,7 +275,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string weightColumn = null,
             int numLeaves = Defaults.NumberOfLeaves,
             int numTrees = Defaults.NumberOfTrees,
-            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves)
+            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf)
             : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -310,7 +309,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 ConvertData(trainData);
                 TrainCore(ch);
             }
-            return new FastForestRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions, FastTreeTrainerOptions.QuantileSampleCount);
+            return new FastForestRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions, FastTreeTrainerOptions.NumberOfQuantileSamples);
         }
 
         private protected override void PrepareLabels(IChannel ch)

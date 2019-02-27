@@ -10,7 +10,6 @@ using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
 
@@ -132,7 +131,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string weightColumn = null,
             int numLeaves = Defaults.NumberOfLeaves,
             int numTrees = Defaults.NumberOfTrees,
-            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves,
+            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf,
             double learningRate = Defaults.LearningRate)
             : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, learningRate)
         {
@@ -195,7 +194,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 FastTreeTrainerOptions.Shrinkage,
                 _sigmoidParameter,
                 FastTreeTrainerOptions.UnbalancedSets,
-                FastTreeTrainerOptions.MaxTreeOutput,
+                FastTreeTrainerOptions.MaximumTreeOutput,
                 FastTreeTrainerOptions.GetDerivativesSampleRate,
                 FastTreeTrainerOptions.BestStepRankingRegressionTrees,
                 FastTreeTrainerOptions.RandomSeed,
@@ -209,7 +208,7 @@ namespace Microsoft.ML.Trainers.FastTree
             {
                 var lossCalculator = new BinaryClassificationTest(optimizationAlgorithm.TrainingScores, _trainSetLabels, _sigmoidParameter);
                 // REVIEW: we should makeloss indices an enum in BinaryClassificationTest
-                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, FastTreeTrainerOptions.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/, FastTreeTrainerOptions.MaxNumberOfLinearSearchSteps, FastTreeTrainerOptions.MinStepSize);
+                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, FastTreeTrainerOptions.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/, FastTreeTrainerOptions.MaximumNumberOfLineSearchSteps, FastTreeTrainerOptions.MinimumStepSize);
             }
             return optimizationAlgorithm;
         }

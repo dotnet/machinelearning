@@ -65,7 +65,7 @@ namespace Microsoft.ML.Trainers.FastTree
                        FastTreeTrainerOptions.FeatureFirstUsePenalty, FastTreeTrainerOptions.FeatureReusePenalty, FastTreeTrainerOptions.SoftmaxTemperature,
                        FastTreeTrainerOptions.HistogramPoolSize, FastTreeTrainerOptions.RandomSeed, FastTreeTrainerOptions.FeatureFractionPerSplit,
                        FastTreeTrainerOptions.AllowEmptyTrees, FastTreeTrainerOptions.GainConfidenceLevel, FastTreeTrainerOptions.MaxCategoricalGroupsPerNode,
-                       FastTreeTrainerOptions.MaxCategoricalSplitPoints, _quantileEnabled, FastTreeTrainerOptions.QuantileSampleCount, ParallelTraining,
+                       FastTreeTrainerOptions.MaxCategoricalSplitPoints, _quantileEnabled, FastTreeTrainerOptions.NumberOfQuantileSamples, ParallelTraining,
                        FastTreeTrainerOptions.MinExamplePercentageForCategoricalSplit, FastTreeTrainerOptions.Bundling, FastTreeTrainerOptions.MinExamplesForCategoricalSplit, FastTreeTrainerOptions.Bias);
         }
 

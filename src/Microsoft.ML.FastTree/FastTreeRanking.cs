@@ -12,7 +12,6 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
@@ -76,7 +75,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string weightColumn = null,
             int numLeaves = Defaults.NumberOfLeaves,
             int numTrees = Defaults.NumberOfTrees,
-            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves,
+            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf,
             double learningRate = Defaults.LearningRate)
             : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, numLeaves, numTrees, minDatapointsInLeaves, learningRate)
         {
@@ -193,7 +192,7 @@ namespace Microsoft.ML.Trainers.FastTree
             if (FastTreeTrainerOptions.UseLineSearch)
             {
                 _specialTrainSetTest = new FastNdcgTest(optimizationAlgorithm.TrainingScores, TrainSet.Ratings, FastTreeTrainerOptions.SortingAlgorithm, FastTreeTrainerOptions.EarlyStoppingMetrics);
-                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(_specialTrainSetTest, 0, FastTreeTrainerOptions.MaxNumberOfLinearSearchSteps, FastTreeTrainerOptions.MinStepSize);
+                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(_specialTrainSetTest, 0, FastTreeTrainerOptions.MaximumNumberOfLineSearchSteps, FastTreeTrainerOptions.MinimumStepSize);
             }
             return optimizationAlgorithm;
         }
@@ -554,7 +553,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 : base(trainset,
                     options.LearningRate,
                     options.Shrinkage,
-                    options.MaxTreeOutput,
+                    options.MaximumTreeOutput,
                     options.GetDerivativesSampleRate,
                     options.BestStepRankingRegressionTrees,
                     options.RandomSeed)

@@ -41,7 +41,7 @@ namespace Microsoft.ML.StaticPipe
             Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
             int numLeaves = Defaults.NumberOfLeaves,
             int numTrees = Defaults.NumberOfTrees,
-            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves,
+            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf,
             double learningRate = Defaults.LearningRate,
             Action<FastTreeRegressionModelParameters> onFit = null)
         {
@@ -134,7 +134,7 @@ namespace Microsoft.ML.StaticPipe
             Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
             int numLeaves = Defaults.NumberOfLeaves,
             int numTrees = Defaults.NumberOfTrees,
-            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves,
+            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf,
             double learningRate = Defaults.LearningRate,
             Action<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
@@ -226,7 +226,7 @@ namespace Microsoft.ML.StaticPipe
             Scalar<float> label, Vector<float> features, Key<uint, TVal> groupId, Scalar<float> weights = null,
             int numLeaves = Defaults.NumberOfLeaves,
             int numTrees = Defaults.NumberOfTrees,
-            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves,
+            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf,
             double learningRate = Defaults.LearningRate,
             Action<FastTreeRankingModelParameters> onFit = null)
         {

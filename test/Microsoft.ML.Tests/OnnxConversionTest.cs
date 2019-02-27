@@ -213,7 +213,7 @@ namespace Microsoft.ML.Tests
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingTransformer.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
-            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
+            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfLeaves: 2, numberOfTrees: 1, minimumExampleCountPerLeaf: 2));
 
             var model = pipeline.Fit(data);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
@@ -408,7 +408,7 @@ namespace Microsoft.ML.Tests
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
             .Append(mlContext.Transforms.Normalize("Features"))
-            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
+            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfLeaves: 2, numberOfTrees: 1, minimumExampleCountPerLeaf: 2));
 
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);

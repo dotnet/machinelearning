@@ -146,7 +146,7 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         public const int NumberOfTrees = 100;
         public const int NumberOfLeaves = 20;
-        public const int MinExampleCountInLeaves = 10;
+        public const int MinimumExampleCountPerLeaf = 10;
         public const double LearningRate = 0.2;
     }
 
@@ -320,7 +320,7 @@ namespace Microsoft.ML.Trainers.FastTree
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data", ShortName = "mil,MinDocumentsInLeafs", SortOrder = 3)]
         [TGUI(Description = "Minimum number of training instances required to form a leaf", SuggestedSweeps = "1,10,50")]
         [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
-        public int MinExampleCountPerLeaf = Defaults.MinExampleCountInLeaves;
+        public int MinExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf;
 
         /// <summary>
         /// Total number of decision trees to create in the ensemble.
@@ -463,13 +463,13 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Number of post-bracket line search steps.
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of post-bracket line search steps", ShortName = "lssteps,NumPostBracketSteps")]
-        public int MaxNumberOfLinearSearchSteps;
+        public int MaximumNumberOfLineSearchSteps;
 
         /// <summary>
         /// Minimum line search step size.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum line search step size", ShortName = "minstep")]
-        public Double MinStepSize;
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum line search step size", ShortName = "minstep,MinStepSize")]
+        public Double MinimumStepSize;
 
         public enum OptimizationAlgorithmType { GradientDescent, AcceleratedGradientDescent, ConjugateGradientDescent };
 
@@ -510,7 +510,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "The tolerance threshold for pruning", ShortName = "prth")]
         [TGUI(Description = "Pruning threshold")]
-        public Double PruningThreshold = 0.004;
+        public double PruningThreshold = 0.004;
 
         /// <summary>
         /// The moving window size for pruning.
@@ -525,7 +525,7 @@ namespace Microsoft.ML.Trainers.FastTree
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The learning rate", ShortName = "lr,LearningRates", SortOrder = 4)]
         [TGUI(Label = "Learning Rate", SuggestedSweeps = "0.025-0.4;log")]
         [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale: true)]
-        public Double LearningRate = Defaults.LearningRate;
+        public double LearningRate = Defaults.LearningRate;
 
         /// <summary>
         /// Shrinkage.
@@ -558,8 +558,8 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Upper bound on absolute value of single tree output.
         /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo")]
-        public Double MaxTreeOutput = 100;
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo,MaxTreeOutput")]
+        public Double MaximumTreeOutput = 100;
 
         /// <summary>
         /// Training starts from random ordering (determined by /r1).
@@ -630,14 +630,14 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             base.Check(ectx);
 
-            ectx.CheckUserArg(0 <= MaxTreeOutput, nameof(MaxTreeOutput), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= MaximumTreeOutput, nameof(MaximumTreeOutput), "Must be non-negative.");
             ectx.CheckUserArg(0 <= PruningThreshold, nameof(PruningThreshold), "Must be non-negative.");
             ectx.CheckUserArg(0 < PruningWindowSize, nameof(PruningWindowSize), "Must be positive.");
             ectx.CheckUserArg(0 < Shrinkage, nameof(Shrinkage), "Must be positive.");
             ectx.CheckUserArg(0 <= DropoutRate && DropoutRate <= 1, nameof(DropoutRate), "Must be between 0 and 1.");
             ectx.CheckUserArg(0 < GetDerivativesSampleRate, nameof(GetDerivativesSampleRate), "Must be positive.");
-            ectx.CheckUserArg(0 <= MaxNumberOfLinearSearchSteps, nameof(MaxNumberOfLinearSearchSteps), "Must be non-negative.");
-            ectx.CheckUserArg(0 <= MinStepSize, nameof(MinStepSize), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= MaximumNumberOfLineSearchSteps, nameof(MaximumNumberOfLineSearchSteps), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= MinimumStepSize, nameof(MinimumStepSize), "Must be non-negative.");
         }
     }
 }

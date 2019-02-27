@@ -72,7 +72,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var trainer = new BinaryClassificationGamTrainer(Env, new BinaryClassificationGamTrainer.Options
             {
                 GainConfidenceLevel = 0,
-                NumIterations = 15,
+                NumberOfIterations = 15,
             });
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var trainer = new RegressionGamTrainer(Env, new RegressionGamTrainer.Options
             {
                 EnablePruning = false,
-                NumIterations = 15,
+                NumberOfIterations = 15,
             });
 
             TestEstimatorCore(trainer, dataView);

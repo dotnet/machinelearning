@@ -162,7 +162,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected double BsrMaxTreeOutput()
         {
             if (FastTreeTrainerOptions.BestStepRankingRegressionTrees)
-                return FastTreeTrainerOptions.MaxTreeOutput;
+                return FastTreeTrainerOptions.MaximumTreeOutput;
             else
                 return -1;
         }

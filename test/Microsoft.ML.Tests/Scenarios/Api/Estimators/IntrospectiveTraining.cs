@@ -51,7 +51,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var ml = new MLContext(seed: 1, conc: 1);
             var data = ml.Data.LoadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true, allowQuoting: true);
 
-            var trainer = ml.BinaryClassification.Trainers.FastTree(numLeaves: 5, numTrees: 3);
+            var trainer = ml.BinaryClassification.Trainers.FastTree(numberOfLeaves: 5, numberOfTrees: 3);
 
             BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> pred = null;
 

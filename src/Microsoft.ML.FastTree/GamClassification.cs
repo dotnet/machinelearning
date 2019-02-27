@@ -69,9 +69,9 @@ namespace Microsoft.ML.Trainers.FastTree
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
-            int numIterations = GamDefaults.NumIterations,
-            double learningRate = GamDefaults.LearningRates,
-            int maxBins = GamDefaults.MaxBins)
+            int numIterations = GamDefaults.NumberOfIterations,
+            double learningRate = GamDefaults.LearningRate,
+            int maxBins = GamDefaults.MaximumBinCountPerFeature)
             : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, numIterations, learningRate, maxBins)
         {
             _sigmoidParameter = 1;
@@ -115,14 +115,14 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FastTreeBinaryClassificationTrainer.ObjectiveImpl(
                 TrainSet,
                 ConvertTargetsToBool(TrainSet.Targets),
-                GamTrainerOptions.LearningRates,
+                GamTrainerOptions.LearningRate,
                 0,
                 _sigmoidParameter,
                 GamTrainerOptions.UnbalancedSets,
-                GamTrainerOptions.MaxOutput,
+                GamTrainerOptions.MaximumTreeOutput,
                 GamTrainerOptions.GetDerivativesSampleRate,
                 false,
-                GamTrainerOptions.RngSeed,
+                GamTrainerOptions.Seed,
                 ParallelTraining
             );
         }

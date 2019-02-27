@@ -8,7 +8,6 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
 
@@ -65,7 +64,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string weightColumn = null,
             int numLeaves = Defaults.NumberOfLeaves,
             int numTrees = Defaults.NumberOfTrees,
-            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves,
+            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf,
             double learningRate = Defaults.LearningRate)
             : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, learningRate)
         {
@@ -127,7 +126,7 @@ namespace Microsoft.ML.Trainers.FastTree
             {
                 var lossCalculator = new RegressionTest(optimizationAlgorithm.TrainingScores);
                 // REVIEW: We should make loss indices an enum in BinaryClassificationTest.
-                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, 1 /*L2 error*/, FastTreeTrainerOptions.MaxNumberOfLinearSearchSteps, FastTreeTrainerOptions.MinStepSize);
+                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, 1 /*L2 error*/, FastTreeTrainerOptions.MaximumNumberOfLineSearchSteps, FastTreeTrainerOptions.MinimumStepSize);
             }
 
             return optimizationAlgorithm;
@@ -390,12 +389,12 @@ namespace Microsoft.ML.Trainers.FastTree
             public ObjectiveImpl(Dataset trainData, RegressionGamTrainer.Options options) :
                 base(
                     trainData,
-                    options.LearningRates,
+                    options.LearningRate,
                     0,
-                    options.MaxOutput,
+                    options.MaximumTreeOutput,
                     options.GetDerivativesSampleRate,
                     false,
-                    options.RngSeed)
+                    options.Seed)
             {
                 _labels = GetDatasetRegressionLabels(trainData);
             }
@@ -405,7 +404,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     trainData,
                     options.LearningRate,
                     options.Shrinkage,
-                    options.MaxTreeOutput,
+                    options.MaximumTreeOutput,
                     options.GetDerivativesSampleRate,
                     options.BestStepRankingRegressionTrees,
                     options.RandomSeed)

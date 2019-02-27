@@ -10,7 +10,6 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
 
@@ -32,8 +31,8 @@ namespace Microsoft.ML.Trainers.FastTree
 {
     public abstract class FastForestOptionsBase : TreeOptions
     {
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Number of labels to be sampled from each leaf to make the distribtuion", ShortName = "qsc")]
-        public int QuantileSampleCount = 100;
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Number of labels to be sampled from each leaf to make the distribtuion", ShortName = "qsc,QuantileSampleCount")]
+        public int NumberOfQuantileSamples = 100;
 
         public FastForestOptionsBase()
         {
@@ -111,8 +110,8 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         public sealed class Options : FastForestOptionsBase
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo")]
-            public Double MaxTreeOutput = 100;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo,MaxTreeOutput")]
+            public Double MaximumOutputMagnitudePerTree = 100;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
@@ -147,7 +146,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string weightColumn = null,
             int numLeaves = Defaults.NumberOfLeaves,
             int numTrees = Defaults.NumberOfTrees,
-            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves)
+            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf)
             : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -231,7 +230,7 @@ namespace Microsoft.ML.Trainers.FastTree
             private readonly bool[] _labels;
 
             public ObjectiveFunctionImpl(Dataset trainSet, bool[] trainSetLabels, Options options)
-                : base(trainSet, options, options.MaxTreeOutput)
+                : base(trainSet, options, options.MaximumOutputMagnitudePerTree)
             {
                 _labels = trainSetLabels;
             }

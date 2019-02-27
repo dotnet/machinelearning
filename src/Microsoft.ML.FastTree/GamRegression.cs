@@ -55,9 +55,9 @@ namespace Microsoft.ML.Trainers.FastTree
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
-            int numIterations = GamDefaults.NumIterations,
-            double learningRate = GamDefaults.LearningRates,
-            int maxBins = GamDefaults.MaxBins)
+            int numIterations = GamDefaults.NumberOfIterations,
+            double learningRate = GamDefaults.LearningRate,
+            int maxBins = GamDefaults.MaximumBinCountPerFeature)
             : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, numIterations, learningRate, maxBins)
         {
         }

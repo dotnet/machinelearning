@@ -9,7 +9,6 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
@@ -63,7 +62,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string weightColumn = null,
             int numLeaves = Defaults.NumberOfLeaves,
             int numTrees = Defaults.NumberOfTrees,
-            int minDatapointsInLeaves = Defaults.MinExampleCountInLeaves,
+            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf,
             double learningRate = Defaults.LearningRate)
             : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, learningRate)
         {
@@ -134,7 +133,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 var lossCalculator = new RegressionTest(optimizationAlgorithm.TrainingScores);
                 // REVIEW: We should make loss indices an enum in BinaryClassificationTest.
                 // REVIEW: Nope, subcomponent.
-                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, 1 /*L2 error*/, FastTreeTrainerOptions.MaxNumberOfLinearSearchSteps, FastTreeTrainerOptions.MinStepSize);
+                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, 1 /*L2 error*/, FastTreeTrainerOptions.MaximumNumberOfLineSearchSteps, FastTreeTrainerOptions.MinimumStepSize);
             }
 
             return optimizationAlgorithm;
@@ -343,7 +342,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     trainData,
                     options.LearningRate,
                     options.Shrinkage,
-                    options.MaxTreeOutput,
+                    options.MaximumTreeOutput,
                     options.GetDerivativesSampleRate,
                     options.BestStepRankingRegressionTrees,
                     options.RandomSeed)
@@ -361,7 +360,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 _index1 = 1 - options.Index;
                 _index2 = 2 - options.Index;
-                _maxClamp = Math.Abs(options.MaxTreeOutput);
+                _maxClamp = Math.Abs(options.MaximumTreeOutput);
             }
 
             public void AdjustTreeOutputs(IChannel ch, InternalRegressionTree tree, DocumentPartitioning partitioning, ScoreTracker trainingScores)

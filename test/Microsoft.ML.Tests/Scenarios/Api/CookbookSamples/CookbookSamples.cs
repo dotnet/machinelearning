@@ -405,7 +405,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var dynamicpipeline = mlContext.Transforms.Categorical.OneHotEncoding("DemographicCategory")
                 .Append(new ColumnConcatenatingEstimator (mlContext, "Features", "DemographicCategory", "LastVisits"))
                 .AppendCacheCheckpoint(mlContext) // FastTree will benefit from caching data in memory.
-                .Append(mlContext.BinaryClassification.Trainers.FastTree("HasChurned", "Features", numTrees: 20));
+                .Append(mlContext.BinaryClassification.Trainers.FastTree("HasChurned", "Features", numberOfTrees: 20));
 
             var dynamicModel = dynamicpipeline.Fit(trainData);
 
