@@ -297,7 +297,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             // Create the reader: define the data columns and where to find them in the text file.
-            var input = mlContext.Data.ReadFromTextFile(dataPath, new[] {
+            var input = mlContext.Data.LoadFromTextFile(dataPath, new[] {
                             new TextLoader.Column("Label", DataKind.Boolean, 0),
                             new TextLoader.Column("Workclass", DataKind.String, 1),
                             new TextLoader.Column("Education", DataKind.String,2),

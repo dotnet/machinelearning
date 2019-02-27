@@ -16,8 +16,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataPath = GetDataPath("breast-cancer.txt");
 
-            var regressionData = TextLoaderStatic.CreateReader(ML, ctx => (Label: ctx.LoadFloat(0), Features: ctx.LoadFloat(1, 10)))
-                .Read(dataPath);
+            var regressionData = TextLoaderStatic.CreateLoader(ML, ctx => (Label: ctx.LoadFloat(0), Features: ctx.LoadFloat(1, 10)))
+                .Load(dataPath);
 
             var regressionPipe = regressionData.MakeNewEstimator()
                 .Append(r => (r.Label, Features: r.Features.Normalize()));
@@ -29,8 +29,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var ogdModel = ogdTrainer.Fit(regressionTrainData);
             ogdTrainer.Fit(regressionTrainData, ogdModel.Model);
 
-            var binaryData = TextLoaderStatic.CreateReader(ML, ctx => (Label: ctx.LoadBool(0), Features: ctx.LoadFloat(1, 10)))
-               .Read(dataPath);
+            var binaryData = TextLoaderStatic.CreateLoader(ML, ctx => (Label: ctx.LoadBool(0), Features: ctx.LoadFloat(1, 10)))
+               .Load(dataPath);
 
             var binaryPipe = binaryData.MakeNewEstimator()
                 .Append(r => (r.Label, Features: r.Features.Normalize()));

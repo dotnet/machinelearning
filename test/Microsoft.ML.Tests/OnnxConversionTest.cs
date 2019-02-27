@@ -50,7 +50,7 @@ namespace Microsoft.ML.Tests
             // Step 1: Create and train a ML.NET pipeline.
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var data = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
+            var data = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
                 separatorChar: ';'
 ,
                 hasHeader: true);
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Tests
 
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var data = mlContext.Data.ReadFromTextFile<BreastCancerFeatureVector>(dataPath,
+            var data = mlContext.Data.LoadFromTextFile<BreastCancerFeatureVector>(dataPath,
                 separatorChar: '\t',
                 hasHeader: true);
 
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Tests
 
             string dataPath = GetDataPath("breast-cancer.txt");
 
-            var data = mlContext.Data.ReadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
+            var data = mlContext.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
                 separatorChar: '\t',
                 hasHeader: true);
 
@@ -304,7 +304,7 @@ namespace Microsoft.ML.Tests
             // Step 1: Create and train a ML.NET pipeline.
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var data = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
+            var data = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
                 separatorChar: ';'
 ,
                 hasHeader: true);
@@ -337,7 +337,7 @@ namespace Microsoft.ML.Tests
             // Step 1: Create and train a ML.NET pipeline.
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var data = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
+            var data = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
                 separatorChar: ';'
 ,
                 hasHeader: true);
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
-            var data = mlContext.Data.ReadFromTextFile<BreastCancerMulticlassExample>(dataPath,
+            var data = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExample>(dataPath,
                 separatorChar: '\t',
                 hasHeader: true);
 
@@ -400,7 +400,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
-            var data = mlContext.Data.ReadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
+            var data = mlContext.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
                 separatorChar: '\t',
                 hasHeader: true);
 
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
             var dataPath = GetDataPath(@"small-sentiment-test.tsv");
             var embedNetworkPath = GetDataPath(@"shortsentiment.emd");
-            var data = mlContext.Data.ReadFromTextFile<SmallSentimentExample>(dataPath, separatorChar: '\t', hasHeader: false);
+            var data = mlContext.Data.LoadFromTextFile<SmallSentimentExample>(dataPath, separatorChar: '\t', hasHeader: false);
 
             var pipeline = mlContext.Transforms.Text.ExtractWordEmbeddings("Embed", embedNetworkPath, "Tokens");
             var model = pipeline.Fit(data);

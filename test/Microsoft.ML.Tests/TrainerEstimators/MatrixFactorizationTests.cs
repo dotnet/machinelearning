@@ -27,11 +27,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // This data contains three columns, Label, Col, and Row where Col and Row will be treated as the expected input names
             // of the trained matrix factorization model.
             var data = new TextLoader(Env, GetLoaderArgs(labelColumnName, matrixColumnIndexColumnName, matrixRowIndexColumnName))
-                    .Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
+                    .Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
 
             // "invalidData" is not compatible to "data" because it contains columns Label, ColRenamed, and RowRenamed (no column is Col or Row).
             var invalidData = new TextLoader(Env, GetLoaderArgs(labelColumnName, matrixColumnIndexColumnName + "Renamed", matrixRowIndexColumnName + "Renamed"))
-                    .Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
+                    .Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
 
             var options = new MatrixFactorizationTrainer.Options
             {
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var reader = new TextLoader(mlContext, GetLoaderArgs(labelColumnName, userColumnName, itemColumnName));
 
             // Read training data as an IDataView object
-            var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
+            var data = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
 
             // Create a pipeline with a single operator.
             var options = new MatrixFactorizationTrainer.Options
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.Equal(rightMatrix[rightMatrix.Count - 1], (double)0.380032182, 5);
             }
             // Read the test data set as an IDataView
-            var testData = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
+            var testData = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
 
             // Apply the trained model to the test set
             var prediction = model.Transform(testData);

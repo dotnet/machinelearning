@@ -182,7 +182,7 @@ namespace Microsoft.ML.RunTests
             actLoader?.Invoke(compositeLoader);
 
             // Re-apply pipe to the loader and check equality.
-            var comp = compositeLoader as CompositeDataLoader;
+            var comp = compositeLoader as LegacyCompositeDataLoader;
             IDataView srcLoader = null;
             if (comp != null)
             {
@@ -320,7 +320,7 @@ namespace Microsoft.ML.RunTests
         protected void VerifyArgParsing(IHostEnvironment env, string[] strs)
         {
             string str = CmdParser.CombineSettings(strs);
-            var args = new CompositeDataLoader.Arguments();
+            var args = new LegacyCompositeDataLoader.Arguments();
             if (!CmdParser.ParseArguments(Env, str, args))
             {
                 Fail("Parsing arguments failed!");
@@ -412,7 +412,7 @@ namespace Microsoft.ML.RunTests
 
             // Note that we don't pass in "args", but pass in a default args so we test
             // the auto-schema parsing.
-            var loadedData = ML.Data.ReadFromTextFile(pathData, options: args);
+            var loadedData = ML.Data.LoadFromTextFile(pathData, options: args);
             if (!CheckMetadataTypes(loadedData.Schema))
                 Failed();
 

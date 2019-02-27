@@ -67,7 +67,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new NormalizingEstimator.LogMeanVarColumnOptions("double1lmv", "double1"),
                 new NormalizingEstimator.LogMeanVarColumnOptions("double4lmv", "double4"));
 
-            var data = loader.Read(dataPath);
+            var data = loader.Load(dataPath);
 
             var badData1 = new ColumnCopyingTransformer(Env, ("float1", "int1")).Transform(data);
             var badData2 = new ColumnCopyingTransformer(Env, ("float4", "float0")).Transform(data);
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new NormalizingEstimator.LogMeanVarColumnOptions("double1lmv", "double1"),
                 new NormalizingEstimator.LogMeanVarColumnOptions("double4lmv", "double4"));
 
-            var data = loader.Read(dataPath);
+            var data = loader.Load(dataPath);
 
             var transformer = est.Fit(data);
 
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Tests.Transformers
                 }
             });
 
-            var data = loader.Read(dataPath);
+            var data = loader.Load(dataPath);
 
             var est1 = new NormalizingEstimator(Env, "float4");
             var est2 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizerMode.MinMax, ("float4", "float4"));
@@ -265,15 +265,15 @@ namespace Microsoft.ML.Tests.Transformers
         public void LpGcNormAndWhiteningWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var data = TextLoaderStatic.CreateReader(ML,
+            var data = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource);
+                .Load(dataSource);
 
-            var invalidData = TextLoaderStatic.CreateReader(ML,
+            var invalidData = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource);
+                .Load(dataSource);
 
             var est = ML.Transforms.Projection.LpNormalize("lpnorm", "features")
                 .Append(ML.Transforms.Projection.GlobalContrastNormalize("gcnorm", "features"))
@@ -299,15 +299,15 @@ namespace Microsoft.ML.Tests.Transformers
         public void WhiteningWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var data = TextLoaderStatic.CreateReader(ML,
+            var data = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource);
+                .Load(dataSource);
 
-            var invalidData = TextLoaderStatic.CreateReader(ML,
+            var invalidData = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource);
+                .Load(dataSource);
 
             var est = new VectorWhiteningEstimator(ML, "whitened1", "features")
                 .Append(new VectorWhiteningEstimator(ML, "whitened2", "features", kind: WhiteningKind.Pca, pcaNum: 5));
@@ -340,10 +340,10 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestWhiteningOldSavingAndLoading()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var dataView = TextLoaderStatic.CreateReader(ML,
+            var dataView = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource).AsDynamic;
+                .Load(dataSource).AsDynamic;
             var pipe = new VectorWhiteningEstimator(ML, "whitened", "features");
 
             var result = pipe.Fit(dataView).Transform(dataView);
@@ -361,15 +361,15 @@ namespace Microsoft.ML.Tests.Transformers
         public void LpNormWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var data = TextLoaderStatic.CreateReader(ML,
+            var data = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource);
+                .Load(dataSource);
 
-            var invalidData = TextLoaderStatic.CreateReader(ML,
+            var invalidData = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource);
+                .Load(dataSource);
 
             var est = ML.Transforms.Projection.LpNormalize("lpNorm1", "features")
                 .Append(ML.Transforms.Projection.LpNormalize("lpNorm2", "features", normKind: LpNormalizingEstimatorBase.NormalizerKind.L1Norm, subMean: true));
@@ -400,10 +400,10 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestLpNormOldSavingAndLoading()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var dataView = TextLoaderStatic.CreateReader(ML,
+            var dataView = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource).AsDynamic;
+                .Load(dataSource).AsDynamic;
             var pipe = ML.Transforms.Projection.LpNormalize("whitened", "features");
 
             var result = pipe.Fit(dataView).Transform(dataView);
@@ -420,15 +420,15 @@ namespace Microsoft.ML.Tests.Transformers
         public void GcnWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var data = TextLoaderStatic.CreateReader(ML,
+            var data = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource);
+                .Load(dataSource);
 
-            var invalidData = TextLoaderStatic.CreateReader(ML,
+            var invalidData = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource);
+                .Load(dataSource);
 
             var est = ML.Transforms.Projection.GlobalContrastNormalize("gcnNorm1", "features")
                 .Append(ML.Transforms.Projection.GlobalContrastNormalize("gcnNorm2", "features", substractMean: false, useStdDev: true, scale: 3));
@@ -459,10 +459,10 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestGcnNormOldSavingAndLoading()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var dataView = TextLoaderStatic.CreateReader(ML,
+            var dataView = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource).AsDynamic;
+                .Load(dataSource).AsDynamic;
             var pipe = ML.Transforms.Projection.GlobalContrastNormalize("whitened", "features");
 
             var result = pipe.Fit(dataView).Transform(dataView);

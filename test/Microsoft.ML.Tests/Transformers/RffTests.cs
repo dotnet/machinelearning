@@ -65,12 +65,12 @@ namespace Microsoft.ML.Tests.Transformers
         public void RffStatic()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
                 VectorFloat: ctx.LoadFloat(1, 8),
                 Label: ctx.LoadFloat(0)
             ));
 
-            var data = reader.Read(dataPath);
+            var data = reader.Load(dataPath);
 
             var est = data.MakeNewEstimator()
                 .Append(row => (

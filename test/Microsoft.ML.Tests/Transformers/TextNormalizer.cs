@@ -51,11 +51,11 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataView);
 
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
-            dataView = reader.Read(dataSource).AsDynamic;
+            dataView = reader.Load(dataSource).AsDynamic;
 
             var pipeVariations = new TextNormalizingEstimator(ML, columns: new[] { ("NormText", "text") }).Append(
                                 new TextNormalizingEstimator(ML, textCase: TextNormalizingEstimator.CaseNormalizationMode.Upper, columns: new[] { ("UpperText", "text") })).Append(

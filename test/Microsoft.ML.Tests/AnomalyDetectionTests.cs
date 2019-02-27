@@ -50,15 +50,15 @@ namespace Microsoft.ML.Tests
 
         private IDataView DetectAnomalyInMnistOneClass(string trainPath, string testPath)
         {
-            var reader = ML.Data.CreateTextLoader(new[]
+            var loader = ML.Data.CreateTextLoader(new[]
             {
                 new TextLoader.Column(DefaultColumnNames.Label, DataKind.Single, 0),
                 new TextLoader.Column(DefaultColumnNames.Features, DataKind.Single, 1, 784)
             },
             allowSparse: true);
 
-            var trainData = reader.Read(trainPath);
-            var testData = reader.Read(testPath);
+            var trainData = loader.Load(trainPath);
+            var testData = loader.Load(testPath);
 
             var trainer = ML.AnomalyDetection.Trainers.RandomizedPca();
 

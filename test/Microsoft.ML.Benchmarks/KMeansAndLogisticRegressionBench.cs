@@ -22,7 +22,7 @@ namespace Microsoft.ML.Benchmarks
             var ml = new MLContext(seed: 1);
             // Pipeline
 
-            var input = ml.Data.ReadFromTextFile(_dataPath, new[] {
+            var input = ml.Data.LoadFromTextFile(_dataPath, new[] {
                             new TextLoader.Column("Label", DataKind.Boolean, 0),
                             new TextLoader.Column("CatFeatures", DataKind.String,
                                 new [] {

@@ -28,7 +28,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             var ml = new MLContext();
             var data = ml.Data.CreateTextLoader(TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',')
-                .Read(dataPath);
+                .Load(dataPath);
 
             Action<IrisData, IrisData> action = (i, j) =>
             {
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
             var engine = model.CreatePredictionEngine<IrisDataNoLabel, IrisPrediction>(ml);
 
-            var testLoader = ml.Data.ReadFromTextFile(dataPath, TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',');
+            var testLoader = ml.Data.LoadFromTextFile(dataPath, TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',');
             var testData = ml.Data.CreateEnumerable<IrisData>(testLoader, false);
             foreach (var input in testData.Take(20))
             {

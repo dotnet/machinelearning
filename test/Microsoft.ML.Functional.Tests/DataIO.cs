@@ -75,7 +75,7 @@ namespace Microsoft.ML.Functional.Tests
             {
                 // Serialize a dataset with a known schema to a file.
                 var filePath = SerializeDatasetToFile(mlContext, dataBefore, separator);
-                var dataAfter = TypeTestData.GetTextLoader(mlContext, separator).Read(filePath);
+                var dataAfter = TypeTestData.GetTextLoader(mlContext, separator).Load(filePath);
                 Common.AssertTestTypeDatasetsAreEqual(mlContext, dataBefore, dataAfter);
             }
         }
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Functional.Tests
             {
                 // Serialize a dataset with a known schema to a file.
                 var filePath = SerializeDatasetToFile(mlContext, dataBefore, separator);
-                var dataAfter = mlContext.Data.ReadFromTextFile<TypeTestData>(filePath, separatorChar: separator, hasHeader: true, allowQuoting: true);
+                var dataAfter = mlContext.Data.LoadFromTextFile<TypeTestData>(filePath, separatorChar: separator, hasHeader: true, allowQuoting: true);
                 Common.AssertTestTypeDatasetsAreEqual(mlContext, dataBefore, dataAfter);
             }
         }
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Serialize a dataset with a known schema to a file.
             var filePath = SerializeDatasetToBinaryFile(mlContext, dataBefore);
-            var dataAfter = mlContext.Data.ReadFromBinary(filePath);
+            var dataAfter = mlContext.Data.LoadFromBinary(filePath);
             Common.AssertTestTypeDatasetsAreEqual(mlContext, dataBefore, dataAfter);
         }
 

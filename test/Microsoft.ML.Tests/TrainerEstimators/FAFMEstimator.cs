@@ -42,7 +42,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void FieldAwareFactorizationMachine_Estimator()
         {
             var data = new TextLoader(Env, GetFafmBCLoaderArgs())
-                    .Read(GetDataPath(TestDatasets.breastCancer.trainFilename));
+                    .Load(GetDataPath(TestDatasets.breastCancer.trainFilename));
 
             var ffmArgs = new FieldAwareFactorizationMachineBinaryClassificationTrainer.Options {
                 FeatureColumn = "Feature1", // Features from the 1st field.

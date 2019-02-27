@@ -97,10 +97,10 @@ namespace Microsoft.ML.Tests
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoaderStatic.CreateReader(env, ctx => (
+            var data = TextLoaderStatic.CreateLoader(env, ctx => (
                 imagePath: ctx.LoadText(0),
                 name: ctx.LoadText(1)))
-                .Read(dataFile);
+                .Load(dataFile);
 
             var pipe = data.MakeNewEstimator()
                 .Append(row => (

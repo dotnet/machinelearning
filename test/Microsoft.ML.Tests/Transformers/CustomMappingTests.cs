@@ -54,7 +54,7 @@ namespace Microsoft.ML.Tests.Transformers
                     new TextLoader.Column("Float4", DataKind.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) })
             }, hasHeader: true);
 
-            var data = loader.Read(source);
+            var data = loader.Load(source);
 
             IDataView transformedData;
             // We create a temporary environment to instantiate the custom transformer. This is to ensure that we don't need the same
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Tests.Transformers
                     new TextLoader.Column("Text1", DataKind.String, 0)
             }, separatorChar: ',', hasHeader: true);
 
-            var data = loader.Read(source);
+            var data = loader.Load(source);
 
             Action<MyInput, MyOutput> mapping = (input, output) => output.Together = input.Float1.ToString();
             var est = ML.Transforms.CustomMapping(mapping, null);

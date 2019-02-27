@@ -85,10 +85,10 @@ namespace Microsoft.ML.Tests
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var reader = TextLoaderStatic.CreateReader(env,
+            var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            var data = reader.Read(dataSource);
+            var data = reader.Load(dataSource);
 
             var cachedData = data.Cache();
 

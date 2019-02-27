@@ -17,8 +17,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataPath = GetDataPath("breast-cancer.txt");
 
-            var data = TextLoaderStatic.CreateReader(Env, ctx => (Label: ctx.LoadFloat(0), Features: ctx.LoadFloat(1, 10)))
-                .Read(dataPath).Cache();
+            var data = TextLoaderStatic.CreateLoader(Env, ctx => (Label: ctx.LoadFloat(0), Features: ctx.LoadFloat(1, 10)))
+                .Load(dataPath).Cache();
 
             var binaryTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
                 new SdcaBinaryTrainer.Options { ConvergenceTolerance = 1e-2f });

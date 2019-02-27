@@ -78,7 +78,7 @@ namespace Microsoft.ML.Tests
                     new ValueToKeyMappingEstimator.ColumnOptions("TermText1", "text1"),
                     new ValueToKeyMappingEstimator.ColumnOptions("TermText2", "text2")
                 });
-            var data = loader.Read(dataPath);
+            var data = loader.Load(dataPath);
             data = ML.Data.TakeRows(data, 10);
             var outputPath = GetOutputPath("Term", "Term.tsv");
             using (var ch = Env.Start("save"))
