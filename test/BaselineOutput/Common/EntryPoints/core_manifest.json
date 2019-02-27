@@ -2168,7 +2168,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -2399,7 +2398,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -4218,7 +4216,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -4623,7 +4620,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -4825,7 +4821,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -5027,7 +5022,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -5244,7 +5238,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -5895,7 +5888,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -6538,7 +6530,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -7450,7 +7441,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -8443,7 +8433,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -9343,7 +9332,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -10119,10 +10107,11 @@
           "IsNullable": false
         },
         {
-          "Name": "Iters",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Number of training iterations",
           "Aliases": [
+            "iters",
             "iter"
           ],
           "Required": false,
@@ -10148,7 +10137,7 @@
           "Default": "Features"
         },
         {
-          "Name": "LatentDim",
+          "Name": "LatentDimension",
           "Type": "Int",
           "Desc": "Latent space dimension",
           "Aliases": [
@@ -10245,7 +10234,7 @@
           "Default": "Auto"
         },
         {
-          "Name": "Norm",
+          "Name": "Normalize",
           "Type": "Bool",
           "Desc": "Whether to normalize the input vectors so that the concatenation of all fields' feature vectors is unit-length",
           "Aliases": [
@@ -10263,7 +10252,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -10488,7 +10476,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -10789,7 +10776,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -11020,7 +11006,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -11324,7 +11309,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -11828,7 +11812,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -12332,7 +12315,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -12836,7 +12818,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -13233,7 +13214,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -13502,7 +13482,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -13814,7 +13793,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -14114,7 +14092,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -14212,7 +14189,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -14538,7 +14514,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -14669,7 +14644,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -14848,7 +14822,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -15183,7 +15156,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -15488,7 +15460,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -15758,7 +15729,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -15993,7 +15963,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -16266,7 +16235,6 @@
             "Values": [
               "Auto",
               "Memory",
-              "Disk",
               "None"
             ]
           },
@@ -17828,47 +17796,6 @@
           "Name": "Model",
           "Type": "TransformModel",
           "Desc": "Transform model"
-        }
-      ],
-      "InputKind": [
-        "ITransformInput"
-      ]
-    },
-    {
-      "Name": "Transforms.DataCache",
-      "Desc": "Caches using the specified cache option.",
-      "FriendlyName": "Cache Data",
-      "ShortName": null,
-      "Inputs": [
-        {
-          "Name": "Data",
-          "Type": "DataView",
-          "Desc": "Input dataset",
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Caching",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "Memory",
-              "Disk"
-            ]
-          },
-          "Desc": "Caching strategy",
-          "Required": true,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": "Memory"
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "OutputData",
-          "Type": "DataView",
-          "Desc": "Dataset"
         }
       ],
       "InputKind": [
@@ -25301,7 +25228,6 @@
                 "Values": [
                   "Auto",
                   "Memory",
-                  "Disk",
                   "None"
                 ]
               },
@@ -26195,7 +26121,6 @@
                 "Values": [
                   "Auto",
                   "Memory",
-                  "Disk",
                   "None"
                 ]
               },
@@ -27170,7 +27095,6 @@
                 "Values": [
                   "Auto",
                   "Memory",
-                  "Disk",
                   "None"
                 ]
               },
@@ -28052,7 +27976,6 @@
                 "Values": [
                   "Auto",
                   "Memory",
-                  "Disk",
                   "None"
                 ]
               },

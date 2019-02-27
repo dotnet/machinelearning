@@ -32,7 +32,7 @@ namespace Microsoft.ML.Data.IO
     /// </summary>
     /// <seealso cref="TransposeSaver"/>
     [BestFriend]
-    internal sealed class TransposeLoader : IDataLoader, ITransposeDataView
+    internal sealed class TransposeLoader : ILegacyDataLoader, ITransposeDataView
     {
         public sealed class Arguments
         {

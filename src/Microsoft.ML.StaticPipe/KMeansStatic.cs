@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Trainers.KMeans;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.StaticPipe
 {

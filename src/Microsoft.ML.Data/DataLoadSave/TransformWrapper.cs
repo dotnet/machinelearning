@@ -98,7 +98,7 @@ namespace Microsoft.ML.Data
             int n = ctx.Reader.ReadInt32();
             _host.CheckDecode(n >= 0);
 
-            ctx.LoadModel<IDataLoader, SignatureLoadDataLoader>(env, out var loader, "Loader", new MultiFileSource(null));
+            ctx.LoadModel<ILegacyDataLoader, SignatureLoadDataLoader>(env, out var loader, "Loader", new MultiFileSource(null));
 
             IDataView data = loader;
             for (int i = 0; i < n; i++)

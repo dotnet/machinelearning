@@ -20,10 +20,8 @@ namespace Microsoft.ML.RunTests
     using Microsoft.ML.LightGBM;
     using Microsoft.ML.TestFramework;
     using Microsoft.ML.Trainers;
-    using Microsoft.ML.Trainers.Ensemble;
     using Microsoft.ML.Trainers.FastTree;
     using Microsoft.ML.Trainers.HalLearners;
-    using Microsoft.ML.Trainers.Online;
     using Xunit;
     using Xunit.Abstractions;
     using TestLearners = TestLearnersBase;
@@ -605,7 +603,7 @@ namespace Microsoft.ML.RunTests
         public void TestTreeEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = ML.Data.ReadFromTextFile(dataPath);
+            var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
@@ -626,7 +624,7 @@ namespace Microsoft.ML.RunTests
         public void TestTreeEnsembleCombinerWithCategoricalSplits()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var dataView = ML.Data.ReadFromTextFile(dataPath);
+            var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var cat = ML.Transforms.Categorical.OneHotEncoding("Features", "Categories").Fit(dataView).Transform(dataView);
             var fastTrees = new PredictorModel[3];
@@ -728,7 +726,7 @@ namespace Microsoft.ML.RunTests
         public void TestEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = ML.Data.ReadFromTextFile(dataPath);
+            var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var predictors = new PredictorModel[]
             {
@@ -773,7 +771,7 @@ namespace Microsoft.ML.RunTests
         public void TestMultiClassEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = ML.Data.ReadFromTextFile(dataPath);
+            var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var predictors = new PredictorModel[]
             {
@@ -1804,27 +1802,24 @@ output Out [3] from H all;
         [TestCategory("Anomaly")]
         public void CompareSvmPredictorResultsToLibSvm()
         {
-            using (var env = new LocalEnvironment(1, conc: 1))
-            {
-                IDataView trainView = new TextLoader(env, new TextLoader.Options(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.trainFilename)));
-                trainView =
-                    NormalizeTransform.Create(env,
-                        new NormalizeTransform.MinMaxArguments()
-                        {
-                            Column = new[] { new NormalizeTransform.AffineColumn() { Name = "Features", Source = "Features" } }
-                        },
-                     trainView);
-                var trainData = new RoleMappedData(trainView, "Label", "Features");
-                IDataView testView = new TextLoader(env, new TextLoader.Options(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.testFilename)));
-                ApplyTransformUtils.ApplyAllTransformsToData(env, trainView, testView);
-                var testData = new RoleMappedData(testView, "Label", "Features");
+            var env = new LocalEnvironment(1, conc: 1);
+            IDataView trainView = new TextLoader(env, new TextLoader.Options(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.trainFilename)));
+            trainView =
+                NormalizeTransform.Create(env,
+                    new NormalizeTransform.MinMaxArguments()
+                    {
+                        Column = new[] { new NormalizeTransform.AffineColumn() { Name = "Features", Source = "Features" } }
+                    },
+                    trainView);
+            var trainData = new RoleMappedData(trainView, "Label", "Features");
+            IDataView testView = new TextLoader(env, new TextLoader.Options(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.testFilename)));
+            ApplyTransformUtils.ApplyAllTransformsToData(env, trainView, testView);
+            var testData = new RoleMappedData(testView, "Label", "Features");
 
-                CompareSvmToLibSvmCore("linear kernel", "LinearKernel", env, trainData, testData);
-                CompareSvmToLibSvmCore("polynomial kernel", "PolynomialKernel{d=2}", env, trainData, testData);
-                CompareSvmToLibSvmCore("RBF kernel", "RbfKernel", env, trainData, testData);
-                CompareSvmToLibSvmCore("sigmoid kernel", "SigmoidKernel", env, trainData, testData);
-            }
-
+            CompareSvmToLibSvmCore("linear kernel", "LinearKernel", env, trainData, testData);
+            CompareSvmToLibSvmCore("polynomial kernel", "PolynomialKernel{d=2}", env, trainData, testData);
+            CompareSvmToLibSvmCore("RBF kernel", "RbfKernel", env, trainData, testData);
+            CompareSvmToLibSvmCore("sigmoid kernel", "SigmoidKernel", env, trainData, testData);
             Done();
         }
 #endif

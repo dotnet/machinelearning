@@ -66,7 +66,7 @@ namespace Microsoft.ML.Data
 
         private void RunCore(IChannel ch)
         {
-            IDataLoader loader = CreateAndSaveLoader();
+            ILegacyDataLoader loader = CreateAndSaveLoader();
             using (var schemaWriter = new StringWriter())
             {
                 RunOnData(schemaWriter, ImplOptions, loader);
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Data
         private static IEnumerable<IDataView> GetViewChainReversed(IDataView data)
         {
             Contracts.AssertValue(data);
-            IDataView view = (data as CompositeDataLoader)?.View ?? data;
+            IDataView view = (data as LegacyCompositeDataLoader)?.View ?? data;
             while (view != null)
             {
                 yield return view;

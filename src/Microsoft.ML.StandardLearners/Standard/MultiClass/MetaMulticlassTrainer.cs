@@ -5,12 +5,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers
 {

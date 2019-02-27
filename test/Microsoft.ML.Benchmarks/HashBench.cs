@@ -8,7 +8,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Benchmarks
                 getter = (ref T dst) => dst = val;
             _inRow = RowImpl.Create(type, getter);
             // One million features is a nice, typical number.
-            var info = new HashingEstimator.ColumnInfo("Bar", "Foo", hashBits: hashBits);
+            var info = new HashingEstimator.ColumnOptions("Bar", "Foo", hashBits: hashBits);
             var xf = new HashingTransformer(_env, new[] { info });
             var mapper = ((ITransformer)xf).GetRowToRowMapper(_inRow.Schema);
             var column = mapper.OutputSchema["Bar"];

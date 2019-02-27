@@ -37,7 +37,7 @@ namespace Microsoft.ML.ImageAnalytics
     /// </summary>
     /// <remarks>
     /// Calling <see cref="ITransformer.Transform(IDataView)"/> resizes the images to a new height and width.
-    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, ImageResizingEstimator.ColumnInfo[])" />
+    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, ImageResizingEstimator.ColumnOptions[])" />
     /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, string, int, int, string, ImageResizingEstimator.ResizingKind, ImageResizingEstimator.Anchor)" />
     /// <seealso cref = "ImageEstimatorsCatalog" />
     /// </remarks >
@@ -115,12 +115,12 @@ namespace Microsoft.ML.ImageAnalytics
 
         private const string RegistrationName = "ImageScaler";
 
-        private readonly ImageResizingEstimator.ColumnInfo[] _columns;
+        private readonly ImageResizingEstimator.ColumnOptions[] _columns;
 
         /// <summary>
         /// The columns passed to this <see cref="ITransformer"/>.
         /// </summary>
-        public IReadOnlyCollection<ImageResizingEstimator.ColumnInfo> Columns => _columns.AsReadOnly();
+        public IReadOnlyCollection<ImageResizingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
 
         ///<summary>
         /// Resize image.
@@ -136,7 +136,7 @@ namespace Microsoft.ML.ImageAnalytics
             int imageWidth, int imageHeight, string inputColumnName = null,
             ImageResizingEstimator.ResizingKind resizing = ImageResizingEstimator.ResizingKind.IsoCrop,
             ImageResizingEstimator.Anchor cropAnchor = ImageResizingEstimator.Anchor.Center)
-            : this(env, new ImageResizingEstimator.ColumnInfo(outputColumnName, imageWidth, imageHeight, inputColumnName, resizing, cropAnchor))
+            : this(env, new ImageResizingEstimator.ColumnOptions(outputColumnName, imageWidth, imageHeight, inputColumnName, resizing, cropAnchor))
         {
         }
 
@@ -145,13 +145,13 @@ namespace Microsoft.ML.ImageAnalytics
         ///</summary>
         /// <param name="env">The host environment.</param>
         /// <param name="columns">Describes the parameters of image resizing for each column pair.</param>
-        internal ImageResizingTransformer(IHostEnvironment env, params ImageResizingEstimator.ColumnInfo[] columns)
+        internal ImageResizingTransformer(IHostEnvironment env, params ImageResizingEstimator.ColumnOptions[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
         }
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ImageResizingEstimator.ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ImageResizingEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
@@ -166,11 +166,11 @@ namespace Microsoft.ML.ImageAnalytics
 
             env.CheckValue(args.Columns, nameof(args.Columns));
 
-            var cols = new ImageResizingEstimator.ColumnInfo[args.Columns.Length];
+            var cols = new ImageResizingEstimator.ColumnOptions[args.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
                 var item = args.Columns[i];
-                cols[i] = new ImageResizingEstimator.ColumnInfo(
+                cols[i] = new ImageResizingEstimator.ColumnOptions(
                     item.Name,
                     item.ImageWidth ?? args.ImageWidth,
                     item.ImageHeight ?? args.ImageHeight,
@@ -206,7 +206,7 @@ namespace Microsoft.ML.ImageAnalytics
             //   byte: scaling kind
             //   byte: anchor
 
-            _columns = new ImageResizingEstimator.ColumnInfo[ColumnPairs.Length];
+            _columns = new ImageResizingEstimator.ColumnOptions[ColumnPairs.Length];
             for (int i = 0; i < ColumnPairs.Length; i++)
             {
                 int width = ctx.Reader.ReadInt32();
@@ -217,7 +217,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Host.CheckDecode(Enum.IsDefined(typeof(ImageResizingEstimator.ResizingKind), scale));
                 var anchor = (ImageResizingEstimator.Anchor)ctx.Reader.ReadByte();
                 Host.CheckDecode(Enum.IsDefined(typeof(ImageResizingEstimator.Anchor), anchor));
-                _columns[i] = new ImageResizingEstimator.ColumnInfo(ColumnPairs[i].outputColumnName, width, height, ColumnPairs[i].inputColumnName, scale, anchor);
+                _columns[i] = new ImageResizingEstimator.ColumnOptions(ColumnPairs[i].outputColumnName, width, height, ColumnPairs[i].inputColumnName, scale, anchor);
             }
         }
 
@@ -410,7 +410,7 @@ namespace Microsoft.ML.ImageAnalytics
     /// </summary>
     /// <remarks>
     /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="ImageResizingTransformer"/>.
-    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, ImageResizingEstimator.ColumnInfo[])" />
+    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, ImageResizingEstimator.ColumnOptions[])" />
     /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, string, int, int, string, ResizingKind, Anchor)" />
     /// <seealso cref = "ImageEstimatorsCatalog" />
     /// </remarks >
@@ -462,7 +462,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <summary>
         /// Describes how the transformer handles one image resize column.
         /// </summary>
-        public sealed class ColumnInfo
+        public sealed class ColumnOptions
         {
             /// <summary>Name of the column resulting from the transformation of <see cref="InputColumnName"/></summary>
             public readonly string Name;
@@ -494,7 +494,7 @@ namespace Microsoft.ML.ImageAnalytics
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="resizing">What <see cref="ImageResizingEstimator.ResizingKind"/> to use.</param>
             /// <param name="anchor">If <paramref name="resizing"/> set to <see cref="ImageResizingEstimator.ResizingKind.IsoCrop"/> what anchor to use for cropping.</param>
-            public ColumnInfo(string name,
+            public ColumnOptions(string name,
                 int width,
                 int height,
                 string inputColumnName = null,
@@ -543,7 +543,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="columns">Describes the parameters of image resizing for each column pair.</param>
-        internal ImageResizingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        internal ImageResizingEstimator(IHostEnvironment env, params ColumnOptions[] columns)
             : this(env, new ImageResizingTransformer(env, columns))
         {
         }

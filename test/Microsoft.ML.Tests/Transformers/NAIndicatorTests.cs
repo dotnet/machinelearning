@@ -4,15 +4,12 @@
 
 using System;
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Tools;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -45,8 +42,8 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = 2, B = 1, C = new float[2]{ 3, 4 } , D = new double[2]{ 5,6}},
             };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = ML.Transforms.IndicateMissingValues(new SimpleColumnInfo[] { ("NAA", "A"), ("NAB", "B"), ("NAC", "C"), ("NAD", "D") });
+            var dataView = ML.Data.LoadFromEnumerable(data);
+            var pipe = ML.Transforms.IndicateMissingValues(new ColumnOptions[] { ("NAA", "A"), ("NAB", "B"), ("NAC", "C"), ("NAD", "D") });
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -68,8 +65,8 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = 2, B = 1 , C = new float[2]{ 3, 4 } , D = new double[2]{ 5,6}},
             };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = ML.Transforms.IndicateMissingValues(new SimpleColumnInfo[] { ("NAA", "A"), ("NAB", "B"), ("NAC", "C"), ("NAD", "D") });
+            var dataView = ML.Data.LoadFromEnumerable(data);
+            var pipe = ML.Transforms.IndicateMissingValues(new ColumnOptions[] { ("NAA", "A"), ("NAB", "B"), ("NAC", "C"), ("NAD", "D") });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
             using (var ms = new MemoryStream())
@@ -84,17 +81,17 @@ namespace Microsoft.ML.Tests.Transformers
         public void NAIndicatorFileOutput()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
                 ScalarFloat: ctx.LoadFloat(1),
                 ScalarDouble: ctx.LoadDouble(1),
                 VectorFloat: ctx.LoadFloat(1, 4),
                 VectorDoulbe: ctx.LoadDouble(1, 4)
             ));
 
-            var data = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
+            var data = reader.Load(new MultiFileSource(dataPath)).AsDynamic;
             var wrongCollection = new[] { new TestClass() { A = 1, B = 3, C = new float[2] { 1, 2 }, D = new double[2] { 3, 4 } } };
-            var invalidData = ML.Data.ReadFromEnumerable(wrongCollection);
-            var est = ML.Transforms.IndicateMissingValues(new SimpleColumnInfo[] 
+            var invalidData = ML.Data.LoadFromEnumerable(wrongCollection);
+            var est = ML.Transforms.IndicateMissingValues(new ColumnOptions[] 
             {
                 ("A", "ScalarFloat"), ("B", "ScalarDouble"),
                 ("C", "VectorFloat"), ("D", "VectorDoulbe")
@@ -125,7 +122,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = 2, B = 1, C = new float[2]{ 3, 4 } , D = new double[2]{ 5,6}},
             };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Categorical.OneHotEncoding("CatA", "A");
             var newpipe = pipe.Append(ML.Transforms.IndicateMissingValues(("NAA", "CatA")));
             var result = newpipe.Fit(dataView).Transform(dataView);

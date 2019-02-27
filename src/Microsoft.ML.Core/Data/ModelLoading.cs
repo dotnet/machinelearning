@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Model
+namespace Microsoft.ML
 {
     /// <summary>
     /// Signature for a repository based model loader. This is the dual of <see cref="ICanSaveModel"/>.

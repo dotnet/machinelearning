@@ -22,7 +22,7 @@ namespace Microsoft.ML.RunTests
             using (var modelStream = File.OpenRead(Path.Combine("TestModels", "BinaryLoader-v3.11.0.0.zip")))
             using (var rep = RepositoryReader.Open(modelStream, env))
             {
-                IDataLoader result = ModelFileUtils.LoadLoader(env, rep, new MultiFileSource(null), true);
+                ILegacyDataLoader result = ModelFileUtils.LoadLoader(env, rep, new MultiFileSource(null), true);
 
                 Assert.Equal(2, result.Schema.Count);
                 Assert.Equal("Image", result.Schema[0].Name);

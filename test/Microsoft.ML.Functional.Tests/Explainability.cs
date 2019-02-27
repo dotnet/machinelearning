@@ -32,7 +32,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Get the dataset
-            var data = mlContext.Data.ReadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.ReadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Get the dataset
-            var data = mlContext.Data.ReadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Get the dataset
-            var data = mlContext.Data.ReadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Get the dataset
-            var data = mlContext.Data.ReadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Validate that the contributions are there
             var shuffledSubset = mlContext.Data.TakeRows(mlContext.Data.ShuffleRows(outputData), 10);
-            var scoringEnumerator = mlContext.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
+            var scoringEnumerator = mlContext.Data.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
 
             // Make sure the number of feature contributions returned matches the length of the input feature vector.
             foreach (var row in scoringEnumerator)
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Get the dataset
-            var data = mlContext.Data.ReadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Validate that the contributions are there
             var shuffledSubset = mlContext.Data.TakeRows(mlContext.Data.ShuffleRows(outputData), 10);
-            var scoringEnumerator = mlContext.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
+            var scoringEnumerator = mlContext.Data.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
 
             // Make sure the number of feature contributions returned matches the length of the input feature vector.
             foreach (var row in scoringEnumerator)
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Get the dataset
-            var data = mlContext.Data.ReadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Validate that the contributions are there
             var shuffledSubset = mlContext.Data.TakeRows(mlContext.Data.ShuffleRows(outputData), 10);
-            var scoringEnumerator = mlContext.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
+            var scoringEnumerator = mlContext.Data.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
 
             // Make sure the number of feature contributions returned matches the length of the input feature vector.
             foreach (var row in scoringEnumerator)
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Get the dataset
-            var data = mlContext.Data.ReadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -273,7 +273,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Validate that the contributions are there
             var shuffledSubset = mlContext.Data.TakeRows(mlContext.Data.ShuffleRows(outputData), 10);
-            var scoringEnumerator = mlContext.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
+            var scoringEnumerator = mlContext.Data.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
 
             // Make sure the number of feature contributions returned matches the length of the input feature vector.
             foreach (var row in scoringEnumerator)

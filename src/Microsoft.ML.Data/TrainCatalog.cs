@@ -6,9 +6,7 @@ using System;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.Evaluators.Metrics;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML
 {
@@ -227,12 +225,12 @@ namespace Microsoft.ML
                     // Generate a new column with the hashed samplingKeyColumn.
                     while (data.Schema.TryGetColumnIndex(samplingKeyColumn, out tmp))
                         samplingKeyColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
-                    HashingEstimator.ColumnInfo columnInfo;
+                    HashingEstimator.ColumnOptions columnOptions;
                     if (seed.HasValue)
-                        columnInfo = new HashingEstimator.ColumnInfo(samplingKeyColumn, origStratCol, 30, seed.Value);
+                        columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, seed.Value);
                     else
-                        columnInfo = new HashingEstimator.ColumnInfo(samplingKeyColumn, origStratCol, 30);
-                    data = new HashingEstimator(Environment, columnInfo).Fit(data).Transform(data);
+                        columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30);
+                    data = new HashingEstimator(Environment, columnOptions).Fit(data).Transform(data);
                 }
             }
         }

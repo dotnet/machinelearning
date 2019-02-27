@@ -88,7 +88,7 @@ namespace Microsoft.ML.Data
         private void RunCore(IChannel ch)
         {
             ch.Trace("Constructing data pipeline");
-            IDataLoader loader;
+            ILegacyDataLoader loader;
             IPredictor predictor;
             RoleMappedSchema trainSchema;
             LoadModelObjects(ch, true, out predictor, true, out trainSchema, out loader);

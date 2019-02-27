@@ -46,7 +46,7 @@
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
 
-                var data = TextLoader.CreateReader(env, ctx => (
+                var data = TextLoader.CreateLoader(env, ctx => (
                     imagePath: ctx.LoadText(0),
                     name: ctx.LoadText(1)))
                     .Read(new MultiFileSource(dataFile));
