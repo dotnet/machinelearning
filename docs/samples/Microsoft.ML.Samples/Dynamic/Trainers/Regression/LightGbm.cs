@@ -2,9 +2,9 @@
 using System.Linq;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 {
-    class LightGbmRegression
+    class LightGbm
     {
         // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
         public static void Example()
@@ -54,12 +54,12 @@ namespace Microsoft.ML.Samples.Dynamic
             var metrics = mlContext.Regression.Evaluate(dataWithPredictions, label: labelName);
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
-            // Output
-            // L1: 4.97
-            // L2: 51.37
-            // LossFunction: 51.37
-            // RMS: 7.17
-            // RSquared: 0.08
+            // Expected output
+            //   L1: 4.97
+            //   L2: 51.37
+            //   LossFunction: 51.37
+            //   RMS: 7.17
+            //   RSquared: 0.08
         }
     }
 }

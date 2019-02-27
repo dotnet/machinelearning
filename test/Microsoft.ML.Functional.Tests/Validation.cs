@@ -4,9 +4,9 @@
 
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.HalLearners;
 using Xunit;
 

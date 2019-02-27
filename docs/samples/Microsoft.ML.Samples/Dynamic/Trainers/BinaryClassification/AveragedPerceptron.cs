@@ -1,6 +1,4 @@
-﻿using Microsoft.ML;
-
-namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
+﻿namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class AveragedPerceptron
     {

@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.FactorizationMachine;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.SamplesUtils;
+using Microsoft.ML.Trainers.FactorizationMachine;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators

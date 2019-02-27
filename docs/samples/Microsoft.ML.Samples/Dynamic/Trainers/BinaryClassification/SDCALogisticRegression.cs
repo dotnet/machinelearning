@@ -3,7 +3,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class SDCALogisticRegression
     {

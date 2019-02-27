@@ -6,9 +6,8 @@ using System;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
-using Microsoft.ML.Calibrator;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers;
 
@@ -21,7 +20,7 @@ using Microsoft.ML.Trainers;
 [assembly: LoadableClass(typeof(CalibratorTransformer<PavCalibrator>), typeof(PavCalibratorTransformer), null,
     typeof(SignatureLoadModel), "", PavCalibratorTransformer.LoadName)]
 
-namespace Microsoft.ML.Calibrator
+namespace Microsoft.ML.Calibrators
 {
 
     /// <summary>

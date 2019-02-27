@@ -11,18 +11,15 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Calibrator;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.FastTree;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
-using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.TreePredictor;
@@ -144,7 +141,8 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Constructor that is used when invoking the classes deriving from this, through maml.
         /// </summary>
         private protected FastTreeTrainerBase(IHostEnvironment env, TOptions options, SchemaShape.Column label)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn),
+                  TrainerUtils.MakeU4ScalarColumn(options.GroupIdColumn))
         {
             Host.CheckValue(options, nameof(options));
             FastTreeTrainerOptions = options;
@@ -1842,7 +1840,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     {
                         hasGroup = _data.Schema.Group != null;
 
-                        if(hasGroup)
+                        if (hasGroup)
                             curOptions |= CursOpt.Group;
                     }
                     else
@@ -3384,7 +3382,7 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         /// <summary>
         /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/>
-        /// <see cref="InternalTreeEnsemble"/> in <see cref="ML.FastTree.TreeEnsemble{T}"/>.
+        /// <see cref="InternalTreeEnsemble"/> in <see cref="ML.Trainers.FastTree.TreeEnsemble{T}"/>.
         /// </summary>
         public RegressionTreeEnsemble TrainedTreeEnsemble { get; }
 
@@ -3424,7 +3422,7 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         /// <summary>
         /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/>
-        /// <see cref="InternalTreeEnsemble"/> in <see cref="ML.FastTree.TreeEnsemble{T}"/>.
+        /// <see cref="InternalTreeEnsemble"/> in <see cref="ML.Trainers.FastTree.TreeEnsemble{T}"/>.
         /// </summary>
         public QuantileRegressionTreeEnsemble TrainedTreeEnsemble { get; }
 
