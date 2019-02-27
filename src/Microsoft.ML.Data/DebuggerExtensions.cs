@@ -45,11 +45,9 @@ namespace Microsoft.ML
             Contracts.CheckParam(maxRows >= 0, nameof(maxRows));
             Contracts.CheckParam(maxTrainingRows >= 0, nameof(maxTrainingRows));
 
-            using (var env = new LocalEnvironment(conc: 1))
-            {
-                var trainData = SkipTakeFilter.Create(env, new SkipTakeFilter.TakeOptions { Count = maxTrainingRows }, data);
-                return new DataDebuggerPreview(estimator.Fit(trainData).Transform(data), maxRows);
-            }
+            var env = new LocalEnvironment(conc: 1);
+            var trainData = SkipTakeFilter.Create(env, new SkipTakeFilter.TakeOptions { Count = maxTrainingRows }, data);
+            return new DataDebuggerPreview(estimator.Fit(trainData).Transform(data), maxRows);
         }
 
         /// <summary>
