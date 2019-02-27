@@ -108,7 +108,7 @@ The .NET AutoML API will be used for the most important foundational features th
 - Future versions will be able to run AutoML compute and other compute processes (such as a regular model training) in Azure.
 - The ML.NET CLI  will consume the AutoML API (Microsoft.ML.Auto NuGet package) which will only consume public surface of ML.NET.
 - The CLI proposed here will not provide for “continue sweeping” after sweeping has ended.
-- When running locally with the by default behaviour (no Azure), the CLI will be able to work without needing to make any remote service call or requiring any authentication from the user.
+- When running locally with the by default behavior (no Azure), the CLI will be able to work without needing to make any remote service call or requiring any authentication from the user.
 - The CLI will provide feedback output (such as % work done or high level details on what's happening under the covers) while working on the long-running tasks.
 - The ML.NET CLI will be aligned and integrated to the [.NET Core CLI](https://docs.microsoft.com/en-us/dotnet/core/tools/?tabs=netcore2x). A good approach is to implement the ML.NET CLI as a [.NET Core Global Tool](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools) (i.e. named "mlnet" package) on top of the "dotnet CLI". 
   - [System-Command-Line](https://github.com/dotnet/command-line-api) package can precisely help on those typical CLI console apps features (CLI plumbing) so if can be implemented a lot easier than by implementing a CLI app from scratch in features like command line parsing, invocation and rendering of terminal output. Otherwise, a CLI implementation starting from scratch can be significantly more costly to develop.
