@@ -430,7 +430,7 @@ namespace Microsoft.ML
             string exampleWeightColumnName = null,
             float l1Weight = LROptions.Defaults.L1Weight,
             float l2Weight = LROptions.Defaults.L2Weight,
-            float optimizationTolerance = LROptions.Defaults.OptTol,
+            float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
             int memorySize = LROptions.Defaults.MemorySize,
             bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
@@ -471,7 +471,7 @@ namespace Microsoft.ML
             string exampleWeightColumnName = null,
             float l1Weight = LROptions.Defaults.L1Weight,
             float l2Weight = LROptions.Defaults.L2Weight,
-            float optimizationTolerance = LROptions.Defaults.OptTol,
+            float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
             int memorySize = LROptions.Defaults.MemorySize,
             bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
@@ -512,7 +512,7 @@ namespace Microsoft.ML
             string exampleWeightColumnName = null,
             float l1Weight = LROptions.Defaults.L1Weight,
             float l2Weight = LROptions.Defaults.L2Weight,
-            float optimizationTolerance = LROptions.Defaults.OptTol,
+            float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
             int memorySize = LROptions.Defaults.MemorySize,
             bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
         {

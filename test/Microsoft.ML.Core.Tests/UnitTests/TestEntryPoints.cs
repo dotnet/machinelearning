@@ -1330,9 +1330,9 @@ namespace Microsoft.ML.RunTests
                     {
                         TrainingData = data,
                         NormalizeFeatures = NormalizeOption.Yes,
-                        NumThreads = 1,
-                        ShowTrainingStats = true,
-                        StdComputer = new ComputeLRTrainingStdThroughHal()
+                        NumberOfThreads = 1,
+                        ShowTrainingStatistics = true,
+                        ComputeStandardDeviation = new ComputeLRTrainingStdThroughHal()
                     };
                     predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
                     var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
@@ -3327,9 +3327,9 @@ namespace Microsoft.ML.RunTests
             {
                 TrainingData = dataView,
                 NormalizeFeatures = NormalizeOption.Yes,
-                NumThreads = 1,
-                ShowTrainingStats = true,
-                StdComputer = new ComputeLRTrainingStdThroughHal()
+                NumberOfThreads = 1,
+                ShowTrainingStatistics = true,
+                ComputeStandardDeviation = new ComputeLRTrainingStdThroughHal()
             };
             var model = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
 
@@ -3337,7 +3337,7 @@ namespace Microsoft.ML.RunTests
             {
                 TrainingData = dataView,
                 NormalizeFeatures = NormalizeOption.Yes,
-                NumThreads = 1,
+                NumberOfThreads = 1,
                 ShowTrainingStats = true
             };
             var mcModel = LogisticRegression.TrainMultiClass(Env, mcLrInput).PredictorModel;

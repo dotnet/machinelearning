@@ -56,7 +56,7 @@ namespace Microsoft.ML.Trainers
             string weights = null,
             float l1Weight = Options.Defaults.L1Weight,
             float l2Weight = Options.Defaults.L2Weight,
-            float optimizationTolerance = Options.Defaults.OptTol,
+            float optimizationTolerance = Options.Defaults.OptimizationTolerance,
             int memorySize = Options.Defaults.MemorySize,
             bool enforceNoNegativity = Options.Defaults.EnforceNonNegativity)
             : base(env, featureColumn, TrainerUtils.MakeR4ScalarColumn(labelColumn), weights,

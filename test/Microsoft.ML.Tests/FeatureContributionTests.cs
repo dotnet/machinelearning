@@ -88,7 +88,7 @@ namespace Microsoft.ML.Tests
         public void TestPoissonRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.PoissonRegression(
-                new PoissonRegression.Options { NumThreads = 1 }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
+                new PoissonRegression.Options { NumberOfThreads = 1 }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
         }
 
         [Fact]
