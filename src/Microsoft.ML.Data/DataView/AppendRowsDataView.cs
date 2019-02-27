@@ -187,18 +187,21 @@ namespace Microsoft.ML.Data
 
             protected abstract ValueGetter<TValue> CreateTypedGetter<TValue>(int col);
 
-            public sealed override ValueGetter<TValue> GetGetter<TValue>(int col)
+            public sealed override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
-                Ch.Check(IsColumnActive(col), "The column must be active against the defined predicate.");
-                if (!(Getters[col] is ValueGetter<TValue>))
+                Ch.Check(IsColumnActive(columnIndex), "The column must be active against the defined predicate.");
+                if (!(Getters[columnIndex] is ValueGetter<TValue>))
                     throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}'");
-                return Getters[col] as ValueGetter<TValue>;
+                return Getters[columnIndex] as ValueGetter<TValue>;
             }
 
-            public sealed override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public sealed override bool IsColumnActive(int columnIndex)
             {
-                Ch.Check(0 <= col && col < Schema.Count, "Column index is out of range");
-                return Getters[col] != null;
+                Ch.Check(0 <= columnIndex && columnIndex < Schema.Count, "Column index is out of range");
+                return Getters[columnIndex] != null;
             }
         }
 

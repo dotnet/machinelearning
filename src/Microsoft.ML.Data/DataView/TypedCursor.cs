@@ -442,14 +442,24 @@ namespace Microsoft.ML.Data
                     setter(row);
             }
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex)
             {
-                return Input.IsColumnActive(col);
+                return Input.IsColumnActive(columnIndex);
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
-                return Input.GetGetter<TValue>(col);
+                return Input.GetGetter<TValue>(columnIndex);
             }
         }
 
@@ -480,7 +490,7 @@ namespace Microsoft.ML.Data
             public long Batch => _row.Batch;
             public DataViewSchema Schema => _row.Schema;
             public void FillValues(TRow row) => _row.FillValues(row);
-            public ValueGetter<TValue> GetGetter<TValue>(int col) => _row.GetGetter<TValue>(col);
+            public ValueGetter<TValue> GetGetter<TValue>(int columnIndex) => _row.GetGetter<TValue>(columnIndex);
             public ValueGetter<DataViewRowId> GetIdGetter() => _row.GetIdGetter();
             public bool IsColumnActive(int col) => _row.IsColumnActive(col);
         }
@@ -507,9 +517,21 @@ namespace Microsoft.ML.Data
             }
 
             public override void FillValues(TRow row) => _cursor.FillValues(row);
-            public override ValueGetter<TValue> GetGetter<TValue>(int col) => _cursor.GetGetter<TValue>(col);
+           
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex) => _cursor.GetGetter<TValue>(columnIndex);
             public override ValueGetter<DataViewRowId> GetIdGetter() => _cursor.GetIdGetter();
-            public override bool IsColumnActive(int col) => _cursor.IsColumnActive(col);
+
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex) => _cursor.IsColumnActive(columnIndex);
             public override bool MoveNext() => _cursor.MoveNext();
         }
 

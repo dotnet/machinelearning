@@ -560,10 +560,13 @@ namespace Microsoft.ML.Transforms
                 return _trailingCursor.GetIdGetter();
             }
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex)
             {
-                _parent._groupBinding.CheckColumnInRange(col);
-                return _active[col];
+                _parent._groupBinding.CheckColumnInRange(columnIndex);
+                return _active[columnIndex];
             }
 
             protected override bool MoveNextCore()
@@ -634,17 +637,24 @@ namespace Microsoft.ML.Transforms
                 base.Dispose(disposing);
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
-                _parent._groupBinding.CheckColumnInRange(col);
-                if (!_active[col])
-                    throw Ch.ExceptParam(nameof(col), "Column #{0} is not active", col);
+                _parent._groupBinding.CheckColumnInRange(columnIndex);
+                if (!_active[columnIndex])
+                    throw Ch.ExceptParam(nameof(columnIndex), "Column #{0} is not active", columnIndex);
 
-                if (col < _groupCount)
-                    return _trailingCursor.GetGetter<TValue>(_parent._groupBinding.GroupColumnIndexes[col]);
+                if (columnIndex < _groupCount)
+                    return _trailingCursor.GetGetter<TValue>(_parent._groupBinding.GroupColumnIndexes[columnIndex]);
 
-                Ch.AssertValue(_aggregators[col - _groupCount]);
-                return _aggregators[col - _groupCount].GetGetter<TValue>(Ch);
+                Ch.AssertValue(_aggregators[columnIndex - _groupCount]);
+                return _aggregators[columnIndex - _groupCount].GetGetter<TValue>(Ch);
             }
         }
     }

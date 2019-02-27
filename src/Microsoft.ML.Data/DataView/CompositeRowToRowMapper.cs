@@ -102,9 +102,21 @@ namespace Microsoft.ML.Data
             public override DataViewSchema Schema => _row.Schema;
             public override long Position => _row.Position;
             public override long Batch => _row.Batch;
-            public override ValueGetter<TValue> GetGetter<TValue>(int col) => _row.GetGetter<TValue>(col);
+
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex) => _row.GetGetter<TValue>(columnIndex);
             public override ValueGetter<DataViewRowId> GetIdGetter() => _row.GetIdGetter();
-            public override bool IsColumnActive(int col) => _pred(col);
+
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex) => _pred(columnIndex);
         }
     }
 }

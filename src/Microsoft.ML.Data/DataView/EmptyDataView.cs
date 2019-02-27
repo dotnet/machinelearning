@@ -64,11 +64,21 @@ namespace Microsoft.ML.Data
 
             protected override bool MoveNextCore() => false;
 
-            public override bool IsColumnActive(int col) => 0 <= col && col < _active.Length && _active[col];
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex) => 0 <= columnIndex && columnIndex < _active.Length && _active[columnIndex];
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
-                Ch.Check(IsColumnActive(col), "Cannot get getter for inactive column");
+                Ch.Check(IsColumnActive(columnIndex), "Cannot get getter for inactive column");
                 return (ref TValue value) => throw Ch.Except(RowCursorUtils.FetchValueStateError);
             }
         }

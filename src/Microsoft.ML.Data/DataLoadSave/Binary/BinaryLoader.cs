@@ -1986,10 +1986,13 @@ namespace Microsoft.ML.Data.IO
                 }
             }
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex)
             {
-                Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
-                return _colToActivesIndex[col] >= 0;
+                Ch.CheckParam(0 <= columnIndex && columnIndex < _colToActivesIndex.Length, nameof(columnIndex));
+                return _colToActivesIndex[columnIndex] >= 0;
             }
 
             protected override bool MoveNextCore()
@@ -2047,11 +2050,18 @@ namespace Microsoft.ML.Data.IO
                 return more;
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
-                Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
-                Ch.CheckParam(_colToActivesIndex[col] >= 0, nameof(col), "requested column not active");
-                var getter = _pipeGetters[_colToActivesIndex[col]] as ValueGetter<TValue>;
+                Ch.CheckParam(0 <= columnIndex && columnIndex < _colToActivesIndex.Length, nameof(columnIndex));
+                Ch.CheckParam(_colToActivesIndex[columnIndex] >= 0, nameof(columnIndex), "requested column not active");
+                var getter = _pipeGetters[_colToActivesIndex[columnIndex]] as ValueGetter<TValue>;
                 if (getter == null)
                     throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
                 return getter;

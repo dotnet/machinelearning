@@ -385,14 +385,21 @@ namespace Microsoft.ML.Transforms
                     _values[i] = Value.Create(this, _parent._infos[i]);
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
-                Ch.Check(IsColumnActive(col));
+                Ch.Check(IsColumnActive(columnIndex));
 
                 ValueGetter<TValue> fn;
-                if (TryGetColumnValueGetter(col, out fn))
+                if (TryGetColumnValueGetter(columnIndex, out fn))
                     return fn;
-                return Input.GetGetter<TValue>(col);
+                return Input.GetGetter<TValue>(columnIndex);
             }
 
             /// <summary>

@@ -29,15 +29,25 @@ namespace Microsoft.ML.Data
             Schema = schema;
         }
 
-        public sealed override bool IsColumnActive(int col)
+        /// <summary>
+        /// Returns whether the given column is active in this row.
+        /// </summary>
+        public sealed override bool IsColumnActive(int columnIndex)
         {
-            Ch.Check(0 <= col && col < Schema.Count);
-            return _active == null || _active[col];
+            Ch.Check(0 <= columnIndex && columnIndex < Schema.Count);
+            return _active == null || _active[columnIndex];
         }
 
-        public override ValueGetter<TValue> GetGetter<TValue>(int col)
+        /// <summary>
+        /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+        /// This throws if the column is not active in this row, or if the type
+        /// <typeparamref name="TValue"/> differs from this column's type.
+        /// </summary>
+        /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+        /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+        public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
         {
-            return Input.GetGetter<TValue>(col);
+            return Input.GetGetter<TValue>(columnIndex);
         }
     }
 }

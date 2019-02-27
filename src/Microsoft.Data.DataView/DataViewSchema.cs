@@ -217,14 +217,14 @@ namespace Microsoft.Data.DataView
             /// <summary>
             /// Get a getter delegate for one value of the annotations row.
             /// </summary>
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
-                if (!(0 <= col && col < Schema.Count))
-                    throw new ArgumentOutOfRangeException(nameof(col));
-                var typedGetter = _getters[col] as ValueGetter<TValue>;
+                if (!(0 <= columnIndex && columnIndex < Schema.Count))
+                    throw new ArgumentOutOfRangeException(nameof(columnIndex));
+                var typedGetter = _getters[columnIndex] as ValueGetter<TValue>;
                 if (typedGetter == null)
                 {
-                    Debug.Assert(_getters[col] != null);
+                    Debug.Assert(_getters[columnIndex] != null);
                     throw new InvalidOperationException($"Invalid call to '{nameof(GetGetter)}'");
                 }
                 return typedGetter;

@@ -161,17 +161,27 @@ namespace Microsoft.ML.Data
 
             public override DataViewSchema Schema => _zipBinding.OutputSchema;
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex)
             {
-                _zipBinding.CheckColumnInRange(col);
-                return _isColumnActive[col];
+                _zipBinding.CheckColumnInRange(columnIndex);
+                return _isColumnActive[columnIndex];
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
                 int dv;
                 int srcCol;
-                _zipBinding.GetColumnSource(col, out dv, out srcCol);
+                _zipBinding.GetColumnSource(columnIndex, out dv, out srcCol);
                 return _cursors[dv].GetGetter<TValue>(srcCol);
             }
         }

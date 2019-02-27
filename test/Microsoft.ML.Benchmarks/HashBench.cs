@@ -27,16 +27,26 @@ namespace Microsoft.ML.Benchmarks
 
             private readonly Delegate _getter;
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex)
             {
-                if (col != 0)
+                if (columnIndex != 0)
                     throw new Exception();
                 return true;
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
-                if (col != 0)
+                if (columnIndex != 0)
                     throw new Exception();
                 if (_getter is ValueGetter<TValue> typedGetter)
                     return typedGetter;

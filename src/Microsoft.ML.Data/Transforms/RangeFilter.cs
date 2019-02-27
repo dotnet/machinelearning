@@ -308,14 +308,20 @@ namespace Microsoft.ML.Transforms
             private bool TestNotCC(Double value) => _min > value || value > _max;
 
             protected abstract Delegate GetGetter();
-
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
-                Ch.Check(0 <= col && col < Schema.Count);
-                Ch.Check(IsColumnActive(col));
+                Ch.Check(0 <= columnIndex && columnIndex < Schema.Count);
+                Ch.Check(IsColumnActive(columnIndex));
 
-                if (col != Parent._index)
-                    return Input.GetGetter<TValue>(col);
+                if (columnIndex != Parent._index)
+                    return Input.GetGetter<TValue>(columnIndex);
                 var fn = GetGetter() as ValueGetter<TValue>;
                 if (fn == null)
                     throw Ch.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));

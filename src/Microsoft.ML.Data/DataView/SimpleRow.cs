@@ -63,10 +63,13 @@ namespace Microsoft.ML.Data
             throw Contracts.Except("Unexpected TValue in GetGetter");
         }
 
-        public override bool IsColumnActive(int col)
+        /// <summary>
+        /// Returns whether the given column is active in this row.
+        /// </summary>
+        public override bool IsColumnActive(int columnIndex)
         {
-            Contracts.Check(0 <= col && col < _getters.Length);
-            return _getters[col] != null;
+            Contracts.Check(0 <= columnIndex && columnIndex < _getters.Length);
+            return _getters[columnIndex] != null;
         }
     }
 }

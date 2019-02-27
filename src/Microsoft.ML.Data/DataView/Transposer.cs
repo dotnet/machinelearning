@@ -1030,15 +1030,25 @@ namespace Microsoft.ML.Data
                             _isActive = isActive;
                         }
 
-                        public override bool IsColumnActive(int col)
+                        /// <summary>
+                        /// Returns whether the given column is active in this row.
+                        /// </summary>
+                        public override bool IsColumnActive(int columnIndex)
                         {
-                            Contracts.CheckParam(0 <= col && col < Parent.ColumnCount, nameof(col));
+                            Contracts.CheckParam(0 <= columnIndex && columnIndex < Parent.ColumnCount, nameof(columnIndex));
                             return _isActive;
                         }
 
-                        public override ValueGetter<TValue> GetGetter<TValue>(int col)
+                        /// <summary>
+                        /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+                        /// This throws if the column is not active in this row, or if the type
+                        /// <typeparamref name="TValue"/> differs from this column's type.
+                        /// </summary>
+                        /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+                        /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+                        public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
                         {
-                            Contracts.Check(IsColumnActive(col));
+                            Contracts.Check(IsColumnActive(columnIndex));
                             return Input.GetGetter<TValue>(Parent.SrcCol);
                         }
                     }
@@ -1129,17 +1139,27 @@ namespace Microsoft.ML.Data
                                 _getters[c] = pred(c) ? CreateGetter(c) : null;
                         }
 
-                        public override bool IsColumnActive(int col)
+                        /// <summary>
+                        /// Returns whether the given column is active in this row.
+                        /// </summary>
+                        public override bool IsColumnActive(int columnIndex)
                         {
-                            Contracts.CheckParam(0 <= col && col < Parent.ColumnCount, nameof(col));
-                            return _getters[col] != null;
+                            Contracts.CheckParam(0 <= columnIndex && columnIndex < Parent.ColumnCount, nameof(columnIndex));
+                            return _getters[columnIndex] != null;
                         }
 
-                        public override ValueGetter<TValue> GetGetter<TValue>(int col)
+                        /// <summary>
+                        /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+                        /// This throws if the column is not active in this row, or if the type
+                        /// <typeparamref name="TValue"/> differs from this column's type.
+                        /// </summary>
+                        /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+                        /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+                        public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
                         {
-                            Contracts.Check(IsColumnActive(col));
-                            Contracts.AssertValue(_getters[col]);
-                            var fn = _getters[col] as ValueGetter<TValue>;
+                            Contracts.Check(IsColumnActive(columnIndex));
+                            Contracts.AssertValue(_getters[columnIndex]);
+                            var fn = _getters[columnIndex] as ValueGetter<TValue>;
                             if (fn == null)
                                 throw Contracts.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
                             return fn;
@@ -1261,21 +1281,31 @@ namespace Microsoft.ML.Data
                     }
                 }
 
-                public override bool IsColumnActive(int col)
+                /// <summary>
+                /// Returns whether the given column is active in this row.
+                /// </summary>
+                public override bool IsColumnActive(int columnIndex)
                 {
-                    Ch.Check(0 <= col && col < Schema.Count, "col");
+                    Ch.Check(0 <= columnIndex && columnIndex < Schema.Count, "col");
                     int splitInd;
                     int splitCol;
-                    _slicer.OutputColumnToSplitterIndices(col, out splitInd, out splitCol);
+                    _slicer.OutputColumnToSplitterIndices(columnIndex, out splitInd, out splitCol);
                     return _sliceRows[splitInd] != null && _sliceRows[splitInd].IsColumnActive(splitCol);
                 }
 
-                public override ValueGetter<TValue> GetGetter<TValue>(int col)
+                /// <summary>
+                /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+                /// This throws if the column is not active in this row, or if the type
+                /// <typeparamref name="TValue"/> differs from this column's type.
+                /// </summary>
+                /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+                /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+                public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
                 {
-                    Ch.Check(IsColumnActive(col));
+                    Ch.Check(IsColumnActive(columnIndex));
                     int splitInd;
                     int splitCol;
-                    _slicer.OutputColumnToSplitterIndices(col, out splitInd, out splitCol);
+                    _slicer.OutputColumnToSplitterIndices(columnIndex, out splitInd, out splitCol);
                     return _sliceRows[splitInd].GetGetter<TValue>(splitCol);
                 }
             }
@@ -1431,16 +1461,26 @@ namespace Microsoft.ML.Data
                         _getter = _slotCursor.GetGetter<T>();
                 }
 
-                public override bool IsColumnActive(int col)
+                /// <summary>
+                /// Returns whether the given column is active in this row.
+                /// </summary>
+                public override bool IsColumnActive(int columnIndex)
                 {
-                    Ch.CheckParam(col == 0, nameof(col));
+                    Ch.CheckParam(columnIndex == 0, nameof(columnIndex));
                     return _getter != null;
                 }
 
-                public override ValueGetter<TValue> GetGetter<TValue>(int col)
+                /// <summary>
+                /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+                /// This throws if the column is not active in this row, or if the type
+                /// <typeparamref name="TValue"/> differs from this column's type.
+                /// </summary>
+                /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+                /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+                public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
                 {
-                    Ch.CheckParam(col == 0, nameof(col));
-                    Ch.CheckParam(_getter != null, nameof(col), "requested column not active");
+                    Ch.CheckParam(columnIndex == 0, nameof(columnIndex));
+                    Ch.CheckParam(_getter != null, nameof(columnIndex), "requested column not active");
 
                     var getter = _getter as ValueGetter<TValue>;
                     if (getter == null)
@@ -1481,15 +1521,25 @@ namespace Microsoft.ML.Data
                 Schema = builder.ToSchema();
             }
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex)
             {
-                Ch.CheckParam(col == 0, nameof(col));
+                Ch.CheckParam(columnIndex == 0, nameof(columnIndex));
                 return true;
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
-                Ch.CheckParam(col == 0, nameof(col));
+                Ch.CheckParam(columnIndex == 0, nameof(columnIndex));
                 return _slotCursor.GetGetterWithVectorType<TValue>(Ch);
             }
 

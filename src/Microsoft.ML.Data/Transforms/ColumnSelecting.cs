@@ -605,13 +605,23 @@ namespace Microsoft.ML.Transforms
 
             public override DataViewSchema Schema => _mapper.OutputSchema;
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
-                int index = _mapper.GetInputIndex(col);
+                int index = _mapper.GetInputIndex(columnIndex);
                 return Input.GetGetter<TValue>(index);
             }
 
-            public override bool IsColumnActive(int col) => true;
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex) => true;
         }
 
         private sealed class SelectColumnsDataTransform : IDataTransform, IRowToRowMapper, ITransformTemplate
@@ -708,13 +718,23 @@ namespace Microsoft.ML.Transforms
 
             public override DataViewSchema Schema => _mapper.OutputSchema;
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
-                int index = _mapper.GetInputIndex(col);
+                int index = _mapper.GetInputIndex(columnIndex);
                 return _inputCursor.GetGetter<TValue>(index);
             }
 
-            public override bool IsColumnActive(int col) => _active[col];
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex) => _active[columnIndex];
         }
     }
 }

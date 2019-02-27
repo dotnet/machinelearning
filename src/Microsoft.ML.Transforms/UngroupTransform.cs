@@ -593,31 +593,33 @@ namespace Microsoft.ML.Transforms
 
             public override DataViewSchema Schema => _ungroupBinding.OutputSchema;
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex)
             {
-                Ch.Check(0 <= col && col < _ungroupBinding.InputColumnCount);
-                return _active[col];
+                Ch.Check(0 <= columnIndex && columnIndex < _ungroupBinding.InputColumnCount);
+                return _active[columnIndex];
             }
 
             /// <summary>
-            /// Returns getter to an output column.
+            /// Returns the getter of an output column.
             /// </summary>
-            /// <typeparam name="TValue">Output column's content type, for example, <see cref="VBuffer{T}"/>.</typeparam>
-            /// <param name="col">Index of a output column whose getter will be returned.</param>
-            /// <returns></returns>
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <typeparam name="TValue"> is the output column's content type, for example, <see cref="VBuffer{T}"/>.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
                 // Although the input argument, col, is a output index, we check its range as if it's an input column index.
                 // It makes sense because the i-th output column is produced by either expanding or copying the i-th input column.
-                Ch.CheckParam(0 <= col && col < _ungroupBinding.InputColumnCount, nameof(col));
+                Ch.CheckParam(0 <= columnIndex && columnIndex < _ungroupBinding.InputColumnCount, nameof(columnIndex));
 
-                if (!_ungroupBinding.IsPivot(col))
-                    return Input.GetGetter<TValue>(col);
+                if (!_ungroupBinding.IsPivot(columnIndex))
+                    return Input.GetGetter<TValue>(columnIndex);
 
-                if (_cachedGetters[col] == null)
-                    _cachedGetters[col] = MakeGetter<TValue>(col, _ungroupBinding.GetPivotColumnOptionsByCol(col).ItemType);
+                if (_cachedGetters[columnIndex] == null)
+                    _cachedGetters[columnIndex] = MakeGetter<TValue>(columnIndex, _ungroupBinding.GetPivotColumnOptionsByCol(columnIndex).ItemType);
 
-                var result = _cachedGetters[col] as ValueGetter<TValue>;
+                var result = _cachedGetters[columnIndex] as ValueGetter<TValue>;
                 Ch.Check(result != null, "Unexpected getter type requested");
                 return result;
             }

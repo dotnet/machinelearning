@@ -509,9 +509,20 @@ namespace Microsoft.ML.Data
             public override long Batch => _internal.Batch;
             public override DataViewSchema Schema => _internal.Schema;
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col) => _internal.GetGetter<TValue>(col);
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex) => _internal.GetGetter<TValue>(columnIndex);
             public override ValueGetter<DataViewRowId> GetIdGetter() => _internal.GetIdGetter();
-            public override bool IsColumnActive(int col) => _internal.IsColumnActive(col);
+
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex) => _internal.IsColumnActive(columnIndex);
             public override bool MoveTo(long rowIndex) => _internal.MoveTo(rowIndex);
         }
 
@@ -1157,10 +1168,13 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public sealed override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public sealed override bool IsColumnActive(int columnIndex)
             {
-                Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
-                return _colToActivesIndex[col] >= 0;
+                Ch.CheckParam(0 <= columnIndex && columnIndex < _colToActivesIndex.Length, nameof(columnIndex));
+                return _colToActivesIndex[columnIndex] >= 0;
             }
 
             protected sealed override void Dispose(bool disposing)
@@ -1177,11 +1191,11 @@ namespace Microsoft.ML.Data
                 _disposed = true;
             }
 
-            public sealed override ValueGetter<TValue> GetGetter<TValue>(int col)
+            public sealed override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
-                if (!IsColumnActive(col))
-                    throw Ch.Except("Column #{0} is requested but not active in the cursor", col);
-                var getter = _getters[_colToActivesIndex[col]] as ValueGetter<TValue>;
+                if (!IsColumnActive(columnIndex))
+                    throw Ch.Except("Column #{0} is requested but not active in the cursor", columnIndex);
+                var getter = _getters[_colToActivesIndex[columnIndex]] as ValueGetter<TValue>;
                 if (getter == null)
                     throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
                 return getter;

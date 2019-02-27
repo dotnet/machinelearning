@@ -273,26 +273,36 @@ namespace Microsoft.ML.Data
                 _scoreGetter = _parent.GetScoreGetter(_groupCursor);
             }
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex)
             {
-                Ch.Check(0 <= col && col < _parent.GetBindings().ColumnCount);
-                return _active[col];
+                Ch.Check(0 <= columnIndex && columnIndex < _parent.GetBindings().ColumnCount);
+                return _active[columnIndex];
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
-                Contracts.CheckParam(IsColumnActive(col), nameof(col), "requested column is not active");
+                Contracts.CheckParam(IsColumnActive(columnIndex), nameof(columnIndex), "requested column is not active");
 
                 bool isSrc;
-                col = _parent.GetBindings().MapColumnIndex(out isSrc, col);
+                columnIndex = _parent.GetBindings().MapColumnIndex(out isSrc, columnIndex);
                 if (isSrc)
                 {
                     Contracts.AssertValue(_input);
-                    return _input.GetGetter<TValue>(col);
+                    return _input.GetGetter<TValue>(columnIndex);
                 }
 
                 Ch.AssertValue(_getters);
-                var getter = _getters[col];
+                var getter = _getters[columnIndex];
                 Ch.Assert(getter != null);
                 var fn = getter as ValueGetter<TValue>;
                 if (fn == null)

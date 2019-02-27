@@ -141,6 +141,8 @@ namespace Microsoft.Data.DataView
         /// This throws if the column is not active in this row, or if the type
         /// <typeparamref name="TValue"/> differs from this column's type.
         /// </summary>
+        /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+        /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
         public abstract ValueGetter<TValue> GetGetter<TValue>(int columnIndex);
 
         /// <summary>

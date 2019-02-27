@@ -550,10 +550,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public override Action<long> GetPinger() =>
                 _pinger as Action<long> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(long));
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex)
             {
-                Contracts.Check(0 <= col && col < _getters.Length);
-                return _getters[col] != null;
+                Contracts.Check(0 <= columnIndex && columnIndex < _getters.Length);
+                return _getters[columnIndex] != null;
             }
         }
 
@@ -573,16 +576,26 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public override DataViewSchema Schema => _parent.OutputSchema;
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex)
             {
-                Ch.Check(0 <= col && col < Schema.Count, "col");
-                return Input.IsColumnActive(col);
+                Ch.Check(0 <= columnIndex && columnIndex < Schema.Count, nameof(columnIndex));
+                return Input.IsColumnActive(columnIndex);
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
-                Ch.Check(IsColumnActive(col), "col");
-                return Input.GetGetter<TValue>(col);
+                Ch.Check(IsColumnActive(columnIndex), nameof(columnIndex));
+                return Input.GetGetter<TValue>(columnIndex);
             }
         }
     }
@@ -835,10 +848,17 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     _disposer?.Invoke();
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
                 bool isSrc;
-                int index = _parent._bindings.MapColumnIndex(out isSrc, col);
+                int index = _parent._bindings.MapColumnIndex(out isSrc, columnIndex);
                 if (isSrc)
                     return _input.GetGetter<TValue>(index);
 
@@ -854,10 +874,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public override ValueGetter<DataViewRowId> GetIdGetter() => _input.GetIdGetter();
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex)
             {
                 bool isSrc;
-                int index = _parent._bindings.MapColumnIndex(out isSrc, col);
+                int index = _parent._bindings.MapColumnIndex(out isSrc, columnIndex);
                 if (isSrc)
                     return _input.IsColumnActive((index));
                 return _getters[index] != null;
@@ -883,18 +906,28 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 _bindings = parent._bindings;
             }
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(int columnIndex)
             {
-                Ch.Check(0 <= col && col < _bindings.Schema.Count);
-                return _active[col];
+                Ch.Check(0 <= columnIndex && columnIndex < _bindings.Schema.Count);
+                return _active[columnIndex];
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
             {
-                Ch.Check(IsColumnActive(col));
+                Ch.Check(IsColumnActive(columnIndex));
 
                 bool isSrc;
-                int index = _bindings.MapColumnIndex(out isSrc, col);
+                int index = _bindings.MapColumnIndex(out isSrc, columnIndex);
                 if (isSrc)
                     return Input.GetGetter<TValue>(index);
 
