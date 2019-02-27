@@ -165,7 +165,7 @@ namespace Microsoft.ML.Functional.Tests
         /// <param name="metrics">The metrics object.</param>
         public static void AssertMetrics(AnomalyDetectionMetrics metrics)
         {
-            Assert.InRange(metrics.AreaUnderTheRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
             Assert.InRange(metrics.DetectionRateAtKFalsePositives, 0, 1);
         }
 
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Functional.Tests
         public static void AssertMetrics(BinaryClassificationMetrics metrics)
         {
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.AreaUnderTheRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
             Assert.InRange(metrics.F1Score, 0, 1);
             Assert.InRange(metrics.NegativePrecision, 0, 1);

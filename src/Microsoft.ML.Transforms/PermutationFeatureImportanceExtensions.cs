@@ -158,7 +158,7 @@ namespace Microsoft.ML
             BinaryClassificationMetrics a, BinaryClassificationMetrics b)
         {
             return new BinaryClassificationMetrics(
-                auc: a.AreaUnderTheRocCurve - b.AreaUnderTheRocCurve,
+                auc: a.AreaUnderRocCurve - b.AreaUnderRocCurve,
                 accuracy: a.Accuracy - b.Accuracy,
                 positivePrecision: a.PositivePrecision - b.PositivePrecision,
                 positiveRecall: a.PositiveRecall - b.PositiveRecall,
@@ -528,7 +528,7 @@ namespace Microsoft.ML
         /// <param name="metrics">The observed binary classification evaluation metric</param>
         public override void Add(BinaryClassificationMetrics metrics)
         {
-            Auc.Add(metrics.AreaUnderTheRocCurve);
+            Auc.Add(metrics.AreaUnderRocCurve);
             Accuracy.Add(metrics.Accuracy);
             PositivePrecision.Add(metrics.PositivePrecision);
             PositiveRecall.Add(metrics.PositiveRecall);

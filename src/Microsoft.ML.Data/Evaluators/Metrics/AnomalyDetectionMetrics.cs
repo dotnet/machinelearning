@@ -20,7 +20,7 @@ namespace Microsoft.ML.Data
         /// a randomly chosen positive instance higher than a randomly chosen negative one
         /// (assuming 'positive' ranks higher than 'negative').
         /// </remarks>
-        public double AreaUnderTheRocCurve { get; }
+        public double AreaUnderRocCurve { get; }
 
         /// <summary>
         /// Detection rate at K false positives.
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Data
         internal AnomalyDetectionMetrics(IExceptionContext ectx, DataViewRow overallResult)
         {
             double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
-            AreaUnderTheRocCurve = FetchDouble(BinaryClassifierEvaluator.Auc);
+            AreaUnderRocCurve = FetchDouble(BinaryClassifierEvaluator.Auc);
             DetectionRateAtKFalsePositives = FetchDouble(AnomalyDetectionEvaluator.OverallMetrics.DrAtK);
         }
     }

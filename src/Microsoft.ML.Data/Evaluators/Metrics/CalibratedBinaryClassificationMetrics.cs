@@ -7,7 +7,7 @@ using Microsoft.Data.DataView;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Evaluation results for binary classifiers (supervised learning algorithm), including probabilistic metrics.
+    /// Evaluation results for binary classifiers, including probabilistic metrics.
     /// </summary>
     public sealed class CalibratedBinaryClassificationMetrics : BinaryClassificationMetrics
     {

@@ -7,13 +7,13 @@ using Microsoft.Data.DataView;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// The metrics generated after evaluating the clustering predictions (unsupervised learning algorithm).
+    /// The metrics generated after evaluating the clustering predictions.
     /// </summary>
     public sealed class ClusteringMetrics
     {
         /// <summary>
         /// Normalized Mutual Information is a measure of the mutual dependence of the variables.
-        /// Normalized variants work on data that already has cluster labels.
+        /// This metric is only calculated if the Label column is provided.
         /// </summary>
         /// <value> Its value ranged from 0 to 1, where higher numbers are better.</value>
         /// <remarks><a href="http://en.wikipedia.org/wiki/Mutual_information#Normalized_variants">Normalized variants</a></remarks>
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Davies-Bouldin Index is measure of the how much scatter is in the cluster and the cluster separation.
         /// </summary>
-        /// <remarks><a href="https://en.wikipedia.org/wiki/Davies%E2%80%93Bouldin_index">Davies-Bouldin Index</a></remarks>
+        /// <remarks><a href="https://en.wikipedia.org/wiki/Davies%E2%80%93Bouldin_index">Davies-Bouldin Index.</a></remarks>
         public double DaviesBouldinIndex { get; }
 
         internal ClusteringMetrics(IExceptionContext ectx, DataViewRow overallResult, bool calculateDbi)

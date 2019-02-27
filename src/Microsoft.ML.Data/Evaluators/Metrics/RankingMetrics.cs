@@ -7,7 +7,7 @@ using Microsoft.Data.DataView;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Evaluation results for rankers (supervised learning algorithm).
+    /// Evaluation results for rankers.
     /// </summary>
     public sealed class RankerMetrics
     {

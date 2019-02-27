@@ -134,7 +134,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.AreaUnderTheRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
             Assert.InRange(metrics.LogLoss, 0, double.PositiveInfinity);
             Assert.InRange(metrics.Entropy, 0, double.PositiveInfinity);
@@ -174,7 +174,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0.9, 1);
-            Assert.InRange(metrics.AreaUnderTheRocCurve, 0.9, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.9, 1);
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.9, 1);
             Assert.InRange(metrics.LogLoss, 0, 0.2);
             Assert.InRange(metrics.Entropy, 0.9, double.PositiveInfinity);
@@ -214,7 +214,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.AreaUnderTheRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
 
             // Just output some data on the schema for fun.
@@ -255,7 +255,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0.95, 1);
-            Assert.InRange(metrics.AreaUnderTheRocCurve, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.95, 1);
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.95, 1);
         }
 
@@ -292,7 +292,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.AreaUnderTheRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
         }
 
@@ -328,7 +328,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.AreaUnderTheRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
         }
 
@@ -360,7 +360,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.AreaUnderTheRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
         }
 
@@ -473,7 +473,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.AreaUnderTheRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
         }
 
@@ -555,7 +555,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.AreaUnderTheRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
         }
 
@@ -673,7 +673,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.AreaUnderTheRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
         }
 
@@ -1031,7 +1031,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0.9, 1);
-            Assert.InRange(metrics.AreaUnderTheRocCurve, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.95, 1);
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.95, 1);
             Assert.InRange(metrics.LogLoss, 0, 0.2);
         }
@@ -1067,7 +1067,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0.9, 1);
-            Assert.InRange(metrics.AreaUnderTheRocCurve, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.95, 1);
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.95, 1);
             Assert.InRange(metrics.LogLoss, 0, 0.2);
         }
@@ -1104,7 +1104,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0.9, 1);
-            Assert.InRange(metrics.AreaUnderTheRocCurve, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.95, 1);
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.95, 1);
         }
 
@@ -1138,7 +1138,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0.9, 1);
-            Assert.InRange(metrics.AreaUnderTheRocCurve, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.95, 1);
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.95, 1);
         }
 
