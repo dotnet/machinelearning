@@ -92,13 +92,6 @@ namespace Microsoft.ML.Tests.Scenarios
             mustFail(() => data.AsDynamic.GetColumn<int>("floatScalar"));
             mustFail(() => data.AsDynamic.GetColumn<int?>("floatScalar"));
             mustFail(() => data.AsDynamic.GetColumn<string>("floatScalar"));
-
-
-            // Static types.
-            var enum8 = data.GetColumn(r => r.floatScalar);
-            var enum9 = data.GetColumn(r => r.floatVector);
-            var enum10 = data.GetColumn(r => r.stringScalar);
-            var enum11 = data.GetColumn(r => r.stringVector);
         }
 
         private static Action<Action> GetMustFail()
