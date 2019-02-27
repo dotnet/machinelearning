@@ -29,7 +29,7 @@ namespace Microsoft.ML.Scenarios
             });
 
             // Data
-            var data = reader.Read(GetDataPath(dataPath));
+            var data = reader.Load(GetDataPath(dataPath));
 
             // Pipeline
             var logReg = mlContext.BinaryClassification.Trainers.LogisticRegression();
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Scenarios
             });
 
             // Data
-            var data = mlContext.Data.Cache(reader.Read(GetDataPath(dataPath)));
+            var data = mlContext.Data.Cache(reader.Load(GetDataPath(dataPath)));
 
             // Pipeline
             var ap = mlContext.BinaryClassification.Trainers.AveragedPerceptron(
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Scenarios
             });
 
             // Data
-            var data = reader.Read(GetDataPath(dataPath));
+            var data = reader.Load(GetDataPath(dataPath));
 
             // Pipeline
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Scenarios
             });
 
             // Data
-            var data = mlContext.Data.Cache(reader.Read(GetDataPath(dataPath)));
+            var data = mlContext.Data.Cache(reader.Load(GetDataPath(dataPath)));
 
             // Pipeline
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(

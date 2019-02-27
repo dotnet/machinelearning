@@ -28,9 +28,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // as well as the source of randomness.
             var ml = new MLContext();
 
-            // First, we define the reader: specify the data columns and where to find them in the text file. Notice that we combine entries from
+            // First, we define the loader: specify the data columns and where to find them in the text file. Notice that we combine entries from
             // all the feature columns into entries of a vector of a single column named "Features".
-            var reader = ml.Data.CreateTextLoader(
+            var loader = ml.Data.CreateTextLoader(
                 columns: new[]
                     {
                         new TextLoader.Column("Label", DataKind.Boolean, 0),
@@ -39,8 +39,8 @@ namespace Microsoft.ML.Samples.Dynamic
                 hasHeader: true
             );
 
-            // Then, we use the reader to read the data as an IDataView.
-            var data = reader.Read(dataFilePath);
+            // Then, we use the loader to load the data as an IDataView.
+            var data = loader.Load(dataFilePath);
 
             // Second, we define the transformations that we apply on the data. Remember that an Estimator does not transform data
             // directly, but it needs to be trained on data using .Fit(), and it will output a Transformer, which can transform data.

@@ -5,12 +5,11 @@
 using System;
 using Microsoft.ML;
 using Microsoft.ML.Trainers.Ensemble;
-using Microsoft.ML.Trainers.Ensemble.DiversityMeasure;
 
 [assembly: LoadableClass(typeof(RegressionDisagreementDiversityMeasure), null, typeof(SignatureEnsembleDiversityMeasure),
     DisagreementDiversityMeasure.UserName, RegressionDisagreementDiversityMeasure.LoadName)]
 
-namespace Microsoft.ML.Trainers.Ensemble.DiversityMeasure
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal sealed class RegressionDisagreementDiversityMeasure : BaseDisagreementDiversityMeasure<Single>, IRegressionDiversityMeasure
     {

@@ -5,7 +5,7 @@
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.StaticPipe.Runtime
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// An object for declaring a schema-shape. This is mostly commonly used in situations where a user is

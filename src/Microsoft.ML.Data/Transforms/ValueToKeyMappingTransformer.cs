@@ -116,7 +116,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 111, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureDataLoader))]
             [BestFriend]
-            internal IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
+            internal IComponentFactory<IMultiStreamSource, ILegacyDataLoader> Loader;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the text column containing the terms", ShortName = "termCol", SortOrder = 112, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string TermsColumn;
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Transforms.Conversions
         private readonly bool[] _textMetadata;
         private const string RegistrationName = "Term";
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ValueToKeyMappingEstimator.ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ValueToKeyMappingEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray();
@@ -249,12 +249,12 @@ namespace Microsoft.ML.Transforms.Conversions
         }
 
         internal ValueToKeyMappingTransformer(IHostEnvironment env, IDataView input,
-            params ValueToKeyMappingEstimator.ColumnInfo[] columns) :
+            params ValueToKeyMappingEstimator.ColumnOptions[] columns) :
             this(env, input, columns, null, false)
         { }
 
         internal ValueToKeyMappingTransformer(IHostEnvironment env, IDataView input,
-            ValueToKeyMappingEstimator.ColumnInfo[] columns, IDataView keyData, bool autoConvert)
+            ValueToKeyMappingEstimator.ColumnOptions[] columns, IDataView keyData, bool autoConvert)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             using (var ch = Host.Start("Training"))
@@ -277,7 +277,7 @@ namespace Microsoft.ML.Transforms.Conversions
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(options.Columns, nameof(options.Columns));
-            var cols = new ValueToKeyMappingEstimator.ColumnInfo[options.Columns.Length];
+            var cols = new ValueToKeyMappingEstimator.ColumnOptions[options.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
                 if ((options.Terms != null || !string.IsNullOrEmpty(options.Term)) &&
@@ -296,7 +296,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.SortOrder), sortOrder))
                         throw env.ExceptUserArg(nameof(options.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.Name);
 
-                    cols[i] = new ValueToKeyMappingEstimator.ColumnInfo(
+                    cols[i] = new ValueToKeyMappingEstimator.ColumnOptions(
                         item.Name,
                         item.Source ?? item.Name,
                         item.MaxNumTerms ?? options.MaxNumTerms,
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <returns>The single-column data containing the term data from the file.</returns>
         [BestFriend]
         internal static IDataView GetKeyDataViewOrNull(IHostEnvironment env, IChannel ch,
-            string file, string termsColumn, IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory,
+            string file, string termsColumn, IComponentFactory<IMultiStreamSource, ILegacyDataLoader> loaderFactory,
             out bool autoConvert)
         {
             ch.AssertValue(env);
@@ -448,9 +448,9 @@ namespace Microsoft.ML.Transforms.Conversions
                             new TextLoader.Column("Term", DataKind.String, 0)
                         }
                     };
-                    var reader = new TextLoader(env, options: options, dataSample: fileSource);
+                    var loader = new TextLoader(env, options: options, dataSample: fileSource);
 
-                    keyData = reader.Read(fileSource);
+                    keyData = loader.Load(fileSource);
 
                     src = "Term";
                     // In this case they are relying on heuristics, so auto-loading in this case is most appropriate.
@@ -514,7 +514,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// This builds the <see cref="TermMap"/> instances per column.
         /// </summary>
         private static TermMap[] Train(IHostEnvironment env, IChannel ch, ColInfo[] infos,
-            IDataView keyData, ValueToKeyMappingEstimator.ColumnInfo[] columns, IDataView trainingData, bool autoConvert)
+            IDataView keyData, ValueToKeyMappingEstimator.ColumnOptions[] columns, IDataView trainingData, bool autoConvert)
         {
             Contracts.AssertValue(env);
             env.AssertValue(ch);

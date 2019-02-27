@@ -29,8 +29,8 @@ namespace Microsoft.ML.SamplesUtils
             // Download the file
             string dataFile = DownloadHousingRegressionDataset();
 
-            // Define the columns to read
-            var reader = mlContext.Data.CreateTextLoader(
+            // Define the columns to load
+            var loader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
                         new TextLoader.Column("MedianHomeValue", DataKind.Single, 0),
@@ -49,8 +49,8 @@ namespace Microsoft.ML.SamplesUtils
                 hasHeader: true
             );
 
-            // Read the data into an IDataView
-            var data = reader.Read(dataFile);
+            // Load the data into an IDataView
+            var data = loader.Load(dataFile);
 
             return data;
         }
@@ -77,14 +77,48 @@ namespace Microsoft.ML.SamplesUtils
         /// <summary>
         /// Downloads the wikipedia detox dataset from the ML.NET repo.
         /// </summary>
-        public static string DownloadSentimentDataset()
-         => Download("https://raw.githubusercontent.com/dotnet/machinelearning/76cb2cdf5cc8b6c88ca44b8969153836e589df04/test/data/wikipedia-detox-250-line-data.tsv", "sentiment.tsv");
+        public static string[] DownloadSentimentDataset()
+        {
+            var trainFile = Download("https://raw.githubusercontent.com/dotnet/machinelearning/76cb2cdf5cc8b6c88ca44b8969153836e589df04/test/data/wikipedia-detox-250-line-data.tsv", "sentiment.tsv");
+            var testFile = Download("https://raw.githubusercontent.com/dotnet/machinelearning/76cb2cdf5cc8b6c88ca44b8969153836e589df04/test/data/wikipedia-detox-250-line-test.tsv", "sentimenttest.tsv");
+            return new[] { trainFile, testFile };
+        }
+
+            /// <summary>
+            /// Downloads the adult dataset from the ML.NET repo.
+            /// </summary>
+            public static string DownloadAdultDataset()
+            => Download("https://raw.githubusercontent.com/dotnet/machinelearning/244a8c2ac832657af282aa312d568211698790aa/test/data/adult.train", "adult.txt");
 
         /// <summary>
-        /// Downloads the adult dataset from the ML.NET repo.
+        /// Downloads the  wikipedia detox dataset and featurizes it to be suitable for sentiment classification tasks.
         /// </summary>
-        public static string DownloadAdultDataset()
-            => Download("https://raw.githubusercontent.com/dotnet/machinelearning/244a8c2ac832657af282aa312d568211698790aa/test/data/adult.train", "adult.txt");
+        /// <param name="mlContext"><see cref="MLContext"/> used for data loading and processing.</param>
+        /// <returns>Featurized train and test dataset.</returns>
+        public static IDataView[] LoadFeaturizedSentimentDataset(MLContext mlContext)
+        {
+            // Download the files
+            var dataFiles = DownloadSentimentDataset();
+
+            // Define the columns to load
+            var loader = mlContext.Data.CreateTextLoader(
+                columns: new[]
+                    {
+                        new TextLoader.Column("Sentiment", DataKind.Boolean, 0),
+                        new TextLoader.Column("SentimentText", DataKind.String, 1)
+                    },
+                hasHeader: true
+            );
+
+            // Create data featurizing pipeline
+            var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText");
+
+            var data = loader.Load(dataFiles[0]);
+            var model = pipeline.Fit(data);
+            var featurizedDataTrain = model.Transform(data);
+            var featurizedDataTest = model.Transform(loader.Load(dataFiles[1]));
+            return new[] { featurizedDataTrain, featurizedDataTest };
+        }
 
         /// <summary>
         /// Downloads the Adult UCI dataset and featurizes it to be suitable for classification tasks.
@@ -99,8 +133,8 @@ namespace Microsoft.ML.SamplesUtils
             // Download the file
             string dataFile = DownloadAdultDataset();
 
-            // Define the columns to read
-            var reader = mlContext.Data.CreateTextLoader(
+            // Define the columns to load
+            var loader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
                         new TextLoader.Column("age", DataKind.Single, 0),
@@ -140,7 +174,7 @@ namespace Microsoft.ML.SamplesUtils
                 // Min-max normalize all the features
                 .Append(mlContext.Transforms.Normalize("Features"));
 
-            var data = reader.Read(dataFile);
+            var data = loader.Load(dataFile);
             var featurizedData = pipeline.Fit(data).Transform(data);
             return featurizedData;
         }
@@ -158,8 +192,8 @@ namespace Microsoft.ML.SamplesUtils
             // Download the training and validation files.
             string dataFile = DownloadMslrWeb10k();
 
-            // Create the reader to read the data.
-            var reader = mlContext.Data.CreateTextLoader(
+            // Create the loader to load the data.
+            var loader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                 {
                     new TextLoader.Column("Label", DataKind.Single, 0),
@@ -169,7 +203,7 @@ namespace Microsoft.ML.SamplesUtils
             );
 
             // Load the raw dataset.
-            var data = reader.Read(dataFile);
+            var data = loader.Load(dataFile);
 
             // Create the featurization pipeline. First, hash the GroupId column.
             var pipeline = mlContext.Transforms.Conversion.Hash("GroupId")
@@ -322,6 +356,13 @@ namespace Microsoft.ML.SamplesUtils
 
         public class SampleTemperatureData
         {
+            public DateTime Date { get; set; }
+            public float Temperature { get; set; }
+        }
+
+        public class SampleTemperatureDataWithLatitude
+        {
+            public float Latitude { get; set; }
             public DateTime Date { get; set; }
             public float Temperature { get; set; }
         }
@@ -480,7 +521,7 @@ namespace Microsoft.ML.SamplesUtils
 
         /// <summary>
         /// Class used to capture prediction of <see cref="BinaryLabelFloatFeatureVectorSample"/> when
-        /// calling <see cref="CursoringUtils.CreateEnumerable"/> via on <see cref="MLContext"/>.
+        /// calling <see cref="DataOperationsCatalog.CreateEnumerable{TRow}(IDataView, bool, bool, SchemaDefinition)"/> via on <see cref="MLContext"/>.
         /// </summary>
         public class CalibratedBinaryClassifierOutput
         {
@@ -491,7 +532,7 @@ namespace Microsoft.ML.SamplesUtils
 
         /// <summary>
         /// Class used to capture prediction of <see cref="BinaryLabelFloatFeatureVectorSample"/> when
-        /// calling <see cref="CursoringUtils.CreateEnumerable"/> via on <see cref="MLContext"/>.
+        /// calling <see cref="DataOperationsCatalog.CreateEnumerable{TRow}(IDataView, bool, bool, SchemaDefinition)"/> via on <see cref="MLContext"/>.
         /// </summary>
         public class NonCalibratedBinaryClassifierOutput
         {

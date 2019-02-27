@@ -7,12 +7,11 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.Ensemble;
-using Microsoft.ML.Trainers.Ensemble.DiversityMeasure;
 
 [assembly: LoadableClass(typeof(MultiDisagreementDiversityMeasure), null, typeof(SignatureEnsembleDiversityMeasure),
     DisagreementDiversityMeasure.UserName, MultiDisagreementDiversityMeasure.LoadName)]
 
-namespace Microsoft.ML.Trainers.Ensemble.DiversityMeasure
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal sealed class MultiDisagreementDiversityMeasure : BaseDisagreementDiversityMeasure<VBuffer<Single>>, IMulticlassDiversityMeasure
     {

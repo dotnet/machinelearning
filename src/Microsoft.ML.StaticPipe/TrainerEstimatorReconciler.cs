@@ -8,7 +8,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.StaticPipe.Runtime
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// General purpose reconciler for a typical case with trainers, where they accept some generally

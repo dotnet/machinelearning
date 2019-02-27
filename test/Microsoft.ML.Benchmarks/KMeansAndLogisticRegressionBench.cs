@@ -5,7 +5,7 @@
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 
@@ -22,7 +22,7 @@ namespace Microsoft.ML.Benchmarks
             var ml = new MLContext(seed: 1);
             // Pipeline
 
-            var input = ml.Data.ReadFromTextFile(_dataPath, new[] {
+            var input = ml.Data.LoadFromTextFile(_dataPath, new[] {
                             new TextLoader.Column("Label", DataKind.Boolean, 0),
                             new TextLoader.Column("CatFeatures", DataKind.String,
                                 new [] {

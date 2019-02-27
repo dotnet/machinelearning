@@ -201,7 +201,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         private const string RegistrationName = "Pca";
 
-        internal PrincipalComponentAnalysisTransformer(IHostEnvironment env, IDataView input, PrincipalComponentAnalysisEstimator.ColumnInfo[] columns)
+        internal PrincipalComponentAnalysisTransformer(IHostEnvironment env, IDataView input, PrincipalComponentAnalysisEstimator.ColumnOptions[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(PrincipalComponentAnalysisTransformer)), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Transforms.Projections
             env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
             env.CheckValue(options.Columns, nameof(options.Columns));
-            var cols = options.Columns.Select(item => new PrincipalComponentAnalysisEstimator.ColumnInfo(
+            var cols = options.Columns.Select(item => new PrincipalComponentAnalysisEstimator.ColumnOptions(
                         item.Name,
                         item.Source,
                         item.WeightColumn,
@@ -291,13 +291,13 @@ namespace Microsoft.ML.Transforms.Projections
             for (int i = 0; i < _transformInfos.Length; i++)
                 _transformInfos[i].Save(ctx);
         }
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(PrincipalComponentAnalysisEstimator.ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(PrincipalComponentAnalysisEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
-        private void Train(PrincipalComponentAnalysisEstimator.ColumnInfo[] columns, TransformInfo[] transformInfos, IDataView trainingData)
+        private void Train(PrincipalComponentAnalysisEstimator.ColumnOptions[] columns, TransformInfo[] transformInfos, IDataView trainingData)
         {
             var y = new float[_numColumns][][];
             var omega = new float[_numColumns][][];
@@ -631,7 +631,7 @@ namespace Microsoft.ML.Transforms.Projections
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnInfo
+        public sealed class ColumnOptions
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
@@ -673,7 +673,7 @@ namespace Microsoft.ML.Transforms.Projections
             /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
             /// <param name="center">If enabled, data is centered to be zero mean.</param>
             /// <param name="seed">The random seed. If unspecified random state will be instead derived from the <see cref="MLContext"/>.</param>
-            public ColumnInfo(string name,
+            public ColumnOptions(string name,
                               string inputColumnName = null,
                               string weightColumn = Defaults.WeightColumn,
                               int rank = Defaults.Rank,
@@ -694,7 +694,7 @@ namespace Microsoft.ML.Transforms.Projections
         }
 
         private readonly IHost _host;
-        private readonly ColumnInfo[] _columns;
+        private readonly ColumnOptions[] _columns;
 
         /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
         /// <param name="env">The environment to use.</param>
@@ -712,14 +712,14 @@ namespace Microsoft.ML.Transforms.Projections
             string weightColumn = Defaults.WeightColumn, int rank = Defaults.Rank,
             int overSampling = Defaults.Oversampling, bool center = Defaults.Center,
             int? seed = null)
-            : this(env, new ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, weightColumn, rank, overSampling, center, seed))
+            : this(env, new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, weightColumn, rank, overSampling, center, seed))
         {
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The dataset columns to use, and their specific settings.</param>
-        internal PrincipalComponentAnalysisEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        internal PrincipalComponentAnalysisEstimator(IHostEnvironment env, params ColumnOptions[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(PrincipalComponentAnalysisEstimator));

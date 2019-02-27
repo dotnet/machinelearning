@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.ML.Calibrator;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
@@ -16,7 +16,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // This will create a sentiment.tsv file in the filesystem.
             // The string, dataFile, is the path to the downloaded file.
             // You can open this file, if you want to see the data. 
-            string dataFile = SamplesUtils.DatasetUtils.DownloadSentimentDataset();
+            string dataFile = SamplesUtils.DatasetUtils.DownloadSentimentDataset()[0];
 
             // A preview of the data. 
             // Sentiment	SentimentText
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Create a text loader.
-            var reader = mlContext.Data.CreateTextLoader(new TextLoader.Options()
+            var loader = mlContext.Data.CreateTextLoader(new TextLoader.Options()
             {
                 Separators = new[] { '\t' },
                 HasHeader = true,
@@ -39,8 +39,8 @@ namespace Microsoft.ML.Samples.Dynamic
                     }
             });
 
-            // Read the data
-            var data = reader.Read(dataFile);
+            // Load the data
+            var data = loader.Load(dataFile);
 
             // Split the dataset into two parts: one used for training, the other to train the calibrator
             var split = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);

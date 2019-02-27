@@ -263,7 +263,7 @@ namespace Microsoft.ML.Data
                     if (!ex.IsMarked())
                         throw;
                     var chain = ModelFileUtils.LoadPipeline(env, stream, new MultiFileSource(null), extractInnerPipe: false);
-                    TransformerChain<ITransformer> transformChain = (chain as CompositeDataLoader).GetTransformer();
+                    TransformerChain<ITransformer> transformChain = (chain as LegacyCompositeDataLoader).GetTransformer();
                     var predictor = ModelFileUtils.LoadPredictorOrNull(env, stream);
                     if (predictor == null)
                         return transformChain;

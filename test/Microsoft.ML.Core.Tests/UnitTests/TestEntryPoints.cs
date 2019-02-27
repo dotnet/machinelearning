@@ -8,16 +8,16 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Core.Tests.UnitTests;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.EntryPoints.JsonUtils;
 using Microsoft.ML.ImageAnalytics;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.LightGBM;
+using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
@@ -165,21 +165,6 @@ namespace Microsoft.ML.RunTests
             var data2 = ModelOperations.Apply(Env, new ModelOperations.ApplyTransformModelInput() { Data = dataView, TransformModel = data1.Model });
 
             CheckSameValues(data1.OutputData, data2.OutputData);
-            Done();
-        }
-
-        [Fact]
-        public void EntryPointCaching()
-        {
-            var dataView = GetBreastCancerDataviewWithTextColumns();
-
-            dataView = Env.CreateTransform("Term{col=F1}", dataView);
-
-            var cached1 = Cache.CacheData(Env, new Cache.CacheInput() { Data = dataView, Caching = Cache.CachingType.Memory });
-            CheckSameValues(dataView, cached1.OutputData);
-
-            var cached2 = Cache.CacheData(Env, new Cache.CacheInput() { Data = dataView, Caching = Cache.CachingType.Disk });
-            CheckSameValues(dataView, cached2.OutputData);
             Done();
         }
 
@@ -740,8 +725,8 @@ namespace Microsoft.ML.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RandomFourierFeaturizingEstimator.ColumnInfo("Features1", 10, false, "Features"),
-                    new RandomFourierFeaturizingEstimator.ColumnInfo("Features2", 10, false, "Features"),
+                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features1", 10, false, "Features"),
+                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
 
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
@@ -1192,8 +1177,8 @@ namespace Microsoft.ML.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RandomFourierFeaturizingEstimator.ColumnInfo("Features1", 10, false, "Features"),
-                    new RandomFourierFeaturizingEstimator.ColumnInfo("Features2", 10, false, "Features"),
+                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features1", 10, false, "Features"),
+                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
 
@@ -1338,7 +1323,7 @@ namespace Microsoft.ML.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new OneHotEncodingEstimator(Env, "Cat").Fit(data).Transform(data);
-                data = new ColumnConcatenatingTransformer(Env, new ColumnConcatenatingTransformer.ColumnInfo("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
+                data = new ColumnConcatenatingTransformer(Env, new ColumnConcatenatingTransformer.ColumnOptions("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
                 if (i % 2 == 0)
                 {
                     var lrInput = new LogisticRegression.Options

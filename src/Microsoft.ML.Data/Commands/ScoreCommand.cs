@@ -124,10 +124,10 @@ namespace Microsoft.ML.Data
             if (scorer == null)
                 scorer = ScoreUtils.GetScorerComponent(Host, mapper);
 
-            loader = CompositeDataLoader.ApplyTransform(Host, loader, "Scorer", scorer.ToString(),
+            loader = LegacyCompositeDataLoader.ApplyTransform(Host, loader, "Scorer", scorer.ToString(),
                 (env, view) => scorer.CreateComponent(env, view, mapper, trainSchema));
 
-            loader = CompositeDataLoader.Create(Host, loader, ImplOptions.PostTransform);
+            loader = LegacyCompositeDataLoader.Create(Host, loader, ImplOptions.PostTransform);
 
             if (!string.IsNullOrWhiteSpace(ImplOptions.OutputModelFile))
             {

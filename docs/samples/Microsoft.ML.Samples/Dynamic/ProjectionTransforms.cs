@@ -15,7 +15,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             IEnumerable<SamplesUtils.DatasetUtils.SampleVectorOfNumbersData> data = SamplesUtils.DatasetUtils.GetVectorOfNumbersData();
-            var trainData = ml.Data.ReadFromEnumerable(data);
+            var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
             //

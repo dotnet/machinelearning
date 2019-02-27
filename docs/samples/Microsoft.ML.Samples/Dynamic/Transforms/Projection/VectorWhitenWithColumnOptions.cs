@@ -5,7 +5,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public sealed class VectorWhitenWithColumnInfo
+    public sealed class VectorWhitenWithColumnOptions
     {
         /// This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.HalLearners/">Microsoft.ML.HalLearners</a>.
         public static void Example()
@@ -16,7 +16,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             var data = SamplesUtils.DatasetUtils.GetVectorOfNumbersData();
-            var trainData = ml.Data.ReadFromEnumerable(data);
+            var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
             //
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
 
             // A pipeline to project Features column into white noise vector.
-            var whiteningPipeline = ml.Transforms.Projection.VectorWhiten(new Transforms.Projections.VectorWhiteningEstimator.ColumnInfo(
+            var whiteningPipeline = ml.Transforms.Projection.VectorWhiten(new Transforms.Projections.VectorWhiteningEstimator.ColumnOptions(
                 nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), kind: Transforms.Projections.WhiteningKind.Pca, pcaNum: 4));
             // The transformed (projected) data.
             var transformedData = whiteningPipeline.Fit(trainData).Transform(trainData);

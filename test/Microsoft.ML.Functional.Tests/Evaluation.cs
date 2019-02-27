@@ -30,10 +30,10 @@ namespace Microsoft.ML.Functional.Tests
 
             var trainData = MnistOneClass.GetTextLoader(mlContext,
                     TestDatasets.mnistOneClass.fileHasHeader, TestDatasets.mnistOneClass.fileSeparator)
-                .Read(GetDataPath(TestDatasets.mnistOneClass.trainFilename));
+                .Load(GetDataPath(TestDatasets.mnistOneClass.trainFilename));
             var testData = MnistOneClass.GetTextLoader(mlContext,
                     TestDatasets.mnistOneClass.fileHasHeader, TestDatasets.mnistOneClass.fileSeparator)
-                .Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
+                .Load(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
             // Create a training pipeline.
             var pipeline = mlContext.AnomalyDetection.Trainers.RandomizedPca();
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            var data = mlContext.Data.ReadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 separatorChar: TestDatasets.Sentiment.fileSeparator);
 
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            var data = mlContext.Data.ReadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 separatorChar: TestDatasets.Sentiment.fileSeparator);
 
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            var data = mlContext.Data.ReadFromTextFile<Iris>(GetDataPath(TestDatasets.iris.trainFilename),
+            var data = mlContext.Data.LoadFromTextFile<Iris>(GetDataPath(TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
 
@@ -144,7 +144,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            var data = mlContext.Data.ReadFromTextFile<Iris>(GetDataPath(TestDatasets.iris.trainFilename),
+            var data = mlContext.Data.LoadFromTextFile<Iris>(GetDataPath(TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
 
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Functional.Tests
             // Get the dataset.
             var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(),
                 hasHeader: TestDatasets.housing.fileHasHeader, separatorChar: TestDatasets.housing.fileSeparator)
-                .Read(GetDataPath(TestDatasets.housing.trainFilename));
+                .Load(GetDataPath(TestDatasets.housing.trainFilename));
 
             // Create a pipeline to train on the sentiment data.
             var pipeline = mlContext.Transforms.Concatenate("Features", new string[] {
@@ -272,7 +272,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            var data = mlContext.Data.ReadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 separatorChar: TestDatasets.Sentiment.fileSeparator);
 

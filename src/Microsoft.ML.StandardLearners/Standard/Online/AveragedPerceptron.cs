@@ -5,11 +5,11 @@
 using System;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.Online;
 
