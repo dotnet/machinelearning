@@ -31,9 +31,21 @@ namespace Microsoft.ML.SamplesUtils
         public static void PrintMetrics(CalibratedBinaryClassificationMetrics metrics)
         {
             PrintMetrics(metrics as BinaryClassificationMetrics);
-            Console.WriteLine($"LogLoss: {metrics.LogLoss:F2}");
-            Console.WriteLine($"LogLossReduction: {metrics.LogLossReduction:F2}");
+            Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");
+            Console.WriteLine($"Log Loss Reduction: {metrics.LogLossReduction:F2}");
             Console.WriteLine($"Entropy: {metrics.Entropy:F2}");
+        }
+
+        /// <summary>
+        /// Pretty-print MultiClassClassifierMetrics objects.
+        /// </summary>
+        /// <param name="metrics"><see cref="MultiClassClassifierMetrics"/> object.</param>
+        public static void PrintMetrics(MultiClassClassifierMetrics metrics)
+        {
+            Console.WriteLine($"Micro Accuracy: {metrics.AccuracyMicro:F2}");
+            Console.WriteLine($"Macro Accuracy: {metrics.AccuracyMacro:F2}");
+            Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");
+            Console.WriteLine($"Log Loss Reduction: {metrics.LogLossReduction:F2}");
         }
 
         /// <summary>
