@@ -10,8 +10,6 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
-using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Float = System.Single;
 
@@ -909,7 +907,7 @@ namespace Microsoft.ML.RunTests
             string stopwordsFile = DeleteOutputPath("SavePipe", "CustomStopwordsRemover-stopwordsFile.txt");
             File.WriteAllLines(stopwordsFile, stopwordsList);
 
-            Action<IDataLoader> action
+            Action<ILegacyDataLoader> action
                 = pipe =>
                 {
                     VBuffer<ReadOnlyMemory<char>>[] expected = new VBuffer<ReadOnlyMemory<char>>[2];
@@ -1104,7 +1102,7 @@ namespace Microsoft.ML.RunTests
             builder.AddColumn("F1", type, data);
             var srcView = builder.GetDataView();
 
-            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnInfo("F1", "F1", 5, 42)).Transform(srcView);
+            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnOptions("F1", "F1", 5, 42)).Transform(srcView);
             using (var cursor = hashTransform.GetRowCursorForAllColumns())
             {
                 var resultGetter = cursor.GetGetter<uint>(1);
@@ -1135,7 +1133,7 @@ namespace Microsoft.ML.RunTests
         private void TestHashTransformVectorHelper(ArrayDataViewBuilder builder, uint[][] results)
         {
             var srcView = builder.GetDataView();
-            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnInfo("F1V", "F1V", 5, 42)).Transform(srcView);
+            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnOptions("F1V", "F1V", 5, 42)).Transform(srcView);
             using (var cursor = hashTransform.GetRowCursorForAllColumns())
             {
                 var resultGetter = cursor.GetGetter<VBuffer<uint>>(1);

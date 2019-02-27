@@ -11,7 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
-using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(AveragedPerceptronTrainer.Summary, typeof(AveragedPerceptronTrainer), typeof(AveragedPerceptronTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -20,7 +20,7 @@ using Microsoft.ML.Trainers.Online;
 
 [assembly: LoadableClass(typeof(void), typeof(AveragedPerceptronTrainer), null, typeof(SignatureEntryPointModule), "AP")]
 
-namespace Microsoft.ML.Trainers.Online
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for the averaged perceptron trainer.

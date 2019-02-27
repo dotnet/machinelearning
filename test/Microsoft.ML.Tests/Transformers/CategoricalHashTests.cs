@@ -7,13 +7,11 @@ using System.IO;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -50,12 +48,12 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = "1", B = "2", C = "3", }, new TestClass() { A = "4", B = "5", C = "6" } };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Categorical.OneHotHashEncoding(new[]{
-                    new OneHotHashEncodingEstimator.ColumnInfo("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag),
-                    new OneHotHashEncodingEstimator.ColumnInfo("CatB", "A", OneHotEncodingTransformer.OutputKind.Bin),
-                    new OneHotHashEncodingEstimator.ColumnInfo("CatC", "A", OneHotEncodingTransformer.OutputKind.Ind),
-                    new OneHotHashEncodingEstimator.ColumnInfo("CatD", "A", OneHotEncodingTransformer.OutputKind.Key),
+                    new OneHotHashEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag),
+                    new OneHotHashEncodingEstimator.ColumnOptions("CatB", "A", OneHotEncodingTransformer.OutputKind.Bin),
+                    new OneHotHashEncodingEstimator.ColumnOptions("CatC", "A", OneHotEncodingTransformer.OutputKind.Ind),
+                    new OneHotHashEncodingEstimator.ColumnOptions("CatD", "A", OneHotEncodingTransformer.OutputKind.Key),
                 });
 
             TestEstimatorCore(pipe, dataView);
@@ -66,13 +64,13 @@ namespace Microsoft.ML.Tests.Transformers
         public void CategoricalHashStatic()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
                 ScalarString: ctx.LoadText(1),
                 VectorString: ctx.LoadText(1, 4)));
-            var data = reader.Read(dataPath);
+            var data = reader.Load(dataPath);
             var wrongCollection = new[] { new TestClass() { A = "1", B = "2", C = "3", }, new TestClass() { A = "4", B = "5", C = "6" } };
 
-            var invalidData = ML.Data.ReadFromEnumerable(wrongCollection);
+            var invalidData = ML.Data.LoadFromEnumerable(wrongCollection);
             var est = data.MakeNewEstimator().
                   Append(row => (
                       row.ScalarString,
@@ -108,18 +106,18 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestMeta() { A = new string[2] { "A", "B"}, B = "C", C =new float[2] { 3.0f,4.0f}, D = -1.0f, E= new string[2]{"E","A"}, F="E"},
                 new TestMeta() { A = new string[2] { "A", "B"}, B = "C", C =new float[2] { 5.0f,6.0f}, D = 1.0f , E= new string[2]{"D","E"}, F="D"} };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var bagPipe = ML.Transforms.Categorical.OneHotHashEncoding(
-                new OneHotHashEncodingEstimator.ColumnInfo("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnInfo("CatB", "B", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnInfo("CatC", "C", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnInfo("CatD", "D", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnInfo("CatE", "E", OneHotEncodingTransformer.OutputKind.Ind, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnInfo("CatF", "F", OneHotEncodingTransformer.OutputKind.Ind, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnInfo("CatG", "A", OneHotEncodingTransformer.OutputKind.Key, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnInfo("CatH", "B", OneHotEncodingTransformer.OutputKind.Key, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnInfo("CatI", "A", OneHotEncodingTransformer.OutputKind.Bin, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnInfo("CatJ", "B", OneHotEncodingTransformer.OutputKind.Bin, invertHash: -1));
+                new OneHotHashEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatB", "B", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatC", "C", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatD", "D", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatE", "E", OneHotEncodingTransformer.OutputKind.Ind, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatF", "F", OneHotEncodingTransformer.OutputKind.Ind, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatG", "A", OneHotEncodingTransformer.OutputKind.Key, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatH", "B", OneHotEncodingTransformer.OutputKind.Key, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatI", "A", OneHotEncodingTransformer.OutputKind.Bin, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatJ", "B", OneHotEncodingTransformer.OutputKind.Bin, invertHash: -1));
 
             var bagResult = bagPipe.Fit(dataView).Transform(dataView);
             ValidateMetadata(bagResult);
@@ -211,11 +209,11 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = "1", B = "2", C = "3", }, new TestClass() { A = "4", B = "5", C = "6" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Categorical.OneHotHashEncoding(new[]{
-                    new OneHotHashEncodingEstimator.ColumnInfo("CatHashA", "A"),
-                    new OneHotHashEncodingEstimator.ColumnInfo("CatHashB", "B"),
-                    new OneHotHashEncodingEstimator.ColumnInfo("CatHashC", "C")
+                    new OneHotHashEncodingEstimator.ColumnOptions("CatHashA", "A"),
+                    new OneHotHashEncodingEstimator.ColumnOptions("CatHashB", "B"),
+                    new OneHotHashEncodingEstimator.ColumnOptions("CatHashC", "C")
             });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

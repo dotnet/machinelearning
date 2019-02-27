@@ -15,7 +15,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             IEnumerable<SamplesUtils.DatasetUtils.SampleVectorOfNumbersData> data = SamplesUtils.DatasetUtils.GetVectorOfNumbersData();
-            var trainData = ml.Data.ReadFromEnumerable(data);
+            var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
             //
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // The transformed (projected) data.
             var transformedData = rffPipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.
-            var randomFourier = transformedData.GetColumn<VBuffer<float>>(ml, nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features));
+            var randomFourier = transformedData.GetColumn<VBuffer<float>>(transformedData.Schema[nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features)]);
 
             printHelper(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), randomFourier);
 
@@ -55,11 +55,11 @@ namespace Microsoft.ML.Samples.Dynamic
             //0.165 0.117 -0.547  0.014
 
             // A pipeline to project Features column into L-p normalized vector.
-            var lpNormalizePipeline = ml.Transforms.Projection.LpNormalize(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), normKind: Transforms.Projections.LpNormalizingEstimatorBase.NormalizerKind.L1Norm);
+            var lpNormalizePipeline = ml.Transforms.Projection.LpNormalize(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), normKind: Transforms.LpNormalizingEstimatorBase.NormalizerKind.L1Norm);
             // The transformed (projected) data.
             transformedData = lpNormalizePipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.
-            var lpNormalize= transformedData.GetColumn<VBuffer<float>>(ml, nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features));
+            var lpNormalize= transformedData.GetColumn<VBuffer<float>>(transformedData.Schema[nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features)]);
 
             printHelper(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), lpNormalize);
 
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // The transformed (projected) data.
             transformedData = gcNormalizePipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.
-            var gcNormalize = transformedData.GetColumn<VBuffer<float>>(ml, nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features));
+            var gcNormalize = transformedData.GetColumn<VBuffer<float>>(transformedData.Schema[nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features)]);
 
             printHelper(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), gcNormalize);
 

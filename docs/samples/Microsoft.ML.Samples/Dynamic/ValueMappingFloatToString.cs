@@ -28,7 +28,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable.
             IEnumerable<SamplesUtils.DatasetUtils.SampleTemperatureData> data = SamplesUtils.DatasetUtils.GetSampleTemperatureData(5);
-            IDataView trainData = mlContext.Data.ReadFromEnumerable(data);
+            IDataView trainData = mlContext.Data.LoadFromEnumerable(data);
 
             // If the list of keys and values are known, they can be passed to the API. The ValueMappingEstimator can also get the mapping through an IDataView
             // Creating a list of keys based on the induced value from the dataset
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Samples.Dynamic
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);
 
             // Getting the resulting data as an IEnumerable of SampleTemperatureDataWithCategory. This will contain the newly created column TemperatureCategory
-            IEnumerable<SampleTemperatureDataWithCategory> featureRows = mlContext.CreateEnumerable<SampleTemperatureDataWithCategory>(transformedData, reuseRowObject: false);
+            IEnumerable<SampleTemperatureDataWithCategory> featureRows = mlContext.Data.CreateEnumerable<SampleTemperatureDataWithCategory>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"Example of mapping float->string");
             Console.WriteLine($"Date\t\tTemperature\tTemperatureCategory");

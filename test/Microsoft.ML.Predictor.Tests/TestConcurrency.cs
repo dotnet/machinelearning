@@ -40,8 +40,8 @@ namespace Microsoft.ML.RunTests
             string consName = basePrefix + "-out.raw";
             string consOutPath = DeleteOutputPath(Category, consName);
             using (var writer = OpenWriter(consOutPath))
-            using (var env = new ConsoleEnvironment(42, outWriter: writer, errWriter: writer))
             {
+                var env = new ConsoleEnvironment(42, outWriter: writer, errWriter: writer);
                 int res = MainForTest(env, writer, cmd);
                 if (res != 0)
                     Log("*** Predictor returned {0}", res);

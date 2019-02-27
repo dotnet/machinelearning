@@ -13,7 +13,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable and them read it as ML.NET's data type.
             var data = SamplesUtils.DatasetUtils.GetInfertData();
-            var trainData = mlContext.Data.ReadFromEnumerable(data);
+            var trainData = mlContext.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
             //
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Now let's take a look at what this concatenation did.
             // We can extract the newly created column as an IEnumerable of SampleInfertDataWithFeatures, the class we define above.
-            var featuresColumn = mlContext.CreateEnumerable<SampleInfertDataWithFeatures>(transformedData, reuseRowObject: false);
+            var featuresColumn = mlContext.Data.CreateEnumerable<SampleInfertDataWithFeatures>(transformedData, reuseRowObject: false);
 
             // And we can write out a few rows
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
