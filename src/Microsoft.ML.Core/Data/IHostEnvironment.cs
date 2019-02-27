@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
 
 namespace Microsoft.ML
 {
@@ -48,35 +47,6 @@ namespace Microsoft.ML
             Contracts.CheckNonWhiteSpace(path, nameof(path));
             return new SimpleFileHandle(env, path, needsWrite: true, autoDelete: false);
         }
-
-        /// <summary>
-        /// Create temp "file" and return a handle to it.
-        /// </summary>
-        public static IFileHandle CreateTempFile(this IHostEnvironment env, string suffix = null, string prefix = null)
-        {
-            Contracts.AssertValue(env);
-            Contracts.CheckParam(!HasBadFileCharacters(suffix), nameof(suffix));
-            Contracts.CheckParam(!HasBadFileCharacters(prefix), nameof(prefix));
-
-            Guid guid = Guid.NewGuid();
-            string path = Path.GetFullPath(Path.Combine(Path.GetTempPath(), prefix + guid.ToString() + suffix));
-            return new SimpleFileHandle(env, path, needsWrite: true, autoDelete: true);
-        }
-
-        /// <summary>
-        /// Returns true if the given string is non-null and contains invalid file name characters.
-        /// </summary>
-        private static bool HasBadFileCharacters(string str = null)
-        {
-            if (string.IsNullOrEmpty(str))
-                return false;
-
-            var chars = Path.GetInvalidFileNameChars();
-            if (str.IndexOfAny(chars) >= 0)
-                return true;
-
-            return false;
-        }
     }
 
     /// <summary>
@@ -107,8 +77,6 @@ namespace Microsoft.ML
         /// The catalog of loadable components (<see cref="LoadableClassAttribute"/>) that are available in this host.
         /// </summary>
         ComponentCatalog ComponentCatalog { get; }
-
-        /// <summary>
     }
 
     /// <summary>
