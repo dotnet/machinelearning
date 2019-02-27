@@ -52,12 +52,16 @@ namespace Microsoft.ML.Trainers.Recommender
         private const uint VersionNoMinCount = 0x00010002;
 
         private readonly IHost _host;
+
         ///<summary> The number of rows.</summary>
-        public readonly int NumberOfRows;
+        public int NumberOfRows { get; }
+
         ///<summary> The number of columns.</summary>
-        public readonly int NumberOfColumns;
+        public int NumberOfColumns { get; }
+
         ///<summary> The rank of the factor matrices.</summary>
-        public readonly int ApproximationRank;
+        public int ApproximationRank { get; }
+
         /// <summary>
         /// Left approximation matrix
         /// </summary>
@@ -95,7 +99,10 @@ namespace Microsoft.ML.Trainers.Recommender
             _host.CheckValue(buffer, nameof(buffer));
             _host.CheckValue(matrixColumnIndexType, nameof(matrixColumnIndexType));
             _host.CheckValue(matrixRowIndexType, nameof(matrixRowIndexType));
-            buffer.Get(out NumberOfRows, out NumberOfColumns, out ApproximationRank, out var leftFactorMatrix, out var rightFactorMatrix);
+            buffer.Get(out var numberOfRows, out var numberOfColumns, out var approximationRank, out var leftFactorMatrix, out var rightFactorMatrix);
+            NumberOfRows = numberOfRows;
+            NumberOfColumns = numberOfColumns;
+            ApproximationRank = approximationRank;
             _leftFactorMatrix = leftFactorMatrix;
             _rightFactorMatrix = rightFactorMatrix;
             _host.Assert(NumberOfColumns == matrixColumnIndexType.GetCountAsInt32(_host));

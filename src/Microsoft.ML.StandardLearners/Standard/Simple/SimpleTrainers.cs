@@ -93,6 +93,7 @@ namespace Microsoft.ML.Trainers
         }
 
         RandomModelParameters ITrainer<RandomModelParameters>.Train(TrainContext context) => Train(context);
+
         IPredictor ITrainer.Train(TrainContext context) => Train(context);
 
         /// <summary>
@@ -264,8 +265,8 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        private readonly String _labelColumnName;
-        private readonly String _weightColumnName;
+        private readonly string _labelColumnName;
+        private readonly string _weightColumnName;
         private readonly IHost _host;
 
         /// <summary> Return the type of prediction task.</summary>
@@ -357,6 +358,7 @@ namespace Microsoft.ML.Trainers
         }
 
         IPredictor ITrainer.Train(TrainContext context) => Train(context);
+
         PriorModelParameters ITrainer<PriorModelParameters>.Train(TrainContext context) => Train(context);
 
         private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
