@@ -17,7 +17,7 @@ namespace Microsoft.ML.Data
     {
         RowSeeker GetSeeker(Func<int, bool> predicate);
 
-        Schema Schema { get; }
+        DataViewSchema Schema { get; }
     }
 
     /// <summary>
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Data
     /// returns <see langword="true"/>), it returns the current row index. Otherwise it's -1.
     /// </summary>
     [BestFriend]
-    internal abstract class RowSeeker : Row
+    internal abstract class RowSeeker : DataViewRow
     {
         /// <summary>
         /// Moves the seeker to a row at a specific row index.

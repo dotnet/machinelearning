@@ -24,22 +24,22 @@ namespace Microsoft.ML.Internal.Internallearn
 
             private readonly FeatureNameCollection _collection;
 
-            public readonly Schema FeatureNameCollectionSchema;
+            public readonly DataViewSchema FeatureNameCollectionSchema;
 
             public FeatureNameCollectionBinding(FeatureNameCollection collection)
             {
                 Contracts.CheckValue(collection, nameof(collection));
 
                 _collection = collection;
-                _colType = new VectorType(NumberType.R4, collection.Count);
-                _slotNamesType = new VectorType(TextType.Instance, collection.Count);
+                _colType = new VectorType(NumberDataViewType.Single, collection.Count);
+                _slotNamesType = new VectorType(TextDataViewType.Instance, collection.Count);
 
-                var metadataBuilder = new MetadataBuilder();
-                metadataBuilder.Add(MetadataUtils.Kinds.SlotNames, _slotNamesType,
+                var metadataBuilder = new DataViewSchema.Annotations.Builder();
+                metadataBuilder.Add(AnnotationUtils.Kinds.SlotNames, _slotNamesType,
                     (ref VBuffer<ReadOnlyMemory<char>> slotNames) => { GetSlotNames(0, ref slotNames); } );
-                var schemaBuilder = new SchemaBuilder();
-                schemaBuilder.AddColumn(RoleMappedSchema.ColumnRole.Feature.Value, _colType, metadataBuilder.GetMetadata());
-                FeatureNameCollectionSchema = schemaBuilder.GetSchema();
+                var schemaBuilder = new DataViewSchema.Builder();
+                schemaBuilder.AddColumn(RoleMappedSchema.ColumnRole.Feature.Value, _colType, metadataBuilder.ToAnnotations());
+                FeatureNameCollectionSchema = schemaBuilder.ToSchema();
             }
 
             private void GetSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)

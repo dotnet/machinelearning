@@ -3,14 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: EntryPointModule(typeof(PipelineEnsemble))]
 
-namespace Microsoft.ML.Ensemble.EntryPoints
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal static class PipelineEnsemble
     {
@@ -33,14 +33,13 @@ namespace Microsoft.ML.Ensemble.EntryPoints
 
             input.PredictorModel.PrepareData(host,
                 new EmptyDataView(host, input.PredictorModel.TransformModel.InputSchema),
-                out RoleMappedData rmd, out IPredictor predictor
-);
+                out RoleMappedData rmd, out IPredictor predictor);
 
-            var calibrated = predictor as CalibratedPredictorBase;
+            var calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
             while (calibrated != null)
             {
-                predictor = calibrated.SubPredictor;
-                calibrated = predictor as CalibratedPredictorBase;
+                predictor = calibrated.WeeklyTypedSubModel;
+                calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
             }
             var ensemble = predictor as SchemaBindablePipelineEnsembleBase;
             host.CheckUserArg(ensemble != null, nameof(input.PredictorModel.Predictor), "Predictor is not a pipeline ensemble predictor");

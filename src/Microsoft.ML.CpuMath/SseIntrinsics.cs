@@ -390,18 +390,6 @@ namespace Microsoft.ML.Internal.CpuMath
                 int length = dst.Length;
                 Vector128<float> scaleVector128 = Vector128.Create(scale);
 
-                if (length < 4)
-                {
-                    // Handle cases where we have less than 128-bits total and can't ever use SIMD acceleration.
-                    switch (length)
-                    {
-                        case 3: dst[2] *= scale; goto case 2;
-                        case 2: dst[1] *= scale; goto case 1;
-                        case 1: dst[0] *= scale; break;
-                    }
-                    return;
-                }
-
                 nuint address = (nuint)(pd);
                 int misalignment = (int)(address % 16);
                 int remainder = 0;
@@ -809,23 +797,6 @@ namespace Microsoft.ML.Internal.CpuMath
             {
                 float* pValues = pSrc;
                 int length = src.Length;
-
-                if (length < 4)
-                {
-                    // Handle cases where we have less than 128-bits total and can't ever use SIMD acceleration.
-
-                    float res = 0;
-
-                    switch (length)
-                    {
-                        case 3: res += pValues[2]; goto case 2;
-                        case 2: res += pValues[1]; goto case 1;
-                        case 1: res += pValues[0]; break;
-                    }
-
-                    return res;
-                }
-
                 Vector128<float> result = Vector128<float>.Zero;
 
                 nuint address = (nuint)(pValues);

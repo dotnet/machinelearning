@@ -30,7 +30,7 @@ namespace Microsoft.ML.Data.IO
 
         private delegate bool GetCodecFromStreamDelegate(Stream definitionStream, out IValueCodec codec);
 
-        private delegate bool GetCodecFromTypeDelegate(ColumnType type, out IValueCodec codec);
+        private delegate bool GetCodecFromTypeDelegate(DataViewType type, out IValueCodec codec);
 
         public CodecFactory(IHostEnvironment env, MemoryStreamPool memPool = null)
         {
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Data.IO
             RegisterSimpleCodec(new BoolCodec(this));
             RegisterSimpleCodec(new DateTimeCodec(this));
             RegisterSimpleCodec(new DateTimeOffsetCodec(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<RowId>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<DataViewRowId>(this));
 
             // Register the old type system reading codec.
             RegisterOtherCodec("DvBool", new OldBoolCodec(this).GetCodec);
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Data.IO
             _loadNameToCodecCreator.Add(name, fn);
         }
 
-        public bool TryGetCodec(ColumnType type, out IValueCodec codec)
+        public bool TryGetCodec(DataViewType type, out IValueCodec codec)
         {
             // Handle the primier types specially.
             if (type is KeyType)

@@ -4,15 +4,14 @@
 
 using System;
 using Microsoft.ML;
-using Microsoft.ML.Ensemble.Selector;
-using Microsoft.ML.Ensemble.Selector.DiversityMeasure;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(RegressionDisagreementDiversityMeasure), null, typeof(SignatureEnsembleDiversityMeasure),
     DisagreementDiversityMeasure.UserName, RegressionDisagreementDiversityMeasure.LoadName)]
 
-namespace Microsoft.ML.Ensemble.Selector.DiversityMeasure
+namespace Microsoft.ML.Trainers.Ensemble
 {
-    public class RegressionDisagreementDiversityMeasure : BaseDisagreementDiversityMeasure<Single>, IRegressionDiversityMeasure
+    internal sealed class RegressionDisagreementDiversityMeasure : BaseDisagreementDiversityMeasure<Single>, IRegressionDiversityMeasure
     {
         public const string LoadName = "RegressionDisagreementDiversityMeasure";
 

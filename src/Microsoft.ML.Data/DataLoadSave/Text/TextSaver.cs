@@ -19,16 +19,25 @@ using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data.IO
 {
-    public sealed class TextSaver : IDataSaver
+    [BestFriend]
+    internal sealed class TextSaver : IDataSaver
     {
+        internal static class Defaults
+        {
+            internal const char Separator = '\t';
+            internal const bool ForceDense = false;
+            internal const bool OutputSchema = true;
+            internal const bool OutputHeader = true;
+        }
+
         // REVIEW: consider saving a command line in a separate file.
         public sealed class Arguments
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Separator", ShortName = "sep")]
-            public string Separator = "tab";
+            public string Separator = Defaults.Separator.ToString();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Force dense format", ShortName = "dense")]
-            public bool Dense;
+            public bool Dense = Defaults.ForceDense;
 
             // REVIEW: This and the corresponding BinarySaver option should be removed,
             // with the silence being handled, somehow, at the environment level. (Task 6158846.)
@@ -36,10 +45,10 @@ namespace Microsoft.ML.Data.IO
             public bool Silent;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output the comment containing the loader settings", ShortName = "schema")]
-            public bool OutputSchema = true;
+            public bool OutputSchema = Defaults.OutputSchema;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output the header", ShortName = "header")]
-            public bool OutputHeader = true;
+            public bool OutputHeader = Defaults.OutputHeader;
         }
 
         internal const string Summary = "Writes data into a text file.";
@@ -48,11 +57,11 @@ namespace Microsoft.ML.Data.IO
         {
             public readonly int Source;
 
-            public static ValueWriter Create(RowCursor cursor, int col, char sep)
+            public static ValueWriter Create(DataViewRowCursor cursor, int col, char sep)
             {
                 Contracts.AssertValue(cursor);
 
-                ColumnType type = cursor.Schema[col].Type;
+                DataViewType type = cursor.Schema[col].Type;
                 Type writePipeType;
                 if (type is VectorType vectorType)
                     writePipeType = typeof(VecValueWriter<>).MakeGenericType(vectorType.ItemType.RawType);
@@ -85,30 +94,30 @@ namespace Microsoft.ML.Data.IO
 
             public override string Default { get; }
 
-            protected ValueWriterBase(PrimitiveType type, int source, char sep)
+            protected ValueWriterBase(PrimitiveDataViewType type, int source, char sep)
                 : base(source)
             {
                 Contracts.Assert(type.IsStandardScalar() || type is KeyType);
                 Contracts.Assert(type.RawType == typeof(T));
 
                 Sep = sep;
-                if (type is TextType)
+                if (type is TextDataViewType)
                 {
                     // For text we need to deal with escaping.
                     ValueMapper<ReadOnlyMemory<char>, StringBuilder> c = MapText;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
-                else if (type is TimeSpanType)
+                else if (type is TimeSpanDataViewType)
                 {
                     ValueMapper<TimeSpan, StringBuilder> c = MapTimeSpan;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
-                else if (type is DateTimeType)
+                else if (type is DateTimeDataViewType)
                 {
                     ValueMapper<DateTime, StringBuilder> c = MapDateTime;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
-                else if (type is DateTimeOffsetType)
+                else if (type is DateTimeOffsetDataViewType)
                 {
                     ValueMapper<DateTimeOffset, StringBuilder> c = MapDateTimeZone;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
@@ -149,16 +158,16 @@ namespace Microsoft.ML.Data.IO
             private readonly VBuffer<ReadOnlyMemory<char>> _slotNames;
             private readonly int _slotCount;
 
-            public VecValueWriter(RowCursor cursor, VectorType type, int source, char sep)
+            public VecValueWriter(DataViewRowCursor cursor, VectorType type, int source, char sep)
                 : base(type.ItemType, source, sep)
             {
                 _getSrc = cursor.GetGetter<VBuffer<T>>(source);
                 VectorType typeNames;
                 if (type.IsKnownSize
-                    && (typeNames = cursor.Schema[source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType) != null
-                    && typeNames.Size == type.Size && typeNames.ItemType is TextType)
+                    && (typeNames = cursor.Schema[source].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType) != null
+                    && typeNames.Size == type.Size && typeNames.ItemType is TextDataViewType)
                 {
-                    cursor.Schema[source].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
+                    cursor.Schema[source].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref _slotNames);
                     Contracts.Check(_slotNames.Length == typeNames.Size, "Unexpected slot names length");
                 }
                 _slotCount = type.Size;
@@ -214,7 +223,7 @@ namespace Microsoft.ML.Data.IO
             private T _src;
             private string _columnName;
 
-            public ValueWriter(RowCursor cursor, PrimitiveType type, int source, char sep)
+            public ValueWriter(DataViewRowCursor cursor, PrimitiveDataViewType type, int source, char sep)
                 : base(type, source, sep)
             {
                 _getSrc = cursor.GetGetter<T>(source);
@@ -313,7 +322,7 @@ namespace Microsoft.ML.Data.IO
             }
         }
 
-        public bool IsColumnSavable(ColumnType type)
+        public bool IsColumnSavable(DataViewType type)
         {
             var item = type.GetItemType();
             return item.IsStandardScalar() || item is KeyType;
@@ -385,11 +394,11 @@ namespace Microsoft.ML.Data.IO
             ch.AssertNonEmpty(cols);
 
             // Determine the active columns and whether there is header information.
-            var activeCols = new List<Schema.Column>();
+            var activeCols = new List<DataViewSchema.Column>();
             for (int i = 0; i < cols.Length; i++)
             {
                 ch.Check(0 <= cols[i] && cols[i] < data.Schema.Count);
-                ColumnType itemType = data.Schema[cols[i]].Type.GetItemType();
+                DataViewType itemType = data.Schema[cols[i]].Type.GetItemType();
                 ch.Check(itemType is KeyType || itemType.IsStandardScalar());
                 activeCols.Add(data.Schema[cols[i]]);
             }
@@ -409,8 +418,8 @@ namespace Microsoft.ML.Data.IO
                     }
                     if (!vectorType.IsKnownSize)
                         continue;
-                    var typeNames = data.Schema[cols[i]].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
-                    if (typeNames != null && typeNames.Size == vectorType.Size && typeNames.ItemType is TextType)
+                    var typeNames = data.Schema[cols[i]].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType;
+                    if (typeNames != null && typeNames.Size == vectorType.Size && typeNames.ItemType is TextDataViewType)
                         hasHeader = true;
                 }
             }
@@ -451,7 +460,7 @@ namespace Microsoft.ML.Data.IO
             writer.WriteLine("#@ }");
         }
 
-        private string CreateLoaderArguments(Schema schema, ValueWriter[] pipes, bool hasHeader, IChannel ch)
+        private string CreateLoaderArguments(DataViewSchema schema, ValueWriter[] pipes, bool hasHeader, IChannel ch)
         {
             StringBuilder sb = new StringBuilder();
             if (hasHeader)
@@ -486,15 +495,15 @@ namespace Microsoft.ML.Data.IO
             return sb.ToString();
         }
 
-        private TextLoader.Column GetColumn(string name, ColumnType type, int? start)
+        private TextLoader.Column GetColumn(string name, DataViewType type, int? start)
         {
             KeyCount keyCount = null;
             VectorType vectorType = type as VectorType;
-            ColumnType itemType = vectorType?.ItemType ?? type;
+            DataViewType itemType = vectorType?.ItemType ?? type;
             if (itemType is KeyType key)
                 keyCount = new KeyCount(key.Count);
 
-            DataKind kind = itemType.GetRawKind();
+            InternalDataKind kind = itemType.GetRawKind();
 
             TextLoader.Range[] source = null;
             TextLoader.Range range = null;
@@ -563,7 +572,7 @@ namespace Microsoft.ML.Data.IO
                 _mpslotichLim = new int[128];
             }
 
-            public void Run(RowCursor cursor, ref long count, out int minLen, out int maxLen)
+            public void Run(DataViewRowCursor cursor, ref long count, out int minLen, out int maxLen)
             {
                 minLen = int.MaxValue;
                 maxLen = 0;

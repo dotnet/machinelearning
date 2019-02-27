@@ -155,7 +155,7 @@ namespace Microsoft.ML.Model.Pfa
                 return Union(Map(itemType), Array(itemType));
             }
 
-            public static JToken PfaTypeOrNullForColumnType(ColumnType type)
+            public static JToken PfaTypeOrNullForColumnType(DataViewType type)
             {
                 Contracts.CheckValue(type, nameof(type));
                 if (type is VectorType vectorType)
@@ -170,11 +170,11 @@ namespace Microsoft.ML.Model.Pfa
                 return PfaTypeOrNullCore(type);
             }
 
-            private static JToken PfaTypeOrNullCore(ColumnType itemType)
+            private static JToken PfaTypeOrNullCore(DataViewType itemType)
             {
                 Contracts.AssertValue(itemType);
 
-                if (!(itemType is PrimitiveType))
+                if (!(itemType is PrimitiveDataViewType))
                     return null;
 
                 if (itemType is KeyType keyType)
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Model.Pfa
                 return null;
             }
 
-            public static JToken DefaultTokenOrNull(PrimitiveType itemType)
+            public static JToken DefaultTokenOrNull(PrimitiveDataViewType itemType)
             {
                 Contracts.CheckValue(itemType, nameof(itemType));
 

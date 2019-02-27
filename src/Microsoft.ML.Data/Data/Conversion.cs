@@ -30,7 +30,7 @@ namespace Microsoft.ML.Data.Conversion
     using U2 = UInt16;
     using U4 = UInt32;
     using U8 = UInt64;
-    using UG = RowId;
+    using UG = DataViewRowId;
 
     [BestFriend]
     internal delegate bool TryParseMapper<T>(in TX src, out T dst);
@@ -326,7 +326,7 @@ namespace Microsoft.ML.Data.Conversion
         /// Return a standard conversion delegate from typeSrc to typeDst. If there is no such standard
         /// conversion, this throws an exception.
         /// </summary>
-        public ValueMapper<TSrc, TDst> GetStandardConversion<TSrc, TDst>(ColumnType typeSrc, ColumnType typeDst,
+        public ValueMapper<TSrc, TDst> GetStandardConversion<TSrc, TDst>(DataViewType typeSrc, DataViewType typeDst,
             out bool identity)
         {
             ValueMapper<TSrc, TDst> conv;
@@ -340,7 +340,7 @@ namespace Microsoft.ML.Data.Conversion
         /// set conv to the conversion delegate. The type parameters TSrc and TDst must match
         /// the raw types of typeSrc and typeDst.
         /// </summary>
-        public bool TryGetStandardConversion<TSrc, TDst>(ColumnType typeSrc, ColumnType typeDst,
+        public bool TryGetStandardConversion<TSrc, TDst>(DataViewType typeSrc, DataViewType typeDst,
             out ValueMapper<TSrc, TDst> conv, out bool identity)
         {
             Contracts.CheckValue(typeSrc, nameof(typeSrc));
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Data.Conversion
         /// Return a standard conversion delegate from typeSrc to typeDst. If there is no such standard
         /// conversion, this throws an exception.
         /// </summary>
-        public Delegate GetStandardConversion(ColumnType typeSrc, ColumnType typeDst)
+        public Delegate GetStandardConversion(DataViewType typeSrc, DataViewType typeDst)
         {
             bool identity;
             Delegate conv;
@@ -375,7 +375,7 @@ namespace Microsoft.ML.Data.Conversion
         /// Determine whether there is a standard conversion from typeSrc to typeDst and if so,
         /// set conv to the conversion delegate.
         /// </summary>
-        public bool TryGetStandardConversion(ColumnType typeSrc, ColumnType typeDst,
+        public bool TryGetStandardConversion(DataViewType typeSrc, DataViewType typeDst,
             out Delegate conv, out bool identity)
         {
             Contracts.CheckValue(typeSrc, nameof(typeSrc));
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Data.Conversion
             }
             else if (typeDst is KeyType keyDst)
             {
-                if (!(typeSrc is TextType))
+                if (!(typeSrc is TextDataViewType))
                     return false;
                 conv = GetKeyParse(keyDst);
                 return true;
@@ -429,7 +429,7 @@ namespace Microsoft.ML.Data.Conversion
             return _delegatesStd.TryGetValue(key, out conv);
         }
 
-        public ValueMapper<TSrc, SB> GetStringConversion<TSrc>(ColumnType type)
+        public ValueMapper<TSrc, SB> GetStringConversion<TSrc>(DataViewType type)
         {
             ValueMapper<TSrc, SB> conv;
             if (TryGetStringConversion(type, out conv))
@@ -445,7 +445,7 @@ namespace Microsoft.ML.Data.Conversion
             throw Contracts.Except($"No conversion from '{typeof(TSrc)}' to {nameof(StringBuilder)}");
         }
 
-        public bool TryGetStringConversion<TSrc>(ColumnType type, out ValueMapper<TSrc, SB> conv)
+        public bool TryGetStringConversion<TSrc>(DataViewType type, out ValueMapper<TSrc, SB> conv)
         {
             Contracts.CheckValue(type, nameof(type));
             Contracts.Check(type.RawType == typeof(TSrc), "Wrong TSrc type argument");
@@ -480,8 +480,8 @@ namespace Microsoft.ML.Data.Conversion
             // then convert to StringBuilder.
             ulong count = key.Count;
             bool identity;
-            var convSrc = GetStandardConversion<TSrc, U8>(key, NumberType.U8, out identity);
-            var convU8 = GetStringConversion<U8>(NumberType.U8);
+            var convSrc = GetStandardConversion<TSrc, U8>(key, NumberDataViewType.UInt64, out identity);
+            var convU8 = GetStringConversion<U8>(NumberDataViewType.UInt64);
             return
                 (in TSrc src, ref SB dst) =>
                 {
@@ -497,7 +497,7 @@ namespace Microsoft.ML.Data.Conversion
                 };
         }
 
-        public TryParseMapper<TDst> GetTryParseConversion<TDst>(ColumnType typeDst)
+        public TryParseMapper<TDst> GetTryParseConversion<TDst>(DataViewType typeDst)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
             Contracts.CheckParam(typeDst.IsStandardScalar() || typeDst is KeyType, nameof(typeDst),
@@ -581,7 +581,7 @@ namespace Microsoft.ML.Data.Conversion
             return dst;
         }
 
-        public InPredicate<T> GetIsDefaultPredicate<T>(ColumnType type)
+        public InPredicate<T> GetIsDefaultPredicate<T>(DataViewType type)
         {
             Contracts.CheckValue(type, nameof(type));
             Contracts.CheckParam(!(type is VectorType), nameof(type));
@@ -595,7 +595,7 @@ namespace Microsoft.ML.Data.Conversion
             return (InPredicate<T>)del;
         }
 
-        public InPredicate<T> GetIsNAPredicate<T>(ColumnType type)
+        public InPredicate<T> GetIsNAPredicate<T>(DataViewType type)
         {
             InPredicate<T> pred;
             if (TryGetIsNAPredicate(type, out pred))
@@ -603,7 +603,7 @@ namespace Microsoft.ML.Data.Conversion
             throw Contracts.Except("No IsNA predicate for '{0}'", type);
         }
 
-        public bool TryGetIsNAPredicate<T>(ColumnType type, out InPredicate<T> pred)
+        public bool TryGetIsNAPredicate<T>(DataViewType type, out InPredicate<T> pred)
         {
             Contracts.CheckValue(type, nameof(type));
             Contracts.CheckParam(type.RawType == typeof(T), nameof(type));
@@ -620,7 +620,7 @@ namespace Microsoft.ML.Data.Conversion
             return true;
         }
 
-        public bool TryGetIsNAPredicate(ColumnType type, out Delegate del)
+        public bool TryGetIsNAPredicate(DataViewType type, out Delegate del)
         {
             Contracts.CheckValue(type, nameof(type));
             Contracts.CheckParam(!(type is VectorType), nameof(type));
@@ -666,7 +666,7 @@ namespace Microsoft.ML.Data.Conversion
         /// default of the type. This only knows about NA values of standard scalar types
         /// and key types.
         /// </summary>
-        public T GetNAOrDefault<T>(ColumnType type)
+        public T GetNAOrDefault<T>(DataViewType type)
         {
             Contracts.CheckValue(type, nameof(type));
             Contracts.CheckParam(type.RawType == typeof(T), nameof(type));
@@ -684,7 +684,7 @@ namespace Microsoft.ML.Data.Conversion
         /// default of the type. This only knows about NA values of standard scalar types
         /// and key types. Returns whether the returned value is the default value or not.
         /// </summary>
-        public T GetNAOrDefault<T>(ColumnType type, out bool isDefault)
+        public T GetNAOrDefault<T>(DataViewType type, out bool isDefault)
         {
             Contracts.CheckValue(type, nameof(type));
             Contracts.CheckParam(type.RawType == typeof(T), nameof(type));
@@ -714,7 +714,7 @@ namespace Microsoft.ML.Data.Conversion
         /// otherwise, it produces default of the type. This only knows about NA values of standard
         /// scalar types and key types.
         /// </summary>
-        public ValueGetter<T> GetNAOrDefaultGetter<T>(ColumnType type)
+        public ValueGetter<T> GetNAOrDefaultGetter<T>(DataViewType type)
         {
             Contracts.CheckValue(type, nameof(type));
             Contracts.CheckParam(type.RawType == typeof(T), nameof(type));
@@ -972,7 +972,7 @@ namespace Microsoft.ML.Data.Conversion
         }
 
         /// <summary>
-        /// A parse method that transforms a 34-length string into a <see cref="RowId"/>.
+        /// A parse method that transforms a 34-length string into a <see cref="DataViewRowId"/>.
         /// </summary>
         /// <param name="src">What should be a 34-length hexadecimal representation, including a 0x prefix,
         /// of the 128-bit number</param>

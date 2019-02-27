@@ -3,8 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Data.DataView;
-using Microsoft.ML.Calibrator;
-using Microsoft.ML.Core.Data;
+using Microsoft.ML.Calibrators;
 
 namespace Microsoft.ML
 {
@@ -31,6 +30,6 @@ namespace Microsoft.ML
         string FeatureColumn { get; }
 
         /// <summary>Holds information about the type of the feature column.</summary>
-        ColumnType FeatureColumnType { get; }
+        DataViewType FeatureColumnType { get; }
     }
 }

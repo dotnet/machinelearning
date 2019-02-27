@@ -12,7 +12,7 @@ using Microsoft.ML.Internal.Utilities;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// This interface is an <see cref="Row"/> with 'strongly typed' binding.
+    /// This interface is an <see cref="DataViewRow"/> with 'strongly typed' binding.
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
@@ -32,7 +32,8 @@ namespace Microsoft.ML.Data
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public abstract class RowCursor<TRow> : RowCursor, IRowReadableAs<TRow>
+    [BestFriend]
+    internal abstract class RowCursor<TRow> : DataViewRowCursor, IRowReadableAs<TRow>
         where TRow : class
     {
         public abstract void FillValues(TRow row);
@@ -42,7 +43,8 @@ namespace Microsoft.ML.Data
     /// This interface allows to create strongly typed cursors over a <see cref="IDataView"/>.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public interface ICursorable<TRow>
+    [BestFriend]
+    internal interface ICursorable<TRow>
         where TRow : class
     {
         /// <summary>
@@ -136,7 +138,7 @@ namespace Microsoft.ML.Data
         /// Returns whether the column type <paramref name="colType"/> can be bound to field <paramref name="memberInfo"/>.
         /// They must both be vectors or scalars, and the raw data type should match.
         /// </summary>
-        private static bool IsCompatibleType(ColumnType colType, MemberInfo memberInfo)
+        private static bool IsCompatibleType(DataViewType colType, MemberInfo memberInfo)
         {
             InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type itemType);
             if (isVector)
@@ -162,7 +164,7 @@ namespace Microsoft.ML.Data
             return GetCursor(x => false, randomSeed);
         }
 
-        public IRowReadableAs<TRow> GetRow(Row input)
+        public IRowReadableAs<TRow> GetRow(DataViewRow input)
         {
             return new RowImplementation(new TypedRow(this, input));
         }
@@ -241,9 +243,9 @@ namespace Microsoft.ML.Data
             protected readonly IChannel Ch;
             private readonly Action<TRow>[] _setters;
 
-            public override Schema Schema => base.Input.Schema;
+            public override DataViewSchema Schema => base.Input.Schema;
 
-            public TypedRowBase(TypedCursorable<TRow> parent, Row input, string channelMessage)
+            public TypedRowBase(TypedCursorable<TRow> parent, DataViewRow input, string channelMessage)
                 : base(input)
             {
                 Contracts.AssertValue(parent);
@@ -265,19 +267,19 @@ namespace Microsoft.ML.Data
                     Ch.Dispose();
             }
 
-            private Action<TRow> GenerateSetter(Row input, int index, InternalSchemaDefinition.Column column, Delegate poke, Delegate peek)
+            private Action<TRow> GenerateSetter(DataViewRow input, int index, InternalSchemaDefinition.Column column, Delegate poke, Delegate peek)
             {
                 var colType = input.Schema[index].Type;
                 var fieldType = column.OutputType;
                 var genericType = fieldType;
-                Func<Row, int, Delegate, Delegate, Action<TRow>> del;
+                Func<DataViewRow, int, Delegate, Delegate, Action<TRow>> del;
                 if (fieldType.IsArray)
                 {
                     Ch.Assert(colType is VectorType);
                     // VBuffer<ReadOnlyMemory<char>> -> String[]
                     if (fieldType.GetElementType() == typeof(string))
                     {
-                        Ch.Assert(colType.GetItemType() is TextType);
+                        Ch.Assert(colType.GetItemType() is TextDataViewType);
                         return CreateConvertingVBufferSetter<ReadOnlyMemory<char>, string>(input, index, poke, peek, x => x.ToString());
                     }
 
@@ -299,12 +301,12 @@ namespace Microsoft.ML.Data
                     del = CreateVBufferToVBufferSetter<int>;
                     genericType = vectorType.ItemType.RawType;
                 }
-                else if (colType is PrimitiveType)
+                else if (colType is PrimitiveDataViewType)
                 {
                     if (fieldType == typeof(string))
                     {
                         // ReadOnlyMemory<char> -> String
-                        Ch.Assert(colType is TextType);
+                        Ch.Assert(colType is TextDataViewType);
                         Ch.Assert(peek == null);
                         return CreateConvertingActionSetter<ReadOnlyMemory<char>, string>(input, index, poke, x => x.ToString());
                     }
@@ -329,7 +331,7 @@ namespace Microsoft.ML.Data
             // REVIEW: The converting getter invokes a type conversion delegate on every call, so it's inherently slower
             // than the 'direct' getter. We don't have good indication of this to the user, and the selection
             // of affected types is pretty arbitrary (signed integers and bools, but not uints and floats).
-            private Action<TRow> CreateConvertingVBufferSetter<TSrc, TDst>(Row input, int col, Delegate poke, Delegate peek, Func<TSrc, TDst> convert)
+            private Action<TRow> CreateConvertingVBufferSetter<TSrc, TDst>(DataViewRow input, int col, Delegate poke, Delegate peek, Func<TSrc, TDst> convert)
             {
                 var getter = input.GetGetter<VBuffer<TSrc>>(col);
                 var typedPoke = poke as Poke<TRow, TDst[]>;
@@ -351,7 +353,7 @@ namespace Microsoft.ML.Data
                 };
             }
 
-            private Action<TRow> CreateDirectVBufferSetter<TDst>(Row input, int col, Delegate poke, Delegate peek)
+            private Action<TRow> CreateDirectVBufferSetter<TDst>(DataViewRow input, int col, Delegate poke, Delegate peek)
             {
                 var getter = input.GetGetter<VBuffer<TDst>>(col);
                 var typedPoke = poke as Poke<TRow, TDst[]>;
@@ -389,7 +391,7 @@ namespace Microsoft.ML.Data
                 };
             }
 
-            private static Action<TRow> CreateConvertingActionSetter<TSrc, TDst>(Row input, int col, Delegate poke, Func<TSrc, TDst> convert)
+            private static Action<TRow> CreateConvertingActionSetter<TSrc, TDst>(DataViewRow input, int col, Delegate poke, Func<TSrc, TDst> convert)
             {
                 var getter = input.GetGetter<TSrc>(col);
                 var typedPoke = poke as Poke<TRow, TDst>;
@@ -403,7 +405,7 @@ namespace Microsoft.ML.Data
                 };
             }
 
-            private static Action<TRow> CreateDirectSetter<TDst>(Row input, int col, Delegate poke, Delegate peek)
+            private static Action<TRow> CreateDirectSetter<TDst>(DataViewRow input, int col, Delegate poke, Delegate peek)
             {
                 // Awkward to have a parameter that's always null, but slightly more convenient for generalizing the setter.
                 Contracts.Assert(peek == null);
@@ -418,7 +420,7 @@ namespace Microsoft.ML.Data
                 };
             }
 
-            private Action<TRow> CreateVBufferToVBufferSetter<TDst>(Row input, int col, Delegate poke, Delegate peek)
+            private Action<TRow> CreateVBufferToVBufferSetter<TDst>(DataViewRow input, int col, Delegate poke, Delegate peek)
             {
                 var getter = input.GetGetter<VBuffer<TDst>>(col);
                 var typedPoke = poke as Poke<TRow, VBuffer<TDst>>;
@@ -453,7 +455,7 @@ namespace Microsoft.ML.Data
 
         private sealed class TypedRow : TypedRowBase
         {
-            public TypedRow(TypedCursorable<TRow> parent, Row input)
+            public TypedRow(TypedCursorable<TRow> parent, DataViewRow input)
                 : base(parent, input, "Row")
             {
             }
@@ -476,10 +478,10 @@ namespace Microsoft.ML.Data
 
             public long Position => _row.Position;
             public long Batch => _row.Batch;
-            public Schema Schema => _row.Schema;
+            public DataViewSchema Schema => _row.Schema;
             public void FillValues(TRow row) => _row.FillValues(row);
             public ValueGetter<TValue> GetGetter<TValue>(int col) => _row.GetGetter<TValue>(col);
-            public ValueGetter<RowId> GetIdGetter() => _row.GetIdGetter();
+            public ValueGetter<DataViewRowId> GetIdGetter() => _row.GetIdGetter();
             public bool IsColumnActive(int col) => _row.IsColumnActive(col);
         }
 
@@ -492,7 +494,7 @@ namespace Microsoft.ML.Data
 
             public override long Position => _cursor.Position;
             public override long Batch => _cursor.Batch;
-            public override Schema Schema => _cursor.Schema;
+            public override DataViewSchema Schema => _cursor.Schema;
 
             protected override void Dispose(bool disposing)
             {
@@ -506,16 +508,16 @@ namespace Microsoft.ML.Data
 
             public override void FillValues(TRow row) => _cursor.FillValues(row);
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _cursor.GetGetter<TValue>(col);
-            public override ValueGetter<RowId> GetIdGetter() => _cursor.GetIdGetter();
+            public override ValueGetter<DataViewRowId> GetIdGetter() => _cursor.GetIdGetter();
             public override bool IsColumnActive(int col) => _cursor.IsColumnActive(col);
             public override bool MoveNext() => _cursor.MoveNext();
         }
 
         private sealed class TypedCursor : TypedRowBase
         {
-            private readonly RowCursor _input;
+            private readonly DataViewRowCursor _input;
 
-            public TypedCursor(TypedCursorable<TRow> parent, RowCursor input)
+            public TypedCursor(TypedCursorable<TRow> parent, DataViewRowCursor input)
                 : base(parent, input, "Cursor")
             {
                 _input = input;
@@ -534,7 +536,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Utility methods that facilitate strongly-typed cursoring.
     /// </summary>
-    public static class CursoringUtils
+    [BestFriend]
+    internal static class CursoringUtils
     {
         /// <summary>
         /// Generate a strongly-typed cursorable wrapper of the <see cref="IDataView"/>.
@@ -545,8 +548,7 @@ namespace Microsoft.ML.Data
         /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
         /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
         /// <returns>The cursorable wrapper of <paramref name="data"/>.</returns>
-        [BestFriend]
-        internal static ICursorable<TRow> AsCursorable<TRow>(this IHostEnvironment env, IDataView data, bool ignoreMissingColumns = false,
+        public static ICursorable<TRow> AsCursorable<TRow>(this IHostEnvironment env, IDataView data, bool ignoreMissingColumns = false,
             SchemaDefinition schemaDefinition = null)
             where TRow : class, new()
         {
@@ -554,28 +556,6 @@ namespace Microsoft.ML.Data
             env.CheckValueOrNull(schemaDefinition);
 
             return TypedCursorable<TRow>.Create(env, data, ignoreMissingColumns, schemaDefinition);
-        }
-
-        /// <summary>
-        /// Convert an <see cref="IDataView"/> into a strongly-typed <see cref="IEnumerable{TRow}"/>.
-        /// </summary>
-        /// <typeparam name="TRow">The user-defined row type.</typeparam>
-        /// <param name="mlContext">ML context.</param>
-        /// <param name="data">The underlying data view.</param>
-        /// <param name="reuseRowObject">Whether to return the same object on every row, or allocate a new one per row.</param>
-        /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
-        /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
-        /// <returns>The <see cref="IEnumerable{TRow}"/> that holds the data in <paramref name="data"/>. It can be enumerated multiple times.</returns>
-        public static IEnumerable<TRow> CreateEnumerable<TRow>(this MLContext mlContext, IDataView data, bool reuseRowObject,
-            bool ignoreMissingColumns = false, SchemaDefinition schemaDefinition = null)
-            where TRow : class, new()
-        {
-            Contracts.AssertValue(mlContext);
-            mlContext.CheckValue(data, nameof(data));
-            mlContext.CheckValueOrNull(schemaDefinition);
-
-            var engine = new PipeEngine<TRow>(mlContext, data, ignoreMissingColumns, schemaDefinition);
-            return engine.RunPipe(reuseRowObject);
         }
     }
 }

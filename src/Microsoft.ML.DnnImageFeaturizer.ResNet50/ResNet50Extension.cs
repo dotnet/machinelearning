@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using System.Reflection;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms
@@ -22,13 +21,13 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public static EstimatorChain<ColumnCopyingTransformer> ResNet50(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string outputColumnName, string inputColumnName)
         {
-            return ResNet50(dnnModelContext, env, outputColumnName, inputColumnName, Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "DnnImageModels"));
+            return ResNet50(dnnModelContext, env, outputColumnName, inputColumnName, Path.Combine(AssemblyPathHelpers.GetExecutingAssemblyLocation(), "DnnImageModels"));
         }
 
         /// <summary>
         /// This allows a custom model location to be specified. This is useful is a custom model is specified,
         /// or if the model is desired to be placed or shipped separately in a different folder from the main application. Note that because Onnx models
-        /// must be in a directory all by themsleves for the OnnxTransform to work, this method appends a ResNet50Onnx/ResNetPrepOnnx subdirectory
+        /// must be in a directory all by themsleves for the OnnxTransformer to work, this method appends a ResNet50Onnx/ResNetPrepOnnx subdirectory
         /// to the passed in directory to prevent having to make that directory manually each time.
         /// </summary>
         public static EstimatorChain<ColumnCopyingTransformer> ResNet50(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string outputColumnName, string inputColumnName, string modelDir)

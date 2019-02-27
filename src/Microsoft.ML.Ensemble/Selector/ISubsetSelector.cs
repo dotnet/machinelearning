@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 
-namespace Microsoft.ML.Ensemble.Selector
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal interface ISubsetSelector
     {
@@ -17,7 +17,7 @@ namespace Microsoft.ML.Ensemble.Selector
         RoleMappedData GetTestData(Subset subset, Batch batch);
     }
 
-    public delegate void SignatureEnsembleDataSelector();
+    internal delegate void SignatureEnsembleDataSelector();
 
     [TlcModule.ComponentKind("EnsembleSubsetSelector")]
     internal interface ISupportSubsetSelectorFactory : IComponentFactory<ISubsetSelector>

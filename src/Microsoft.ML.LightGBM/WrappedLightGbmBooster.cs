@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Microsoft.ML.Trainers.FastTree.Internal;
+using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.LightGBM
 {
@@ -100,12 +100,12 @@ namespace Microsoft.ML.LightGBM
             var values = new List<double>();
             foreach (var token in str.Split(delimiter))
             {
-                var trimmed = token.Trim();
+                var trimmed = token.Trim().ToLowerInvariant();
 
-                if (trimmed.Equals("inf", StringComparison.OrdinalIgnoreCase))
-                    values.Add(double.PositiveInfinity);
-                else if (trimmed.Equals("-inf", StringComparison.OrdinalIgnoreCase))
+                if (trimmed.Contains("-inf"))
                     values.Add(double.NegativeInfinity);
+                else if (trimmed.Contains("inf"))
+                    values.Add(double.PositiveInfinity);
                 else if (trimmed.Contains("nan"))
                     values.Add(double.NaN);
                 else
@@ -186,9 +186,9 @@ namespace Microsoft.ML.LightGBM
             return cats.ToArray();
         }
 
-        public TreeEnsemble GetModel(int[] categoricalFeatureBoudaries)
+        public InternalTreeEnsemble GetModel(int[] categoricalFeatureBoudaries)
         {
-            TreeEnsemble res = new TreeEnsemble();
+            InternalTreeEnsemble res = new InternalTreeEnsemble();
             string modelString = GetModelString();
             string[] lines = modelString.Split('\n');
             int i = 0;
@@ -254,21 +254,21 @@ namespace Microsoft.ML.LightGBM
                                 }
                             }
                         }
-                        RegressionTree tree = RegressionTree.Create(numLeaves, splitFeature, splitGain,
+                        InternalRegressionTree tree = InternalRegressionTree.Create(numLeaves, splitFeature, splitGain,
                             threshold.Select(x => (float)(x)).ToArray(), defaultValue.Select(x => (float)(x)).ToArray(), leftChild, rightChild, leafOutput,
                             categoricalSplitFeatures, categoricalSplit);
                         res.AddTree(tree);
                     }
                     else
                     {
-                        RegressionTree tree = new RegressionTree(2);
+                        InternalRegressionTree tree = new InternalRegressionTree(2);
                         var leafOutput = Str2DoubleArray(kvPairs["leaf_value"], ' ');
                         if (leafOutput[0] != 0)
                         {
                             // Convert Constant tree to Two-leaf tree, avoid being filter by TLC.
                             var categoricalSplitFeatures = new int[1][];
                             var categoricalSplit = new bool[1];
-                            tree = RegressionTree.Create(2, new int[] { 0 }, new double[] { 0 },
+                            tree = InternalRegressionTree.Create(2, new int[] { 0 }, new double[] { 0 },
                                 new float[] { 0 }, new float[] { 0 }, new int[] { -1 }, new int[] { -2 }, new double[] { leafOutput[0], leafOutput[0] },
                                 categoricalSplitFeatures, categoricalSplit);
                         }

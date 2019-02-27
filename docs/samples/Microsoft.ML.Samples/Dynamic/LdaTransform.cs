@@ -4,9 +4,9 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class LdaTransformExample
+    public static class LdaTransform
     {
-        public static void LdaTransform()
+        public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -14,7 +14,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable and then read it as a ML.NET data set.
             IEnumerable<SamplesUtils.DatasetUtils.SampleTopicsData> data = SamplesUtils.DatasetUtils.GetTopicsData();
-            var trainData = ml.Data.ReadFromEnumerable(data);
+            var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of one of the columns of the the topics data. 
             // The Review column contains the keys associated with a particular body of text.  

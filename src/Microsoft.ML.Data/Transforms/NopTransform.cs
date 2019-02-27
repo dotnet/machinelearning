@@ -27,7 +27,7 @@ namespace Microsoft.ML.Data
 
         public IDataView Source { get; }
 
-        Schema IRowToRowMapper.InputSchema => Source.Schema;
+        DataViewSchema IRowToRowMapper.InputSchema => Source.Schema;
 
         /// <summary>
         /// Creates a NopTransform if the input is not an IDataTransform.
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Data
             // Nothing :)
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -105,30 +105,31 @@ namespace Microsoft.ML.Data
         /// Explicit implementation prevents Schema from being accessed from derived classes.
         /// It's our first step to separate data produced by transform from transform.
         /// </summary>
-        Schema IDataView.Schema => OutputSchema;
+        DataViewSchema IDataView.Schema => OutputSchema;
 
         /// <summary>
         /// Shape information of the produced output. Note that the input and the output of this transform (and their types) are identical.
         /// </summary>
-        public Schema OutputSchema => Source.Schema;
+        public DataViewSchema OutputSchema => Source.Schema;
 
         public long? GetRowCount()
         {
             return Source.GetRowCount();
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             => Source.GetRowCursor(columnsNeeded, rand);
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             => Source.GetRowCursorSet(columnsNeeded, n, rand);
 
-        public Func<int, bool> GetDependencies(Func<int, bool> predicate)
-        {
-            return predicate;
-        }
+        /// <summary>
+        /// Given a set of columns, return the input columns that are needed to generate those output columns.
+        /// </summary>
+        IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
+            => dependingColumns;
 
-        public Row GetRow(Row input, Func<int, bool> active)
+        public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValue(active, nameof(active));

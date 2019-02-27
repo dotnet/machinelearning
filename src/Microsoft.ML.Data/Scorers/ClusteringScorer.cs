@@ -14,14 +14,14 @@ using Newtonsoft.Json.Linq;
 using Float = System.Single;
 
 [assembly: LoadableClass(typeof(ClusteringScorer), typeof(ClusteringScorer.Arguments), typeof(SignatureDataScorer),
-    "Clustering Scorer", "ClusteringScorer", MetadataUtils.Const.ScoreColumnKind.Clustering)]
+    "Clustering Scorer", "ClusteringScorer", AnnotationUtils.Const.ScoreColumnKind.Clustering)]
 
 [assembly: LoadableClass(typeof(ClusteringScorer), null, typeof(SignatureLoadDataTransform),
     "Clustering Scorer", ClusteringScorer.LoaderSignature)]
 
 namespace Microsoft.ML.Data
 {
-    public sealed class ClusteringScorer : PredictedLabelScorerBase
+    internal sealed class ClusteringScorer : PredictedLabelScorerBase
     {
         public sealed class Arguments : ScorerArgumentsBase
         {
@@ -45,8 +45,8 @@ namespace Microsoft.ML.Data
 
         [BestFriend]
         internal ClusteringScorer(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
-            : base(args, env, data, mapper, trainSchema, RegistrationName, MetadataUtils.Const.ScoreColumnKind.Clustering,
-                MetadataUtils.Const.ScoreValueKind.Score, OutputTypeMatches, GetPredColType)
+            : base(args, env, data, mapper, trainSchema, RegistrationName, AnnotationUtils.Const.ScoreColumnKind.Clustering,
+                AnnotationUtils.Const.ScoreValueKind.Score, OutputTypeMatches, GetPredColType)
         {
         }
 
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Data
             base.SaveCore(ctx);
         }
 
-        public override IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
+        private protected override IDataTransform ApplyToDataCore(IHostEnvironment env, IDataView newSource)
         {
             Contracts.CheckValue(env, nameof(env));
             Contracts.CheckValue(newSource, nameof(newSource));
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Data
             return new ClusteringScorer(env, this, newSource);
         }
 
-        protected override Delegate GetPredictedLabelGetter(Row output, out Delegate scoreGetter)
+        protected override Delegate GetPredictedLabelGetter(DataViewRow output, out Delegate scoreGetter)
         {
             Contracts.AssertValue(output);
             Contracts.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
@@ -134,16 +134,16 @@ namespace Microsoft.ML.Data
             return PfaUtils.Call("a.argmax", mapperOutputs[0]);
         }
 
-        private static ColumnType GetPredColType(ColumnType scoreType, ISchemaBoundRowMapper mapper)
+        private static DataViewType GetPredColType(DataViewType scoreType, ISchemaBoundRowMapper mapper)
         {
             return new KeyType(typeof(uint), scoreType.GetVectorSize());
         }
 
-        private static bool OutputTypeMatches(ColumnType scoreType)
+        private static bool OutputTypeMatches(DataViewType scoreType)
         {
             return scoreType is VectorType vectorType
                 && vectorType.IsKnownSize
-                && vectorType.ItemType == NumberType.Float;
+                && vectorType.ItemType == NumberDataViewType.Single;
         }
     }
 }

@@ -7,20 +7,15 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Ensemble.EntryPoints;
-using Microsoft.ML.Ensemble.Selector;
-using Microsoft.ML.Ensemble.Selector.DiversityMeasure;
-using Microsoft.ML.Ensemble.Selector.SubModelSelector;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(BestDiverseSelectorBinary), typeof(BestDiverseSelectorBinary.Arguments),
     typeof(SignatureEnsembleSubModelSelector), BestDiverseSelectorBinary.UserName, BestDiverseSelectorBinary.LoadName)]
 
-namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
+namespace Microsoft.ML.Trainers.Ensemble
 {
-    using TScalarPredictor = IPredictorProducing<Single>;
-
     internal sealed class BestDiverseSelectorBinary : BaseDiverseSelector<Single, DisagreementDiversityMeasure>, IBinarySubModelSelector
     {
         public const string UserName = "Best Diverse Selector";
@@ -42,8 +37,8 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
 
         }
 
-        public override List<ModelDiversityMetric<Single>> CalculateDiversityMeasure(IList<FeatureSubsetModel<TScalarPredictor>> models,
-            ConcurrentDictionary<FeatureSubsetModel<TScalarPredictor>, Single[]> predictions)
+        public override List<ModelDiversityMetric<Single>> CalculateDiversityMeasure(IList<FeatureSubsetModel<float>> models,
+            ConcurrentDictionary<FeatureSubsetModel<float>, Single[]> predictions)
         {
             var diversityMetric = CreateDiversityMetric();
             return diversityMetric.CalculateDiversityMeasure(models, predictions);

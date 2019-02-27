@@ -8,16 +8,13 @@ using System.Threading;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.CpuMath;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
+using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Training;
 using Float = System.Single;
 
 [assembly: LoadableClass(SdcaMultiClassTrainer.Summary, typeof(SdcaMultiClassTrainer), typeof(SdcaMultiClassTrainer.Options),
@@ -32,12 +29,12 @@ namespace Microsoft.ML.Trainers
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
     public class SdcaMultiClassTrainer : SdcaTrainerBase<SdcaMultiClassTrainer.Options, MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
     {
-        public const string LoadNameValue = "SDCAMC";
-        public const string UserNameValue = "Fast Linear Multi-class Classification (SA-SDCA)";
-        public const string ShortName = "sasdcamc";
+        internal const string LoadNameValue = "SDCAMC";
+        internal const string UserNameValue = "Fast Linear Multi-class Classification (SA-SDCA)";
+        internal const string ShortName = "sasdcamc";
         internal const string Summary = "The SDCA linear multi-class classification trainer.";
 
-        public sealed class Options : ArgumentsBase
+        public sealed class Options : OptionsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
@@ -45,7 +42,7 @@ namespace Microsoft.ML.Trainers
 
         private readonly ISupportSdcaClassificationLoss _loss;
 
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         /// <summary>
         /// Initializes a new instance of <see cref="SdcaMultiClassTrainer"/>
@@ -71,7 +68,7 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            _loss = loss ?? Args.LossFunction.CreateComponent(env);
+            _loss = loss ?? SdcaTrainerOptions.LossFunction.CreateComponent(env);
             Loss = _loss;
         }
 
@@ -91,21 +88,21 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
             Contracts.Assert(success);
 
-            var metadata = new SchemaShape(labelCol.Metadata.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
-                .Concat(MetadataUtils.GetTrainerOutputMetadata()));
+            var metadata = new SchemaShape(labelCol.Annotations.Where(x => x.Name == AnnotationUtils.Kinds.KeyValues)
+                .Concat(AnnotationUtils.GetTrainerOutputAnnotation()));
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, metadata)
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.AnnotationsForMulticlassScoreColumn(labelCol))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, metadata)
             };
         }
 
-        protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
+        private protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
             Contracts.Assert(labelCol.IsValid);
 
@@ -114,7 +111,7 @@ namespace Microsoft.ML.Trainers
 
             if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
                 error();
-            if (!labelCol.IsKey && labelCol.ItemType != NumberType.R4 && labelCol.ItemType != NumberType.R8)
+            if (!labelCol.IsKey && labelCol.ItemType != NumberDataViewType.Single && labelCol.ItemType != NumberDataViewType.Double)
                 error();
         }
 
@@ -124,7 +121,7 @@ namespace Microsoft.ML.Trainers
             VBuffer<Float>[] weights, Float[] biasUnreg, VBuffer<Float>[] l1IntermediateWeights, Float[] l1IntermediateBias, Float[] featureNormSquared)
         {
             Contracts.AssertValueOrNull(progress);
-            Contracts.Assert(Args.L1Threshold.HasValue);
+            Contracts.Assert(SdcaTrainerOptions.L1Threshold.HasValue);
             Contracts.AssertValueOrNull(idToIdx);
             Contracts.AssertValueOrNull(invariants);
             Contracts.AssertValueOrNull(featureNormSquared);
@@ -133,19 +130,19 @@ namespace Microsoft.ML.Trainers
             Contracts.Assert(Utils.Size(biasUnreg) == numClasses);
 
             int maxUpdateTrials = 2 * numThreads;
-            var l1Threshold = Args.L1Threshold.Value;
+            var l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
             bool l1ThresholdZero = l1Threshold == 0;
-            var lr = Args.BiasLearningRate * Args.L2Const.Value;
+            var lr = SdcaTrainerOptions.BiasLearningRate * SdcaTrainerOptions.L2Const.Value;
 
             var pch = progress != null ? progress.StartProgressChannel("Dual update") : null;
             using (pch)
-            using (var cursor = Args.Shuffle ? cursorFactory.Create(rand) : cursorFactory.Create())
+            using (var cursor = SdcaTrainerOptions.Shuffle ? cursorFactory.Create(rand) : cursorFactory.Create())
             {
                 long rowCount = 0;
                 if (pch != null)
                     pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, rowCount));
 
-                Func<RowId, long> getIndexFromId = GetIndexFromIdGetter(idToIdx, biasReg.Length);
+                Func<DataViewRowId, long> getIndexFromId = GetIndexFromIdGetter(idToIdx, biasReg.Length);
                 while (cursor.MoveNext())
                 {
                     long idx = getIndexFromId(cursor.Id);
@@ -163,7 +160,7 @@ namespace Microsoft.ML.Trainers
                     else
                     {
                         normSquared = VectorUtils.NormSquared(in features);
-                        if (Args.BiasLearningRate == 0)
+                        if (SdcaTrainerOptions.BiasLearningRate == 0)
                             normSquared += 1;
 
                         invariant = _loss.ComputeDualUpdateInvariant(2 * normSquared * lambdaNInv * GetInstanceWeight(cursor));
@@ -233,7 +230,7 @@ namespace Microsoft.ML.Trainers
                                     //Thresholding: if |v[j]| < threshold, turn off weights[j]
                                     //If not, shrink: w[j] = v[i] - sign(v[j]) * threshold
                                     l1IntermediateBias[iClass] -= primalUpdate;
-                                    if (Args.BiasLearningRate == 0)
+                                    if (SdcaTrainerOptions.BiasLearningRate == 0)
                                     {
                                         biasReg[iClass] = Math.Abs(l1IntermediateBias[iClass]) - l1Threshold > 0.0
                                         ? l1IntermediateBias[iClass] - Math.Sign(l1IntermediateBias[iClass]) * l1Threshold
@@ -319,7 +316,7 @@ namespace Microsoft.ML.Trainers
             using (var cursor = cursorFactory.Create())
             {
                 long row = 0;
-                Func<RowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
+                Func<DataViewRowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
                 // Iterates through data to compute loss function.
                 while (cursor.MoveNext())
                 {
@@ -354,10 +351,10 @@ namespace Microsoft.ML.Trainers
                 Host.Assert(idToIdx == null || row * numClasses == duals.Length);
             }
 
-            Contracts.Assert(Args.L2Const.HasValue);
-            Contracts.Assert(Args.L1Threshold.HasValue);
-            Double l2Const = Args.L2Const.Value;
-            Double l1Threshold = Args.L1Threshold.Value;
+            Contracts.Assert(SdcaTrainerOptions.L2Const.HasValue);
+            Contracts.Assert(SdcaTrainerOptions.L1Threshold.HasValue);
+            Double l2Const = SdcaTrainerOptions.L2Const.Value;
+            Double l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
 
             Double weightsL1Norm = 0;
             Double weightsL2NormSquared = 0;
@@ -369,7 +366,7 @@ namespace Microsoft.ML.Trainers
                 biasRegularizationAdjustment += biasReg[iClass] * biasUnreg[iClass];
             }
 
-            Double l1Regularizer = Args.L1Threshold.Value * l2Const * weightsL1Norm;
+            Double l1Regularizer = SdcaTrainerOptions.L1Threshold.Value * l2Const * weightsL1Norm;
             var l2Regularizer = l2Const * weightsL2NormSquared * 0.5;
 
             var newLoss = lossSum.Sum / count + l2Regularizer + l1Regularizer;
@@ -381,10 +378,10 @@ namespace Microsoft.ML.Trainers
             metrics[(int)MetricKind.DualityGap] = dualityGap;
             metrics[(int)MetricKind.BiasUnreg] = biasUnreg[0];
             metrics[(int)MetricKind.BiasReg] = biasReg[0];
-            metrics[(int)MetricKind.L1Sparsity] = Args.L1Threshold == 0 ? 1 : weights.Sum(
+            metrics[(int)MetricKind.L1Sparsity] = SdcaTrainerOptions.L1Threshold == 0 ? 1 : weights.Sum(
                 weight => weight.GetValues().Count(w => w != 0)) / (numClasses * numFeatures);
 
-            bool converged = dualityGap / newLoss < Args.ConvergenceTolerance;
+            bool converged = dualityGap / newLoss < SdcaTrainerOptions.ConvergenceTolerance;
 
             if (metrics[(int)MetricKind.Loss] < bestPrimalLoss)
             {
@@ -410,7 +407,7 @@ namespace Microsoft.ML.Trainers
             return converged;
         }
 
-        protected override MulticlassLogisticRegressionModelParameters CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
+        private protected override MulticlassLogisticRegressionModelParameters CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
         {
             Host.CheckValue(weights, nameof(weights));
             Host.CheckValue(bias, nameof(bias));
@@ -425,7 +422,7 @@ namespace Microsoft.ML.Trainers
             examples.CheckMultiClassLabel(out weightSetCount);
         }
 
-        protected override Float[] InitializeFeatureNormSquared(int length)
+        private protected override Float[] InitializeFeatureNormSquared(int length)
         {
             Contracts.Assert(0 < length & length <= Utils.ArrayMaxSize);
             return new Float[length];
@@ -436,7 +433,7 @@ namespace Microsoft.ML.Trainers
             return cursor.Weight;
         }
 
-        protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(MulticlassLogisticRegressionModelParameters model, Schema trainSchema)
+        private protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(MulticlassLogisticRegressionModelParameters model, DataViewSchema trainSchema)
             => new MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
     }
 
@@ -448,9 +445,7 @@ namespace Microsoft.ML.Trainers
         [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentClassifier",
             Desc = SdcaMultiClassTrainer.Summary,
             UserName = SdcaMultiClassTrainer.UserNameValue,
-            ShortName = SdcaMultiClassTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""SDCA""]/*' />",
-                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/example[@name=""StochasticDualCoordinateAscentClassifier""]/*' />" })]
+            ShortName = SdcaMultiClassTrainer.ShortName)]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, SdcaMultiClassTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));

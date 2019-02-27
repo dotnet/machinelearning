@@ -5,17 +5,15 @@
 using System;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
+using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.Online;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(LinearSvmTrainer.Summary, typeof(LinearSvmTrainer), typeof(LinearSvmTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -42,7 +40,7 @@ namespace Microsoft.ML.Trainers.Online
 
         internal readonly Options Opts;
 
-        public sealed class Options : OnlineLinearArguments
+        public sealed class Options : OnlineLinearOptions
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularizer constant", ShortName = "lambda", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "0.00001-0.1;log;inc:10")]
@@ -62,10 +60,16 @@ namespace Microsoft.ML.Trainers.Online
             public bool NoBias = false;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
+            internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public int MaxCalibrationExamples = 1000000;
+            internal int MaxCalibrationExamples = 1000000;
+
+            /// <summary>
+            /// Column to use for example weight.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            public string WeightColumn = null;
         }
 
         private sealed class TrainState : TrainStateBase
@@ -219,7 +223,7 @@ namespace Microsoft.ML.Trainers.Online
             }
         }
 
-        protected override bool NeedCalibration => true;
+        private protected override bool NeedCalibration => true;
 
         /// <summary>
         /// Initializes a new instance of <see cref="LinearSvmTrainer"/>.
@@ -227,20 +231,20 @@ namespace Microsoft.ML.Trainers.Online
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column. </param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightsColumn">The optional name of the weights column.</param>
+         /// <param name="weightColumn">The optional name of the weight column.</param>
         /// <param name="numIterations">The number of training iteraitons.</param>
         [BestFriend]
         internal LinearSvmTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
-            string weightsColumn = null,
-            int numIterations = Options.OnlineDefaultArgs.NumIterations)
+            string weightColumn = null,
+            int numIterations = Options.OnlineDefault.NumIterations)
             : this(env, new Options
             {
                 LabelColumn = labelColumn,
                 FeatureColumn = featureColumn,
-                InitialWeights = weightsColumn,
-                NumIterations = numIterations,
+                WeightColumn = weightColumn,
+                NumberOfIterations = numIterations,
             })
         {
         }
@@ -254,14 +258,14 @@ namespace Microsoft.ML.Trainers.Online
             Opts = options;
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
@@ -288,10 +292,7 @@ namespace Microsoft.ML.Trainers.Online
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }
 
-        protected override BinaryPredictionTransformer<LinearBinaryModelParameters> MakeTransformer(LinearBinaryModelParameters model, Schema trainSchema)
+        private protected override BinaryPredictionTransformer<LinearBinaryModelParameters> MakeTransformer(LinearBinaryModelParameters model, DataViewSchema trainSchema)
             => new BinaryPredictionTransformer<LinearBinaryModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
-
-        public BinaryPredictionTransformer<LinearBinaryModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)
-            => TrainTransformer(trainData, initPredictor: initialPredictor);
     }
 }

@@ -5,15 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.TimeSeries;
-using Microsoft.ML.TimeSeriesProcessing;
+using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public partial class TransformSamples
+    public static partial class TransformSamples
     {
         class ChangePointPrediction
         {
@@ -49,24 +46,17 @@ namespace Microsoft.ML.Samples.Dynamic
                 data.Add(new IidChangePointData(7));
 
             // Convert data to IDataView.
-            var dataView = ml.Data.ReadFromEnumerable(data);
+            var dataView = ml.Data.LoadFromEnumerable(data);
 
             // Setup IidSpikeDetector arguments
             string outputColumnName = nameof(ChangePointPrediction.Prediction);
             string inputColumnName = nameof(IidChangePointData.Value);
-            var args = new IidChangePointDetector.Arguments()
-            {
-                Source = inputColumnName,
-                Name = outputColumnName,
-                Confidence = 95,                // The confidence for spike detection in the range [0, 100]
-                ChangeHistoryLength = Size / 4, // The length of the sliding window on p-values for computing the martingale score. 
-            };
 
             // The transformed data.
-            var transformedData = new IidChangePointEstimator(ml, args).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms.IidChangePointEstimator(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of ChangePointPrediction.
-            var predictionColumn = ml.CreateEnumerable<ChangePointPrediction>(transformedData, reuseRowObject: false);
+            var predictionColumn = ml.Data.CreateEnumerable<ChangePointPrediction>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
             Console.WriteLine("Data\tAlert\tScore\tP-Value\tMartingale value");
@@ -114,21 +104,14 @@ namespace Microsoft.ML.Samples.Dynamic
                 data.Add(new IidChangePointData(7));
 
             // Convert data to IDataView.
-            var dataView = ml.Data.ReadFromEnumerable(data);
+            var dataView = ml.Data.LoadFromEnumerable(data);
 
             // Setup IidSpikeDetector arguments
             string outputColumnName = nameof(ChangePointPrediction.Prediction);
             string inputColumnName = nameof(IidChangePointData.Value);
-            var args = new IidChangePointDetector.Arguments()
-            {
-                Source = inputColumnName,
-                Name = outputColumnName,
-                Confidence = 95,                // The confidence for spike detection in the range [0, 100]
-                ChangeHistoryLength = Size / 4, // The length of the sliding window on p-values for computing the martingale score. 
-            };
 
             // Time Series model.
-            ITransformer model = new IidChangePointEstimator(ml, args).Fit(dataView);
+            ITransformer model = ml.Transforms.IidChangePointEstimator(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView);
 
             // Create a time series prediction engine from the model.
             var engine = model.CreateTimeSeriesPredictionFunction<IidChangePointData, ChangePointPrediction>(ml);

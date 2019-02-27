@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using Xunit;
 using Xunit.Abstractions;
 

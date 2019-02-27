@@ -3,9 +3,9 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class KMeans_example
+    public class KMeans
     {
-        public static void KMeans()
+        public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -13,7 +13,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             var data = SamplesUtils.DatasetUtils.GetInfertData();
-            var trainData = ml.Data.ReadFromEnumerable(data);
+            var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
             //

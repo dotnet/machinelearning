@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.ML.Trainers.HalLearners;
 using Xunit;
 
@@ -13,11 +14,17 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorOlsLinearRegression()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = new OlsLinearRegressionTrainer(Env, new OlsLinearRegressionTrainer.Options());
+            var trainer = ML.Regression.Trainers.OrdinaryLeastSquares(new OlsLinearRegressionTrainer.Options());
             TestEstimatorCore(trainer, dataView);
 
             var model = trainer.Fit(dataView);
-            trainer.Train(dataView, model.Model);
+            Assert.True(model.Model.HasStatistics);
+            Assert.NotEmpty(model.Model.StandardErrors);
+            Assert.NotEmpty(model.Model.PValues);
+            Assert.NotEmpty(model.Model.TValues);
+            trainer = ML.Regression.Trainers.OrdinaryLeastSquares(new OlsLinearRegressionTrainer.Options() { PerParameterSignificance = false });
+            model = trainer.Fit(dataView);
+            Assert.False(model.Model.HasStatistics);
             Done();
         }
     }

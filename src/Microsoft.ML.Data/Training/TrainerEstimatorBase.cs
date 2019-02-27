@@ -4,19 +4,18 @@
 
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Training
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// This represents a basic class for 'simple trainer'.
     /// A 'simple trainer' accepts one feature column and one label column, also optionally a weight column.
     /// It produces a 'prediction transformer'.
     /// </summary>
-    public abstract class TrainerEstimatorBase<TTransformer, TModel> : ITrainerEstimator<TTransformer, TModel>, ITrainer<TModel>
+    public abstract class TrainerEstimatorBase<TTransformer, TModel> : ITrainerEstimator<TTransformer, TModel>, ITrainer<IPredictor>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
-        where TModel : IPredictor
+        where TModel : class
     {
         /// <summary>
         /// A standard string to use in errors or warnings by subclasses, to communicate the idea that no valid
@@ -48,7 +47,10 @@ namespace Microsoft.ML.Training
         /// </summary>
         public abstract TrainerInfo Info { get; }
 
-        public abstract PredictionKind PredictionKind { get; }
+        PredictionKind ITrainer.PredictionKind => PredictionKind;
+
+        [BestFriend]
+        private protected abstract PredictionKind PredictionKind { get; }
 
         [BestFriend]
         private protected TrainerEstimatorBase(IHost host,
@@ -65,6 +67,11 @@ namespace Microsoft.ML.Training
             WeightColumn = weight;
         }
 
+        /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
+        /// <remarks>
+        /// Derived class can overload this function.
+        /// For example, it could take an additional dataset to train with a separate validation set.
+        /// </remarks>
         public TTransformer Fit(IDataView input) => TrainTransformer(input);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -83,12 +90,14 @@ namespace Microsoft.ML.Training
         /// <summary>
         /// The columns that will be created by the fitted transformer.
         /// </summary>
-        protected abstract SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema);
+        private protected abstract SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema);
 
-        TModel ITrainer<TModel>.Train(TrainContext context)
+        IPredictor ITrainer<IPredictor>.Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
-            return TrainModelCore(context);
+            var pred = TrainModelCore(context) as IPredictor;
+            Host.Check(pred != null, "Training did not return a predictor.");
+            return pred;
         }
 
         private void CheckInputSchema(SchemaShape inputSchema)
@@ -119,7 +128,7 @@ namespace Microsoft.ML.Training
             }
         }
 
-        protected virtual void CheckLabelCompatible(SchemaShape.Column labelCol)
+        private protected virtual void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
             Contracts.CheckParam(labelCol.IsValid, nameof(labelCol), "not initialized properly");
             Host.Assert(LabelColumn.IsValid);
@@ -129,7 +138,8 @@ namespace Microsoft.ML.Training
                     LabelColumn.GetTypeString(), labelCol.GetTypeString());
         }
 
-        protected TTransformer TrainTransformer(IDataView trainSet,
+        [BestFriend]
+        private protected TTransformer TrainTransformer(IDataView trainSet,
             IDataView validationSet = null, IPredictor initPredictor = null)
         {
             var trainRoleMapped = MakeRoles(trainSet);
@@ -139,15 +149,14 @@ namespace Microsoft.ML.Training
             return MakeTransformer(pred, trainSet.Schema);
         }
 
-        [BestFriend]
         private protected abstract TModel TrainModelCore(TrainContext trainContext);
 
-        protected abstract TTransformer MakeTransformer(TModel model, Schema trainSchema);
+        private protected abstract TTransformer MakeTransformer(TModel model, DataViewSchema trainSchema);
 
         private protected virtual RoleMappedData MakeRoles(IDataView data) =>
             new RoleMappedData(data, label: LabelColumn.Name, feature: FeatureColumn.Name, weight: WeightColumn.Name);
 
-        IPredictor ITrainer.Train(TrainContext context) => ((ITrainer<TModel>)this).Train(context);
+        IPredictor ITrainer.Train(TrainContext context) => ((ITrainer<IPredictor>)this).Train(context);
     }
 
     /// <summary>
@@ -157,7 +166,8 @@ namespace Microsoft.ML.Training
     /// </summary>
     public abstract class TrainerEstimatorBaseWithGroupId<TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
-        where TModel : IPredictor
+        where TModel : class
+
     {
         /// <summary>
         /// The optional groupID column that the ranking trainers expects.

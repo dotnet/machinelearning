@@ -24,7 +24,7 @@ namespace Microsoft.ML.Sweeper
         {
             [Argument(ArgumentType.Multiple, HelpText = "Config runner", ShortName = "run,ev,evaluator", SignatureType = typeof(SignatureConfigRunner))]
             public IComponentFactory<IConfigRunner> Runner = ComponentFactoryUtils.CreateFromFunction(
-                env => new LocalExeConfigRunner(env, new LocalExeConfigRunner.Arguments()));
+                env => new LocalExeConfigRunner(env, new LocalExeConfigRunner.Options()));
 
             [Argument(ArgumentType.Multiple, HelpText = "Sweeper", ShortName = "s", SignatureType = typeof(SignatureSweeper))]
             public IComponentFactory<ISweeper> Sweeper;

@@ -9,7 +9,6 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
@@ -169,21 +168,21 @@ namespace Microsoft.ML.RunTests
         /// * pathData defaults to breast-cancer.txt.
         /// * actLoader is invoked for extra validation (if non-null).
         /// </summary>
-        protected IDataLoader TestCore(string pathData, bool keepHidden, string[] argsPipe,
-            Action<IDataLoader> actLoader = null, string suffix = "", string suffixBase = null, bool checkBaseline = true,
+        internal ILegacyDataLoader TestCore(string pathData, bool keepHidden, string[] argsPipe,
+            Action<ILegacyDataLoader> actLoader = null, string suffix = "", string suffixBase = null, bool checkBaseline = true,
             bool forceDense = false, bool logCurs = false, bool roundTripText = true,
             bool checkTranspose = false, bool checkId = true, bool baselineSchema = true, int digitsOfPrecision = DigitsOfPrecision)
         {
             Contracts.AssertValue(Env);
 
             MultiFileSource files;
-            IDataLoader compositeLoader;
+            ILegacyDataLoader compositeLoader;
             var pipe1 = compositeLoader = CreatePipeDataLoader(_env, pathData, argsPipe, out files);
 
             actLoader?.Invoke(compositeLoader);
 
             // Re-apply pipe to the loader and check equality.
-            var comp = compositeLoader as CompositeDataLoader;
+            var comp = compositeLoader as LegacyCompositeDataLoader;
             IDataView srcLoader = null;
             if (comp != null)
             {
@@ -301,7 +300,7 @@ namespace Microsoft.ML.RunTests
             return pipe1;
         }
 
-        protected IDataLoader CreatePipeDataLoader(IHostEnvironment env, string pathData, string[] argsPipe, out MultiFileSource files)
+        private ILegacyDataLoader CreatePipeDataLoader(IHostEnvironment env, string pathData, string[] argsPipe, out MultiFileSource files)
         {
             VerifyArgParsing(env, argsPipe);
 
@@ -310,7 +309,7 @@ namespace Microsoft.ML.RunTests
                 pathData = GetDataPath("breast-cancer.txt");
 
             files = new MultiFileSource(pathData == "<none>" ? null : pathData);
-            var sub = new SubComponent<IDataLoader, SignatureDataLoader>("Pipe", argsPipe);
+            var sub = new SubComponent<ILegacyDataLoader, SignatureDataLoader>("Pipe", argsPipe);
             var pipe = sub.CreateInstance(env, files);
             if (!CheckMetadataTypes(pipe.Schema))
                 Failed();
@@ -318,34 +317,10 @@ namespace Microsoft.ML.RunTests
             return pipe;
         }
 
-        /// <summary>
-        /// Apply pipe's transforms and optionally ChooseColumns transform to newView, 
-        /// and test if pipe and newPipe have the same schema and values.
-        /// </summary>
-        protected void TestApplyTransformsToData(IHostEnvironment env, IDataLoader pipe, IDataView newView, string chooseArgs = null)
-        {
-            Contracts.AssertValue(pipe);
-            Contracts.AssertValue(newView);
-
-            IDataView view = pipe;
-            newView = ApplyTransformUtils.ApplyAllTransformsToData(env, view, newView);
-            if (!string.IsNullOrWhiteSpace(chooseArgs))
-            {
-                var component = new SubComponent<IDataTransform, SignatureDataTransform>("Choose", chooseArgs);
-                view = component.CreateInstance(env, view);
-                newView = component.CreateInstance(env, newView);
-            }
-
-            if (!CheckSameSchemas(view.Schema, newView.Schema))
-                Failed();
-            else if (!CheckSameValues(view, newView))
-                Failed();
-        }
-
         protected void VerifyArgParsing(IHostEnvironment env, string[] strs)
         {
             string str = CmdParser.CombineSettings(strs);
-            var args = new CompositeDataLoader.Arguments();
+            var args = new LegacyCompositeDataLoader.Arguments();
             if (!CmdParser.ParseArguments(Env, str, args))
             {
                 Fail("Parsing arguments failed!");
@@ -354,7 +329,7 @@ namespace Microsoft.ML.RunTests
 
             // For the loader and each transform, verify that custom unparsing is correct.
             VerifyCustArgs(env, args.Loader);
-            foreach (var kvp in args.Transform)
+            foreach (var kvp in args.Transforms)
                 VerifyCustArgs(env, kvp.Value);
         }
 
@@ -399,7 +374,7 @@ namespace Microsoft.ML.RunTests
             List<int> savable = new List<int>();
             for (int c = 0; c < schema.Count; ++c)
             {
-                ColumnType type = schema[c].Type;
+                DataViewType type = schema[c].Type;
                 if (saver.IsColumnSavable(type) && (hidden || !schema[c].IsHidden))
                     savable.Add(c);
             }
@@ -423,12 +398,12 @@ namespace Microsoft.ML.RunTests
             if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
-                var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
-                chooseargs.Index = savable.ToArray();
+                var chooseargs = new ChooseColumnsByIndexTransform.Options();
+                chooseargs.Indices = savable.ToArray();
                 view = new ChooseColumnsByIndexTransform(env, chooseargs, view);
             }
 
-            var args = new TextLoader.Arguments();
+            var args = new TextLoader.Options() { AllowSparse = true, AllowQuoting = true};
             if (!CmdParser.ParseArguments(Env, argsLoader, args))
             {
                 Fail("Couldn't parse the args '{0}' in '{1}'", argsLoader, pathData);
@@ -437,7 +412,7 @@ namespace Microsoft.ML.RunTests
 
             // Note that we don't pass in "args", but pass in a default args so we test
             // the auto-schema parsing.
-            var loadedData = ML.Data.ReadFromTextFile(pathData);
+            var loadedData = ML.Data.LoadFromTextFile(pathData, options: args);
             if (!CheckMetadataTypes(loadedData.Schema))
                 Failed();
 
@@ -448,7 +423,7 @@ namespace Microsoft.ML.RunTests
             return true;
         }
 
-        protected string SavePipe(IDataLoader pipe, string suffix = "", string dir = "Pipeline")
+        protected private string SavePipe(ILegacyDataLoader pipe, string suffix = "", string dir = "Pipeline")
         {
             string name = TestName + suffix + ".zip";
             string pathModel = DeleteOutputPath("SavePipe", name);
@@ -471,29 +446,29 @@ namespace Microsoft.ML.RunTests
             return res;
         }
 
-        protected IDataLoader LoadPipe(string pathModel, IHostEnvironment env, IMultiStreamSource files)
+        private ILegacyDataLoader LoadPipe(string pathModel, IHostEnvironment env, IMultiStreamSource files)
         {
             using (var file = Env.OpenInputFile(pathModel))
             using (var strm = file.OpenReadStream())
             using (var rep = RepositoryReader.Open(strm, env))
             {
-                IDataLoader pipe;
-                ModelLoadContext.LoadModel<IDataLoader, SignatureLoadDataLoader>(env,
+                ILegacyDataLoader pipe;
+                ModelLoadContext.LoadModel<ILegacyDataLoader, SignatureLoadDataLoader>(env,
                     out pipe, rep, "Pipeline", files);
                 return pipe;
             }
         }
 
-        protected bool CheckMetadataTypes(Schema sch)
+        protected bool CheckMetadataTypes(DataViewSchema sch)
         {
             var hs = new HashSet<string>();
             for (int col = 0; col < sch.Count; col++)
             {
-                var typeSlot = sch[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
-                var typeKeys = sch[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
+                var typeSlot = sch[col].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type;
+                var typeKeys = sch[col].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type;
 
                 hs.Clear();
-                foreach (var metaColumn in sch[col].Metadata.Schema)
+                foreach (var metaColumn in sch[col].Annotations.Schema)
                 {
                     if (metaColumn.Name == null || metaColumn.Type == null)
                     {
@@ -505,7 +480,7 @@ namespace Microsoft.ML.RunTests
                         Fail("Duplicate metadata type: {0}", metaColumn.Name);
                         return Failed();
                     }
-                    if (metaColumn.Name == MetadataUtils.Kinds.SlotNames)
+                    if (metaColumn.Name == AnnotationUtils.Kinds.SlotNames)
                     {
                         if (typeSlot == null || !typeSlot.Equals(metaColumn.Type))
                         {
@@ -515,7 +490,7 @@ namespace Microsoft.ML.RunTests
                         typeSlot = null;
                         continue;
                     }
-                    if (metaColumn.Name == MetadataUtils.Kinds.KeyValues)
+                    if (metaColumn.Name == AnnotationUtils.Kinds.KeyValues)
                     {
                         if (typeKeys == null || !typeKeys.Equals(metaColumn.Type))
                         {
@@ -535,7 +510,7 @@ namespace Microsoft.ML.RunTests
             return true;
         }
 
-        protected bool CheckSameSchemas(Schema sch1, Schema sch2, bool exactTypes = true, bool keyNames = true)
+        protected bool CheckSameSchemas(DataViewSchema sch1, DataViewSchema sch2, bool exactTypes = true, bool keyNames = true)
         {
             if (sch1.Count != sch2.Count)
             {
@@ -579,27 +554,27 @@ namespace Microsoft.ML.RunTests
                     return Failed();
 
                 ulong vsize = type1 is VectorType vectorType ? (ulong)vectorType.Size : 0;
-                if (!CheckMetadataNames(MetadataUtils.Kinds.SlotNames, vsize, sch1, sch2, col, exactTypes, true))
+                if (!CheckMetadataNames(AnnotationUtils.Kinds.SlotNames, vsize, sch1, sch2, col, exactTypes, true))
                     return Failed();
 
                 if (!keyNames)
                     continue;
 
                 ulong ksize = type1.GetItemType() is KeyType keyType ? keyType.Count : 0;
-                if (!CheckMetadataNames(MetadataUtils.Kinds.KeyValues, ksize, sch1, sch2, col, exactTypes, false))
+                if (!CheckMetadataNames(AnnotationUtils.Kinds.KeyValues, ksize, sch1, sch2, col, exactTypes, false))
                     return Failed();
             }
 
             return true;
         }
 
-        protected bool CheckMetadataNames(string kind, ulong size, Schema sch1, Schema sch2, int col, bool exactTypes, bool mustBeText)
+        protected bool CheckMetadataNames(string kind, ulong size, DataViewSchema sch1, DataViewSchema sch2, int col, bool exactTypes, bool mustBeText)
         {
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var names2 = default(VBuffer<ReadOnlyMemory<char>>);
 
-            var t1 = sch1[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
-            var t2 = sch2[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
+            var t1 = sch1[col].Annotations.Schema.GetColumnOrNull(kind)?.Type;
+            var t2 = sch2[col].Annotations.Schema.GetColumnOrNull(kind)?.Type;
             if ((t1 == null) != (t2 == null))
             {
                 Fail("Different null-ness of {0} metadata types", kind);
@@ -620,7 +595,7 @@ namespace Microsoft.ML.RunTests
                 Fail("Different {0} metadata types: {0} vs {1}", kind, t1, t2);
                 return Failed();
             }
-            if (!(t1.GetItemType() is TextType))
+            if (!(t1.GetItemType() is TextDataViewType))
             {
                 if (!mustBeText)
                 {
@@ -637,8 +612,8 @@ namespace Microsoft.ML.RunTests
                 return Failed();
             }
 
-            sch1[col].Metadata.GetValue(kind, ref names1);
-            sch2[col].Metadata.GetValue(kind, ref names2);
+            sch1[col].Annotations.GetValue(kind, ref names1);
+            sch2[col].Annotations.GetValue(kind, ref names2);
             if (!CompareVec(in names1, in names2, (int)size, (a, b) => a.Span.SequenceEqual(b.Span)))
             {
                 Fail("Different {0} metadata values", kind);
@@ -647,19 +622,19 @@ namespace Microsoft.ML.RunTests
             return true;
         }
 
-        protected bool CheckMetadataCallFailure(string kind, Schema sch, int col, ref VBuffer<ReadOnlyMemory<char>> names)
+        protected bool CheckMetadataCallFailure(string kind, DataViewSchema sch, int col, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             try
             {
-                sch[col].Metadata.GetValue(kind, ref names);
+                sch[col].Annotations.GetValue(kind, ref names);
                 Fail("Getting {0} metadata unexpectedly succeeded", kind);
                 return Failed();
             }
             catch (InvalidOperationException ex)
             {
-                if (ex.Message != "Invalid call to GetMetadata")
+                if (ex.Message != "Invalid call to 'GetValue'")
                 {
-                    Fail("Message from GetMetadata failed call doesn't match expected message: {0}", ex.Message);
+                    Fail("Message from GetValue failed call doesn't match expected message: {0}", ex.Message);
                     return Failed();
                 }
             }
@@ -677,7 +652,7 @@ namespace Microsoft.ML.RunTests
             List<int> savable = new List<int>();
             for (int c = 0; c < schema.Count; ++c)
             {
-                ColumnType type = schema[c].Type;
+                DataViewType type = schema[c].Type;
                 if (saver.IsColumnSavable(type))
                     savable.Add(c);
             }
@@ -694,8 +669,8 @@ namespace Microsoft.ML.RunTests
             if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
-                var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
-                chooseargs.Index = savable.ToArray();
+                var chooseargs = new ChooseColumnsByIndexTransform.Options();
+                chooseargs.Indices = savable.ToArray();
                 view = new ChooseColumnsByIndexTransform(env, chooseargs, view);
             }
 
@@ -723,7 +698,7 @@ namespace Microsoft.ML.RunTests
             List<int> savable = new List<int>();
             for (int c = 0; c < schema.Count; ++c)
             {
-                ColumnType type = schema[c].Type;
+                DataViewType type = schema[c].Type;
                 if (saver.IsColumnSavable(type))
                     savable.Add(c);
             }
@@ -745,8 +720,8 @@ namespace Microsoft.ML.RunTests
             if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
-                var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
-                chooseargs.Index = savable.ToArray();
+                var chooseargs = new ChooseColumnsByIndexTransform.Options();
+                chooseargs.Indices = savable.ToArray();
                 view = new ChooseColumnsByIndexTransform(env, chooseargs, view);
             }
 
@@ -788,7 +763,7 @@ namespace Microsoft.ML.RunTests
             return false;
         }
 
-        protected bool EqualTypes(ColumnType type1, ColumnType type2, bool exactTypes)
+        protected bool EqualTypes(DataViewType type1, DataViewType type2, bool exactTypes)
         {
             Contracts.AssertValue(type1);
             Contracts.AssertValue(type2);
@@ -845,7 +820,7 @@ namespace Microsoft.ML.RunTests
             return all;
         }
 
-        protected bool CheckSameValues(RowCursor curs1, RowCursor curs2, bool exactTypes, bool exactDoubles, bool checkId, bool checkIdCollisions = true)
+        protected bool CheckSameValues(DataViewRowCursor curs1, DataViewRowCursor curs2, bool exactTypes, bool exactDoubles, bool checkId, bool checkIdCollisions = true)
         {
             Contracts.Assert(curs1.Schema.Count == curs2.Schema.Count);
 
@@ -869,13 +844,13 @@ namespace Microsoft.ML.RunTests
                     comps[col] = GetColumnComparer(curs1, curs2, col, type1, exactDoubles);
                 }
             }
-            ValueGetter<RowId> idGetter = null;
+            ValueGetter<DataViewRowId> idGetter = null;
             Func<bool> idComp = checkId ? GetIdComparer(curs1, curs2, out idGetter) : null;
-            HashSet<RowId> idsSeen = null;
+            HashSet<DataViewRowId> idsSeen = null;
             if (checkIdCollisions && idGetter == null)
                 idGetter = curs1.GetIdGetter();
             long idCollisions = 0;
-            RowId id = default(RowId);
+            DataViewRowId id = default(DataViewRowId);
 
             for (; ; )
             {
@@ -926,13 +901,13 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        protected bool CheckSameValues(RowCursor curs1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
+        protected bool CheckSameValues(DataViewRowCursor curs1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
         {
             Contracts.Assert(curs1.Schema.Count == view2.Schema.Count);
 
             // Get a cursor for each column.
             int colLim = curs1.Schema.Count;
-            var cursors = new RowCursor[colLim];
+            var cursors = new DataViewRowCursor[colLim];
             try
             {
                 for (int col = 0; col < colLim; col++)
@@ -957,7 +932,7 @@ namespace Microsoft.ML.RunTests
                         return Failed();
                     }
                     comps[col] = GetColumnComparer(curs1, cursors[col], col, type1, exactDoubles);
-                    ValueGetter<RowId> idGetter;
+                    ValueGetter<DataViewRowId> idGetter;
                     idComps[col] = checkId ? GetIdComparer(curs1, cursors[col], out idGetter) : null;
                 }
 
@@ -1009,13 +984,13 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        protected Func<bool> GetIdComparer(Row r1, Row r2, out ValueGetter<RowId> idGetter)
+        protected Func<bool> GetIdComparer(DataViewRow r1, DataViewRow r2, out ValueGetter<DataViewRowId> idGetter)
         {
             var g1 = r1.GetIdGetter();
             idGetter = g1;
             var g2 = r2.GetIdGetter();
-            RowId v1 = default(RowId);
-            RowId v2 = default(RowId);
+            DataViewRowId v1 = default(DataViewRowId);
+            DataViewRowId v2 = default(DataViewRowId);
             return
                 () =>
                 {
@@ -1025,7 +1000,7 @@ namespace Microsoft.ML.RunTests
                 };
         }
 
-        protected Func<bool> GetColumnComparer(Row r1, Row r2, int col, ColumnType type, bool exactDoubles)
+        protected Func<bool> GetColumnComparer(DataViewRow r1, DataViewRow r2, int col, DataViewType type, bool exactDoubles)
         {
             if (!(type is VectorType vectorType))
             {
@@ -1065,8 +1040,8 @@ namespace Microsoft.ML.RunTests
                     return GetComparerOne<DateTime>(r1, r2, col, (x, y) => x == y);
                 else if (rawType == typeof(DateTimeOffset))
                     return GetComparerOne<DateTimeOffset>(r1, r2, col, (x, y) => x.Equals(y));
-                else if (rawType == typeof(RowId))
-                    return GetComparerOne<RowId>(r1, r2, col, (x, y) => x.Equals(y));
+                else if (rawType == typeof(DataViewRowId))
+                    return GetComparerOne<DataViewRowId>(r1, r2, col, (x, y) => x.Equals(y));
                 else
                     return () => true;
             }
@@ -1116,26 +1091,9 @@ namespace Microsoft.ML.RunTests
                     return GetComparerVec<DateTime>(r1, r2, col, size, (x, y) => x == y);
                 else if (itemType == typeof(DateTimeOffset))
                     return GetComparerVec<DateTimeOffset>(r1, r2, col, size, (x, y) => x.Equals(y));
-                else if (itemType == typeof(RowId))
-                    return GetComparerVec<RowId>(r1, r2, col, size, (x, y) => x.Equals(y));
+                else if (itemType == typeof(DataViewRowId))
+                    return GetComparerVec<DataViewRowId>(r1, r2, col, size, (x, y) => x.Equals(y));
             }
-
-#if !CORECLR // REVIEW: Port Picture type to CoreTLC.
-            if (type is PictureType)
-            {
-                var g1 = r1.GetGetter<Picture>(col);
-                var g2 = r2.GetGetter<Picture>(col);
-                Picture v1 = null;
-                Picture v2 = null;
-                return
-                    () =>
-                    {
-                        g1(ref v1);
-                        g2(ref v2);
-                        return ComparePicture(v1, v2);
-                    };
-            }
-#endif
 
             throw Contracts.Except("Unknown type in GetColumnComparer: '{0}'", type);
         }
@@ -1156,7 +1114,7 @@ namespace Microsoft.ML.RunTests
             return FloatUtils.GetBits(x) == FloatUtils.GetBits(y) || Math.Abs(x - y) < SingleEps;
         }
 
-        protected Func<bool> GetComparerOne<T>(Row r1, Row r2, int col, Func<T, T, bool> fn)
+        protected Func<bool> GetComparerOne<T>(DataViewRow r1, DataViewRow r2, int col, Func<T, T, bool> fn)
         {
             var g1 = r1.GetGetter<T>(col);
             var g2 = r2.GetGetter<T>(col);
@@ -1173,7 +1131,7 @@ namespace Microsoft.ML.RunTests
                 };
         }
 
-        protected Func<bool> GetComparerVec<T>(Row r1, Row r2, int col, int size, Func<T, T, bool> fn)
+        protected Func<bool> GetComparerVec<T>(DataViewRow r1, DataViewRow r2, int col, int size, Func<T, T, bool> fn)
         {
             var g1 = r1.GetGetter<VBuffer<T>>(col);
             var g2 = r2.GetGetter<VBuffer<T>>(col);
@@ -1274,36 +1232,5 @@ namespace Microsoft.ML.RunTests
             vecNGetter(ref fvn);
             Assert.True(CompareVec(in fv, in fvn, size, compare));
         }
-
-#if !CORECLR
-        // REVIEW: Port Picture type to Core TLC.
-        protected bool ComparePicture(Picture v1, Picture v2)
-        {
-            if (v1 == null || v2 == null)
-                return v1 == v2;
-
-            var p1 = v1.Contents.Pixels;
-            var p2 = v2.Contents.Pixels;
-
-            if (p1.Width != p2.Width)
-                return false;
-            if (p1.Height != p2.Height)
-                return false;
-            if (p1.PixelFormat != p2.PixelFormat)
-                return false;
-
-            for (int y = 0; y < p1.Height; y++)
-            {
-                for (int x = 0; x < p1.Width; x++)
-                {
-                    var x1 = p1.GetPixel(x, y);
-                    var x2 = p2.GetPixel(x, y);
-                    if (x1 != x2)
-                        return false;
-                }
-            }
-            return true;
-        }
-#endif
     }
 }

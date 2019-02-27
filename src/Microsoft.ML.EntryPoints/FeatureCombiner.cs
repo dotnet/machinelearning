@@ -58,7 +58,7 @@ namespace Microsoft.ML.EntryPoints
                     throw ch.Except("No feature columns specified");
                 var featNames = new HashSet<string>();
                 var concatNames = new List<KeyValuePair<string, string>>();
-                List<TypeConvertingTransformer.ColumnInfo> cvt;
+                List<TypeConvertingEstimator.ColumnOptions> cvt;
                 int errCount;
                 var ktv = ConvertFeatures(feats.ToArray(), featNames, concatNames, ch, out cvt, out errCount);
                 Contracts.Assert(featNames.Count > 0);
@@ -74,9 +74,9 @@ namespace Microsoft.ML.EntryPoints
                 // as a group id. That's just one example - you get the idea.
                 string nameFeat = DefaultColumnNames.Features;
                 viewTrain = ColumnConcatenatingTransformer.Create(host,
-                    new ColumnConcatenatingTransformer.TaggedArguments()
+                    new ColumnConcatenatingTransformer.TaggedOptions()
                     {
-                        Column =
+                        Columns =
                             new[] { new ColumnConcatenatingTransformer.TaggedColumn() { Name = nameFeat, Source = concatNames.ToArray() } }
                     },
                     viewTrain);
@@ -84,7 +84,7 @@ namespace Microsoft.ML.EntryPoints
             }
         }
 
-        private static IDataView ApplyKeyToVec(List<KeyToVectorMappingTransformer.ColumnInfo> ktv, IDataView viewTrain, IHost host)
+        private static IDataView ApplyKeyToVec(List<KeyToVectorMappingEstimator.ColumnOptions> ktv, IDataView viewTrain, IHost host)
         {
             Contracts.AssertValueOrNull(ktv);
             Contracts.AssertValue(viewTrain);
@@ -99,15 +99,15 @@ namespace Microsoft.ML.EntryPoints
                     .Transform(viewTrain);
 
                 viewTrain = ValueToKeyMappingTransformer.Create(host,
-                    new ValueToKeyMappingTransformer.Arguments()
+                    new ValueToKeyMappingTransformer.Options()
                     {
-                        Column = ktv
-                            .Select(c => new ValueToKeyMappingTransformer.Column() { Name = c.Name, Source = c.Name, Terms = GetTerms(viewTrain, c.InputColumnName) })
+                        Columns = ktv
+                            .Select(c => new ValueToKeyMappingTransformer.Column() { Name = c.Name, Source = c.Name, Term = GetTerms(viewTrain, c.InputColumnName) })
                             .ToArray(),
                         TextKeyValues = true
                     },
                      viewTrain);
-                viewTrain = new KeyToVectorMappingTransformer(host, ktv.Select(c => new KeyToVectorMappingTransformer.ColumnInfo(c.Name, c.Name)).ToArray()).Transform(viewTrain);
+                viewTrain = new KeyToVectorMappingTransformer(host, ktv.Select(c => new KeyToVectorMappingEstimator.ColumnOptions(c.Name, c.Name)).ToArray()).Transform(viewTrain);
             }
             return viewTrain;
         }
@@ -120,8 +120,8 @@ namespace Microsoft.ML.EntryPoints
             var col = schema.GetColumnOrNull(colName);
             if (!col.HasValue)
                 return null;
-            var type = col.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
-            if (type == null || !type.IsKnownSize || !(type.ItemType is TextType))
+            var type = col.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
+            if (type == null || !type.IsKnownSize || !(type.ItemType is TextDataViewType))
                 return null;
             var metadata = default(VBuffer<ReadOnlyMemory<char>>);
             col.Value.GetKeyValues(ref metadata);
@@ -139,7 +139,7 @@ namespace Microsoft.ML.EntryPoints
             return sb.ToString();
         }
 
-        private static IDataView ApplyConvert(List<TypeConvertingTransformer.ColumnInfo> cvt, IDataView viewTrain, IHostEnvironment env)
+        private static IDataView ApplyConvert(List<TypeConvertingEstimator.ColumnOptions> cvt, IDataView viewTrain, IHostEnvironment env)
         {
             Contracts.AssertValueOrNull(cvt);
             Contracts.AssertValue(viewTrain);
@@ -149,14 +149,14 @@ namespace Microsoft.ML.EntryPoints
             return viewTrain;
         }
 
-        private static List<KeyToVectorMappingTransformer.ColumnInfo> ConvertFeatures(IEnumerable<Schema.Column> feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
-            out List<TypeConvertingTransformer.ColumnInfo> cvt, out int errCount)
+        private static List<KeyToVectorMappingEstimator.ColumnOptions> ConvertFeatures(IEnumerable<DataViewSchema.Column> feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
+            out List<TypeConvertingEstimator.ColumnOptions> cvt, out int errCount)
         {
             Contracts.AssertValue(feats);
             Contracts.AssertValue(featNames);
             Contracts.AssertValue(concatNames);
             Contracts.AssertValue(ch);
-            List<KeyToVectorMappingTransformer.ColumnInfo> ktv = null;
+            List<KeyToVectorMappingEstimator.ColumnOptions> ktv = null;
             cvt = null;
             errCount = 0;
             foreach (var col in feats)
@@ -174,18 +174,18 @@ namespace Microsoft.ML.EntryPoints
                         {
                             var colName = GetUniqueName();
                             concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
-                            Utils.Add(ref ktv, new KeyToVectorMappingTransformer.ColumnInfo(colName, col.Name));
+                            Utils.Add(ref ktv, new KeyToVectorMappingEstimator.ColumnOptions(colName, col.Name));
                             continue;
                         }
                     }
-                    if (type is NumberType || type is BoolType)
+                    if (type is NumberDataViewType || type is BooleanDataViewType)
                     {
                         // Even if the column is R4 in training, we still want to add it to the conversion.
                         // The reason is that at scoring time, the column might have a slightly different type (R8 for example).
                         // This happens when the training is done on an XDF and the scoring is done on a data frame.
                         var colName = GetUniqueName();
                         concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
-                        Utils.Add(ref cvt, new TypeConvertingTransformer.ColumnInfo(colName, DataKind.R4, col.Name));
+                        Utils.Add(ref cvt, new TypeConvertingEstimator.ColumnOptions(colName, DataKind.Single, col.Name));
                         continue;
                     }
                 }
@@ -237,22 +237,22 @@ namespace Microsoft.ML.EntryPoints
                 throw host.ExceptSchemaMismatch(nameof(input), "predicted label", input.LabelColumn);
 
             var labelType = labelCol.Value.Type;
-            if (labelType is KeyType || labelType is BoolType)
+            if (labelType is KeyType || labelType is BooleanDataViewType)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };
             }
 
-            var args = new ValueToKeyMappingTransformer.Arguments()
+            var args = new ValueToKeyMappingTransformer.Options()
             {
-                Column = new[]
+                Columns = new[]
                 {
                     new ValueToKeyMappingTransformer.Column()
                     {
                         Name = input.LabelColumn,
                         Source = input.LabelColumn,
                         TextKeyValues = input.TextKeyValues,
-                        Sort = ValueToKeyMappingTransformer.SortOrder.Value
+                        Sort = ValueToKeyMappingEstimator.SortOrder.Value
                     }
                 }
             };
@@ -272,7 +272,7 @@ namespace Microsoft.ML.EntryPoints
             if (!predictedLabelCol.HasValue)
                 throw host.ExceptSchemaMismatch(nameof(input), "label", input.PredictedLabelColumn);
             var predictedLabelType = predictedLabelCol.Value.Type;
-            if (predictedLabelType is NumberType || predictedLabelType is BoolType)
+            if (predictedLabelType is NumberDataViewType || predictedLabelType is BooleanDataViewType)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };
@@ -294,25 +294,13 @@ namespace Microsoft.ML.EntryPoints
             if (!labelCol.HasValue)
                 throw host.Except($"Column '{input.LabelColumn}' not found.");
             var labelType = labelCol.Value.Type;
-            if (labelType == NumberType.R4 || !(labelType is NumberType))
+            if (labelType == NumberDataViewType.Single || !(labelType is NumberDataViewType))
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };
             }
 
-            var args = new TypeConvertingTransformer.Arguments()
-            {
-                Column = new[]
-                {
-                    new TypeConvertingTransformer.Column()
-                    {
-                        Name = input.LabelColumn,
-                        Source = input.LabelColumn,
-                        ResultType = DataKind.R4
-                    }
-                }
-            };
-            var xf = new TypeConvertingTransformer(host, new TypeConvertingTransformer.ColumnInfo(input.LabelColumn, DataKind.R4, input.LabelColumn)).Transform(input.Data);
+            var xf = new TypeConvertingTransformer(host, new TypeConvertingEstimator.ColumnOptions(input.LabelColumn, DataKind.Single, input.LabelColumn)).Transform(input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
     }

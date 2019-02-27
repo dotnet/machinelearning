@@ -2,17 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(RegressionGamTrainer.Summary,
     typeof(RegressionGamTrainer), typeof(RegressionGamTrainer.Options),
@@ -29,7 +25,7 @@ namespace Microsoft.ML.Trainers.FastTree
 {
     public sealed class RegressionGamTrainer : GamTrainerBase<RegressionGamTrainer.Options, RegressionPredictionTransformer<RegressionGamModelParameters>, RegressionGamModelParameters>
     {
-        public partial class Options : ArgumentsBase
+        public partial class Options : OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2)", ShortName = "pmetric")]
             [TGUI(Description = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2")]
@@ -40,7 +36,7 @@ namespace Microsoft.ML.Trainers.FastTree
         internal const string UserNameValue = "Generalized Additive Model for Regression";
         internal const string ShortName = "gamr";
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         internal RegressionGamTrainer(IHostEnvironment env, Options options)
              : base(env, options, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(options.LabelColumn)) { }
@@ -77,30 +73,34 @@ namespace Microsoft.ML.Trainers.FastTree
             return new RegressionGamModelParameters(Host, BinUpperBounds, BinEffects, MeanEffect, InputLength, FeatureMap);
         }
 
-        protected override ObjectiveFunctionBase CreateObjectiveFunction()
+        private protected override ObjectiveFunctionBase CreateObjectiveFunction()
         {
-            return new FastTreeRegressionTrainer.ObjectiveImpl(TrainSet, Args);
+            return new FastTreeRegressionTrainer.ObjectiveImpl(TrainSet, GamTrainerOptions);
         }
 
-        protected override void DefinePruningTest()
+        private protected override void DefinePruningTest()
         {
-            var validTest = new RegressionTest(ValidSetScore, Args.PruningMetrics);
+            var validTest = new RegressionTest(ValidSetScore, GamTrainerOptions.PruningMetrics);
             // Because we specify pruning metrics as L2 by default, the results array will have 1 value
             PruningLossIndex = 0;
             PruningTest = new TestHistory(validTest, PruningLossIndex);
         }
 
-        protected override RegressionPredictionTransformer<RegressionGamModelParameters> MakeTransformer(RegressionGamModelParameters model, Schema trainSchema)
+        private protected override RegressionPredictionTransformer<RegressionGamModelParameters> MakeTransformer(RegressionGamModelParameters model, DataViewSchema trainSchema)
             => new RegressionPredictionTransformer<RegressionGamModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<RegressionGamModelParameters> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="RegressionGamTrainer"/> using both training and validation data, returns
+        /// a <see cref="RegressionPredictionTransformer{RegressionGamModelParameters}"/>.
+        /// </summary>
+        public RegressionPredictionTransformer<RegressionGamModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
     }
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed class RegressionGamModelParameters : GamModelParametersBase
     {
         internal const string LoaderSignature = "RegressionGamPredictor";
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         /// <summary>
         /// Construct a new Regression GAM with the defined properties.
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="featureToInputMap">A map from the feature shape functions (as described by the binUpperBounds and BinEffects)
         /// to the input feature. Used when the number of input features is different than the number of shape functions. Use default if all features have
         /// a shape function.</param>
-        public RegressionGamModelParameters(IHostEnvironment env,
+        internal RegressionGamModelParameters(IHostEnvironment env,
             double[][] binUpperBounds, double[][] binEffects, double intercept, int inputLength = -1, int[] featureToInputMap = null)
             : base(env, LoaderSignature, binUpperBounds, binEffects, intercept, inputLength, featureToInputMap) { }
 

@@ -15,7 +15,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
     /// <summary>
     /// Holds statistics per bin value for a feature. These are yielded by <see cref="SufficientStatsBase.GetBinStats"/>
@@ -23,7 +23,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     /// are then used in <see cref="LeastSquaresRegressionTreeLearner"/> to find splitting on which bin will yield the
     /// best least squares solution
     /// </summary>
-    public readonly struct PerBinStats
+    internal readonly struct PerBinStats
     {
         /// <summary>Sum of all target values in a partition for the bin.</summary>
         public readonly Double SumTargets;
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     /// per flock. Note that feature indices, whenever present, refer to the feature within the
     /// particular flock the same as they do with <see cref="FeatureFlockBase"/>.
     /// </summary>
-    public abstract class SufficientStatsBase
+    internal abstract class SufficientStatsBase
     {
         // REVIEW: Holdover from histogram. I really don't like this. Figure out if
         // there's a better way.
@@ -929,7 +929,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     /// </summary>
     /// <typeparam name="TSuffStats">The type of sufficient stats that we will be able to do
     /// "peer" operations against, like subtract. This will always be the derived class itself.</typeparam>
-    public abstract class SufficientStatsBase<TSuffStats> : SufficientStatsBase
+    internal abstract class SufficientStatsBase<TSuffStats> : SufficientStatsBase
         where TSuffStats : SufficientStatsBase<TSuffStats>
     {
         protected SufficientStatsBase(int features)
@@ -967,7 +967,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     /// <see cref="Dataset.MapFeatureToFlockAndSubFeature"/> to see some details of this
     /// dataset-wide versus flock-wide feature index.
     /// </summary>
-    public abstract class FeatureFlockBase
+    internal abstract class FeatureFlockBase
     {
         /// <summary>
         /// The number of features contained within this flock.
@@ -1005,7 +1005,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// <param name="hasWeights">Whether structures related to tracking
         /// example weights should be allocated</param>
         /// <returns>A sufficient statistics object</returns>
-        public abstract SufficientStatsBase CreateSufficientStats(bool hasWeights);
+        internal abstract SufficientStatsBase CreateSufficientStats(bool hasWeights);
 
         /// <summary>
         /// Returns a forward indexer for a single feature. This has a default implementation that
@@ -1207,7 +1207,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                    + sizeof(int) * HotFeatureStarts.Length;
         }
 
-        public override SufficientStatsBase CreateSufficientStats(bool hasWeights)
+        internal override SufficientStatsBase CreateSufficientStats(bool hasWeights)
         {
             return new SufficientStats(this, hasWeights);
         }

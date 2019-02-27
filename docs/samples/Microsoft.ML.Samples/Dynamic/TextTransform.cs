@@ -5,9 +5,9 @@ using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class TextTransformExample
+    public static class TextTransform
     {
-        public static void TextTransform()
+        public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -15,7 +15,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable and convert to IDataView.
             var data = SamplesUtils.DatasetUtils.GetSentimentData();
-            var trainData = ml.Data.ReadFromEnumerable(data);
+            var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
             //
@@ -31,12 +31,12 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Another pipeline, that customizes the advanced settings of the FeaturizeText transformer.
             string customizedColumnName = "CustomizedTextFeatures";
-            var customized_pipeline = ml.Transforms.Text.FeaturizeText(customizedColumnName, "SentimentText", s =>
-            {
-                s.KeepPunctuations = false;
-                s.KeepNumbers = false;
-                s.OutputTokens = true;
-                s.TextLanguage = TextFeaturizingEstimator.Language.English; // supports  English, French, German, Dutch, Italian, Spanish, Japanese
+            var customized_pipeline = ml.Transforms.Text.FeaturizeText(customizedColumnName, new List<string> { "SentimentText" }, 
+                new TextFeaturizingEstimator.Options { 
+                    KeepPunctuations = false,
+                    KeepNumbers = false,
+                    OutputTokens = true,
+                    TextLanguage = TextFeaturizingEstimator.Language.English, // supports  English, French, German, Dutch, Italian, Spanish, Japanese
             });
 
             // The transformed data for both pipelines.

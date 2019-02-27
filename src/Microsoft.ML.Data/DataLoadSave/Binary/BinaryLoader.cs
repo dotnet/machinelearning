@@ -36,7 +36,8 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Data.IO
 {
-    public sealed class BinaryLoader : IDataLoader, IDisposable
+    [BestFriend]
+    internal sealed class BinaryLoader : ILegacyDataLoader, IDisposable
     {
         public sealed class Arguments
         {
@@ -78,7 +79,7 @@ namespace Microsoft.ML.Data.IO
             /// The column type of the column. This will be null if and only if this is a dead
             /// column.
             /// </summary>
-            public readonly ColumnType Type;
+            public readonly DataViewType Type;
 
             /// <summary>
             /// The compression scheme used on this column's blocks.
@@ -175,7 +176,7 @@ namespace Microsoft.ML.Data.IO
             /// be a <c>ValueMapper</c> mapping a <c>long</c> zero based row index, to some value with the
             /// same type as the raw type in <paramref name="type"/>.
             /// </summary>
-            public TableOfContentsEntry(BinaryLoader parent, string name, ColumnType type, Delegate valueMapper)
+            public TableOfContentsEntry(BinaryLoader parent, string name, DataViewType type, Delegate valueMapper)
             {
                 Contracts.AssertValue(parent, "parent");
                 Contracts.AssertValue(parent._host, "parent");
@@ -215,7 +216,7 @@ namespace Microsoft.ML.Data.IO
 
             /// <summary>
             /// Returns the value mapper for a generated column. Only a valid call if
-            /// <typeparamref name="T"/> is the same type as <see cref="ColumnType.RawType"/>.
+            /// <typeparamref name="T"/> is the same type as <see cref="DataViewType.RawType"/>.
             /// </summary>
             public ValueMapper<long, T> GetValueMapper<T>()
             {
@@ -634,13 +635,13 @@ namespace Microsoft.ML.Data.IO
 
         /// <summary>
         /// This function returns output schema, <see cref="Schema"/>, of <see cref="BinaryLoader"/> by translating <see cref="_aliveColumns"/> into
-        /// <see cref="Schema.Column"/>s. If a <see cref="BinaryLoader"/> loads a text column from the input file, its <see cref="Schema"/>
-        /// should contains a <see cref="Schema.Column"/> with <see cref="TextType.Instance"/> as its <see cref="ColumnType"/>.
+        /// <see cref="DataViewSchema.Column"/>s. If a <see cref="BinaryLoader"/> loads a text column from the input file, its <see cref="Schema"/>
+        /// should contains a <see cref="DataViewSchema.Column"/> with <see cref="TextDataViewType.Instance"/> as its <see cref="DataViewType"/>.
         /// </summary>
         /// <returns><see cref="Schema"/> of loaded file.</returns>
-        private Schema ComputeOutputSchema()
+        private DataViewSchema ComputeOutputSchema()
         {
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
 
             for(int i = 0; i < _aliveColumns.Length; ++i)
             {
@@ -652,29 +653,29 @@ namespace Microsoft.ML.Data.IO
                 if (Utils.Size(metadataArray) > 0)
                 {
                     // We got some metadata fields here.
-                    var metadataBuilder = new MetadataBuilder();
+                    var metadataBuilder = new DataViewSchema.Annotations.Builder();
                     foreach(var loadedMetadataColumn in metadataArray)
                     {
                         var metadataGetter = loadedMetadataColumn.GetGetter();
                         if (metadataGetter == null)
-                            throw MetadataUtils.ExceptGetMetadata();
+                            throw AnnotationUtils.ExceptGetAnnotation();
                         metadataBuilder.Add(loadedMetadataColumn.Kind, loadedMetadataColumn.Codec.Type, metadataGetter);
                     }
-                    schemaBuilder.AddColumn(loadedColumn.Name, loadedColumn.Type, metadataBuilder.GetMetadata());
+                    schemaBuilder.AddColumn(loadedColumn.Name, loadedColumn.Type, metadataBuilder.ToAnnotations());
                 }
                 else
                     // This case has no metadata.
                     schemaBuilder.AddColumn(loadedColumn.Name, loadedColumn.Type);
             }
 
-            return schemaBuilder.GetSchema();
+            return schemaBuilder.ToSchema();
         }
 
         private readonly Stream _stream;
         private readonly BinaryReader _reader;
         private readonly CodecFactory _factory;
         private readonly Header _header;
-        private readonly Schema _outputSchema;
+        private readonly DataViewSchema _outputSchema;
         private readonly bool _autodeterminedThreads;
         private readonly int _threads;
         private readonly string _generatedRowIndexName;
@@ -737,7 +738,7 @@ namespace Microsoft.ML.Data.IO
         /// </summary>
         private const ulong ReaderFirstVersion = 0x0001000100010002;
 
-        public Schema Schema => _outputSchema;
+        public DataViewSchema Schema => _outputSchema;
 
         private long RowCount => _header.RowCount;
 
@@ -796,9 +797,9 @@ namespace Microsoft.ML.Data.IO
         }
 
         /// <summary>
-        /// Constructs a new data view reader.
+        /// Constructs a new data view loader.
         /// </summary>
-        /// <param name="stream">A seekable, readable stream. Note that the data view reader assumes
+        /// <param name="stream">A seekable, readable stream. Note that the data view loader assumes
         /// that it is the exclusive owner of this stream.</param>
         /// <param name="args">Arguments</param>
         /// <param name="env">Host environment</param>
@@ -941,7 +942,7 @@ namespace Microsoft.ML.Data.IO
             return OpenStream(files);
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -979,7 +980,7 @@ namespace Microsoft.ML.Data.IO
         /// Save a zero-row dataview that will be used to infer schema information, used in the case
         /// where the binary loader is instantiated with no input streams.
         /// </summary>
-        private static void SaveSchema(IHostEnvironment env, ModelSaveContext ctx, Schema schema, out int[] unsavableColIndices)
+        private static void SaveSchema(IHostEnvironment env, ModelSaveContext ctx, DataViewSchema schema, out int[] unsavableColIndices)
         {
             Contracts.AssertValue(env, "env");
             var h = env.Register(LoadName);
@@ -1011,7 +1012,7 @@ namespace Microsoft.ML.Data.IO
         /// to begin the pipe with, with the assumption that the user will bypass the loader at deserialization
         /// time by providing a starting data view.
         /// </summary>
-        public static void SaveInstance(IHostEnvironment env, ModelSaveContext ctx, Schema schema)
+        public static void SaveInstance(IHostEnvironment env, ModelSaveContext ctx, DataViewSchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(LoadName);
@@ -1213,7 +1214,7 @@ namespace Microsoft.ML.Data.IO
             return entry;
         }
 
-        private RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        private DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             if (rand != null && _randomShufflePoolRows > 0)
             {
@@ -1226,16 +1227,16 @@ namespace Microsoft.ML.Data.IO
             return new Cursor(this, columnsNeeded, rand);
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
             return GetRowCursorCore(columnsNeeded, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
+            return new DataViewRowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
         }
 
         private sealed class Cursor : RootCursorBase
@@ -1259,7 +1260,7 @@ namespace Microsoft.ML.Data.IO
             private volatile bool _disposed;
             private volatile bool _done;
 
-            public override Schema Schema => _parent.Schema;
+            public override DataViewSchema Schema => _parent.Schema;
 
             public override long Batch
             {
@@ -1267,7 +1268,7 @@ namespace Microsoft.ML.Data.IO
                 get { return 0; }
             }
 
-            public Cursor(BinaryLoader parent, IEnumerable<Schema.Column> columnsNeeded, Random rand)
+            public Cursor(BinaryLoader parent, IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand)
                 : base(parent._host)
             {
                 _parent = parent;
@@ -2060,7 +2061,7 @@ namespace Microsoft.ML.Data.IO
             /// Even in the case with no rows, there still must be valid delegates. This will return
             /// a delegate that simply always throws.
             /// </summary>
-            private Delegate GetNoRowGetter(ColumnType type)
+            private Delegate GetNoRowGetter(DataViewType type)
             {
                 return Utils.MarshalInvoke(NoRowGetter<int>, type.RawType);
             }
@@ -2071,15 +2072,15 @@ namespace Microsoft.ML.Data.IO
                 return del;
             }
 
-            public override ValueGetter<RowId> GetIdGetter()
+            public override ValueGetter<DataViewRowId> GetIdGetter()
             {
                 if (_blockShuffleOrder == null)
                 {
                     return
-                        (ref RowId val) =>
+                        (ref DataViewRowId val) =>
                         {
                             Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
-                            val = new RowId((ulong)Position, 0);
+                            val = new DataViewRowId((ulong)Position, 0);
                         };
                 }
                 // Find the index of the last block. Because the last block is unevenly sized,
@@ -2095,7 +2096,7 @@ namespace Microsoft.ML.Data.IO
                 long firstPositionToCorrect = ((long)lastBlockIdx * _rowsPerBlock) + _rowsInLastBlock;
 
                 return
-                    (ref RowId val) =>
+                    (ref DataViewRowId val) =>
                     {
                         Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         long pos = Position;
@@ -2105,7 +2106,7 @@ namespace Microsoft.ML.Data.IO
                         long blockPos = (long)_rowsPerBlock * _blockShuffleOrder[(int)(pos / _rowsPerBlock)];
                         blockPos += (pos % _rowsPerBlock);
                         Ch.Assert(0 <= blockPos && blockPos < _parent.RowCount);
-                        val = new RowId((ulong)blockPos, 0);
+                        val = new DataViewRowId((ulong)blockPos, 0);
                     };
             }
         }

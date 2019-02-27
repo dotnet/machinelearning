@@ -8,7 +8,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Newtonsoft.Json.Linq;
 using Float = System.Single;
@@ -19,7 +19,7 @@ namespace Microsoft.ML.Data
     /// Class for scorers that compute on additional "PredictedLabel" column from the score column.
     /// Currently, this scorer is used for binary classification, multi-class classification, and clustering.
     /// </summary>
-    public abstract class PredictedLabelScorerBase : RowToRowScorerBase, ITransformCanSavePfa, ITransformCanSaveOnnx
+    internal abstract class PredictedLabelScorerBase : RowToRowScorerBase, ITransformCanSavePfa, ITransformCanSaveOnnx
     {
         public abstract class ThresholdArgumentsBase : ScorerArgumentsBase
         {
@@ -27,7 +27,7 @@ namespace Microsoft.ML.Data
             public Float Threshold;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Specify which predictor output to use for classification thresholding", ShortName = "tcol")]
-            public string ThresholdColumn = MetadataUtils.Const.ScoreValueKind.Score;
+            public string ThresholdColumn = AnnotationUtils.Const.ScoreValueKind.Score;
         }
 
         [BestFriend]
@@ -36,15 +36,15 @@ namespace Microsoft.ML.Data
             // Column index of the score column in Mapper's schema.
             public readonly int ScoreColumnIndex;
             // The type of the derived column.
-            public readonly ColumnType PredColType;
+            public readonly DataViewType PredColType;
             // The ScoreColumnKind metadata value for all score columns.
             public readonly string ScoreColumnKind;
 
-            private readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> _getScoreColumnKind;
-            private readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> _getScoreValueKind;
-            private readonly Schema.Metadata _predColMetadata;
-            private BindingsImpl(Schema input, ISchemaBoundRowMapper mapper, string suffix, string scoreColumnKind,
-                bool user, int scoreColIndex, ColumnType predColType)
+            private readonly AnnotationUtils.AnnotationGetter<ReadOnlyMemory<char>> _getScoreColumnKind;
+            private readonly AnnotationUtils.AnnotationGetter<ReadOnlyMemory<char>> _getScoreValueKind;
+            private readonly DataViewSchema.Annotations _predColMetadata;
+            private BindingsImpl(DataViewSchema input, ISchemaBoundRowMapper mapper, string suffix, string scoreColumnKind,
+                bool user, int scoreColIndex, DataViewType predColType)
                 : base(input, mapper, suffix, user, DefaultColumnNames.PredictedLabel)
             {
                 Contracts.AssertNonEmpty(scoreColumnKind);
@@ -62,9 +62,9 @@ namespace Microsoft.ML.Data
                 // bearing object makes pushing the logic into the multiclass scorer almost impossible.
                 if (predColType is KeyType predColKeyType && predColKeyType.Count > 0)
                 {
-                    var scoreColMetadata = mapper.OutputSchema[scoreColIndex].Metadata;
+                    var scoreColMetadata = mapper.OutputSchema[scoreColIndex].Annotations;
 
-                    var slotColumn = scoreColMetadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames);
+                    var slotColumn = scoreColMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames);
                     if (slotColumn?.Type is VectorType slotColVecType && (ulong)slotColVecType.Size == predColKeyType.Count)
                     {
                         Contracts.Assert(slotColVecType.Size > 0);
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Data
                     }
                     else
                     {
-                        var trainLabelColumn = scoreColMetadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.TrainingLabelValues);
+                        var trainLabelColumn = scoreColMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.TrainingLabelValues);
                         if (trainLabelColumn?.Type is VectorType trainLabelColVecType && (ulong)trainLabelColVecType.Size == predColKeyType.Count)
                         {
                             Contracts.Assert(trainLabelColVecType.Size > 0);
@@ -84,19 +84,19 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            private static Schema.Metadata KeyValueMetadataFromMetadata<T>(Schema.Metadata meta, Schema.Column metaCol)
+            private static DataViewSchema.Annotations KeyValueMetadataFromMetadata<T>(DataViewSchema.Annotations meta, DataViewSchema.Column metaCol)
             {
                 Contracts.AssertValue(meta);
                 Contracts.Assert(0 <= metaCol.Index && metaCol.Index < meta.Schema.Count);
                 Contracts.Assert(metaCol.Type.RawType == typeof(T));
                 var getter = meta.GetGetter<T>(metaCol.Index);
-                var builder = new MetadataBuilder();
-                builder.Add(MetadataUtils.Kinds.KeyValues, metaCol.Type, meta.GetGetter<T>(metaCol.Index));
-                return builder.GetMetadata();
+                var builder = new DataViewSchema.Annotations.Builder();
+                builder.Add(AnnotationUtils.Kinds.KeyValues, metaCol.Type, meta.GetGetter<T>(metaCol.Index));
+                return builder.ToAnnotations();
             }
 
-            public static BindingsImpl Create(Schema input, ISchemaBoundRowMapper mapper, string suffix,
-                string scoreColKind, int scoreColIndex, ColumnType predColType)
+            public static BindingsImpl Create(DataViewSchema input, ISchemaBoundRowMapper mapper, string suffix,
+                string scoreColKind, int scoreColIndex, DataViewType predColType)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(mapper);
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Data
                     scoreColIndex, predColType);
             }
 
-            public BindingsImpl ApplyToSchema(Schema input, ISchemaBindableMapper bindable, IHostEnvironment env)
+            public BindingsImpl ApplyToSchema(DataViewSchema input, ISchemaBindableMapper bindable, IHostEnvironment env)
             {
                 Contracts.AssertValue(env);
                 env.AssertValue(input);
@@ -127,9 +127,9 @@ namespace Microsoft.ML.Data
                 return new BindingsImpl(input, rowMapper, Suffix, ScoreColumnKind, true, mapperScoreColumn, PredColType);
             }
 
-            public static BindingsImpl Create(ModelLoadContext ctx, Schema input,
+            public static BindingsImpl Create(ModelLoadContext ctx, DataViewSchema input,
                 IHostEnvironment env, ISchemaBindableMapper bindable,
-                Func<ColumnType, bool> outputTypeMatches, Func<ColumnType, ISchemaBoundRowMapper, ColumnType> getPredColType)
+                Func<DataViewType, bool> outputTypeMatches, Func<DataViewType, ISchemaBoundRowMapper, DataViewType> getPredColType)
             {
                 Contracts.AssertValue(env);
                 env.AssertValue(ctx);
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Data
                 return new BindingsImpl(input, rowMapper, suffix, scoreKind, false, scoreColIndex, predColType);
             }
 
-            public override void Save(ModelSaveContext ctx)
+            internal override void SaveModel(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Data
                 ctx.SaveNonEmptyString(RowMapper.OutputSchema[ScoreColumnIndex].Name);
             }
 
-            protected override ColumnType GetColumnTypeCore(int iinfo)
+            protected override DataViewType GetColumnTypeCore(int iinfo)
             {
                 Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
                 if (iinfo < DerivedColumnCount)
@@ -181,54 +181,54 @@ namespace Microsoft.ML.Data
                 return base.GetColumnTypeCore(iinfo);
             }
 
-            protected override IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypesCore(int iinfo)
+            protected override IEnumerable<KeyValuePair<string, DataViewType>> GetAnnotationTypesCore(int iinfo)
             {
                 Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
 
                 // This sets the score column kind for all columns.
-                yield return TextType.Instance.GetPair(MetadataUtils.Kinds.ScoreColumnKind);
+                yield return TextDataViewType.Instance.GetPair(AnnotationUtils.Kinds.ScoreColumnKind);
                 if (iinfo < DerivedColumnCount)
                 {
-                    yield return TextType.Instance.GetPair(MetadataUtils.Kinds.ScoreValueKind);
+                    yield return TextDataViewType.Instance.GetPair(AnnotationUtils.Kinds.ScoreValueKind);
                     if (_predColMetadata != null)
                     {
                         var sch = _predColMetadata.Schema;
                         for (int i = 0; i < sch.Count; ++i)
-                            yield return new KeyValuePair<string, ColumnType>(sch[i].Name, sch[i].Type);
+                            yield return new KeyValuePair<string, DataViewType>(sch[i].Name, sch[i].Type);
                     }
                 }
-                foreach (var pair in base.GetMetadataTypesCore(iinfo))
+                foreach (var pair in base.GetAnnotationTypesCore(iinfo))
                 {
-                    if (pair.Key != MetadataUtils.Kinds.ScoreColumnKind)
+                    if (pair.Key != AnnotationUtils.Kinds.ScoreColumnKind)
                         yield return pair;
                 }
             }
 
-            protected override ColumnType GetMetadataTypeCore(string kind, int iinfo)
+            protected override DataViewType GetAnnotationTypeCore(string kind, int iinfo)
             {
                 Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
 
-                if (kind == MetadataUtils.Kinds.ScoreColumnKind)
-                    return TextType.Instance;
-                if (iinfo < DerivedColumnCount && kind == MetadataUtils.Kinds.ScoreValueKind)
-                    return TextType.Instance;
+                if (kind == AnnotationUtils.Kinds.ScoreColumnKind)
+                    return TextDataViewType.Instance;
+                if (iinfo < DerivedColumnCount && kind == AnnotationUtils.Kinds.ScoreValueKind)
+                    return TextDataViewType.Instance;
                 if (iinfo < DerivedColumnCount && _predColMetadata != null)
                 {
                     int mcol;
                     if (_predColMetadata.Schema.TryGetColumnIndex(kind, out mcol))
                         return _predColMetadata.Schema[mcol].Type;
                 }
-                return base.GetMetadataTypeCore(kind, iinfo);
+                return base.GetAnnotationTypeCore(kind, iinfo);
             }
 
-            protected override void GetMetadataCore<TValue>(string kind, int iinfo, ref TValue value)
+            protected override void GetAnnotationCore<TValue>(string kind, int iinfo, ref TValue value)
             {
-                if (kind == MetadataUtils.Kinds.ScoreColumnKind)
+                if (kind == AnnotationUtils.Kinds.ScoreColumnKind)
                 {
                     _getScoreColumnKind.Marshal(iinfo, ref value);
                     return;
                 }
-                if (iinfo < DerivedColumnCount && kind == MetadataUtils.Kinds.ScoreValueKind)
+                if (iinfo < DerivedColumnCount && kind == AnnotationUtils.Kinds.ScoreValueKind)
                 {
                     _getScoreValueKind.Marshal(iinfo, ref value);
                     return;
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Data
                         return;
                     }
                 }
-                base.GetMetadataCore<TValue>(kind, iinfo, ref value);
+                base.GetAnnotationCore<TValue>(kind, iinfo, ref value);
             }
 
             private void GetScoreColumnKind(int iinfo, ref ReadOnlyMemory<char> dst)
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Data
             {
                 // This should only get called for the derived column.
                 Contracts.Assert(0 <= iinfo && iinfo < DerivedColumnCount);
-                dst = MetadataUtils.Const.ScoreValueKind.PredictedLabel.AsMemory();
+                dst = AnnotationUtils.Const.ScoreValueKind.PredictedLabel.AsMemory();
             }
 
             public override Func<int, bool> GetActiveMapperColumns(bool[] active)
@@ -277,7 +277,7 @@ namespace Microsoft.ML.Data
         private protected readonly BindingsImpl Bindings;
         [BestFriend]
         private protected sealed override BindingsBase GetBindings() => Bindings;
-        public override Schema OutputSchema { get; }
+        public override DataViewSchema OutputSchema { get; }
 
         bool ICanSavePfa.CanSavePfa => (Bindable as ICanSavePfa)?.CanSavePfa == true;
 
@@ -286,7 +286,7 @@ namespace Microsoft.ML.Data
         [BestFriend]
         private protected PredictedLabelScorerBase(ScorerArgumentsBase args, IHostEnvironment env, IDataView data,
             ISchemaBoundMapper mapper, RoleMappedSchema trainSchema, string registrationName, string scoreColKind, string scoreColName,
-            Func<ColumnType, bool> outputTypeMatches, Func<ColumnType, ISchemaBoundRowMapper, ColumnType> getPredColType)
+            Func<DataViewType, bool> outputTypeMatches, Func<DataViewType, ISchemaBoundRowMapper, DataViewType> getPredColType)
             : base(env, data, registrationName, Contracts.CheckRef(mapper, nameof(mapper)).Bindable)
         {
             Host.CheckValue(args, nameof(args));
@@ -320,7 +320,7 @@ namespace Microsoft.ML.Data
 
         [BestFriend]
         private protected PredictedLabelScorerBase(IHost host, ModelLoadContext ctx, IDataView input,
-            Func<ColumnType, bool> outputTypeMatches, Func<ColumnType, ISchemaBoundRowMapper, ColumnType> getPredColType)
+            Func<DataViewType, bool> outputTypeMatches, Func<DataViewType, ISchemaBoundRowMapper, DataViewType> getPredColType)
             : base(host, ctx, input)
         {
             Host.AssertValue(ctx);
@@ -335,7 +335,7 @@ namespace Microsoft.ML.Data
         private protected override void SaveCore(ModelSaveContext ctx)
         {
             Host.AssertValue(ctx);
-            Bindings.Save(ctx);
+            Bindings.SaveModel(ctx);
         }
 
         void ISaveAsPfa.SaveAsPfa(BoundPfaContext ctx)
@@ -406,7 +406,7 @@ namespace Microsoft.ML.Data
             return Bindings.AnyNewColumnsActive(predicate);
         }
 
-        protected override Delegate[] GetGetters(Row output, Func<int, bool> predicate)
+        protected override Delegate[] GetGetters(DataViewRow output, Func<int, bool> predicate)
         {
             Host.Assert(Bindings.DerivedColumnCount == 1);
             Host.AssertValue(output);
@@ -438,10 +438,10 @@ namespace Microsoft.ML.Data
             return getters;
         }
 
-        protected abstract Delegate GetPredictedLabelGetter(Row output, out Delegate scoreGetter);
+        protected abstract Delegate GetPredictedLabelGetter(DataViewRow output, out Delegate scoreGetter);
 
         protected void EnsureCachedPosition<TScore>(ref long cachedPosition, ref TScore score,
-            Row boundRow, ValueGetter<TScore> scoreGetter)
+            DataViewRow boundRow, ValueGetter<TScore> scoreGetter)
         {
             if (cachedPosition != boundRow.Position)
             {

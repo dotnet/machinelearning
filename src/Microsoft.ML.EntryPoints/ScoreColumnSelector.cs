@@ -20,14 +20,14 @@ namespace Microsoft.ML.EntryPoints
             public string[] ExtraColumns;
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.ScoreColumnSelector", Desc = "Selects only the last score columns and the extra columns specified in the arguments.", UserName = "Choose Columns By Index")]
+        [TlcModule.EntryPoint(Name = "Transforms.ScoreColumnSelector", Desc = "Selects only the last score columns and the extra columns specified in the arguments.", UserName = "Choose Columns By Indices")]
         public static CommonOutputs.TransformOutput SelectColumns(IHostEnvironment env, ScoreColumnSelectorInput input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(env, input);
             var view = input.Data;
-            var maxScoreId = view.Schema.GetMaxMetadataKind(out int colMax, MetadataUtils.Kinds.ScoreColumnSetId);
+            var maxScoreId = view.Schema.GetMaxAnnotationKind(out int colMax, AnnotationUtils.Kinds.ScoreColumnSetId);
             List<int> indices = new List<int>();
             for (int i = 0; i < view.Schema.Count; i++)
             {
@@ -37,14 +37,14 @@ namespace Microsoft.ML.EntryPoints
                     continue;
                 indices.Add(i);
             }
-            var newView = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Index = indices.ToArray() }, input.Data);
+            var newView = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Options() { Indices = indices.ToArray() }, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, newView, input.Data), OutputData = newView };
         }
 
-        private static bool ShouldAddColumn(Schema schema, int i, string[] extraColumns, uint scoreSet)
+        private static bool ShouldAddColumn(DataViewSchema schema, int i, string[] extraColumns, uint scoreSet)
         {
             uint scoreSetId = 0;
-            if (schema.TryGetMetadata(MetadataUtils.ScoreColumnSetIdType, MetadataUtils.Kinds.ScoreColumnSetId, i, ref scoreSetId)
+            if (schema.TryGetAnnotation(AnnotationUtils.ScoreColumnSetIdType, AnnotationUtils.Kinds.ScoreColumnSetId, i, ref scoreSetId)
                 && scoreSetId == scoreSet)
             {
                 return true;
@@ -72,7 +72,7 @@ namespace Microsoft.ML.EntryPoints
 
             if (input.PredictorModel.Predictor.PredictionKind == PredictionKind.BinaryClassification)
             {
-                ColumnType labelType;
+                DataViewType labelType;
                 var labelNames = input.PredictorModel.GetLabelInfo(host, out labelType);
                 if (labelNames != null && labelNames.Length == 2)
                 {
@@ -80,7 +80,7 @@ namespace Microsoft.ML.EntryPoints
 
                     // Rename all the score columns.
                     int colMax;
-                    var maxScoreId = input.Data.Schema.GetMaxMetadataKind(out colMax, MetadataUtils.Kinds.ScoreColumnSetId);
+                    var maxScoreId = input.Data.Schema.GetMaxAnnotationKind(out colMax, AnnotationUtils.Kinds.ScoreColumnSetId);
                     var copyCols = new List<(string name, string source)>();
                     for (int i = 0; i < input.Data.Schema.Count; i++)
                     {
@@ -90,9 +90,9 @@ namespace Microsoft.ML.EntryPoints
                             continue;
                         // Do not rename the PredictedLabel column.
                         ReadOnlyMemory<char> tmp = default;
-                        if (input.Data.Schema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreValueKind, i,
+                        if (input.Data.Schema.TryGetAnnotation(TextDataViewType.Instance, AnnotationUtils.Kinds.ScoreValueKind, i,
                             ref tmp)
-                            && ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreValueKind.PredictedLabel, tmp))
+                            && ReadOnlyMemoryUtils.EqualsStr(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, tmp))
                         {
                             continue;
                         }

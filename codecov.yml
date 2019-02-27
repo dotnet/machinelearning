@@ -11,7 +11,7 @@ coverage:
     - "build/::/"
 
 comment:
-  layout: "diff,flags"
+  layout: "diff, flags, files"
 
 flags:
   production:

@@ -6,13 +6,11 @@ using System;
 using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.TimeSeriesProcessing
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
     /// SlidingWindowTransformBase outputs a sliding window as a VBuffer from a series of any type.
@@ -22,7 +20,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// and l is the delay.
     /// </summary>
 
-    public abstract class SlidingWindowTransformBase<TInput> : SequentialTransformBase<TInput, VBuffer<TInput>, SlidingWindowTransformBase<TInput>.StateSlide>
+    internal abstract class SlidingWindowTransformBase<TInput> : SequentialTransformBase<TInput, VBuffer<TInput>, SlidingWindowTransformBase<TInput>.StateSlide>
     {
         /// <summary>
         /// Defines what should be done about the first rows.
@@ -103,14 +101,14 @@ namespace Microsoft.ML.TimeSeriesProcessing
             var sch = OutputSchema;
             int index;
             sch.TryGetColumnIndex(InputColumnName, out index);
-            ColumnType col = sch[index].Type;
-            TInput nanValue = Conversions.Instance.GetNAOrDefault<TInput>(col);
+            DataViewType col = sch[index].Type;
+            TInput nanValue = Data.Conversion.Conversions.Instance.GetNAOrDefault<TInput>(col);
 
             // We store the nan_value here to avoid getting it each time a state is instanciated.
             return nanValue;
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(WindowSize >= 1);
@@ -123,7 +121,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // Int32 lag
             // byte begin
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
             ctx.Writer.Write(_lag);
             ctx.Writer.Write((byte)_begin);
         }

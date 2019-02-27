@@ -5,7 +5,7 @@
 using System.Linq;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
     /// <summary>
     /// The singleton feature flock is the simplest possible sort of flock, that is, a flock
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return _bins.SizeInBytes() + sizeof(double) * _binUpperBounds.Length;
         }
 
-        public override SufficientStatsBase CreateSufficientStats(bool hasWeights)
+        internal override SufficientStatsBase CreateSufficientStats(bool hasWeights)
         {
             return new SufficientStats(this, hasWeights);
         }

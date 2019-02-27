@@ -5,21 +5,21 @@
 using System;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.Ensemble;
 
-[assembly: LoadableClass(typeof(MultiMedian), typeof(MultiMedian.Arguments), typeof(SignatureCombiner),
+[assembly: LoadableClass(typeof(MultiMedian), typeof(MultiMedian.Options), typeof(SignatureCombiner),
     Median.UserName, MultiMedian.LoadName)]
 [assembly: LoadableClass(typeof(MultiMedian), null, typeof(SignatureLoadModel), Median.UserName, MultiMedian.LoaderSignature)]
 
-namespace Microsoft.ML.Ensemble.OutputCombiners
+namespace Microsoft.ML.Trainers.Ensemble
 {
     /// <summary>
     /// Generic interface for combining outputs of multiple models
     /// </summary>
-    public sealed class MultiMedian : BaseMultiCombiner, ICanSaveModel
+    internal sealed class MultiMedian : BaseMultiCombiner
     {
         public const string LoadName = "MultiMedian";
         public const string LoaderSignature = "MultiMedianCombiner";
@@ -36,13 +36,13 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
         }
 
         [TlcModule.Component(Name = LoadName, FriendlyName = Median.UserName)]
-        public sealed class Arguments : ArgumentsBase, ISupportMulticlassOutputCombinerFactory
+        public sealed class Options : OptionsBase, ISupportMulticlassOutputCombinerFactory
         {
             public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiMedian(env, this);
         }
 
-        public MultiMedian(IHostEnvironment env, Arguments args)
-            : base(env, LoaderSignature, args)
+        public MultiMedian(IHostEnvironment env, Options options)
+            : base(env, LoaderSignature, options)
         {
         }
 

@@ -5,9 +5,9 @@
 using System;
 using System.Linq;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
-    public static class Algorithms
+    internal static class Algorithms
     {
         /// <summary>
         /// Returns the index of the first array position that is larger than or equal to val

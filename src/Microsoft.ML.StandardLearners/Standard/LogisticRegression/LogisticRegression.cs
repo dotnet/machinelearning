@@ -6,16 +6,14 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
+using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
-using Microsoft.ML.Training;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(LogisticRegression.Summary, typeof(LogisticRegression), typeof(LogisticRegression.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -26,20 +24,22 @@ using Microsoft.ML.Training;
 
 [assembly: LoadableClass(typeof(void), typeof(LogisticRegression), null, typeof(SignatureEntryPointModule), LogisticRegression.LoadNameValue)]
 
-namespace Microsoft.ML.Learners
+namespace Microsoft.ML.Trainers
 {
 
     /// <include file='doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file='doc.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
-    public sealed partial class LogisticRegression : LbfgsTrainerBase<LogisticRegression.Options, BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>, ParameterMixingCalibratedPredictor>
+    public sealed partial class LogisticRegression : LbfgsTrainerBase<LogisticRegression.Options,
+        BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>,
+        CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
-        public const string LoadNameValue = "LogisticRegression";
+        internal const string LoadNameValue = "LogisticRegression";
         internal const string UserNameValue = "Logistic Regression";
         internal const string ShortName = "lr";
         internal const string Summary = "Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can "
             + "be used as a classification algorithm. The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.";
 
-        public sealed class Options : ArgumentsBase
+        public sealed class Options : OptionsBase
         {
             /// <summary>
             /// If set to <value>true</value>training statistics will be generated at the end of training.
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Learners
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
             _posWeight = 0;
-            ShowTrainingStats = Args.ShowTrainingStats;
+            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStats;
         }
 
         /// <summary>
@@ -101,10 +101,10 @@ namespace Microsoft.ML.Learners
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
             _posWeight = 0;
-            ShowTrainingStats = Args.ShowTrainingStats;
+            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStats;
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         private protected override void CheckLabel(RoleMappedData data)
         {
@@ -112,23 +112,28 @@ namespace Microsoft.ML.Learners
             data.CheckBinaryLabel();
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
-        protected override BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> MakeTransformer(ParameterMixingCalibratedPredictor model, Schema trainSchema)
-            => new BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+        private protected override BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
+            MakeTransformer(CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> model, DataViewSchema trainSchema)
+            => new BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
-            => TrainTransformer(trainData, initPredictor: initialPredictor);
+        /// <summary>
+        /// Continues the training of a <see cref="LogisticRegression"/> using an already trained <paramref name="modelParameters"/> and returns
+        /// a <see cref="BinaryPredictionTransformer{CalibratedModelParametersBase}"/>.
+        /// </summary>
+        public BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> Fit(IDataView trainData, LinearModelParameters modelParameters)
+            => TrainTransformer(trainData, initPredictor: modelParameters);
 
-        protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
+        private protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
             in VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
         {
             float bias = 0;
@@ -211,7 +216,7 @@ namespace Microsoft.ML.Learners
             var featureLength = CurrentWeights.Length - BiasCount;
             var namesSpans = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(featureLength);
             if (featureCol.HasSlotNames(featureLength))
-                featureCol.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref namesSpans);
+                featureCol.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref namesSpans);
             Host.Assert(namesSpans.Length == featureLength);
 
             // Inverse mapping of non-zero weight slots.
@@ -349,16 +354,16 @@ namespace Microsoft.ML.Learners
                 }
             }
 
-            if (Args.StdComputer == null)
+            if (LbfgsTrainerOptions.StdComputer == null)
                 _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
             else
             {
-                var std = Args.StdComputer.ComputeStd(hessian, weightIndices, numParams, CurrentWeights.Length, ch, L2Weight);
+                var std = LbfgsTrainerOptions.StdComputer.ComputeStd(hessian, weightIndices, numParams, CurrentWeights.Length, ch, L2Weight);
                 _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance, std);
             }
         }
 
-        protected override void ProcessPriorDistribution(float label, float weight)
+        private protected override void ProcessPriorDistribution(float label, float weight)
         {
             if (label > 0)
                 _posWeight += weight;
@@ -378,16 +383,16 @@ namespace Microsoft.ML.Learners
             return opt;
         }
 
-        protected override VBuffer<float> InitializeWeightsFromPredictor(ParameterMixingCalibratedPredictor srcPredictor)
+        private protected override VBuffer<float> InitializeWeightsFromPredictor(IPredictor srcPredictor)
         {
             Contracts.AssertValue(srcPredictor);
 
-            var pred = srcPredictor.SubPredictor as LinearBinaryModelParameters;
+            var pred = srcPredictor as LinearModelParameters;
             Contracts.AssertValue(pred);
             return InitializeWeights(pred.Weights, new[] { pred.Bias });
         }
 
-        protected override ParameterMixingCalibratedPredictor CreatePredictor()
+        private protected override CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> CreatePredictor()
         {
             // Logistic regression is naturally calibrated to
             // output probabilities when transformed using
@@ -397,7 +402,7 @@ namespace Microsoft.ML.Learners
             float bias = 0;
             CurrentWeights.GetItemOrDefault(0, ref bias);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
-            return new ParameterMixingCalibratedPredictor(Host,
+            return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator>(Host,
                 new LinearBinaryModelParameters(Host, in weights, bias, _stats),
                 new PlattCalibrator(Host, -1, 0));
         }
@@ -405,9 +410,7 @@ namespace Microsoft.ML.Learners
         [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionBinaryClassifier",
             Desc = Summary,
             UserName = UserNameValue,
-            ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/member[@name=""LBFGS""]/*' />",
-                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/example[@name=""LogisticRegressionBinaryClassifier""]/*' />"})]
+            ShortName = ShortName)]
 
         internal static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Options input)
         {

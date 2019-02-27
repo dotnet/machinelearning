@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel.Composition.Hosting;
 using System.IO;
 
 namespace Microsoft.ML.Data
@@ -94,7 +93,7 @@ namespace Microsoft.ML.Data
     /// query progress.
     /// </summary>
     [BestFriend]
-    internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironment, IDisposable, IChannelProvider
+    internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironment, IChannelProvider
         where TEnv : HostEnvironmentBase<TEnv>
     {
         /// <summary>
@@ -330,13 +329,6 @@ namespace Microsoft.ML.Data
         // doesn't free temp files. That is handled when the master is disposed.
         protected readonly HostEnvironmentBase<TEnv> Master;
 
-        // Protects _tempFiles.
-        private readonly object _tempLock;
-
-        // Temp files that have been handed out.
-        // When this is null, the host environment has been disposed.
-        private volatile List<IFileHandle> _tempFiles;
-
         // Protect _cancellation logic.
         private readonly object _cancelLock;
 
@@ -361,8 +353,6 @@ namespace Microsoft.ML.Data
 
         public override int Depth => 0;
 
-        protected bool IsDisposed => _tempFiles == null;
-
         /// <summary>
         ///  The main constructor.
         /// </summary>
@@ -376,8 +366,6 @@ namespace Microsoft.ML.Data
             ListenerDict = new ConcurrentDictionary<Type, Dispatcher>();
             ProgressTracker = new ProgressReporting.ProgressTracker(this);
             _cancelLock = new object();
-            _tempLock = new object();
-            _tempFiles = new List<IFileHandle>();
             Root = this as TEnv;
             ComponentCatalog = new ComponentCatalog();
         }
@@ -403,32 +391,6 @@ namespace Microsoft.ML.Data
             ComponentCatalog = source.ComponentCatalog;
         }
 
-        /// <summary>
-        /// Dispose the environment. This ensures that all temp file handles are properly disposed,
-        /// including deleting the physical files.
-        /// </summary>
-        public virtual void Dispose()
-        {
-            if (Master != null)
-            {
-                // Disposing a fork has no affect.
-                return;
-            }
-
-            List<IFileHandle> temps;
-            lock (_tempLock)
-            {
-                temps = _tempFiles;
-                _tempFiles = null;
-            }
-
-            if (temps == null)
-                return;
-
-            foreach (var temp in temps)
-                temp.Dispose();
-        }
-
         public IHost Register(string name, int? seed = null, bool? verbose = null, int? conc = null)
         {
             Contracts.CheckNonEmpty(name, nameof(name));
@@ -438,14 +400,6 @@ namespace Microsoft.ML.Data
 
         protected abstract IHost RegisterCore(HostEnvironmentBase<TEnv> source, string shortName,
             string parentFullName, Random rand, bool verbose, int? conc);
-
-        public IFileHandle OpenInputFile(string path)
-        {
-
-            if (Master != null)
-                return Master.OpenInputFileCore(this, path);
-            return OpenInputFileCore(this, path);
-        }
 
         public IProgressChannel StartProgressChannel(string name)
         {
@@ -458,98 +412,6 @@ namespace Microsoft.ML.Data
             Contracts.AssertNonEmpty(name);
             Contracts.AssertValueOrNull(host);
             return new ProgressReporting.ProgressChannel(this, ProgressTracker, name);
-        }
-
-        /// <summary>
-        /// This "opens" the input file handle. The default implementation assumes the file resides in the
-        /// file system and it does not access the physical file until a read stream is opened on the returned
-        /// file handle.
-        /// </summary>
-        protected virtual IFileHandle OpenInputFileCore(IHostEnvironment env, string path)
-        {
-            this.AssertValue(env);
-            this.CheckNonWhiteSpace(path, nameof(path));
-            if (Master != null)
-                return Master.OpenInputFileCore(env, path);
-            return new SimpleFileHandle(env, path, needsWrite: false, autoDelete: false);
-        }
-
-        public IFileHandle CreateOutputFile(string path)
-        {
-            if (Master != null)
-                return Master.CreateOutputFileCore(this, path);
-            return CreateOutputFileCore(this, path);
-        }
-
-        /// <summary>
-        /// This "creates" the output file handle. The default implementation assumes the file resides in the
-        /// file system and it does not create the physical file until a write stream is opened on the returned
-        /// file handle.
-        /// </summary>
-        protected virtual IFileHandle CreateOutputFileCore(IHostEnvironment env, string path)
-        {
-            this.AssertValue(env);
-            this.CheckNonWhiteSpace(path, nameof(path));
-            if (Master != null)
-                return Master.CreateOutputFileCore(env, path);
-            return new SimpleFileHandle(env, path, needsWrite: true, autoDelete: false);
-        }
-
-        public IFileHandle CreateTempFile(string suffix = null, string prefix = null)
-        {
-            if (Master != null)
-                return Master.CreateAndRegisterTempFile(this);
-            return CreateAndRegisterTempFile(this);
-        }
-
-        /// <summary>
-        /// This calls CreateTempFileCore and handles registering the temp file for cleanup when the environment is disposed.
-        /// </summary>
-        protected IFileHandle CreateAndRegisterTempFile(IHostEnvironment env, string suffix = null, string prefix = null)
-        {
-            this.AssertValue(env);
-
-            if (Master != null)
-                return Master.CreateAndRegisterTempFile(env, suffix, prefix);
-
-            var file = CreateTempFileCore(env, suffix, prefix);
-
-            lock (_tempLock)
-            {
-                if (_tempFiles == null)
-                {
-                    file.Dispose();
-                    throw env.Except("This environment has been disposed, so can't allocate new temp files");
-                }
-                _tempFiles.Add(file);
-            }
-
-            return file;
-        }
-
-        protected virtual IFileHandle CreateTempFileCore(IHostEnvironment env, string suffix = null, string prefix = null)
-        {
-            this.CheckParam(!HasBadFileCharacters(suffix), nameof(suffix));
-            this.CheckParam(!HasBadFileCharacters(prefix), nameof(prefix));
-
-            Guid guid = Guid.NewGuid();
-            string path = Path.GetFullPath(Path.Combine(Path.GetTempPath(), prefix + guid.ToString() + suffix));
-            return new SimpleFileHandle(env, path, needsWrite: true, autoDelete: true);
-        }
-
-        /// <summary>
-        /// Returns true if the given string is non-null and contains invalid file name characters.
-        /// </summary>
-        protected virtual bool HasBadFileCharacters(string str = null)
-        {
-            if (string.IsNullOrEmpty(str))
-                return false;
-
-            var chars = Path.GetInvalidFileNameChars();
-            if (str.IndexOfAny(chars) >= 0)
-                return true;
-
-            return false;
         }
 
         private void DispatchMessageCore<TMessage>(
@@ -675,7 +537,5 @@ namespace Microsoft.ML.Data
             else if (!removeLastNewLine)
                 writer.WriteLine();
         }
-
-        public virtual CompositionContainer GetCompositionContainer() => new CompositionContainer();
     }
 }

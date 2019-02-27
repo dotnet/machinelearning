@@ -9,7 +9,7 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Training;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
@@ -53,9 +53,9 @@ namespace Microsoft.ML.EntryPoints
             Contracts.AssertValue(macroNodes);
 
             // Convert label into T,F based on k.
-            var labelIndicatorArgs = new LabelIndicatorTransform.Arguments();
+            var labelIndicatorArgs = new LabelIndicatorTransform.Options();
             labelIndicatorArgs.ClassIndex = k;
-            labelIndicatorArgs.Column = new[] { new LabelIndicatorTransform.Column() { Name = label, Source = label } };
+            labelIndicatorArgs.Columns = new[] { new LabelIndicatorTransform.Column() { Name = label, Source = label } };
 
             var inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
             var inputMap = new Dictionary<ParameterBinding, VariableBinding>();
@@ -135,8 +135,7 @@ namespace Microsoft.ML.EntryPoints
         }
 
         [TlcModule.EntryPoint(Desc = "One-vs-All macro (OVA)",
-            Name = "Models.OneVersusAll",
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/member[@name=""OVA""]/*'/>" })]
+            Name = "Models.OneVersusAll")]
         public static CommonOutputs.MacroOutput<Output> OneVersusAll(
             IHostEnvironment env,
             Arguments input,
@@ -189,5 +188,4 @@ namespace Microsoft.ML.EntryPoints
             return new CommonOutputs.MacroOutput<Output>() { Nodes = macroNodes };
         }
     }
-#pragma warning restore 612
 }

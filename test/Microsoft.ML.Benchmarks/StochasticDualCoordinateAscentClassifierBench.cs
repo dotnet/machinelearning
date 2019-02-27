@@ -9,7 +9,6 @@ using BenchmarkDotNet.Engines;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
-using Microsoft.ML.Learners;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
@@ -24,7 +23,7 @@ namespace Microsoft.ML.Benchmarks
         private readonly string _sentimentDataPath = BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv");
         private readonly Consumer _consumer = new Consumer(); // BenchmarkDotNet utility type used to prevent dead code elimination
 
-        private readonly MLContext _env = new MLContext(seed: 1);
+        private readonly MLContext mlContext = new MLContext(seed: 1);
 
         private readonly int[] _batchSizes = new int[] { 1, 2, 5 };
 
@@ -54,22 +53,25 @@ namespace Microsoft.ML.Benchmarks
 
         private TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> Train(string dataPath)
         {
-            var reader = new TextLoader(_env,
-                    columns: new[]
-                    {
-                            new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("SepalLength", DataKind.R4, 1),
-                            new TextLoader.Column("SepalWidth", DataKind.R4, 2),
-                            new TextLoader.Column("PetalLength", DataKind.R4, 3),
-                            new TextLoader.Column("PetalWidth", DataKind.R4, 4),
-                    },
-                    hasHeader: true
-                );
+            // Create text loader.
+            var options = new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("SepalLength", DataKind.Single, 1),
+                    new TextLoader.Column("SepalWidth", DataKind.Single, 2),
+                    new TextLoader.Column("PetalLength", DataKind.Single, 3),
+                    new TextLoader.Column("PetalWidth", DataKind.Single, 4),
+                },
+                HasHeader = true,
+            };
+            var loader = new TextLoader(mlContext, options: options);
 
-            IDataView data = reader.Read(dataPath);
+            IDataView data = loader.Load(dataPath);
 
-            var pipeline = new ColumnConcatenatingEstimator(_env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                .Append(_env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
+            var pipeline = new ColumnConcatenatingEstimator(mlContext, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
+                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
             return pipeline.Fit(data);
         }
@@ -78,42 +80,34 @@ namespace Microsoft.ML.Benchmarks
         public void TrainSentiment()
         {
             // Pipeline
-            var arguments = new TextLoader.Arguments()
+            var arguments = new TextLoader.Options()
             {
-                Column = new TextLoader.Column[]
+                Columns = new TextLoader.Column[]
                 {
-                    new TextLoader.Column()
-                    {
-                        Name = "Label",
-                        Source = new[] { new TextLoader.Range() { Min = 0, Max = 0 } },
-                        Type = DataKind.Num
-                    },
-
-                    new TextLoader.Column()
-                    {
-                        Name = "SentimentText",
-                        Source = new[] { new TextLoader.Range() { Min = 1, Max = 1 } },
-                        Type = DataKind.Text
-                    }
+                    new TextLoader.Column("Label", DataKind.Single, new[] { new TextLoader.Range() { Min = 0, Max = 0 } }),
+                    new TextLoader.Column("SentimentText", DataKind.String, new[] { new TextLoader.Range() { Min = 1, Max = 1 } })
                 },
                 HasHeader = true,
                 AllowQuoting = false,
                 AllowSparse = false
             };
-            var loader = _env.Data.ReadFromTextFile(_sentimentDataPath, arguments);
-            var text = new TextFeaturizingEstimator(_env, "WordEmbeddings", "SentimentText", args =>
-            {
-                args.OutputTokens = true;
-                args.KeepPunctuations = false;
-                args.UseStopRemover = true;
-                args.VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None;
-                args.UseCharExtractor = false;
-                args.UseWordExtractor = false;
-            }).Fit(loader).Transform(loader);
-            var trans = new WordEmbeddingsExtractingEstimator(_env, "Features", "WordEmbeddings_TransformedText", 
-                WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe).Fit(text).Transform(text);
+
+            var loader = mlContext.Data.LoadFromTextFile(_sentimentDataPath, arguments);
+            var text = mlContext.Transforms.Text.FeaturizeText("WordEmbeddings", new List<string> { "SentimentText" }, 
+                new TextFeaturizingEstimator.Options { 
+                    OutputTokens = true,
+                    KeepPunctuations = false,
+                    UseStopRemover = true,
+                    VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
+                    UseCharExtractor = false,
+                    UseWordExtractor = false,
+                }).Fit(loader).Transform(loader);
+
+            var trans = mlContext.Transforms.Text.ExtractWordEmbeddings("Features", "WordEmbeddings_TransformedText", 
+                WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe).Fit(text).Transform(text);
+
             // Train
-            var trainer = _env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent();
+            var trainer = mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent();
             var predicted = trainer.Fit(trans);
             _consumer.Consume(predicted);
         }
@@ -122,24 +116,27 @@ namespace Microsoft.ML.Benchmarks
         public void SetupPredictBenchmarks()
         {
             _trainedModel = Train(_dataPath);
-            _predictionEngine = _trainedModel.CreatePredictionEngine<IrisData, IrisPrediction>(_env);
+            _predictionEngine = _trainedModel.CreatePredictionEngine<IrisData, IrisPrediction>(mlContext);
             _consumer.Consume(_predictionEngine.Predict(_example));
 
-            var reader = new TextLoader(_env,
-                    columns: new[]
-                    {
-                            new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("SepalLength", DataKind.R4, 1),
-                            new TextLoader.Column("SepalWidth", DataKind.R4, 2),
-                            new TextLoader.Column("PetalLength", DataKind.R4, 3),
-                            new TextLoader.Column("PetalWidth", DataKind.R4, 4),
-                    },
-                    hasHeader: true
-                );
+            // Create text loader.
+            var options = new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("SepalLength", DataKind.Single, 1),
+                    new TextLoader.Column("SepalWidth", DataKind.Single, 2),
+                    new TextLoader.Column("PetalLength", DataKind.Single, 3),
+                    new TextLoader.Column("PetalWidth", DataKind.Single, 4),
+                },
+                HasHeader = true,
+            };
+            var loader = new TextLoader(mlContext, options: options);
 
-            IDataView testData = reader.Read(_dataPath);
+            IDataView testData = loader.Load(_dataPath);
             IDataView scoredTestData = _trainedModel.Transform(testData);
-            var evaluator = new MultiClassClassifierEvaluator(_env, new MultiClassClassifierEvaluator.Arguments());
+            var evaluator = new MultiClassClassifierEvaluator(mlContext, new MultiClassClassifierEvaluator.Arguments());
             _metrics = evaluator.Evaluate(scoredTestData, DefaultColumnNames.Label, DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel);
 
             _batches = new IrisData[_batchSizes.Length][];
@@ -158,13 +155,13 @@ namespace Microsoft.ML.Benchmarks
         public float[] PredictIris() => _predictionEngine.Predict(_example).PredictedLabels;
 
         [Benchmark]
-        public void PredictIrisBatchOf1() => _trainedModel.Transform(_env.Data.ReadFromEnumerable(_batches[0]));
+        public void PredictIrisBatchOf1() => _trainedModel.Transform(mlContext.Data.LoadFromEnumerable(_batches[0]));
 
         [Benchmark]
-        public void PredictIrisBatchOf2() => _trainedModel.Transform(_env.Data.ReadFromEnumerable(_batches[1]));
+        public void PredictIrisBatchOf2() => _trainedModel.Transform(mlContext.Data.LoadFromEnumerable(_batches[1]));
 
         [Benchmark]
-        public void PredictIrisBatchOf5() => _trainedModel.Transform(_env.Data.ReadFromEnumerable(_batches[2]));
+        public void PredictIrisBatchOf5() => _trainedModel.Transform(mlContext.Data.LoadFromEnumerable(_batches[2]));
     }
 
     public class IrisData

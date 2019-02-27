@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.StaticPipe
@@ -151,9 +149,9 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var columns = new List<StopWordsRemovingTransformer.ColumnInfo>();
+                var columns = new List<StopWordsRemovingEstimator.ColumnOptions>();
                 foreach (var outCol in toOutput)
-                    columns.Add(new StopWordsRemovingTransformer.ColumnInfo(outputNames[outCol], inputNames[((OutPipelineColumn)outCol).Input], _language));
+                    columns.Add(new StopWordsRemovingEstimator.ColumnOptions(outputNames[outCol], inputNames[((OutPipelineColumn)outCol).Input], _language));
 
                 return new StopWordsRemovingEstimator(env, columns.ToArray());
             }
@@ -559,9 +557,9 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyCollection<string> usedNames)
             {
                 Contracts.Assert(toOutput.Length == 1);
-                var columns = new List<NgramHashingTransformer.ColumnInfo>();
+                var columns = new List<NgramHashingEstimator.ColumnOptions>();
                 foreach (var outCol in toOutput)
-                    columns.Add(new NgramHashingTransformer.ColumnInfo(outputNames[outCol], new[] { inputNames[((OutPipelineColumn)outCol).Input] },
+                    columns.Add(new NgramHashingEstimator.ColumnOptions(outputNames[outCol], new[] { inputNames[((OutPipelineColumn)outCol).Input] },
                           _ngramLength, _skipLength, _allLengths, _hashBits, _seed, _ordered, _invertHash));
 
                 return new NgramHashingEstimator(env, columns.ToArray());

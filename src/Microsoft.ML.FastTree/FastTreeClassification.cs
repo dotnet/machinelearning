@@ -7,16 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
-using Microsoft.ML.Calibrator;
-using Microsoft.ML.Core.Data;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(FastTreeBinaryClassificationTrainer.Summary, typeof(FastTreeBinaryClassificationTrainer), typeof(FastTreeBinaryClassificationTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -44,7 +40,7 @@ using Microsoft.ML.Training;
 namespace Microsoft.ML.Trainers.FastTree
 {
     public sealed class FastTreeBinaryModelParameters :
-        TreeEnsembleModelParameters
+        TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "FastTreeBinaryExec";
         internal const string RegistrationName = "FastTreeBinaryPredictor";
@@ -64,13 +60,13 @@ namespace Microsoft.ML.Trainers.FastTree
                 loaderAssemblyName: typeof(FastTreeBinaryModelParameters).Assembly.FullName);
         }
 
-        protected override uint VerNumFeaturesSerialized => 0x00010002;
+        private protected override uint VerNumFeaturesSerialized => 0x00010002;
 
-        protected override uint VerDefaultValueSerialized => 0x00010004;
+        private protected override uint VerDefaultValueSerialized => 0x00010004;
 
-        protected override uint VerCategoricalSplitSerialized => 0x00010005;
+        private protected override uint VerCategoricalSplitSerialized => 0x00010005;
 
-        public FastTreeBinaryModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        internal FastTreeBinaryModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }
@@ -96,15 +92,17 @@ namespace Microsoft.ML.Trainers.FastTree
             ctx.LoadModelOrNull<ICalibrator, SignatureLoadModel>(env, out calibrator, @"Calibrator");
             if (calibrator == null)
                 return predictor;
-            return new SchemaBindableCalibratedPredictor(env, predictor, calibrator);
+            return new SchemaBindableCalibratedModelParameters<FastTreeBinaryModelParameters, ICalibrator>(env, predictor, calibrator);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
     }
 
     /// <include file = 'doc.xml' path='doc/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeBinaryClassificationTrainer :
-        BoostingFastTreeTrainerBase<FastTreeBinaryClassificationTrainer.Options, BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>, IPredictorWithFeatureWeights<float>>
+        BoostingFastTreeTrainerBase<FastTreeBinaryClassificationTrainer.Options,
+        BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>>,
+        CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
         /// The LoadName for the assembly containing the trainer.
@@ -139,7 +137,7 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, learningRate)
         {
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
-            _sigmoidParameter = 2.0 * Args.LearningRates;
+            _sigmoidParameter = 2.0 * FastTreeTrainerOptions.LearningRates;
         }
 
         /// <summary>
@@ -151,12 +149,12 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
-            _sigmoidParameter = 2.0 * Args.LearningRates;
+            _sigmoidParameter = 2.0 * FastTreeTrainerOptions.LearningRates;
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        private protected override IPredictorWithFeatureWeights<float> TrainModelCore(TrainContext context)
+        private protected override CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator> TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
@@ -178,40 +176,40 @@ namespace Microsoft.ML.Trainers.FastTree
             // output probabilities when transformed using a scaled logistic function,
             // so transform the scores using that.
 
-            var pred = new FastTreeBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs);
+            var pred = new FastTreeBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
             // FastTree's binary classification boosting framework's natural probabilistic interpretation
             // is explained in "From RankNet to LambdaRank to LambdaMART: An Overview" by Chris Burges.
             // The correctness of this scaling depends upon the gradient calculation in
             // BinaryClassificationObjectiveFunction.GetGradientInOneQuery being consistent with the
             // description in section 6 of the paper.
             var cali = new PlattCalibrator(Host, -1 * _sigmoidParameter, 0);
-            return new FeatureWeightsCalibratedPredictor(Host, pred, cali);
+            return new FeatureWeightsCalibratedModelParameters<FastTreeBinaryModelParameters, PlattCalibrator>(Host, pred, cali);
         }
 
-        protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
+        private protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
             return new ObjectiveImpl(
                 TrainSet,
                 _trainSetLabels,
-                Args.LearningRates,
-                Args.Shrinkage,
+                FastTreeTrainerOptions.LearningRates,
+                FastTreeTrainerOptions.Shrinkage,
                 _sigmoidParameter,
-                Args.UnbalancedSets,
-                Args.MaxTreeOutput,
-                Args.GetDerivativesSampleRate,
-                Args.BestStepRankingRegressionTrees,
-                Args.RngSeed,
+                FastTreeTrainerOptions.UnbalancedSets,
+                FastTreeTrainerOptions.MaxTreeOutput,
+                FastTreeTrainerOptions.GetDerivativesSampleRate,
+                FastTreeTrainerOptions.BestStepRankingRegressionTrees,
+                FastTreeTrainerOptions.RngSeed,
                 ParallelTraining);
         }
 
-        protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
+        private protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
         {
             OptimizationAlgorithm optimizationAlgorithm = base.ConstructOptimizationAlgorithm(ch);
-            if (Args.UseLineSearch)
+            if (FastTreeTrainerOptions.UseLineSearch)
             {
                 var lossCalculator = new BinaryClassificationTest(optimizationAlgorithm.TrainingScores, _trainSetLabels, _sigmoidParameter);
                 // REVIEW: we should makeloss indices an enum in BinaryClassificationTest
-                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, Args.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/, Args.NumPostBracketSteps, Args.MinStepSize);
+                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, FastTreeTrainerOptions.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/, FastTreeTrainerOptions.NumPostBracketSteps, FastTreeTrainerOptions.MinStepSize);
             }
             return optimizationAlgorithm;
         }
@@ -223,18 +221,18 @@ namespace Microsoft.ML.Trainers.FastTree
             return set.Ratings.Select(x => x >= 1);
         }
 
-        protected override void PrepareLabels(IChannel ch)
+        private protected override void PrepareLabels(IChannel ch)
         {
             _trainSetLabels = GetClassificationLabelsFromRatings(TrainSet).ToArray(TrainSet.NumDocs);
             //Here we set regression labels to what is in bin file if the values were not overriden with floats
         }
 
-        protected override Test ConstructTestForTrainingData()
+        private protected override Test ConstructTestForTrainingData()
         {
             return new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, _sigmoidParameter);
         }
 
-        protected override void InitializeTests()
+        private protected override void InitializeTests()
         {
             //Always compute training L1/L2 errors
             TrainTest = new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, _sigmoidParameter);
@@ -258,9 +256,9 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
-            if (Args.EnablePruning && ValidSet != null)
+            if (FastTreeTrainerOptions.EnablePruning && ValidSet != null)
             {
-                if (!Args.UseTolerantPruning)
+                if (!FastTreeTrainerOptions.UseTolerantPruning)
                 {
                     //use simple early stopping condition
                     PruningTest = new TestHistory(ValidTest, 0);
@@ -268,24 +266,29 @@ namespace Microsoft.ML.Trainers.FastTree
                 else
                 {
                     //use tollerant stopping condition
-                    PruningTest = new TestWindowWithTolerance(ValidTest, 0, Args.PruningWindowSize, Args.PruningThreshold);
+                    PruningTest = new TestWindowWithTolerance(ValidTest, 0, FastTreeTrainerOptions.PruningWindowSize, FastTreeTrainerOptions.PruningThreshold);
                 }
             }
         }
 
-        protected override BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> MakeTransformer(IPredictorWithFeatureWeights<float> model, Schema trainSchema)
-        => new BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>(Host, model, trainSchema, FeatureColumn.Name);
+        private protected override BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> MakeTransformer(
+            CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator> model, DataViewSchema trainSchema)
+            => new BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="FastTreeBinaryClassificationTrainer"/> using both training and validation data, returns
+        /// a <see cref="BinaryPredictionTransformer{CalibratedModelParametersBase}"/>.
+        /// </summary>
+        public BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
@@ -365,7 +368,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
-            public void AdjustTreeOutputs(IChannel ch, RegressionTree tree,
+            public void AdjustTreeOutputs(IChannel ch, InternalRegressionTree tree,
                 DocumentPartitioning partitioning, ScoreTracker trainingScores)
             {
                 const double epsilon = 1.4e-45;
@@ -400,9 +403,7 @@ namespace Microsoft.ML.Trainers.FastTree
         [TlcModule.EntryPoint(Name = "Trainers.FastTreeBinaryClassifier",
             Desc = FastTreeBinaryClassificationTrainer.Summary,
             UserName = FastTreeBinaryClassificationTrainer.UserNameValue,
-            ShortName = FastTreeBinaryClassificationTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastTree""]/*' />",
-                                 @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastTreeBinaryClassifier""]/*' />" })]
+            ShortName = FastTreeBinaryClassificationTrainer.ShortName)]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastTreeBinaryClassificationTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));

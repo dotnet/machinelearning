@@ -1,0 +1,3 @@
+<Project DefaultTargets="Pack">
+  <Import Project="Microsoft.ML.Ensemble.nupkgproj" />
+</Project>

@@ -4,16 +4,16 @@
 
 using System;
 using Microsoft.ML;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(Voting), null, typeof(SignatureCombiner), Voting.UserName, Voting.LoadName)]
 [assembly: LoadableClass(typeof(Voting), null, typeof(SignatureLoadModel), Voting.UserName, Voting.LoaderSignature)]
 
-namespace Microsoft.ML.Ensemble.OutputCombiners
+namespace Microsoft.ML.Trainers.Ensemble
 {
-    public sealed class Voting : IBinaryOutputCombiner, ICanSaveModel
+    internal sealed class Voting : IBinaryOutputCombiner, ICanSaveModel
     {
         private readonly IHost _host;
         public const string UserName = "Voting";
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
             return new Voting(env, ctx);
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

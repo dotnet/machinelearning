@@ -2,19 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(FastTreeRegressionTrainer.Summary, typeof(FastTreeRegressionTrainer), typeof(FastTreeRegressionTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -38,7 +34,7 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastTreeRegressionTrainer
         : BoostingFastTreeTrainerBase<FastTreeRegressionTrainer.Options, RegressionPredictionTransformer<FastTreeRegressionModelParameters>, FastTreeRegressionModelParameters>
     {
-        public const string LoadNameValue = "FastTreeRegression";
+        internal const string LoadNameValue = "FastTreeRegression";
         internal const string UserNameValue = "FastTree (Boosted Trees) Regression";
         internal const string Summary = "Trains gradient boosted decision trees to fit target values using least-squares.";
         internal const string ShortName = "ftr";
@@ -50,7 +46,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The type of prediction for the trainer.
         /// </summary>
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeRegressionTrainer"/>
@@ -101,37 +97,37 @@ namespace Microsoft.ML.Trainers.FastTree
                 ConvertData(trainData);
                 TrainCore(ch);
             }
-            return new FastTreeRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs);
+            return new FastTreeRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
         }
 
-        protected override void CheckArgs(IChannel ch)
+        private protected override void CheckOptions(IChannel ch)
         {
             Contracts.AssertValue(ch);
 
-            base.CheckArgs(ch);
+            base.CheckOptions(ch);
 
-            ch.CheckUserArg((Args.EarlyStoppingRule == null && !Args.EnablePruning) || (Args.EarlyStoppingMetrics >= 1 && Args.EarlyStoppingMetrics <= 2), nameof(Args.EarlyStoppingMetrics),
+            ch.CheckUserArg((FastTreeTrainerOptions.EarlyStoppingRule == null && !FastTreeTrainerOptions.EnablePruning) || (FastTreeTrainerOptions.EarlyStoppingMetrics >= 1 && FastTreeTrainerOptions.EarlyStoppingMetrics <= 2), nameof(FastTreeTrainerOptions.EarlyStoppingMetrics),
                     "earlyStoppingMetrics should be 1 or 2. (1: L1, 2: L2)");
         }
 
         private static SchemaShape.Column MakeLabelColumn(string labelColumn)
         {
-            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
         }
 
-        protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
+        private protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
-            return new ObjectiveImpl(TrainSet, Args);
+            return new ObjectiveImpl(TrainSet, FastTreeTrainerOptions);
         }
 
-        protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
+        private protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
         {
             OptimizationAlgorithm optimizationAlgorithm = base.ConstructOptimizationAlgorithm(ch);
-            if (Args.UseLineSearch)
+            if (FastTreeTrainerOptions.UseLineSearch)
             {
                 var lossCalculator = new RegressionTest(optimizationAlgorithm.TrainingScores);
                 // REVIEW: We should make loss indices an enum in BinaryClassificationTest.
-                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, 1 /*L2 error*/, Args.NumPostBracketSteps, Args.MinStepSize);
+                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, 1 /*L2 error*/, FastTreeTrainerOptions.NumPostBracketSteps, FastTreeTrainerOptions.MinStepSize);
             }
 
             return optimizationAlgorithm;
@@ -144,7 +140,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         /// <param name="set">The dataset</param>
         /// <returns>The list of regression targets, or null if <paramref name="set"/> was null</returns>
-        public static float[] GetDatasetRegressionLabels(Dataset set)
+        internal static float[] GetDatasetRegressionLabels(Dataset set)
         {
             if (set == null)
                 return null;
@@ -155,26 +151,30 @@ namespace Microsoft.ML.Trainers.FastTree
             return dlabels.Select(x => (float)x).ToArray(dlabels.Length);
         }
 
-        protected override void PrepareLabels(IChannel ch)
+        private protected override void PrepareLabels(IChannel ch)
         {
         }
 
-        protected override Test ConstructTestForTrainingData()
+        private protected override Test ConstructTestForTrainingData()
         {
             return new RegressionTest(ConstructScoreTracker(TrainSet));
         }
 
-        protected override RegressionPredictionTransformer<FastTreeRegressionModelParameters> MakeTransformer(FastTreeRegressionModelParameters model, Schema trainSchema)
+        private protected override RegressionPredictionTransformer<FastTreeRegressionModelParameters> MakeTransformer(FastTreeRegressionModelParameters model, DataViewSchema trainSchema)
             => new RegressionPredictionTransformer<FastTreeRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<FastTreeRegressionModelParameters> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="FastTreeRegressionTrainer"/> using both training and validation data, returns
+        /// a <see cref="RegressionPredictionTransformer{FastTreeRegressionModelParameters}"/>.
+        /// </summary>
+        public RegressionPredictionTransformer<FastTreeRegressionModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
@@ -225,13 +225,13 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 #endif
 
-        protected override void InitializeTests()
+        private protected override void InitializeTests()
         {
             // Initialize regression tests.
-            if (Args.TestFrequency != int.MaxValue)
+            if (FastTreeTrainerOptions.TestFrequency != int.MaxValue)
                 AddFullRegressionTests();
 
-            if (Args.PrintTestGraph)
+            if (FastTreeTrainerOptions.PrintTestGraph)
             {
                 // If FirstTestHistory is null (which means the tests were not intialized due to /tf==infinity),
                 // we need initialize first set for graph printing.
@@ -243,30 +243,30 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
-            if (Args.PrintTrainValidGraph && _trainRegressionTest == null)
+            if (FastTreeTrainerOptions.PrintTrainValidGraph && _trainRegressionTest == null)
             {
                 Test trainRegressionTest = new RegressionTest(ConstructScoreTracker(TrainSet));
                 _trainRegressionTest = trainRegressionTest;
             }
 
-            if (Args.PrintTrainValidGraph && _testRegressionTest == null && TestSets != null && TestSets.Length > 0)
+            if (FastTreeTrainerOptions.PrintTrainValidGraph && _testRegressionTest == null && TestSets != null && TestSets.Length > 0)
                 _testRegressionTest = new RegressionTest(ConstructScoreTracker(TestSets[0]));
 
             // Add early stopping if appropriate.
-            TrainTest = new RegressionTest(ConstructScoreTracker(TrainSet), Args.EarlyStoppingMetrics);
+            TrainTest = new RegressionTest(ConstructScoreTracker(TrainSet), FastTreeTrainerOptions.EarlyStoppingMetrics);
             if (ValidSet != null)
-                ValidTest = new RegressionTest(ConstructScoreTracker(ValidSet), Args.EarlyStoppingMetrics);
+                ValidTest = new RegressionTest(ConstructScoreTracker(ValidSet), FastTreeTrainerOptions.EarlyStoppingMetrics);
 
-            if (Args.EnablePruning && ValidTest != null)
+            if (FastTreeTrainerOptions.EnablePruning && ValidTest != null)
             {
-                if (Args.UseTolerantPruning) // Use simple early stopping condition.
-                    PruningTest = new TestWindowWithTolerance(ValidTest, 0, Args.PruningWindowSize, Args.PruningThreshold);
+                if (FastTreeTrainerOptions.UseTolerantPruning) // Use simple early stopping condition.
+                    PruningTest = new TestWindowWithTolerance(ValidTest, 0, FastTreeTrainerOptions.PruningWindowSize, FastTreeTrainerOptions.PruningThreshold);
                 else
                     PruningTest = new TestHistory(ValidTest, 0);
             }
         }
 
-        protected override void PrintIterationMessage(IChannel ch, IProgressChannel pch)
+        private protected override void PrintIterationMessage(IChannel ch, IProgressChannel pch)
         {
             // REVIEW: Shift this to use progress channels.
 #if OLD_TRACING
@@ -306,11 +306,11 @@ namespace Microsoft.ML.Trainers.FastTree
 #endif
         }
 
-        protected override string GetTestGraphHeader()
+        private protected override string GetTestGraphHeader()
         {
             StringBuilder headerBuilder = new StringBuilder("Eval:\tFileName\tNDCG@1\tNDCG@2\tNDCG@3\tNDCG@4\tNDCG@5\tNDCG@6\tNDCG@7\tNDCG@8\tNDCG@9\tNDCG@10");
 
-            if (Args.PrintTrainValidGraph)
+            if (FastTreeTrainerOptions.PrintTrainValidGraph)
             {
                 headerBuilder.Append("\tNDCG@20\tNDCG@40");
                 headerBuilder.Append("\nNote: Printing train L2 error as NDCG@20 and test L2 error as NDCG@40..\n");
@@ -319,7 +319,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return headerBuilder.ToString();
         }
 
-        protected override void ComputeTests()
+        private protected override void ComputeTests()
         {
             if (_firstTestSetHistory != null)
             {
@@ -342,7 +342,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        protected override string GetTestGraphLine()
+        private protected override string GetTestGraphLine()
         {
             StringBuilder lineBuilder = new StringBuilder();
 
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return lineBuilder.ToString();
         }
 
-        protected override void Train(IChannel ch)
+        private protected override void Train(IChannel ch)
         {
             base.Train(ch);
             // Print final last iteration.
@@ -416,7 +416,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 _labels = GetDatasetRegressionLabels(trainData);
             }
 
-            public void AdjustTreeOutputs(IChannel ch, RegressionTree tree, DocumentPartitioning partitioning, ScoreTracker trainingScores)
+            public void AdjustTreeOutputs(IChannel ch, InternalRegressionTree tree, DocumentPartitioning partitioning, ScoreTracker trainingScores)
             {
                 double shrinkage = LearningRate * Shrinkage;
                 for (int l = 0; l < tree.NumLeaves; ++l)
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public sealed class FastTreeRegressionModelParameters : TreeEnsembleModelParameters
+    public sealed class FastTreeRegressionModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "FastTreeRegressionExec";
         internal const string RegistrationName = "FastTreeRegressionPredictor";
@@ -461,13 +461,13 @@ namespace Microsoft.ML.Trainers.FastTree
                 loaderAssemblyName: typeof(FastTreeRegressionModelParameters).Assembly.FullName);
         }
 
-        protected override uint VerNumFeaturesSerialized => 0x00010002;
+        private protected override uint VerNumFeaturesSerialized => 0x00010002;
 
-        protected override uint VerDefaultValueSerialized => 0x00010004;
+        private protected override uint VerDefaultValueSerialized => 0x00010004;
 
-        protected override uint VerCategoricalSplitSerialized => 0x00010005;
+        private protected override uint VerCategoricalSplitSerialized => 0x00010005;
 
-        public FastTreeRegressionModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        internal FastTreeRegressionModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }
@@ -491,7 +491,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FastTreeRegressionModelParameters(env, ctx);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
     }
 
     internal static partial class FastTree
@@ -499,9 +499,7 @@ namespace Microsoft.ML.Trainers.FastTree
         [TlcModule.EntryPoint(Name = "Trainers.FastTreeRegressor",
             Desc = FastTreeRegressionTrainer.Summary,
             UserName = FastTreeRegressionTrainer.UserNameValue,
-            ShortName = FastTreeRegressionTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastTree""]/*' />",
-                                 @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastTreeRegressor""]/*' />"})]
+            ShortName = FastTreeRegressionTrainer.ShortName)]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, FastTreeRegressionTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));

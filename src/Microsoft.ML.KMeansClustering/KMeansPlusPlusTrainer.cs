@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.CpuMath;
@@ -16,7 +15,6 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.KMeans;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(KMeansPlusPlusTrainer.Summary, typeof(KMeansPlusPlusTrainer), typeof(KMeansPlusPlusTrainer.Options),
     new[] { typeof(SignatureClusteringTrainer), typeof(SignatureTrainer) },
@@ -27,7 +25,7 @@ using Microsoft.ML.Training;
 [assembly: LoadableClass(typeof(void), typeof(KMeansPlusPlusTrainer), null, typeof(SignatureEntryPointModule), "KMeans")]
 
 namespace Microsoft.ML.Trainers.KMeans
-{
+    {
     /// <include file='./doc.xml' path='doc/members/member[@name="KMeans++"]/*' />
     public class KMeansPlusPlusTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansModelParameters>, KMeansModelParameters>
     {
@@ -52,7 +50,7 @@ namespace Microsoft.ML.Trainers.KMeans
             public const int ClustersCount = 5;
         }
 
-        public class Options : UnsupervisedLearnerInputBaseWithWeight
+        public sealed class Options : UnsupervisedLearnerInputBaseWithWeight
         {
             /// <summary>
             /// The number of clusters.
@@ -110,7 +108,7 @@ namespace Microsoft.ML.Trainers.KMeans
         private readonly string _featureColumn;
 
         public override TrainerInfo Info { get; }
-        public override PredictionKind PredictionKind => PredictionKind.Clustering;
+        private protected override PredictionKind PredictionKind => PredictionKind.Clustering;
 
         /// <summary>
         /// Initializes a new instance of <see cref="KMeansPlusPlusTrainer"/>
@@ -242,9 +240,7 @@ namespace Microsoft.ML.Trainers.KMeans
         [TlcModule.EntryPoint(Name = "Trainers.KMeansPlusPlusClusterer",
             Desc = Summary,
             UserName = UserNameValue,
-            ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.KMeansClustering/doc.xml' path='doc/members/member[@name=""KMeans++""]/*' />",
-                                 @"<include file='../Microsoft.ML.KMeansClustering/doc.xml' path='doc/members/example[@name=""KMeans++""]/*' />"})]
+            ShortName = ShortName)]
         internal static CommonOutputs.ClusteringOutput TrainKMeans(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -257,25 +253,25 @@ namespace Microsoft.ML.Trainers.KMeans
                 getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
                 new SchemaShape.Column(DefaultColumnNames.Score,
                         SchemaShape.Column.VectorKind.Vector,
-                        NumberType.R4,
+                        NumberDataViewType.Single,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
 
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel,
                         SchemaShape.Column.VectorKind.Scalar,
-                        NumberType.U4,
+                        NumberDataViewType.UInt32,
                         true,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
-        protected override ClusteringPredictionTransformer<KMeansModelParameters> MakeTransformer(KMeansModelParameters model, Schema trainSchema)
+        private protected override ClusteringPredictionTransformer<KMeansModelParameters> MakeTransformer(KMeansModelParameters model, DataViewSchema trainSchema)
         => new ClusteringPredictionTransformer<KMeansModelParameters>(Host, model, trainSchema, _featureColumn);
     }
 
@@ -420,7 +416,7 @@ namespace Microsoft.ML.Trainers.KMeans
         // each row. Instead the RowCursor provides a stable ID across multiple
         // cursorings. We map those IDs into an index to poke into the per instance
         // structures.
-        private readonly HashArray<RowId> _parallelIndexLookup;
+        private readonly HashArray<DataViewRowId> _parallelIndexLookup;
 
         public KMeansAcceleratedRowMap(FeatureFloatVectorCursor.Factory factory, IChannel ch,
             long baseMaxInstancesToAccelerate, long totalTrainingInstances, bool isParallel)
@@ -466,11 +462,11 @@ namespace Microsoft.ML.Trainers.KMeans
         /// preinitialize the HashArray so we can perform lock-free lookup operations during
         /// the primary KMeans pass.
         /// </summary>
-        private HashArray<RowId> BuildParallelIndexLookup(FeatureFloatVectorCursor.Factory factory)
+        private HashArray<DataViewRowId> BuildParallelIndexLookup(FeatureFloatVectorCursor.Factory factory)
         {
             Contracts.AssertValue(factory);
 
-            HashArray<RowId> lookup = new HashArray<RowId>();
+            HashArray<DataViewRowId> lookup = new HashArray<DataViewRowId>();
             int n = 0;
             using (var cursor = factory.Create())
             {
@@ -928,8 +924,8 @@ namespace Microsoft.ML.Trainers.KMeans
                 else
                 {
                     ArrayDataViewBuilder arrDv = new ArrayDataViewBuilder(host);
-                    arrDv.AddColumn(DefaultColumnNames.Features, NumberType.R4, clusters);
-                    arrDv.AddColumn(DefaultColumnNames.Weight, NumberType.R4, totalWeights);
+                    arrDv.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single, clusters);
+                    arrDv.AddColumn(DefaultColumnNames.Weight, NumberDataViewType.Single, totalWeights);
                     var subDataViewCursorFactory = new FeatureFloatVectorCursor.Factory(
                         new RoleMappedData(arrDv.GetDataView(), null, DefaultColumnNames.Features, weight: DefaultColumnNames.Weight), CursOpt.Weight | CursOpt.Features);
                     long discard1;

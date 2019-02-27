@@ -7,13 +7,13 @@ using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 
-namespace Microsoft.ML.Ensemble.Selector
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal interface ISubModelSelector<TOutput>
     {
-        IList<FeatureSubsetModel<IPredictorProducing<TOutput>>> Prune(IList<FeatureSubsetModel<IPredictorProducing<TOutput>>> models);
+        IList<FeatureSubsetModel<TOutput>> Prune(IList<FeatureSubsetModel<TOutput>> models);
 
-        void CalculateMetrics(FeatureSubsetModel<IPredictorProducing<TOutput>> model, ISubsetSelector subsetSelector, Subset subset,
+        void CalculateMetrics(FeatureSubsetModel<TOutput> model, ISubsetSelector subsetSelector, Subset subset,
             Batch batch, bool needMetrics);
 
         Single ValidationDatasetProportion { get; }

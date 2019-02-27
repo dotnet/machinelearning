@@ -7,9 +7,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
-    public sealed class DcgCalculator
+    internal sealed class DcgCalculator
     {
         // This should be exposed to outside classes as constants
         public static double[] LabelMap = new double[] { 0.0, 3.0, 7.0, 15.0, 31.0 };

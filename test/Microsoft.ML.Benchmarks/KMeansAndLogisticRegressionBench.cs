@@ -5,9 +5,9 @@
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Learners;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -17,18 +17,18 @@ namespace Microsoft.ML.Benchmarks
         private readonly string _dataPath = BaseTestClass.GetDataPath("adult.tiny.with-schema.txt");
 
         [Benchmark]
-        public ParameterMixingCalibratedPredictor TrainKMeansAndLR()
+        public CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> TrainKMeansAndLR()
         {
             var ml = new MLContext(seed: 1);
             // Pipeline
 
-            var input = ml.Data.ReadFromTextFile(_dataPath, new[] {
-                            new TextLoader.Column("Label", DataKind.BL, 0),
-                            new TextLoader.Column("CatFeatures", DataKind.TX,
+            var input = ml.Data.LoadFromTextFile(_dataPath, new[] {
+                            new TextLoader.Column("Label", DataKind.Boolean, 0),
+                            new TextLoader.Column("CatFeatures", DataKind.String,
                                 new [] {
                                     new TextLoader.Range() { Min = 1, Max = 8 },
                                 }),
-                            new TextLoader.Column("NumFeatures", DataKind.R4,
+                            new TextLoader.Column("NumFeatures", DataKind.Single,
                                 new [] {
                                     new TextLoader.Range() { Min = 9, Max = 14 },
                                 }),

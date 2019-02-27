@@ -11,11 +11,11 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Training;
+using Microsoft.ML.Trainers;
 
-namespace Microsoft.ML.Ensemble.OutputCombiners
+namespace Microsoft.ML.Trainers.Ensemble
 {
-    internal abstract class BaseStacking<TOutput> : IStackingTrainer<TOutput>
+    internal abstract class BaseStacking<TOutput> : IStackingTrainer<TOutput>, ICanSaveModel
     {
         public abstract class ArgumentsBase
         {
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
             CheckMeta();
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             Host.Check(Meta != null, "Can't save an untrained Stacking combiner");
             Host.CheckValue(ctx, nameof(ctx));
@@ -116,13 +116,13 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
 
             var ivm = Meta as IValueMapper;
             Contracts.Check(ivm != null, "Stacking predictor doesn't implement the expected interface");
-            if (!(ivm.InputType is VectorType vectorType) || vectorType.ItemType != NumberType.Float)
+            if (!(ivm.InputType is VectorType vectorType) || vectorType.ItemType != NumberDataViewType.Single)
                 throw Contracts.Except("Stacking predictor input type is unsupported: {0}", ivm.InputType);
             if (ivm.OutputType.RawType != typeof(TOutput))
                 throw Contracts.Except("Stacking predictor output type is unsupported: {0}", ivm.OutputType);
         }
 
-        public void Train(List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models, RoleMappedData data, IHostEnvironment env)
+        public void Train(List<FeatureSubsetModel<TOutput>> models, RoleMappedData data, IHostEnvironment env)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(Stacking.LoadName);
@@ -178,8 +178,8 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
                 var bldr = new ArrayDataViewBuilder(host);
                 Array.Resize(ref labels, count);
                 Array.Resize(ref features, count);
-                bldr.AddColumn(DefaultColumnNames.Label, NumberType.Float, labels);
-                bldr.AddColumn(DefaultColumnNames.Features, NumberType.Float, features);
+                bldr.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single, labels);
+                bldr.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single, features);
 
                 var view = bldr.GetDataView();
                 var rmd = new RoleMappedData(view, DefaultColumnNames.Label, DefaultColumnNames.Features);

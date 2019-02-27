@@ -12,13 +12,13 @@ using Float = System.Single;
 [assembly: LoadableClass(LogLoss.Summary, typeof(LogLoss), null, typeof(SignatureClassificationLoss),
     "Log Loss", "LogLoss", "Logistic", "CrossEntropy")]
 
-[assembly: LoadableClass(HingeLoss.Summary, typeof(HingeLoss), typeof(HingeLoss.Arguments), typeof(SignatureClassificationLoss),
+[assembly: LoadableClass(HingeLoss.Summary, typeof(HingeLoss), typeof(HingeLoss.Options), typeof(SignatureClassificationLoss),
     "Hinge Loss", "HingeLoss", "Hinge")]
 
-[assembly: LoadableClass(SmoothedHingeLoss.Summary, typeof(SmoothedHingeLoss), typeof(SmoothedHingeLoss.Arguments), typeof(SignatureClassificationLoss),
+[assembly: LoadableClass(SmoothedHingeLoss.Summary, typeof(SmoothedHingeLoss), typeof(SmoothedHingeLoss.Options), typeof(SignatureClassificationLoss),
     "Smoothed Hinge Loss", "SmoothedHingeLoss", "SmoothedHinge")]
 
-[assembly: LoadableClass(ExpLoss.Summary, typeof(ExpLoss), typeof(ExpLoss.Arguments), typeof(SignatureClassificationLoss),
+[assembly: LoadableClass(ExpLoss.Summary, typeof(ExpLoss), typeof(ExpLoss.Options), typeof(SignatureClassificationLoss),
     "Exponential Loss", "ExpLoss", "Exp")]
 
 [assembly: LoadableClass(SquaredLoss.Summary, typeof(SquaredLoss), null, typeof(SignatureRegressionLoss),
@@ -27,16 +27,16 @@ using Float = System.Single;
 [assembly: LoadableClass(PoissonLoss.Summary, typeof(PoissonLoss), null, typeof(SignatureRegressionLoss),
     "Poisson Loss", "PoissonLoss", "Poisson")]
 
-[assembly: LoadableClass(TweedieLoss.Summary, typeof(TweedieLoss), typeof(TweedieLoss.Arguments), typeof(SignatureRegressionLoss),
+[assembly: LoadableClass(TweedieLoss.Summary, typeof(TweedieLoss), typeof(TweedieLoss.Options), typeof(SignatureRegressionLoss),
     "Tweedie Loss", "TweedieLoss", "Tweedie", "Tw")]
 
-[assembly: EntryPointModule(typeof(ExpLoss.Arguments))]
+[assembly: EntryPointModule(typeof(ExpLoss.Options))]
 [assembly: EntryPointModule(typeof(LogLossFactory))]
-[assembly: EntryPointModule(typeof(HingeLoss.Arguments))]
+[assembly: EntryPointModule(typeof(HingeLoss.Options))]
 [assembly: EntryPointModule(typeof(PoissonLossFactory))]
-[assembly: EntryPointModule(typeof(SmoothedHingeLoss.Arguments))]
+[assembly: EntryPointModule(typeof(SmoothedHingeLoss.Options))]
 [assembly: EntryPointModule(typeof(SquaredLossFactory))]
-[assembly: EntryPointModule(typeof(TweedieLoss.Arguments))]
+[assembly: EntryPointModule(typeof(TweedieLoss.Options))]
 
 namespace Microsoft.ML
 {
@@ -162,7 +162,7 @@ namespace Microsoft.ML
     public sealed class HingeLoss : ISupportSdcaClassificationLoss
     {
         [TlcModule.Component(Name = "HingeLoss", FriendlyName = "Hinge loss", Alias = "Hinge", Desc = "Hinge loss.")]
-        public sealed class Arguments : ISupportSdcaClassificationLossFactory, ISupportClassificationLossFactory
+        public sealed class Options : ISupportSdcaClassificationLossFactory, ISupportClassificationLossFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Margin value", ShortName = "marg")]
             public Float Margin = Defaults.Margin;
@@ -176,9 +176,9 @@ namespace Microsoft.ML
         private const Float Threshold = 0.5f;
         private readonly Float _margin;
 
-        internal HingeLoss(Arguments args)
+        internal HingeLoss(Options options)
         {
-            _margin = args.Margin;
+            _margin = options.Margin;
         }
 
         private static class Defaults
@@ -187,7 +187,7 @@ namespace Microsoft.ML
         }
 
         public HingeLoss(float margin = Defaults.Margin)
-            : this(new Arguments() { Margin = margin })
+            : this(new Options() { Margin = margin })
         {
         }
 
@@ -234,7 +234,7 @@ namespace Microsoft.ML
     {
         [TlcModule.Component(Name = "SmoothedHingeLoss", FriendlyName = "Smoothed Hinge Loss", Alias = "SmoothedHinge",
                              Desc = "Smoothed Hinge loss.")]
-        public sealed class Arguments : ISupportSdcaClassificationLossFactory, ISupportClassificationLossFactory
+        public sealed class Options : ISupportSdcaClassificationLossFactory, ISupportClassificationLossFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Smoothing constant", ShortName = "smooth")]
             public Float SmoothingConst = Defaults.SmoothingConst;
@@ -268,8 +268,8 @@ namespace Microsoft.ML
             _doubleSmoothConst = _smoothConst * 2;
         }
 
-        private SmoothedHingeLoss(IHostEnvironment env, Arguments args)
-            : this(args.SmoothingConst)
+        private SmoothedHingeLoss(IHostEnvironment env, Options options)
+            : this(options.SmoothingConst)
         {
         }
 
@@ -333,7 +333,7 @@ namespace Microsoft.ML
     public sealed class ExpLoss : IClassificationLoss
     {
         [TlcModule.Component(Name = "ExpLoss", FriendlyName = "Exponential Loss", Desc = "Exponential loss.")]
-        public sealed class Arguments : ISupportClassificationLossFactory
+        public sealed class Options : ISupportClassificationLossFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Beta (dilation)", ShortName = "beta")]
             public Float Beta = 1;
@@ -345,9 +345,9 @@ namespace Microsoft.ML
 
         private readonly Float _beta;
 
-        public ExpLoss(Arguments args)
+        public ExpLoss(Options options)
         {
-            _beta = args.Beta;
+            _beta = options.Beta;
         }
 
         public Double Loss(Float output, Float label)
@@ -438,7 +438,7 @@ namespace Microsoft.ML
     public sealed class TweedieLoss : IRegressionLoss
     {
         [TlcModule.Component(Name = "TweedieLoss", FriendlyName = "Tweedie Loss", Alias = "tweedie", Desc = "Tweedie loss.")]
-        public sealed class Arguments : ISupportRegressionLossFactory
+        public sealed class Options : ISupportRegressionLossFactory
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText =
                 "Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, " +
@@ -454,10 +454,10 @@ namespace Microsoft.ML
         private readonly Double _index1; // 1 minus the index parameter.
         private readonly Double _index2; // 2 minus the index parameter.
 
-        public TweedieLoss(Arguments args)
+        public TweedieLoss(Options options)
         {
-            Contracts.CheckUserArg(1 <= args.Index && args.Index <= 2, nameof(args.Index), "Must be in the range [1, 2]");
-            _index = args.Index;
+            Contracts.CheckUserArg(1 <= options.Index && options.Index <= 2, nameof(options.Index), "Must be in the range [1, 2]");
+            _index = options.Index;
             _index1 = 1 - _index;
             _index2 = 2 - _index;
         }

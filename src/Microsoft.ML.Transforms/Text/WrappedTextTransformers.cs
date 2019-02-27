@@ -35,7 +35,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
-        public WordBagEstimator(IHostEnvironment env,
+        internal WordBagEstimator(IHostEnvironment env,
             string outputColumnName,
             string inputColumnName = null,
             int ngramLength = 1,
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
-        public WordBagEstimator(IHostEnvironment env,
+        internal WordBagEstimator(IHostEnvironment env,
             string outputColumnName,
             string[] inputColumnNames,
             int ngramLength = 1,
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
-        public WordBagEstimator(IHostEnvironment env,
+        internal WordBagEstimator(IHostEnvironment env,
             (string outputColumnName, string[] inputColumnNames)[] columns,
             int ngramLength = 1,
             int skipLength = 0,
@@ -105,12 +105,13 @@ namespace Microsoft.ML.Transforms.Text
             _weighting = weighting;
         }
 
+        /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
         public override TransformWrapper Fit(IDataView input)
         {
             // Create arguments.
-            var args = new WordBagBuildingTransformer.Arguments
+            var options = new WordBagBuildingTransformer.Options
             {
-                Column = _columns.Select(x => new WordBagBuildingTransformer.Column { Name = x.outputColumnName, Source = x.sourceColumnsNames }).ToArray(),
+                Columns = _columns.Select(x => new WordBagBuildingTransformer.Column { Name = x.outputColumnName, Source = x.sourceColumnsNames }).ToArray(),
                 NgramLength = _ngramLength,
                 SkipLength = _skipLength,
                 AllLengths = _allLengths,
@@ -118,7 +119,7 @@ namespace Microsoft.ML.Transforms.Text
                 Weighting = _weighting
             };
 
-            return new TransformWrapper(Host, WordBagBuildingTransformer.Create(Host, args, input), true);
+            return new TransformWrapper(Host, WordBagBuildingTransformer.Create(Host, options, input), true);
         }
     }
 
@@ -154,7 +155,7 @@ namespace Microsoft.ML.Transforms.Text
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        public WordHashBagEstimator(IHostEnvironment env,
+        internal WordHashBagEstimator(IHostEnvironment env,
             string outputColumnName,
             string inputColumnName = null,
             int hashBits = 16,
@@ -185,7 +186,7 @@ namespace Microsoft.ML.Transforms.Text
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        public WordHashBagEstimator(IHostEnvironment env,
+        internal WordHashBagEstimator(IHostEnvironment env,
             string outputColumnName,
             string[] inputColumnNames,
             int hashBits = 16,
@@ -215,7 +216,7 @@ namespace Microsoft.ML.Transforms.Text
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        public WordHashBagEstimator(IHostEnvironment env,
+        internal WordHashBagEstimator(IHostEnvironment env,
             (string outputColumnName, string[] inputColumnNames)[] columns,
             int hashBits = 16,
             int ngramLength = 1,
@@ -242,12 +243,13 @@ namespace Microsoft.ML.Transforms.Text
             _invertHash = invertHash;
         }
 
+        /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
         public override TransformWrapper Fit(IDataView input)
         {
             // Create arguments.
-            var args = new WordHashBagProducingTransformer.Arguments
+            var options = new WordHashBagProducingTransformer.Options
             {
-                Column = _columns.Select(x => new WordHashBagProducingTransformer.Column { Name = x.outputColumnName  ,Source = x.inputColumnNames}).ToArray(),
+                Columns = _columns.Select(x => new WordHashBagProducingTransformer.Column { Name = x.outputColumnName  ,Source = x.inputColumnNames}).ToArray(),
                 HashBits = _hashBits,
                 NgramLength = _ngramLength,
                 SkipLength = _skipLength,
@@ -257,7 +259,7 @@ namespace Microsoft.ML.Transforms.Text
                 InvertHash = _invertHash
             };
 
-            return new TransformWrapper(Host, WordHashBagProducingTransformer.Create(Host, args, input), true);
+            return new TransformWrapper(Host, WordHashBagProducingTransformer.Create(Host, options, input), true);
         }
     }
 }

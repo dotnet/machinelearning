@@ -15,10 +15,8 @@ namespace Microsoft.ML.Transforms
     {
         [TlcModule.EntryPoint(Name = "Transforms.FeatureSelectorByCount",
             Desc = CountFeatureSelectingEstimator.Summary,
-            UserName = CountFeatureSelectingEstimator.UserName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""CountFeatureSelection""]/*'/>",
-                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""CountFeatureSelection""]/*'/>"})]
-        public static CommonOutputs.TransformOutput CountSelect(IHostEnvironment env, CountFeatureSelectingEstimator.Arguments input)
+            UserName = CountFeatureSelectingEstimator.UserName)]
+        public static CommonOutputs.TransformOutput CountSelect(IHostEnvironment env, CountFeatureSelectingEstimator.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("CountSelect");
@@ -32,10 +30,8 @@ namespace Microsoft.ML.Transforms
         [TlcModule.EntryPoint(Name = "Transforms.FeatureSelectorByMutualInformation",
             Desc = MutualInformationFeatureSelectingEstimator.Summary,
             UserName = MutualInformationFeatureSelectingEstimator.UserName,
-            ShortName = MutualInformationFeatureSelectingEstimator.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""MutualInformationFeatureSelection""]/*'/>",
-                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""MutualInformationFeatureSelection""]/*'/>"})]
-        public static CommonOutputs.TransformOutput MutualInformationSelect(IHostEnvironment env, MutualInformationFeatureSelectingEstimator.Arguments input)
+            ShortName = MutualInformationFeatureSelectingEstimator.ShortName)]
+        public static CommonOutputs.TransformOutput MutualInformationSelect(IHostEnvironment env, MutualInformationFeatureSelectingEstimator.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("MutualInformationSelect");

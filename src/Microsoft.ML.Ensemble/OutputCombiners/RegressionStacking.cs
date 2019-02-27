@@ -4,10 +4,10 @@
 using System;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(RegressionStacking), typeof(RegressionStacking.Arguments), typeof(SignatureCombiner),
     Stacking.UserName, RegressionStacking.LoadName)]
@@ -15,11 +15,11 @@ using Microsoft.ML.Model;
 [assembly: LoadableClass(typeof(RegressionStacking), null, typeof(SignatureLoadModel),
     Stacking.UserName, RegressionStacking.LoaderSignature)]
 
-namespace Microsoft.ML.Ensemble.OutputCombiners
+namespace Microsoft.ML.Trainers.Ensemble
 {
     using TScalarPredictor = IPredictorProducing<Single>;
 
-    internal sealed class RegressionStacking : BaseScalarStacking, IRegressionOutputCombiner, ICanSaveModel
+    internal sealed class RegressionStacking : BaseScalarStacking, IRegressionOutputCombiner
     {
         public const string LoadName = "RegressionStacking";
         public const string LoaderSignature = "RegressionStacking";

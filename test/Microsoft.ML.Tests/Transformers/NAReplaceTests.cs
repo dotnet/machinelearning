@@ -4,7 +4,6 @@
 
 using System.IO;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
@@ -42,12 +41,12 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = 2, B = 1 ,C= new float[2]{ 3, 4 } , D = new double[2]{ 5,6}},
             };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new MissingValueReplacingEstimator(Env,
-                new MissingValueReplacingTransformer.ColumnInfo("NAA", "A", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("NAB", "B", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("NAC", "C", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("NAD", "D", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean));
+            var dataView = ML.Data.LoadFromEnumerable(data);
+            var pipe = ML.Transforms.ReplaceMissingValues(
+                new MissingValueReplacingEstimator.ColumnOptions("NAA", "A", MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.Mean),
+                new MissingValueReplacingEstimator.ColumnOptions("NAB", "B", MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.Mean),
+                new MissingValueReplacingEstimator.ColumnOptions("NAC", "C", MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.Mean),
+                new MissingValueReplacingEstimator.ColumnOptions("NAD", "D", MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.Mean));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -56,35 +55,31 @@ namespace Microsoft.ML.Tests.Transformers
         public void NAReplaceStatic()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(Env, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
                 ScalarFloat: ctx.LoadFloat(1),
                 ScalarDouble: ctx.LoadDouble(1),
                 VectorFloat: ctx.LoadFloat(1, 4),
                 VectorDoulbe: ctx.LoadDouble(1, 4)
             ));
 
-            var data = reader.Read(dataPath);
+            var data = reader.Load(dataPath);
             var wrongCollection = new[] { new TestClass() { A = 1, B = 3, C = new float[2] { 1, 2 }, D = new double[2] { 3, 4 } } };
-            var invalidData = ML.Data.ReadFromEnumerable(wrongCollection);
+            var invalidData = ML.Data.LoadFromEnumerable(wrongCollection);
 
             var est = data.MakeNewEstimator().
                    Append(row => (
-                   A: row.ScalarFloat.ReplaceNaNValues(MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Maximum),
-                   B: row.ScalarDouble.ReplaceNaNValues(MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                   C: row.VectorFloat.ReplaceNaNValues(MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                   D: row.VectorDoulbe.ReplaceNaNValues(MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Minimum)
+                   A: row.ScalarFloat.ReplaceNaNValues(MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.Maximum),
+                   B: row.ScalarDouble.ReplaceNaNValues(MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.Mean),
+                   C: row.VectorFloat.ReplaceNaNValues(MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.Mean),
+                   D: row.VectorDoulbe.ReplaceNaNValues(MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.Minimum)
                    ));
 
             TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
             var outputPath = GetOutputPath("NAReplace", "featurized.tsv");
-            using (var ch = Env.Start("save"))
-            {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
-                var savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
-                var view = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "A", "B", "C", "D" });
-                using (var fs = File.Create(outputPath))
-                    DataSaverUtils.SaveDataView(ch, saver, view, fs, keepHidden: true);
-            }
+            var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data).AsDynamic, 4);
+            var view = ML.Transforms.SelectColumns("A", "B", "C", "D" ).Fit(savedData).Transform(savedData);
+            using (var fs = File.Create(outputPath))
+                ML.Data.SaveAsText(view, fs, headerRow: true, keepHidden: true);
 
             CheckEquality("NAReplace", "featurized.tsv");
             Done();
@@ -107,12 +102,12 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = 2, B = 1 ,C= new float[2]{ 3, 4 } , D = new double[2]{ 5,6}},
             };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new MissingValueReplacingEstimator(Env,
-                new MissingValueReplacingTransformer.ColumnInfo("NAA", "A", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("NAB", "B", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("NAC", "C", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("NAD", "D", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean));
+            var dataView = ML.Data.LoadFromEnumerable(data);
+            var pipe = ML.Transforms.ReplaceMissingValues(
+                new MissingValueReplacingEstimator.ColumnOptions("NAA", "A", MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.Mean),
+                new MissingValueReplacingEstimator.ColumnOptions("NAB", "B", MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.Mean),
+                new MissingValueReplacingEstimator.ColumnOptions("NAC", "C", MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.Mean),
+                new MissingValueReplacingEstimator.ColumnOptions("NAD", "D", MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.Mean));
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

@@ -21,7 +21,7 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Transforms
 {
-    public sealed class MissingValueIndicatorTransform : OneToOneTransformBase
+    internal sealed class MissingValueIndicatorTransform : OneToOneTransformBase
     {
         public sealed class Column : OneToOneColumn
         {
@@ -44,8 +44,8 @@ namespace Microsoft.ML.Transforms
 
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
         }
 
         public const string LoaderSignature = "MissingIndicatorFunction";
@@ -75,11 +75,11 @@ namespace Microsoft.ML.Transforms
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
         public MissingValueIndicatorTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column,
+            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Columns,
                 input, TestIsFloatItem)
         {
             Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
+            Host.Assert(Infos.Length == Utils.Size(args.Columns));
 
             _types = GetTypesAndMetadata();
         }
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Transforms
                 });
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -141,17 +141,17 @@ namespace Microsoft.ML.Transforms
                 Host.Check(type.GetValueCount() < int.MaxValue / 2);
 
                 if (!(type is VectorType vectorType))
-                    types[iinfo] = new VectorType(NumberType.Float, 2);
+                    types[iinfo] = new VectorType(NumberDataViewType.Single, 2);
                 else
                 {
-                    types[iinfo] = new VectorType(NumberType.Float, vectorType, 2);
+                    types[iinfo] = new VectorType(NumberDataViewType.Single, vectorType, 2);
 
                     // Produce slot names metadata iff the source has (valid) slot names.
                     VectorType typeNames;
                     if (!vectorType.IsKnownSize ||
-                        (typeNames = Source.Schema[Infos[iinfo].Source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType) == null ||
+                        (typeNames = Source.Schema[Infos[iinfo].Source].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType) == null ||
                         typeNames.Size != vectorType.Size ||
-                        !(typeNames.ItemType is TextType))
+                        !(typeNames.ItemType is TextDataViewType))
                     {
                         continue;
                     }
@@ -160,15 +160,15 @@ namespace Microsoft.ML.Transforms
                 // Add slot names metadata.
                 using (var bldr = md.BuildMetadata(iinfo))
                 {
-                    bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.SlotNames,
-                        MetadataUtils.GetNamesType(types[iinfo].Size), GetSlotNames);
+                    bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(AnnotationUtils.Kinds.SlotNames,
+                        AnnotationUtils.GetNamesType(types[iinfo].Size), GetSlotNames);
                 }
             }
             md.Seal();
             return types;
         }
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
+        protected override DataViewType GetColumnTypeCore(int iinfo)
         {
             Host.Assert(0 <= iinfo & iinfo < Infos.Length);
             return _types[iinfo];
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Transforms
 
             int size = _types[iinfo].Size;
             if (size == 0)
-                throw MetadataUtils.ExceptGetMetadata();
+                throw AnnotationUtils.ExceptGetAnnotation();
 
             var editor = VBufferEditor.Create(ref dst, size);
 
@@ -198,12 +198,12 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(size == 2 * srcVectorType.Size);
 
                 // REVIEW: Do we need to verify that there is metadata or should we just call GetMetadata?
-                var typeNames = Source.Schema[Infos[iinfo].Source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
-                if (typeNames == null || typeNames.Size != srcVectorType.Size || !(typeNames.ItemType is TextType))
-                    throw MetadataUtils.ExceptGetMetadata();
+                var typeNames = Source.Schema[Infos[iinfo].Source].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType;
+                if (typeNames == null || typeNames.Size != srcVectorType.Size || !(typeNames.ItemType is TextDataViewType))
+                    throw AnnotationUtils.ExceptGetAnnotation();
 
                 var names = default(VBuffer<ReadOnlyMemory<char>>);
-                Source.Schema[Infos[iinfo].Source].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
+                Source.Schema[Infos[iinfo].Source].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref names);
 
                 // We both assert and check. If this fails, there is a bug somewhere (possibly in this code
                 // but more likely in the implementation of Base. On the other hand, we don't want to proceed
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Transforms
             dst = editor.Commit();
         }
 
-        protected override Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer)
+        protected override Delegate GetGetterCore(IChannel ch, DataViewRow input, int iinfo, out Action disposer)
         {
             Host.AssertValueOrNull(ch);
             Host.AssertValue(input);

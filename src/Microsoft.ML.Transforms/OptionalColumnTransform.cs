@@ -34,13 +34,13 @@ namespace Microsoft.ML.Transforms
     {
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s)", ShortName = "col", SortOrder = 1)]
-            public string[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public string[] Columns;
         }
 
         private sealed class Bindings : ColumnBindingsBase
         {
-            public readonly ColumnType[] ColumnTypes;
+            public readonly DataViewType[] ColumnTypes;
             public readonly int[] SrcCols;
 
             private readonly MetadataDispatcher _metadata;
@@ -48,11 +48,11 @@ namespace Microsoft.ML.Transforms
             // The input schema of the original data view that contains the source columns. We need this
             // so that we can have the metadata even when we load this transform with new data that does not have
             // these columns.
-            private readonly Schema _inputWithOptionalColumn;
+            private readonly DataViewSchema _inputWithOptionalColumn;
             private readonly int[] _srcColsWithOptionalColumn;
 
-            private Bindings(OptionalColumnTransform parent, ColumnType[] columnTypes, int[] srcCols,
-                int[] srcColsWithOptionalColumn, Schema input, Schema inputWithOptionalColumn, bool user, string[] names)
+            private Bindings(OptionalColumnTransform parent, DataViewType[] columnTypes, int[] srcCols,
+                int[] srcColsWithOptionalColumn, DataViewSchema input, DataViewSchema inputWithOptionalColumn, bool user, string[] names)
                 : base(input, user, names)
             {
                 Contracts.AssertValue(parent);
@@ -68,17 +68,17 @@ namespace Microsoft.ML.Transforms
                 SetMetadata();
             }
 
-            public static Bindings Create(Arguments args, Schema input, OptionalColumnTransform parent)
+            public static Bindings Create(Arguments args, DataViewSchema input, OptionalColumnTransform parent)
             {
-                var names = new string[args.Column.Length];
-                var columnTypes = new ColumnType[args.Column.Length];
-                var srcCols = new int[args.Column.Length];
-                for (int i = 0; i < args.Column.Length; i++)
+                var names = new string[args.Columns.Length];
+                var columnTypes = new DataViewType[args.Columns.Length];
+                var srcCols = new int[args.Columns.Length];
+                for (int i = 0; i < args.Columns.Length; i++)
                 {
-                    names[i] = args.Column[i];
+                    names[i] = args.Columns[i];
                     int col;
                     bool success = input.TryGetColumnIndex(names[i], out col);
-                    Contracts.CheckUserArg(success, nameof(args.Column));
+                    Contracts.CheckUserArg(success, nameof(args.Columns));
                     columnTypes[i] = input[col].Type;
                     srcCols[i] = col;
                 }
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Transforms
                 return new Bindings(parent, columnTypes, srcCols, srcCols, input, input, true, names);
             }
 
-            public static Bindings Create(IHostEnvironment env, ModelLoadContext ctx, Schema input, OptionalColumnTransform parent)
+            public static Bindings Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema input, OptionalColumnTransform parent)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(input);
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Transforms
 
                 var saver = new BinarySaver(env, new BinarySaver.Arguments());
                 var names = new string[size];
-                var columnTypes = new ColumnType[size];
+                var columnTypes = new DataViewType[size];
                 var srcCols = new int[size];
                 var srcColsWithOptionalColumn = new int[size];
                 for (int i = 0; i < size; i++)
@@ -177,23 +177,23 @@ namespace Microsoft.ML.Transforms
                 md.Seal();
             }
 
-            protected override ColumnType GetColumnTypeCore(int iinfo)
+            protected override DataViewType GetColumnTypeCore(int iinfo)
             {
                 Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
                 return ColumnTypes[iinfo];
             }
 
-            protected override IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypesCore(int iinfo)
+            protected override IEnumerable<KeyValuePair<string, DataViewType>> GetAnnotationTypesCore(int iinfo)
             {
                 return _metadata.GetMetadataTypes(iinfo);
             }
 
-            protected override ColumnType GetMetadataTypeCore(string kind, int iinfo)
+            protected override DataViewType GetAnnotationTypeCore(string kind, int iinfo)
             {
                 return _metadata.GetMetadataTypeOrNull(kind, iinfo);
             }
 
-            protected override void GetMetadataCore<TValue>(string kind, int iinfo, ref TValue value)
+            protected override void GetAnnotationCore<TValue>(string kind, int iinfo, ref TValue value)
             {
                 _metadata.GetMetadata(_parent.Host, kind, iinfo, ref value);
             }
@@ -212,6 +212,18 @@ namespace Microsoft.ML.Transforms
                 }
 
                 return col => 0 <= col && col < active.Length && active[col];
+            }
+
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            public IEnumerable<DataViewSchema.Column> GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
+            {
+                Contracts.AssertValue(dependingColumns);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(dependingColumns, AsSchema);
+                Func<int, bool> dependencies = GetDependencies(predicate);
+
+                return Input.Where(c => dependencies(c.Index));
             }
         }
 
@@ -244,7 +256,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="columns">Columns to transform.</param>
         public OptionalColumnTransform(IHostEnvironment env, IDataView input, params string[] columns)
-            : this(env, new Arguments() { Column = columns }, input)
+            : this(env, new Arguments() { Columns = columns }, input)
         {
         }
 
@@ -255,7 +267,7 @@ namespace Microsoft.ML.Transforms
             : base(env, RegistrationName, input)
         {
             Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
+            Host.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
 
             _bindings = Bindings.Create(args, Source.Schema, this);
         }
@@ -280,7 +292,7 @@ namespace Microsoft.ML.Transforms
             return h.Apply("Loading Model", ch => new OptionalColumnTransform(h, ctx, input));
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -291,7 +303,7 @@ namespace Microsoft.ML.Transforms
             _bindings.Save(Host, ctx);
         }
 
-        public override Schema OutputSchema => _bindings.AsSchema;
+        public override DataViewSchema OutputSchema => _bindings.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -299,7 +311,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -312,7 +324,7 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, _bindings, input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
 
@@ -321,7 +333,7 @@ namespace Microsoft.ML.Transforms
             var inputCols = Source.Schema.Where(x => inputPred(x.Index));
 
             var active = _bindings.GetActive(predicate);
-            RowCursor input;
+            DataViewRowCursor input;
 
             if (n > 1 && ShouldUseParallelCursors(predicate) != false)
             {
@@ -330,7 +342,7 @@ namespace Microsoft.ML.Transforms
 
                 if (inputs.Length != 1)
                 {
-                    var cursors = new RowCursor[inputs.Length];
+                    var cursors = new DataViewRowCursor[inputs.Length];
                     for (int i = 0; i < inputs.Length; i++)
                         cursors[i] = new Cursor(Host, _bindings, inputs[i], active);
                     return cursors;
@@ -340,20 +352,18 @@ namespace Microsoft.ML.Transforms
             else
                 input = Source.GetRowCursor(inputCols);
 
-            return new RowCursor[] { new Cursor(Host, _bindings, input, active) };
+            return new DataViewRowCursor[] { new Cursor(Host, _bindings, input, active) };
         }
 
-        protected override Func<int, bool> GetDependenciesCore(Func<int, bool> predicate)
-        {
-            return _bindings.GetDependencies(predicate);
-        }
+        protected override IEnumerable<DataViewSchema.Column> GetDependenciesCore(IEnumerable<DataViewSchema.Column> dependingColumns)
+            => _bindings.GetDependencies(dependingColumns);
 
         protected override int MapColumnIndex(out bool isSrc, int col)
         {
             return _bindings.MapColumnIndex(out isSrc, col);
         }
 
-        protected override Delegate[] CreateGetters(Row input, Func<int, bool> active, out Action disposer)
+        protected override Delegate[] CreateGetters(DataViewRow input, Func<int, bool> active, out Action disposer)
         {
             Func<int, bool> activeInfos =
                 iinfo =>
@@ -374,7 +384,7 @@ namespace Microsoft.ML.Transforms
                         getters[iinfo] = MakeGetter(iinfo);
                     else
                     {
-                        Func<Row, int, ValueGetter<int>> srcDel = GetSrcGetter<int>;
+                        Func<DataViewRow, int, ValueGetter<int>> srcDel = GetSrcGetter<int>;
                         var meth = srcDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_bindings.ColumnTypes[iinfo].GetItemType().RawType);
                         getters[iinfo] = (Delegate)meth.Invoke(this, new object[] { input, iinfo });
                     }
@@ -383,7 +393,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private ValueGetter<T> GetSrcGetter<T>(Row input, int iinfo)
+        private ValueGetter<T> GetSrcGetter<T>(DataViewRow input, int iinfo)
         {
             return input.GetGetter<T>(_bindings.SrcCols[iinfo]);
         }
@@ -413,7 +423,7 @@ namespace Microsoft.ML.Transforms
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
 
-            public Cursor(IChannelProvider provider, Bindings bindings, RowCursor input, bool[] active)
+            public Cursor(IChannelProvider provider, Bindings bindings, DataViewRowCursor input, bool[] active)
                 : base(provider, input)
             {
                 Ch.CheckValue(bindings, nameof(bindings));
@@ -431,7 +441,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public override Schema Schema => _bindings.AsSchema;
+            public override DataViewSchema Schema => _bindings.AsSchema;
 
             public override bool IsColumnActive(int col)
             {
@@ -481,9 +491,7 @@ namespace Microsoft.ML.Transforms
         [TlcModule.EntryPoint(Desc = Summary,
             Name = "Transforms.OptionalColumnCreator",
             UserName = UserName,
-            ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""OptionalColumnTransform""]/*' />",
-                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""OptionalColumnTransform""]/*' />"})]
+            ShortName = ShortName)]
 
         public static CommonOutputs.TransformOutput MakeOptional(IHostEnvironment env, Arguments input)
         {

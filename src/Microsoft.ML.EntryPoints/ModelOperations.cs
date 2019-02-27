@@ -14,7 +14,7 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.EntryPoints
 {
-    public static class ModelOperations
+    internal static class ModelOperations
     {
         public sealed class CombineTransformModelsInput
         {

@@ -9,7 +9,7 @@ namespace Microsoft.ML.Data
 {
     /// <summary>
     /// A cursor that allows slot-by-slot access of data. This is to <see cref="ITransposeDataView"/>
-    /// what <see cref="RowCursor"/> is to <see cref="IDataView"/>.
+    /// what <see cref="DataViewRowCursor"/> is to <see cref="IDataView"/>.
     /// </summary>
     [BestFriend]
     internal abstract class SlotCursor : IDisposable
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// For wrapping another slot cursor from which we get <see cref="SlotIndex"/> and <see cref="MoveNext"/>,
         /// but not the data or type accesors. Somewhat analogous to the <see cref="SynchronizedCursorBase"/>
-        /// for <see cref="RowCursor"/>s.
+        /// for <see cref="DataViewRowCursor"/>s.
         /// </summary>
         [BestFriend]
         internal abstract class SynchronizedSlotCursor : SlotCursor
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// A useful base class for common <see cref="SlotCursor"/> implementations, somewhat
-        /// analogous to the <see cref="RootCursorBase"/> for <see cref="RowCursor"/>s.
+        /// analogous to the <see cref="RootCursorBase"/> for <see cref="DataViewRowCursor"/>s.
         /// </summary>
         [BestFriend]
         internal abstract class RootSlotCursor : SlotCursor

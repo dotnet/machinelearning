@@ -8,11 +8,10 @@ using System.IO;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 
 [assembly: LoadableClass(typeof(RowToRowMapperTransform), null, typeof(SignatureLoadDataTransform),
@@ -22,7 +21,7 @@ namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This interface is used to create a <see cref="RowToRowMapperTransform"/>.
-    /// Implementations should be given an <see cref="Schema"/> in their constructor, and should have a
+    /// Implementations should be given an <see cref="DataViewSchema"/> in their constructor, and should have a
     /// ctor or Create method with <see cref="SignatureLoadRowMapper"/>, along with a corresponding
     /// <see cref="LoadableClassAttribute"/>.
     /// </summary>
@@ -37,16 +36,16 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Returns the getters for the output columns given an active set of output columns. The length of the getters
         /// array should be equal to the number of columns added by the IRowMapper. It should contain the getter for the
-        /// i'th output column if activeOutput(i) is true, and null otherwise. If creating a <see cref="Row"/> or
-        /// <see cref="RowCursor"/> out of this, the <paramref name="disposer"/> delegate (if non-null) should be called
+        /// i'th output column if activeOutput(i) is true, and null otherwise. If creating a <see cref="DataViewRow"/> or
+        /// <see cref="DataViewRowCursor"/> out of this, the <paramref name="disposer"/> delegate (if non-null) should be called
         /// from the dispose of either of those instances.
         /// </summary>
-        Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer);
+        Delegate[] CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer);
 
         /// <summary>
         /// Returns information about the output columns, including their name, type and any metadata information.
         /// </summary>
-        Schema.DetachedColumn[] GetOutputColumns();
+        DataViewSchema.DetachedColumn[] GetOutputColumns();
 
         /// <summary>
         /// DO NOT USE IT!
@@ -56,22 +55,23 @@ namespace Microsoft.ML.Data
         /// </summary>
         ITransformer GetTransformer();
     }
-
-    public delegate void SignatureLoadRowMapper(ModelLoadContext ctx, Schema schema);
+    [BestFriend]
+    internal delegate void SignatureLoadRowMapper(ModelLoadContext ctx, DataViewSchema schema);
 
     /// <summary>
     /// This class is a transform that can add any number of output columns, that depend on any number of input columns.
     /// It does so with the help of an <see cref="IRowMapper"/>, that is given a schema in its constructor, and has methods
     /// to get the dependencies on input columns and the getters for the output columns, given an active set of output columns.
     /// </summary>
-    public sealed class RowToRowMapperTransform : RowToRowTransformBase, IRowToRowMapper,
+    [BestFriend]
+    internal sealed class RowToRowMapperTransform : RowToRowTransformBase, IRowToRowMapper,
         ITransformCanSaveOnnx, ITransformCanSavePfa, ITransformTemplate
     {
         private readonly IRowMapper _mapper;
         private readonly ColumnBindings _bindings;
 
         // If this is not null, the transform is re-appliable without save/load.
-        private readonly Func<Schema, IRowMapper> _mapperFactory;
+        private readonly Func<DataViewSchema, IRowMapper> _mapperFactory;
 
         public const string RegistrationName = "RowToRowMapperTransform";
         public const string LoaderSignature = "RowToRowMapper";
@@ -86,14 +86,13 @@ namespace Microsoft.ML.Data
                 loaderAssemblyName: typeof(RowToRowMapperTransform).Assembly.FullName);
         }
 
-        public override Schema OutputSchema => _bindings.Schema;
+        public override DataViewSchema OutputSchema => _bindings.Schema;
 
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
 
         bool ICanSavePfa.CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
 
-        [BestFriend]
-        internal RowToRowMapperTransform(IHostEnvironment env, IDataView input, IRowMapper mapper, Func<Schema, IRowMapper> mapperFactory)
+        public RowToRowMapperTransform(IHostEnvironment env, IDataView input, IRowMapper mapper, Func<DataViewSchema, IRowMapper> mapperFactory)
             : base(env, RegistrationName, input)
         {
             Contracts.CheckValue(mapper, nameof(mapper));
@@ -102,9 +101,7 @@ namespace Microsoft.ML.Data
             _mapperFactory = mapperFactory;
             _bindings = new ColumnBindings(input.Schema, mapper.GetOutputColumns());
         }
-
-        [BestFriend]
-        internal static Schema GetOutputSchema(Schema inputSchema, IRowMapper mapper)
+        public static DataViewSchema GetOutputSchema(DataViewSchema inputSchema, IRowMapper mapper)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.CheckValue(mapper, nameof(mapper));
@@ -131,7 +128,7 @@ namespace Microsoft.ML.Data
             return h.Apply("Loading Model", ch => new RowToRowMapperTransform(h, ctx, input));
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -145,10 +142,9 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Produces the set of active columns for the data view (as a bool[] of length bindings.ColumnCount),
-        /// a predicate for the needed active input columns, and a predicate for the needed active
-        /// output columns.
+        /// and the needed active input columns, given a predicate for the needed active output columns.
         /// </summary>
-        private bool[] GetActive(Func<int, bool> predicate, out Func<int, bool> predicateInput)
+        private bool[] GetActive(Func<int, bool> predicate, out IEnumerable<DataViewSchema.Column> inputColumns)
         {
             int n = _bindings.Schema.Count;
             var active = Utils.BuildArray(n, predicate);
@@ -164,8 +160,7 @@ namespace Microsoft.ML.Data
             var predicateIn = _mapper.GetDependencies(predicateOut);
 
             // Combine the two sets of input columns.
-            predicateInput =
-                col => 0 <= col && col < activeInput.Length && (activeInput[col] || predicateIn(col));
+            inputColumns = _bindings.InputSchema.Where(col => activeInput[col.Index] || predicateIn(col.Index));
 
             return active;
         }
@@ -191,27 +186,21 @@ namespace Microsoft.ML.Data
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
-
-            Func<int, bool> predicateInput;
-            var active = GetActive(predicate, out predicateInput);
-            var inputCols = Source.Schema.Where(x => predicateInput(x.Index));
+            var active = GetActive(predicate, out IEnumerable<DataViewSchema.Column> inputCols);
 
             return new Cursor(Host, Source.GetRowCursor(inputCols, rand), this, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
 
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
+            var active = GetActive(predicate, out IEnumerable<DataViewSchema.Column> inputCols);
 
-            Func<int, bool> predicateInput;
-            var active = GetActive(predicate, out predicateInput);
-
-            var inputCols = Source.Schema.Where(x => predicateInput(x.Index));
             var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 
@@ -219,7 +208,7 @@ namespace Microsoft.ML.Data
                 inputs = DataViewUtils.CreateSplitCursors(Host, inputs[0], n);
             Host.AssertNonEmpty(inputs);
 
-            var cursors = new RowCursor[inputs.Length];
+            var cursors = new DataViewRowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
                 cursors[i] = new Cursor(Host, inputs[i], this, active);
             return cursors;
@@ -245,16 +234,19 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+        /// <summary>
+        /// Given a set of output columns, return the input columns that are needed to generate those output columns.
+        /// </summary>
+        IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
         {
-            Func<int, bool> predicateInput;
-            GetActive(predicate, out predicateInput);
-            return predicateInput;
+            var predicate = RowCursorUtils.FromColumnsToPredicate(dependingColumns, OutputSchema);
+            GetActive(predicate, out var inputColumns);
+            return inputColumns;
         }
 
-        public Schema InputSchema => Source.Schema;
+        public DataViewSchema InputSchema => Source.Schema;
 
-        public Row GetRow(Row input, Func<int, bool> active)
+        public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
         {
             Host.CheckValue(input, nameof(input));
             Host.CheckValue(active, nameof(active));
@@ -271,7 +263,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
+        IDataTransform ITransformTemplate.ApplyToData(IHostEnvironment env, IDataView newSource)
         {
             Contracts.CheckValue(env, nameof(env));
 
@@ -307,9 +299,9 @@ namespace Microsoft.ML.Data
             private readonly RowToRowMapperTransform _parent;
             private readonly Action _disposer;
 
-            public override Schema Schema { get; }
+            public override DataViewSchema Schema { get; }
 
-            public RowImpl(Row input, RowToRowMapperTransform parent, Schema schema, Delegate[] getters, Action disposer)
+            public RowImpl(DataViewRow input, RowToRowMapperTransform parent, DataViewSchema schema, Delegate[] getters, Action disposer)
                 : base(input)
             {
                 _parent = parent;
@@ -356,9 +348,9 @@ namespace Microsoft.ML.Data
             private readonly Action _disposer;
             private bool _disposed;
 
-            public override Schema Schema => _bindings.Schema;
+            public override DataViewSchema Schema => _bindings.Schema;
 
-            public Cursor(IChannelProvider provider, RowCursor input, RowToRowMapperTransform parent, bool[] active)
+            public Cursor(IChannelProvider provider, DataViewRowCursor input, RowToRowMapperTransform parent, bool[] active)
                 : base(provider, input)
             {
                 var pred = parent.GetActiveOutputColumns(active);

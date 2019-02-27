@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.ML.TestFramework.Attributes;
 using Float = System.Single;
 
 namespace Microsoft.ML.RunTests
@@ -14,17 +15,15 @@ namespace Microsoft.ML.RunTests
     using Microsoft.Data.DataView;
     using Microsoft.ML;
     using Microsoft.ML.Data;
-    using Microsoft.ML.Ensemble;
     using Microsoft.ML.EntryPoints;
     using Microsoft.ML.Internal.Utilities;
-    using Microsoft.ML.Learners;
     using Microsoft.ML.LightGBM;
     using Microsoft.ML.TestFramework;
+    using Microsoft.ML.Trainers;
+    using Microsoft.ML.Trainers.Ensemble;
     using Microsoft.ML.Trainers.FastTree;
-    using Microsoft.ML.Trainers.FastTree.Internal;
+    using Microsoft.ML.Trainers.HalLearners;
     using Microsoft.ML.Trainers.Online;
-    using Microsoft.ML.Trainers.SymSgd;
-    using Microsoft.ML.Transforms.Categorical;
     using Xunit;
     using Xunit.Abstractions;
     using TestLearners = TestLearnersBase;
@@ -162,7 +161,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test.
         /// </summary>
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRTest()
@@ -174,7 +173,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression with non-negative coefficients test.
         /// </summary>
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRNonNegativeTest()
@@ -198,7 +197,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test with a tree featurizer.
         /// </summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         [TestCategory("FastTree")]
@@ -238,9 +237,9 @@ namespace Microsoft.ML.RunTests
         [TestCategory("Multiclass")]
         public void MulticlassReductionTest()
         {
-            RunOneAllTests(TestLearners.Ova, TestDatasets.iris);
-            RunOneAllTests(TestLearners.OvaWithFastForest, TestDatasets.iris);
-            RunOneAllTests(TestLearners.Pkpd, TestDatasets.iris);
+            RunOneAllTests(TestLearners.Ova, TestDatasets.iris, digitsOfPrecision: 6);
+            RunOneAllTests(TestLearners.OvaWithFastForest, TestDatasets.iris, digitsOfPrecision: 6);
+            RunOneAllTests(TestLearners.Pkpd, TestDatasets.iris, digitsOfPrecision: 6);
 
             Done();
         }
@@ -256,7 +255,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
         [TestCategory("SDCA")]
         public void LinearClassifierTest()
@@ -277,7 +276,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionTest()
         {
@@ -287,7 +286,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
         public void BinaryClassifierSymSgdTest()
         {
@@ -299,7 +298,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
         public void BinaryClassifierTesterThresholdingTest()
         {
@@ -325,7 +324,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers with non-negative coefficients
         ///</summary>
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCoreAnd64BitProcess))]  // netcore3.0 and x86 output differs from Baseline
+        [LessThanNetCore30OrNotNetCoreAndX64Fact("netcoreapp3.0 and x86 output differs from Baseline")]
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionNonNegativeTest()
         {
@@ -338,7 +337,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))]  // netcore3.0 output differs from Baseline
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionBinNormTest()
         {
@@ -351,7 +350,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCoreAnd64BitProcess))] // x86 output differs from Baseline and flaky on netcore 3.0
+        [LessThanNetCore30OrNotNetCoreAndX64Fact("x86 output differs from Baseline and flaky on netcore 3.0")]
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionGaussianNormTest()
         {
@@ -388,7 +387,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
         [TestCategory("FastForest")]
         public void FastForestClassificationTest()
@@ -455,7 +454,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
         [TestCategory("FastTree")]
         public void FastTreeBinaryClassificationTest()
@@ -474,7 +473,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         [TestCategory("Binary")]
         [TestCategory("LightGBM")]
         public void LightGBMClassificationTest()
@@ -490,7 +489,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         [TestCategory("Binary"), TestCategory("LightGBM")]
         public void GossLightGBMTest()
         {
@@ -500,7 +499,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         [TestCategory("Binary")]
         [TestCategory("LightGBM")]
         public void DartLightGBMTest()
@@ -514,7 +513,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// A test for multi class classifiers.
         /// </summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         [TestCategory("Multiclass")]
         [TestCategory("LightGBM")]
         public void MultiClassifierLightGBMKeyLabelTest()
@@ -528,7 +527,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// A test for multi class classifiers.
         /// </summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         [TestCategory("Multiclass")]
         [TestCategory("LightGBM")]
         public void MultiClassifierLightGBMKeyLabelU404Test()
@@ -542,7 +541,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// A test for regression.
         /// </summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         [TestCategory("Regression")]
         [TestCategory("LightGBM")]
         public void RegressorLightGBMTest()
@@ -556,7 +555,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// A test for regression.
         /// </summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         [TestCategory("Regression")]
         [TestCategory("LightGBM")]
         public void RegressorLightGBMMAETest()
@@ -570,7 +569,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// A test for regression.
         /// </summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         [TestCategory("Regression")]
         [TestCategory("LightGBM")]
         public void RegressorLightGBMRMSETest()
@@ -602,12 +601,11 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        // x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
         public void TestTreeEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = ML.Data.ReadFromTextFile(dataPath);
+            var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
@@ -624,14 +622,13 @@ namespace Microsoft.ML.RunTests
             CombineAndTestTreeEnsembles(dataView, fastTrees);
         }
 
-        // x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
         public void TestTreeEnsembleCombinerWithCategoricalSplits()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var dataView = ML.Data.ReadFromTextFile(dataPath);
+            var dataView = ML.Data.LoadFromTextFile(dataPath);
 
-            var cat = new OneHotEncodingEstimator(ML, "Features", "Categories").Fit(dataView).Transform(dataView);
+            var cat = ML.Transforms.Categorical.OneHotEncoding("Features", "Categories").Fit(dataView).Transform(dataView);
             var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
@@ -650,9 +647,9 @@ namespace Microsoft.ML.RunTests
 
         private void CombineAndTestTreeEnsembles(IDataView idv, PredictorModel[] fastTrees)
         {
-            var combiner = new TreeEnsembleCombiner(Env, PredictionKind.BinaryClassification);
+            IModelCombiner combiner = new TreeEnsembleCombiner(Env, PredictionKind.BinaryClassification);
 
-            var fastTree = combiner.CombineModels(fastTrees.Select(pm => pm.Predictor as IPredictorProducing<float>));
+            var fastTree = combiner.CombineModels(fastTrees.Select(pm => (IPredictorProducing<float>)pm.Predictor));
 
             var data = new RoleMappedData(idv, label: null, feature: "Features");
             var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModelImpl(Env, data, idv, fastTree) }).ScoredData;
@@ -673,7 +670,7 @@ namespace Microsoft.ML.RunTests
                 Assert.True(scoredArray[i].Schema.TryGetColumnIndex("PredictedLabel", out predColArray[i]));
             }
 
-            var cursors = new RowCursor[predCount];
+            var cursors = new DataViewRowCursor[predCount];
             var cols = scored.Schema.Where( c => c.Name.Equals("Score") || c.Name.Equals("Probability") || c.Name.Equals("PredictedLabel"));
 
             for (int i = 0; i < predCount; i++)
@@ -727,12 +724,11 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        // x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
         public void TestEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = ML.Data.ReadFromTextFile(dataPath);
+            var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var predictors = new PredictorModel[]
             {
@@ -748,7 +744,7 @@ namespace Microsoft.ML.RunTests
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
-                    NumIterations = 2,
+                    NumberOfIterations = 2,
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
@@ -773,12 +769,11 @@ namespace Microsoft.ML.RunTests
             CombineAndTestEnsembles(dataView, "pe", "oc=average", PredictionKind.BinaryClassification, predictors);
         }
 
-        // x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
         public void TestMultiClassEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = ML.Data.ReadFromTextFile(dataPath);
+            var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var predictors = new PredictorModel[]
             {
@@ -853,7 +848,7 @@ namespace Microsoft.ML.RunTests
                 }
             }
 
-            var cursors = new RowCursor[predCount];
+            var cursors = new DataViewRowCursor[predCount];
             var cols = scored.Schema.Where(c => c.Name.Equals("Score") || c.Name.Equals("Probability") || c.Name.Equals("PredictedLabel"));
 
             for (int i = 0; i < predCount; i++)
@@ -943,7 +938,7 @@ namespace Microsoft.ML.RunTests
         }
 
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
         [TestCategory("FastTree")]
         public void FastTreeBinaryClassificationCategoricalSplitTest()
@@ -982,7 +977,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
         [TestCategory("FastTree")]
         public void FastTreeBinaryClassificationNoOpGroupIdTest()
@@ -1002,7 +997,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [X64Fact("x86 output differs from Baseline")]
         [TestCategory("Binary")]
         [TestCategory("FastTree")]
         public void FastTreeHighMinDocsTest()
@@ -1577,7 +1572,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for no calibrators
         ///</summary>
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))]  // netcore3.0 output differs from Baseline
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         [TestCategory("Calibrator")]
         public void DefaultCalibratorPerceptronTest()
         {
@@ -1589,7 +1584,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for PAV calibrators
         ///</summary>
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))]  // netcore3.0 output differs from Baseline
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         [TestCategory("Calibrator")]
         public void PAVCalibratorPerceptronTest()
         {
@@ -1601,7 +1596,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         ///A test for random calibrators
         ///</summary>
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCoreAnd64BitProcess))]  // netcore3.0 and x86 output differs from Baseline
+        [LessThanNetCore30OrNotNetCoreAndX64Fact("netcoreapp3.0 and x86 output differs from Baseline")]
         [TestCategory("Calibrator")]
         public void RandomCalibratorPerceptronTest()
         {
@@ -1760,8 +1755,8 @@ output Out [3] from H all;
         [TestCategory("Anomaly")]
         public void PcaAnomalyTest()
         {
-            Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.mnistOneClass, digitsOfPrecision: 5);
-            Run_TrainTest(TestLearners.PCAAnomalyNoNorm, TestDatasets.mnistOneClass, digitsOfPrecision: 5);
+            Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.mnistOneClass, extraSettings: new[] { "loader=text{sparse+}" }, digitsOfPrecision: 5);
+            Run_TrainTest(TestLearners.PCAAnomalyNoNorm, TestDatasets.mnistOneClass, extraSettings: new[] { "loader=text{sparse+}" }, digitsOfPrecision: 5);
 
             // REVIEW: This next test was misbehaving in a strange way that seems to have gone away
             // mysteriously (bad build?).
@@ -1809,27 +1804,24 @@ output Out [3] from H all;
         [TestCategory("Anomaly")]
         public void CompareSvmPredictorResultsToLibSvm()
         {
-            using (var env = new LocalEnvironment(1, conc: 1))
-            {
-                IDataView trainView = new TextLoader(env, new TextLoader.Arguments(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.trainFilename)));
-                trainView =
-                    NormalizeTransform.Create(env,
-                        new NormalizeTransform.MinMaxArguments()
-                        {
-                            Column = new[] { new NormalizeTransform.AffineColumn() { Name = "Features", Source = "Features" } }
-                        },
-                     trainView);
-                var trainData = new RoleMappedData(trainView, "Label", "Features");
-                IDataView testView = new TextLoader(env, new TextLoader.Arguments(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.testFilename)));
-                ApplyTransformUtils.ApplyAllTransformsToData(env, trainView, testView);
-                var testData = new RoleMappedData(testView, "Label", "Features");
+            var env = new LocalEnvironment(1, conc: 1);
+            IDataView trainView = new TextLoader(env, new TextLoader.Options(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.trainFilename)));
+            trainView =
+                NormalizeTransform.Create(env,
+                    new NormalizeTransform.MinMaxArguments()
+                    {
+                        Column = new[] { new NormalizeTransform.AffineColumn() { Name = "Features", Source = "Features" } }
+                    },
+                    trainView);
+            var trainData = new RoleMappedData(trainView, "Label", "Features");
+            IDataView testView = new TextLoader(env, new TextLoader.Options(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.testFilename)));
+            ApplyTransformUtils.ApplyAllTransformsToData(env, trainView, testView);
+            var testData = new RoleMappedData(testView, "Label", "Features");
 
-                CompareSvmToLibSvmCore("linear kernel", "LinearKernel", env, trainData, testData);
-                CompareSvmToLibSvmCore("polynomial kernel", "PolynomialKernel{d=2}", env, trainData, testData);
-                CompareSvmToLibSvmCore("RBF kernel", "RbfKernel", env, trainData, testData);
-                CompareSvmToLibSvmCore("sigmoid kernel", "SigmoidKernel", env, trainData, testData);
-            }
-
+            CompareSvmToLibSvmCore("linear kernel", "LinearKernel", env, trainData, testData);
+            CompareSvmToLibSvmCore("polynomial kernel", "PolynomialKernel{d=2}", env, trainData, testData);
+            CompareSvmToLibSvmCore("RBF kernel", "RbfKernel", env, trainData, testData);
+            CompareSvmToLibSvmCore("sigmoid kernel", "SigmoidKernel", env, trainData, testData);
             Done();
         }
 #endif
