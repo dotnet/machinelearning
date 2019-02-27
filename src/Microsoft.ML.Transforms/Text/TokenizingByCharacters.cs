@@ -112,9 +112,12 @@ namespace Microsoft.ML.Transforms.Text
             _useMarkerChars = useMarkerCharacters;
         }
 
+        /// <summary>
+        /// The names of the output and input column pairs on which the transformation is applied.
+        /// </summary>
         public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
-        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             if (!TokenizingByCharactersEstimator.IsColumnTypeValid(type))
@@ -207,16 +210,16 @@ namespace Microsoft.ML.Transforms.Text
                 var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    var builder = new MetadataBuilder();
+                    var builder = new DataViewSchema.Annotations.Builder();
                     AddMetadata(i, builder);
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _type, builder.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _type, builder.ToAnnotations());
                 }
                 return result;
             }
 
-            private void AddMetadata(int iinfo, MetadataBuilder builder)
+            private void AddMetadata(int iinfo, DataViewSchema.Annotations.Builder builder)
             {
-                builder.Add(InputSchema[_parent.ColumnPairs[iinfo].inputColumnName].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
+                builder.Add(InputSchema[_parent.ColumnPairs[iinfo].inputColumnName].Annotations, name => name == AnnotationUtils.Kinds.SlotNames);
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter =
                        (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                        {
@@ -598,9 +601,9 @@ namespace Microsoft.ML.Transforms.Text
                 if (!IsColumnTypeValid(col.ItemType))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, ExpectedColumnType, col.ItemType.ToString());
                 var metadata = new List<SchemaShape.Column>();
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
-                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, slotMeta.ItemType, false));
-                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
+                    metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, slotMeta.ItemType, false));
+                metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
                 result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, SchemaShape.Column.VectorKind.VariableVector, NumberDataViewType.UInt16, true, new SchemaShape(metadata.ToArray()));
             }
 

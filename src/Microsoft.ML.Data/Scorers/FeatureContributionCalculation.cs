@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.Data.DataView;
@@ -16,10 +17,10 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 
 [assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionScorer), typeof(FeatureContributionScorer.Arguments),
-    typeof(SignatureDataScorer), "Feature Contribution Scorer", "fcc", "wtf", "fct", "FeatureContributionCalculationScorer", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
+    typeof(SignatureDataScorer), "Feature Contribution Scorer", "fcc", "wtf", "fct", "FeatureContributionCalculationScorer", AnnotationUtils.Const.ScoreColumnKind.FeatureContribution)]
 
 [assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionScorer), typeof(FeatureContributionScorer.Arguments),
-    typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fcc", "wtf", "fct", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
+    typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fcc", "wtf", "fct", AnnotationUtils.Const.ScoreColumnKind.FeatureContribution)]
 
 [assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionScorer), null, typeof(SignatureLoadModel),
     "Feature Contribution Mapper", FeatureContributionScorer.MapperLoaderSignature)]
@@ -323,25 +324,25 @@ namespace Microsoft.ML.Data
 
                 if (parent.Stringify)
                 {
-                    var builder = new SchemaBuilder();
+                    var builder = new DataViewSchema.Builder();
                     builder.AddColumn(DefaultColumnNames.FeatureContributions, TextDataViewType.Instance, null);
-                    _outputSchema = builder.GetSchema();
+                    _outputSchema = builder.ToSchema();
                     if (FeatureColumn.HasSlotNames(featureSize))
-                        FeatureColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
+                        FeatureColumn.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref _slotNames);
                     else
                         _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(featureSize);
                 }
                 else
                 {
-                    var metadataBuilder = new MetadataBuilder();
+                    var metadataBuilder = new DataViewSchema.Annotations.Builder();
                     if (InputSchema[FeatureColumn.Index].HasSlotNames(featureSize))
                         metadataBuilder.AddSlotNames(featureSize, (ref VBuffer<ReadOnlyMemory<char>> value) =>
-                            FeatureColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref value));
+                            FeatureColumn.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref value));
 
-                    var schemaBuilder = new SchemaBuilder();
+                    var schemaBuilder = new DataViewSchema.Builder();
                     var featureContributionType = new VectorType(NumberDataViewType.Single, FeatureColumn.Type as VectorType);
-                    schemaBuilder.AddColumn(DefaultColumnNames.FeatureContributions, featureContributionType, metadataBuilder.GetMetadata());
-                    _outputSchema = schemaBuilder.GetSchema();
+                    schemaBuilder.AddColumn(DefaultColumnNames.FeatureContributions, featureContributionType, metadataBuilder.ToAnnotations());
+                    _outputSchema = schemaBuilder.ToSchema();
                 }
 
                 _outputGenericSchema = _genericRowMapper.OutputSchema;
@@ -351,14 +352,12 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns the input columns needed for the requested output columns.
             /// </summary>
-            public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+            IEnumerable<DataViewSchema.Column> ISchemaBoundRowMapper.GetDependenciesForNewColumns(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
-                for (int i = 0; i < OutputSchema.Count; i++)
-                {
-                    if (predicate(i))
-                        return col => col == FeatureColumn.Index;
-                }
-                return col => false;
+                if (dependingColumns.Count() == 0)
+                    return Enumerable.Empty<DataViewSchema.Column>();
+
+                return Enumerable.Repeat(FeatureColumn, 1);
             }
 
             public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)

@@ -26,8 +26,8 @@ namespace Microsoft.ML.Samples.Dynamic
             var reader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
-                        new TextLoader.Column("Sentiment", DataKind.R4, 0),
-                        new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                        new TextLoader.Column("Sentiment", DataKind.Single, 0),
+                        new TextLoader.Column("SentimentText", DataKind.String, 1)
                     },
                 hasHeader: true
             );
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // the "Features" column produced by FeaturizeText as the features column.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                     .AppendCacheCheckpoint(mlContext) // Add a data-cache step within a pipeline.
-                    .Append(mlContext.BinaryClassification.Trainers.Prior(labelColumn: "Sentiment"));
+                    .Append(mlContext.BinaryClassification.Trainers.Prior(labelColumnName: "Sentiment"));
 
             // Step 3: Train the pipeline
             var trainedPipeline = pipeline.Fit(trainTestData.TrainSet);

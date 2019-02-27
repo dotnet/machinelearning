@@ -38,8 +38,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixColumnIndexColumnName = matrixColumnIndexColumnName,
                 MatrixRowIndexColumnName = matrixRowIndexColumnName,
                 LabelColumnName = labelColumnName,
-                NumIterations = 3,
-                NumThreads = 1,
+                NumberOfIterations = 3,
+                NumberOfThreads = 1,
                 ApproximationRank = 4,
             };
 
@@ -73,8 +73,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixColumnIndexColumnName = userColumnName,
                 MatrixRowIndexColumnName = itemColumnName,
                 LabelColumnName = labelColumnName,
-                NumIterations = 3,
-                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                NumberOfIterations = 3,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 ApproximationRank = 7,
             };
 
@@ -140,20 +140,20 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.InRange(metrices.L2, expectedWindowsL2Error - tolerance, expectedWindowsL2Error + tolerance);
             }
 
-            var modelWithValidation = pipeline.Train(data, testData);
+            var modelWithValidation = pipeline.Fit(data, testData);
         }
 
-        private TextLoader.Arguments GetLoaderArgs(string labelColumnName, string matrixColumnIndexColumnName, string matrixRowIndexColumnName)
+        private TextLoader.Options GetLoaderArgs(string labelColumnName, string matrixColumnIndexColumnName, string matrixRowIndexColumnName)
         {
-            return new TextLoader.Arguments()
+            return new TextLoader.Options()
             {
                 Separator = "\t",
                 HasHeader = true,
                 Columns = new[]
                 {
-                    new TextLoader.Column(labelColumnName, DataKind.R4, new [] { new TextLoader.Range(0) }),
-                    new TextLoader.Column(matrixColumnIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(1) }, new KeyCount(20)),
-                    new TextLoader.Column(matrixRowIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(2) }, new KeyCount(40)),
+                    new TextLoader.Column(labelColumnName, DataKind.Single, new [] { new TextLoader.Range(0) }),
+                    new TextLoader.Column(matrixColumnIndexColumnName, DataKind.UInt32, new [] { new TextLoader.Range(1) }, new KeyCount(20)),
+                    new TextLoader.Column(matrixRowIndexColumnName, DataKind.UInt32, new [] { new TextLoader.Range(2) }, new KeyCount(40)),
                 }
             };
         }
@@ -171,10 +171,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         internal class MatrixElement
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex.
-            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(_synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount + _synthesizedMatrixRowCount.
-            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixRowCount)]
+            [KeyType(_synthesizedMatrixRowCount + _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
             public float Value;
@@ -182,9 +182,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         internal class MatrixElementForScore
         {
-            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(_synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
-            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixRowCount)]
+            [KeyType(_synthesizedMatrixRowCount + _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Score;
         }
@@ -210,8 +210,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 LabelColumnName = nameof(MatrixElement.Value),
-                NumIterations = 10,
-                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                NumberOfIterations = 10,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 ApproximationRank = 32,
             };
 
@@ -256,10 +256,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         internal class MatrixElementZeroBased
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
-            [KeyType(Count = _synthesizedMatrixColumnCount)]
+            [KeyType(_synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
-            [KeyType(Count = _synthesizedMatrixRowCount)]
+            [KeyType(_synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
             public float Value;
@@ -269,11 +269,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
             // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount are allowed keys.
-            [KeyType(Count = _synthesizedMatrixColumnCount)]
+            [KeyType(_synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
             // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount are allowed keys.
-            [KeyType(Count = _synthesizedMatrixRowCount)]
+            [KeyType(_synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Score;
         }
@@ -300,8 +300,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 LabelColumnName = nameof(MatrixElement.Value),
-                NumIterations = 100,
-                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                NumberOfIterations = 100,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 ApproximationRank = 32,
                 LearningRate = 0.5,
             };
@@ -375,18 +375,18 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         private class OneClassMatrixElementZeroBased
         {
-            [KeyType(Count = _oneClassMatrixColumnCount)]
+            [KeyType(_oneClassMatrixColumnCount)]
             public uint MatrixColumnIndex;
-            [KeyType(Count = _oneClassMatrixRowCount)]
+            [KeyType(_oneClassMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Value;
         }
 
         private class OneClassMatrixElementZeroBasedForScore
         {
-            [KeyType(Count = _oneClassMatrixColumnCount)]
+            [KeyType(_oneClassMatrixColumnCount)]
             public uint MatrixColumnIndex;
-            [KeyType(Count = _oneClassMatrixRowCount)]
+            [KeyType(_oneClassMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Value;
             public float Score;
@@ -421,8 +421,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 LabelColumnName = nameof(MatrixElement.Value),
                 LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass,
-                NumIterations = 100,
-                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                NumberOfIterations = 100,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 Lambda = 0.025, // Let's test non-default regularization coefficient.
                 ApproximationRank = 16,
                 Alpha = 0.01, // Importance coefficient of loss function over matrix elements not specified in the input matrix.
@@ -557,8 +557,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 LabelColumnName = nameof(MatrixElement.Value),
                 LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass,
-                NumIterations = 100,
-                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                NumberOfIterations = 100,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 Lambda = 0.025, // Let's test non-default regularization coefficient.
                 ApproximationRank = 16,
                 Alpha = 0.01, // Importance coefficient of loss function over matrix elements not specified in the input matrix.

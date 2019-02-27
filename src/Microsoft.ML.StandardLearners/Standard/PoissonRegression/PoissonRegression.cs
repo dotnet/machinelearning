@@ -11,7 +11,6 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(PoissonRegression.Summary, typeof(PoissonRegression), typeof(PoissonRegression.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -33,7 +32,7 @@ namespace Microsoft.ML.Trainers
         internal const string ShortName = "PR";
         internal const string Summary = "Poisson Regression assumes the unknown function, denoted Y has a Poisson distribution.";
 
-        public sealed class Options : ArgumentsBase
+        public sealed class Options : OptionsBase
         {
         }
 
@@ -75,7 +74,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         private protected override void CheckLabel(RoleMappedData data)
         {
@@ -83,27 +82,31 @@ namespace Microsoft.ML.Trainers
             data.CheckRegressionLabel();
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
-        protected override RegressionPredictionTransformer<PoissonRegressionModelParameters> MakeTransformer(PoissonRegressionModelParameters model, DataViewSchema trainSchema)
+        private protected override RegressionPredictionTransformer<PoissonRegressionModelParameters> MakeTransformer(PoissonRegressionModelParameters model, DataViewSchema trainSchema)
             => new RegressionPredictionTransformer<PoissonRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<PoissonRegressionModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)
-            => TrainTransformer(trainData, initPredictor: initialPredictor);
+        /// <summary>
+        /// Continues the training of a <see cref="PoissonRegression"/> using an already trained <paramref name="linearModel"/> and returns
+        /// a <see cref="RegressionPredictionTransformer{PoissonRegressionModelParameters}"/>.
+        /// </summary>
+        public RegressionPredictionTransformer<PoissonRegressionModelParameters> Fit(IDataView trainData, LinearModelParameters linearModel)
+            => TrainTransformer(trainData, initPredictor: linearModel);
 
-        protected override VBuffer<float> InitializeWeightsFromPredictor(PoissonRegressionModelParameters srcPredictor)
+        private protected override VBuffer<float> InitializeWeightsFromPredictor(IPredictor srcPredictor)
         {
-            Contracts.AssertValue(srcPredictor);
-            return InitializeWeights(srcPredictor.Weights, new[] { srcPredictor.Bias });
+            var modelParameters = (LinearModelParameters)srcPredictor;
+            return InitializeWeights(modelParameters.Weights, new[] { modelParameters.Bias });
         }
 
-        protected override void PreTrainingProcessInstance(float label, in VBuffer<float> feat, float weight)
+        private protected override void PreTrainingProcessInstance(float label, in VBuffer<float> feat, float weight)
         {
             if (!(label >= 0))
                 throw Contracts.Except("Poisson regression must regress to a non-negative label, but label {0} encountered", label);
@@ -111,7 +114,7 @@ namespace Microsoft.ML.Trainers
         }
 
         // Make sure _lossnormalizer is added only once
-        protected override float DifferentiableFunction(in VBuffer<float> x, ref VBuffer<float> gradient, IProgressChannelProvider progress)
+        private protected override float DifferentiableFunction(in VBuffer<float> x, ref VBuffer<float> gradient, IProgressChannelProvider progress)
         {
             return base.DifferentiableFunction(in x, ref gradient, progress) + (float)(_lossNormalizer / NumGoodRows);
         }
@@ -126,7 +129,7 @@ namespace Microsoft.ML.Trainers
         // Goal is to find w that maximizes
         // Note: We negate the above in ordrer to minimize
 
-        protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
+        private protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
             in VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
         {
             float bias = 0;
@@ -149,7 +152,7 @@ namespace Microsoft.ML.Trainers
             return -(y * dot - lambda) * weight;
         }
 
-        protected override PoissonRegressionModelParameters CreatePredictor()
+        private protected override PoissonRegressionModelParameters CreatePredictor()
         {
             VBuffer<float> weights = default(VBuffer<float>);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
@@ -163,7 +166,7 @@ namespace Microsoft.ML.Trainers
             // No-op by design.
         }
 
-        protected override void ProcessPriorDistribution(float label, float weight)
+        private protected override void ProcessPriorDistribution(float label, float weight)
         {
             // No-op by design.
         }

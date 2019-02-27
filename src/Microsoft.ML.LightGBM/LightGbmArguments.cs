@@ -42,14 +42,14 @@ namespace Microsoft.ML.LightGBM
     /// </summary>
     public sealed class Options : LearnerInputBaseWithGroupId
     {
-        public abstract class BoosterParameter<TArgs> : IBoosterParameter
-            where TArgs : class, new()
+        public abstract class BoosterParameter<TOptions> : IBoosterParameter
+            where TOptions : class, new()
         {
-            protected TArgs Args { get; }
+            protected TOptions BoosterParameterOptions { get; }
 
-            protected BoosterParameter(TArgs args)
+            protected BoosterParameter(TOptions options)
             {
-                Args = args;
+                BoosterParameterOptions = options;
             }
 
             /// <summary>
@@ -57,7 +57,7 @@ namespace Microsoft.ML.LightGBM
             /// </summary>
             internal virtual void UpdateParameters(Dictionary<string, object> res)
             {
-                FieldInfo[] fields = Args.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                FieldInfo[] fields = BoosterParameterOptions.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                 foreach (var field in fields)
                 {
                     var attribute = field.GetCustomAttribute<ArgumentAttribute>(false);
@@ -65,7 +65,7 @@ namespace Microsoft.ML.LightGBM
                     if (attribute == null)
                         continue;
 
-                    res[GetArgName(field.Name)] = field.GetValue(Args);
+                    res[GetArgName(field.Name)] = field.GetValue(BoosterParameterOptions);
                 }
             }
 
@@ -171,14 +171,14 @@ namespace Microsoft.ML.LightGBM
                 IBoosterParameter IComponentFactory<IBoosterParameter>.CreateComponent(IHostEnvironment env) => CreateComponent(env);
             }
 
-            internal TreeBooster(Options args)
-                : base(args)
+            internal TreeBooster(Options options)
+                : base(options)
             {
-                Contracts.CheckUserArg(Args.MinSplitGain >= 0, nameof(Args.MinSplitGain), "must be >= 0.");
-                Contracts.CheckUserArg(Args.MinChildWeight >= 0, nameof(Args.MinChildWeight), "must be >= 0.");
-                Contracts.CheckUserArg(Args.Subsample > 0 && Args.Subsample <= 1, nameof(Args.Subsample), "must be in (0,1].");
-                Contracts.CheckUserArg(Args.FeatureFraction > 0 && Args.FeatureFraction <= 1, nameof(Args.FeatureFraction), "must be in (0,1].");
-                Contracts.CheckUserArg(Args.ScalePosWeight > 0 && Args.ScalePosWeight <= 1, nameof(Args.ScalePosWeight), "must be in (0,1].");
+                Contracts.CheckUserArg(BoosterParameterOptions.MinSplitGain >= 0, nameof(BoosterParameterOptions.MinSplitGain), "must be >= 0.");
+                Contracts.CheckUserArg(BoosterParameterOptions.MinChildWeight >= 0, nameof(BoosterParameterOptions.MinChildWeight), "must be >= 0.");
+                Contracts.CheckUserArg(BoosterParameterOptions.Subsample > 0 && BoosterParameterOptions.Subsample <= 1, nameof(BoosterParameterOptions.Subsample), "must be in (0,1].");
+                Contracts.CheckUserArg(BoosterParameterOptions.FeatureFraction > 0 && BoosterParameterOptions.FeatureFraction <= 1, nameof(BoosterParameterOptions.FeatureFraction), "must be in (0,1].");
+                Contracts.CheckUserArg(BoosterParameterOptions.ScalePosWeight > 0 && BoosterParameterOptions.ScalePosWeight <= 1, nameof(BoosterParameterOptions.ScalePosWeight), "must be in (0,1].");
             }
 
             internal override void UpdateParameters(Dictionary<string, object> res)
@@ -194,7 +194,7 @@ namespace Microsoft.ML.LightGBM
             internal const string FriendlyName = "Tree Dropout Tree Booster";
 
             [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Dropouts meet Multiple Additive Regresion Trees. See https://arxiv.org/abs/1505.01866")]
-            public class Options : TreeBooster.Options
+            public sealed class Options : TreeBooster.Options
             {
                 [Argument(ArgumentType.AtMostOnce, HelpText = "Drop ratio for trees. Range:(0,1).")]
                 [TlcModule.Range(Inf = 0.0, Max = 1.0)]
@@ -217,12 +217,12 @@ namespace Microsoft.ML.LightGBM
                 internal override IBoosterParameter CreateComponent(IHostEnvironment env) => new DartBooster(this);
             }
 
-            internal DartBooster(Options args)
-                : base(args)
+            internal DartBooster(Options options)
+                : base(options)
             {
-                Contracts.CheckUserArg(Args.DropRate > 0 && Args.DropRate < 1, nameof(Args.DropRate), "must be in (0,1).");
-                Contracts.CheckUserArg(Args.MaxDrop > 0, nameof(Args.MaxDrop), "must be > 0.");
-                Contracts.CheckUserArg(Args.SkipDrop >= 0 && Args.SkipDrop < 1, nameof(Args.SkipDrop), "must be in [0,1).");
+                Contracts.CheckUserArg(BoosterParameterOptions.DropRate > 0 && BoosterParameterOptions.DropRate < 1, nameof(BoosterParameterOptions.DropRate), "must be in (0,1).");
+                Contracts.CheckUserArg(BoosterParameterOptions.MaxDrop > 0, nameof(BoosterParameterOptions.MaxDrop), "must be > 0.");
+                Contracts.CheckUserArg(BoosterParameterOptions.SkipDrop >= 0 && BoosterParameterOptions.SkipDrop < 1, nameof(BoosterParameterOptions.SkipDrop), "must be in [0,1).");
             }
 
             internal override void UpdateParameters(Dictionary<string, object> res)
@@ -238,7 +238,7 @@ namespace Microsoft.ML.LightGBM
             internal const string FriendlyName = "Gradient-based One-Size Sampling";
 
             [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Gradient-based One-Side Sampling.")]
-            public class Options : TreeBooster.Options
+            public sealed class Options : TreeBooster.Options
             {
                 [Argument(ArgumentType.AtMostOnce,
                     HelpText = "Retain ratio for large gradient instances.")]
@@ -254,12 +254,12 @@ namespace Microsoft.ML.LightGBM
                 internal override IBoosterParameter CreateComponent(IHostEnvironment env) => new GossBooster(this);
             }
 
-            internal GossBooster(Options args)
-                : base(args)
+            internal GossBooster(Options options)
+                : base(options)
             {
-                Contracts.CheckUserArg(Args.TopRate > 0 && Args.TopRate < 1, nameof(Args.TopRate), "must be in (0,1).");
-                Contracts.CheckUserArg(Args.OtherRate >= 0 && Args.OtherRate < 1, nameof(Args.TopRate), "must be in [0,1).");
-                Contracts.Check(Args.TopRate + Args.OtherRate <= 1, "Sum of topRate and otherRate cannot be larger than 1.");
+                Contracts.CheckUserArg(BoosterParameterOptions.TopRate > 0 && BoosterParameterOptions.TopRate < 1, nameof(BoosterParameterOptions.TopRate), "must be in (0,1).");
+                Contracts.CheckUserArg(BoosterParameterOptions.OtherRate >= 0 && BoosterParameterOptions.OtherRate < 1, nameof(BoosterParameterOptions.TopRate), "must be in [0,1).");
+                Contracts.Check(BoosterParameterOptions.TopRate + BoosterParameterOptions.OtherRate <= 1, "Sum of topRate and otherRate cannot be larger than 1.");
             }
 
             internal override void UpdateParameters(Dictionary<string, object> res)

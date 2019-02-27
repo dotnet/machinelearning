@@ -2,17 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
-using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Tools;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -522,13 +516,13 @@ namespace Microsoft.ML.RunTests
         {
             var mlContext = new MLContext(seed: 0);
             var idv = mlContext.Data.CreateTextLoader(
-                    new TextLoader.Arguments()
+                    new TextLoader.Options()
                     {
                         HasHeader = false,
                         Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("Features", DataKind.R4, 1, 9)
+                            new TextLoader.Column("Label", DataKind.Single, 0),
+                            new TextLoader.Column("Features", DataKind.Single, 1, 9)
                         }
                     }).Read(GetDataPath("breast-cancer.txt"));
 
@@ -561,13 +555,13 @@ namespace Microsoft.ML.RunTests
         {
             var mlContext = new MLContext(seed: 0);
             var idv = mlContext.Data.CreateTextLoader(
-                    new TextLoader.Arguments()
+                    new TextLoader.Options()
                     {
                         HasHeader = false,
                         Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.BL, 0),
-                            new TextLoader.Column("Features", DataKind.R4, 1, 9)
+                            new TextLoader.Column("Label", DataKind.Boolean, 0),
+                            new TextLoader.Column("Features", DataKind.Single, 1, 9)
                         }
                     }).Read(GetDataPath("breast-cancer.txt"));
 

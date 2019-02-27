@@ -11,7 +11,6 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(RandomTrainer.Summary, typeof(RandomTrainer), typeof(RandomTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
@@ -37,7 +36,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// A trainer that trains a predictor that returns random values
     /// </summary>
-    public sealed class RandomTrainer : TrainerBase<RandomModelParameters>,
+    public sealed class RandomTrainer : ITrainer<RandomModelParameters>,
         ITrainerEstimator<BinaryPredictionTransformer<RandomModelParameters>, RandomModelParameters>
     {
         internal const string LoadNameValue = "RandomPredictor";
@@ -48,8 +47,10 @@ namespace Microsoft.ML.Trainers
         {
         }
 
+        private readonly IHost _host;
+
         /// <summary> Return the type of prediction task.</summary>
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        PredictionKind ITrainer.PredictionKind => PredictionKind.BinaryClassification;
 
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
 
@@ -57,37 +58,42 @@ namespace Microsoft.ML.Trainers
         /// Auxiliary information about the trainer in terms of its capabilities
         /// and requirements.
         /// </summary>
-        public override TrainerInfo Info => _info;
+        public TrainerInfo Info => _info;
 
         /// <summary>
         /// Initializes RandomTrainer object.
         /// </summary>
         internal RandomTrainer(IHostEnvironment env)
-            : base(env, LoadNameValue)
         {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(LoadNameValue);
         }
 
         internal RandomTrainer(IHostEnvironment env, Options options)
-            : base(env, LoadNameValue)
         {
-            Host.CheckValue(options, nameof(options));
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(LoadNameValue);
+            _host.CheckValue(options, nameof(options));
         }
 
         /// <summary>
-        /// Trains and returns a <see cref="ITransformer"/>.
+        /// Trains and returns a <see cref="BinaryPredictionTransformer{RandomModelParameters}"/>.
         /// </summary>
         public BinaryPredictionTransformer<RandomModelParameters> Fit(IDataView input)
         {
             RoleMappedData trainRoles = new RoleMappedData(input);
             var pred = Train(new TrainContext(trainRoles));
-            return new BinaryPredictionTransformer<RandomModelParameters>(Host, pred, input.Schema, featureColumn: null);
+            return new BinaryPredictionTransformer<RandomModelParameters>(_host, pred, input.Schema, featureColumn: null);
         }
 
-        private protected override RandomModelParameters Train(TrainContext context)
+        private RandomModelParameters Train(TrainContext context)
         {
-            Host.CheckValue(context, nameof(context));
-            return new RandomModelParameters(Host, Host.Rand.Next());
+            _host.CheckValue(context, nameof(context));
+            return new RandomModelParameters(_host, _host.Rand.Next());
         }
+
+        RandomModelParameters ITrainer<RandomModelParameters>.Train(TrainContext context) => Train(context);
+        IPredictor ITrainer.Train(TrainContext context) => Train(context);
 
         /// <summary>
         /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
@@ -95,15 +101,15 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
+            _host.CheckValue(inputSchema, nameof(inputSchema));
 
             var outColumns = inputSchema.ToDictionary(x => x.Name);
 
             var newColumns = new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
             foreach (SchemaShape.Column column in newColumns)
                 outColumns[column.Name] = column;
@@ -138,8 +144,8 @@ namespace Microsoft.ML.Trainers
         private readonly object _instanceLock;
         private readonly Random _random;
 
-        /// <summary> Return the type of prediction task.</summary>
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        /// <summary>Return the type of prediction task.</summary>
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         private readonly DataViewType _inputType;
         DataViewType IValueMapper.InputType => _inputType;
@@ -248,7 +254,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// Learns the prior distribution for 0/1 class labels and outputs that.
     /// </summary>
-    public sealed class PriorTrainer : TrainerBase<PriorModelParameters>,
+    public sealed class PriorTrainer : ITrainer<PriorModelParameters>,
         ITrainerEstimator<BinaryPredictionTransformer<PriorModelParameters>, PriorModelParameters>
     {
         internal const string LoadNameValue = "PriorPredictor";
@@ -260,9 +266,10 @@ namespace Microsoft.ML.Trainers
 
         private readonly String _labelColumnName;
         private readonly String _weightColumnName;
+        private readonly IHost _host;
 
         /// <summary> Return the type of prediction task.</summary>
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        PredictionKind ITrainer.PredictionKind => PredictionKind.BinaryClassification;
 
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
 
@@ -270,45 +277,47 @@ namespace Microsoft.ML.Trainers
         /// Auxiliary information about the trainer in terms of its capabilities
         /// and requirements.
         /// </summary>
-        public override TrainerInfo Info => _info;
+        public TrainerInfo Info => _info;
 
         internal PriorTrainer(IHostEnvironment env, Options options)
-            : base(env, LoadNameValue)
         {
-            Host.CheckValue(options, nameof(options));
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(LoadNameValue);
+            _host.CheckValue(options, nameof(options));
         }
 
         /// <summary>
         /// Initializes PriorTrainer object.
         /// </summary>
         internal PriorTrainer(IHostEnvironment env, String labelColumn, String weightColunn = null)
-            : base(env, LoadNameValue)
         {
-            Contracts.CheckValue(labelColumn, nameof(labelColumn));
-            Contracts.CheckValueOrNull(weightColunn);
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(LoadNameValue);
+            _host.CheckValue(labelColumn, nameof(labelColumn));
+            _host.CheckValueOrNull(weightColunn);
 
             _labelColumnName = labelColumn;
             _weightColumnName = weightColunn != null ? weightColunn : null;
         }
 
         /// <summary>
-        /// Trains and returns a <see cref="ITransformer"/>.
+        /// Trains and returns a <see cref="BinaryPredictionTransformer{PriorModelParameters}"/>.
         /// </summary>
         public BinaryPredictionTransformer<PriorModelParameters> Fit(IDataView input)
         {
             RoleMappedData trainRoles = new RoleMappedData(input, feature: null, label: _labelColumnName, weight: _weightColumnName);
-            var pred = Train(new TrainContext(trainRoles));
-            return new BinaryPredictionTransformer<PriorModelParameters>(Host, pred, input.Schema, featureColumn: null);
+            var pred = ((ITrainer<PriorModelParameters>)this).Train(new TrainContext(trainRoles));
+            return new BinaryPredictionTransformer<PriorModelParameters>(_host, pred, input.Schema, featureColumn: null);
         }
 
-        private protected override PriorModelParameters Train(TrainContext context)
+        private PriorModelParameters Train(TrainContext context)
         {
-            Host.CheckValue(context, nameof(context));
+            _host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
             data.CheckBinaryLabel();
-            Host.CheckParam(data.Schema.Label.HasValue, nameof(data), "Missing Label column");
+            _host.CheckParam(data.Schema.Label.HasValue, nameof(data), "Missing Label column");
             var labelCol = data.Schema.Label.Value;
-            Host.CheckParam(labelCol.Type == NumberDataViewType.Single, nameof(data), "Invalid type for Label column");
+            _host.CheckParam(labelCol.Type == NumberDataViewType.Single, nameof(data), "Invalid type for Label column");
 
             double pos = 0;
             double neg = 0;
@@ -344,8 +353,11 @@ namespace Microsoft.ML.Trainers
             }
 
             float prob = prob = pos + neg > 0 ? (float)(pos / (pos + neg)) : float.NaN;
-            return new PriorModelParameters(Host, prob);
+            return new PriorModelParameters(_host, prob);
         }
+
+        IPredictor ITrainer.Train(TrainContext context) => Train(context);
+        PriorModelParameters ITrainer<PriorModelParameters>.Train(TrainContext context) => Train(context);
 
         private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
             => new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
@@ -359,15 +371,15 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
+            _host.CheckValue(inputSchema, nameof(inputSchema));
 
             var outColumns = inputSchema.ToDictionary(x => x.Name);
 
             var newColumns = new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
             foreach (SchemaShape.Column column in newColumns)
                 outColumns[column.Name] = column;
@@ -446,7 +458,7 @@ namespace Microsoft.ML.Trainers
             ctx.Writer.Write(_prob);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         private readonly DataViewType _inputType;
         DataViewType IValueMapper.InputType => _inputType;

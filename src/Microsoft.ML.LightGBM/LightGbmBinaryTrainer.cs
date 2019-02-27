@@ -10,8 +10,8 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(LightGbmBinaryTrainer.Summary, typeof(LightGbmBinaryTrainer), typeof(Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
@@ -47,10 +47,10 @@ namespace Microsoft.ML.LightGBM
                 loaderAssemblyName: typeof(LightGbmBinaryModelParameters).Assembly.FullName);
         }
 
-        protected override uint VerNumFeaturesSerialized => 0x00010002;
-        protected override uint VerDefaultValueSerialized => 0x00010004;
-        protected override uint VerCategoricalSplitSerialized => 0x00010005;
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override uint VerNumFeaturesSerialized => 0x00010002;
+        private protected override uint VerDefaultValueSerialized => 0x00010004;
+        private protected override uint VerCategoricalSplitSerialized => 0x00010005;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         internal LightGbmBinaryModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
@@ -92,7 +92,7 @@ namespace Microsoft.ML.LightGBM
         internal const string ShortName = "LightGBM";
         internal const string Summary = "Train a LightGBM binary classification model.";
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         internal LightGbmBinaryTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
@@ -151,21 +151,25 @@ namespace Microsoft.ML.LightGBM
                 Options["metric"] = "binary_logloss";
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
-        protected override BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>
+        private protected override BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>
             MakeTransformer(CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator> model, DataViewSchema trainSchema)
          => new BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="LightGbmBinaryTrainer"/> using both training and validation data, returns
+        /// a <see cref="BinaryPredictionTransformer{CalibratedModelParametersBase}"/>.
+        /// </summary>
+        public BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
     }
 

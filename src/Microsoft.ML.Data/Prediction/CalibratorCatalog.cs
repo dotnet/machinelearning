@@ -10,7 +10,7 @@ using Microsoft.ML.Calibrator;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Model;
-using Microsoft.ML.Training;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(CalibratorTransformer<PlattCalibrator>), typeof(PlattCalibratorTransformer), null,
     typeof(SignatureLoadModel), "", PlattCalibratorTransformer.LoadName)]
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Calibrator
                 SchemaShape.Column.VectorKind.Scalar,
                 NumberDataViewType.Single,
                 false,
-                new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true)));
+                new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true)));
 
             return new SchemaShape(outColumns.Values);
         }
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Calibrator
         private TICalibrator _calibrator;
         private readonly string _loaderSignature;
 
-        internal CalibratorTransformer(IHostEnvironment env, TICalibrator calibrator, string loaderSignature)
+        private protected CalibratorTransformer(IHostEnvironment env, TICalibrator calibrator, string loaderSignature)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CalibratorTransformer<TICalibrator>)))
         {
             _loaderSignature = loaderSignature;
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Calibrator
         }
 
         // Factory method for SignatureLoadModel.
-        internal CalibratorTransformer(IHostEnvironment env, ModelLoadContext ctx, string loaderSignature)
+        private protected CalibratorTransformer(IHostEnvironment env, ModelLoadContext ctx, string loaderSignature)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CalibratorTransformer<TICalibrator>)))
         {
             Contracts.AssertValue(ctx);
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Calibrator
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper<TICalibrator>(this, _calibrator, schema);
 
-        protected VersionInfo GetVersionInfo()
+        private protected VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
                 modelSignature: "CALTRANS",

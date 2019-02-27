@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Composition.Hosting;
 using System.IO;
 
 namespace Microsoft.ML
@@ -110,10 +109,6 @@ namespace Microsoft.ML
         ComponentCatalog ComponentCatalog { get; }
 
         /// <summary>
-        /// Get the MEF composition container. This can be used to instantiate user-provided 'parts' when the model
-        /// is being loaded, or the components are otherwise created via dependency injection.
-        /// </summary>
-        CompositionContainer GetCompositionContainer();
     }
 
     /// <summary>
@@ -186,7 +181,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// For messages that contain information like column names from datasets.
-        /// Note that, despite being part of the schema, metadata should be treated
+        /// Note that, despite being part of the schema, annotations should be treated
         /// as user data, since it is often derived from user data. Note also that
         /// types, despite being part of the schema, are not considered "sensitive"
         /// as such, in the same way that column names might be.

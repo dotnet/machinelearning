@@ -499,7 +499,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             ValidatePcaInput(Host, inputSchema[srcCol].Name, inputSchema[srcCol].Type);
         }

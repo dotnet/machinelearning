@@ -94,10 +94,10 @@ namespace Microsoft.ML.EntryPoints
     public abstract class LearnerInputBaseWithWeight : LearnerInputBaseWithLabel
     {
         /// <summary>
-        /// Column to use for example weight.
+        /// The name of the example weight column.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
+        public string WeightColumn = null;
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ namespace Microsoft.ML.EntryPoints
         /// Column to use for example weight.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
+        public string WeightColumn = null;
     }
 
     /// <summary>
@@ -132,8 +132,8 @@ namespace Microsoft.ML.EntryPoints
         /// <summary>
         /// Column to use for example groupId.
         /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example groupId", ShortName = "groupId", SortOrder = 5, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public Optional<string> GroupIdColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
+        [Argument(ArgumentType.AtMostOnce, Name = "GroupIdColumn", HelpText = "Column to use for example groupId", ShortName = "groupId", SortOrder = 5, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+        public string GroupIdColumn = null;
     }
 
     [BestFriend]
@@ -271,7 +271,7 @@ namespace Microsoft.ML.EntryPoints
         /// </summary>
         public interface IUnsupervisedTrainerWithWeight : ITrainerInput
         {
-            Optional<string> WeightColumn { get; }
+            string WeightColumn { get; }
         }
 
         /// <summary>
@@ -279,7 +279,7 @@ namespace Microsoft.ML.EntryPoints
         /// </summary>
         public interface ITrainerInputWithWeight : ITrainerInputWithLabel
         {
-            Optional<string> WeightColumn { get; }
+            string WeightColumn { get; }
         }
 
         /// <summary>
@@ -287,7 +287,7 @@ namespace Microsoft.ML.EntryPoints
         /// </summary>
         public interface ITrainerInputWithGroupId : ITrainerInputWithWeight
         {
-            Optional<string> GroupIdColumn { get; }
+            string GroupIdColumn { get; }
         }
 
         /// <summary>

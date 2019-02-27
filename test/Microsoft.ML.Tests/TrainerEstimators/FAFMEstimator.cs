@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.FactorizationMachine;
 using Microsoft.ML.RunTests;
@@ -57,24 +56,24 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             TestEstimatorCore(est, data);
             var model = est.Fit(data);
-            var anotherModel = est.Train(data, data, model.Model);
+            var anotherModel = est.Fit(data, data, model.Model);
 
             Done();
         }
 
-        private TextLoader.Arguments GetFafmBCLoaderArgs()
+        private TextLoader.Options GetFafmBCLoaderArgs()
         {
-            return new TextLoader.Arguments()
+            return new TextLoader.Options()
             {
                 Separator = "\t",
                 HasHeader = false,
                 Columns = new[]
                 {
-                    new TextLoader.Column("Feature1", DataKind.R4, new [] { new TextLoader.Range(1, 2) }),
-                    new TextLoader.Column("Feature2", DataKind.R4, new [] { new TextLoader.Range(3, 4) }),
-                    new TextLoader.Column("Feature3", DataKind.R4, new [] { new TextLoader.Range(5, 6) }),
-                    new TextLoader.Column("Feature4", DataKind.R4, new [] { new TextLoader.Range(7, 9) }),
-                    new TextLoader.Column("Label", DataKind.BL, 0)
+                    new TextLoader.Column("Feature1", DataKind.Single, new [] { new TextLoader.Range(1, 2) }),
+                    new TextLoader.Column("Feature2", DataKind.Single, new [] { new TextLoader.Range(3, 4) }),
+                    new TextLoader.Column("Feature3", DataKind.Single, new [] { new TextLoader.Range(5, 6) }),
+                    new TextLoader.Column("Feature4", DataKind.Single, new [] { new TextLoader.Range(7, 9) }),
+                    new TextLoader.Column("Label", DataKind.Boolean, 0)
                 }
             };
         }

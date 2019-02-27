@@ -97,7 +97,7 @@ namespace Microsoft.ML.StaticPipe
                {
                    options.LabelColumn = labelName;
                    options.FeatureColumn = featuresName;
-                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                   options.WeightColumn = weightsName;
 
                    var trainer = new FastTreeRegressionTrainer(env, options);
                    if (onFit != null)
@@ -110,7 +110,7 @@ namespace Microsoft.ML.StaticPipe
 
         /// <summary>
         /// FastTree <see cref="BinaryClassificationCatalog"/> extension method.
-        /// Predict a target using a decision tree binary classificaiton model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
+        /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="label">The label column.</param>
@@ -160,7 +160,7 @@ namespace Microsoft.ML.StaticPipe
 
         /// <summary>
         /// FastTree <see cref="BinaryClassificationCatalog"/> extension method.
-        /// Predict a target using a decision tree binary classificaiton model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
+        /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="label">The label column.</param>
@@ -193,7 +193,7 @@ namespace Microsoft.ML.StaticPipe
                {
                    options.LabelColumn = labelName;
                    options.FeatureColumn = featuresName;
-                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                   options.WeightColumn = weightsName;
 
                    var trainer = new FastTreeBinaryClassificationTrainer(env, options);
 
@@ -278,7 +278,7 @@ namespace Microsoft.ML.StaticPipe
                    options.LabelColumn = labelName;
                    options.FeatureColumn = featuresName;
                    options.GroupIdColumn = groupIdName;
-                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                   options.WeightColumn = weightsName;
 
                    var trainer = new FastTreeRankingTrainer(env, options);
                    if (onFit != null)

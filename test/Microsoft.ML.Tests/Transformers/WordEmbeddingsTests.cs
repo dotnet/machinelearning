@@ -5,7 +5,6 @@
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,14 +23,14 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var dataPath = GetDataPath(TestDatasets.Sentiment.trainFilename);
             var data = new TextLoader(ML,
-                   new TextLoader.Arguments()
+                   new TextLoader.Options()
                    {
                        Separator = "\t",
                        HasHeader = true,
                        Columns = new[]
                        {
-                            new TextLoader.Column("Label", DataKind.BL, 0),
-                            new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                            new TextLoader.Column("Label", DataKind.Boolean, 0),
+                            new TextLoader.Column("SentimentText", DataKind.String, 1)
                        }
                    }).Read(GetDataPath(dataPath));
 
@@ -59,14 +58,14 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var dataPath = GetDataPath(TestDatasets.Sentiment.trainFilename);
             var data = new TextLoader(ML,
-                   new TextLoader.Arguments()
+                   new TextLoader.Options()
                    {
                        Separator = "\t",
                        HasHeader = true,
                        Columns = new[]
                        {
-                            new TextLoader.Column("Label", DataKind.BL, 0),
-                            new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                            new TextLoader.Column("Label", DataKind.Boolean, 0),
+                            new TextLoader.Column("SentimentText", DataKind.String, 1)
                        }
                    }).Read(GetDataPath(dataPath));
 

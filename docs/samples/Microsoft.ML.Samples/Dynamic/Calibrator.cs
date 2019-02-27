@@ -28,14 +28,14 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Create a text loader.
-            var reader = mlContext.Data.CreateTextLoader(new TextLoader.Arguments()
+            var reader = mlContext.Data.CreateTextLoader(new TextLoader.Options()
             {
                 Separators = new[] { '\t' },
                 HasHeader = true,
                 Columns = new[]
                     {
-                        new TextLoader.Column("Sentiment", DataKind.BL, 0),
-                        new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                        new TextLoader.Column("Sentiment", DataKind.Boolean, 0),
+                        new TextLoader.Column("SentimentText", DataKind.String, 1)
                     }
             });
 
@@ -50,14 +50,14 @@ namespace Microsoft.ML.Samples.Dynamic
             // the "Features" column produced by FeaturizeText as the features column. 
             var pipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
                     .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                        labelColumn: "Sentiment", 
-                        featureColumn: "Features", 
+                        labelColumnName: "Sentiment", 
+                        featureColumnName: "Features", 
                         l2Const: 0.001f, 
                         loss: new HingeLoss())); // By specifying loss: new HingeLoss(), StochasticDualCoordinateAscent will train a support vector machine (SVM).
 
             // Fit the pipeline, and get a transformer that knows how to score new data.  
             var transformer = pipeline.Fit(split.TrainSet);
-            IPredictor model = transformer.LastTransformer.Model;
+            var model = transformer.LastTransformer.Model;
 
             // Let's score the new data. The score will give us a numerical estimation of the chance that the particular sample 
             // bears positive sentiment. This estimate is relative to the numbers obtained. 

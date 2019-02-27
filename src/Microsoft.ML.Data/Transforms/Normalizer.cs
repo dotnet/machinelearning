@@ -11,7 +11,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Transforms.Normalizers;
 using Newtonsoft.Json.Linq;
@@ -265,10 +265,10 @@ namespace Microsoft.ML.Transforms.Normalizers
                 if (!col.ItemType.Equals(NumberDataViewType.Single) && !col.ItemType.Equals(NumberDataViewType.Double))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "vector or scalar of float or double", col.GetTypeString());
 
-                var isNormalizedMeta = new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar,
+                var isNormalizedMeta = new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar,
                     BooleanDataViewType.Instance, false);
                 var newMetadataKinds = new List<SchemaShape.Column> { isNormalizedMeta };
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                     newMetadataKinds.Add(slotMeta);
                 var meta = new SchemaShape(newMetadataKinds);
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.Kind, col.ItemType, col.IsKey, meta);
@@ -338,8 +338,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Contracts.CheckDecode(vectorSize >= 0);
                 Contracts.CheckDecode(vectorSize > 0 || !isVector);
 
-                DataKind itemKind = (DataKind)ctx.Reader.ReadByte();
-                Contracts.CheckDecode(itemKind == DataKind.R4 || itemKind == DataKind.R8);
+                InternalDataKind itemKind = (InternalDataKind)ctx.Reader.ReadByte();
+                Contracts.CheckDecode(itemKind == InternalDataKind.R4 || itemKind == InternalDataKind.R8);
 
                 var itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(itemKind);
                 return isVector ? (DataViewType)(new VectorType(itemType, vectorSize)) : itemType;
@@ -359,8 +359,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                 ctx.Writer.Write(vectorType?.Size ?? 0);
 
                 DataViewType itemType = vectorType?.ItemType ?? type;
-                itemType.RawType.TryGetDataKind(out DataKind itemKind);
-                Contracts.Assert(itemKind == DataKind.R4 || itemKind == DataKind.R8);
+                itemType.RawType.TryGetDataKind(out InternalDataKind itemKind);
+                Contracts.Assert(itemKind == InternalDataKind.R4 || itemKind == InternalDataKind.R8);
                 ctx.Writer.Write((byte)itemKind);
             }
         }
@@ -561,7 +561,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
         }
 
-        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             const string expectedType = "scalar or known-size vector of R4";
 
@@ -601,14 +601,14 @@ namespace Microsoft.ML.Transforms.Normalizers
                 return result;
             }
 
-            private DataViewSchema.Metadata MakeMetadata(int iinfo)
+            private DataViewSchema.Annotations MakeMetadata(int iinfo)
             {
                 var colInfo = _parent.Columns[iinfo];
-                var builder = new MetadataBuilder();
+                var builder = new DataViewSchema.Annotations.Builder();
 
-                builder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ValueGetter<bool>)IsNormalizedGetter);
-                builder.Add(InputSchema[ColMapNewToOld[iinfo]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                return builder.GetMetadata();
+                builder.Add(AnnotationUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ValueGetter<bool>)IsNormalizedGetter);
+                builder.Add(InputSchema[ColMapNewToOld[iinfo]].Annotations, name => name == AnnotationUtils.Kinds.SlotNames);
+                return builder.ToAnnotations();
             }
 
             private void IsNormalizedGetter(ref bool dst)

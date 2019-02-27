@@ -149,7 +149,7 @@ namespace Microsoft.ML.Transforms
                     // Produce slot names metadata iff the source has (valid) slot names.
                     VectorType typeNames;
                     if (!vectorType.IsKnownSize ||
-                        (typeNames = Source.Schema[Infos[iinfo].Source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType) == null ||
+                        (typeNames = Source.Schema[Infos[iinfo].Source].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType) == null ||
                         typeNames.Size != vectorType.Size ||
                         !(typeNames.ItemType is TextDataViewType))
                     {
@@ -160,8 +160,8 @@ namespace Microsoft.ML.Transforms
                 // Add slot names metadata.
                 using (var bldr = md.BuildMetadata(iinfo))
                 {
-                    bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.SlotNames,
-                        MetadataUtils.GetNamesType(types[iinfo].Size), GetSlotNames);
+                    bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(AnnotationUtils.Kinds.SlotNames,
+                        AnnotationUtils.GetNamesType(types[iinfo].Size), GetSlotNames);
                 }
             }
             md.Seal();
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Transforms
 
             int size = _types[iinfo].Size;
             if (size == 0)
-                throw MetadataUtils.ExceptGetMetadata();
+                throw AnnotationUtils.ExceptGetAnnotation();
 
             var editor = VBufferEditor.Create(ref dst, size);
 
@@ -198,12 +198,12 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(size == 2 * srcVectorType.Size);
 
                 // REVIEW: Do we need to verify that there is metadata or should we just call GetMetadata?
-                var typeNames = Source.Schema[Infos[iinfo].Source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
+                var typeNames = Source.Schema[Infos[iinfo].Source].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType;
                 if (typeNames == null || typeNames.Size != srcVectorType.Size || !(typeNames.ItemType is TextDataViewType))
-                    throw MetadataUtils.ExceptGetMetadata();
+                    throw AnnotationUtils.ExceptGetAnnotation();
 
                 var names = default(VBuffer<ReadOnlyMemory<char>>);
-                Source.Schema[Infos[iinfo].Source].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
+                Source.Schema[Infos[iinfo].Source].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref names);
 
                 // We both assert and check. If this fails, there is a bug somewhere (possibly in this code
                 // but more likely in the implementation of Base. On the other hand, we don't want to proceed

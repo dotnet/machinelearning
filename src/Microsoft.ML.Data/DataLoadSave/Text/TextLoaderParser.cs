@@ -51,9 +51,9 @@ namespace Microsoft.ML.Data
                 _methVec = new Func<PrimitiveDataViewType, Func<RowSet, ColumnPipe>>(GetCreatorVecCore<int>)
                     .GetMethodInfo().GetGenericMethodDefinition();
 
-                _creatorsOne = new Func<RowSet, ColumnPipe>[DataKindExtensions.KindCount];
-                _creatorsVec = new Func<RowSet, ColumnPipe>[DataKindExtensions.KindCount];
-                for (var kind = DataKindExtensions.KindMin; kind < DataKindExtensions.KindLim; kind++)
+                _creatorsOne = new Func<RowSet, ColumnPipe>[InternalDataKindExtensions.KindCount];
+                _creatorsVec = new Func<RowSet, ColumnPipe>[InternalDataKindExtensions.KindCount];
+                for (var kind = InternalDataKindExtensions.KindMin; kind < InternalDataKindExtensions.KindLim; kind++)
                 {
                     var type = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                     _creatorsOne[kind.ToIndex()] = GetCreatorOneCore(type);
@@ -103,14 +103,14 @@ namespace Microsoft.ML.Data
                 return (Func<RowSet, ColumnPipe>)meth.Invoke(this, new object[] { key });
             }
 
-            public Func<RowSet, ColumnPipe> GetCreatorOne(DataKind kind)
+            public Func<RowSet, ColumnPipe> GetCreatorOne(InternalDataKind kind)
             {
                 int index = kind.ToIndex();
                 Contracts.Assert(0 <= index & index < _creatorsOne.Length);
                 return _creatorsOne[index];
             }
 
-            public Func<RowSet, ColumnPipe> GetCreatorVec(DataKind kind)
+            public Func<RowSet, ColumnPipe> GetCreatorVec(InternalDataKind kind)
             {
                 int index = kind.ToIndex();
                 Contracts.Assert(0 <= index & index < _creatorsOne.Length);
@@ -637,7 +637,7 @@ namespace Microsoft.ML.Data
             }
 
             private readonly char[] _separators;
-            private readonly Options _flags;
+            private readonly OptionFlags _flags;
             private readonly int _inputSize;
             private readonly ColInfo[] _infos;
 
@@ -654,8 +654,8 @@ namespace Microsoft.ML.Data
                 _infos = parent._bindings.Infos;
                 _creator = new Func<RowSet, ColumnPipe>[_infos.Length];
                 var cache = ValueCreatorCache.Instance;
-                var mapOne = new Dictionary<DataKind, Func<RowSet, ColumnPipe>>();
-                var mapVec = new Dictionary<DataKind, Func<RowSet, ColumnPipe>>();
+                var mapOne = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();
+                var mapVec = new Dictionary<InternalDataKind, Func<RowSet, ColumnPipe>>();
                 for (int i = 0; i < _creator.Length; i++)
                 {
                     var info = _infos[i];
@@ -705,7 +705,7 @@ namespace Microsoft.ML.Data
                 {
                     foreach (var line in lines)
                     {
-                        var text = (parent._flags & Options.TrimWhitespace) != 0 ? ReadOnlyMemoryUtils.TrimEndWhiteSpace(line) : line;
+                        var text = (parent._flags & OptionFlags.TrimWhitespace) != 0 ? ReadOnlyMemoryUtils.TrimEndWhiteSpace(line) : line;
                         if (text.IsEmpty)
                             continue;
 
@@ -828,7 +828,7 @@ namespace Microsoft.ML.Data
                 var impl = (HelperImpl)helper;
                 var lineSpan = text.AsMemory();
                 var span = lineSpan.Span;
-                if ((_flags & Options.TrimWhitespace) != 0)
+                if ((_flags & OptionFlags.TrimWhitespace) != 0)
                     lineSpan = TrimEndWhiteSpace(lineSpan, span);
                 try
                 {
@@ -883,7 +883,7 @@ namespace Microsoft.ML.Data
 
                 public readonly FieldSet Fields;
 
-                public HelperImpl(ParseStats stats, Options flags, char[] seps, int inputSize, int srcNeeded)
+                public HelperImpl(ParseStats stats, OptionFlags flags, char[] seps, int inputSize, int srcNeeded)
                 {
                     Contracts.AssertValue(stats);
                     // inputSize == 0 means unknown.
@@ -899,8 +899,8 @@ namespace Microsoft.ML.Data
                     _sepContainsSpace = IsSep(' ');
                     _inputSize = inputSize;
                     _srcNeeded = srcNeeded;
-                    _quoting = (flags & Options.AllowQuoting) != 0;
-                    _sparse = (flags & Options.AllowSparse) != 0;
+                    _quoting = (flags & OptionFlags.AllowQuoting) != 0;
+                    _sparse = (flags & OptionFlags.AllowSparse) != 0;
                     _sb = new StringBuilder();
                     _blank = ReadOnlyMemory<char>.Empty;
                     Fields = new FieldSet();
@@ -1016,18 +1016,8 @@ namespace Microsoft.ML.Data
                                 }
                                 var spanT = Fields.Spans[Fields.Count - 1];
 
-                                // Note that Convert throws exception the text is unparsable.
-                                int csrc = default;
-                                try
-                                {
-                                    Conversions.Instance.Convert(in spanT, ref csrc);
-                                }
-                                catch
-                                {
-                                    Contracts.Assert(csrc == default);
-                                }
-
-                                if (csrc <= 0)
+                                int csrc;
+                                if (!Conversions.Instance.TryParse(in spanT, out csrc) || csrc <= 0)
                                 {
                                     _stats.LogBadFmt(ref scan, "Bad dimensionality or ambiguous sparse item. Use sparse=- for non-sparse file, and/or quote the value.");
                                     break;

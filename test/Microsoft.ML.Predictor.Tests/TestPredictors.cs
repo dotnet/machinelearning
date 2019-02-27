@@ -237,9 +237,9 @@ namespace Microsoft.ML.RunTests
         [TestCategory("Multiclass")]
         public void MulticlassReductionTest()
         {
-            RunOneAllTests(TestLearners.Ova, TestDatasets.iris);
-            RunOneAllTests(TestLearners.OvaWithFastForest, TestDatasets.iris);
-            RunOneAllTests(TestLearners.Pkpd, TestDatasets.iris);
+            RunOneAllTests(TestLearners.Ova, TestDatasets.iris, digitsOfPrecision: 6);
+            RunOneAllTests(TestLearners.OvaWithFastForest, TestDatasets.iris, digitsOfPrecision: 6);
+            RunOneAllTests(TestLearners.Pkpd, TestDatasets.iris, digitsOfPrecision: 6);
 
             Done();
         }
@@ -647,9 +647,9 @@ namespace Microsoft.ML.RunTests
 
         private void CombineAndTestTreeEnsembles(IDataView idv, PredictorModel[] fastTrees)
         {
-            var combiner = new TreeEnsembleCombiner(Env, PredictionKind.BinaryClassification);
+            IModelCombiner combiner = new TreeEnsembleCombiner(Env, PredictionKind.BinaryClassification);
 
-            var fastTree = combiner.CombineModels(fastTrees.Select(pm => pm.Predictor as IPredictorProducing<float>));
+            var fastTree = combiner.CombineModels(fastTrees.Select(pm => (IPredictorProducing<float>)pm.Predictor));
 
             var data = new RoleMappedData(idv, label: null, feature: "Features");
             var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModelImpl(Env, data, idv, fastTree) }).ScoredData;
@@ -1755,8 +1755,8 @@ output Out [3] from H all;
         [TestCategory("Anomaly")]
         public void PcaAnomalyTest()
         {
-            Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.mnistOneClass, digitsOfPrecision: 5);
-            Run_TrainTest(TestLearners.PCAAnomalyNoNorm, TestDatasets.mnistOneClass, digitsOfPrecision: 5);
+            Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.mnistOneClass, extraSettings: new[] { "loader=text{sparse+}" }, digitsOfPrecision: 5);
+            Run_TrainTest(TestLearners.PCAAnomalyNoNorm, TestDatasets.mnistOneClass, extraSettings: new[] { "loader=text{sparse+}" }, digitsOfPrecision: 5);
 
             // REVIEW: This next test was misbehaving in a strange way that seems to have gone away
             // mysteriously (bad build?).
@@ -1805,7 +1805,7 @@ output Out [3] from H all;
         public void CompareSvmPredictorResultsToLibSvm()
         {
             var env = new LocalEnvironment(1, conc: 1);
-            IDataView trainView = new TextLoader(env, new TextLoader.Arguments(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.trainFilename)));
+            IDataView trainView = new TextLoader(env, new TextLoader.Options(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.trainFilename)));
             trainView =
                 NormalizeTransform.Create(env,
                     new NormalizeTransform.MinMaxArguments()
@@ -1814,7 +1814,7 @@ output Out [3] from H all;
                     },
                     trainView);
             var trainData = new RoleMappedData(trainView, "Label", "Features");
-            IDataView testView = new TextLoader(env, new TextLoader.Arguments(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.testFilename)));
+            IDataView testView = new TextLoader(env, new TextLoader.Options(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.testFilename)));
             ApplyTransformUtils.ApplyAllTransformsToData(env, trainView, testView);
             var testData = new RoleMappedData(testView, "Label", "Features");
 

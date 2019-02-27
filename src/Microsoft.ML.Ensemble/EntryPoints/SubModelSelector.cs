@@ -18,7 +18,7 @@ using Microsoft.ML.Trainers.Ensemble.SubModelSelector;
 namespace Microsoft.ML.Trainers.Ensemble
 {
     [TlcModule.Component(Name = AllSelector.LoadName, FriendlyName = AllSelector.UserName)]
-    public sealed class AllSelectorFactory : ISupportBinarySubModelSelectorFactory, ISupportRegressionSubModelSelectorFactory
+    internal sealed class AllSelectorFactory : ISupportBinarySubModelSelectorFactory, ISupportRegressionSubModelSelectorFactory
     {
         IBinarySubModelSelector IComponentFactory<IBinarySubModelSelector>.CreateComponent(IHostEnvironment env) => new AllSelector(env);
 
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Trainers.Ensemble
     }
 
     [TlcModule.Component(Name = AllSelectorMultiClass.LoadName, FriendlyName = AllSelectorMultiClass.UserName)]
-    public sealed class AllSelectorMultiClassFactory : ISupportMulticlassSubModelSelectorFactory
+    internal sealed class AllSelectorMultiClassFactory : ISupportMulticlassSubModelSelectorFactory
     {
         IMulticlassSubModelSelector IComponentFactory<IMulticlassSubModelSelector>.CreateComponent(IHostEnvironment env) => new AllSelectorMultiClass(env);
     }

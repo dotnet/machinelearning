@@ -143,61 +143,61 @@ namespace Microsoft.ML.Tests.Transformers
             VBuffer<int> slotRanges = default;
 
             var column = result.Schema["CatA"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.SlotNames });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[1] { AnnotationUtils.Kinds.SlotNames });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "A", "B" });
 
             column = result.Schema["CatB"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[3] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[3] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.CategoricalSlotRanges, AnnotationUtils.Kinds.IsNormalized });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 1);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[1] { "C" });
-            column.Metadata.GetValue(MetadataUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
+            column.Annotations.GetValue(AnnotationUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
             Assert.True(slotRanges.Length == 2);
             Assert.Equal(slotRanges.Items().Select(x => x.Value), new int[2] { 0, 0 });
             Assert.True(column.IsNormalized());
 
             column = result.Schema["CatC"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[3] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[3] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.CategoricalSlotRanges, AnnotationUtils.Kinds.IsNormalized });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 4);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[4] { "[0].3", "[0].5", "[1].3", "[1].5" });
-            column.Metadata.GetValue(MetadataUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
+            column.Annotations.GetValue(AnnotationUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
             Assert.True(slotRanges.Length == 4);
             Assert.Equal(slotRanges.Items().Select(x => x.Value), new int[4] { 0, 1, 2, 3 });
             Assert.True(column.IsNormalized());
 
             column = result.Schema["CatD"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[2] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.IsNormalized });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "6", "1" });
             Assert.True(column.IsNormalized());
 
             column = result.Schema["CatE"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[2] { MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.Kinds.IsNormalized });
-            column.Metadata.GetValue(MetadataUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[2] { AnnotationUtils.Kinds.CategoricalSlotRanges, AnnotationUtils.Kinds.IsNormalized });
+            column.Annotations.GetValue(AnnotationUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
             Assert.True(slotRanges.Length == 4);
             Assert.Equal(slotRanges.Items().Select(x => x.Value), new int[4] { 0, 5, 6, 11 });
             Assert.True(column.IsNormalized());
 
             column = result.Schema["CatF"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[1] { AnnotationUtils.Kinds.IsNormalized });
             Assert.True(column.IsNormalized());
 
             column = result.Schema["CatG"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.SlotNames });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[1] { AnnotationUtils.Kinds.SlotNames });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 3);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[3] { "A", "D", "E" });
 
             column = result.Schema["CatH"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[3] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[3] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.CategoricalSlotRanges, AnnotationUtils.Kinds.IsNormalized });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "D", "E" });
-            column.Metadata.GetValue(MetadataUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
+            column.Annotations.GetValue(AnnotationUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
             Assert.True(slotRanges.Length == 2);
             Assert.Equal(slotRanges.Items().Select(x => x.Value), new int[2] { 0, 1 });
             Assert.True(column.IsNormalized());

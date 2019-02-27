@@ -129,14 +129,14 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 // In the event that we are transforming something that is of type key, we will get their type of key value
                 // metadata, unless it has none or is not vector in which case we back off to having key values over the item type.
-                if (!col.IsKey || !col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var kv) || kv.Kind != SchemaShape.Column.VectorKind.Vector)
+                if (!col.IsKey || !col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var kv) || kv.Kind != SchemaShape.Column.VectorKind.Vector)
                 {
-                    kv = new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector,
+                    kv = new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector,
                         colInfo.TextKeyValues ? TextDataViewType.Instance : col.ItemType, col.IsKey);
                 }
                 Contracts.Assert(kv.IsValid);
 
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                     metadata = new SchemaShape(new[] { slotMeta, kv });
                 else
                     metadata = new SchemaShape(new[] { kv });
@@ -158,26 +158,5 @@ namespace Microsoft.ML.Transforms.Conversions
         /// Terms will be assigned ID according to their sort via an ordinal comparison for the type.
         /// </summary>
         Value = ValueToKeyMappingEstimator.SortOrder.Value
-    }
-
-    /// <summary>
-    /// Information on the result of fitting a to-key transform.
-    /// </summary>
-    /// <typeparam name="T">The type of the values.</typeparam>
-    public sealed class ToKeyFitResult<T>
-    {
-        /// <summary>
-        /// For user defined delegates that accept instances of the containing type.
-        /// </summary>
-        /// <param name="result"></param>
-        public delegate void OnFit(ToKeyFitResult<T> result);
-
-        // At the moment this is empty. Once PR #863 clears, we can change this class to hold the output
-        // key-values metadata.
-
-        [BestFriend]
-        internal ToKeyFitResult(ValueToKeyMappingTransformer.TermMap map)
-        {
-        }
     }
 }

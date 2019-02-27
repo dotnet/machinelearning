@@ -54,7 +54,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// Train a linear model over that. (I am thinking sentiment classification.) 
         /// Out of the result, produce some structure over which you can get predictions programmatically 
         /// (for example, the prediction does not happen over a file as it did during training).
-        /// Uses Symbolic SDCA Trainer.
+        /// Uses Symbolic SGD Trainer.
         /// </summary>
         [Fact]
         public void SimpleTrainAndPredictSymSGD()

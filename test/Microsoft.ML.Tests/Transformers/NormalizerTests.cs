@@ -32,15 +32,15 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
 
-            var loader = new TextLoader(Env, new TextLoader.Arguments
+            var loader = new TextLoader(Env, new TextLoader.Options
             {
                 Columns = new[] {
-                    new TextLoader.Column("float1", DataKind.R4, 1),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
-                    new TextLoader.Column("double1", DataKind.R8, 1),
-                    new TextLoader.Column("double4", DataKind.R8, new[]{new TextLoader.Range(1, 4) }),
-                    new TextLoader.Column("int1", DataKind.I4, 0),
-                    new TextLoader.Column("float0", DataKind.R4, new[]{ new TextLoader.Range { Min = 1, VariableEnd = true } }),
+                    new TextLoader.Column("float1", DataKind.Single, 1),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("double1", DataKind.Double, 1),
+                    new TextLoader.Column("double4", DataKind.Double, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("int1", DataKind.Int32, 0),
+                    new TextLoader.Column("float0", DataKind.Single, new[]{ new TextLoader.Range { Min = 1, VariableEnd = true } }),
                 },
                 HasHeader = true
             }, new MultiFileSource(dataPath));
@@ -97,15 +97,15 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dataPath = GetDataPath("iris.txt");
 
-            var loader = new TextLoader(Env, new TextLoader.Arguments
+            var loader = new TextLoader(Env, new TextLoader.Options
             {
                 Columns = new[] {
-                    new TextLoader.Column("float1", DataKind.R4, 1),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
-                    new TextLoader.Column("double1", DataKind.R8, 1),
-                    new TextLoader.Column("double4", DataKind.R8, new[]{new TextLoader.Range(1, 4) }),
-                    new TextLoader.Column("int1", DataKind.I4, 0),
-                    new TextLoader.Column("float0", DataKind.R4, new[]{ new TextLoader.Range { Min = 1, VariableEnd = true } })
+                    new TextLoader.Column("float1", DataKind.Single, 1),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("double1", DataKind.Double, 1),
+                    new TextLoader.Column("double4", DataKind.Double, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("int1", DataKind.Int32, 0),
+                    new TextLoader.Column("float0", DataKind.Single, new[]{ new TextLoader.Range { Min = 1, VariableEnd = true } })
                 },
                 HasHeader = true
             }, new MultiFileSource(dataPath));
@@ -214,11 +214,11 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
 
-            var loader = new TextLoader(Env, new TextLoader.Arguments
+            var loader = new TextLoader(Env, new TextLoader.Options
             {
                 Columns = new[] {
-                    new TextLoader.Column("Label", DataKind.R4, 0),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(1, 4) }),
                 }
             });
 
@@ -479,7 +479,7 @@ namespace Microsoft.ML.Tests.Transformers
         void TestNormalizeBackCompatibility()
         {
             var dataFile = GetDataPath("breast-cancer.txt");
-            var dataView = TextLoader.Create(ML, new TextLoader.Arguments(), new MultiFileSource(dataFile));
+            var dataView = TextLoader.Create(ML, new TextLoader.Options(), new MultiFileSource(dataFile));
             string chooseModelPath = GetDataPath("backcompat/ap_with_norm.zip");
             using (FileStream fs = File.OpenRead(chooseModelPath))
             {

@@ -12,7 +12,6 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(MultiClassNaiveBayesTrainer.Summary, typeof(MultiClassNaiveBayesTrainer), typeof(MultiClassNaiveBayesTrainer.Options),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
@@ -39,7 +38,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary> Return the type of prediction task.</summary>
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
 
@@ -75,22 +74,22 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(options, nameof(options));
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
             Contracts.Assert(success);
 
-            var predLabelMetadata = new SchemaShape(labelCol.Metadata.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
-                .Concat(MetadataUtils.GetTrainerOutputMetadata()));
+            var predLabelMetadata = new SchemaShape(labelCol.Annotations.Where(x => x.Name == AnnotationUtils.Kinds.KeyValues)
+                .Concat(AnnotationUtils.GetTrainerOutputAnnotation()));
 
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.AnnotationsForMulticlassScoreColumn(labelCol))),
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, predLabelMetadata)
             };
         }
 
-        protected override MulticlassPredictionTransformer<MultiClassNaiveBayesModelParameters> MakeTransformer(MultiClassNaiveBayesModelParameters model, DataViewSchema trainSchema)
+        private protected override MulticlassPredictionTransformer<MultiClassNaiveBayesModelParameters> MakeTransformer(MultiClassNaiveBayesModelParameters model, DataViewSchema trainSchema)
             => new MulticlassPredictionTransformer<MultiClassNaiveBayesModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
         private protected override MultiClassNaiveBayesModelParameters TrainModelCore(TrainContext context)
@@ -207,7 +206,7 @@ namespace Microsoft.ML.Trainers
         private readonly VectorType _outputType;
 
         /// <summary> Return the type of prediction task.</summary>
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         DataViewType IValueMapper.InputType => _inputType;
 
@@ -254,7 +253,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="labelHistogram">The histogram of labels.</param>
         /// <param name="featureHistogram">The feature histogram.</param>
         /// <param name="featureCount">The number of features.</param>
-        public MultiClassNaiveBayesModelParameters(IHostEnvironment env, int[] labelHistogram, int[][] featureHistogram, int featureCount)
+        internal MultiClassNaiveBayesModelParameters(IHostEnvironment env, int[] labelHistogram, int[][] featureHistogram, int featureCount)
             : base(env, LoaderSignature)
         {
             Host.AssertValue(labelHistogram);

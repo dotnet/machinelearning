@@ -52,9 +52,9 @@ namespace Microsoft.ML.Benchmarks
 
             private RowImpl(DataViewType type, Delegate getter)
             {
-                var builder = new SchemaBuilder();
+                var builder = new DataViewSchema.Builder();
                 builder.AddColumn("Foo", type, null);
-                Schema = builder.GetSchema();
+                Schema = builder.ToSchema();
                 _getter = getter;
             }
         }
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Benchmarks
             // One million features is a nice, typical number.
             var info = new HashingEstimator.ColumnInfo("Bar", "Foo", hashBits: hashBits);
             var xf = new HashingTransformer(_env, new[] { info });
-            var mapper = xf.GetRowToRowMapper(_inRow.Schema);
+            var mapper = ((ITransformer)xf).GetRowToRowMapper(_inRow.Schema);
             var column = mapper.OutputSchema["Bar"];
             var outRow = mapper.GetRow(_inRow, c => c == column.Index);
             if (type is VectorType)

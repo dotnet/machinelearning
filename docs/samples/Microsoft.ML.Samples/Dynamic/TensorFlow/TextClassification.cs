@@ -3,7 +3,7 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.TensorFlow;
 
-namespace Microsoft.ML.Samples.Dynamic.TensorFlow
+namespace Microsoft.ML.Samples.Dynamic
 {
     public static class TextClassification
     {
@@ -34,12 +34,12 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
 
             // This is the dictionary to convert words into the integer indexes.
             var lookupMap = mlContext.Data.ReadFromTextFile(Path.Combine(modelLocation, "imdb_word_index.csv"),
-                   columns: new[]
+                columns: new[]
                    {
-                        new TextLoader.Column("Words", DataKind.TX, 0),
-                        new TextLoader.Column("Ids", DataKind.I4, 1),
+                        new TextLoader.Column("Words", DataKind.String, 0),
+                        new TextLoader.Column("Ids", DataKind.Int32, 1),
                    },
-                   separatorChar: ','
+                separatorChar: ','
                );
 
             // Load the TensorFlow model once.
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
             };
 
             var engine = mlContext.Transforms.Text.TokenizeWords("TokenizedWords", "Sentiment_Text")
-                .Append(mlContext.Transforms.Conversion.ValueMap(lookupMap, "Words", "Ids", new[] { ("VariableLenghtFeatures", "TokenizedWords") }))
+                .Append(mlContext.Transforms.Conversion.ValueMap(lookupMap, "Words", "Ids", new SimpleColumnInfo[] { ("VariableLenghtFeatures", "TokenizedWords") }))
                 .Append(mlContext.Transforms.CustomMapping(ResizeFeaturesAction, "Resize"))
                 .Append(mlContext.Transforms.ScoreTensorFlowModel(modelInfo, new[] { "Prediction/Softmax" }, new[] { "Features" }))
                 .Append(mlContext.Transforms.CopyColumns(("Prediction", "Prediction/Softmax")))
@@ -103,11 +103,11 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
             public string Sentiment_Text { get; set; }
 
             /// <summary>
-            /// This is a variable length vector designated by VectorType(0) attribute.
+            /// This is a variable length vector designated by VectorType attribute.
             /// Variable length vectors are produced by applying operations such as 'TokenizeWords' on strings
             /// resulting in vectors of tokens of variable lengths.
             /// </summary>
-            [VectorType(0)]
+            [VectorType]
             public int[] VariableLenghtFeatures { get; set; }
         }
 

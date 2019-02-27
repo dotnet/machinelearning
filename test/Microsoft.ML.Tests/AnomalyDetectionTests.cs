@@ -2,15 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
-using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Xunit;
 using Xunit.Abstractions;
@@ -32,15 +24,16 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
             string featureColumn = "NumericFeatures";
 
-            var reader = new TextLoader(Env, new TextLoader.Arguments()
+            var reader = new TextLoader(Env, new TextLoader.Options()
             {
                 HasHeader = true,
                 Separator = "\t",
                 Columns = new[]
                 {
-                    new TextLoader.Column("Label", DataKind.R4, 0),
-                    new TextLoader.Column(featureColumn, DataKind.R4, new [] { new TextLoader.Range(1, 784) })
-                }
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column(featureColumn, DataKind.Single, new [] { new TextLoader.Range(1, 784) })
+                },
+                AllowSparse = true
             });
 
             var trainData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.trainFilename));

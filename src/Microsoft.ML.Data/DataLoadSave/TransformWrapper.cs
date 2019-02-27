@@ -25,6 +25,7 @@ namespace Microsoft.ML.Data
         private readonly IHost _host;
         private readonly IDataView _xf;
         private readonly bool _allowSave;
+        private readonly bool _isRowToRowMapper;
 
         public TransformWrapper(IHostEnvironment env, IDataView xf, bool allowSave = false)
         {
@@ -33,7 +34,7 @@ namespace Microsoft.ML.Data
             _host.CheckValue(xf, nameof(xf));
             _xf = xf;
             _allowSave = allowSave;
-            IsRowToRowMapper = IsChainRowToRowMapper(_xf);
+            _isRowToRowMapper = IsChainRowToRowMapper(_xf);
         }
 
         public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
@@ -87,7 +88,7 @@ namespace Microsoft.ML.Data
         }
 
         // Factory for SignatureLoadModel.
-        public TransformWrapper(IHostEnvironment env, ModelLoadContext ctx)
+        private TransformWrapper(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TransformWrapper));
@@ -108,7 +109,7 @@ namespace Microsoft.ML.Data
             }
 
             _xf = data;
-            IsRowToRowMapper = IsChainRowToRowMapper(_xf);
+            _isRowToRowMapper = IsChainRowToRowMapper(_xf);
         }
 
         public IDataView Transform(IDataView input) => ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input);
@@ -123,9 +124,9 @@ namespace Microsoft.ML.Data
             return true;
         }
 
-        public bool IsRowToRowMapper { get; }
+        bool ITransformer.IsRowToRowMapper => _isRowToRowMapper;
 
-        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
+        IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             var input = new EmptyDataView(_host, inputSchema);
@@ -166,28 +167,6 @@ namespace Microsoft.ML.Data
             var fakeSchema = FakeSchemaFactory.Create(inputSchema);
             var transformer = Fit(new EmptyDataView(Host, fakeSchema));
             return SchemaShape.Create(transformer.GetOutputSchema(fakeSchema));
-        }
-    }
-
-    /// <summary>
-    /// Estimator for untrained wrapped transformers.
-    /// </summary>
-    public abstract class TrivialWrapperEstimator : TrivialEstimator<TransformWrapper>
-    {
-        protected TrivialWrapperEstimator(IHost host, TransformWrapper transformer)
-            : base(host, transformer)
-        {
-        }
-
-        /// <summary>
-        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
-        /// Used for schema propagation and verification in a pipeline.
-        /// </summary>
-        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
-        {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
-            var fakeSchema = FakeSchemaFactory.Create(inputSchema);
-            return SchemaShape.Create(Transformer.GetOutputSchema(fakeSchema));
         }
     }
 }

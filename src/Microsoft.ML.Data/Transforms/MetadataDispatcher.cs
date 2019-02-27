@@ -13,7 +13,7 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Base class for handling the schema metadata API.
     /// </summary>
-    public abstract class MetadataDispatcherBase
+    internal abstract class MetadataDispatcherBase
     {
         private bool _sealed;
 
@@ -99,9 +99,9 @@ namespace Microsoft.ML.Data
         /// </summary>
         protected sealed class GetterInfoDelegate<TValue> : GetterInfo<TValue>
         {
-            public readonly MetadataUtils.MetadataGetter<TValue> Getter;
+            public readonly AnnotationUtils.AnnotationGetter<TValue> Getter;
 
-            public GetterInfoDelegate(string kind, DataViewType type, MetadataUtils.MetadataGetter<TValue> getter)
+            public GetterInfoDelegate(string kind, DataViewType type, AnnotationUtils.AnnotationGetter<TValue> getter)
                 : base(kind, type)
             {
                 Contracts.Check(type.RawType == typeof(TValue), "Incompatible types");
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Data
                 yield break;
 
             // Pass through from base, with filtering.
-            foreach (var kvp in info.SchemaSrc[info.IndexSrc].Metadata.Schema.Select(c => new KeyValuePair<string, DataViewType>(c.Name, c.Type)))
+            foreach (var kvp in info.SchemaSrc[info.IndexSrc].Annotations.Schema.Select(c => new KeyValuePair<string, DataViewType>(c.Name, c.Type)))
             {
                 if (kinds != null && kinds.Contains(kvp.Key))
                     continue;
@@ -265,7 +265,7 @@ namespace Microsoft.ML.Data
                 return null;
             if (info.FilterSrc != null && !info.FilterSrc(kind, index))
                 return null;
-            return info.SchemaSrc[info.IndexSrc].Metadata.Schema.GetColumnOrNull(kind)?.Type;
+            return info.SchemaSrc[info.IndexSrc].Annotations.Schema.GetColumnOrNull(kind)?.Type;
         }
 
         /// <summary>
@@ -279,7 +279,7 @@ namespace Microsoft.ML.Data
 
             var info = _infos[index];
             if (info == null)
-                throw ectx.ExceptGetMetadata();
+                throw ectx.ExceptGetAnnotation();
 
             foreach (var g in info.Getters)
             {
@@ -287,15 +287,15 @@ namespace Microsoft.ML.Data
                 {
                     var getter = g as GetterInfo<TValue>;
                     if (getter == null)
-                        throw ectx.ExceptGetMetadata();
+                        throw ectx.ExceptGetAnnotation();
                     getter.Get(index, ref value);
                     return;
                 }
             }
 
             if (info.SchemaSrc == null || info.FilterSrc != null && !info.FilterSrc(kind, index))
-                throw ectx.ExceptGetMetadata();
-            info.SchemaSrc[info.IndexSrc].Metadata.GetValue(kind, ref value);
+                throw ectx.ExceptGetAnnotation();
+            info.SchemaSrc[info.IndexSrc].Annotations.GetValue(kind, ref value);
         }
     }
 
@@ -304,7 +304,8 @@ namespace Microsoft.ML.Data
     /// a builder for a particular column. Wrap the return in a using statement. Disposing the builder
     /// records the metadata for the column. Call Seal() once all metadata is constructed.
     /// </summary>
-    public sealed class MetadataDispatcher : MetadataDispatcherBase
+    [BestFriend]
+    internal sealed class MetadataDispatcher : MetadataDispatcherBase
     {
         public MetadataDispatcher(int colCount)
             : base(colCount)
@@ -403,7 +404,7 @@ namespace Microsoft.ML.Data
             /// Add metadata of the given kind. When requested, the metadata is fetched by calling the given delegate.
             /// </summary>
             public void AddGetter<TValue>(string kind, DataViewType type,
-                MetadataUtils.MetadataGetter<TValue> getter)
+                AnnotationUtils.AnnotationGetter<TValue> getter)
             {
                 Contracts.Check(_md != null, "Builder disposed");
                 Contracts.CheckNonEmpty(kind, nameof(kind));

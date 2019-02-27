@@ -33,7 +33,7 @@ namespace Microsoft.ML.Trainers
         public readonly float ZScore;
         public readonly float PValue;
 
-        public CoefficientStatistics(string name, float estimate, float stdError, float zScore, float pValue)
+        internal CoefficientStatistics(string name, float estimate, float stdError, float zScore, float pValue)
         {
             Contracts.AssertNonEmpty(name);
             Name = name;
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     public sealed class LinearModelStatistics : ICanSaveModel
     {
-        public const string LoaderSignature = "LinearModelStats";
+        internal const string LoaderSignature = "LinearModelStats";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Trainers
 
             var names = default(VBuffer<ReadOnlyMemory<char>>);
 
-            featureColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
+            featureColumn.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref names);
             _env.Assert(names.Length > 0, "FeatureColumn has no metadata.");
 
             ReadOnlySpan<float> stdErrorValues = _coeffStdError.Value.GetValues();
@@ -413,12 +413,12 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        internal DataViewSchema.Metadata MakeStatisticsMetadata(LinearBinaryModelParameters parent, RoleMappedSchema schema, in VBuffer<ReadOnlyMemory<char>> names)
+        internal DataViewSchema.Annotations MakeStatisticsMetadata(LinearBinaryModelParameters parent, RoleMappedSchema schema, in VBuffer<ReadOnlyMemory<char>> names)
         {
             _env.AssertValueOrNull(parent);
             _env.AssertValue(schema);
 
-            var builder = new MetadataBuilder();
+            var builder = new DataViewSchema.Annotations.Builder();
 
             builder.AddPrimitiveValue("Count of training examples", NumberDataViewType.Int64, _trainingExampleCount);
             builder.AddPrimitiveValue("Residual Deviance", NumberDataViewType.Single, _deviance);
@@ -426,10 +426,10 @@ namespace Microsoft.ML.Trainers
             builder.AddPrimitiveValue("AIC", NumberDataViewType.Single, 2 * _paramCount + _deviance);
 
             if (parent == null)
-                return builder.GetMetadata();
+                return builder.ToAnnotations();
 
             if (!TryGetBiasStatistics(parent.Statistics, parent.Bias, out float biasStdErr, out float biasZScore, out float biasPValue))
-                return builder.GetMetadata();
+                return builder.ToAnnotations();
 
             var biasEstimate = parent.Bias;
             builder.AddPrimitiveValue("BiasEstimate", NumberDataViewType.Single, biasEstimate);
@@ -446,9 +446,9 @@ namespace Microsoft.ML.Trainers
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames;
             GetUnorderedCoefficientStatistics(parent.Statistics, in weights, in names, ref estimate, ref stdErr, ref zScore, ref pValue, out getSlotNames);
 
-            var subMetaBuilder = new MetadataBuilder();
+            var subMetaBuilder = new DataViewSchema.Annotations.Builder();
             subMetaBuilder.AddSlotNames(stdErr.Length, getSlotNames);
-            var subMeta = subMetaBuilder.GetMetadata();
+            var subMeta = subMetaBuilder.ToAnnotations();
             var colType = new VectorType(NumberDataViewType.Single, stdErr.Length);
 
             builder.Add("Estimate", colType, (ref VBuffer<float> dst) => estimate.CopyTo(ref dst), subMeta);
@@ -456,7 +456,7 @@ namespace Microsoft.ML.Trainers
             builder.Add("ZScore", colType, (ref VBuffer<float> dst) => zScore.CopyTo(ref dst), subMeta);
             builder.Add("PValue", colType, (ref VBuffer<float> dst) => pValue.CopyTo(ref dst), subMeta);
 
-            return builder.GetMetadata();
+            return builder.ToAnnotations();
         }
 
         private string DecorateProbabilityString(float probZ)

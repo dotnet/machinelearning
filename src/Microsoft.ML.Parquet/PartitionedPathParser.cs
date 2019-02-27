@@ -82,7 +82,7 @@ namespace Microsoft.ML.Data
             public PartitionedFileLoader.Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Data type of each column.")]
-            public DataKind Type = DataKind.Text;
+            public InternalDataKind Type = InternalDataKind.Text;
 
             public IPartitionedPathParser CreateComponent(IHostEnvironment env) => new SimplePartitionedPathParser(env, this);
         }
@@ -294,7 +294,7 @@ namespace Microsoft.ML.Data
                 {
                     Name = names[i],
                     Source = i,
-                    Type = DataKind.Text
+                    Type = InternalDataKind.Text
                 };
             }
 

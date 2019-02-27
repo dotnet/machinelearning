@@ -8,8 +8,8 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(LightGbmRegressorTrainer.Summary, typeof(LightGbmRegressorTrainer), typeof(Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
@@ -43,10 +43,10 @@ namespace Microsoft.ML.LightGBM
                 loaderAssemblyName: typeof(LightGbmRegressionModelParameters).Assembly.FullName);
         }
 
-        protected override uint VerNumFeaturesSerialized => 0x00010002;
-        protected override uint VerDefaultValueSerialized => 0x00010004;
-        protected override uint VerCategoricalSplitSerialized => 0x00010005;
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override uint VerNumFeaturesSerialized => 0x00010002;
+        private protected override uint VerDefaultValueSerialized => 0x00010004;
+        private protected override uint VerCategoricalSplitSerialized => 0x00010005;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         internal LightGbmRegressionModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
@@ -81,7 +81,7 @@ namespace Microsoft.ML.LightGBM
         internal const string ShortName = "LightGBMR";
         internal const string UserNameValue = "LightGBM Regressor";
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         /// <summary>
         /// Initializes a new instance of <see cref="LightGbmRegressorTrainer"/>
@@ -139,18 +139,22 @@ namespace Microsoft.ML.LightGBM
                 Options["metric"] = "l2";
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
-        protected override RegressionPredictionTransformer<LightGbmRegressionModelParameters> MakeTransformer(LightGbmRegressionModelParameters model, DataViewSchema trainSchema)
+        private protected override RegressionPredictionTransformer<LightGbmRegressionModelParameters> MakeTransformer(LightGbmRegressionModelParameters model, DataViewSchema trainSchema)
             => new RegressionPredictionTransformer<LightGbmRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<LightGbmRegressionModelParameters> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="LightGbmRegressorTrainer"/> using both training and validation data, returns
+        /// a <see cref="RegressionPredictionTransformer{LightGbmRegressionModelParameters}"/>.
+        /// </summary>
+        public RegressionPredictionTransformer<LightGbmRegressionModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
     }
 

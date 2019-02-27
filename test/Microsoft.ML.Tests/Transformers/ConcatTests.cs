@@ -6,9 +6,7 @@ using System.IO;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -26,13 +24,13 @@ namespace Microsoft.ML.Tests.Transformers
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
 
             var source = new MultiFileSource(dataPath);
-            var loader = new TextLoader(ML, new TextLoader.Arguments
+            var loader = new TextLoader(ML, new TextLoader.Options
             {
                 Columns = new[]{
-                    new TextLoader.Column("float1", DataKind.R4, 9),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
-                    new TextLoader.Column("float6", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, 14) }),
-                    new TextLoader.Column("vfloat", DataKind.R4, new[]{new TextLoader.Range(14, null) { AutoEnd = false, VariableEnd = true } })
+                    new TextLoader.Column("float1", DataKind.Single, 9),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("float6", DataKind.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, 14) }),
+                    new TextLoader.Column("vfloat", DataKind.Single, new[]{new TextLoader.Range(14, null) { AutoEnd = false, VariableEnd = true } })
                 },
                 Separator = "\t",
                 HasHeader = true
@@ -84,12 +82,12 @@ namespace Microsoft.ML.Tests.Transformers
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
 
             var source = new MultiFileSource(dataPath);
-            var loader = new TextLoader(ML, new TextLoader.Arguments
+            var loader = new TextLoader(ML, new TextLoader.Options
             {
                 Columns = new[]{
-                    new TextLoader.Column("float1", DataKind.R4, 9),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
-                    new TextLoader.Column("vfloat", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, null) { AutoEnd = false, VariableEnd = true } })
+                    new TextLoader.Column("float1", DataKind.Single, 9),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("vfloat", DataKind.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, null) { AutoEnd = false, VariableEnd = true } })
                 },
                 Separator = "\t",
                 HasHeader = true

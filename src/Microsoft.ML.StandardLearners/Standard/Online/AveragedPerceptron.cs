@@ -12,7 +12,6 @@ using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.Online;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(AveragedPerceptronTrainer.Summary, typeof(AveragedPerceptronTrainer), typeof(AveragedPerceptronTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -54,15 +53,15 @@ namespace Microsoft.ML.Trainers.Online
         private readonly Options _args;
 
         /// <summary>
-        /// Options for the averaged perceptron trainer.
+        /// Options for the <see cref="AveragedPerceptronTrainer"/>.
         /// </summary>
-        public sealed class Options : AveragedLinearArguments
+        public sealed class Options : AveragedLinearOptions
         {
             /// <summary>
             /// A custom <a href="tmpurl_loss">loss</a>.
             /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
-            public ISupportClassificationLossFactory LossFunction = new HingeLoss.Arguments();
+            public ISupportClassificationLossFactory LossFunction = new HingeLoss.Options();
 
             /// <summary>
             /// The <a href="tmpurl_calib">calibrator</a> for producing probabilities. Default is exponential (aka Platt) calibration.
@@ -132,10 +131,10 @@ namespace Microsoft.ML.Trainers.Online
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             IClassificationLoss lossFunction = null,
-            float learningRate = Options.AveragedDefaultArgs.LearningRate,
-            bool decreaseLearningRate = Options.AveragedDefaultArgs.DecreaseLearningRate,
-            float l2RegularizerWeight = Options.AveragedDefaultArgs.L2RegularizerWeight,
-            int numIterations = Options.AveragedDefaultArgs.NumIterations)
+            float learningRate = Options.AveragedDefault.LearningRate,
+            bool decreaseLearningRate = Options.AveragedDefault.DecreaseLearningRate,
+            float l2RegularizerWeight = Options.AveragedDefault.L2RegularizerWeight,
+            int numIterations = Options.AveragedDefault.NumIterations)
             : this(env, new Options
             {
                 LabelColumn = labelColumn,
@@ -161,17 +160,17 @@ namespace Microsoft.ML.Trainers.Online
             IClassificationLoss IComponentFactory<IClassificationLoss>.CreateComponent(IHostEnvironment env) => _loss;
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        protected override bool NeedCalibration => true;
+        private protected override bool NeedCalibration => true;
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
                 // REVIEW AP is currently not calibrating. Add the probability column after fixing the behavior.
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
@@ -181,7 +180,7 @@ namespace Microsoft.ML.Trainers.Online
             data.CheckBinaryLabel();
         }
 
-        protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
+        private protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
             Contracts.Assert(labelCol.IsValid);
 
@@ -200,7 +199,7 @@ namespace Microsoft.ML.Trainers.Online
             return new TrainState(ch, numFeatures, predictor, this);
         }
 
-        protected override BinaryPredictionTransformer<LinearBinaryModelParameters> MakeTransformer(LinearBinaryModelParameters model, DataViewSchema trainSchema)
+        private protected override BinaryPredictionTransformer<LinearBinaryModelParameters> MakeTransformer(LinearBinaryModelParameters model, DataViewSchema trainSchema)
         => new BinaryPredictionTransformer<LinearBinaryModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         [TlcModule.EntryPoint(Name = "Trainers.AveragedPerceptronBinaryClassifier",

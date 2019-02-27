@@ -15,7 +15,7 @@ using Microsoft.ML.Trainers.Ensemble;
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
-    public sealed class EnsembleMultiClassModelParameters : EnsembleModelParametersBase<VBuffer<Single>>, IValueMapper
+    internal sealed class EnsembleMultiClassModelParameters : EnsembleModelParametersBase<VBuffer<Single>>, IValueMapper
     {
         internal const string UserName = "Ensemble Multiclass Executor";
         internal const string LoaderSignature = "EnsemMcExec";
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {

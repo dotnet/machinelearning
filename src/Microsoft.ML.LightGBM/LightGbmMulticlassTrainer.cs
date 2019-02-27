@@ -12,7 +12,6 @@ using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(LightGbmMulticlassTrainer.Summary, typeof(LightGbmMulticlassTrainer), typeof(Options),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
@@ -32,7 +31,7 @@ namespace Microsoft.ML.LightGBM
         private const double _maxNumClass = 1e6;
         private int _numClass;
         private int _tlcNumClass;
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         internal LightGbmMulticlassTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumn))
@@ -164,16 +163,16 @@ namespace Microsoft.ML.LightGBM
         {
             base.GetDefaultParameters(ch, numRow, hasCategorical, totalCats, true);
             int numLeaves = (int)Options["num_leaves"];
-            int minDataPerLeaf = Args.MinDataPerLeaf ?? DefaultMinDataPerLeaf(numRow, numLeaves, _numClass);
+            int minDataPerLeaf = LightGbmTrainerOptions.MinDataPerLeaf ?? DefaultMinDataPerLeaf(numRow, numLeaves, _numClass);
             Options["min_data_per_leaf"] = minDataPerLeaf;
             if (!hiddenMsg)
             {
-                if (!Args.LearningRate.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(Args.LearningRate) + " = " + Options["learning_rate"]);
-                if (!Args.NumLeaves.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(Args.NumLeaves) + " = " + numLeaves);
-                if (!Args.MinDataPerLeaf.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(Args.MinDataPerLeaf) + " = " + minDataPerLeaf);
+                if (!LightGbmTrainerOptions.LearningRate.HasValue)
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.LearningRate) + " = " + Options["learning_rate"]);
+                if (!LightGbmTrainerOptions.NumLeaves.HasValue)
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.NumLeaves) + " = " + numLeaves);
+                if (!LightGbmTrainerOptions.MinDataPerLeaf.HasValue)
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.MinDataPerLeaf) + " = " + minDataPerLeaf);
             }
         }
 
@@ -185,14 +184,14 @@ namespace Microsoft.ML.LightGBM
             Options["num_class"] = _numClass;
             bool useSoftmax = false;
 
-            if (Args.UseSoftmax.HasValue)
-                useSoftmax = Args.UseSoftmax.Value;
+            if (LightGbmTrainerOptions.UseSoftmax.HasValue)
+                useSoftmax = LightGbmTrainerOptions.UseSoftmax.Value;
             else
             {
                 if (labels.Length >= _minDataToUseSoftmax)
                     useSoftmax = true;
 
-                ch.Info("Auto-tuning parameters: " + nameof(Args.UseSoftmax) + " = " + useSoftmax);
+                ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.UseSoftmax) + " = " + useSoftmax);
             }
 
             if (useSoftmax)
@@ -205,24 +204,28 @@ namespace Microsoft.ML.LightGBM
                 Options["metric"] = "multi_error";
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
             Contracts.Assert(success);
 
-            var metadata = new SchemaShape(labelCol.Metadata.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
-                .Concat(MetadataUtils.GetTrainerOutputMetadata()));
+            var metadata = new SchemaShape(labelCol.Annotations.Where(x => x.Name == AnnotationUtils.Kinds.KeyValues)
+                .Concat(AnnotationUtils.GetTrainerOutputAnnotation()));
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.AnnotationsForMulticlassScoreColumn(labelCol))),
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, metadata)
             };
         }
 
-        protected override MulticlassPredictionTransformer<OvaModelParameters> MakeTransformer(OvaModelParameters model, DataViewSchema trainSchema)
+        private protected override MulticlassPredictionTransformer<OvaModelParameters> MakeTransformer(OvaModelParameters model, DataViewSchema trainSchema)
             => new MulticlassPredictionTransformer<OvaModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
-        public MulticlassPredictionTransformer<OvaModelParameters> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="LightGbmMulticlassTrainer"/> using both training and validation data, returns
+        /// a <see cref="MulticlassPredictionTransformer{OvaModelParameters}"/>.
+        /// </summary>
+        public MulticlassPredictionTransformer<OvaModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
     }
 

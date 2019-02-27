@@ -50,12 +50,12 @@ namespace Microsoft.ML
             /// and the value at the location specified by the two indexes.
             /// </para>
             /// </remarks>
+            /// <param name="labelColumn">The name of the label column.</param>
             /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
             /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
-            /// <param name="labelColumn">The name of the label column.</param>
             /// <param name="approximationRank">Rank of approximation matrixes.</param>
             /// <param name="learningRate">Initial learning rate. It specifies the speed of the training algorithm.</param>
-            /// <param name="numIterations">Number of training iterations.</param>
+            /// <param name="numberOfIterations">Number of training iterations.</param>
             /// <example>
             /// <format type="text/markdown">
             /// <![CDATA[
@@ -63,14 +63,14 @@ namespace Microsoft.ML
             /// ]]></format>
             /// </example>
             public MatrixFactorizationTrainer MatrixFactorization(
+                string labelColumn,
                 string matrixColumnIndexColumnName,
                 string matrixRowIndexColumnName,
-                string labelColumn = DefaultColumnNames.Label,
                 int approximationRank = MatrixFactorizationTrainer.Defaults.ApproximationRank,
                 double learningRate = MatrixFactorizationTrainer.Defaults.LearningRate,
-                int numIterations = MatrixFactorizationTrainer.Defaults.NumIterations)
-                    => new MatrixFactorizationTrainer(Owner.Environment, matrixColumnIndexColumnName, matrixRowIndexColumnName, labelColumn,
-                        approximationRank, learningRate, numIterations);
+                int numberOfIterations = MatrixFactorizationTrainer.Defaults.NumIterations)
+                    => new MatrixFactorizationTrainer(Owner.Environment, labelColumn, matrixColumnIndexColumnName, matrixRowIndexColumnName,
+                        approximationRank, learningRate, numberOfIterations);
 
             /// <summary>
             /// Train a matrix factorization model. It factorizes the training matrix into the product of two low-rank matrices.

@@ -14,7 +14,7 @@ using Microsoft.ML.Sweeper;
 
 using ResultProcessorInternal = Microsoft.ML.ResultProcessor;
 
-[assembly: LoadableClass(typeof(LocalExeConfigRunner), typeof(LocalExeConfigRunner.Arguments), typeof(SignatureConfigRunner),
+[assembly: LoadableClass(typeof(LocalExeConfigRunner), typeof(LocalExeConfigRunner.Options), typeof(SignatureConfigRunner),
     "Local Sweep Config Runner", "Local")]
 
 namespace Microsoft.ML.Sweeper
@@ -30,10 +30,10 @@ namespace Microsoft.ML.Sweeper
 
     public abstract class ExeConfigRunnerBase : IConfigRunner
     {
-        public abstract class ArgumentsBase
+        public abstract class OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Command pattern for the sweeps", ShortName = "pattern")]
-            public string ArgsPattern;
+            public string OptionsPattern;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "output folder for the outputs of the sweeps", ShortName = "outfolder")]
             public string OutputFolderName;
@@ -46,14 +46,14 @@ namespace Microsoft.ML.Sweeper
 
             [Argument(ArgumentType.Multiple, HelpText = "Specify how to extract the metrics from the result file.", ShortName = "ev", SignatureType = typeof(SignatureSweepResultEvaluator))]
             public IComponentFactory<ISweepResultEvaluator<string>> ResultProcessor = ComponentFactoryUtils.CreateFromFunction(
-                env => new InternalSweepResultEvaluator(env, new InternalSweepResultEvaluator.Arguments()));
+                env => new InternalSweepResultEvaluator(env, new InternalSweepResultEvaluator.Options()));
 
             [Argument(ArgumentType.AtMostOnce, Hide = true)]
             public bool CalledFromUnitTestSuite;
         }
 
         protected string Exe;
-        protected readonly string ArgsPattern;
+        protected readonly string OptionsPattern;
         protected readonly string OutputFolder;
         protected readonly string Prefix;
         protected readonly ISweepResultEvaluator<string> ResultProcessor;
@@ -63,17 +63,17 @@ namespace Microsoft.ML.Sweeper
 
         private readonly bool _calledFromUnitTestSuite;
 
-        protected ExeConfigRunnerBase(ArgumentsBase args, IHostEnvironment env, string registrationName)
+        protected ExeConfigRunnerBase(OptionsBase options, IHostEnvironment env, string registrationName)
         {
             Contracts.AssertValue(env);
             Host = env.Register(registrationName);
-            Host.CheckUserArg(!string.IsNullOrEmpty(args.ArgsPattern), nameof(args.ArgsPattern), "The command pattern is missing");
-            Host.CheckUserArg(!string.IsNullOrEmpty(args.OutputFolderName), nameof(args.OutputFolderName), "Please specify an output folder");
-            ArgsPattern = args.ArgsPattern;
-            OutputFolder = GetOutputFolderPath(args.OutputFolderName);
-            Prefix = string.IsNullOrEmpty(args.Prefix) ? "" : args.Prefix;
-            ResultProcessor = args.ResultProcessor.CreateComponent(Host);
-            _calledFromUnitTestSuite = args.CalledFromUnitTestSuite;
+            Host.CheckUserArg(!string.IsNullOrEmpty(options.OptionsPattern), nameof(options.OptionsPattern), "The command pattern is missing");
+            Host.CheckUserArg(!string.IsNullOrEmpty(options.OutputFolderName), nameof(options.OutputFolderName), "Please specify an output folder");
+            OptionsPattern = options.OptionsPattern;
+            OutputFolder = GetOutputFolderPath(options.OutputFolderName);
+            Prefix = string.IsNullOrEmpty(options.Prefix) ? "" : options.Prefix;
+            ResultProcessor = options.ResultProcessor.CreateComponent(Host);
+            _calledFromUnitTestSuite = options.CalledFromUnitTestSuite;
             RunNums = new List<int>();
         }
 
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Sweeper
             Exe = GetFullExePath(exe);
 
             if (!File.Exists(Exe) && !File.Exists(Exe + ".exe"))
-                throw Host.ExceptUserArg(nameof(ArgumentsBase.Exe), "Executable {0} not found", Exe);
+                throw Host.ExceptUserArg(nameof(OptionsBase.Exe), "Executable {0} not found", Exe);
         }
 
         protected virtual string GetFullExePath(string exe)
@@ -151,10 +151,10 @@ namespace Microsoft.ML.Sweeper
         // you get lr=$ only as argument because $LR is variable and empty.
         protected string GetCommandLine(ParameterSet sweep)
         {
-            var arguments = ArgsPattern;
+            var options = OptionsPattern;
             foreach (var parameterValue in sweep)
-                arguments = arguments.Replace("$" + parameterValue.Name + "$", parameterValue.ValueText);
-            return arguments;
+                options = options.Replace("$" + parameterValue.Name + "$", parameterValue.ValueText);
+            return options;
         }
 
         public IEnumerable<IRunResult> RunConfigs(ParameterSet[] sweeps, int min)
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Sweeper
 
     public sealed class LocalExeConfigRunner : ExeConfigRunnerBase
     {
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Options : OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of threads to use for the sweep (default auto determined by the number of cores)", ShortName = "t")]
             public int? NumThreads;
@@ -188,13 +188,13 @@ namespace Microsoft.ML.Sweeper
 
         private readonly ParallelOptions _parallelOptions;
 
-        public LocalExeConfigRunner(IHostEnvironment env, Arguments args)
-            : base(args, env, "LocalExeSweepEvaluator")
+        public LocalExeConfigRunner(IHostEnvironment env, Options options)
+            : base(options, env, "LocalExeSweepEvaluator")
         {
-            Contracts.CheckParam(args.NumThreads == null || args.NumThreads.Value > 0, nameof(args.NumThreads), "Cannot be 0 or negative");
-            _parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = args.NumThreads ?? -1 };
-            Contracts.AssertNonEmpty(args.OutputFolderName);
-            ProcessFullExePath(args.Exe);
+            Contracts.CheckParam(options.NumThreads == null || options.NumThreads.Value > 0, nameof(options.NumThreads), "Cannot be 0 or negative");
+            _parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = options.NumThreads ?? -1 };
+            Contracts.AssertNonEmpty(options.OutputFolderName);
+            ProcessFullExePath(options.Exe);
         }
 
         protected override IEnumerable<IRunResult> RunConfigsCore(ParameterSet[] sweeps, IChannel ch, int min)

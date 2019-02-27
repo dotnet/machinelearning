@@ -16,7 +16,7 @@ using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Transforms.Conversions;
 using Newtonsoft.Json.Linq;
@@ -439,10 +439,19 @@ namespace Microsoft.ML.Transforms.Conversions
                             "{0} should not be specified when default loader is " + nameof(TextLoader) + ". Ignoring {0}={1}",
                             nameof(Options.TermsColumn), src);
                     }
-                    keyData = new TextLoader(env,
-                        columns: new[] { new TextLoader.Column("Term", DataKind.TX, 0) },
-                        dataSample: fileSource)
-                        .Read(fileSource);
+
+                    // Create text loader.
+                    var options = new TextLoader.Options()
+                    {
+                        Columns = new[]
+                        {
+                            new TextLoader.Column("Term", DataKind.String, 0)
+                        }
+                    };
+                    var reader = new TextLoader(env, options: options, dataSample: fileSource);
+
+                    keyData = reader.Read(fileSource);
+
                     src = "Term";
                     // In this case they are relying on heuristics, so auto-loading in this case is most appropriate.
                     autoConvert = true;
@@ -733,11 +742,11 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new MetadataBuilder();
+                    var builder = new DataViewSchema.Annotations.Builder();
                     _termMap[i].AddMetadata(builder);
 
-                    builder.Add(InputSchema[colIndex].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
+                    builder.Add(InputSchema[colIndex].Annotations, name => name == AnnotationUtils.Kinds.SlotNames);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.ToAnnotations());
                 }
                 return result;
             }

@@ -51,7 +51,7 @@ namespace Microsoft.ML.Data
     /// methods create a new <see cref="RoleMappedData"/> containing all the columns needed for evaluation, and call the corresponding
     /// methods on an <see cref="IEvaluator"/> of the appropriate type.
     /// </summary>
-    public abstract class MamlEvaluatorBase : IMamlEvaluator
+    internal abstract class MamlEvaluatorBase : IMamlEvaluator
     {
         public abstract class ArgumentsBase : EvaluateInputBase
         {
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Data
                 : StratCols.Select(col => RoleMappedSchema.CreatePair(Strat, col));
 
             if (needName && schema.Name.HasValue)
-                roles = MetadataUtils.Prepend(roles, RoleMappedSchema.ColumnRole.Name.Bind(schema.Name.Value.Name));
+                roles = AnnotationUtils.Prepend(roles, RoleMappedSchema.ColumnRole.Name.Bind(schema.Name.Value.Name));
 
             return roles.Concat(GetInputColumnRolesCore(schema));
         }
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Data
             // Get the score column information.
             var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(ArgumentsBase.ScoreColumn),
                 ScoreColumnKind);
-            yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreCol.Name);
+            yield return RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, scoreCol.Name);
 
             // Get the label column information.
             string label = EvaluateUtils.GetColName(LabelCol, schema.Label, DefaultColumnNames.Label);

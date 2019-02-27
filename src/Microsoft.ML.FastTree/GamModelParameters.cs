@@ -18,7 +18,6 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(typeof(GamModelParametersBase.VisualizationCommand), typeof(GamModelParametersBase.VisualizationCommand.Arguments), typeof(SignatureCommand),
     "GAM Vizualization Command", GamModelParametersBase.VisualizationCommand.LoadName, "gamviz", DocName = "command/GamViz.md")]
@@ -60,7 +59,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// For Generalized Additive Models (GAM), the contribution of a feature is equal to the shape function for the given feature evaluated at
         /// the feature value.
         /// </summary>
-        public FeatureContributionCalculator FeatureContributionCalculator => new FeatureContributionCalculator(this);
+        FeatureContributionCalculator ICalculateFeatureContribution.FeatureContributionCalculator => new FeatureContributionCalculator(this);
 
         private protected GamModelParametersBase(IHostEnvironment env, string name,
             double[][] binUpperBounds, double[][] binEffects, double intercept, int numInputFeatures = -1, int[] shapeToInputMap = null)
@@ -115,7 +114,7 @@ namespace Microsoft.ML.Trainers.FastTree
             _outputType = NumberDataViewType.Single;
         }
 
-        protected GamModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
+        private protected GamModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
             : base(env, name)
         {
             Host.CheckValue(ctx, nameof(ctx));
@@ -370,7 +369,7 @@ namespace Microsoft.ML.Trainers.FastTree
             writer.WriteLine("-1\tIntercept");
 
             var names = default(VBuffer<ReadOnlyMemory<char>>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numInputFeatures, ref names);
+            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numInputFeatures, ref names);
 
             for (int internalIndex = 0; internalIndex < NumShapeFunctions; internalIndex++)
             {
@@ -636,7 +635,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     ch.Check(len == _pred._numInputFeatures);
 
                     if (featCol.HasSlotNames(len))
-                        featCol.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _featNames);
+                        featCol.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref _featNames);
                     else
                         _featNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
 
@@ -681,11 +680,11 @@ namespace Microsoft.ML.Trainers.FastTree
                         builder.AddColumn(DefaultColumnNames.Score, NumberDataViewType.Single, _scores);
                         _dataForEvaluator = new RoleMappedData(builder.GetDataView(), opt: false,
                             RoleMappedSchema.ColumnRole.Label.Bind(DefaultColumnNames.Label),
-                            new RoleMappedSchema.ColumnRole(MetadataUtils.Const.ScoreValueKind.Score).Bind(DefaultColumnNames.Score));
+                            new RoleMappedSchema.ColumnRole(AnnotationUtils.Const.ScoreValueKind.Score).Bind(DefaultColumnNames.Score));
                     }
 
                     var featureCol = _data.Schema.Schema[DefaultColumnNames.Features];
-                    MetadataUtils.TryGetCategoricalFeatureIndices(_data.Schema.Schema, featureCol.Index, out _catsMap);
+                    AnnotationUtils.TryGetCategoricalFeatureIndices(_data.Schema.Schema, featureCol.Index, out _catsMap);
                 }
 
                 public FeatureInfo GetInfoForIndex(int index) => FeatureInfo.GetInfoForIndex(this, index);
@@ -888,9 +887,9 @@ namespace Microsoft.ML.Trainers.FastTree
                     calibrated = rawPred as CalibratedModelParametersBase<BinaryClassificationGamModelParameters, PlattCalibrator>;
                 }
                 var pred = rawPred as GamModelParametersBase;
-                ch.CheckUserArg(pred != null, nameof(Args.InputModelFile), "Predictor was not a " + nameof(GamModelParametersBase));
+                ch.CheckUserArg(pred != null, nameof(ImplOptions.InputModelFile), "Predictor was not a " + nameof(GamModelParametersBase));
                 var data = new RoleMappedData(loader, schema.GetColumnRoleNames(), opt: true);
-                if (hadCalibrator && !string.IsNullOrWhiteSpace(Args.OutputModelFile))
+                if (hadCalibrator && !string.IsNullOrWhiteSpace(ImplOptions.OutputModelFile))
                     ch.Warning("If you save the GAM model, only the GAM model, not the wrapping calibrator, will be saved.");
 
                 return new Context(ch, pred, data, InitEvaluator(pred));
@@ -936,11 +935,11 @@ namespace Microsoft.ML.Trainers.FastTree
                     sch?.Register<int, int, double, long>("setEffect", context.SetEffect);
                     // Getting the metrics.
                     sch?.Register("metrics", context.GetMetrics);
-                    sch?.Register("canSave", () => !string.IsNullOrEmpty(Args.OutputModelFile));
-                    sch?.Register("save", () => context.SaveIfNeeded(Host, ch, Args.OutputModelFile));
+                    sch?.Register("canSave", () => !string.IsNullOrEmpty(ImplOptions.OutputModelFile));
+                    sch?.Register("save", () => context.SaveIfNeeded(Host, ch, ImplOptions.OutputModelFile));
                     sch?.Register("quit", () =>
                     {
-                        var retVal = context.SaveIfNeeded(Host, ch, Args.OutputModelFile);
+                        var retVal = context.SaveIfNeeded(Host, ch, ImplOptions.OutputModelFile);
                         ev.Set();
                         return retVal;
                     });

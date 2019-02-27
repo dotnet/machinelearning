@@ -24,12 +24,12 @@ namespace Microsoft.ML.Scenarios
             var imageFolder = Path.GetDirectoryName(dataFile);
 
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var data = TextLoader.Create(mlContext, new TextLoader.Arguments()
+            var data = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                     {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Label", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Label", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
 

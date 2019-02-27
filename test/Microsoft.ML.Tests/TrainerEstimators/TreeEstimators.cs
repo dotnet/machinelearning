@@ -39,7 +39,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             TestEstimatorCore(pipeWithTrainer, dataView);
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
-            var model = trainer.Train(transformedDataView, transformedDataView);
+            var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             TestEstimatorCore(pipeWithTrainer, dataView);
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
-            var model = trainer.Train(transformedDataView, transformedDataView);
+            var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             TestEstimatorCore(pipeWithTrainer, dataView);
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
-            var model = trainer.Train(transformedDataView, transformedDataView);
+            var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
         }
 
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             TestEstimatorCore(pipeWithTrainer, dataView);
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
-            var model = trainer.Train(transformedDataView, transformedDataView);
+            var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
         }
 
@@ -115,14 +115,15 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 new FastTreeRankingTrainer.Options
                 {
                     FeatureColumn = "NumericFeatures",
-                    NumTrees = 10
+                    NumTrees = 10,
+                    GroupIdColumn = "Group"
                 });
 
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
-            var model = trainer.Train(transformedDataView, transformedDataView);
+            var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
         }
 
@@ -134,13 +135,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetRankingPipeline();
 
-            var trainer = ML.Ranking.Trainers.LightGbm(labelColumn: "Label0", featureColumn: "NumericFeatures", groupIdColumn: "Group", learningRate: 0.4);
+            var trainer = ML.Ranking.Trainers.LightGbm(new Options() { LabelColumn = "Label0", FeatureColumn = "NumericFeatures", GroupIdColumn = "Group", LearningRate = 0.4 });
 
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
-            var model = trainer.Train(transformedDataView, transformedDataView);
+            var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
         }
 
@@ -155,7 +156,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 new FastTreeRegressionTrainer.Options { NumTrees = 10, NumThreads = 1, NumLeaves = 5 });
 
             TestEstimatorCore(trainer, dataView);
-            var model = trainer.Train(dataView, dataView);
+            var model = trainer.Fit(dataView, dataView);
             Done();
         }
 
@@ -174,7 +175,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             });
 
             TestEstimatorCore(trainer, dataView);
-            var model = trainer.Train(dataView, dataView);
+            var model = trainer.Fit(dataView, dataView);
             Done();
         }
 
@@ -193,7 +194,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             });
 
             TestEstimatorCore(trainer, dataView);
-            var model = trainer.Train(dataView, dataView);
+            var model = trainer.Fit(dataView, dataView);
             Done();
         }
 
@@ -208,11 +209,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 new FastTreeTweedieTrainer.Options
                 {
                     EntropyCoefficient = 0.3,
-                    OptimizationAlgorithm = BoostedTreeArgs.OptimizationAlgorithmType.AcceleratedGradientDescent,
+                    OptimizationAlgorithm = BoostedTreeOptions.OptimizationAlgorithmType.AcceleratedGradientDescent,
                 });
 
             TestEstimatorCore(trainer, dataView);
-            var model = trainer.Train(dataView, dataView);
+            var model = trainer.Fit(dataView, dataView);
             Done();
         }
 
@@ -231,7 +232,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 });
 
             TestEstimatorCore(trainer, dataView);
-            var model = trainer.Train(dataView, dataView);
+            var model = trainer.Fit(dataView, dataView);
             Done();
         }
 
@@ -259,7 +260,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             [VectorType(_columnNumber)]
             public float[] Features;
-            [KeyType(Count = _classNumber)]
+            [KeyType(_classNumber)]
             public uint Label;
             [VectorType(_classNumber)]
             public float[] Score;

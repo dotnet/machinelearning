@@ -15,7 +15,8 @@ namespace Microsoft.ML.Model
     /// amount of boiler plate code. It can also be used when loading from a single stream,
     /// for implementors of ICanSaveInBinaryFormat.
     /// </summary>
-    public sealed partial class ModelLoadContext : IDisposable
+    [BestFriend]
+    internal sealed partial class ModelLoadContext : IDisposable
     {
         /// <summary>
         /// When in repository mode, this is the repository we're reading from. It is null when

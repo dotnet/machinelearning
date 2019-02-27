@@ -17,7 +17,7 @@ using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(MissingValueReplacingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueReplacingTransformer), typeof(MissingValueReplacingTransformer.Options), typeof(SignatureDataTransform),
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Transforms
         // REVIEW: Currently these arrays are constructed on load but could be changed to being constructed lazily.
         private readonly BitArray[] _repIsDefault;
 
-        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             string reason = TestType(type);
@@ -605,9 +605,9 @@ namespace Microsoft.ML.Transforms
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new MetadataBuilder();
-                    builder.Add(InputSchema[colIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames || x == MetadataUtils.Kinds.IsNormalized);
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
+                    var builder = new DataViewSchema.Annotations.Builder();
+                    builder.Add(InputSchema[colIndex].Annotations, x => x == AnnotationUtils.Kinds.SlotNames || x == AnnotationUtils.Kinds.IsNormalized);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.ToAnnotations());
                 }
                 return result;
             }
@@ -1005,9 +1005,9 @@ namespace Microsoft.ML.Transforms
                 if (reason != null)
                     throw _host.ExceptParam(nameof(inputSchema), reason);
                 var metadata = new List<SchemaShape.Column>();
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.IsNormalized, out var normalized))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.IsNormalized, out var normalized))
                     metadata.Add(normalized);
                 var type = !(col.ItemType is VectorType vectorType) ?
                     col.ItemType :

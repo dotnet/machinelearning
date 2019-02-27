@@ -19,12 +19,12 @@ namespace Microsoft.ML.Scenarios
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
-            var reader = new TextLoader(mlContext, new TextLoader.Arguments()
+            var reader = new TextLoader(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
+                            new TextLoader.Column("Label", DataKind.Single, 0),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
 
@@ -51,12 +51,12 @@ namespace Microsoft.ML.Scenarios
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
-            var reader = new TextLoader(mlContext, new TextLoader.Arguments()
+            var reader = new TextLoader(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
+                            new TextLoader.Column("Label", DataKind.Single, 0),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
 
@@ -84,12 +84,12 @@ namespace Microsoft.ML.Scenarios
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
-            var reader = new TextLoader(mlContext, new TextLoader.Arguments()
+            var reader = new TextLoader(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
+                            new TextLoader.Column("Label", DataKind.Single, 0),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
 
@@ -117,12 +117,12 @@ namespace Microsoft.ML.Scenarios
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
-            var reader = new TextLoader(mlContext, new TextLoader.Arguments()
+            var reader = new TextLoader(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
+                            new TextLoader.Column("Label", DataKind.Single, 0),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
 

@@ -11,7 +11,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.Training
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// Options for creating a <see cref="TrainingCursorBase"/> from a <see cref="RoleMappedData"/> with specified standard columns active.
@@ -228,17 +228,17 @@ namespace Microsoft.ML.Training
             Contracts.AssertValueOrNull(extraCols);
 
             var columns = extraCols == null ?
-                Enumerable.Empty<DataViewSchema.Column>() :
-                data.Data.Schema.Where(c => extraCols.Contains(c.Index));
+                new List<DataViewSchema.Column>() :
+                data.Data.Schema.Where(c => extraCols.Contains(c.Index)).ToList();
 
             if ((opt & CursOpt.Label) != 0 && data.Schema.Label.HasValue)
-                columns = columns.Append(data.Schema.Label.Value);
+                columns.Add(data.Schema.Label.Value);
             if ((opt & CursOpt.Features) != 0 && data.Schema.Feature.HasValue)
-                columns = columns.Append(data.Schema.Feature.Value);
+                columns.Add(data.Schema.Feature.Value);
             if ((opt & CursOpt.Weight) != 0 && data.Schema.Weight.HasValue)
-                columns = columns.Append(data.Schema.Weight.Value);
+                columns.Add(data.Schema.Weight.Value);
             if ((opt & CursOpt.Group) != 0 && data.Schema.Group.HasValue)
-                columns = columns.Append(data.Schema.Group.Value);
+                columns.Add(data.Schema.Group.Value);
             return columns;
         }
 
@@ -385,17 +385,6 @@ namespace Microsoft.ML.Training
         public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn)
         {
             if (weightColumn == null)
-                return default;
-            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
-        }
-
-        /// <summary>
-        /// The <see cref="SchemaShape.Column"/> for the weight column.
-        /// </summary>
-        /// <param name="weightColumn">name of the weight column</param>
-        public static SchemaShape.Column MakeR4ScalarWeightColumn(Optional<string> weightColumn)
-        {
-            if (weightColumn == null || weightColumn.Value == null || !weightColumn.IsExplicit)
                 return default;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
         }

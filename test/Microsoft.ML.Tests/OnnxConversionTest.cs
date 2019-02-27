@@ -11,16 +11,16 @@ using System.Text.RegularExpressions;
 using Google.Protobuf;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.UniversalModelFormat.Onnx;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
 namespace Microsoft.ML.Tests
 {
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tests
         }
 
         /// <summary>
-        /// In this test, we convert a trained <see cref="TransformerChain"/> into ONNX <see cref="UniversalModelFormat.Onnx.ModelProto"/> file and then
+        /// In this test, we convert a trained <see cref="TransformerChain"/> into ONNX <see cref="ModelProto"/> file and then
         /// call <see cref="OnnxScoringEstimator"/> to evaluate that file. The outputs of <see cref="OnnxScoringEstimator"/> are checked against the original
         /// ML.NET model's outputs.
         /// </summary>
@@ -51,19 +51,19 @@ namespace Microsoft.ML.Tests
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var mlContext = new MLContext(seed: 1, conc: 1);
             var data = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
-                hasHeader: true,
                 separatorChar: ';'
-            );
+,
+                hasHeader: true);
             var cachedTrainData = mlContext.Data.Cache(data);
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumn: "Target", featureColumn: "FeatureVector"));
+                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumnName: "Target", featureColumnName: "FeatureVector"));
             var model = dynamicPipeline.Fit(data);
             var transformedData = model.Transform(data);
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a file.
-            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
             var onnxFileName = "model.onnx";
             var onnxModelPath = GetOutputPath(onnxFileName);
             SaveOnnxModel(onnxModel, onnxModelPath, null);
@@ -129,8 +129,8 @@ namespace Microsoft.ML.Tests
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var data = mlContext.Data.ReadFromTextFile<BreastCancerFeatureVector>(dataPath,
-                hasHeader: true,
-                separatorChar: '\t');
+                separatorChar: '\t',
+                hasHeader: true);
 
             var pipeline = mlContext.Transforms.Normalize("Features").
                 Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeans.KMeansPlusPlusTrainer.Options
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
 
-            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
 
             // Compare results produced by ML.NET and ONNX's runtime.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
@@ -207,16 +207,16 @@ namespace Microsoft.ML.Tests
             string dataPath = GetDataPath("breast-cancer.txt");
 
             var data = mlContext.Data.ReadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
-                hasHeader: true,
-                separatorChar: '\t');
+                separatorChar: '\t',
+                hasHeader: true);
 
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.Categorical.OneHotEncodingTransformer.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnInfo("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
-            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumn: "Label", featureColumn: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
+            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
 
             var model = pipeline.Fit(data);
-            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
 
             // Check ONNX model's text format. We save the produced ONNX model as a text file and compare it against
             // the associated file in ML.NET repo. Such a comparison can be retired if ONNXRuntime ported to ML.NET
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Tests
         {
             var env = new MLContext();
             // Create the actual implementation
-            var ctxImpl = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "com.test", Model.Onnx.OnnxVersion.Stable);
+            var ctxImpl = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "com.test", Model.OnnxConverter.OnnxVersion.Stable);
 
             // Use implementation as in the actual conversion code
             var ctx = ctxImpl as OnnxContext;
@@ -305,18 +305,18 @@ namespace Microsoft.ML.Tests
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var mlContext = new MLContext(seed: 1, conc: 1);
             var data = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
-                hasHeader: true,
                 separatorChar: ';'
-            );
+,
+                hasHeader: true);
             var cachedTrainData = mlContext.Data.Cache(data);
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumn: "Target", featureColumn: "FeatureVector"));
+                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumnName: "Target", featureColumnName: "FeatureVector"));
             var model = dynamicPipeline.Fit(data);
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a file.
-            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
 
             // Step 3: Save ONNX model as binary and text files.
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
@@ -338,18 +338,18 @@ namespace Microsoft.ML.Tests
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var mlContext = new MLContext(seed: 1, conc: 1);
             var data = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
-                hasHeader: true,
                 separatorChar: ';'
-            );
+,
+                hasHeader: true);
             var cachedTrainData = mlContext.Data.Cache(data);
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.LightGbm(labelColumn: "Target", featureColumn: "FeatureVector", numBoostRound: 3, numLeaves: 16, minDataPerLeaf: 100));
+                .Append(mlContext.Regression.Trainers.LightGbm(labelColumnName: "Target", featureColumnName: "FeatureVector", numBoostRound: 3, numLeaves: 16, minDataPerLeaf: 100));
             var model = dynamicPipeline.Fit(data);
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a file.
-            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
 
             // Step 3: Save ONNX model as binary and text files.
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
@@ -371,8 +371,8 @@ namespace Microsoft.ML.Tests
 
             string dataPath = GetDataPath("breast-cancer.txt");
             var data = mlContext.Data.ReadFromTextFile<BreastCancerMulticlassExample>(dataPath,
-                hasHeader: true,
-                separatorChar: '\t');
+                separatorChar: '\t',
+                hasHeader: true);
 
             var pipeline = mlContext.Transforms.Normalize("Features").
                 Append(mlContext.Transforms.Conversion.MapValueToKey("Label")).
@@ -380,7 +380,7 @@ namespace Microsoft.ML.Tests
 
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
-            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
 
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "MultiClassClassification", "BreastCancer");
             var onnxFileName = "MultiClassificationLogisticRegressionSaveModelToOnnxTest.onnx";
@@ -401,14 +401,14 @@ namespace Microsoft.ML.Tests
 
             string dataPath = GetDataPath("breast-cancer.txt");
             var data = mlContext.Data.ReadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
-                hasHeader: true,
-                separatorChar: '\t');
+                separatorChar: '\t',
+                hasHeader: true);
 
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.Categorical.OneHotEncodingTransformer.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnInfo("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
             .Append(mlContext.Transforms.Normalize("Features"))
-            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumn: "Label", featureColumn: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
+            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
 
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
             var dataPath = GetDataPath(@"small-sentiment-test.tsv");
             var embedNetworkPath = GetDataPath(@"shortsentiment.emd");
-            var data = mlContext.Data.ReadFromTextFile<SmallSentimentExample>(dataPath, hasHeader: false, separatorChar: '\t');
+            var data = mlContext.Data.ReadFromTextFile<SmallSentimentExample>(dataPath, separatorChar: '\t', hasHeader: false);
 
             var pipeline = mlContext.Transforms.Text.ExtractWordEmbeddings("Embed", embedNetworkPath, "Tokens");
             var model = pipeline.Fit(data);
@@ -463,7 +463,7 @@ namespace Microsoft.ML.Tests
             var onnxFileName = "SmallWordEmbed.onnx";
             var onnxTextPath = GetOutputPath(subDir, onnxTextName);
             var onnxFilePath = GetOutputPath(subDir, onnxFileName);
-            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
             SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
 
             CheckEquality(subDir, onnxTextName);

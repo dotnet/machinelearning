@@ -13,7 +13,7 @@ using Microsoft.ML.Trainers.Ensemble;
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
-    public abstract class EnsembleModelParametersBase<TOutput> : ModelParametersBase<TOutput>,
+    internal abstract class EnsembleModelParametersBase<TOutput> : ModelParametersBase<TOutput>,
         IPredictorProducing<TOutput>, ICanSaveInTextFormat, ICanSaveSummary
     {
         private const string SubPredictorFmt = "SubPredictor_{0:000}";

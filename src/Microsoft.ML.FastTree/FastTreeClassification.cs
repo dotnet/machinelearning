@@ -14,7 +14,6 @@ using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(FastTreeBinaryClassificationTrainer.Summary, typeof(FastTreeBinaryClassificationTrainer), typeof(FastTreeBinaryClassificationTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -62,11 +61,11 @@ namespace Microsoft.ML.Trainers.FastTree
                 loaderAssemblyName: typeof(FastTreeBinaryModelParameters).Assembly.FullName);
         }
 
-        protected override uint VerNumFeaturesSerialized => 0x00010002;
+        private protected override uint VerNumFeaturesSerialized => 0x00010002;
 
-        protected override uint VerDefaultValueSerialized => 0x00010004;
+        private protected override uint VerDefaultValueSerialized => 0x00010004;
 
-        protected override uint VerCategoricalSplitSerialized => 0x00010005;
+        private protected override uint VerCategoricalSplitSerialized => 0x00010005;
 
         internal FastTreeBinaryModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
@@ -97,7 +96,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new SchemaBindableCalibratedModelParameters<FastTreeBinaryModelParameters, ICalibrator>(env, predictor, calibrator);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
     }
 
     /// <include file = 'doc.xml' path='doc/members/member[@name="FastTree"]/*' />
@@ -139,7 +138,7 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, learningRate)
         {
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
-            _sigmoidParameter = 2.0 * Args.LearningRates;
+            _sigmoidParameter = 2.0 * FastTreeTrainerOptions.LearningRates;
         }
 
         /// <summary>
@@ -151,10 +150,10 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
-            _sigmoidParameter = 2.0 * Args.LearningRates;
+            _sigmoidParameter = 2.0 * FastTreeTrainerOptions.LearningRates;
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         private protected override CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator> TrainModelCore(TrainContext context)
         {
@@ -178,7 +177,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // output probabilities when transformed using a scaled logistic function,
             // so transform the scores using that.
 
-            var pred = new FastTreeBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs);
+            var pred = new FastTreeBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
             // FastTree's binary classification boosting framework's natural probabilistic interpretation
             // is explained in "From RankNet to LambdaRank to LambdaMART: An Overview" by Chris Burges.
             // The correctness of this scaling depends upon the gradient calculation in
@@ -188,30 +187,30 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FeatureWeightsCalibratedModelParameters<FastTreeBinaryModelParameters, PlattCalibrator>(Host, pred, cali);
         }
 
-        protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
+        private protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
             return new ObjectiveImpl(
                 TrainSet,
                 _trainSetLabels,
-                Args.LearningRates,
-                Args.Shrinkage,
+                FastTreeTrainerOptions.LearningRates,
+                FastTreeTrainerOptions.Shrinkage,
                 _sigmoidParameter,
-                Args.UnbalancedSets,
-                Args.MaxTreeOutput,
-                Args.GetDerivativesSampleRate,
-                Args.BestStepRankingRegressionTrees,
-                Args.RngSeed,
+                FastTreeTrainerOptions.UnbalancedSets,
+                FastTreeTrainerOptions.MaxTreeOutput,
+                FastTreeTrainerOptions.GetDerivativesSampleRate,
+                FastTreeTrainerOptions.BestStepRankingRegressionTrees,
+                FastTreeTrainerOptions.RngSeed,
                 ParallelTraining);
         }
 
         private protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
         {
             OptimizationAlgorithm optimizationAlgorithm = base.ConstructOptimizationAlgorithm(ch);
-            if (Args.UseLineSearch)
+            if (FastTreeTrainerOptions.UseLineSearch)
             {
                 var lossCalculator = new BinaryClassificationTest(optimizationAlgorithm.TrainingScores, _trainSetLabels, _sigmoidParameter);
                 // REVIEW: we should makeloss indices an enum in BinaryClassificationTest
-                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, Args.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/, Args.NumPostBracketSteps, Args.MinStepSize);
+                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, FastTreeTrainerOptions.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/, FastTreeTrainerOptions.NumPostBracketSteps, FastTreeTrainerOptions.MinStepSize);
             }
             return optimizationAlgorithm;
         }
@@ -223,18 +222,18 @@ namespace Microsoft.ML.Trainers.FastTree
             return set.Ratings.Select(x => x >= 1);
         }
 
-        protected override void PrepareLabels(IChannel ch)
+        private protected override void PrepareLabels(IChannel ch)
         {
             _trainSetLabels = GetClassificationLabelsFromRatings(TrainSet).ToArray(TrainSet.NumDocs);
             //Here we set regression labels to what is in bin file if the values were not overriden with floats
         }
 
-        protected override Test ConstructTestForTrainingData()
+        private protected override Test ConstructTestForTrainingData()
         {
             return new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, _sigmoidParameter);
         }
 
-        protected override void InitializeTests()
+        private protected override void InitializeTests()
         {
             //Always compute training L1/L2 errors
             TrainTest = new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, _sigmoidParameter);
@@ -258,9 +257,9 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
-            if (Args.EnablePruning && ValidSet != null)
+            if (FastTreeTrainerOptions.EnablePruning && ValidSet != null)
             {
-                if (!Args.UseTolerantPruning)
+                if (!FastTreeTrainerOptions.UseTolerantPruning)
                 {
                     //use simple early stopping condition
                     PruningTest = new TestHistory(ValidTest, 0);
@@ -268,25 +267,29 @@ namespace Microsoft.ML.Trainers.FastTree
                 else
                 {
                     //use tollerant stopping condition
-                    PruningTest = new TestWindowWithTolerance(ValidTest, 0, Args.PruningWindowSize, Args.PruningThreshold);
+                    PruningTest = new TestWindowWithTolerance(ValidTest, 0, FastTreeTrainerOptions.PruningWindowSize, FastTreeTrainerOptions.PruningThreshold);
                 }
             }
         }
 
-        protected override BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> MakeTransformer(
+        private protected override BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> MakeTransformer(
             CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator> model, DataViewSchema trainSchema)
             => new BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="FastTreeBinaryClassificationTrainer"/> using both training and validation data, returns
+        /// a <see cref="BinaryPredictionTransformer{CalibratedModelParametersBase}"/>.
+        /// </summary>
+        public BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 

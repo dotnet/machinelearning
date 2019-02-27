@@ -11,7 +11,7 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.Ensemble;
 
-[assembly: LoadableClass(typeof(MultiWeightedAverage), typeof(MultiWeightedAverage.Arguments), typeof(SignatureCombiner),
+[assembly: LoadableClass(typeof(MultiWeightedAverage), typeof(MultiWeightedAverage.Options), typeof(SignatureCombiner),
     MultiWeightedAverage.UserName, MultiWeightedAverage.LoadName)]
 
 [assembly: LoadableClass(typeof(MultiWeightedAverage), null, typeof(SignatureLoadModel),
@@ -22,7 +22,7 @@ namespace Microsoft.ML.Trainers.Ensemble
     /// <summary>
     /// Generic interface for combining outputs of multiple models
     /// </summary>
-    public sealed class MultiWeightedAverage : BaseMultiAverager, IWeightedAverager
+    internal sealed class MultiWeightedAverage : BaseMultiAverager, IWeightedAverager
     {
         public const string UserName = "Multi Weighted Average";
         public const string LoadName = "MultiWeightedAverage";
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         }
 
         [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
-        public sealed class Arguments : ArgumentsBase, ISupportMulticlassOutputCombinerFactory
+        public sealed class Options : OptionsBase, ISupportMulticlassOutputCombinerFactory
         {
             IMultiClassOutputCombiner IComponentFactory<IMultiClassOutputCombiner>.CreateComponent(IHostEnvironment env) => new MultiWeightedAverage(env, this);
 
@@ -52,11 +52,11 @@ namespace Microsoft.ML.Trainers.Ensemble
         private readonly MultiWeightageKind _weightageKind;
         public string WeightageMetricName { get { return _weightageKind.ToString(); } }
 
-        public MultiWeightedAverage(IHostEnvironment env, Arguments args)
-            : base(env, LoaderSignature, args)
+        public MultiWeightedAverage(IHostEnvironment env, Options options)
+            : base(env, LoaderSignature, options)
         {
-            _weightageKind = args.WeightageName;
-            Host.CheckUserArg(Enum.IsDefined(typeof(MultiWeightageKind), _weightageKind), nameof(args.WeightageName));
+            _weightageKind = options.WeightageName;
+            Host.CheckUserArg(Enum.IsDefined(typeof(MultiWeightageKind), _weightageKind), nameof(options.WeightageName));
         }
 
         private MultiWeightedAverage(IHostEnvironment env, ModelLoadContext ctx)
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Trainers.Ensemble
     }
 
     // These values are serialized, so should not be changed.
-    public enum MultiWeightageKind
+    internal enum MultiWeightageKind
     {
         [TGUI(Label = MultiClassClassifierEvaluator.AccuracyMicro)]
         AccuracyMicroAvg = 0,

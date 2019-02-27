@@ -16,7 +16,6 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.PCA;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(RandomizedPcaTrainer.Summary, typeof(RandomizedPcaTrainer), typeof(RandomizedPcaTrainer.Options),
     new[] { typeof(SignatureAnomalyDetectorTrainer), typeof(SignatureTrainer) },
@@ -48,7 +47,7 @@ namespace Microsoft.ML.Trainers.PCA
         internal const string Summary = "This algorithm trains an approximate PCA using Randomized SVD algorithm. "
             + "This PCA can be made into Kernel PCA by using Random Fourier Features transform.";
 
-        public class Options : UnsupervisedLearnerInputBaseWithWeight
+        public sealed class Options : UnsupervisedLearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of components in the PCA", ShortName = "k", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "10,20,40,80")]
@@ -81,7 +80,7 @@ namespace Microsoft.ML.Trainers.PCA
         private readonly int _seed;
         private readonly string _featureColumn;
 
-        public override PredictionKind PredictionKind => PredictionKind.AnomalyDetection;
+        private protected override PredictionKind PredictionKind => PredictionKind.AnomalyDetection;
 
         // The training performs two passes, only. Probably not worth caching.
         private static readonly TrainerInfo _info = new TrainerInfo(caching: false);
@@ -328,7 +327,7 @@ namespace Microsoft.ML.Trainers.PCA
             }
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
              return new[]
             {
@@ -336,17 +335,17 @@ namespace Microsoft.ML.Trainers.PCA
                         SchemaShape.Column.VectorKind.Scalar,
                         NumberDataViewType.Single,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
 
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel,
                         SchemaShape.Column.VectorKind.Scalar,
                         BooleanDataViewType.Instance,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
-        protected override AnomalyPredictionTransformer<PcaModelParameters> MakeTransformer(PcaModelParameters model, DataViewSchema trainSchema)
+        private protected override AnomalyPredictionTransformer<PcaModelParameters> MakeTransformer(PcaModelParameters model, DataViewSchema trainSchema)
             => new AnomalyPredictionTransformer<PcaModelParameters>(Host, model, trainSchema, _featureColumn);
 
         [TlcModule.EntryPoint(Name = "Trainers.PcaAnomalyDetector",
@@ -402,10 +401,7 @@ namespace Microsoft.ML.Trainers.PCA
 
         private readonly DataViewType _inputType;
 
-        public override PredictionKind PredictionKind
-        {
-            get { return PredictionKind.AnomalyDetection; }
-        }
+        private protected override PredictionKind PredictionKind => PredictionKind.AnomalyDetection;
 
         /// <summary>
         /// Instantiate new model parameters from trained model.
@@ -414,7 +410,7 @@ namespace Microsoft.ML.Trainers.PCA
         /// <param name="rank">The rank of the PCA approximation of the covariance matrix. This is the number of eigenvectors in the model.</param>
         /// <param name="eigenVectors">Array of eigenvectors.</param>
         /// <param name="mean">The mean vector of the training data.</param>
-        public PcaModelParameters(IHostEnvironment env, int rank, float[][] eigenVectors, in VBuffer<float> mean)
+        internal PcaModelParameters(IHostEnvironment env, int rank, float[][] eigenVectors, in VBuffer<float> mean)
             : base(env, RegistrationName)
         {
             _dimension = eigenVectors[0].Length;

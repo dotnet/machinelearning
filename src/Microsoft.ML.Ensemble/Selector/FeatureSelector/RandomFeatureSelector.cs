@@ -10,7 +10,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.Ensemble.FeatureSelector;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(typeof(RandomFeatureSelector), typeof(RandomFeatureSelector.Arguments),
     typeof(SignatureEnsembleFeatureSelector), RandomFeatureSelector.UserName, RandomFeatureSelector.LoadName)]

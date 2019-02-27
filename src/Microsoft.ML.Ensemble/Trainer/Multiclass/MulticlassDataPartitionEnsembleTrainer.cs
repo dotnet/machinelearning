@@ -10,7 +10,6 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Trainers.Ensemble;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(MulticlassDataPartitionEnsembleTrainer.Summary, typeof(MulticlassDataPartitionEnsembleTrainer),
     typeof(MulticlassDataPartitionEnsembleTrainer.Arguments),
@@ -44,7 +43,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
             [Argument(ArgumentType.Multiple, HelpText = "Output combiner", ShortName = "oc", SortOrder = 5)]
             [TGUI(Label = "Output combiner", Description = "Output combiner type")]
-            public ISupportMulticlassOutputCombinerFactory OutputCombiner = new MultiMedian.Arguments();
+            public ISupportMulticlassOutputCombinerFactory OutputCombiner = new MultiMedian.Options();
 
             // REVIEW: If we make this public again it should be an *estimator* of this type of predictor, rather than the (deprecated) ITrainer.
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureMultiClassClassifierTrainer))]
@@ -88,7 +87,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             Host.CheckParam(predictionKind == PredictionKind.MultiClassClassification, nameof(PredictionKind));
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         private protected override EnsembleMultiClassModelParameters CreatePredictor(List<FeatureSubsetModel<VBuffer<float>>> models)
         {

@@ -18,7 +18,7 @@ using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.LightGBM;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Ensemble;
@@ -56,8 +56,8 @@ namespace Microsoft.ML.RunTests
                 {
                     Columns = new[]
                     {
-                        new TextLoader.Column("Label", DataKind.R4, 0),
-                        new TextLoader.Column("Features", DataKind.R4,
+                        new TextLoader.Column("Label", DataKind.Single, 0),
+                        new TextLoader.Column("Features", DataKind.Single,
                             new [] { new TextLoader.Range(1, 9) })
                     }
                 },
@@ -77,10 +77,10 @@ namespace Microsoft.ML.RunTests
                     HasHeader = true,
                     Columns = new[]
                     {
-                        new TextLoader.Column("Label", type: null, 0),
-                        new TextLoader.Column("F1", DataKind.Text, 1),
-                        new TextLoader.Column("F2", DataKind.I4, 2),
-                        new TextLoader.Column("Rest", type: null, new [] { new TextLoader.Range(3, 9) })
+                        new TextLoader.Column("Label", DataKind.Single, 0),
+                        new TextLoader.Column("F1", DataKind.String, 1),
+                        new TextLoader.Column("F2", DataKind.Int32, 2),
+                        new TextLoader.Column("Rest", DataKind.Single, new [] { new TextLoader.Range(3, 9) })
                     }
                 },
 
@@ -376,17 +376,14 @@ namespace Microsoft.ML.RunTests
             Assert.True(weightType.Equals(typeof(string)));
 
             var instance = ib1.GetInstance() as LogisticRegression.Options;
-            Assert.True(!instance.WeightColumn.IsExplicit);
-            Assert.True(instance.WeightColumn.Value == DefaultColumnNames.Weight);
+            Assert.True(instance.WeightColumn == null);
 
             ib1.TrySetValue("WeightColumn", "OtherWeight");
-            Assert.True(instance.WeightColumn.IsExplicit);
-            Assert.Equal("OtherWeight", instance.WeightColumn.Value);
+            Assert.Equal("OtherWeight", instance.WeightColumn);
 
             var tok = (JToken)JValue.CreateString("AnotherWeight");
             ib1.TrySetValueJson("WeightColumn", tok);
-            Assert.True(instance.WeightColumn.IsExplicit);
-            Assert.Equal("AnotherWeight", instance.WeightColumn.Value);
+            Assert.Equal("AnotherWeight", instance.WeightColumn);
         }
 
         [Fact]
@@ -444,11 +441,11 @@ namespace Microsoft.ML.RunTests
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
                         .ScoredData;
                 individualScores[i] = new ColumnCopyingTransformer(Env, (
-                    (MetadataUtils.Const.ScoreValueKind.Score + i).ToString(),
-                     MetadataUtils.Const.ScoreValueKind.Score)
+                    (AnnotationUtils.Const.ScoreValueKind.Score + i).ToString(),
+                     AnnotationUtils.Const.ScoreValueKind.Score)
                     ).Transform(individualScores[i]);
 
-                individualScores[i] = ColumnSelectingTransformer.CreateDrop(Env, individualScores[i], MetadataUtils.Const.ScoreValueKind.Score);
+                individualScores[i] = new ColumnSelectingTransformer(Env, null, new[] { AnnotationUtils.Const.ScoreValueKind.Score }).Transform(individualScores[i]);
             }
 
             var avgEnsembleInput = new EnsembleCreator.ClassifierInput { Models = predictorModels, ModelCombiner = EnsembleCreator.ClassifierCombiner.Average };
@@ -478,22 +475,22 @@ namespace Microsoft.ML.RunTests
             using (var curs3 = regScored.GetRowCursorForAllColumns())
             using (var curs4 = zippedScores.GetRowCursorForAllColumns())
             {
-                var scoreColumn = curs1.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                var scoreColumn = curs1.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var avgScoreGetter = curs1.GetGetter<Single>(scoreColumn.Value.Index);
 
-                scoreColumn = curs2.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs2.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var medScoreGetter = curs2.GetGetter<Single>(scoreColumn.Value.Index);
 
-                scoreColumn = curs3.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs3.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var regScoreGetter = curs3.GetGetter<Single>(scoreColumn.Value.Index);
 
                 var individualScoreGetters = new ValueGetter<Single>[nModels];
                 for (int i = 0; i < nModels; i++)
                 {
-                    scoreColumn = curs4.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score + i);
+                    scoreColumn = curs4.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score + i);
                     individualScoreGetters[i] = curs4.GetGetter<Single>(scoreColumn.Value.Index);
                 }
 
@@ -807,30 +804,30 @@ namespace Microsoft.ML.RunTests
                 }).ScoredData;
 
             // Make sure the scorers have the correct types.
-            var scoreCol = binaryScored.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+            var scoreCol = binaryScored.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
             Assert.True(scoreCol.HasValue, "Data scored with binary ensemble does not have a score column");
-            var type = binaryScored.Schema[scoreCol.Value.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.ScoreColumnKind)?.Type;
+            var type = binaryScored.Schema[scoreCol.Value.Index].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.ScoreColumnKind)?.Type;
             Assert.True(type is TextDataViewType, "Binary ensemble scored data does not have correct type of metadata.");
             var kind = default(ReadOnlyMemory<char>);
-            binaryScored.Schema[scoreCol.Value.Index].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
-            Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.BinaryClassification, kind),
-                $"Binary ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.BinaryClassification}', but is instead '{kind}'");
+            binaryScored.Schema[scoreCol.Value.Index].Annotations.GetValue(AnnotationUtils.Kinds.ScoreColumnKind, ref kind);
+            Assert.True(ReadOnlyMemoryUtils.EqualsStr(AnnotationUtils.Const.ScoreColumnKind.BinaryClassification, kind),
+                $"Binary ensemble scored data column type should be '{AnnotationUtils.Const.ScoreColumnKind.BinaryClassification}', but is instead '{kind}'");
 
-            scoreCol = regressionScored.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+            scoreCol = regressionScored.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
             Assert.True(scoreCol.HasValue, "Data scored with regression ensemble does not have a score column");
-            type = regressionScored.Schema[scoreCol.Value.Index].Metadata.Schema[MetadataUtils.Kinds.ScoreColumnKind].Type;
+            type = regressionScored.Schema[scoreCol.Value.Index].Annotations.Schema[AnnotationUtils.Kinds.ScoreColumnKind].Type;
             Assert.True(type is TextDataViewType, "Regression ensemble scored data does not have correct type of metadata.");
-            regressionScored.Schema[scoreCol.Value.Index].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
-            Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.Regression, kind),
-                $"Regression ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.Regression}', but is instead '{kind}'");
+            regressionScored.Schema[scoreCol.Value.Index].Annotations.GetValue(AnnotationUtils.Kinds.ScoreColumnKind, ref kind);
+            Assert.True(ReadOnlyMemoryUtils.EqualsStr(AnnotationUtils.Const.ScoreColumnKind.Regression, kind),
+                $"Regression ensemble scored data column type should be '{AnnotationUtils.Const.ScoreColumnKind.Regression}', but is instead '{kind}'");
 
-            scoreCol = anomalyScored.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+            scoreCol = anomalyScored.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
             Assert.True(scoreCol.HasValue, "Data scored with anomaly detection ensemble does not have a score column");
-            type = anomalyScored.Schema[scoreCol.Value.Index].Metadata.Schema[MetadataUtils.Kinds.ScoreColumnKind].Type;
+            type = anomalyScored.Schema[scoreCol.Value.Index].Annotations.Schema[AnnotationUtils.Kinds.ScoreColumnKind].Type;
             Assert.True(type is TextDataViewType, "Anomaly detection ensemble scored data does not have correct type of metadata.");
-            anomalyScored.Schema[scoreCol.Value.Index].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
-            Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.AnomalyDetection, kind),
-                $"Anomaly detection ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.AnomalyDetection}', but is instead '{kind}'");
+            anomalyScored.Schema[scoreCol.Value.Index].Annotations.GetValue(AnnotationUtils.Kinds.ScoreColumnKind, ref kind);
+            Assert.True(ReadOnlyMemoryUtils.EqualsStr(AnnotationUtils.Const.ScoreColumnKind.AnomalyDetection, kind),
+                $"Anomaly detection ensemble scored data column type should be '{AnnotationUtils.Const.ScoreColumnKind.AnomalyDetection}', but is instead '{kind}'");
 
             var modelPath = DeleteOutputPath("SavePipe", "PipelineEnsembleModel.zip");
             using (var file = Env.CreateOutputFile(modelPath))
@@ -860,34 +857,34 @@ namespace Microsoft.ML.RunTests
             using (var curs4 = individualScores[4].GetRowCursorForAllColumns())
             using (var cursSaved = scoredFromSaved.GetRowCursorForAllColumns())
             {
-                var scoreColumn = curs0.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                var scoreColumn = curs0.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter0 = curs0.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = curs1.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs1.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter1 = curs1.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = curs2.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs2.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter2 = curs2.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = curs3.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs3.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter3 = curs3.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = curs4.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs4.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter4 = curs4.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursReg.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursReg.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterReg = cursReg.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursBin.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursBin.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterBin = cursBin.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursBinCali.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursBinCali.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterBinCali = cursBinCali.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursSaved.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursSaved.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterSaved = cursSaved.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursAnom.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursAnom.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterAnom = cursAnom.GetGetter<Single>(scoreColumn.Value.Index);
 
@@ -953,8 +950,8 @@ namespace Microsoft.ML.RunTests
                     HasHeader = true,
                     Columns = new[]
                     {
-                        new TextLoader.Column("Label", DataKind.TX, 0),
-                        new TextLoader.Column("Text", DataKind.TX, 3)
+                        new TextLoader.Column("Label", DataKind.String, 0),
+                        new TextLoader.Column("Text", DataKind.String, 3)
                     }
                 },
 
@@ -1081,31 +1078,31 @@ namespace Microsoft.ML.RunTests
             using (var curs4 = individualScores[4].GetRowCursorForAllColumns())
             using (var cursSaved = scoredFromSaved.GetRowCursorForAllColumns())
             {
-                var scoreColumn = curs0.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                var scoreColumn = curs0.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter0 = curs0.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = curs1.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs1.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter1 = curs1.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = curs2.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs2.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter2 = curs2.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = curs3.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs3.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter3 = curs3.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = curs4.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs4.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter4 = curs4.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursReg.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursReg.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterReg = cursReg.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursBin.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursBin.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterBin = cursBin.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursBinCali.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursBinCali.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterBinCali = cursBinCali.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursSaved.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursSaved.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterSaved = cursSaved.GetGetter<Single>(scoreColumn.Value.Index);
 
@@ -1164,8 +1161,8 @@ namespace Microsoft.ML.RunTests
                 {
                     Columns = new[]
                     {
-                        new TextLoader.Column("Label", DataKind.R4, 0),
-                        new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) })
+                        new TextLoader.Column("Label", DataKind.Single, 0),
+                        new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) })
                     }
                 },
 
@@ -1239,29 +1236,29 @@ namespace Microsoft.ML.RunTests
             using (var curs3 = individualScores[3].GetRowCursorForAllColumns())
             using (var curs4 = individualScores[4].GetRowCursorForAllColumns())
             {
-                var scoreColumn = curs0.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                var scoreColumn = curs0.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter0 = curs0.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
-                scoreColumn = curs1.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs1.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter1 = curs1.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
-                scoreColumn = curs2.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs2.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter2 = curs2.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
-                scoreColumn = curs3.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs3.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter3 = curs3.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
-                scoreColumn = curs4.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs4.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter4 = curs4.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
-                scoreColumn = curs.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter = curs.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
-                scoreColumn = cursSaved.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursSaved.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterSaved = cursSaved.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
 
-                var c = new MultiAverage(Env, new MultiAverage.Arguments()).GetCombiner();
+                var c = new MultiAverage(Env, new MultiAverage.Options()).GetCombiner();
                 VBuffer<Single> score = default(VBuffer<Single>);
                 VBuffer<Single>[] score0 = new VBuffer<Single>[5];
                 VBuffer<Single> scoreSaved = default(VBuffer<Single>);
@@ -1310,9 +1307,9 @@ namespace Microsoft.ML.RunTests
                         {
                             Columns = new[]
                             {
-                                new TextLoader.Column("Label", DataKind.R4, 0),
-                                new TextLoader.Column("Features", DataKind.R4, new[] { new TextLoader.Range(1, 8) }),
-                                new TextLoader.Column("Cat", DataKind.TX, 9)
+                                new TextLoader.Column("Label", DataKind.Single, 0),
+                                new TextLoader.Column("Features", DataKind.Single, new[] { new TextLoader.Range(1, 8) }),
+                                new TextLoader.Column("Cat", DataKind.String, 9)
                             },
                             HasHeader = true,
                         }
@@ -1882,7 +1879,7 @@ namespace Microsoft.ML.RunTests
                         }
                       },";
 
-            RunTrainScoreEvaluate("Trainers.FastTreeRanker", "Models.RankerEvaluator",
+            RunTrainScoreEvaluate("Trainers.FastTreeRanker", "Models.RankingEvaluator",
                 dataPath, warningsPath, overallMetricsPath, instanceMetricsPath,
                 splitterInput: "output_data3", transforms: transforms);
 
@@ -2396,7 +2393,7 @@ namespace Microsoft.ML.RunTests
                     'model' : '{1}'
                   }}
                 }}", EscapePath(dataPath), EscapePath(outputPath), trainerName,
-                string.IsNullOrWhiteSpace(loader) ? "" : string.Format(",'CustomSchema': '{0}'", loader),
+                string.IsNullOrWhiteSpace(loader) ? "" : string.Format(",'CustomSchema': 'sparse+ {0}'", loader),
                 string.IsNullOrWhiteSpace(trainerArgs) ? "" : trainerArgs
                 );
 
@@ -2498,7 +2495,7 @@ namespace Microsoft.ML.RunTests
             expected = FixWhitespace(expected);
             Assert.Equal(expected, json);
 
-            options.LossFunction = new HingeLoss.Arguments();
+            options.LossFunction = new HingeLoss.Options();
             result = inputBuilder.GetJsonObject(options, inputBindingMap, inputMap);
             json = FixWhitespace(result.ToString(Formatting.Indented));
 
@@ -2514,7 +2511,7 @@ namespace Microsoft.ML.RunTests
             expected = FixWhitespace(expected);
             Assert.Equal(expected, json);
 
-            options.LossFunction = new HingeLoss.Arguments() { Margin = 2 };
+            options.LossFunction = new HingeLoss.Options() { Margin = 2 };
             result = inputBuilder.GetJsonObject(options, inputBindingMap, inputMap);
             json = FixWhitespace(result.ToString(Formatting.Indented));
 
@@ -3318,8 +3315,8 @@ namespace Microsoft.ML.RunTests
                     HasHeader = true,
                     Columns = new[]
                     {
-                        new TextLoader.Column("Label", type: null, 0),
-                        new TextLoader.Column("Features", DataKind.Num, new [] { new TextLoader.Range(1, 9) })
+                        new TextLoader.Column("Label", DataKind.Single, 0),
+                        new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 9) })
                     }
                 },
 
@@ -3371,8 +3368,8 @@ namespace Microsoft.ML.RunTests
                     DataSaverUtils.SaveDataView(ch, saver, mcOutput.Stats, file);
             }
 
-            CheckEquality(@"../Common/EntryPoints", "lr-weights.txt", digitsOfPrecision: 6);
-            CheckEquality(@"../Common/EntryPoints", "lr-stats.txt", digitsOfPrecision: 6);
+            CheckEquality(@"../Common/EntryPoints", "lr-weights.txt", digitsOfPrecision: 4);
+            CheckEquality(@"../Common/EntryPoints", "lr-stats.txt", digitsOfPrecision: 3);
             CheckEquality(@"../Common/EntryPoints", "mc-lr-weights.txt", digitsOfPrecision: 3);
             CheckEquality(@"../Common/EntryPoints", "mc-lr-stats.txt", digitsOfPrecision: 5);
             Done();
@@ -3388,11 +3385,12 @@ namespace Microsoft.ML.RunTests
                 {
                     Arguments =
                 {
+                    AllowSparse = true,
                     Separators = new []{'\t' },
                     HasHeader = false,
                     Columns = new[]
                     {
-                        new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 784) })
+                        new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 784) })
                     }
                 },
 
@@ -3605,7 +3603,7 @@ namespace Microsoft.ML.RunTests
                     Separators = new []{' '},
                     Columns = new[]
                     {
-                        new TextLoader.Column("Text", DataKind.Text,
+                        new TextLoader.Column("Text", DataKind.String,
                             new [] { new TextLoader.Range() { Min = 0, VariableEnd=true, ForceVector=true} })
                     }
                 },
@@ -3843,8 +3841,8 @@ namespace Microsoft.ML.RunTests
                                 'UseThreads': true,
                                 'HeaderFile': null,
                                 'MaxRows': null,
-                                'AllowQuoting': true,
-                                'AllowSparse': true,
+                                'AllowQuoting': false,
+                                'AllowSparse': false,
                                 'InputSize': null,
                                 'Separator': [
                                     '\t'
@@ -3906,8 +3904,8 @@ namespace Microsoft.ML.RunTests
                                 'UseThreads': true,
                                 'HeaderFile': null,
                                 'MaxRows': null,
-                                'AllowQuoting': true,
-                                'AllowSparse': true,
+                                'AllowQuoting': false,
+                                'AllowSparse': false,
                                 'InputSize': null,
                                 'Separator': [
                                     '\t'
@@ -4155,10 +4153,7 @@ namespace Microsoft.ML.RunTests
                                         'NumThreads': 1,
                                         'DenseOptimizer': false,
                                         'EnforceNonNegativity': false,
-                                        'WeightColumn': {
-                                            'Value': 'Weight1',
-                                            'IsExplicit': true
-                                        },
+                                        'WeightColumn': 'Weight1',
                                         'LabelColumn': 'Label',
                                         'TrainingData': '$Var_8b36a1e70c9f4504973140ad15eac72f',
                                         'FeatureColumn': 'Features',
@@ -4192,10 +4187,7 @@ namespace Microsoft.ML.RunTests
                             'NumFolds': 2,
                             'Kind': 'SignatureRegressorTrainer',
                             'LabelColumn': 'Label',
-                            'WeightColumn': {
-                                'Value': 'Weight1',
-                                'IsExplicit': true
-                            },
+                            'WeightColumn': 'Weight1',
                             'GroupColumn': null,
                             'NameColumn': null
                         },
@@ -4451,7 +4443,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(countCol.HasValue);
             foldCol = schema.GetColumnOrNull("Fold Index");
             Assert.True(foldCol.HasValue);
-            var type = schema["Count"].Metadata.Schema[MetadataUtils.Kinds.SlotNames].Type;
+            var type = schema["Count"].Annotations.Schema[AnnotationUtils.Kinds.SlotNames].Type;
             Assert.True(type is VectorType vecType && vecType.ItemType is TextDataViewType && vecType.Size == 10);
             var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
             schema["Count"].GetSlotNames(ref slotNames);
@@ -5046,10 +5038,7 @@ namespace Microsoft.ML.RunTests
                                     'PrintTestGraph': false,
                                     'PrintTrainValidGraph': false,
                                     'TestFrequency': 2147483647,
-                                    'GroupIdColumn': {
-                                        'Value': 'GroupId1',
-                                        'IsExplicit': true
-                                    },
+                                    'GroupIdColumn': 'GroupId1',
                                     'WeightColumn': null,
                                     'LabelColumn': 'Label1',
                                     'TrainingData': '$Var_8f51ed90f5b642b2a80eeb628d67a5b3',

@@ -19,7 +19,6 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Training;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(LegacySdcaBinaryTrainer), typeof(LegacySdcaBinaryTrainer.Options),
@@ -30,20 +29,19 @@ using Microsoft.ML.Transforms;
     "lc",
     "sasdca")]
 
-[assembly: LoadableClass(typeof(StochasticGradientDescentClassificationTrainer), typeof(StochasticGradientDescentClassificationTrainer.Options),
+[assembly: LoadableClass(typeof(LegacySgdBinaryTrainer), typeof(LegacySgdBinaryTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    StochasticGradientDescentClassificationTrainer.UserNameValue,
-    StochasticGradientDescentClassificationTrainer.LoadNameValue,
+    LegacySgdBinaryTrainer.UserNameValue,
+    LegacySgdBinaryTrainer.LoadNameValue,
     "sgd")]
 
 [assembly: LoadableClass(typeof(void), typeof(Sdca), null, typeof(SignatureEntryPointModule), "SDCA")]
-[assembly: LoadableClass(typeof(void), typeof(StochasticGradientDescentClassificationTrainer), null, typeof(SignatureEntryPointModule), StochasticGradientDescentClassificationTrainer.ShortName)]
+[assembly: LoadableClass(typeof(void), typeof(LegacySgdBinaryTrainer), null, typeof(SignatureEntryPointModule), LegacySgdBinaryTrainer.ShortName)]
 
 namespace Microsoft.ML.Trainers
 {
     using ConditionalAttribute = System.Diagnostics.ConditionalAttribute;
     using Stopwatch = System.Diagnostics.Stopwatch;
-    using TScalarPredictor = IPredictorWithFeatureWeights<float>;
 
     public abstract class LinearTrainerBase<TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
@@ -51,15 +49,13 @@ namespace Microsoft.ML.Trainers
     {
         private const string RegisterName = nameof(LinearTrainerBase<TTransformer, TModel>);
 
-        protected bool NeedShuffle;
-
         private static readonly TrainerInfo _info = new TrainerInfo();
         public override TrainerInfo Info => _info;
 
         /// <summary>
         /// Whether data is to be shuffled every epoch.
         /// </summary>
-        protected abstract bool ShuffleData { get; }
+        private protected abstract bool ShuffleData { get; }
 
         private protected LinearTrainerBase(IHostEnvironment env, string featureColumn, SchemaShape.Column labelColumn,
             string weightColumn = null)
@@ -129,12 +125,12 @@ namespace Microsoft.ML.Trainers
 
         private protected abstract void CheckLabel(RoleMappedData examples, out int weightSetCount);
 
-        protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
+        private protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
         {
             return VectorUtils.DotProduct(in weights, in features) + bias;
         }
 
-        protected float WScaledDot(in VBuffer<float> features, Double scaling, in VBuffer<float> weights, float bias)
+        private protected float WScaledDot(in VBuffer<float> features, Double scaling, in VBuffer<float> weights, float bias)
         {
             return VectorUtils.DotProduct(in weights, in features) * (float)scaling + bias;
         }
@@ -149,10 +145,10 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public abstract class SdcaTrainerBase<TArgs, TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
+    public abstract class SdcaTrainerBase<TOptions, TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
-        where TArgs : SdcaTrainerBase<TArgs, TTransformer, TModel>.ArgumentsBase, new()
+        where TOptions : SdcaTrainerBase<TOptions, TTransformer, TModel>.OptionsBase, new()
     {
         // REVIEW: Making it even faster and more accurate:
         // 1. Train with not-too-many threads. nt = 2 or 4 seems to be good enough. Didn't seem additional benefit over more threads.
@@ -160,7 +156,7 @@ namespace Microsoft.ML.Trainers
         // 3. Don't "guess" the iteration to converge. It is very data-set dependent and hard to control. Always check for at least once to ensure convergence.
         // 4. Use dual variable updates to infer whether a full iteration of convergence checking is necessary. Convergence checking iteration is time-consuming.
 
-        public abstract class ArgumentsBase : LearnerInputBaseWithLabel
+        public abstract class OptionsBase : LearnerInputBaseWithLabel
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l2", SortOrder = 1)]
             [TGUI(Label = "L2 Regularizer Constant", SuggestedSweeps = "<Auto>,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2")]
@@ -218,10 +214,14 @@ namespace Microsoft.ML.Trainers
                     }
                 }
             }
+
+            private protected OptionsBase()
+            {
+            }
         }
 
         // The order of these matter, since they are used as indices into arrays.
-        protected enum MetricKind
+        private protected enum MetricKind
         {
             Loss,
             DualLoss,
@@ -238,16 +238,16 @@ namespace Microsoft.ML.Trainers
         // substantial additional benefits in terms of accuracy.
         private const long MaxDualTableSize = 1L << 50;
         private const float L2LowerBound = 1e-09f;
-        protected readonly TArgs Args;
-        protected ISupportSdcaLoss Loss;
+        private protected readonly TOptions SdcaTrainerOptions;
+        private protected ISupportSdcaLoss Loss;
 
-        protected override bool ShuffleData => Args.Shuffle;
+        private protected override bool ShuffleData => SdcaTrainerOptions.Shuffle;
 
-        private const string RegisterName = nameof(SdcaTrainerBase<TArgs, TTransformer, TModel>);
+        private const string RegisterName = nameof(SdcaTrainerBase<TOptions, TTransformer, TModel>);
 
-        private static TArgs ArgsInit(string featureColumnName, SchemaShape.Column labelColumn)
+        private static TOptions ArgsInit(string featureColumnName, SchemaShape.Column labelColumn)
         {
-            var args = new TArgs();
+            var args = new TOptions();
 
             args.FeatureColumn = featureColumnName;
             args.LabelColumn = labelColumn.Name;
@@ -261,18 +261,18 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        internal SdcaTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label, SchemaShape.Column weight = default,
+        internal SdcaTrainerBase(IHostEnvironment env, TOptions options, SchemaShape.Column label, SchemaShape.Column weight = default,
             float? l2Const = null, float? l1Threshold = null, int? maxIterations = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, weight)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, weight)
         {
-            Args = args;
-            Args.L2Const = l2Const ?? args.L2Const;
-            Args.L1Threshold = l1Threshold ?? args.L1Threshold;
-            Args.MaxIterations = maxIterations ?? args.MaxIterations;
-            Args.Check(env);
+            SdcaTrainerOptions = options;
+            SdcaTrainerOptions.L2Const = l2Const ?? options.L2Const;
+            SdcaTrainerOptions.L1Threshold = l1Threshold ?? options.L1Threshold;
+            SdcaTrainerOptions.MaxIterations = maxIterations ?? options.MaxIterations;
+            SdcaTrainerOptions.Check(env);
         }
 
-        protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
+        private protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
         {
             return VectorUtils.DotProduct(in weights, in features) + bias;
         }
@@ -291,10 +291,10 @@ namespace Microsoft.ML.Trainers
 
             var cursorFactory = new FloatLabelCursor.Factory(data, cursorOpt);
             int numThreads;
-            if (Args.NumThreads.HasValue)
+            if (SdcaTrainerOptions.NumThreads.HasValue)
             {
-                numThreads = Args.NumThreads.Value;
-                Host.CheckUserArg(numThreads > 0, nameof(ArgumentsBase.NumThreads), "The number of threads must be either null or a positive integer.");
+                numThreads = SdcaTrainerOptions.NumThreads.Value;
+                Host.CheckUserArg(numThreads > 0, nameof(OptionsBase.NumThreads), "The number of threads must be either null or a positive integer.");
                 if (0 < Host.ConcurrencyFactor && Host.ConcurrencyFactor < numThreads)
                 {
                     numThreads = Host.ConcurrencyFactor;
@@ -312,8 +312,8 @@ namespace Microsoft.ML.Trainers
                 ch.Info("Using {0} threads to train.", numThreads);
 
             int checkFrequency = 0;
-            if (Args.CheckFrequency.HasValue)
-                checkFrequency = Args.CheckFrequency.Value;
+            if (SdcaTrainerOptions.CheckFrequency.HasValue)
+                checkFrequency = SdcaTrainerOptions.CheckFrequency.Value;
             else
             {
                 checkFrequency = numThreads;
@@ -413,19 +413,19 @@ namespace Microsoft.ML.Trainers
 
             ch.Check(count > 0, "Training set has 0 instances, aborting training.");
             // Tune the default hyperparameters based on dataset size.
-            if (Args.MaxIterations == null)
-                Args.MaxIterations = TuneDefaultMaxIterations(ch, count, numThreads);
+            if (SdcaTrainerOptions.MaxIterations == null)
+                SdcaTrainerOptions.MaxIterations = TuneDefaultMaxIterations(ch, count, numThreads);
 
-            Contracts.Assert(Args.MaxIterations.HasValue);
-            if (Args.L2Const == null)
-                Args.L2Const = TuneDefaultL2(ch, Args.MaxIterations.Value, count, numThreads);
+            Contracts.Assert(SdcaTrainerOptions.MaxIterations.HasValue);
+            if (SdcaTrainerOptions.L2Const == null)
+                SdcaTrainerOptions.L2Const = TuneDefaultL2(ch, SdcaTrainerOptions.MaxIterations.Value, count, numThreads);
 
-            Contracts.Assert(Args.L2Const.HasValue);
-            if (Args.L1Threshold == null)
-                Args.L1Threshold = TuneDefaultL1(ch, numFeatures);
+            Contracts.Assert(SdcaTrainerOptions.L2Const.HasValue);
+            if (SdcaTrainerOptions.L1Threshold == null)
+                SdcaTrainerOptions.L1Threshold = TuneDefaultL1(ch, numFeatures);
 
-            ch.Assert(Args.L1Threshold.HasValue);
-            var l1Threshold = Args.L1Threshold.Value;
+            ch.Assert(SdcaTrainerOptions.L1Threshold.HasValue);
+            var l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
             var l1ThresholdZero = l1Threshold == 0;
             var weights = new VBuffer<float>[weightSetCount];
             var bestWeights = new VBuffer<float>[weightSetCount];
@@ -454,8 +454,8 @@ namespace Microsoft.ML.Trainers
 
             int bestIter = 0;
             var bestPrimalLoss = double.PositiveInfinity;
-            ch.Assert(Args.L2Const.HasValue);
-            var l2Const = Args.L2Const.Value;
+            ch.Assert(SdcaTrainerOptions.L2Const.HasValue);
+            var l2Const = SdcaTrainerOptions.L2Const.Value;
             float lambdaNInv = 1 / (l2Const * count);
 
             DualsTableBase duals = null;
@@ -518,8 +518,8 @@ namespace Microsoft.ML.Trainers
             ch.AssertValue(metricNames);
             ch.AssertValue(metrics);
             ch.Assert(metricNames.Length == metrics.Length);
-            ch.Assert(Args.MaxIterations.HasValue);
-            var maxIterations = Args.MaxIterations.Value;
+            ch.Assert(SdcaTrainerOptions.MaxIterations.HasValue);
+            var maxIterations = SdcaTrainerOptions.MaxIterations.Value;
 
             var rands = new Random[maxIterations];
             for (int i = 0; i < maxIterations; i++)
@@ -543,7 +543,7 @@ namespace Microsoft.ML.Trainers
                         int idx = (int)longIdx;
                         var features = cursor.Features;
                         var normSquared = VectorUtils.NormSquared(features);
-                        if (Args.BiasLearningRate == 0)
+                        if (SdcaTrainerOptions.BiasLearningRate == 0)
                             normSquared += 1;
 
                         if (featureNormSquared != null)
@@ -638,7 +638,7 @@ namespace Microsoft.ML.Trainers
             return CreatePredictor(weights, bias);
         }
 
-        protected abstract TModel CreatePredictor(VBuffer<float>[] weights, float[] bias);
+        private protected abstract TModel CreatePredictor(VBuffer<float>[] weights, float[] bias);
 
         // Assign an upper bound for number of iterations based on data set size first.
         // This ensures SDCA will not run forever...
@@ -657,7 +657,7 @@ namespace Microsoft.ML.Trainers
         }
 
         // Tune default for l2.
-        protected virtual float TuneDefaultL2(IChannel ch, int maxIterations, long rowCount, int numThreads)
+        private protected virtual float TuneDefaultL2(IChannel ch, int maxIterations, long rowCount, int numThreads)
         {
             Contracts.AssertValue(ch);
             Contracts.Assert(maxIterations > 0);
@@ -754,17 +754,17 @@ namespace Microsoft.ML.Trainers
             VBuffer<float>[] weights, float[] biasUnreg, VBuffer<float>[] l1IntermediateWeights, float[] l1IntermediateBias, float[] featureNormSquared)
         {
             Contracts.AssertValueOrNull(progress);
-            Contracts.Assert(Args.L1Threshold.HasValue);
+            Contracts.Assert(SdcaTrainerOptions.L1Threshold.HasValue);
             Contracts.AssertValueOrNull(idToIdx);
             Contracts.AssertValueOrNull(invariants);
             Contracts.AssertValueOrNull(featureNormSquared);
             int maxUpdateTrials = 2 * numThreads;
-            var l1Threshold = Args.L1Threshold.Value;
+            var l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
             bool l1ThresholdZero = l1Threshold == 0;
-            var lr = Args.BiasLearningRate * Args.L2Const.Value;
+            var lr = SdcaTrainerOptions.BiasLearningRate * SdcaTrainerOptions.L2Const.Value;
             var pch = progress != null ? progress.StartProgressChannel("Dual update") : null;
             using (pch)
-            using (var cursor = Args.Shuffle ? cursorFactory.Create(rand) : cursorFactory.Create())
+            using (var cursor = SdcaTrainerOptions.Shuffle ? cursorFactory.Create(rand) : cursorFactory.Create())
             {
                 long rowCount = 0;
                 if (pch != null)
@@ -783,7 +783,7 @@ namespace Microsoft.ML.Trainers
                     {
                         Contracts.Assert(featureNormSquared == null);
                         var featuresNormSquared = VectorUtils.NormSquared(features);
-                        if (Args.BiasLearningRate == 0)
+                        if (SdcaTrainerOptions.BiasLearningRate == 0)
                             featuresNormSquared += 1;
 
                         invariant = Loss.ComputeDualUpdateInvariant(featuresNormSquared * lambdaNInv * GetInstanceWeight(cursor));
@@ -829,7 +829,7 @@ namespace Microsoft.ML.Trainers
                                 //Thresholding: if |v[j]| < threshold, turn off weights[j]
                                 //If not, shrink: w[j] = v[i] - sign(v[j]) * threshold
                                 l1IntermediateBias[0] += primalUpdate;
-                                if (Args.BiasLearningRate == 0)
+                                if (SdcaTrainerOptions.BiasLearningRate == 0)
                                 {
                                     biasReg[0] = Math.Abs(l1IntermediateBias[0]) - l1Threshold > 0.0
                                     ? l1IntermediateBias[0] - Math.Sign(l1IntermediateBias[0]) * l1Threshold
@@ -949,10 +949,10 @@ namespace Microsoft.ML.Trainers
                 Host.Assert(idToIdx == null || row == duals.Length);
             }
 
-            Contracts.Assert(Args.L2Const.HasValue);
-            Contracts.Assert(Args.L1Threshold.HasValue);
-            Double l2Const = Args.L2Const.Value;
-            Double l1Threshold = Args.L1Threshold.Value;
+            Contracts.Assert(SdcaTrainerOptions.L2Const.HasValue);
+            Contracts.Assert(SdcaTrainerOptions.L1Threshold.HasValue);
+            Double l2Const = SdcaTrainerOptions.L2Const.Value;
+            Double l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
             Double l1Regularizer = l1Threshold * l2Const * (VectorUtils.L1Norm(in weights[0]) + Math.Abs(biasReg[0]));
             var l2Regularizer = l2Const * (VectorUtils.NormSquared(weights[0]) + biasReg[0] * biasReg[0]) * 0.5;
             var newLoss = lossSum.Sum / count + l2Regularizer + l1Regularizer;
@@ -964,9 +964,9 @@ namespace Microsoft.ML.Trainers
             var dualityGap = metrics[(int)MetricKind.DualityGap] = newLoss - newDualLoss;
             metrics[(int)MetricKind.BiasUnreg] = biasUnreg[0];
             metrics[(int)MetricKind.BiasReg] = biasReg[0];
-            metrics[(int)MetricKind.L1Sparsity] = Args.L1Threshold == 0 ? 1 : (Double)firstWeights.GetValues().Count(w => w != 0) / weights.Length;
+            metrics[(int)MetricKind.L1Sparsity] = SdcaTrainerOptions.L1Threshold == 0 ? 1 : (Double)firstWeights.GetValues().Count(w => w != 0) / weights.Length;
 
-            bool converged = dualityGap / newLoss < Args.ConvergenceTolerance;
+            bool converged = dualityGap / newLoss < SdcaTrainerOptions.ConvergenceTolerance;
 
             if (metrics[(int)MetricKind.Loss] < bestPrimalLoss)
             {
@@ -988,7 +988,7 @@ namespace Microsoft.ML.Trainers
             return converged;
         }
 
-        protected virtual float[] InitializeFeatureNormSquared(int length)
+        private protected virtual float[] InitializeFeatureNormSquared(int length)
         {
             return null;
         }
@@ -1067,7 +1067,7 @@ namespace Microsoft.ML.Trainers
         /// Returns a function delegate to retrieve index from id.
         /// This is to avoid redundant conditional branches in the tight loop of training.
         /// </summary>
-        protected Func<DataViewRowId, long> GetIndexFromIdGetter(IdToIdxLookup idToIdx, int biasLength)
+        private protected Func<DataViewRowId, long> GetIndexFromIdGetter(IdToIdxLookup idToIdx, int biasLength)
         {
             Contracts.AssertValueOrNull(idToIdx);
             long maxTrainingExamples = MaxDualTableSize / biasLength;
@@ -1098,7 +1098,7 @@ namespace Microsoft.ML.Trainers
         /// Only works if the cursor is not shuffled.
         /// This is to avoid redundant conditional branches in the tight loop of training.
         /// </summary>
-        protected Func<DataViewRowId, long, long> GetIndexFromIdAndRowGetter(IdToIdxLookup idToIdx, int biasLength)
+        private protected Func<DataViewRowId, long, long> GetIndexFromIdAndRowGetter(IdToIdxLookup idToIdx, int biasLength)
         {
             Contracts.AssertValueOrNull(idToIdx);
             long maxTrainingExamples = MaxDualTableSize / biasLength;
@@ -1140,7 +1140,7 @@ namespace Microsoft.ML.Trainers
         /// the table growing operation initializes a new larger bucket and rehash the existing entries to
         /// the new bucket. Such operation has an expected complexity proportional to the size.
         /// </summary>
-        protected sealed class IdToIdxLookup
+        private protected sealed class IdToIdxLookup
         {
             // Utilizing this struct gives better cache behavior than using parallel arrays.
             private readonly struct Entry
@@ -1402,23 +1402,23 @@ namespace Microsoft.ML.Trainers
     /// where <see langword="TSubModel"/> is <see cref="LinearBinaryModelParameters"/> and <see langword="TCalibrator "/> is <see cref="PlattCalibrator"/>.
     /// </summary>
     public abstract class SdcaBinaryTrainerBase<TModelParameters> :
-        SdcaTrainerBase<SdcaBinaryTrainerBase<TModelParameters>.BinaryArgumentBase, BinaryPredictionTransformer<TModelParameters>, TModelParameters>
-        where TModelParameters : class, IPredictorProducing<float>
+        SdcaTrainerBase<SdcaBinaryTrainerBase<TModelParameters>.BinaryOptionsBase, BinaryPredictionTransformer<TModelParameters>, TModelParameters>
+        where TModelParameters : class
     {
         private readonly ISupportSdcaClassificationLoss _loss;
         private readonly float _positiveInstanceWeight;
 
-        protected override bool ShuffleData => Args.Shuffle;
+        private protected override bool ShuffleData => SdcaTrainerOptions.Shuffle;
 
         private readonly SchemaShape.Column[] _outputColumns;
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         public override TrainerInfo Info { get; }
 
-        public class BinaryArgumentBase : ArgumentsBase
+        public class BinaryOptionsBase : OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
             public float PositiveInstanceWeight = 1;
@@ -1441,7 +1441,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
-        protected SdcaBinaryTrainerBase(IHostEnvironment env,
+        private protected SdcaBinaryTrainerBase(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string weightColumnName = null,
@@ -1457,23 +1457,23 @@ namespace Microsoft.ML.Trainers
             _loss = loss ?? new LogLossFactory().CreateComponent(env);
             Loss = _loss;
             Info = new TrainerInfo(calibration: false);
-            _positiveInstanceWeight = Args.PositiveInstanceWeight;
+            _positiveInstanceWeight = SdcaTrainerOptions.PositiveInstanceWeight;
             _outputColumns = ComputeSdcaBinaryClassifierSchemaShape();
         }
 
-        protected SdcaBinaryTrainerBase(IHostEnvironment env, BinaryArgumentBase options, ISupportSdcaClassificationLoss loss = null, bool doCalibration = false)
+        private protected SdcaBinaryTrainerBase(IHostEnvironment env, BinaryOptionsBase options, ISupportSdcaClassificationLoss loss = null, bool doCalibration = false)
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
             _loss = loss ?? new LogLossFactory().CreateComponent(env);
             Loss = _loss;
             Info = new TrainerInfo(calibration: doCalibration);
-            _positiveInstanceWeight = Args.PositiveInstanceWeight;
+            _positiveInstanceWeight = SdcaTrainerOptions.PositiveInstanceWeight;
             _outputColumns = ComputeSdcaBinaryClassifierSchemaShape();
         }
 
-        protected abstract SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape();
+        private protected abstract SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape();
 
-        protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
+        private protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
             Contracts.Assert(labelCol.IsValid);
 
@@ -1487,7 +1487,7 @@ namespace Microsoft.ML.Trainers
                 error();
         }
 
-        protected LinearBinaryModelParameters CreateLinearBinaryModelParameters(VBuffer<float>[] weights, float[] bias)
+        private protected LinearBinaryModelParameters CreateLinearBinaryModelParameters(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
             Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
@@ -1512,7 +1512,7 @@ namespace Microsoft.ML.Trainers
             weightSetCount = 1;
         }
 
-        protected override BinaryPredictionTransformer<TModelParameters> MakeTransformer(TModelParameters model, DataViewSchema trainSchema)
+        private protected override BinaryPredictionTransformer<TModelParameters> MakeTransformer(TModelParameters model, DataViewSchema trainSchema)
             => new BinaryPredictionTransformer<TModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
     }
 
@@ -1522,7 +1522,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Configuration to training logistic regression using SDCA.
         /// </summary>
-        public sealed class Options : BinaryArgumentBase
+        public sealed class Options : BinaryOptionsBase
         {
         }
 
@@ -1542,14 +1542,14 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        protected override CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        private protected override CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
             var linearModel = CreateLinearBinaryModelParameters(weights, bias);
             var calibrator = new PlattCalibrator(Host, -1, 0);
             return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator>(Host, linearModel, calibrator);
         }
 
-        protected override SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape()
+        private protected override SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape()
         {
             return new SchemaShape.Column[]
             {
@@ -1558,19 +1558,19 @@ namespace Microsoft.ML.Trainers
                         SchemaShape.Column.VectorKind.Scalar,
                         NumberDataViewType.Single,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
                     new SchemaShape.Column(
                         DefaultColumnNames.Probability,
                         SchemaShape.Column.VectorKind.Scalar,
                         NumberDataViewType.Single,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true))),
                     new SchemaShape.Column(
                         DefaultColumnNames.PredictedLabel,
                         SchemaShape.Column.VectorKind.Scalar,
                         BooleanDataViewType.Instance,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
 
             };
         }
@@ -1581,7 +1581,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// General Configuration to training linear model using SDCA.
         /// </summary>
-        public sealed class Options : BinaryArgumentBase
+        public sealed class Options : BinaryOptionsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
@@ -1604,7 +1604,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        protected override SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape()
+        private protected override SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape()
         {
             return new SchemaShape.Column[]
             {
@@ -1613,14 +1613,14 @@ namespace Microsoft.ML.Trainers
                         SchemaShape.Column.VectorKind.Scalar,
                         NumberDataViewType.Single,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())
                     ),
                     new SchemaShape.Column(
                         DefaultColumnNames.PredictedLabel,
                         SchemaShape.Column.VectorKind.Scalar,
                         BooleanDataViewType.Instance,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
@@ -1629,7 +1629,7 @@ namespace Microsoft.ML.Trainers
         /// <see cref="CreatePredictor"/> directly outputs a <see cref="LinearBinaryModelParameters"/> built from
         /// the learned weights and bias without calibration.
         /// </summary>
-        protected override LinearBinaryModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        private protected override LinearBinaryModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
             => CreateLinearBinaryModelParameters(weights, bias);
     }
 
@@ -1645,7 +1645,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Legacy configuration to SDCA in legacy framework.
         /// </summary>
-        public sealed class Options : BinaryArgumentBase
+        public sealed class Options : BinaryOptionsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
@@ -1662,7 +1662,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        protected override SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape()
+        private protected override SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape()
         {
             var outCols = new List<SchemaShape.Column>()
             {
@@ -1671,14 +1671,14 @@ namespace Microsoft.ML.Trainers
                         SchemaShape.Column.VectorKind.Scalar,
                         NumberDataViewType.Single,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())
                     ),
                     new SchemaShape.Column(
                         DefaultColumnNames.PredictedLabel,
                         SchemaShape.Column.VectorKind.Scalar,
                         BooleanDataViewType.Instance,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
 
             };
 
@@ -1689,7 +1689,7 @@ namespace Microsoft.ML.Trainers
                     SchemaShape.Column.VectorKind.Scalar,
                     NumberDataViewType.Single,
                     false,
-                    new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))));
+                    new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true))));
             };
 
             return outCols.ToArray();
@@ -1698,7 +1698,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Weekly-typed function to create calibrated or uncalibrated predictors.
         /// </summary>
-        protected override IPredictorWithFeatureWeights<float> CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        private protected override IPredictorWithFeatureWeights<float> CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
             Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
@@ -1716,56 +1716,85 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public sealed class StochasticGradientDescentClassificationTrainer :
-        LinearTrainerBase<BinaryPredictionTransformer<TScalarPredictor>, TScalarPredictor>
+    public abstract class SgdBinaryTrainerBase<TModel> :
+        LinearTrainerBase<BinaryPredictionTransformer<TModel>, TModel>
+        where TModel : class
     {
-        internal const string LoadNameValue = "BinarySGD";
-        internal const string UserNameValue = "Hogwild SGD (binary)";
-        internal const string ShortName = "HogwildSGD";
-
-        public sealed class Options : LearnerInputBaseWithWeight
+        public class OptionsBase : LearnerInputBaseWithWeight
         {
-            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
-            public ISupportClassificationLossFactory LossFunction = new LogLossFactory();
-
+            /// <summary>
+            /// The L2 weight for <a href='tmpurl_regularization'>regularization</a>.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization constant", ShortName = "l2", SortOrder = 50)]
             [TGUI(Label = "L2 Regularization Constant", SuggestedSweeps = "1e-7,5e-7,1e-6,5e-6,1e-5")]
             [TlcModule.SweepableDiscreteParam("L2Const", new object[] { 1e-7f, 5e-7f, 1e-6f, 5e-6f, 1e-5f })]
             public float L2Weight = Defaults.L2Weight;
 
+            /// <summary>
+            /// The degree of lock-free parallelism used by SGD.
+            /// </summary>
+            /// <value>
+            /// Defaults to automatic depending on data sparseness. Determinism is not guaranteed.
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic depending on data sparseness. Determinism not guaranteed.", ShortName = "nt,t,threads", SortOrder = 50)]
             [TGUI(Label = "Number of threads", SuggestedSweeps = "1,2,4")]
             public int? NumThreads;
 
+            /// <summary>
+            /// The convergence tolerance. If the exponential moving average of loss reductions falls below this tolerance,
+            /// the algorithm is deemed to have converged and will stop.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Exponential moving averaged improvement tolerance for convergence", ShortName = "tol")]
             [TGUI(SuggestedSweeps = "1e-2,1e-3,1e-4,1e-5")]
             [TlcModule.SweepableDiscreteParam("ConvergenceTolerance", new object[] { 1e-2f, 1e-3f, 1e-4f, 1e-5f })]
             public double ConvergenceTolerance = 1e-4;
 
+            /// <summary>
+            /// The maximum number of passes through the training dataset.
+            /// </summary>
+            /// <value>
+            /// Set to 1 to simulate online learning.
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning.", ShortName = "iter")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "1,5,10,20")]
             [TlcModule.SweepableDiscreteParam("MaxIterations", new object[] { 1, 5, 10, 20 })]
             public int MaxIterations = Defaults.MaxIterations;
 
+            /// <summary>
+            /// The initial <a href="tmpurl_lr">learning rate</a> used by SGD.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate (only used by SGD)", ShortName = "ilr,lr")]
             [TGUI(Label = "Initial Learning Rate (for SGD)")]
             public double InitLearningRate = Defaults.InitLearningRate;
 
+            /// <summary>
+            /// Determines whether to shuffle data for each training iteration.
+            /// </summary>
+            /// <value>
+            /// <see langword="true" /> to shuffle data for each training iteration; otherwise, <see langword="false" />.
+            /// Default is <see langword="true" />.
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data every epoch?", ShortName = "shuf")]
             [TlcModule.SweepableDiscreteParam("Shuffle", null, isBool: true)]
             public bool Shuffle = true;
 
+            /// <summary>
+            /// The weight to be applied to the positive class. This is useful for training with imbalanced data.
+            /// </summary>
+            /// <value>
+            /// Default value is 1, which means no extra weight.
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
             public float PositiveInstanceWeight = 1;
 
+            /// <summary>
+            /// Determines the frequency of checking for convergence in terms of number of iterations.
+            /// </summary>
+            /// <value>
+            /// Default equals <see cref="NumThreads"/>."
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Convergence check frequency (in terms of number of iterations). Default equals number of threads", ShortName = "checkFreq")]
             public int? CheckFrequency;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            internal int MaxCalibrationExamples = 1000000;
 
             internal void Check(IHostEnvironment env)
             {
@@ -1797,92 +1826,81 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        private readonly IClassificationLoss _loss;
-        private readonly Options _options;
+        private readonly OptionsBase _options;
 
-        protected override bool ShuffleData => _options.Shuffle;
+        private protected IClassificationLoss Loss { get; }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override bool ShuffleData => _options.Shuffle;
+
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         public override TrainerInfo Info { get; }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="StochasticGradientDescentClassificationTrainer"/>
+        /// Initializes a new instance of <see cref="SgdBinaryTrainerBase{TModelParameters}"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="weightColumn">The name for the example weight column.</param>
+        /// <param name="weightColumn">The name of the example weight column.</param>
         /// <param name="maxIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
         /// <param name="initLearningRate">The initial learning rate used by SGD.</param>
         /// <param name="l2Weight">The L2 regularizer constant.</param>
         /// <param name="loss">The loss function to use.</param>
-        internal StochasticGradientDescentClassificationTrainer(IHostEnvironment env,
+        internal SgdBinaryTrainerBase(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
-            int maxIterations = Options.Defaults.MaxIterations,
-            double initLearningRate = Options.Defaults.InitLearningRate,
-            float l2Weight = Options.Defaults.L2Weight,
-            ISupportClassificationLossFactory loss = null)
+            IClassificationLoss loss = null,
+            int maxIterations = OptionsBase.Defaults.MaxIterations,
+            double initLearningRate = OptionsBase.Defaults.InitLearningRate,
+            float l2Weight = OptionsBase.Defaults.L2Weight)
             : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weightColumn)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
-            _options = new Options();
+            _options = new OptionsBase();
             _options.MaxIterations = maxIterations;
             _options.InitLearningRate = initLearningRate;
             _options.L2Weight = l2Weight;
 
             _options.FeatureColumn = featureColumn;
             _options.LabelColumn = labelColumn;
-            _options.WeightColumn = weightColumn != null ? Optional<string>.Explicit(weightColumn) : Optional<string>.Implicit(DefaultColumnNames.Weight);
-
-            if (loss != null)
-                _options.LossFunction = loss;
-            _options.Check(env);
-
-            _loss = _options.LossFunction.CreateComponent(env);
-            Info = new TrainerInfo(calibration: !(_loss is LogLoss), supportIncrementalTrain: true);
-            NeedShuffle = _options.Shuffle;
+            _options.WeightColumn = weightColumn;
+            Loss = loss ?? new LogLoss();
+            Info = new TrainerInfo(calibration: false, supportIncrementalTrain: true);
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="StochasticGradientDescentClassificationTrainer"/>
+        /// Initializes a new instance of <see cref="SgdBinaryTrainerBase{TModelParameters}"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        internal StochasticGradientDescentClassificationTrainer(IHostEnvironment env, Options options)
-            : base(env, options.FeatureColumn, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn), options.WeightColumn.IsExplicit ? options.WeightColumn.Value : null)
+        /// <param name="loss">Loss function would be minimized.</param>
+        /// <param name="doCalibration">Set to true if a calibration step should be happen after training. Use false otherwise.</param>
+        internal SgdBinaryTrainerBase(IHostEnvironment env, OptionsBase options, IClassificationLoss loss = null, bool doCalibration = false)
+            : base(env, options.FeatureColumn, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn), options.WeightColumn)
         {
             options.Check(env);
-            _loss = options.LossFunction.CreateComponent(env);
-            Info = new TrainerInfo(calibration: !(_loss is LogLoss), supportIncrementalTrain: true);
-            NeedShuffle = options.Shuffle;
+            Loss = loss;
+            Info = new TrainerInfo(calibration: doCalibration, supportIncrementalTrain: true);
             _options = options;
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
-        {
-            return new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-            };
-        }
+        private protected override BinaryPredictionTransformer<TModel> MakeTransformer(TModel model, DataViewSchema trainSchema)
+            => new BinaryPredictionTransformer<TModel>(Host, model, trainSchema, FeatureColumn.Name);
 
-        protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, DataViewSchema trainSchema)
-            => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
-
-        public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
-            => TrainTransformer(trainData, initPredictor: initialPredictor);
+        /// <summary>
+        /// Continues the training of a <see cref="SdcaBinaryTrainer"/> using an already trained <paramref name="modelParameters"/> and returns a <see cref="BinaryPredictionTransformer"/>.
+        /// </summary>
+        public BinaryPredictionTransformer<TModel> Fit(IDataView trainData, LinearModelParameters modelParameters)
+            => TrainTransformer(trainData, initPredictor: modelParameters);
 
         //For complexity analysis, we assume that
         // - The number of features is N
         // - Average number of non-zero per instance is k
-        private protected override TScalarPredictor TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
+        private protected override TModel TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
         {
             Contracts.AssertValue(data);
             Contracts.Assert(weightSetCount == 1);
@@ -1911,7 +1929,7 @@ namespace Microsoft.ML.Trainers
             if (checkFrequency <= 0)
                 checkFrequency = int.MaxValue;
             var l2Weight = _options.L2Weight;
-            var lossFunc = _loss;
+            var lossFunc = Loss;
             var pOptions = new ParallelOptions { MaxDegreeOfParallelism = numThreads };
             var positiveInstanceWeight = _options.PositiveInstanceWeight;
             var weights = default(VBuffer<float>);
@@ -2063,18 +2081,222 @@ namespace Microsoft.ML.Trainers
 
             VectorUtils.ScaleBy(ref weights, (float)weightScaling); // restore the true weights
 
+            return CreateModel(weights, bias);
+        }
+
+        /// <summary>
+        /// <see cref="CreateModel(VBuffer{float}, float)"/> implements a mechanism to craft a typed model out from linear weights and a bias.
+        /// It's used at the end of <see cref="TrainCore(IChannel, RoleMappedData, LinearModelParameters, int)"/> to finalize the trained model.
+        /// Derived classes should implement <see cref="CreateModel(VBuffer{float}, float)"/> because different trainers may produce different
+        /// types of models.
+        /// </summary>
+        /// <param name="weights">Weights of linear model.</param>
+        /// <param name="bias">Bias of linear model.</param>
+        /// <returns>A model built upon weights and bias. It can be as simple as a <see cref="LinearBinaryModelParameters"/>.</returns>
+        private protected abstract TModel CreateModel(VBuffer<float> weights, float bias);
+
+        /// <summary>
+        /// A helper function used to create <see cref="LinearBinaryModelParameters"/> in implementations of <see cref="CreateModel(VBuffer{float}, float)"/>.
+        /// </summary>
+        private protected LinearBinaryModelParameters CreateLinearBinaryModelParameters(VBuffer<float> weights, float bias)
+        {
+            Host.CheckParam(weights.Length > 0, nameof(weights));
+
             VBuffer<float> maybeSparseWeights = default;
-            VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
-            var pred = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias);
-            if (!(_loss is LogLoss))
-                return pred;
-            return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator>(Host, pred, new PlattCalibrator(Host, -1, 0));
+            VBufferUtils.CreateMaybeSparseCopy(weights, ref maybeSparseWeights,
+                Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
+
+            return new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias);
         }
 
         private protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
         {
             examples.CheckBinaryLabel();
             weightSetCount = 1;
+        }
+    }
+
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training logistic regression using a parallel stochastic gradient method.
+    /// The trained model is <a href='tmpurl_calib'>calibrated</a> and can produce probability by feeding the output value of the
+    /// linear function to a <see cref="PlattCalibrator"/>.
+    /// </summary>
+    /// <remarks>
+    /// The Stochastic Gradient Descent (SGD) is one of the popular stochastic optimization procedures that can be integrated
+    /// into several machine learning tasks to achieve state-of-the-art performance. This trainer implements the Hogwild SGD for binary classification
+    /// that supports multi-threading without any locking. If the associated optimization problem is sparse, Hogwild SGD achieves a nearly optimal
+    /// rate of convergence. For more details about Hogwild SGD, please refer to http://arxiv.org/pdf/1106.5730v2.pdf.
+    /// </remarks>
+    public sealed class SgdBinaryTrainer :
+        SgdBinaryTrainerBase<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
+    {
+        /// <summary>
+        /// Options for the <see cref="SgdBinaryTrainer"/>.
+        /// </summary>
+        public sealed class Options : OptionsBase
+        {
+        }
+
+        internal SgdBinaryTrainer(IHostEnvironment env,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            string weightColumn = null,
+            int maxIterations = Options.Defaults.MaxIterations,
+            double initLearningRate = Options.Defaults.InitLearningRate,
+            float l2Weight = Options.Defaults.L2Weight)
+            : base(env, labelColumn, featureColumn, weightColumn, new LogLoss(), maxIterations, initLearningRate, l2Weight)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="SgdBinaryTrainerBase{TModelParameters}"/>
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        internal SgdBinaryTrainer(IHostEnvironment env, Options options)
+            : base(env, options, loss: new LogLoss(), doCalibration: false)
+        {
+        }
+
+        /// <summary>
+        /// Logistic regression's output can naturally be interpreted as probability, so this model has three output columns.
+        /// </summary>
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
+            };
+        }
+
+        /// <summary>
+        /// Given weights and bias trained in <see cref="SgdBinaryTrainerBase{TModelParameters}.TrainCore(IChannel, RoleMappedData, LinearModelParameters, int)"/>,
+        /// <see cref="CreateModel(VBuffer{float}, float)"/> produces the final calibrated linear model.
+        /// </summary>
+        private protected override CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> CreateModel(VBuffer<float> weights, float bias)
+        {
+            // SubModel, which is a linear function.
+            var subModel = CreateLinearBinaryModelParameters(weights, bias);
+            // Calibrator used to adjust the sub-model's output.
+            var calibrator = new PlattCalibrator(Host, -1, 0);
+            // Combine sub-model and calibrator as a whole.
+            return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator>(Host, subModel, calibrator);
+        }
+    }
+
+    /// <summary>
+    /// <see cref="SgdNonCalibratedBinaryTrainer"/> can train a linear classification model by minimizing any loss function
+    /// which implements <see cref="IClassificationLoss"/>.
+    /// </summary>
+    public sealed class SgdNonCalibratedBinaryTrainer :
+        SgdBinaryTrainerBase<LinearBinaryModelParameters>
+    {
+        public sealed class Options : OptionsBase
+        {
+            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
+            public IClassificationLoss Loss = new LogLoss();
+        }
+
+        internal SgdNonCalibratedBinaryTrainer(IHostEnvironment env,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            string weightColumn = null,
+            int maxIterations = Options.Defaults.MaxIterations,
+            double initLearningRate = Options.Defaults.InitLearningRate,
+            float l2Weight = Options.Defaults.L2Weight,
+            IClassificationLoss loss = null)
+            : base(env, labelColumn, featureColumn, weightColumn, loss, maxIterations, initLearningRate, l2Weight)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="SgdNonCalibratedBinaryTrainer"/>
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        internal SgdNonCalibratedBinaryTrainer(IHostEnvironment env, Options options)
+            : base(env, options, loss: options.Loss, doCalibration: false)
+        {
+        }
+
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
+            };
+        }
+
+        private protected override LinearBinaryModelParameters CreateModel(VBuffer<float> weights, float bias)
+            => CreateLinearBinaryModelParameters(weights, bias);
+    }
+
+    /// <summary>
+    /// <see cref="LegacySgdBinaryTrainer"/> is used to support classical command line
+    /// tools where model is weakly-typed to <see cref="IPredictorWithFeatureWeights{TResult}"/>. Please do NOT use it
+    /// whenever possible.
+    /// </summary>
+    internal sealed class LegacySgdBinaryTrainer :
+        SgdBinaryTrainerBase<IPredictorWithFeatureWeights<float>>
+    {
+        internal const string LoadNameValue = "BinarySGD";
+        internal const string UserNameValue = "Hogwild SGD (binary)";
+        internal const string ShortName = "HogwildSGD";
+
+        public sealed class Options : OptionsBase
+        {
+            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
+            public ISupportClassificationLossFactory LossFunction = new LogLossFactory();
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            internal int MaxCalibrationExamples = 1000000;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="SgdBinaryTrainerBase{TModelParameters}"/>
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        internal LegacySgdBinaryTrainer(IHostEnvironment env, Options options)
+            : base(env, options, options.LossFunction.CreateComponent(env), !(options.LossFunction is LogLossFactory))
+        {
+        }
+
+        /// <summary>
+        /// <see cref="LogLoss"/> leads to logistic regression which naturally supports probablity output. For other loss functions,
+        /// a calibrator would be added after <see cref="SgdBinaryTrainerBase{TModelParameters}.TrainCore(IChannel, RoleMappedData, LinearModelParameters, int)"/>
+        /// finishing its job. Therefore, we always have three output columns in the legacy world.
+        /// </summary>
+        /// <param name="inputSchema"></param>
+        /// <returns></returns>
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
+            };
+        }
+
+        private protected override IPredictorWithFeatureWeights<float> CreateModel(VBuffer<float> weights, float bias)
+        {
+            if (!(Loss is LogLoss))
+                return CreateLinearBinaryModelParameters(weights, bias);
+
+            // SubModel, which is a linear function.
+            var subModel = CreateLinearBinaryModelParameters(weights, bias);
+
+            // Calibrator used to adjust the sub-model's output.
+            var calibrator = new PlattCalibrator(Host, -1, 0);
+            // Combine sub-model and calibrator as a whole.
+            return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator>(Host, subModel, calibrator);
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.StochasticGradientDescentBinaryClassifier", Desc = "Train an Hogwild SGD binary model.", UserName = UserNameValue, ShortName = ShortName)]
@@ -2086,11 +2308,10 @@ namespace Microsoft.ML.Trainers
             EntryPointUtils.CheckInputArgs(host, input);
 
             return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new StochasticGradientDescentClassificationTrainer(host, input),
+                () => new LegacySgdBinaryTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
-
         }
     }
 

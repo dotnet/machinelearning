@@ -6,7 +6,7 @@ using System;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Training;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Trainers
@@ -23,7 +23,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Whether data is to be shuffled every epoch.
         /// </summary>
-        protected abstract bool ShuffleData { get; }
+        private protected abstract bool ShuffleData { get; }
 
         private static readonly TrainerInfo _info = new TrainerInfo();
         public override TrainerInfo Info => _info;

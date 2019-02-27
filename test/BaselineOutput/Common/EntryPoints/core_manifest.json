@@ -191,8 +191,8 @@
                         "Desc": "Type of the items in the column",
                         "Required": false,
                         "SortOrder": 150.0,
-                        "IsNullable": true,
-                        "Default": null
+                        "IsNullable": false,
+                        "Default": "R4"
                       },
                       {
                         "Name": "Source",
@@ -317,42 +317,6 @@
                 "Default": null
               },
               {
-                "Name": "UseThreads",
-                "Type": "Bool",
-                "Desc": "Use separate parsing threads?",
-                "Aliases": [
-                  "threads"
-                ],
-                "Required": false,
-                "SortOrder": 150.0,
-                "IsNullable": false,
-                "Default": true
-              },
-              {
-                "Name": "HeaderFile",
-                "Type": "String",
-                "Desc": "File containing a header with feature names. If specified, header defined in the data file (header+) is ignored.",
-                "Aliases": [
-                  "hf"
-                ],
-                "Required": false,
-                "SortOrder": 150.0,
-                "IsNullable": false,
-                "Default": null
-              },
-              {
-                "Name": "MaxRows",
-                "Type": "Int",
-                "Desc": "Maximum number of rows to produce",
-                "Aliases": [
-                  "rows"
-                ],
-                "Required": false,
-                "SortOrder": 150.0,
-                "IsNullable": true,
-                "Default": null
-              },
-              {
                 "Name": "AllowQuoting",
                 "Type": "Bool",
                 "Desc": "Whether the input may include quoted values, which can contain separator characters, colons, and distinguish empty values from missing values. When true, consecutive separators denote a missing value and an empty value is denoted by \"\". When false, consecutive separators denote an empty value.",
@@ -362,7 +326,7 @@
                 "Required": false,
                 "SortOrder": 150.0,
                 "IsNullable": false,
-                "Default": true
+                "Default": false
               },
               {
                 "Name": "AllowSparse",
@@ -374,7 +338,7 @@
                 "Required": false,
                 "SortOrder": 150.0,
                 "IsNullable": false,
-                "Default": true
+                "Default": false
               },
               {
                 "Name": "InputSize",
@@ -428,6 +392,42 @@
                 "SortOrder": 150.0,
                 "IsNullable": false,
                 "Default": false
+              },
+              {
+                "Name": "UseThreads",
+                "Type": "Bool",
+                "Desc": "Use separate parsing threads?",
+                "Aliases": [
+                  "threads"
+                ],
+                "Required": false,
+                "SortOrder": 150.0,
+                "IsNullable": false,
+                "Default": true
+              },
+              {
+                "Name": "HeaderFile",
+                "Type": "String",
+                "Desc": "File containing a header with feature names. If specified, header defined in the data file (header+) is ignored.",
+                "Aliases": [
+                  "hf"
+                ],
+                "Required": false,
+                "SortOrder": 150.0,
+                "IsNullable": false,
+                "Default": null
+              },
+              {
+                "Name": "MaxRows",
+                "Type": "Int",
+                "Desc": "Maximum number of rows to produce",
+                "Aliases": [
+                  "rows"
+                ],
+                "Required": false,
+                "SortOrder": 150.0,
+                "IsNullable": true,
+                "Default": null
               }
             ]
           },
@@ -2139,7 +2139,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -2369,7 +2369,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -2675,7 +2675,7 @@
       ]
     },
     {
-      "Name": "Models.RankerEvaluator",
+      "Name": "Models.RankingEvaluator",
       "Desc": "Evaluates a ranking scored dataset.",
       "FriendlyName": null,
       "ShortName": null,
@@ -5197,7 +5197,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -5209,7 +5209,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -5847,7 +5847,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -5859,7 +5859,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -6489,7 +6489,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -6501,7 +6501,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -7400,7 +7400,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -7412,7 +7412,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -8392,7 +8392,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -8404,7 +8404,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -9291,7 +9291,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -9303,7 +9303,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -10192,7 +10192,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "LambdaLatent",
@@ -10446,7 +10446,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -10746,7 +10746,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -10976,7 +10976,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -11267,7 +11267,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -11279,7 +11279,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -11770,7 +11770,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -11782,7 +11782,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -12273,7 +12273,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -12285,7 +12285,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -12776,7 +12776,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "GroupIdColumn",
@@ -12788,7 +12788,7 @@
           "Required": false,
           "SortOrder": 5.0,
           "IsNullable": false,
-          "Default": "GroupId"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -13184,7 +13184,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -13452,7 +13452,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -13763,7 +13763,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -14484,7 +14484,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -14614,7 +14614,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -14792,7 +14792,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -15933,7 +15933,7 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Weight"
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -16026,6 +16026,29 @@
           "SortOrder": 50.0,
           "IsNullable": true,
           "Default": null
+        },
+        {
+          "Name": "Calibrator",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "CalibratorTrainer"
+          },
+          "Desc": "The calibrator kind to apply to the predictor. Specify null for no calibration",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": {
+            "Name": "PlattCalibrator"
+          }
+        },
+        {
+          "Name": "MaxCalibrationExamples",
+          "Type": "Int",
+          "Desc": "The maximum number of examples to use when training the calibrator",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1000000
         },
         {
           "Name": "ConvergenceTolerance",
@@ -16124,29 +16147,6 @@
           "SortOrder": 150.0,
           "IsNullable": true,
           "Default": null
-        },
-        {
-          "Name": "Calibrator",
-          "Type": {
-            "Kind": "Component",
-            "ComponentKind": "CalibratorTrainer"
-          },
-          "Desc": "The calibrator kind to apply to the predictor. Specify null for no calibration",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": {
-            "Name": "PlattCalibrator"
-          }
-        },
-        {
-          "Name": "MaxCalibrationExamples",
-          "Type": "Int",
-          "Desc": "The maximum number of examples to use when training the calibrator",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 1000000
         }
       ],
       "Outputs": [
@@ -18862,12 +18862,28 @@
                   "Default": null
                 },
                 {
-                  "Name": "InterleaveArgb",
+                  "Name": "Order",
+                  "Type": {
+                    "Kind": "Enum",
+                    "Values": [
+                      "ARGB",
+                      "ARBG",
+                      "ABRG",
+                      "ABGR",
+                      "AGRB",
+                      "AGBR"
+                    ]
+                  },
+                  "Desc": "Order of channels",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Interleave",
                   "Type": "Bool",
-                  "Desc": "Whether to separate each channel or interleave in ARGB order",
-                  "Aliases": [
-                    "interleave"
-                  ],
+                  "Desc": "Whether to separate each channel or interleave in specified order",
                   "Required": false,
                   "SortOrder": 150.0,
                   "IsNullable": true,
@@ -18995,12 +19011,28 @@
           "Default": true
         },
         {
-          "Name": "InterleaveArgb",
+          "Name": "Order",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "ARGB",
+              "ARBG",
+              "ABRG",
+              "ABGR",
+              "AGRB",
+              "AGBR"
+            ]
+          },
+          "Desc": "Order of colors.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "ARGB"
+        },
+        {
+          "Name": "Interleave",
           "Type": "Bool",
-          "Desc": "Whether to separate each channel or interleave in ARGB order",
-          "Aliases": [
-            "interleave"
-          ],
+          "Desc": "Whether to separate each channel or interleave in specified order",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -22952,12 +22984,28 @@
                   "Default": null
                 },
                 {
-                  "Name": "InterleaveArgb",
+                  "Name": "Order",
+                  "Type": {
+                    "Kind": "Enum",
+                    "Values": [
+                      "ARGB",
+                      "ARBG",
+                      "ABRG",
+                      "ABGR",
+                      "AGRB",
+                      "AGBR"
+                    ]
+                  },
+                  "Desc": "Order of channels",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Interleave",
                   "Type": "Bool",
-                  "Desc": "Whether to separate each channel or interleave in ARGB order",
-                  "Aliases": [
-                    "interleave"
-                  ],
+                  "Desc": "Whether to separate each channel or interleave in specified order",
                   "Required": false,
                   "SortOrder": 150.0,
                   "IsNullable": true,
@@ -23000,6 +23048,42 @@
                   "Name": "Scale",
                   "Type": "Float",
                   "Desc": "Scale factor",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "DefaultAlpha",
+                  "Type": "Int",
+                  "Desc": "Default value for alpha channel. Will be used if ContainsAlpha set to false",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "DefaultRed",
+                  "Type": "Int",
+                  "Desc": "Default value for red channel. Will be used if ContainsRed set to false",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "DefaultGreen",
+                  "Type": "Int",
+                  "Desc": "Default value for green channel. Will be used if ContainsGreen set to false",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "DefaultBlue",
+                  "Type": "Int",
+                  "Desc": "Default value for blue channel. Will be used if ContainsGreen set to false",
                   "Required": false,
                   "SortOrder": 150.0,
                   "IsNullable": true,
@@ -23097,12 +23181,28 @@
           "Default": true
         },
         {
-          "Name": "InterleaveArgb",
+          "Name": "Order",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "ARGB",
+              "ARBG",
+              "ABRG",
+              "ABGR",
+              "AGRB",
+              "AGBR"
+            ]
+          },
+          "Desc": "Order of colors.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "ARGB"
+        },
+        {
+          "Name": "Interleave",
           "Type": "Bool",
-          "Desc": "Whether to separate each channel or interleave in ARGB order",
-          "Aliases": [
-            "interleave"
-          ],
+          "Desc": "Whether to separate each channel or interleave in specified order",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -23138,8 +23238,8 @@
           "Desc": "Offset (pre-scale)",
           "Required": false,
           "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null
+          "IsNullable": false,
+          "Default": 0.0
         },
         {
           "Name": "Scale",
@@ -23147,8 +23247,44 @@
           "Desc": "Scale factor",
           "Required": false,
           "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null
+          "IsNullable": false,
+          "Default": 1.0
+        },
+        {
+          "Name": "DefaultAlpha",
+          "Type": "Int",
+          "Desc": "Default value for alpha channel. Will be used if ContainsAlpha set to false",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 255
+        },
+        {
+          "Name": "DefaultRed",
+          "Type": "Int",
+          "Desc": "Default value for red channel. Will be used if ContainsRed set to false",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "DefaultGreen",
+          "Type": "Int",
+          "Desc": "Default value for green channel. Will be used if ContainsGreen set to false",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "DefaultBlue",
+          "Type": "Int",
+          "Desc": "Default value for blue channel. Will be used if ContainsBlue set to false",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0
         }
       ],
       "Outputs": [
@@ -25050,7 +25186,7 @@
               "Required": false,
               "SortOrder": 4.0,
               "IsNullable": false,
-              "Default": "Weight"
+              "Default": null
             },
             {
               "Name": "GroupIdColumn",
@@ -25062,7 +25198,7 @@
               "Required": false,
               "SortOrder": 5.0,
               "IsNullable": false,
-              "Default": "GroupId"
+              "Default": null
             },
             {
               "Name": "NormalizeFeatures",
@@ -25943,7 +26079,7 @@
               "Required": false,
               "SortOrder": 4.0,
               "IsNullable": false,
-              "Default": "Weight"
+              "Default": null
             },
             {
               "Name": "GroupIdColumn",
@@ -25955,7 +26091,7 @@
               "Required": false,
               "SortOrder": 5.0,
               "IsNullable": false,
-              "Default": "GroupId"
+              "Default": null
             },
             {
               "Name": "NormalizeFeatures",
@@ -26917,7 +27053,7 @@
               "Required": false,
               "SortOrder": 4.0,
               "IsNullable": false,
-              "Default": "Weight"
+              "Default": null
             },
             {
               "Name": "GroupIdColumn",
@@ -26929,7 +27065,7 @@
               "Required": false,
               "SortOrder": 5.0,
               "IsNullable": false,
-              "Default": "GroupId"
+              "Default": null
             },
             {
               "Name": "NormalizeFeatures",
@@ -27798,7 +27934,7 @@
               "Required": false,
               "SortOrder": 4.0,
               "IsNullable": false,
-              "Default": "Weight"
+              "Default": null
             },
             {
               "Name": "GroupIdColumn",
@@ -27810,7 +27946,7 @@
               "Required": false,
               "SortOrder": 5.0,
               "IsNullable": false,
-              "Default": "GroupId"
+              "Default": null
             },
             {
               "Name": "NormalizeFeatures",

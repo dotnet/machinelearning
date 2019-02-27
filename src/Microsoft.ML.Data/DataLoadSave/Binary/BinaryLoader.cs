@@ -641,7 +641,7 @@ namespace Microsoft.ML.Data.IO
         /// <returns><see cref="Schema"/> of loaded file.</returns>
         private DataViewSchema ComputeOutputSchema()
         {
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
 
             for(int i = 0; i < _aliveColumns.Length; ++i)
             {
@@ -653,22 +653,22 @@ namespace Microsoft.ML.Data.IO
                 if (Utils.Size(metadataArray) > 0)
                 {
                     // We got some metadata fields here.
-                    var metadataBuilder = new MetadataBuilder();
+                    var metadataBuilder = new DataViewSchema.Annotations.Builder();
                     foreach(var loadedMetadataColumn in metadataArray)
                     {
                         var metadataGetter = loadedMetadataColumn.GetGetter();
                         if (metadataGetter == null)
-                            throw MetadataUtils.ExceptGetMetadata();
+                            throw AnnotationUtils.ExceptGetAnnotation();
                         metadataBuilder.Add(loadedMetadataColumn.Kind, loadedMetadataColumn.Codec.Type, metadataGetter);
                     }
-                    schemaBuilder.AddColumn(loadedColumn.Name, loadedColumn.Type, metadataBuilder.GetMetadata());
+                    schemaBuilder.AddColumn(loadedColumn.Name, loadedColumn.Type, metadataBuilder.ToAnnotations());
                 }
                 else
                     // This case has no metadata.
                     schemaBuilder.AddColumn(loadedColumn.Name, loadedColumn.Type);
             }
 
-            return schemaBuilder.GetSchema();
+            return schemaBuilder.ToSchema();
         }
 
         private readonly Stream _stream;

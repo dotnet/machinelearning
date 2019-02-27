@@ -27,7 +27,8 @@ namespace Microsoft.ML.Data
     ///
     /// An AppendRowsDataView instance is shuffleable iff all of its sources are shuffleable and their row counts are known.
     /// </summary>
-    public sealed class AppendRowsDataView : IDataView
+    [BestFriend]
+    internal sealed class AppendRowsDataView : IDataView
     {
         public const string RegistrationName = "AppendRowsDataView";
 

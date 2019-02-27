@@ -24,7 +24,7 @@ namespace Microsoft.ML.FactorizationMachine
     public sealed class FieldAwareFactorizationMachineModelParameters : ModelParametersBase<float>, ISchemaBindableMapper
     {
         internal const string LoaderSignature = "FieldAwareFactMacPredict";
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         private bool _norm;
         internal int FieldCount { get; }
         internal int FeatureCount { get; }
@@ -57,7 +57,7 @@ namespace Microsoft.ML.FactorizationMachine
         /// and each latent vector contains <see cref="LatentDim"/> values. In the f-th field, the j-th feature's latent vector, `v_{j, f}` in the doc
         /// https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf, starts at latentWeights[j * fieldCount * latentDim + f * latentDim].
         /// The k-th element in v_{j, f} is latentWeights[j * fieldCount * latentDim + f * latentDim + k]. The size of the array must be featureCount x fieldCount x latentDim.</param>
-        public FieldAwareFactorizationMachineModelParameters(IHostEnvironment env, bool norm, int fieldCount, int featureCount, int latentDim,
+        internal FieldAwareFactorizationMachineModelParameters(IHostEnvironment env, bool norm, int fieldCount, int featureCount, int latentDim,
             float[] linearWeights, float[] latentWeights) : base(env, LoaderSignature)
         {
             Host.Assert(fieldCount > 0);
@@ -290,12 +290,12 @@ namespace Microsoft.ML.FactorizationMachine
         /// <summary>
         /// The name of the feature column used by the prediction transformer.
         /// </summary>
-        internal IReadOnlyList<string> FeatureColumns { get; }
+        private IReadOnlyList<string> FeatureColumns { get; }
 
         /// <summary>
         /// The type of the feature columns.
         /// </summary>
-        internal IReadOnlyList<DataViewType> FeatureColumnTypes { get; }
+        private IReadOnlyList<DataViewType> FeatureColumnTypes { get; }
 
         private readonly string _thresholdColumn;
         private readonly float _threshold;

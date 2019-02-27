@@ -106,14 +106,14 @@ namespace Microsoft.ML.ImageAnalytics
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Options args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
-            env.CheckValue(args.Columns, nameof(args.Columns));
+            env.CheckValue(options.Columns, nameof(options.Columns));
 
-            return new ImageGrayscalingTransformer(env, args.Columns.Select(x => (x.Name, x.Source ?? x.Name)).ToArray())
+            return new ImageGrayscalingTransformer(env, options.Columns.Select(x => (x.Name, x.Source ?? x.Name)).ToArray())
                 .MakeDataTransform(input);
         }
 
@@ -164,7 +164,7 @@ namespace Microsoft.ML.ImageAnalytics
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             if (!(inputSchema[srcCol].Type is ImageType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, "image", inputSchema[srcCol].Type.ToString());
@@ -269,7 +269,7 @@ namespace Microsoft.ML.ImageAnalytics
                 if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, new ImageType().ToString(), col.GetTypeString());
 
-                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, col.Kind, col.ItemType, col.IsKey, col.Metadata);
+                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, col.Kind, col.ItemType, col.IsKey, col.Annotations);
             }
 
             return new SchemaShape(result.Values);

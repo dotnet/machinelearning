@@ -68,9 +68,13 @@ namespace Microsoft.ML.Transforms
 
             var contractName = ctx.LoadString();
 
-            var composition = env.GetCompositionContainer();
-            ITransformer transformer = composition.GetExportedValue<ITransformer>(contractName);
-            return transformer;
+            object factoryObject = env.ComponentCatalog.GetExtensionValue(env, typeof(CustomMappingFactoryAttributeAttribute), contractName);
+            if (!(factoryObject is ICustomMappingFactory mappingFactory))
+            {
+                throw env.Except($"The class with contract '{contractName}' must derive from '{typeof(CustomMappingFactory<,>).FullName}'.");
+            }
+
+            return mappingFactory.CreateTransformer(env, contractName);
         }
 
         /// <summary>

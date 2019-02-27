@@ -12,18 +12,18 @@ namespace Microsoft.ML.Trainers.Ensemble
     /// <summary>
     /// Signature for combiners.
     /// </summary>
-    public delegate void SignatureCombiner();
+    internal delegate void SignatureCombiner();
 
-    public delegate void Combiner<TOutput>(ref TOutput dst, TOutput[] src, Single[] weights);
+    internal delegate void Combiner<TOutput>(ref TOutput dst, TOutput[] src, Single[] weights);
 
-    public interface IOutputCombiner
+    internal interface IOutputCombiner
     {
     }
 
     /// <summary>
     /// Generic interface for combining outputs of multiple models
     /// </summary>
-    public interface IOutputCombiner<TOutput> : IOutputCombiner
+    internal interface IOutputCombiner<TOutput> : IOutputCombiner
     {
         Combiner<TOutput> GetCombiner();
     }
@@ -34,36 +34,36 @@ namespace Microsoft.ML.Trainers.Ensemble
         Single ValidationDatasetProportion { get; }
     }
 
-    public interface IRegressionOutputCombiner : IOutputCombiner<Single>
+    internal interface IRegressionOutputCombiner : IOutputCombiner<Single>
     {
     }
 
-    public interface IBinaryOutputCombiner : IOutputCombiner<Single>
+    internal interface IBinaryOutputCombiner : IOutputCombiner<Single>
     {
     }
 
-    public interface IMultiClassOutputCombiner : IOutputCombiner<VBuffer<Single>>
+    internal interface IMultiClassOutputCombiner : IOutputCombiner<VBuffer<Single>>
     {
     }
 
     [TlcModule.ComponentKind("EnsembleMulticlassOutputCombiner")]
-    public interface ISupportMulticlassOutputCombinerFactory : IComponentFactory<IMultiClassOutputCombiner>
+    internal interface ISupportMulticlassOutputCombinerFactory : IComponentFactory<IMultiClassOutputCombiner>
     {
     }
 
     [TlcModule.ComponentKind("EnsembleBinaryOutputCombiner")]
-    public interface ISupportBinaryOutputCombinerFactory : IComponentFactory<IBinaryOutputCombiner>
+    internal interface ISupportBinaryOutputCombinerFactory : IComponentFactory<IBinaryOutputCombiner>
     {
 
     }
 
     [TlcModule.ComponentKind("EnsembleRegressionOutputCombiner")]
-    public interface ISupportRegressionOutputCombinerFactory : IComponentFactory<IRegressionOutputCombiner>
+    internal interface ISupportRegressionOutputCombinerFactory : IComponentFactory<IRegressionOutputCombiner>
     {
 
     }
 
-    public interface IWeightedAverager
+    internal interface IWeightedAverager
     {
         string WeightageMetricName { get; }
     }

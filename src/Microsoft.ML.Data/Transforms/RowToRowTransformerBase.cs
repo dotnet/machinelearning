@@ -26,9 +26,9 @@ namespace Microsoft.ML.Data
 
         private protected abstract void SaveModel(ModelSaveContext ctx);
 
-        public bool IsRowToRowMapper => true;
+        bool ITransformer.IsRowToRowMapper => true;
 
-        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
+        IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             return new RowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), MakeRowMapper(inputSchema), MakeRowMapper);

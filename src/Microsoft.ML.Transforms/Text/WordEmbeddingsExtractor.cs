@@ -17,7 +17,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(WordEmbeddingsExtractingTransformer.Summary, typeof(IDataTransform), typeof(WordEmbeddingsExtractingTransformer), typeof(WordEmbeddingsExtractingTransformer.Options),
@@ -93,6 +93,10 @@ namespace Microsoft.ML.Transforms.Text
         private readonly int _linesToSkip;
         private readonly Model _currentVocab;
         private static Dictionary<string, WeakReference<Model>> _vocab = new Dictionary<string, WeakReference<Model>>();
+
+        /// <summary>
+        /// The names of the output and input column pairs on which the transformation is applied.
+        /// </summary>
         public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private sealed class Model
@@ -299,7 +303,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var colType = inputSchema[srcCol].Type;
             if (!(colType is VectorType vectorType && vectorType.ItemType is TextDataViewType))
@@ -799,6 +803,9 @@ namespace Microsoft.ML.Transforms.Text
             _columns = columns;
         }
 
+        /// <summary>
+        /// Specifies which word embeddings to use.
+        /// </summary>
         public enum PretrainedModelKind
         {
             [TGUI(Label = "GloVe 50D")]

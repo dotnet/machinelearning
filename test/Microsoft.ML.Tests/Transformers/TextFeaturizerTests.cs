@@ -164,11 +164,11 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var factory = new PredefinedStopWordsRemoverFactory();
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var data = TextLoader.Create(ML, new TextLoader.Arguments()
+            var data = TextLoader.Create(ML, new TextLoader.Options()
             {
                 Columns = new[]
                 {
-                    new TextLoader.Column("Text", DataKind.TX, 1)
+                    new TextLoader.Column("Text", DataKind.String, 1)
                 }
             }, new MultiFileSource(sentimentDataPath));
 

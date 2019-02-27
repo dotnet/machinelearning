@@ -11,11 +11,11 @@ using Microsoft.ML.Numeric;
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
-    public abstract class BaseMultiCombiner : IMultiClassOutputCombiner, ICanSaveModel
+    internal abstract class BaseMultiCombiner : IMultiClassOutputCombiner, ICanSaveModel
     {
         protected readonly IHost Host;
 
-        public abstract class ArgumentsBase
+        public abstract class OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to normalize the output of base models before combining them",
                 ShortName = "norm", SortOrder = 50)]
@@ -24,14 +24,14 @@ namespace Microsoft.ML.Trainers.Ensemble
 
         protected readonly bool Normalize;
 
-        internal BaseMultiCombiner(IHostEnvironment env, string name, ArgumentsBase args)
+        internal BaseMultiCombiner(IHostEnvironment env, string name, OptionsBase options)
         {
             Contracts.AssertValue(env);
             env.AssertNonWhiteSpace(name);
             Host = env.Register(name);
-            Host.CheckValue(args, nameof(args));
+            Host.CheckValue(options, nameof(options));
 
-            Normalize = args.Normalize;
+            Normalize = options.Normalize;
         }
 
         internal BaseMultiCombiner(IHostEnvironment env, string name, ModelLoadContext ctx)

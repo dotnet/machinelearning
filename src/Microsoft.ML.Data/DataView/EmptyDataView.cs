@@ -12,7 +12,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// This implements a data view that has a schema, but no rows.
     /// </summary>
-    public sealed class EmptyDataView : IDataView
+    [BestFriend]
+    internal sealed class EmptyDataView : IDataView
     {
         private readonly IHost _host;
 

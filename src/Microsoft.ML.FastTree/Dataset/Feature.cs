@@ -10,7 +10,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// Represents a binned feature
     /// </summary>
-    public abstract class Feature
+    internal abstract class Feature
     {
         private IntArray _bins;
 
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Trainers.FastTree
 #endif
 
         public bool IsTrivialFeature { get; private set; }
-        public MD5Hash MD5Hash { get; private set; }
+
         public IntArrayType BinsType { get; private set; }
 #if !NO_STORE
         public FileObjectStore<IntArrayFormatter> BinsCache { get; set; }
@@ -45,12 +45,6 @@ namespace Microsoft.ML.Trainers.FastTree
             BinsCache = FileObjectStore<IntArrayFormatter>.GetDefaultInstance();
 #endif
             IsTrivialFeature = bins.BitsPerItem == IntArrayBits.Bits0;
-
-            if (!IsTrivialFeature && bins.Length > 0)
-            {
-                MD5Hash = bins.MD5Hash;
-            }
-
             BinsType = bins.Type;
         }
 
@@ -190,7 +184,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public sealed class TsvFeature : Feature
+    internal sealed class TsvFeature : Feature
     {
         private readonly uint[] _valueMap;
         private string _name;

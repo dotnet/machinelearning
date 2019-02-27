@@ -15,7 +15,6 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.KMeans;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(KMeansPlusPlusTrainer.Summary, typeof(KMeansPlusPlusTrainer), typeof(KMeansPlusPlusTrainer.Options),
     new[] { typeof(SignatureClusteringTrainer), typeof(SignatureTrainer) },
@@ -51,7 +50,7 @@ namespace Microsoft.ML.Trainers.KMeans
             public const int ClustersCount = 5;
         }
 
-        public class Options : UnsupervisedLearnerInputBaseWithWeight
+        public sealed class Options : UnsupervisedLearnerInputBaseWithWeight
         {
             /// <summary>
             /// The number of clusters.
@@ -109,7 +108,7 @@ namespace Microsoft.ML.Trainers.KMeans
         private readonly string _featureColumn;
 
         public override TrainerInfo Info { get; }
-        public override PredictionKind PredictionKind => PredictionKind.Clustering;
+        private protected override PredictionKind PredictionKind => PredictionKind.Clustering;
 
         /// <summary>
         /// Initializes a new instance of <see cref="KMeansPlusPlusTrainer"/>
@@ -254,7 +253,7 @@ namespace Microsoft.ML.Trainers.KMeans
                 getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
@@ -262,17 +261,17 @@ namespace Microsoft.ML.Trainers.KMeans
                         SchemaShape.Column.VectorKind.Vector,
                         NumberDataViewType.Single,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
 
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel,
                         SchemaShape.Column.VectorKind.Scalar,
                         NumberDataViewType.UInt32,
                         true,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
-        protected override ClusteringPredictionTransformer<KMeansModelParameters> MakeTransformer(KMeansModelParameters model, DataViewSchema trainSchema)
+        private protected override ClusteringPredictionTransformer<KMeansModelParameters> MakeTransformer(KMeansModelParameters model, DataViewSchema trainSchema)
         => new ClusteringPredictionTransformer<KMeansModelParameters>(Host, model, trainSchema, _featureColumn);
     }
 

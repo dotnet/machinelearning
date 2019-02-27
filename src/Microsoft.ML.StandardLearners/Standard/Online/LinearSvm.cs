@@ -13,7 +13,6 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.Online;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(LinearSvmTrainer.Summary, typeof(LinearSvmTrainer), typeof(LinearSvmTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -40,7 +39,7 @@ namespace Microsoft.ML.Trainers.Online
 
         internal readonly Options Opts;
 
-        public sealed class Options : OnlineLinearArguments
+        public sealed class Options : OnlineLinearOptions
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularizer constant", ShortName = "lambda", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "0.00001-0.1;log;inc:10")]
@@ -69,7 +68,7 @@ namespace Microsoft.ML.Trainers.Online
             /// Column to use for example weight.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
+            public string WeightColumn = null;
         }
 
         private sealed class TrainState : TrainStateBase
@@ -223,7 +222,7 @@ namespace Microsoft.ML.Trainers.Online
             }
         }
 
-        protected override bool NeedCalibration => true;
+        private protected override bool NeedCalibration => true;
 
         /// <summary>
         /// Initializes a new instance of <see cref="LinearSvmTrainer"/>.
@@ -238,7 +237,7 @@ namespace Microsoft.ML.Trainers.Online
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
-            int numIterations = Options.OnlineDefaultArgs.NumIterations)
+            int numIterations = Options.OnlineDefault.NumIterations)
             : this(env, new Options
             {
                 LabelColumn = labelColumn,
@@ -258,14 +257,14 @@ namespace Microsoft.ML.Trainers.Online
             Opts = options;
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
@@ -292,7 +291,7 @@ namespace Microsoft.ML.Trainers.Online
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }
 
-        protected override BinaryPredictionTransformer<LinearBinaryModelParameters> MakeTransformer(LinearBinaryModelParameters model, DataViewSchema trainSchema)
+        private protected override BinaryPredictionTransformer<LinearBinaryModelParameters> MakeTransformer(LinearBinaryModelParameters model, DataViewSchema trainSchema)
             => new BinaryPredictionTransformer<LinearBinaryModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
     }
 }
