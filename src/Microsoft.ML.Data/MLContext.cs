@@ -107,7 +107,6 @@ namespace Microsoft.ML
         int IHostEnvironment.ConcurrencyFactor => _env.ConcurrencyFactor;
         bool IHostEnvironment.IsCancelled => _env.IsCancelled;
         string IExceptionContext.ContextDescription => _env.ContextDescription;
-        IFileHandle IHostEnvironment.CreateTempFile(string suffix, string prefix) => _env.CreateTempFile(suffix, prefix);
         TException IExceptionContext.Process<TException>(TException ex) => _env.Process(ex);
         IHost IHostEnvironment.Register(string name, int? seed, bool? verbose, int? conc) => _env.Register(name, seed, verbose, conc);
         IChannel IChannelProvider.Start(string name) => _env.Start(name);

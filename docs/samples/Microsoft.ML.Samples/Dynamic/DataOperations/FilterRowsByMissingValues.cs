@@ -17,7 +17,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable.
             var dataEnumerable = DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(10, naRate: 0.05);
-            var data = mlContext.Data.ReadFromEnumerable(dataEnumerable);
+            var data = mlContext.Data.LoadFromEnumerable(dataEnumerable);
 
             // Look at the original dataset
             Console.WriteLine($"Label\tFeatures");

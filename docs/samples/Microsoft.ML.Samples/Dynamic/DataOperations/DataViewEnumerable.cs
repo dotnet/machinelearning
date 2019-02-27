@@ -20,8 +20,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // Get a small dataset as an IEnumerable.
             IEnumerable<DatasetUtils.SampleTemperatureData> enumerableOfData = DatasetUtils.GetSampleTemperatureData(5);
 
-            // Read in into an IDataView using ReadFromEnumerable. 
-            IDataView data = mlContext.Data.ReadFromEnumerable(enumerableOfData);
+            // Load dataset into an IDataView. 
+            IDataView data = mlContext.Data.LoadFromEnumerable(enumerableOfData);
 
             // We can now examine the records in the IDataView. We first create an enumerable of rows in the IDataView.
             var rowEnumerable = mlContext.Data.CreateEnumerable<DatasetUtils.SampleTemperatureData>(data, reuseRowObject: true);

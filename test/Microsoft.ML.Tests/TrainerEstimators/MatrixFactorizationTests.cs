@@ -27,11 +27,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // This data contains three columns, Label, Col, and Row where Col and Row will be treated as the expected input names
             // of the trained matrix factorization model.
             var data = new TextLoader(Env, GetLoaderArgs(labelColumnName, matrixColumnIndexColumnName, matrixRowIndexColumnName))
-                    .Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
+                    .Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
 
             // "invalidData" is not compatible to "data" because it contains columns Label, ColRenamed, and RowRenamed (no column is Col or Row).
             var invalidData = new TextLoader(Env, GetLoaderArgs(labelColumnName, matrixColumnIndexColumnName + "Renamed", matrixRowIndexColumnName + "Renamed"))
-                    .Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
+                    .Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
 
             var options = new MatrixFactorizationTrainer.Options
             {
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var reader = new TextLoader(mlContext, GetLoaderArgs(labelColumnName, userColumnName, itemColumnName));
 
             // Read training data as an IDataView object
-            var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
+            var data = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
 
             // Create a pipeline with a single operator.
             var options = new MatrixFactorizationTrainer.Options
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.Equal(rightMatrix[rightMatrix.Count - 1], (double)0.380032182, 5);
             }
             // Read the test data set as an IDataView
-            var testData = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
+            var testData = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
 
             // Apply the trained model to the test set
             var prediction = model.Transform(testData);
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     dataMatrix.Add(new MatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var dataView = ML.Data.ReadFromEnumerable(dataMatrix);
+            var dataView = ML.Data.LoadFromEnumerable(dataMatrix);
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
@@ -246,7 +246,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 new MatrixElementForScore() { MatrixColumnIndex = 3, MatrixRowIndex = 6, Score = default } };
 
             // Again, convert the test data to a format supported by ML.NET.
-            var testDataView = mlContext.Data.ReadFromEnumerable(testMatrix);
+            var testDataView = mlContext.Data.LoadFromEnumerable(testMatrix);
 
             // Feed the test data into the model and then iterate through all predictions.
             foreach (var pred in mlContext.Data.CreateEnumerable<MatrixElementForScore>(model.Transform(testDataView), false))
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     dataMatrix.Add(new MatrixElementZeroBased() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var dataView = ML.Data.ReadFromEnumerable(dataMatrix);
+            var dataView = ML.Data.LoadFromEnumerable(dataMatrix);
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
@@ -345,7 +345,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             };
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var invalidTestDataView = mlContext.Data.ReadFromEnumerable(invalidTestMatrix);
+            var invalidTestDataView = mlContext.Data.LoadFromEnumerable(invalidTestMatrix);
 
             // Apply the trained model to the examples with out-of-range indexes. 
             var invalidPrediction = model.Transform(invalidTestDataView);
@@ -409,7 +409,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 0, MatrixRowIndex = 2, Value = 1 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var dataView = ML.Data.ReadFromEnumerable(dataMatrix);
+            var dataView = ML.Data.LoadFromEnumerable(dataMatrix);
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 2, Value = 0, Score = 0 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var testDataView = ML.Data.ReadFromEnumerable(testDataMatrix);
+            var testDataView = ML.Data.LoadFromEnumerable(testDataMatrix);
 
             // Apply the trained model to the test data.
             var testPrediction = model.Transform(testDataView);
@@ -516,7 +516,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 2, Value = 0, Score = 0 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var testDataView = ML.Data.ReadFromEnumerable(testDataMatrix);
+            var testDataView = ML.Data.LoadFromEnumerable(testDataMatrix);
 
             // Apply the trained model to the test data.
             var testPrediction = model.Transform(testDataView);
@@ -545,7 +545,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 0, MatrixRowIndex = 1, Value = 1 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var dataView = ML.Data.ReadFromEnumerable(dataMatrix);
+            var dataView = ML.Data.LoadFromEnumerable(dataMatrix);
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
@@ -586,7 +586,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 2, Value = 0, Score = 0 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var testDataView = ML.Data.ReadFromEnumerable(testDataMatrix);
+            var testDataView = ML.Data.LoadFromEnumerable(testDataMatrix);
 
             // Apply the trained model to the test data.
             var testPrediction = model.Transform(testDataView);

@@ -5,16 +5,16 @@
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// An estimator class for composite data reader.
-    /// It can be used to build a 'trainable smart data reader', although this pattern is not very common.
+    /// An estimator class for composite data loader.
+    /// It can be used to build a 'trainable smart data loader', although this pattern is not very common.
     /// </summary>
-    public sealed class CompositeReaderEstimator<TSource, TLastTransformer> : IDataReaderEstimator<TSource, CompositeDataReader<TSource, TLastTransformer>>
+    public sealed class CompositeLoaderEstimator<TSource, TLastTransformer> : IDataLoaderEstimator<TSource, CompositeDataLoader<TSource, TLastTransformer>>
         where TLastTransformer : class, ITransformer
     {
-        private readonly IDataReaderEstimator<TSource, IDataReader<TSource>> _start;
+        private readonly IDataLoaderEstimator<TSource, IDataLoader<TSource>> _start;
         private readonly EstimatorChain<TLastTransformer> _estimatorChain;
 
-        public CompositeReaderEstimator(IDataReaderEstimator<TSource, IDataReader<TSource>> start, EstimatorChain<TLastTransformer> estimatorChain = null)
+        public CompositeLoaderEstimator(IDataLoaderEstimator<TSource, IDataLoader<TSource>> start, EstimatorChain<TLastTransformer> estimatorChain = null)
         {
             Contracts.CheckValue(start, nameof(start));
             Contracts.CheckValueOrNull(estimatorChain);
@@ -22,18 +22,18 @@ namespace Microsoft.ML.Data
             _start = start;
             _estimatorChain = estimatorChain ?? new EstimatorChain<TLastTransformer>();
 
-            // REVIEW: enforce that estimator chain can read the reader's schema.
+            // REVIEW: enforce that estimator chain can read the loader's schema.
             // Right now it throws.
             // GetOutputSchema();
         }
 
-        public CompositeDataReader<TSource, TLastTransformer> Fit(TSource input)
+        public CompositeDataLoader<TSource, TLastTransformer> Fit(TSource input)
         {
             var start = _start.Fit(input);
-            var idv = start.Read(input);
+            var idv = start.Load(input);
 
             var xfChain = _estimatorChain.Fit(idv);
-            return new CompositeDataReader<TSource, TLastTransformer>(start, xfChain);
+            return new CompositeDataLoader<TSource, TLastTransformer>(start, xfChain);
         }
 
         public SchemaShape GetOutputSchema()
@@ -43,14 +43,14 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Create a new reader estimator, by appending another estimator to the end of this reader estimator.
+        /// Create a new loader estimator, by appending another estimator to the end of this loader estimator.
         /// </summary>
-        public CompositeReaderEstimator<TSource, TNewTrans> Append<TNewTrans>(IEstimator<TNewTrans> estimator)
+        public CompositeLoaderEstimator<TSource, TNewTrans> Append<TNewTrans>(IEstimator<TNewTrans> estimator)
             where TNewTrans : class, ITransformer
         {
             Contracts.CheckValue(estimator, nameof(estimator));
 
-            return new CompositeReaderEstimator<TSource, TNewTrans>(_start, _estimatorChain.Append(estimator));
+            return new CompositeLoaderEstimator<TSource, TNewTrans>(_start, _estimatorChain.Append(estimator));
         }
     }
 }

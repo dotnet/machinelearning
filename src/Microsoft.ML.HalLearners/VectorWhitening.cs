@@ -14,8 +14,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Transforms.Projections;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(VectorWhiteningTransformer.Summary, typeof(IDataTransform), typeof(VectorWhiteningTransformer), typeof(VectorWhiteningTransformer.Options), typeof(SignatureDataTransform),
     VectorWhiteningTransformer.FriendlyName, VectorWhiteningTransformer.LoaderSignature, "Whitening")]
@@ -29,7 +28,7 @@ using Microsoft.ML.Transforms.Projections;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(VectorWhiteningTransformer), null, typeof(SignatureLoadRowMapper),
    VectorWhiteningTransformer.FriendlyName, VectorWhiteningTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms.Projections
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// Which vector whitening technique to use. ZCA whitening ensures that the average covariance between whitened

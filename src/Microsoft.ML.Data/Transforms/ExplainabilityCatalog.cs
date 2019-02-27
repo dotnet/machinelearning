@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {

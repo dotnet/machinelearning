@@ -10,8 +10,6 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
-using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Float = System.Single;
 
@@ -909,7 +907,7 @@ namespace Microsoft.ML.RunTests
             string stopwordsFile = DeleteOutputPath("SavePipe", "CustomStopwordsRemover-stopwordsFile.txt");
             File.WriteAllLines(stopwordsFile, stopwordsList);
 
-            Action<IDataLoader> action
+            Action<ILegacyDataLoader> action
                 = pipe =>
                 {
                     VBuffer<ReadOnlyMemory<char>>[] expected = new VBuffer<ReadOnlyMemory<char>>[2];

@@ -73,9 +73,9 @@ namespace Microsoft.ML.Tests
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
             var pipe = ML.Transforms.DnnFeaturizeImage("output_1", m => m.ModelSelector.ResNet18(m.Environment, m.OutputColumn, m.InputColumn), "data_0");
 
-            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
-            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
-            var invalidDataWrongVectorSize = ML.Data.ReadFromEnumerable(sizeData);
+            var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);
+            var invalidDataWrongVectorSize = ML.Data.LoadFromEnumerable(sizeData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
             pipe.GetOutputSchema(SchemaShape.Create(invalidDataWrongVectorSize.Schema));
@@ -97,10 +97,10 @@ namespace Microsoft.ML.Tests
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoaderStatic.CreateReader(env, ctx => (
+            var data = TextLoaderStatic.CreateLoader(env, ctx => (
                 imagePath: ctx.LoadText(0),
                 name: ctx.LoadText(1)))
-                .Read(dataFile);
+                .Load(dataFile);
 
             var pipe = data.MakeNewEstimator()
                 .Append(row => (
@@ -133,7 +133,7 @@ namespace Microsoft.ML.Tests
         {
             var samplevector = GetSampleArrayData();
 
-            var dataView = ML.Data.ReadFromEnumerable(
+            var dataView = ML.Data.LoadFromEnumerable(
                 new TestData[] {
                     new TestData()
                     {

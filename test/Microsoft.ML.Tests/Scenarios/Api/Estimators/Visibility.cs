@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                                                         new Transforms.Text.TextFeaturizingEstimator.Options { OutputTokens = true }));
 
             var src = new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename));
-            var data = pipeline.Fit(src).Read(src);
+            var data = pipeline.Fit(src).Load(src);
 
             var textColumn = data.GetColumn<string>(ml, "SentimentText").Take(20);
             var transformedTextColumn = data.GetColumn<string[]>(ml, "Features_TransformedText").Take(20);

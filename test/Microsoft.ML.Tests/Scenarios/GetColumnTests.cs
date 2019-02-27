@@ -26,12 +26,12 @@ namespace Microsoft.ML.Tests.Scenarios
             
             var path = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var env = new MLContext();
-            var data = TextLoaderStatic.CreateReader(env, ctx => (
+            var data = TextLoaderStatic.CreateLoader(env, ctx => (
                 floatScalar: ctx.LoadFloat(1),
                 floatVector: ctx.LoadFloat(2, 6),
                 stringScalar: ctx.LoadText(4),
                 stringVector: ctx.LoadText(5, 7)
-            )).Read(path);
+            )).Load(path);
 
             Action<Action> mustFail = (Action action) =>
             {

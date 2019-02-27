@@ -14,7 +14,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable and them read it as ML.NET's data type.
             IEnumerable<SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorSample> enumerableOfData = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorSamples(5);
-            var data = mlContext.Data.ReadFromEnumerable(enumerableOfData);
+            var data = mlContext.Data.LoadFromEnumerable(enumerableOfData);
 
             // Look at the original dataset
             Console.WriteLine($"Label\tFeatures[0]");

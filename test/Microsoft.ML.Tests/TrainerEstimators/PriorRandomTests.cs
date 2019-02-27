@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                             new TextLoader.Column("F2", DataKind.Int32, 2),
                             new TextLoader.Column("Rest", DataKind.Single, new [] { new TextLoader.Range(3, 9) })
                         }
-                    }).Read(GetDataPath(TestDatasets.breastCancer.trainFilename));
+                    }).Load(GetDataPath(TestDatasets.breastCancer.trainFilename));
         }
 
         [Fact]

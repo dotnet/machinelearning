@@ -37,7 +37,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Data.IO
 {
     [BestFriend]
-    internal sealed class BinaryLoader : IDataLoader, IDisposable
+    internal sealed class BinaryLoader : ILegacyDataLoader, IDisposable
     {
         public sealed class Arguments
         {
@@ -797,9 +797,9 @@ namespace Microsoft.ML.Data.IO
         }
 
         /// <summary>
-        /// Constructs a new data view reader.
+        /// Constructs a new data view loader.
         /// </summary>
-        /// <param name="stream">A seekable, readable stream. Note that the data view reader assumes
+        /// <param name="stream">A seekable, readable stream. Note that the data view loader assumes
         /// that it is the exclusive owner of this stream.</param>
         /// <param name="args">Arguments</param>
         /// <param name="env">Host environment</param>

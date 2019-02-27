@@ -29,7 +29,7 @@ namespace Microsoft.ML.Functional.Tests
             // Get the dataset.
             var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(),
                 hasHeader: TestDatasets.housing.fileHasHeader, separatorChar: TestDatasets.housing.fileSeparator)
-                .Read(BaseTestClass.GetDataPath(TestDatasets.housing.trainFilename));
+                .Load(BaseTestClass.GetDataPath(TestDatasets.housing.trainFilename));
 
             // Create a pipeline to train on the sentiment data.
             var pipeline = mlContext.Transforms.Concatenate("Features", new string[] {
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Functional.Tests
             // Get the dataset.
             var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(),
                 hasHeader: TestDatasets.housing.fileHasHeader, separatorChar: TestDatasets.housing.fileSeparator)
-                .Read(BaseTestClass.GetDataPath(TestDatasets.housing.trainFilename));
+                .Load(BaseTestClass.GetDataPath(TestDatasets.housing.trainFilename));
             var dataSplit = mlContext.Regression.TrainTestSplit(data, testFraction: 0.2);
             var trainData = dataSplit.TrainSet;
             var validData = dataSplit.TestSet;

@@ -35,7 +35,7 @@ namespace Microsoft.ML.Tests.Transformers
                 Separator = "\t",
                 HasHeader = true
             }, new MultiFileSource(dataPath));
-            var data = loader.Read(source);
+            var data = loader.Load(source);
 
             DataViewType GetType(DataViewSchema schema, string name)
             {
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Tests.Transformers
                 Separator = "\t",
                 HasHeader = true
             }, new MultiFileSource(dataPath));
-            var data = loader.Read(source);
+            var data = loader.Load(source);
 
             DataViewType GetType(DataViewSchema schema, string name)
             {

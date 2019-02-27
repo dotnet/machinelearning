@@ -4,7 +4,6 @@
 
 using System;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Trainers.Online;
 
 namespace Microsoft.ML.StaticPipe
 {

@@ -53,9 +53,9 @@ namespace Microsoft.ML.Benchmarks
                 },
                 HasHeader = true,
             };
-            var reader = new TextLoader(env, options: options);
+            var loader = new TextLoader(env, options: options);
 
-            IDataView data = reader.Read(_irisDataPath);
+            IDataView data = loader.Load(_irisDataPath);
 
             var pipeline = new ColumnConcatenatingEstimator(env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
                 .Append(env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
@@ -88,9 +88,9 @@ namespace Microsoft.ML.Benchmarks
                 },
                 HasHeader = true,
             };
-            var reader = new TextLoader(mlContext, options: options);
+            var loader = new TextLoader(mlContext, options: options);
 
-            IDataView data = reader.Read(_sentimentDataPath);
+            IDataView data = loader.Load(_sentimentDataPath);
 
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
@@ -123,9 +123,9 @@ namespace Microsoft.ML.Benchmarks
                 },
                 HasHeader = false,
             };
-            var reader = new TextLoader(env, options: options);
+            var loader = new TextLoader(env, options: options);
 
-            IDataView data = reader.Read(_breastCancerDataPath);
+            IDataView data = loader.Load(_breastCancerDataPath);
 
             var pipeline = env.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
                 new SdcaNonCalibratedBinaryTrainer.Options { NumThreads = 1, ConvergenceTolerance = 1e-2f, });

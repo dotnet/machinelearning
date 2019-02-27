@@ -8,7 +8,7 @@ using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Benchmarks
         public void CV_Multiclass_Digits_RffTransform_OVAAveragedPerceptron()
         {
             var mlContext = new MLContext();
-            var reader = mlContext.Data.CreateTextLoader(new TextLoader.Options
+            var loader = mlContext.Data.CreateTextLoader(new TextLoader.Options
             {
                 Columns = new[]
                 {
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Benchmarks
                 Separators = new[] {','}
             });
 
-            var data = reader.Read(_dataPath_Digits);
+            var data = loader.Load(_dataPath_Digits);
 
             var pipeline = mlContext.Transforms.Projection.CreateRandomFourierFeatures("FeaturesRFF", "Features")
             .AppendCacheCheckpoint(mlContext)
