@@ -89,7 +89,6 @@ namespace Microsoft.ML
         /// <param name="columns">The columns of the schema.</param>
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
         /// <param name="allowQuoting">Whether the file can contain column defined by a quoted string.</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
@@ -99,7 +98,6 @@ namespace Microsoft.ML
             TextLoader.Column[] columns,
             char separatorChar = TextLoader.Defaults.Separator,
             bool hasHeader = TextLoader.Defaults.HasHeader,
-            IMultiStreamSource dataSample = null,
             bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool trimWhitespace = TextLoader.Defaults.TrimWhitespace,
             bool allowSparse = TextLoader.Defaults.AllowSparse)
@@ -116,7 +114,7 @@ namespace Microsoft.ML
                 AllowSparse = allowSparse
             };
 
-            var reader = new TextLoader(CatalogUtils.GetEnvironment(catalog), options: options, dataSample: dataSample);
+            var reader = new TextLoader(CatalogUtils.GetEnvironment(catalog), options: options);
             return reader.Read(new MultiFileSource(path));
         }
 
@@ -127,7 +125,6 @@ namespace Microsoft.ML
         /// <param name="path">The path to the file.</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
         /// <param name="hasHeader">Does the file contains header?</param>
-        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
         /// <param name="allowQuoting">Whether the input may include quoted values,
         /// which can contain separator characters, colons,
         /// and distinguish empty values from missing values. When true, consecutive separators
@@ -142,7 +139,6 @@ namespace Microsoft.ML
             string path,
             char separatorChar = TextLoader.Defaults.Separator,
             bool hasHeader = TextLoader.Defaults.HasHeader,
-            IMultiStreamSource dataSample = null,
             bool allowQuoting = TextLoader.Defaults.AllowQuoting,
             bool trimWhitespace = TextLoader.Defaults.TrimWhitespace,
             bool allowSparse = TextLoader.Defaults.AllowSparse)
@@ -152,7 +148,7 @@ namespace Microsoft.ML
             // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
             // Therefore, we are going to disallow data sample.
             return TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar,
-                allowQuoting, allowSparse, trimWhitespace, dataSample: dataSample).Read(new MultiFileSource(path));
+                allowQuoting, allowSparse, trimWhitespace).Read(new MultiFileSource(path));
         }
 
         /// <summary>
@@ -161,19 +157,15 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="path">Specifies a file from which to read.</param>
         /// <param name="options">Defines the settings of the load operation.</param>
-        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
         public static IDataView ReadFromTextFile(this DataOperationsCatalog catalog, string path,
-            TextLoader.Options options = null, IMultiStreamSource dataSample = null)
+            TextLoader.Options options = null)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
             var env = catalog.GetEnvironment();
             var source = new MultiFileSource(path);
 
-            if (dataSample == null)
-                return new TextLoader(env, options, source).Read(source);
-            else
-                return new TextLoader(env, options, dataSample).Read(source);
+            return new TextLoader(env, options, dataSample: source).Read(source);
         }
 
         /// <summary>
