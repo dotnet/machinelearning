@@ -360,6 +360,13 @@ namespace Microsoft.ML.SamplesUtils
             public float Temperature { get; set; }
         }
 
+        public class SampleTemperatureDataWithLatitude
+        {
+            public float Latitude { get; set; }
+            public DateTime Date { get; set; }
+            public float Temperature { get; set; }
+        }
+
         /// <summary>
         /// Get a fake temperature dataset.
         /// </summary>
@@ -514,7 +521,7 @@ namespace Microsoft.ML.SamplesUtils
 
         /// <summary>
         /// Class used to capture prediction of <see cref="BinaryLabelFloatFeatureVectorSample"/> when
-        /// calling <see cref="CursoringUtils.CreateEnumerable"/> via on <see cref="MLContext"/>.
+        /// calling <see cref="DataOperationsCatalog.CreateEnumerable{TRow}(IDataView, bool, bool, SchemaDefinition)"/> via on <see cref="MLContext"/>.
         /// </summary>
         public class CalibratedBinaryClassifierOutput
         {
@@ -525,7 +532,7 @@ namespace Microsoft.ML.SamplesUtils
 
         /// <summary>
         /// Class used to capture prediction of <see cref="BinaryLabelFloatFeatureVectorSample"/> when
-        /// calling <see cref="CursoringUtils.CreateEnumerable"/> via on <see cref="MLContext"/>.
+        /// calling <see cref="DataOperationsCatalog.CreateEnumerable{TRow}(IDataView, bool, bool, SchemaDefinition)"/> via on <see cref="MLContext"/>.
         /// </summary>
         public class NonCalibratedBinaryClassifierOutput
         {

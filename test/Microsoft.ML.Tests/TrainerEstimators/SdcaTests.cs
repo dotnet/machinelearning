@@ -71,7 +71,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.InRange(metrics.Auc, 0.9, 1);
             Assert.InRange(metrics.LogLoss, 0, 0.5);
 
-            var rawPrediction = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(prediction, false);
+            var rawPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(prediction, false);
 
             // Step 5: Inspect the prediction of the first example.
             var first = rawPrediction.First();
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Check a few metrics to make sure the trained model is ok.
             Assert.InRange(metrics.Auc, 0.9, 1);
 
-            var rawPrediction = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.NonCalibratedBinaryClassifierOutput>(prediction, false);
+            var rawPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.NonCalibratedBinaryClassifierOutput>(prediction, false);
 
             // Step 5: Inspect the prediction of the first example.
             var first = rawPrediction.First();

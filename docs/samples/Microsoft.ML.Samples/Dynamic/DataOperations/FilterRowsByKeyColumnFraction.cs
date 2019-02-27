@@ -27,7 +27,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedData = pipeline.Fit(data).Transform(data);
 
             // Before we apply a filter, examine all the records in the dataset.
-            var enumerable = mlContext.CreateEnumerable<MulticlassWithKeyLabel>(transformedData, reuseRowObject: true);
+            var enumerable = mlContext.Data.CreateEnumerable<MulticlassWithKeyLabel>(transformedData, reuseRowObject: true);
             Console.WriteLine($"Label\tFeatures");
             foreach (var row in enumerable)
             {
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var filteredData = mlContext.Data.FilterRowsByKeyColumnFraction(transformedData, columnName: "Label", lowerBound: 0, upperBound: 0.5);
 
             // Look at the data and observe that values above 2 have been filtered out
-            var filteredEnumerable = mlContext.CreateEnumerable<MulticlassWithKeyLabel>(filteredData, reuseRowObject: true);
+            var filteredEnumerable = mlContext.Data.CreateEnumerable<MulticlassWithKeyLabel>(filteredData, reuseRowObject: true);
             Console.WriteLine($"Label\tFeatures");
             foreach (var row in filteredEnumerable)
             {

@@ -314,7 +314,7 @@ namespace Microsoft.ML.Tests
             var idv = mlContext.Data.ReadFromEnumerable(data);
             var pipeline = ML.Transforms.ApplyOnnxModel(modelFile);
             var transformedValues = pipeline.Fit(idv).Transform(idv);
-            var predictions = mlContext.CreateEnumerable<PredictionUnknownDimensions>(transformedValues, reuseRowObject: false).ToArray();
+            var predictions = mlContext.Data.CreateEnumerable<PredictionUnknownDimensions>(transformedValues, reuseRowObject: false).ToArray();
 
             Assert.Equal(1, predictions[0].argmax[0]);
             Assert.Equal(0, predictions[1].argmax[0]);

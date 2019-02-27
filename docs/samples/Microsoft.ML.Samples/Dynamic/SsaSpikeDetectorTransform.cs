@@ -58,7 +58,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedData = ml.Transforms.SsaSpikeEstimator(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of SsaSpikePrediction.
-            var predictionColumn = ml.CreateEnumerable<SsaSpikePrediction>(transformedData, reuseRowObject: false);
+            var predictionColumn = ml.Data.CreateEnumerable<SsaSpikePrediction>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
             Console.WriteLine("Data\tAlert\tScore\tP-Value");
