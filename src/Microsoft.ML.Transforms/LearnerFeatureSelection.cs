@@ -113,7 +113,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private static SlotsDroppingTransformer.ColumnInfo CreateDropSlotsColumn(Options options, in VBuffer<Single> scores, out int selectedCount)
+        private static SlotsDroppingTransformer.ColumnOptions CreateDropSlotsColumn(Options options, in VBuffer<Single> scores, out int selectedCount)
         {
             // Not checking the scores.Length, because:
             // 1. If it's the same as the features column length, we should be constructing the right DropSlots arguments.
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Transforms
 
             // Degenerate case, dropping all slots.
             if (scoresValues.Length == 0)
-                return new SlotsDroppingTransformer.ColumnInfo(options.FeatureColumn);
+                return new SlotsDroppingTransformer.ColumnOptions(options.FeatureColumn);
 
             int tiedScoresToKeep;
             float threshold;
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Transforms
             }
 
             if (slots.Count > 0)
-                return new SlotsDroppingTransformer.ColumnInfo(options.FeatureColumn, slots: slots.ToArray());
+                return new SlotsDroppingTransformer.ColumnOptions(options.FeatureColumn, slots: slots.ToArray());
 
             return null;
         }

@@ -18,8 +18,8 @@ namespace Microsoft.ML
         ///  [!code-csharp[ConvertToGrayscale](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ImageAnalytics/ConvertToGrayscale.cs)]
         /// ]]></format>
         /// </example>
-        public static ImageGrayscalingEstimator ConvertToGrayscale(this TransformsCatalog catalog, params SimpleColumnInfo[] columnPairs)
-            => new ImageGrayscalingEstimator(CatalogUtils.GetEnvironment(catalog), SimpleColumnInfo.ConvertToValueTuples(columnPairs));
+        public static ImageGrayscalingEstimator ConvertToGrayscale(this TransformsCatalog catalog, params ColumnOptions[] columnPairs)
+            => new ImageGrayscalingEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columnPairs));
 
         /// <summary>
         /// Loads the images from the <see cref="ImageLoadingTransformer.ImageFolder" /> into memory.
@@ -41,8 +41,8 @@ namespace Microsoft.ML
         ///  [!code-csharp[LoadImages](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ImageAnalytics/LoadImages.cs)]
         /// ]]></format>
         /// </example>
-        public static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string imageFolder, params SimpleColumnInfo[] columnPairs)
-           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, SimpleColumnInfo.ConvertToValueTuples(columnPairs));
+        public static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string imageFolder, params ColumnOptions[] columnPairs)
+           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, ColumnOptions.ConvertToValueTuples(columnPairs));
 
         /// <include file='doc.xml' path='doc/members/member[@name="ImagePixelExtractingEstimator"]/*' />
         /// <param name="catalog">The transform's catalog.</param>
@@ -75,7 +75,7 @@ namespace Microsoft.ML
         /// <include file='doc.xml' path='doc/members/member[@name="ImagePixelExtractingEstimator"]/*' />
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">The name of the columns containing the images, and per-column configurations.</param>
-        public static ImagePixelExtractingEstimator ExtractPixels(this TransformsCatalog catalog, params ImagePixelExtractingEstimator.ColumnInfo[] columns)
+        public static ImagePixelExtractingEstimator ExtractPixels(this TransformsCatalog catalog, params ImagePixelExtractingEstimator.ColumnOptions[] columns)
             => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace Microsoft.ML
         /// Those pre-trained models have a defined width and height for their input images, so often, after getting loaded, the images will need to get resized before
         /// further processing.
         /// The new width and height, as well as other properties of resizing, like type of scaling (uniform, or non-uniform), and whether to pad the image,
-        /// or just crop it can be specified separately for each column loaded, through the <see cref="ImageResizingEstimator.ColumnInfo"/>.
+        /// or just crop it can be specified separately for each column loaded, through the <see cref="ImageResizingEstimator.ColumnOptions"/>.
         /// <seealso cref = "ImageEstimatorsCatalog" />
         /// <seealso cref= "ImageLoadingEstimator" />
         /// </remarks >
@@ -133,7 +133,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[ResizeImages](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ImageAnalytics/ResizeImages.cs)]
         /// ]]></format>
         /// </example>
-        public static ImageResizingEstimator ResizeImages(this TransformsCatalog catalog, params ImageResizingEstimator.ColumnInfo[] columns)
+        public static ImageResizingEstimator ResizeImages(this TransformsCatalog catalog, params ImageResizingEstimator.ColumnOptions[] columns)
             => new ImageResizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">The name of the columns containing the pixels, and per-column configurations.</param>
-        public static VectorToImageConvertingEstimator ConvertToImage(this TransformsCatalog catalog, params VectorToImageConvertingEstimator.ColumnInfo[] columns)
+        public static VectorToImageConvertingEstimator ConvertToImage(this TransformsCatalog catalog, params VectorToImageConvertingEstimator.ColumnOptions[] columns)
             => new VectorToImageConvertingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>

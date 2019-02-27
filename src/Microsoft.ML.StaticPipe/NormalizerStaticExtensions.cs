@@ -70,7 +70,7 @@ namespace Microsoft.ML.StaticPipe
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckParam(maxTrainingExamples > 1, nameof(maxTrainingExamples), "Must be greater than 1");
-            return new Impl<T>(input, (name, src) => new NormalizingEstimator.MinMaxColumn(name, src, maxTrainingExamples, fixZero), AffineMapper(onFit));
+            return new Impl<T>(input, (name, src) => new NormalizingEstimator.MinMaxColumnOptions(name, src, maxTrainingExamples, fixZero), AffineMapper(onFit));
         }
 
         // We have a slightly different breaking up of categories of normalizers versus the dynamic API. Both the mean-var and
@@ -172,8 +172,8 @@ namespace Microsoft.ML.StaticPipe
             return new Impl<T>(input, (name, src) =>
             {
                 if (useLog)
-                    return new NormalizingEstimator.LogMeanVarColumn(name, src, maxTrainingExamples, useCdf);
-                return new NormalizingEstimator.MeanVarColumn(name, src, maxTrainingExamples, fixZero, useCdf);
+                    return new NormalizingEstimator.LogMeanVarColumnOptions(name, src, maxTrainingExamples, useCdf);
+                return new NormalizingEstimator.MeanVarColumnOptions(name, src, maxTrainingExamples, fixZero, useCdf);
             }, onFit);
         }
 
@@ -233,7 +233,7 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckParam(numBins > 1, nameof(maxTrainingExamples), "Must be greater than 1");
             Contracts.CheckParam(maxTrainingExamples > 1, nameof(maxTrainingExamples), "Must be greater than 1");
-            return new Impl<T>(input, (name, src) => new NormalizingEstimator.BinningColumn(name, src, maxTrainingExamples, fixZero, numBins), BinMapper(onFit));
+            return new Impl<T>(input, (name, src) => new NormalizingEstimator.BinningColumnOptions(name, src, maxTrainingExamples, fixZero, numBins), BinMapper(onFit));
         }
 
         /// <summary>
@@ -269,7 +269,7 @@ namespace Microsoft.ML.StaticPipe
         public delegate void OnFitBinned<TData>(ImmutableArray<TData> upperBounds);
 
         #region Implementation support
-        private delegate NormalizingEstimator.ColumnBase CreateNormCol(string outputColumnName, string inputColumnName);
+        private delegate NormalizingEstimator.ColumnOptionsBase CreateNormCol(string outputColumnName, string inputColumnName);
 
         private sealed class Rec : EstimatorReconciler
         {
@@ -279,7 +279,7 @@ namespace Microsoft.ML.StaticPipe
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
-                var cols = new NormalizingEstimator.ColumnBase[toOutput.Length];
+                var cols = new NormalizingEstimator.ColumnOptionsBase[toOutput.Length];
                 List<(int idx, Action<IColumnFunction> onFit)> onFits = null;
 
                 for (int i = 0; i < toOutput.Length; ++i)

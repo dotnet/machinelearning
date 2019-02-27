@@ -195,7 +195,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private sealed class LdaState : IDisposable
         {
-            internal readonly LatentDirichletAllocationEstimator.ColumnInfo InfoEx;
+            internal readonly LatentDirichletAllocationEstimator.ColumnOptions InfoEx;
             private readonly int _numVocab;
             private readonly object _preparationSyncRoot;
             private readonly object _testSyncRoot;
@@ -208,7 +208,7 @@ namespace Microsoft.ML.Transforms.Text
                 _testSyncRoot = new object();
             }
 
-            internal LdaState(IExceptionContext ectx, LatentDirichletAllocationEstimator.ColumnInfo ex, int numVocab)
+            internal LdaState(IExceptionContext ectx, LatentDirichletAllocationEstimator.ColumnOptions ex, int numVocab)
                 : this()
             {
                 Contracts.AssertValue(ectx);
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Transforms.Text
                 // (serializing term by term, for one term)
                 // int: term_id, int: topic_num, KeyValuePair<int, int>[]: termTopicVector
 
-                InfoEx = new LatentDirichletAllocationEstimator.ColumnInfo(ectx, ctx);
+                InfoEx = new LatentDirichletAllocationEstimator.ColumnOptions(ectx, ctx);
 
                 _numVocab = ctx.Reader.ReadInt32();
                 ectx.CheckDecode(_numVocab > 0);
@@ -601,7 +601,7 @@ namespace Microsoft.ML.Transforms.Text
                 loaderAssemblyName: typeof(LatentDirichletAllocationTransformer).Assembly.FullName);
         }
 
-        private readonly LatentDirichletAllocationEstimator.ColumnInfo[] _columns;
+        private readonly LatentDirichletAllocationEstimator.ColumnOptions[] _columns;
         private readonly LdaState[] _ldas;
         private readonly List<VBuffer<ReadOnlyMemory<char>>> _columnMappings;
 
@@ -611,7 +611,7 @@ namespace Microsoft.ML.Transforms.Text
         internal const string UserName = "Latent Dirichlet Allocation Transform";
         internal const string ShortName = "LightLda";
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(LatentDirichletAllocationEstimator.ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(LatentDirichletAllocationEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
@@ -627,7 +627,7 @@ namespace Microsoft.ML.Transforms.Text
         private LatentDirichletAllocationTransformer(IHostEnvironment env,
             LdaState[] ldas,
             List<VBuffer<ReadOnlyMemory<char>>> columnMappings,
-            params LatentDirichletAllocationEstimator.ColumnInfo[] columns)
+            params LatentDirichletAllocationEstimator.ColumnOptions[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LatentDirichletAllocationTransformer)), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
@@ -647,7 +647,7 @@ namespace Microsoft.ML.Transforms.Text
 
             // Note: columnsLength would be just one in most cases.
             var columnsLength = ColumnPairs.Length;
-            _columns = new LatentDirichletAllocationEstimator.ColumnInfo[columnsLength];
+            _columns = new LatentDirichletAllocationEstimator.ColumnOptions[columnsLength];
             _ldas = new LdaState[columnsLength];
             for (int i = 0; i < _ldas.Length; i++)
             {
@@ -656,7 +656,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        internal static LatentDirichletAllocationTransformer TrainLdaTransformer(IHostEnvironment env, IDataView inputData, params LatentDirichletAllocationEstimator.ColumnInfo[] columns)
+        internal static LatentDirichletAllocationTransformer TrainLdaTransformer(IHostEnvironment env, IDataView inputData, params LatentDirichletAllocationEstimator.ColumnOptions[] columns)
         {
             var ldas = new LdaState[columns.Length];
 
@@ -706,7 +706,7 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(input, nameof(input));
             env.CheckValue(options.Columns, nameof(options.Columns));
 
-            var cols = options.Columns.Select(colPair => new LatentDirichletAllocationEstimator.ColumnInfo(colPair, options)).ToArray();
+            var cols = options.Columns.Select(colPair => new LatentDirichletAllocationEstimator.ColumnOptions(colPair, options)).ToArray();
             return TrainLdaTransformer(env, input, cols).MakeDataTransform(input);
         }
 
@@ -759,7 +759,7 @@ namespace Microsoft.ML.Transforms.Text
             return result;
         }
 
-        private static List<VBuffer<ReadOnlyMemory<char>>> Train(IHostEnvironment env, IChannel ch, IDataView inputData, LdaState[] states, params LatentDirichletAllocationEstimator.ColumnInfo[] columns)
+        private static List<VBuffer<ReadOnlyMemory<char>>> Train(IHostEnvironment env, IChannel ch, IDataView inputData, LdaState[] states, params LatentDirichletAllocationEstimator.ColumnOptions[] columns)
         {
             env.AssertValue(ch);
             ch.AssertValue(inputData);
@@ -934,7 +934,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         private readonly IHost _host;
-        private readonly ImmutableArray<ColumnInfo> _columns;
+        private readonly ImmutableArray<ColumnOptions> _columns;
 
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <param name="env">The environment.</param>
@@ -964,7 +964,7 @@ namespace Microsoft.ML.Transforms.Text
             int numSummaryTermPerTopic = Defaults.NumSummaryTermPerTopic,
             int numBurninIterations = Defaults.NumBurninIterations,
             bool resetRandomGenerator = Defaults.ResetRandomGenerator)
-            : this(env, new[] { new ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName,
+            : this(env, new[] { new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName,
                 numTopic, alphaSum, beta, mhstep, numIterations, likelihoodInterval, numThreads, numMaxDocToken,
                 numSummaryTermPerTopic, numBurninIterations, resetRandomGenerator) })
         { }
@@ -972,7 +972,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <param name="env">The environment.</param>
         /// <param name="columns">Describes the parameters of the LDA process for each column pair.</param>
-        internal LatentDirichletAllocationEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        internal LatentDirichletAllocationEstimator(IHostEnvironment env, params ColumnOptions[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(LatentDirichletAllocationEstimator));
@@ -982,7 +982,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnInfo
+        public sealed class ColumnOptions
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <cref see="InputColumnName"/>.
@@ -1053,7 +1053,7 @@ namespace Microsoft.ML.Transforms.Text
             /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
             /// <param name="numBurninIter">The number of burn-in iterations.</param>
             /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
-            public ColumnInfo(string name,
+            public ColumnOptions(string name,
                 string inputColumnName = null,
                 int numTopic = LatentDirichletAllocationEstimator.Defaults.NumTopic,
                 float alphaSum = LatentDirichletAllocationEstimator.Defaults.AlphaSum,
@@ -1093,7 +1093,7 @@ namespace Microsoft.ML.Transforms.Text
                 ResetRandomGenerator = resetRandomGenerator;
             }
 
-            internal ColumnInfo(LatentDirichletAllocationTransformer.Column item, LatentDirichletAllocationTransformer.Options options) :
+            internal ColumnOptions(LatentDirichletAllocationTransformer.Column item, LatentDirichletAllocationTransformer.Options options) :
                 this(item.Name,
                     item.Source ?? item.Name,
                     item.NumTopic ?? options.NumTopic,
@@ -1110,7 +1110,7 @@ namespace Microsoft.ML.Transforms.Text
             {
             }
 
-            internal ColumnInfo(IExceptionContext ectx, ModelLoadContext ctx)
+            internal ColumnOptions(IExceptionContext ectx, ModelLoadContext ctx)
             {
                 Contracts.AssertValue(ectx);
                 ectx.AssertValue(ctx);
