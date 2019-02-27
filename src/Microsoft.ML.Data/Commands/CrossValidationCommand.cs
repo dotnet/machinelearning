@@ -176,7 +176,7 @@ namespace Microsoft.ML.Data
                         }).ToArray();
                 }
             }
-            loader = CompositeDataLoader.Create(Host, loader, preXf);
+            loader = LegacyCompositeDataLoader.Create(Host, loader, preXf);
 
             ch.Trace("Binding label and features columns");
 
@@ -570,7 +570,7 @@ namespace Microsoft.ML.Data
                         using (var file = host.CreateOutputFile(modelFileName))
                         {
                             var rmd = new RoleMappedData(
-                                CompositeDataLoader.ApplyTransform(host, _loader, null, null,
+                                LegacyCompositeDataLoader.ApplyTransform(host, _loader, null, null,
                                 (e, newSource) => ApplyTransformUtils.ApplyAllTransformsToData(e, trainData.Data, newSource)),
                                 trainData.Schema.GetColumnRoleNames());
                             TrainUtils.SaveModel(host, ch, file, predictor, rmd, _cmd);

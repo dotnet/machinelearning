@@ -405,7 +405,7 @@ namespace Microsoft.ML.Data
 
             using (var ctx = ModelFileUtils.GetDataModelSavingContext(repositoryWriter))
             {
-                CompositeDataLoader.SavePipe(env, ctx, saveAction, xfs);
+                LegacyCompositeDataLoader.SavePipe(env, ctx, saveAction, xfs);
                 ctx.Done();
             }
         }
@@ -479,7 +479,7 @@ namespace Microsoft.ML.Data
                     => NormalizeTransform.CreateMinMaxNormalizer(innerEnv, input, featureColumn);
 
                 if (view is ILegacyDataLoader loader)
-                    view = CompositeDataLoader.ApplyTransform(env, loader, tag: null, creationArgs: null, ApplyNormalizer);
+                    view = LegacyCompositeDataLoader.ApplyTransform(env, loader, tag: null, creationArgs: null, ApplyNormalizer);
                 else
                     view = ApplyNormalizer(env, view);
                 return true;

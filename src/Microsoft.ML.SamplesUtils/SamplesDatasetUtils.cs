@@ -30,7 +30,7 @@ namespace Microsoft.ML.SamplesUtils
             string dataFile = DownloadHousingRegressionDataset();
 
             // Define the columns to read
-            var reader = mlContext.Data.CreateTextLoader(
+            var loader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
                         new TextLoader.Column("MedianHomeValue", DataKind.Single, 0),
@@ -50,7 +50,7 @@ namespace Microsoft.ML.SamplesUtils
             );
 
             // Read the data into an IDataView
-            var data = reader.Read(dataFile);
+            var data = loader.Load(dataFile);
 
             return data;
         }
@@ -134,7 +134,7 @@ namespace Microsoft.ML.SamplesUtils
             string dataFile = DownloadAdultDataset();
 
             // Define the columns to read
-            var reader = mlContext.Data.CreateTextLoader(
+            var loader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
                         new TextLoader.Column("age", DataKind.Single, 0),
@@ -174,7 +174,7 @@ namespace Microsoft.ML.SamplesUtils
                 // Min-max normalize all the features
                 .Append(mlContext.Transforms.Normalize("Features"));
 
-            var data = reader.Read(dataFile);
+            var data = loader.Load(dataFile);
             var featurizedData = pipeline.Fit(data).Transform(data);
             return featurizedData;
         }

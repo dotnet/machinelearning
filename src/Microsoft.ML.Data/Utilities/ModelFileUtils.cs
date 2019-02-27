@@ -72,7 +72,7 @@ namespace Microsoft.ML.Model
                 IDataView result = loader;
                 if (extractInnerPipe)
                 {
-                    var cdl = loader as CompositeDataLoader;
+                    var cdl = loader as LegacyCompositeDataLoader;
                     result = cdl == null ? loader : cdl.View;
                 }
 
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Model
                 if (ent == null)
                     return data;
                 var ctx = new ModelLoadContext(rep, ent, DirDataLoaderModel);
-                return CompositeDataLoader.LoadSelectedTransforms(ctx, data, env, x => true);
+                return LegacyCompositeDataLoader.LoadSelectedTransforms(ctx, data, env, x => true);
             }
         }
 
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Model
                 // REVIEW: Should really validate the schema here, and consider
                 // ignoring this stream if it isn't as expected.
                 var repoStreamWrapper = new RepositoryStreamWrapper(rep, DirTrainingInfo, RoleMappingFile);
-                var loader = new TextLoader(env, dataSample: repoStreamWrapper).Read(repoStreamWrapper);
+                var loader = new TextLoader(env, dataSample: repoStreamWrapper).Load(repoStreamWrapper);
 
                 using (var cursor = loader.GetRowCursorForAllColumns())
                 {

@@ -448,9 +448,9 @@ namespace Microsoft.ML.Transforms.Conversions
                             new TextLoader.Column("Term", DataKind.String, 0)
                         }
                     };
-                    var reader = new TextLoader(env, options: options, dataSample: fileSource);
+                    var loader = new TextLoader(env, options: options, dataSample: fileSource);
 
-                    keyData = reader.Read(fileSource);
+                    keyData = loader.Load(fileSource);
 
                     src = "Term";
                     // In this case they are relying on heuristics, so auto-loading in this case is most appropriate.

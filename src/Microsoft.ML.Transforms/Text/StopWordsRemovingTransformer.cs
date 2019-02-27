@@ -747,9 +747,9 @@ namespace Microsoft.ML.Transforms.Text
                         },
                         Separators = new[] { ',' },
                     };
-                    var reader = new TextLoader(Host, options: options, dataSample: fileSource);
+                    var loader = new TextLoader(Host, options: options, dataSample: fileSource);
 
-                    dataLoader = reader.Read(fileSource) as ILegacyDataLoader;
+                    dataLoader = loader.Load(fileSource) as ILegacyDataLoader;
                 }
                 ch.AssertNonEmpty(stopwordsCol);
             }

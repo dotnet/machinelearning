@@ -295,7 +295,7 @@ namespace Microsoft.ML.Data
                     }
 
                     if (Utils.Size(ImplOptions.Transforms) > 0)
-                        pipe = CompositeDataLoader.Create(Host, pipe, ImplOptions.Transforms);
+                        pipe = LegacyCompositeDataLoader.Create(Host, pipe, ImplOptions.Transforms);
 
                     // Next consider loading the training data's role mapped schema.
                     trainSchema = null;
@@ -331,7 +331,7 @@ namespace Microsoft.ML.Data
 
             private ILegacyDataLoader CreateTransformChain(ILegacyDataLoader loader)
             {
-                return CompositeDataLoader.Create(Host, loader, ImplOptions.Transforms);
+                return LegacyCompositeDataLoader.Create(Host, loader, ImplOptions.Transforms);
             }
 
             protected ILegacyDataLoader CreateRawLoader(
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Data
                 using (var rep = RepositoryReader.Open(strm, Host))
                 using (var pipeLoaderEntry = rep.OpenEntry(ModelFileUtils.DirDataLoaderModel, ModelLoadContext.ModelStreamName))
                 using (var ctx = new ModelLoadContext(rep, pipeLoaderEntry, ModelFileUtils.DirDataLoaderModel))
-                    return CompositeDataLoader.Create(Host, ctx, srcData, x => true);
+                    return LegacyCompositeDataLoader.Create(Host, ctx, srcData, x => true);
             }
         }
     }

@@ -611,7 +611,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                         try
                         {
-                            var textLoader = TextLoader.ReadFile(env, txtArgs, fileSource);
+                            var textLoader = TextLoader.LoadFile(env, txtArgs, fileSource);
                             valueColumn = GenerateValueColumn(env, textLoader, valueColumnName, 0, 1, options.DataFile);
                         }
                         catch (Exception ex)

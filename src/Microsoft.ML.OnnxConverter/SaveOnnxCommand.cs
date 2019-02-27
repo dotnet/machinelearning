@@ -119,7 +119,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             ch.AssertValue(end);
 
-            source = trueEnd = (end as CompositeDataLoader)?.View ?? end;
+            source = trueEnd = (end as LegacyCompositeDataLoader)?.View ?? end;
             IDataTransform transform = source as IDataTransform;
             transforms = new LinkedList<ITransformCanSaveOnnx>();
             while (transform != null)
