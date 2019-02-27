@@ -1848,7 +1848,7 @@ namespace Microsoft.ML.RunTests
                         'Name': 'Transforms.LabelColumnKeyBooleanConverter',
                         'Inputs': {
                             'Data': '$output_data1',
-                            'LabelColumnName': 'Label',
+                            'LabelColumn': 'Label',
                             'TextKeyValues': false
                         },
                         'Outputs': {
