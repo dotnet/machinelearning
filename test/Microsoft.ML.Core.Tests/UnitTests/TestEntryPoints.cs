@@ -3435,7 +3435,7 @@ namespace Microsoft.ML.RunTests
                       'Name': 'Transforms.LabelColumnKeyBooleanConverter',
                       'Inputs': {{
                         'Data': '$data1',
-                        'LabelColumnName': 'Label'
+                        'LabelColumn': 'Label'
                       }},
                       'Outputs': {{
                         'OutputData': '$data2'
@@ -4005,8 +4005,8 @@ namespace Microsoft.ML.RunTests
                             'NumRocExamples': 100000,
                             'MaxAucExamples': -1,
                             'NumAuPrcExamples': 100000,
-                            'LabelColumnName': null,
-                            'ExampleWeightColumnName': null,
+                            'LabelColumn': null,
+                            'WeightColumn': null,
                             'ScoreColumn': null,
                             'StratColumn': null,
                             'Data': '$Var_be77f9c4e45c43b7a67984304c291bf5',
@@ -4180,8 +4180,8 @@ namespace Microsoft.ML.RunTests
                             'StratificationColumn': null,
                             'NumFolds': 2,
                             'Kind': 'SignatureRegressorTrainer',
-                            'LabelColumnName': 'Label',
-                            'ExampleWeightColumnName': 'Weight1',
+                            'LabelColumn': 'Label',
+                            'WeightColumn': 'Weight1',
                             'GroupColumn': null,
                             'NameColumn': null
                         },
@@ -4364,8 +4364,8 @@ namespace Microsoft.ML.RunTests
                             'StratificationColumn': null,
                             'NumFolds': 2,
                             'Kind': 'SignatureMultiClassClassifierTrainer',
-                            'LabelColumnName': 'Label',
-                            'ExampleWeightColumnName': null,
+                            'LabelColumn': 'Label',
+                            'WeightColumn': null,
                             'GroupColumn': null,
                             'NameColumn': null
                         },
@@ -4591,8 +4591,8 @@ namespace Microsoft.ML.RunTests
                             'StratificationColumn': 'Strat',
                             'NumFolds': 2,
                             'Kind': 'SignatureMultiClassClassifierTrainer',
-                            'LabelColumnName': 'Label',
-                            'ExampleWeightColumnName': null,
+                            'LabelColumn': 'Label',
+                            'WeightColumn': null,
                             'GroupColumn': null,
                             'NameColumn': null
                         },
@@ -4771,8 +4771,8 @@ namespace Microsoft.ML.RunTests
                             'StratificationColumn': 'Strat',
                             'NumFolds': 2,
                             'Kind': 'SignatureBinaryClassifierTrainer',
-                            'LabelColumnName': 'Label',
-                            'ExampleWeightColumnName': null,
+                            'LabelColumn': 'Label',
+                            'WeightColumn': null,
                             'GroupColumn': null,
                             'NameColumn': null
                         },
@@ -5066,8 +5066,8 @@ namespace Microsoft.ML.RunTests
                         'StratificationColumn': null,
                         'NumFolds': 2,
                         'Kind': 'SignatureRankerTrainer',
-                        'LabelColumnName': 'Label1',
-                        'ExampleWeightColumnName': null,
+                        'LabelColumn': 'Label1',
+                        'WeightColumn': null,
                         'GroupColumn': {
                             'Value': 'GroupId1',
                             'IsExplicit': true
@@ -5291,8 +5291,8 @@ namespace Microsoft.ML.RunTests
                             'NumTopClassesToOutput': 3,
                             'NumClassesConfusionMatrix': 10,
                             'OutputPerClassStatistics': false,
-                            'LabelColumnName': null,
-                            'ExampleWeightColumnName': null,
+                            'LabelColumn': null,
+                            'WeightColumn': null,
                             'ScoreColumn': null,
                             'StratColumn': null,
                             'Data': '$Var_5454fd8c353c40288dd8c2d104be788f',
@@ -5461,8 +5461,8 @@ namespace Microsoft.ML.RunTests
                             'NumTopClassesToOutput': 3,
                             'NumClassesConfusionMatrix': 10,
                             'OutputPerClassStatistics': false,
-                            'LabelColumnName': null,
-                            'ExampleWeightColumnName': null,
+                            'LabelColumn': null,
+                            'WeightColumn': null,
                             'ScoreColumn': null,
                             'StratColumn': null,
                             'Data': '$Var_a20e37dc58d84bf5a1cb13ed13eae5ba',
@@ -5570,7 +5570,7 @@ namespace Microsoft.ML.RunTests
                             'OutputColumns': [
                                 'Softmax'
                             ],
-                            'LabelColumnName': null,
+                            'LabelColumn': null,
                             'TensorFlowLabel': null,
                             'OptimizationOperation': null,
                             'LossOperation': null,
