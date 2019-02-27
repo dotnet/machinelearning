@@ -6,12 +6,12 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.StaticPipe
 {
-    public sealed class DataReaderEstimator<TIn, TShape, TDataReader> : SchemaBearing<TShape>
-        where TDataReader : class, IDataLoader<TIn>
+    public sealed class DataLoaderEstimator<TIn, TShape, TDataLoader> : SchemaBearing<TShape>
+        where TDataLoader : class, IDataLoader<TIn>
     {
-        public IDataLoaderEstimator<TIn, TDataReader> AsDynamic { get; }
+        public IDataLoaderEstimator<TIn, TDataLoader> AsDynamic { get; }
 
-        internal DataReaderEstimator(IHostEnvironment env, IDataLoaderEstimator<TIn, TDataReader> estimator, StaticSchemaShape shape)
+        internal DataLoaderEstimator(IHostEnvironment env, IDataLoaderEstimator<TIn, TDataLoader> estimator, StaticSchemaShape shape)
             : base(env, shape)
         {
             Env.AssertValue(estimator);
@@ -20,21 +20,21 @@ namespace Microsoft.ML.StaticPipe
             Shape.Check(Env, AsDynamic.GetOutputSchema());
         }
 
-        public DataReader<TIn, TShape> Fit(TIn input)
+        public DataLoader<TIn, TShape> Fit(TIn input)
         {
-            Contracts.Assert(nameof(Fit) == nameof(IDataLoaderEstimator<TIn, TDataReader>.Fit));
+            Contracts.Assert(nameof(Fit) == nameof(IDataLoaderEstimator<TIn, TDataLoader>.Fit));
 
-            var reader = AsDynamic.Fit(input);
-            return new DataReader<TIn, TShape>(Env, reader, Shape);
+            var loader = AsDynamic.Fit(input);
+            return new DataLoader<TIn, TShape>(Env, loader, Shape);
         }
 
-        public DataReaderEstimator<TIn, TNewOut, IDataLoader<TIn>> Append<TNewOut, TTrans>(Estimator<TShape, TNewOut, TTrans> est)
+        public DataLoaderEstimator<TIn, TNewOut, IDataLoader<TIn>> Append<TNewOut, TTrans>(Estimator<TShape, TNewOut, TTrans> est)
             where TTrans : class, ITransformer
         {
-            Contracts.Assert(nameof(Append) == nameof(CompositeReaderEstimator<TIn, ITransformer>.Append));
+            Contracts.Assert(nameof(Append) == nameof(CompositeLoaderEstimator<TIn, ITransformer>.Append));
 
-            var readerEst = AsDynamic.Append(est.AsDynamic);
-            return new DataReaderEstimator<TIn, TNewOut, IDataLoader<TIn>>(Env, readerEst, est.Shape);
+            var loaderEst = AsDynamic.Append(est.AsDynamic);
+            return new DataLoaderEstimator<TIn, TNewOut, IDataLoader<TIn>>(Env, loaderEst, est.Shape);
         }
     }
 }

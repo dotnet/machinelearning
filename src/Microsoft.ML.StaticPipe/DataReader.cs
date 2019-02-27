@@ -6,47 +6,47 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.StaticPipe
 {
-    public sealed class DataReader<TIn, TShape> : SchemaBearing<TShape>
+    public sealed class DataLoader<TIn, TShape> : SchemaBearing<TShape>
     {
         public IDataLoader<TIn> AsDynamic { get; }
 
-        internal DataReader(IHostEnvironment env, IDataLoader<TIn> reader, StaticSchemaShape shape)
+        internal DataLoader(IHostEnvironment env, IDataLoader<TIn> loader, StaticSchemaShape shape)
             : base(env, shape)
         {
-            Env.AssertValue(reader);
+            Env.AssertValue(loader);
 
-            AsDynamic = reader;
+            AsDynamic = loader;
             Shape.Check(Env, AsDynamic.GetOutputSchema());
         }
 
-        public DataReaderEstimator<TIn, TNewOut, IDataLoader<TIn>> Append<TNewOut, TTrans>(Estimator<TShape, TNewOut, TTrans> estimator)
+        public DataLoaderEstimator<TIn, TNewOut, IDataLoader<TIn>> Append<TNewOut, TTrans>(Estimator<TShape, TNewOut, TTrans> estimator)
             where TTrans : class, ITransformer
         {
-            Contracts.Assert(nameof(Append) == nameof(CompositeReaderEstimator<TIn, ITransformer>.Append));
+            Contracts.Assert(nameof(Append) == nameof(CompositeLoaderEstimator<TIn, ITransformer>.Append));
 
-            var readerEst = AsDynamic.Append(estimator.AsDynamic);
-            return new DataReaderEstimator<TIn, TNewOut, IDataLoader<TIn>>(Env, readerEst, estimator.Shape);
+            var loaderEst = AsDynamic.Append(estimator.AsDynamic);
+            return new DataLoaderEstimator<TIn, TNewOut, IDataLoader<TIn>>(Env, loaderEst, estimator.Shape);
         }
 
-        public DataReader<TIn, TNewShape> Append<TNewShape, TTransformer>(Transformer<TShape, TNewShape, TTransformer> transformer)
+        public DataLoader<TIn, TNewShape> Append<TNewShape, TTransformer>(Transformer<TShape, TNewShape, TTransformer> transformer)
             where TTransformer : class, ITransformer
         {
             Env.CheckValue(transformer, nameof(transformer));
-            Env.Assert(nameof(Append) == nameof(CompositeReaderEstimator<TIn, ITransformer>.Append));
+            Env.Assert(nameof(Append) == nameof(CompositeLoaderEstimator<TIn, ITransformer>.Append));
 
-            var reader = AsDynamic.Append(transformer.AsDynamic);
-            return new DataReader<TIn, TNewShape>(Env, reader, transformer.Shape);
+            var loader = AsDynamic.Append(transformer.AsDynamic);
+            return new DataLoader<TIn, TNewShape>(Env, loader, transformer.Shape);
         }
 
-        public DataView<TShape> Read(TIn input)
+        public DataView<TShape> Load(TIn input)
         {
             // We cannot check the value of input since it may not be a reference type, and it is not clear
             // that there is an absolute case for insisting that the input type be a reference type, and much
             // less further that null inputs will never be correct. So we rely on the wrapping object to make
             // that determination.
-            Env.Assert(nameof(Read) == nameof(IDataLoader<TIn>.Read));
+            Env.Assert(nameof(Load) == nameof(IDataLoader<TIn>.Load));
 
-            var data = AsDynamic.Read(input);
+            var data = AsDynamic.Load(input);
             return new DataView<TShape>(Env, data, Shape);
         }
     }
