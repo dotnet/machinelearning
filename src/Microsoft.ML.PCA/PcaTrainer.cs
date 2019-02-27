@@ -15,7 +15,7 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
-using Microsoft.ML.Trainers.PCA;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(RandomizedPcaTrainer.Summary, typeof(RandomizedPcaTrainer), typeof(RandomizedPcaTrainer.Options),
     new[] { typeof(SignatureAnomalyDetectorTrainer), typeof(SignatureTrainer) },
@@ -28,7 +28,7 @@ using Microsoft.ML.Trainers.PCA;
 
 [assembly: LoadableClass(typeof(void), typeof(RandomizedPcaTrainer), null, typeof(SignatureEntryPointModule), RandomizedPcaTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Trainers.PCA
+namespace Microsoft.ML.Trainers
     {
     // REVIEW: make RFF transformer an option here.
 

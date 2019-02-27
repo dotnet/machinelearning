@@ -13,8 +13,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(HashJoiningTransform.Summary, typeof(HashJoiningTransform), typeof(HashJoiningTransform.Arguments), typeof(SignatureDataTransform),
     HashJoiningTransform.UserName, "HashJoinTransform", HashJoiningTransform.RegistrationName)]
@@ -24,7 +23,7 @@ using Microsoft.ML.Transforms.Conversions;
 
 [assembly: EntryPointModule(typeof(HashJoin))]
 
-namespace Microsoft.ML.Transforms.Conversions
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// This transform hashes its input columns. Each column is hashed separately, and within each

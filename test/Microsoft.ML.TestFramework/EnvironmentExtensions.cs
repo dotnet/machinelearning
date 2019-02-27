@@ -7,9 +7,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.KMeans;
-using Microsoft.ML.Trainers.PCA;
-using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.TestFramework
 {

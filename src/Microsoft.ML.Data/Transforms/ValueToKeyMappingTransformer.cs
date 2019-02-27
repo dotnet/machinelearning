@@ -15,10 +15,9 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(ValueToKeyMappingTransformer.Summary, typeof(IDataTransform), typeof(ValueToKeyMappingTransformer),
@@ -34,7 +33,7 @@ using Newtonsoft.Json.Linq;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(ValueToKeyMappingTransformer), null, typeof(SignatureLoadRowMapper),
     ValueToKeyMappingTransformer.UserName, ValueToKeyMappingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms.Conversions
+namespace Microsoft.ML.Transforms
 {
     // TermTransform builds up term vocabularies (dictionaries).
     // Notes:

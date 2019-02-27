@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests
 
             var pipe = ML.Transforms.CopyColumns("F1", "Features")
                 .Append(ML.Transforms.Normalize("Norm1", "F1"))
-                .Append(ML.Transforms.Normalize("Norm2", "F1", Transforms.Normalizers.NormalizingEstimator.NormalizerMode.MeanVariance));
+                .Append(ML.Transforms.Normalize("Norm2", "F1", Transforms.NormalizingEstimator.NormalizerMode.MeanVariance));
 
             pipe.Fit(ML.Data.LoadFromEnumerable(trainData));
 
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Tests
             pipe = ML.Transforms.CopyColumns("F1", "Features")
                 .AppendCacheCheckpoint(ML)
                 .Append(ML.Transforms.Normalize("Norm1", "F1"))
-                .Append(ML.Transforms.Normalize("Norm2", "F1", Transforms.Normalizers.NormalizingEstimator.NormalizerMode.MeanVariance));
+                .Append(ML.Transforms.Normalize("Norm2", "F1", Transforms.NormalizingEstimator.NormalizerMode.MeanVariance));
 
             pipe.Fit(ML.Data.LoadFromEnumerable(trainData));
 

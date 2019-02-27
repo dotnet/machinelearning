@@ -12,9 +12,8 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(TypeConvertingTransformer.Summary, typeof(IDataTransform), typeof(TypeConvertingTransformer), typeof(TypeConvertingTransformer.Options), typeof(SignatureDataTransform),
     TypeConvertingTransformer.UserName, TypeConvertingTransformer.ShortName, "ConvertTransform", DocName = "transform/ConvertTransform.md")]
@@ -30,7 +29,7 @@ using Microsoft.ML.Transforms.Conversions;
 
 [assembly: EntryPointModule(typeof(TypeConversion))]
 
-namespace Microsoft.ML.Transforms.Conversions
+namespace Microsoft.ML.Transforms
 {
     internal static class TypeConversion
     {
