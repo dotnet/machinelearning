@@ -145,7 +145,7 @@ namespace Microsoft.ML.Auto
                             Double avgLength = 1.0 * sumLength / data.Length;
                             Double cardinalityRatio = 1.0 * seen.Count / data.Length;
                             Double avgSpaces = 1.0 * sumSpaces / data.Length;
-                            if (cardinalityRatio < 0.7 || seen.Count < 100)
+                            if (cardinalityRatio < 0.7)
                                 column.SuggestedPurpose = ColumnPurpose.CategoricalFeature;
                             // (note: the columns.Count() == 1 condition below, in case a dataset has only
                             // a 'name' and a 'label' column, forces what would be an 'ignore' column to become a text feature)
