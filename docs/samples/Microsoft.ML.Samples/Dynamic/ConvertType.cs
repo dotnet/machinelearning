@@ -29,8 +29,8 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
-            var originalColumnA = data.GetColumn<bool>(mlContext, "Survived");
 
+            // Construct the pipeline.
             var pipeline = mlContext.Transforms.Conversion.ConvertType("SurvivedInt32", "Survived", DataKind.Int32);
 
             // Let's train our pipeline, and then apply it to the same data.
