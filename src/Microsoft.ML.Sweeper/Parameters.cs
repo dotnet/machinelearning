@@ -15,7 +15,7 @@ using Microsoft.ML.Sweeper;
 [assembly: LoadableClass(typeof(LongValueGenerator), typeof(LongParamOptions), typeof(SignatureSweeperParameter),
     "Long parameter", "lp")]
 [assembly: LoadableClass(typeof(FloatValueGenerator), typeof(FloatParamOptions), typeof(SignatureSweeperParameter),
-    "float parameter", "fp")]
+    "Float parameter", "fp")]
 [assembly: LoadableClass(typeof(DiscreteValueGenerator), typeof(DiscreteParamOptions), typeof(SignatureSweeperParameter),
     "Discrete parameter", "dp")]
 
@@ -554,7 +554,7 @@ namespace Microsoft.ML.Sweeper
 
             // Extract the minimum, and the maximum value of the list of suggested sweeps.
             // Positive lookahead splitting at the '-' character.
-            // It is used for the float and Long param types.
+            // It is used for the Float and Long param types.
             // Example format: "0.02-0.1;steps:5".
             string[] minMaxRegex = Regex.Split(paramValue, "(?<=[^eE])-");
             if (minMaxRegex.Length != 2)
