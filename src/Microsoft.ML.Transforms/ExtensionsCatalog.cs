@@ -65,6 +65,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform extensions' catalog.</param>
         /// <param name="columns">The name of the columns to use, and per-column transformation configuraiton.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ReplaceMissingValuesColumnOptions](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ReplaceMissingValuesColumnOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog, params MissingValueReplacingEstimator.ColumnOptions[] columns)
             => new MissingValueReplacingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
