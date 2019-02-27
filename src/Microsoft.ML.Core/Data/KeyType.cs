@@ -60,12 +60,12 @@ namespace Microsoft.ML.Data
         public ulong Count { get; }
 
         /// <summary>
-        /// Determine if a KeyType instance is equal to another KeyType instance.
-        /// This checks if the other item is the type of KeyType, if the RawType
+        /// Determine if a DataViewType object is equal to another KeyType instance.
+        /// Checks if the other item is the type of KeyType, if the RawType
         /// is the same, and if the Count is the same.
         /// </summary>
-        /// <param name="other"></param>
-        /// <returns>True if both objects are equal.</returns>
+        /// <param name="other">The other object to compare against.</param>
+        /// <returns>A boolean if both objects are equal or not.</returns>
         public override bool Equals(DataViewType other)
         {
             if (other == this)
@@ -80,16 +80,31 @@ namespace Microsoft.ML.Data
             return true;
         }
 
+        /// <summary>
+        /// Determine if a KeyType instance is equal to another KeyType instance.
+        /// Checks if any object is the type of KeyType, if the RawType
+        /// is the same, and if the Count is the same.
+        /// </summary>
+        /// <param name="other">The other object to compare against.</param>
+        /// <returns>A boolean if both objects are equal or not.</returns>
         public override bool Equals(object other)
         {
             return other is DataViewType tmp && Equals(tmp);
         }
 
+        /// <summary>
+        /// Retrieves the hash code.
+        /// </summary>
+        /// <returns>An integer representing the hash code.</returns>
         public override int GetHashCode()
         {
             return Hashing.CombinedHash(RawType.GetHashCode(), Count);
         }
 
+        /// <summary>
+        /// The string representation of the KeyType.
+        /// </summary>
+        /// <returns>A formatted string.</returns>
         public override string ToString()
         {
             InternalDataKind rawKind = this.GetRawKind();
