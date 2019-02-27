@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Xunit;
@@ -16,39 +18,52 @@ namespace Microsoft.ML.Tests
         }
 
         /// <summary>
-        /// RandomizedPcaTrainer test 
+        /// RandomizedPcaTrainer test.
         /// </summary>
         [Fact]
         public void RandomizedPcaTrainerBaselineTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
-            string featureColumn = "NumericFeatures";
+            var trainPath = GetDataPath(TestDatasets.mnistOneClass.trainFilename);
+            var testPath = GetDataPath(TestDatasets.mnistOneClass.testFilename);
 
-            var reader = new TextLoader(Env, new TextLoader.Options()
-            {
-                HasHeader = true,
-                Separator = "\t",
-                Columns = new[]
-                {
-                    new TextLoader.Column("Label", DataKind.Single, 0),
-                    new TextLoader.Column(featureColumn, DataKind.Single, new [] { new TextLoader.Range(1, 784) })
-                },
-                AllowSparse = true
-            });
-
-            var trainData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.trainFilename));
-            var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
-
-            var pipeline = ML.AnomalyDetection.Trainers.RandomizedPca(featureColumn);
-
-            var transformer = pipeline.Fit(trainData);
-            var transformedData = transformer.Transform(testData);
+            var transformedData = DetectAnomalyInMnistOneClass(trainPath, testPath);
 
             // Evaluate
             var metrics = ML.AnomalyDetection.Evaluate(transformedData, k: 5);
 
-            Assert.Equal(0.98269, metrics.Auc, 5);
+            Assert.Equal(0.98667, metrics.Auc, 5);
             Assert.Equal(0.90000, metrics.DrAtK, 5);
+        }
+
+        /// <summary>
+        /// Test anomaly detection when the test data has no anomalies.
+        /// </summary>
+        [Fact]
+        public void NoAnomalyTest()
+        {
+            var trainPath = GetDataPath(TestDatasets.mnistOneClass.trainFilename);
+
+            var transformedData = DetectAnomalyInMnistOneClass(trainPath, trainPath);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => ML.AnomalyDetection.Evaluate(transformedData));
+        }
+
+        private IDataView DetectAnomalyInMnistOneClass(string trainPath, string testPath)
+        {
+            var reader = ML.Data.CreateTextLoader(new[]
+            {
+                new TextLoader.Column(DefaultColumnNames.Label, DataKind.Single, 0),
+                new TextLoader.Column(DefaultColumnNames.Features, DataKind.Single, 1, 784)
+            },
+            allowSparse: true);
+
+            var trainData = reader.Read(trainPath);
+            var testData = reader.Read(testPath);
+
+            var trainer = ML.AnomalyDetection.Trainers.RandomizedPca();
+
+            var model = trainer.Fit(trainData);
+            return model.Transform(testData);
         }
     }
 }
