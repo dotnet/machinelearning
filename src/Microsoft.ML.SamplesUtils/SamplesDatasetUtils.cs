@@ -326,6 +326,13 @@ namespace Microsoft.ML.SamplesUtils
             public float Temperature { get; set; }
         }
 
+        public class SampleTemperatureDataWithLatitude
+        {
+            public float Latitude { get; set; }
+            public DateTime Date { get; set; }
+            public float Temperature { get; set; }
+        }
+
         /// <summary>
         /// Get a fake temperature dataset.
         /// </summary>
