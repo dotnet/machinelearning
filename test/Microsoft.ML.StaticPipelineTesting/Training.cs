@@ -11,6 +11,7 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.LightGBM.StaticPipe;
+using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework.Attributes;

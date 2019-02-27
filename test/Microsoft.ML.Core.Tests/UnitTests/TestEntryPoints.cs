@@ -17,6 +17,7 @@ using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.LightGBM;
+using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
