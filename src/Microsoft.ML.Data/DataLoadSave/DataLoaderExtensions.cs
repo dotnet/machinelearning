@@ -10,7 +10,8 @@ namespace Microsoft.ML
     public static class DataLoaderExtensions
     {
         /// <summary>
-        /// Reads data from one or more file <paramref name="path"/> into an <see cref="IDataView"/>.
+        /// Loads data from one or more file <paramref name="path"/> into an <see cref="IDataView"/>.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual loading happens here, just schema validation.
         /// </summary>
         /// <param name="loader">The loader to use.</param>
         /// <param name="path">One or more paths from which to load data.</param>

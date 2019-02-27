@@ -37,7 +37,7 @@ namespace Microsoft.ML.Samples.Dynamic
                     ),
                 separator: '\t', hasHeader: true);
 
-            // Then, we use the reader to load the data as an IDataView.
+            // Then, we use the loader to load the data as an IDataView.
             var data = loader.Load(dataFilePath);
 
             // Second, we define the transformations that we apply on the data. Remember that an Estimator does not transform data

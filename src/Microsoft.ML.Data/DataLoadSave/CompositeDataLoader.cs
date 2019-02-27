@@ -33,6 +33,10 @@ namespace Microsoft.ML.Data
             Transformer = transformerChain ?? new TransformerChain<TLastTransformer>();
         }
 
+        /// <summary>
+        /// Produce the data view from the specified input.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual loading happens here, just schema validation.
+        /// </summary>
         public IDataView Load(TSource input)
         {
             var idv = Loader.Load(input);

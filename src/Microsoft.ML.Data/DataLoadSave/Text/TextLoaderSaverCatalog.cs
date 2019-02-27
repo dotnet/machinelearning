@@ -82,7 +82,8 @@ namespace Microsoft.ML
                 allowSparse, trimWhitespace, dataSample: dataSample);
 
         /// <summary>
-        /// Load a data view from a text file using <see cref="TextLoader"/>.
+        /// Load a <see cref="IDataView"/> from a text file using <see cref="TextLoader"/>.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual loading happens here, just schema validation.
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="path">The path to the file.</param>
@@ -119,7 +120,8 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Load a data view from a text file using <see cref="TextLoader"/>.
+        /// Load a <see cref="IDataView"/> from a text file using <see cref="TextLoader"/>.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual loading happens here, just schema validation.
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="path">The path to the file.</param>
@@ -152,7 +154,8 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Load a data view from a text file using <see cref="TextLoader"/>.
+        /// Load a <see cref="IDataView"/> from a text file using <see cref="TextLoader"/>.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual loading happens here, just schema validation.
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="path">Specifies a file from which to load.</param>
@@ -169,7 +172,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Save the data view as text.
+        /// Save the <see cref="IDataView"/> as text.
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="data">The data view to save.</param>

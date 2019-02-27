@@ -12,7 +12,8 @@ namespace Microsoft.ML
     public static class BinaryLoaderSaverCatalog
     {
         /// <summary>
-        /// Load a data view from an <see cref="IMultiStreamSource"/> on a binary file.
+        /// Load a <see cref="IDataView"/> from an <see cref="IMultiStreamSource"/> on a binary file.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual loading happens here, just schema validation.
         /// </summary>
         /// <param name="catalog">The catalog.</param>
         /// <param name="fileSource">The file source to load from. This can be a <see cref="MultiFileSource"/>, for example.</param>
@@ -27,7 +28,8 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Load a data view from a binary file.
+        /// Load a <see cref="IDataView"/> from a binary file.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual loading happens here, just schema validation.
         /// </summary>
         /// <param name="catalog">The catalog.</param>
         /// <param name="path">The path to the file to load from.</param>
@@ -42,7 +44,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Save the data view into a binary stream.
+        /// Save the <see cref="IDataView"/> into a binary stream.
         /// </summary>
         /// <param name="catalog">The catalog.</param>
         /// <param name="data">The data view to save.</param>
