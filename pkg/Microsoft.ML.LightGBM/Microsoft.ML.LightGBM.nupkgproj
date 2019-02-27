@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
-    <ProjectReference Include="../Microsoft.ML/Microsoft.ML.FastTree.nupkgproj" />
+    <ProjectReference Include="../Microsoft.ML.FastTree/Microsoft.ML.FastTree.nupkgproj" />
     <PackageReference Include="LightGBM" Version="$(LightGBMPackageVersion)" />
   </ItemGroup>
 
