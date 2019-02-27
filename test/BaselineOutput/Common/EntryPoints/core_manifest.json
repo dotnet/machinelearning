@@ -2097,7 +2097,7 @@
           "IsNullable": false
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -2118,7 +2118,7 @@
           "Default": true
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -2130,7 +2130,7 @@
           "Default": "Label"
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -2336,7 +2336,7 @@
           "Default": true
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -2348,7 +2348,7 @@
           "Default": "Features"
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -2360,7 +2360,7 @@
           "Default": "Label"
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -4166,7 +4166,7 @@
           "IsNullable": false
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -4178,7 +4178,7 @@
           "Default": "Features"
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -4524,7 +4524,7 @@
           }
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -4548,7 +4548,7 @@
           "Default": null
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -4725,7 +4725,7 @@
           }
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -4749,7 +4749,7 @@
           "Default": null
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -4926,7 +4926,7 @@
           }
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -4950,7 +4950,7 @@
           "Default": null
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -5144,7 +5144,7 @@
           }
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -5176,7 +5176,7 @@
           }
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -5188,7 +5188,7 @@
           "Default": "Label"
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -5200,7 +5200,7 @@
           "Default": null
         },
         {
-          "Name": "GroupIdColumn",
+          "Name": "RowGroupColumnName",
           "Type": "String",
           "Desc": "Column to use for example groupId",
           "Aliases": [
@@ -5794,7 +5794,7 @@
           }
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -5826,7 +5826,7 @@
           }
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -5838,7 +5838,7 @@
           "Default": "Label"
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -5850,7 +5850,7 @@
           "Default": null
         },
         {
-          "Name": "GroupIdColumn",
+          "Name": "RowGroupColumnName",
           "Type": "String",
           "Desc": "Column to use for example groupId",
           "Aliases": [
@@ -6418,7 +6418,7 @@
           }
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -6450,7 +6450,7 @@
           }
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -6480,7 +6480,7 @@
           }
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -6492,7 +6492,7 @@
           "Default": null
         },
         {
-          "Name": "GroupIdColumn",
+          "Name": "RowGroupColumnName",
           "Type": "String",
           "Desc": "Column to use for example groupId",
           "Aliases": [
@@ -7329,7 +7329,7 @@
           }
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -7361,7 +7361,7 @@
           }
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -7391,7 +7391,7 @@
           }
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -7403,7 +7403,7 @@
           "Default": null
         },
         {
-          "Name": "GroupIdColumn",
+          "Name": "RowGroupColumnName",
           "Type": "String",
           "Desc": "Column to use for example groupId",
           "Aliases": [
@@ -8321,7 +8321,7 @@
           }
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -8353,7 +8353,7 @@
           }
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -8383,7 +8383,7 @@
           }
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -8395,7 +8395,7 @@
           "Default": null
         },
         {
-          "Name": "GroupIdColumn",
+          "Name": "RowGroupColumnName",
           "Type": "String",
           "Desc": "Column to use for example groupId",
           "Aliases": [
@@ -9220,7 +9220,7 @@
           }
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -9252,7 +9252,7 @@
           }
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -9282,7 +9282,7 @@
           }
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -9294,7 +9294,7 @@
           "Default": null
         },
         {
-          "Name": "GroupIdColumn",
+          "Name": "RowGroupColumnName",
           "Type": "String",
           "Desc": "Column to use for example groupId",
           "Aliases": [
@@ -10125,7 +10125,7 @@
           }
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -10154,7 +10154,7 @@
           }
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -10184,7 +10184,7 @@
           }
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -10376,7 +10376,7 @@
           "IsNullable": false
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -10408,7 +10408,7 @@
           }
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -10438,7 +10438,7 @@
           }
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -10676,7 +10676,7 @@
           "IsNullable": false
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -10708,7 +10708,7 @@
           }
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -10738,7 +10738,7 @@
           }
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -10956,7 +10956,7 @@
           "IsNullable": false
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -10968,7 +10968,7 @@
           "Default": "Features"
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -11221,7 +11221,7 @@
           }
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -11247,7 +11247,7 @@
           }
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -11259,7 +11259,7 @@
           "Default": "Label"
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -11271,7 +11271,7 @@
           "Default": null
         },
         {
-          "Name": "GroupIdColumn",
+          "Name": "RowGroupColumnName",
           "Type": "String",
           "Desc": "Column to use for example groupId",
           "Aliases": [
@@ -11724,7 +11724,7 @@
           }
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -11750,7 +11750,7 @@
           }
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -11762,7 +11762,7 @@
           "Default": "Label"
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -11774,7 +11774,7 @@
           "Default": null
         },
         {
-          "Name": "GroupIdColumn",
+          "Name": "RowGroupColumnName",
           "Type": "String",
           "Desc": "Column to use for example groupId",
           "Aliases": [
@@ -12227,7 +12227,7 @@
           }
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -12253,7 +12253,7 @@
           }
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -12265,7 +12265,7 @@
           "Default": "Label"
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -12277,7 +12277,7 @@
           "Default": null
         },
         {
-          "Name": "GroupIdColumn",
+          "Name": "RowGroupColumnName",
           "Type": "String",
           "Desc": "Column to use for example groupId",
           "Aliases": [
@@ -12730,7 +12730,7 @@
           }
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -12756,7 +12756,7 @@
           }
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -12768,7 +12768,7 @@
           "Default": "Label"
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -12780,7 +12780,7 @@
           "Default": null
         },
         {
-          "Name": "GroupIdColumn",
+          "Name": "RowGroupColumnName",
           "Type": "String",
           "Desc": "Column to use for example groupId",
           "Aliases": [
@@ -13152,7 +13152,7 @@
           "IsNullable": false
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -13164,7 +13164,7 @@
           "Default": "Features"
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -13420,7 +13420,7 @@
           "IsNullable": false
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -13432,7 +13432,7 @@
           "Default": "Features"
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -13444,7 +13444,7 @@
           "Default": "Label"
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -13731,7 +13731,7 @@
           "IsNullable": false
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -13743,7 +13743,7 @@
           "Default": "Features"
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -13755,7 +13755,7 @@
           "Default": "Label"
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -14042,7 +14042,7 @@
           "IsNullable": false
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -14054,7 +14054,7 @@
           "Default": "Features"
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -14139,7 +14139,7 @@
           "IsNullable": false
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -14151,7 +14151,7 @@
           "Default": "Features"
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -14452,7 +14452,7 @@
           "IsNullable": false
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -14464,7 +14464,7 @@
           "Default": "Features"
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -14476,7 +14476,7 @@
           "Default": "Label"
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -14594,7 +14594,7 @@
           "IsNullable": false
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -14606,7 +14606,7 @@
           "Default": "Features"
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -14760,7 +14760,7 @@
           "IsNullable": false
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -14772,7 +14772,7 @@
           "Default": "Features"
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -14784,7 +14784,7 @@
           "Default": "Label"
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -15106,7 +15106,7 @@
           }
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -15118,7 +15118,7 @@
           "Default": "Features"
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -15410,7 +15410,7 @@
           }
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -15422,7 +15422,7 @@
           "Default": "Features"
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -15679,7 +15679,7 @@
           }
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -15691,7 +15691,7 @@
           "Default": "Features"
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -15901,7 +15901,7 @@
           "IsNullable": false
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -15913,7 +15913,7 @@
           "Default": "Features"
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -15925,7 +15925,7 @@
           "Default": "Label"
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
@@ -16185,7 +16185,7 @@
           "IsNullable": false
         },
         {
-          "Name": "FeatureColumn",
+          "Name": "FeatureColumnName",
           "Type": "String",
           "Desc": "Column to use for features",
           "Aliases": [
@@ -16197,7 +16197,7 @@
           "Default": "Features"
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumnName",
           "Type": "String",
           "Desc": "Column to use for labels",
           "Aliases": [
@@ -25116,7 +25116,7 @@
               }
             },
             {
-              "Name": "FeatureColumn",
+              "Name": "FeatureColumnName",
               "Type": "String",
               "Desc": "Column to use for features",
               "Aliases": [
@@ -25148,7 +25148,7 @@
               }
             },
             {
-              "Name": "LabelColumn",
+              "Name": "LabelColumnName",
               "Type": "String",
               "Desc": "Column to use for labels",
               "Aliases": [
@@ -25178,7 +25178,7 @@
               }
             },
             {
-              "Name": "WeightColumn",
+              "Name": "ExampleWeightColumnName",
               "Type": "String",
               "Desc": "Column to use for example weight",
               "Aliases": [
@@ -25190,7 +25190,7 @@
               "Default": null
             },
             {
-              "Name": "GroupIdColumn",
+              "Name": "RowGroupColumnName",
               "Type": "String",
               "Desc": "Column to use for example groupId",
               "Aliases": [
@@ -26009,7 +26009,7 @@
               }
             },
             {
-              "Name": "FeatureColumn",
+              "Name": "FeatureColumnName",
               "Type": "String",
               "Desc": "Column to use for features",
               "Aliases": [
@@ -26041,7 +26041,7 @@
               }
             },
             {
-              "Name": "LabelColumn",
+              "Name": "LabelColumnName",
               "Type": "String",
               "Desc": "Column to use for labels",
               "Aliases": [
@@ -26071,7 +26071,7 @@
               }
             },
             {
-              "Name": "WeightColumn",
+              "Name": "ExampleWeightColumnName",
               "Type": "String",
               "Desc": "Column to use for example weight",
               "Aliases": [
@@ -26083,7 +26083,7 @@
               "Default": null
             },
             {
-              "Name": "GroupIdColumn",
+              "Name": "RowGroupColumnName",
               "Type": "String",
               "Desc": "Column to use for example groupId",
               "Aliases": [
@@ -26983,7 +26983,7 @@
               }
             },
             {
-              "Name": "FeatureColumn",
+              "Name": "FeatureColumnName",
               "Type": "String",
               "Desc": "Column to use for features",
               "Aliases": [
@@ -27015,7 +27015,7 @@
               }
             },
             {
-              "Name": "LabelColumn",
+              "Name": "LabelColumnName",
               "Type": "String",
               "Desc": "Column to use for labels",
               "Aliases": [
@@ -27045,7 +27045,7 @@
               }
             },
             {
-              "Name": "WeightColumn",
+              "Name": "ExampleWeightColumnName",
               "Type": "String",
               "Desc": "Column to use for example weight",
               "Aliases": [
@@ -27057,7 +27057,7 @@
               "Default": null
             },
             {
-              "Name": "GroupIdColumn",
+              "Name": "RowGroupColumnName",
               "Type": "String",
               "Desc": "Column to use for example groupId",
               "Aliases": [
@@ -27864,7 +27864,7 @@
               }
             },
             {
-              "Name": "FeatureColumn",
+              "Name": "FeatureColumnName",
               "Type": "String",
               "Desc": "Column to use for features",
               "Aliases": [
@@ -27896,7 +27896,7 @@
               }
             },
             {
-              "Name": "LabelColumn",
+              "Name": "LabelColumnName",
               "Type": "String",
               "Desc": "Column to use for labels",
               "Aliases": [
@@ -27926,7 +27926,7 @@
               }
             },
             {
-              "Name": "WeightColumn",
+              "Name": "ExampleWeightColumnName",
               "Type": "String",
               "Desc": "Column to use for example weight",
               "Aliases": [
@@ -27938,7 +27938,7 @@
               "Default": null
             },
             {
-              "Name": "GroupIdColumn",
+              "Name": "RowGroupColumnName",
               "Type": "String",
               "Desc": "Column to use for example groupId",
               "Aliases": [
