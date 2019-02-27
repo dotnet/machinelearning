@@ -431,8 +431,8 @@ namespace Microsoft.ML.RunTests
                 var lrInput = new LogisticRegression.Options
                 {
                     TrainingData = data,
-                    L1Weight = (Single)0.1 * i,
-                    L2Weight = (Single)0.01 * (1 + i),
+                    L1Regularization = (Single)0.1 * i,
+                    L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.No
                 };
                 predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
@@ -735,8 +735,8 @@ namespace Microsoft.ML.RunTests
                 var lrInput = new LogisticRegression.Options
                 {
                     TrainingData = data,
-                    L1Weight = (Single)0.1 * i,
-                    L2Weight = (Single)0.01 * (1 + i),
+                    L1Regularization = (Single)0.1 * i,
+                    L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.Yes
                 };
                 predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
@@ -996,8 +996,8 @@ namespace Microsoft.ML.RunTests
                 var lrInput = new LogisticRegression.Options
                 {
                     TrainingData = data,
-                    L1Weight = (Single)0.1 * i,
-                    L2Weight = (Single)0.01 * (1 + i),
+                    L1Regularization = (Single)0.1 * i,
+                    L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.Yes
                 };
                 predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;

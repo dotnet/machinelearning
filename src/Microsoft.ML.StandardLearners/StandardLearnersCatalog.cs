@@ -428,10 +428,10 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            float l1Weight = LROptions.Defaults.L1Weight,
-            float l2Weight = LROptions.Defaults.L2Weight,
+            float l1Weight = LROptions.Defaults.L1Regularization,
+            float l2Weight = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int memorySize = LROptions.Defaults.MemorySize,
+            int memorySize = LROptions.Defaults.NumberOfPreviousIterationsToRemember,
             bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
@@ -469,10 +469,10 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            float l1Weight = LROptions.Defaults.L1Weight,
-            float l2Weight = LROptions.Defaults.L2Weight,
+            float l1Weight = LROptions.Defaults.L1Regularization,
+            float l2Weight = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int memorySize = LROptions.Defaults.MemorySize,
+            int memorySize = LROptions.Defaults.NumberOfPreviousIterationsToRemember,
             bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
@@ -510,10 +510,10 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            float l1Weight = LROptions.Defaults.L1Weight,
-            float l2Weight = LROptions.Defaults.L2Weight,
+            float l1Weight = LROptions.Defaults.L1Regularization,
+            float l2Weight = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int memorySize = LROptions.Defaults.MemorySize,
+            int memorySize = LROptions.Defaults.NumberOfPreviousIterationsToRemember,
             bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));

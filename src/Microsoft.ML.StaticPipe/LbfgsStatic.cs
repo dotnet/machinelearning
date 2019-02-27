@@ -37,10 +37,10 @@ namespace Microsoft.ML.StaticPipe
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            float l1Weight = Options.Defaults.L1Weight,
-            float l2Weight = Options.Defaults.L2Weight,
+            float l1Weight = Options.Defaults.L1Regularization,
+            float l2Weight = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int memorySize = Options.Defaults.MemorySize,
+            int memorySize = Options.Defaults.NumberOfPreviousIterationsToRemember,
             bool enoforceNoNegativity = Options.Defaults.EnforceNonNegativity,
             Action<CalibratedModelParametersBase<LinearBinaryModelParameters,PlattCalibrator>> onFit = null)
         {
@@ -133,10 +133,10 @@ namespace Microsoft.ML.StaticPipe
             Scalar<float> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            float l1Weight = Options.Defaults.L1Weight,
-            float l2Weight = Options.Defaults.L2Weight,
+            float l1Weight = Options.Defaults.L1Regularization,
+            float l2Weight = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int memorySize = Options.Defaults.MemorySize,
+            int memorySize = Options.Defaults.NumberOfPreviousIterationsToRemember,
             bool enoforceNoNegativity = Options.Defaults.EnforceNonNegativity,
             Action<PoissonRegressionModelParameters> onFit = null)
         {
@@ -230,10 +230,10 @@ namespace Microsoft.ML.StaticPipe
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            float l1Weight = Options.Defaults.L1Weight,
-            float l2Weight = Options.Defaults.L2Weight,
+            float l1Weight = Options.Defaults.L1Regularization,
+            float l2Weight = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int memorySize = Options.Defaults.MemorySize,
+            int memorySize = Options.Defaults.NumberOfPreviousIterationsToRemember,
             bool enoforceNoNegativity = Options.Defaults.EnforceNonNegativity,
             Action<MulticlassLogisticRegressionModelParameters> onFit = null)
         {
@@ -303,10 +303,10 @@ namespace Microsoft.ML.StaticPipe
         internal static void ValidateParams(PipelineColumn label,
             Vector<float> features,
             Scalar<float> weights = null,
-            float l1Weight = Options.Defaults.L1Weight,
-            float l2Weight = Options.Defaults.L2Weight,
+            float l1Weight = Options.Defaults.L1Regularization,
+            float l2Weight = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int memorySize = Options.Defaults.MemorySize,
+            int memorySize = Options.Defaults.NumberOfPreviousIterationsToRemember,
             bool enoforceNoNegativity = Options.Defaults.EnforceNonNegativity,
             Delegate onFit = null)
         {
