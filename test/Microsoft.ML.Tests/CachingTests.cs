@@ -46,7 +46,7 @@ namespace Microsoft.ML.Tests
                 .Append(ML.Transforms.Normalize("Norm1", "F1"))
                 .Append(ML.Transforms.Normalize("Norm2", "F1", Transforms.Normalizers.NormalizingEstimator.NormalizerMode.MeanVariance));
 
-            pipe.Fit(ML.Data.ReadFromEnumerable(trainData));
+            pipe.Fit(ML.Data.LoadFromEnumerable(trainData));
 
             Assert.True(trainData.All(x => x.AccessCount == 2));
 
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tests
                 .Append(ML.Transforms.Normalize("Norm1", "F1"))
                 .Append(ML.Transforms.Normalize("Norm2", "F1", Transforms.Normalizers.NormalizingEstimator.NormalizerMode.MeanVariance));
 
-            pipe.Fit(ML.Data.ReadFromEnumerable(trainData));
+            pipe.Fit(ML.Data.LoadFromEnumerable(trainData));
 
             Assert.True(trainData.All(x => x.AccessCount == 1));
         }
@@ -65,13 +65,13 @@ namespace Microsoft.ML.Tests
         public void CacheTest()
         {
             var src = Enumerable.Range(0, 100).Select(c => new MyData()).ToArray();
-            var data = ML.Data.ReadFromEnumerable(src);
+            var data = ML.Data.LoadFromEnumerable(src);
             data.GetColumn<float[]>(ML, "Features").ToArray();
             data.GetColumn<float[]>(ML, "Features").ToArray();
             Assert.True(src.All(x => x.AccessCount == 2));
 
             src = Enumerable.Range(0, 100).Select(c => new MyData()).ToArray();
-            data = ML.Data.ReadFromEnumerable(src);
+            data = ML.Data.LoadFromEnumerable(src);
             data = ML.Data.Cache(data);
             data.GetColumn<float[]>(ML, "Features").ToArray();
             data.GetColumn<float[]>(ML, "Features").ToArray();

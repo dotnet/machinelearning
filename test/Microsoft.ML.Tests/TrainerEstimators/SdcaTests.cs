@@ -50,7 +50,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var mlContext = new MLContext();
 
             // Step 1: Read the data as an IDataView.
-            var data = mlContext.Data.ReadFromEnumerable(rawData);
+            var data = mlContext.Data.LoadFromEnumerable(rawData);
 
             // ML.NET doesn't cache data set by default. Caching is very helpful when working with iterative
             // algorithms which needs many data passes. Since SDCA is the case, we cache.
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var mlContext = new MLContext();
 
             // Step 1: Read the data as an IDataView.
-            var data = mlContext.Data.ReadFromEnumerable(rawData);
+            var data = mlContext.Data.LoadFromEnumerable(rawData);
 
             // ML.NET doesn't cache data set by default. Caching is very helpful when working with iterative
             // algorithms which needs many data passes. Since SDCA is the case, we cache.

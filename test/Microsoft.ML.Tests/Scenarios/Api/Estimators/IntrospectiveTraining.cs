@@ -100,7 +100,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         {
             var ml = new MLContext(seed: 1, conc: 1);
             var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(1000);
-            var dataView = ml.Data.ReadFromEnumerable(data);
+            var dataView = ml.Data.LoadFromEnumerable(data);
 
             RegressionPredictionTransformer<FastForestRegressionModelParameters> pred = null;
             var trainer = ml.Regression.Trainers.FastForest(numLeaves: 5, numTrees: 3).WithOnFitDelegate(p => pred = p);

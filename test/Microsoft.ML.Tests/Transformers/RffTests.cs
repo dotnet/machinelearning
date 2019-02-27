@@ -48,9 +48,9 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = Enumerable.Range(0, 100).Select(x => (float)rand.NextDouble()).ToArray() },
                 new TestClass() { A = Enumerable.Range(0, 100).Select(x => (float)rand.NextDouble()).ToArray() }
             };
-            var invalidData = ML.Data.ReadFromEnumerable(new[] { new TestClassInvalidSchema { A = 1 }, new TestClassInvalidSchema { A = 1 } });
-            var validFitInvalidData = ML.Data.ReadFromEnumerable(new[] { new TestClassBiggerSize { A = new float[200] }, new TestClassBiggerSize { A = new float[200] } });
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var invalidData = ML.Data.LoadFromEnumerable(new[] { new TestClassInvalidSchema { A = 1 }, new TestClassInvalidSchema { A = 1 } });
+            var validFitInvalidData = ML.Data.LoadFromEnumerable(new[] { new TestClassBiggerSize { A = new float[200] }, new TestClassBiggerSize { A = new float[200] } });
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             var pipe = ML.Transforms.Projection.CreateRandomFourierFeatures(new[]{
                     new RandomFourierFeaturizingEstimator.ColumnOptions("RffA", 5, false, "A"),
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = Enumerable.Range(0, 100).Select(x => (float)rand.NextDouble()).ToArray() },
                 new TestClass() { A = Enumerable.Range(0, 100).Select(x => (float)rand.NextDouble()).ToArray() }
             };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
 
             var est = ML.Transforms.Projection.CreateRandomFourierFeatures(new[]{
                     new RandomFourierFeaturizingEstimator.ColumnOptions("RffA", 5, false, "A"),

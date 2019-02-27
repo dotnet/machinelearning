@@ -35,7 +35,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Read the dataset from an enumerable.
-            var data = mlContext.Data.ReadFromEnumerable(TypeTestData.GenerateDataset());
+            var data = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
 
             Common.AssertTypeTestDataset(data);
         }
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Read the dataset from an enumerable.
             var enumerableBefore = TypeTestData.GenerateDataset();
-            var data = mlContext.Data.ReadFromEnumerable(enumerableBefore);
+            var data = mlContext.Data.LoadFromEnumerable(enumerableBefore);
 
             // Export back to an enumerable.
             var enumerableAfter = mlContext.Data.CreateEnumerable<TypeTestData>(data, true);
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
             
-            var dataBefore = mlContext.Data.ReadFromEnumerable(TypeTestData.GenerateDataset());
+            var dataBefore = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
 
             foreach (var separator in _separators)
             {
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            var dataBefore = mlContext.Data.ReadFromEnumerable(TypeTestData.GenerateDataset());
+            var dataBefore = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
 
             foreach (var separator in _separators)
             {
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            var dataBefore = mlContext.Data.ReadFromEnumerable(TypeTestData.GenerateDataset());
+            var dataBefore = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
 
             // Serialize a dataset with a known schema to a file.
             var filePath = SerializeDatasetToBinaryFile(mlContext, dataBefore);

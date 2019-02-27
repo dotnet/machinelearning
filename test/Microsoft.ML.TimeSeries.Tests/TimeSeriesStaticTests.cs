@@ -47,7 +47,7 @@ namespace Microsoft.ML.Tests
             var env = new MLContext(conc: 1);
             const int Size = 10;
             var data = new List<Data>(Size);
-            var dataView = env.Data.ReadFromEnumerable(data);
+            var dataView = env.Data.LoadFromEnumerable(data);
             for (int i = 0; i < Size / 2; i++)
                 data.Add(new Data(5));
 
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Tests
             const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
 
             var data = new List<Data>();
-            var dataView = env.Data.ReadFromEnumerable(data);
+            var dataView = env.Data.LoadFromEnumerable(data);
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
                 for (int i = 0; i < SeasonalitySize; i++)
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Tests
 
             // Generate sample series data with a spike
             List<Data> data = new List<Data>(Size);
-            var dataView = env.Data.ReadFromEnumerable(data);
+            var dataView = env.Data.LoadFromEnumerable(data);
             for (int i = 0; i < Size / 2; i++)
                 data.Add(new Data(5));
             data.Add(new Data(10)); // This is the spike
@@ -192,7 +192,7 @@ namespace Microsoft.ML.Tests
 
             // Generate sample series data with a spike
             List<Data> data = new List<Data>(Size);
-            var dataView = env.Data.ReadFromEnumerable(data);
+            var dataView = env.Data.LoadFromEnumerable(data);
             for (int i = 0; i < Size / 2; i++)
                 data.Add(new Data(5));
             data.Add(new Data(10)); // This is the spike
