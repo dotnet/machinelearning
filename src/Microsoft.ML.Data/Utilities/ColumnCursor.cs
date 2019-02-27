@@ -15,6 +15,17 @@ namespace Microsoft.ML.Data
     /// </summary>
     public static class ColumnCursorExtensions
     {
+
+        /// <summary>
+        /// Extract all values of one column of the data view in a form of an <see cref="IEnumerable{T}"/>.
+        /// </summary>
+        /// <typeparam name="T">The type of the values. This must match the actual column type.</typeparam>
+        /// <param name="data">The data view to get the column from.</param>
+        /// <param name="columnName">The name of the column to be extracted.</param>
+
+        public static IEnumerable<T> GetColumn<T>(this IDataView data, string columnName)
+            => GetColumn<T>(data, data.Schema[columnName]);
+
         /// <summary>
         /// Extract all values of one column of the data view in a form of an <see cref="IEnumerable{T}"/>.
         /// </summary>
