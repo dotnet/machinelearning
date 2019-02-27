@@ -53,7 +53,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // 'transformedData' is a 'promise' of data. Let's actually read it.
             var someRows = mlContext
                 // Convert to an enumerable of user-defined type. 
-                .CreateEnumerable<InspectedRowWithAllFeatures>(transformedData, reuseRowObject: false)
+                .Data.CreateEnumerable<InspectedRowWithAllFeatures>(transformedData, reuseRowObject: false)
                 // Take a couple values as an array.
                 .Take(4).ToArray();
 
@@ -243,9 +243,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Apply all kinds of standard ML.NET normalization to the raw features.
             var pipeline =
                 mlContext.Transforms.Normalize(
-                    new NormalizingEstimator.MinMaxColumn("MinMaxNormalized", "Features", fixZero: true),
-                    new NormalizingEstimator.MeanVarColumn("MeanVarNormalized", "Features", fixZero: true),
-                    new NormalizingEstimator.BinningColumn("BinNormalized", "Features", numBins: 256));
+                    new NormalizingEstimator.MinMaxColumnOptions("MinMaxNormalized", "Features", fixZero: true),
+                    new NormalizingEstimator.MeanVarColumnOptions("MeanVarNormalized", "Features", fixZero: true),
+                    new NormalizingEstimator.BinningColumnOptions("BinNormalized", "Features", numBins: 256));
 
             // Let's train our pipeline of normalizers, and then apply it to the same data.
             var normalizedData = pipeline.Fit(trainData).Transform(trainData);

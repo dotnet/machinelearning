@@ -9,6 +9,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Internal.Internallearn;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML.Model;
 
 namespace Microsoft.ML.RunTests
 {

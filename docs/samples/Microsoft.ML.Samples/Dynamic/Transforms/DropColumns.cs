@@ -39,7 +39,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // that it tries to access. 
             try
             {
-                var failingRowEnumerable = mlContext.CreateEnumerable<SampleInfertDataNonExistentColumns>(transformedData, reuseRowObject: false);
+                var failingRowEnumerable = mlContext.Data.CreateEnumerable<SampleInfertDataNonExistentColumns>(transformedData, reuseRowObject: false);
             } catch(ArgumentOutOfRangeException exception)
             {
                 Console.WriteLine($"Age and Education were not available, so an exception was thrown: {exception.Message}.");
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //  Parameter name: Schema
 
             // And we can write a few columns out to see that the rest of the data is still available.
-            var rowEnumerable = mlContext.CreateEnumerable<SampleInfertDataTransformed>(transformedData, reuseRowObject: false);
+            var rowEnumerable = mlContext.Data.CreateEnumerable<SampleInfertDataTransformed>(transformedData, reuseRowObject: false);
             Console.WriteLine($"The columns we didn't drop are still available.");
             foreach (var row in rowEnumerable)
             {

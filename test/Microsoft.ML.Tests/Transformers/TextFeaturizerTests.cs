@@ -174,7 +174,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var tokenized = new WordTokenizingTransformer(ML, new[]
             {
-                new WordTokenizingEstimator.ColumnInfo("Text", "Text")
+                new WordTokenizingEstimator.ColumnOptions("Text", "Text")
             }).Transform(data);
 
             var xf = factory.CreateComponent(ML, tokenized,

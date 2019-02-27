@@ -629,9 +629,9 @@ var trainData = mlContext.Data.ReadFromTextFile<IrisInputAllFeatures>(dataPath,
 // Apply all kinds of standard ML.NET normalization to the raw features.
 var pipeline =
     mlContext.Transforms.Normalize(
-        new NormalizingEstimator.MinMaxColumn("MinMaxNormalized", "Features", fixZero: true),
-        new NormalizingEstimator.MeanVarColumn("MeanVarNormalized", "Features", fixZero: true),
-        new NormalizingEstimator.BinningColumn("BinNormalized", "Features", numBins: 256));
+        new NormalizingEstimator.MinMaxColumnOptions("MinMaxNormalized", "Features", fixZero: true),
+        new NormalizingEstimator.MeanVarColumnOptions("MeanVarNormalized", "Features", fixZero: true),
+        new NormalizingEstimator.BinningColumnOptions("BinNormalized", "Features", numBins: 256));
 
 // Let's train our pipeline of normalizers, and then apply it to the same data.
 var normalizedData = pipeline.Fit(trainData).Transform(trainData);

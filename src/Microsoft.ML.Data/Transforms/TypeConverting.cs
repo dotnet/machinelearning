@@ -171,13 +171,13 @@ namespace Microsoft.ML.Transforms.Conversions
         private const string RegistrationName = "Convert";
 
         /// <summary>
-        /// A collection of <see cref="TypeConvertingEstimator.ColumnInfo"/> describing the settings of the transformation.
+        /// A collection of <see cref="TypeConvertingEstimator.ColumnOptions"/> describing the settings of the transformation.
         /// </summary>
-        public IReadOnlyCollection<TypeConvertingEstimator.ColumnInfo> Columns => _columns.AsReadOnly();
+        public IReadOnlyCollection<TypeConvertingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
 
-        private readonly TypeConvertingEstimator.ColumnInfo[] _columns;
+        private readonly TypeConvertingEstimator.ColumnOptions[] _columns;
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(TypeConvertingEstimator.ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(TypeConvertingEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckNonEmpty(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
@@ -192,14 +192,14 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="outputKind">The expected type of the converted column.</param>
         /// <param name="outputKeyCount">New key count if we work with key type.</param>
         internal TypeConvertingTransformer(IHostEnvironment env, string outputColumnName, DataKind outputKind, string inputColumnName = null, KeyCount outputKeyCount = null)
-            : this(env, new TypeConvertingEstimator.ColumnInfo(outputColumnName, outputKind, inputColumnName ?? outputColumnName, outputKeyCount))
+            : this(env, new TypeConvertingEstimator.ColumnOptions(outputColumnName, outputKind, inputColumnName ?? outputColumnName, outputKeyCount))
         {
         }
 
         /// <summary>
         /// Create a <see cref="TypeConvertingTransformer"/> that takes multiple pairs of columns.
         /// </summary>
-        internal TypeConvertingTransformer(IHostEnvironment env, params TypeConvertingEstimator.ColumnInfo[] columns)
+        internal TypeConvertingTransformer(IHostEnvironment env, params TypeConvertingEstimator.ColumnOptions[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TypeConvertingTransformer)), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Transforms.Conversions
             //   if there is a keyCount
             //     ulong: keyCount (0 for unspecified)
 
-            _columns = new TypeConvertingEstimator.ColumnInfo[columnsLength];
+            _columns = new TypeConvertingEstimator.ColumnOptions[columnsLength];
             for (int i = 0; i < columnsLength; i++)
             {
                 byte b = ctx.Reader.ReadByte();
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     keyCount = new KeyCount(count);
 
                 }
-                _columns[i] = new TypeConvertingEstimator.ColumnInfo(ColumnPairs[i].outputColumnName, kind.ToDataKind(), ColumnPairs[i].inputColumnName, keyCount);
+                _columns[i] = new TypeConvertingEstimator.ColumnOptions(ColumnPairs[i].outputColumnName, kind.ToDataKind(), ColumnPairs[i].inputColumnName, keyCount);
             }
         }
 
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Transforms.Conversions
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(options.Columns, nameof(options.Columns));
-            var cols = new TypeConvertingEstimator.ColumnInfo[options.Columns.Length];
+            var cols = new TypeConvertingEstimator.ColumnOptions[options.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
                 var item = options.Columns[i];
@@ -337,7 +337,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     kind = tempResultType.Value;
                 }
-                cols[i] = new TypeConvertingEstimator.ColumnInfo(item.Name, kind.ToDataKind(), item.Source ?? item.Name, keyCount);
+                cols[i] = new TypeConvertingEstimator.ColumnOptions(item.Name, kind.ToDataKind(), item.Source ?? item.Name, keyCount);
             };
             return new TypeConvertingTransformer(env, cols).MakeDataTransform(input);
         }
@@ -527,7 +527,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnInfo
+        public sealed class ColumnOptions
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
@@ -553,7 +553,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <param name="outputKind">The expected kind of the converted column.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="outputKeyCount">New key count, if we work with key type.</param>
-            public ColumnInfo(string name, DataKind outputKind, string inputColumnName, KeyCount outputKeyCount = null)
+            public ColumnOptions(string name, DataKind outputKind, string inputColumnName, KeyCount outputKeyCount = null)
             {
                 Name = name;
                 InputColumnName = inputColumnName ?? name;
@@ -568,7 +568,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <param name="type">The expected kind of the converted column.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="outputKeyCount">New key count, if we work with key type.</param>
-            public ColumnInfo(string name, Type type, string inputColumnName, KeyCount outputKeyCount = null)
+            public ColumnOptions(string name, Type type, string inputColumnName, KeyCount outputKeyCount = null)
             {
                 Name = name;
                 InputColumnName = inputColumnName ?? name;
@@ -589,14 +589,14 @@ namespace Microsoft.ML.Transforms.Conversions
         internal TypeConvertingEstimator(IHostEnvironment env,
             string outputColumnName, string inputColumnName = null,
             DataKind outputKind = Defaults.DefaultOutputKind)
-            : this(env, new ColumnInfo(outputColumnName, outputKind, inputColumnName ?? outputColumnName))
+            : this(env, new ColumnOptions(outputColumnName, outputKind, inputColumnName ?? outputColumnName))
         {
         }
 
         /// <summary>
         /// Create a <see cref="TypeConvertingEstimator"/> that takes multiple pairs of columns.
         /// </summary>
-        internal TypeConvertingEstimator(IHostEnvironment env, params ColumnInfo[] columns) :
+        internal TypeConvertingEstimator(IHostEnvironment env, params ColumnOptions[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TypeConvertingEstimator)), new TypeConvertingTransformer(env, columns))
         {
         }

@@ -43,7 +43,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var filteredData = mlContext.Data.FilterRowsByMissingValues(data, "Features");
 
             // Take a look at the resulting dataset and note that the Feature vectors with NaNs are missing.
-            var enumerable = mlContext.CreateEnumerable<DatasetUtils.FloatLabelFloatFeatureVectorSample>(filteredData, reuseRowObject: true);
+            var enumerable = mlContext.Data.CreateEnumerable<DatasetUtils.FloatLabelFloatFeatureVectorSample>(filteredData, reuseRowObject: true);
             Console.WriteLine($"Label\tFeatures");
             foreach (var row in enumerable)
             {

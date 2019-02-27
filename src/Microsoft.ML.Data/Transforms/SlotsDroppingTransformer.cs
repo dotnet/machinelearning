@@ -193,7 +193,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// Describes how the transformer handles one input-output column pair.
         /// </summary>
         [BestFriend]
-        internal sealed class ColumnInfo
+        internal sealed class ColumnOptions
         {
             public readonly string Name;
             public readonly string InputColumnName;
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// <param name="inputColumnName">Name of the column to transform.
             /// If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="slots">Ranges of indices in the input column to be dropped. Setting max in <paramref name="slots"/> to null sets max to int.MaxValue.</param>
-            public ColumnInfo(string name, string inputColumnName = null, params (int min, int? max)[] slots)
+            public ColumnOptions(string name, string inputColumnName = null, params (int min, int? max)[] slots)
             {
                 Name = name;
                 Contracts.CheckValue(Name, nameof(Name));
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     Contracts.Assert(min >= 0 && (max == null || min <= max));
             }
 
-            internal ColumnInfo(Column column)
+            internal ColumnOptions(Column column)
             {
                 Name = column.Name;
                 Contracts.CheckValue(Name, nameof(Name));
@@ -261,7 +261,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// <param name="min">Specifies the lower bound of the range of slots to be dropped. The lower bound is inclusive. </param>
         /// <param name="max">Specifies the upper bound of the range of slots to be dropped. The upper bound is exclusive.</param>
         internal SlotsDroppingTransformer(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int min = default, int? max = null)
-            : this(env, new ColumnInfo(outputColumnName, inputColumnName, (min, max)))
+            : this(env, new ColumnOptions(outputColumnName, inputColumnName, (min, max)))
         {
         }
 
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">Specifies the ranges of slots to drop for each column pair.</param>
-        internal SlotsDroppingTransformer(IHostEnvironment env, params ColumnInfo[] columns)
+        internal SlotsDroppingTransformer(IHostEnvironment env, params ColumnOptions[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
@@ -312,7 +312,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         // Factory method for SignatureDataTransform.
         private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
-            var columns = options.Columns.Select(column => new ColumnInfo(column)).ToArray();
+            var columns = options.Columns.Select(column => new ColumnOptions(column)).ToArray();
             return new SlotsDroppingTransformer(env, columns).MakeDataTransform(input);
         }
 
@@ -376,7 +376,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             }
         }
 
-        private static void GetSlotsMinMax(ColumnInfo[] columns, out int[][] slotsMin, out int[][] slotsMax)
+        private static void GetSlotsMinMax(ColumnOptions[] columns, out int[][] slotsMin, out int[][] slotsMax)
         {
             slotsMin = new int[columns.Length][];
             slotsMax = new int[columns.Length][];
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             }
         }
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnOptions[] columns)
             => columns.Select(c => (c.Name, c.InputColumnName ?? c.Name)).ToArray();
 
         private static bool AreRangesValid(int[][] slotsMin, int[][] slotsMax)

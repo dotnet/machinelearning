@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Trainers.FastTree;
 using Float = System.Single;
 
 [assembly: LoadableClass(typeof(TolerantEarlyStoppingCriterion), typeof(TolerantEarlyStoppingCriterion.Options), typeof(SignatureEarlyStoppingCriterion), "Tolerant (TR)", "tr")]
@@ -21,12 +21,12 @@ using Float = System.Single;
 [assembly: EntryPointModule(typeof(PQEarlyStoppingCriterion))]
 [assembly: EntryPointModule(typeof(UPEarlyStoppingCriterion))]
 
-namespace Microsoft.ML.Internal.Internallearn
+namespace Microsoft.ML.Trainers.FastTree
 {
     internal delegate void SignatureEarlyStoppingCriterion(bool lowerIsBetter);
 
     // These criteria will be used in FastTree and NeuralNets.
-    public interface IEarlyStoppingCriterion
+    public abstract class IEarlyStoppingCriterion
     {
         /// <summary>
         /// Check if the learning should stop or not.
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Internal.Internallearn
         /// <param name="trainingScore">A non negative number. Higher score means better result unless "_lowerIsBetter" is true.</param>
         /// <param name="isBestCandidate">True if the current result is the best ever.</param>
         /// <returns>If true, the learning should stop.</returns>
-        bool CheckScore(Float validationScore, Float trainingScore, out bool isBestCandidate);
+        public abstract bool CheckScore(Float validationScore, Float trainingScore, out bool isBestCandidate);
     }
 
     [TlcModule.ComponentKind("EarlyStoppingCriterion")]
@@ -68,8 +68,6 @@ namespace Microsoft.ML.Internal.Internallearn
             LowerIsBetter = lowerIsBetter;
             _bestScore = LowerIsBetter ? Float.PositiveInfinity : Float.NegativeInfinity;
         }
-
-        public abstract bool CheckScore(Float validationScore, Float trainingScore, out bool isBestCandidate);
 
         /// <summary>
         /// Check if the given score is the best ever. The best score will be stored at this._bestScore.

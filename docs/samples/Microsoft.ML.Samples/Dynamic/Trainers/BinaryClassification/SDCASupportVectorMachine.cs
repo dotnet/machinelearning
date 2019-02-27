@@ -49,7 +49,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             // Step 4: Make prediction and evaluate its quality (on training set).
             var prediction = model.Transform(data);
 
-            var rawPrediction = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.NonCalibratedBinaryClassifierOutput>(prediction, false);
+            var rawPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.NonCalibratedBinaryClassifierOutput>(prediction, false);
 
             // Step 5: Inspect the prediction of the first example.
             // Note that positive/negative label may be associated with positive/negative score

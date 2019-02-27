@@ -106,16 +106,16 @@ namespace Microsoft.ML.Transforms.Text
 
         private const string RegistrationName = "DelimitedTokenize";
 
-        public IReadOnlyCollection<WordTokenizingEstimator.ColumnInfo> Columns => _columns.AsReadOnly();
-        private readonly WordTokenizingEstimator.ColumnInfo[] _columns;
+        public IReadOnlyCollection<WordTokenizingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
+        private readonly WordTokenizingEstimator.ColumnOptions[] _columns;
 
-        private static (string name, string inputColumnName)[] GetColumnPairs(WordTokenizingEstimator.ColumnInfo[] columns)
+        private static (string name, string inputColumnName)[] GetColumnPairs(WordTokenizingEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckNonEmpty(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
-        internal WordTokenizingTransformer(IHostEnvironment env, params WordTokenizingEstimator.ColumnInfo[] columns) :
+        internal WordTokenizingTransformer(IHostEnvironment env, params WordTokenizingEstimator.ColumnOptions[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Transforms.Text
             base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
-            _columns = new WordTokenizingEstimator.ColumnInfo[columnsLength];
+            _columns = new WordTokenizingEstimator.ColumnOptions[columnsLength];
             // *** Binary format ***
             // <base>
             // for each added column
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 var separators = ctx.Reader.ReadCharArray();
                 Contracts.CheckDecode(Utils.Size(separators) > 0);
-                _columns[i] = new WordTokenizingEstimator.ColumnInfo(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, separators);
+                _columns[i] = new WordTokenizingEstimator.ColumnOptions(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, separators);
             }
         }
 
@@ -182,12 +182,12 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(options.Columns, nameof(options.Columns));
-            var cols = new WordTokenizingEstimator.ColumnInfo[options.Columns.Length];
+            var cols = new WordTokenizingEstimator.ColumnOptions[options.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
                 var item = options.Columns[i];
                 var separators = options.CharArrayTermSeparators ?? PredictionUtil.SeparatorFromString(item.TermSeparators ?? options.TermSeparators);
-                cols[i] = new WordTokenizingEstimator.ColumnInfo(item.Name, item.Source ?? item.Name, separators);
+                cols[i] = new WordTokenizingEstimator.ColumnOptions(item.Name, item.Source ?? item.Name, separators);
 
             }
             return new WordTokenizingTransformer(env, cols).MakeDataTransform(input);
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
         internal WordTokenizingEstimator(IHostEnvironment env, (string outputColumnName, string inputColumnName)[] columns, char[] separators = null)
-            : this(env, columns.Select(x => new ColumnInfo(x.outputColumnName, x.inputColumnName, separators)).ToArray())
+            : this(env, columns.Select(x => new ColumnOptions(x.outputColumnName, x.inputColumnName, separators)).ToArray())
         {
         }
 
@@ -436,11 +436,11 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        internal WordTokenizingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        internal WordTokenizingEstimator(IHostEnvironment env, params ColumnOptions[] columns)
           : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizingEstimator)), new WordTokenizingTransformer(env, columns))
         {
         }
-        public sealed class ColumnInfo
+        public sealed class ColumnOptions
         {
             public readonly string Name;
             public readonly string InputColumnName;
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Transforms.Text
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="separators">Casing text using the rules of the invariant culture. If not specified, space will be used as separator.</param>
-            public ColumnInfo(string name, string inputColumnName = null, char[] separators = null)
+            public ColumnOptions(string name, string inputColumnName = null, char[] separators = null)
             {
                 Name = name;
                 InputColumnName = inputColumnName ?? name;
