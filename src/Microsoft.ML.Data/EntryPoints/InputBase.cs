@@ -32,7 +32,6 @@ namespace Microsoft.ML.EntryPoints
     {
         Auto,
         Memory,
-        Disk,
         None
     }
 
@@ -200,29 +199,6 @@ namespace Microsoft.ML.EntryPoints
                     case CachingOptions.Memory:
                         {
                             outputData = new CacheDataView(host, roleMappedData.Data, null);
-                            break;
-                        }
-                    case CachingOptions.Disk:
-                        {
-                            var args = new BinarySaver.Arguments();
-                            args.Compression = CompressionKind.Default;
-                            args.Silent = true;
-
-                            var saver = new BinarySaver(createCacheHost, args);
-                            var roleMappedDataSchema = roleMappedData.Data.Schema;
-
-                            var cols = new List<int>();
-                            for (int i = 0; i < roleMappedDataSchema.Count; i++)
-                            {
-                                var type = roleMappedDataSchema[i].Type;
-                                if (saver.IsColumnSavable(type))
-                                    cols.Add(i);
-                            }
-
-                            fileHandle = createCacheHost.CreateTempFile();
-                            using (var stream = fileHandle.CreateWriteStream())
-                                saver.SaveData(stream, roleMappedData.Data, cols.ToArray());
-                            outputData = new BinaryLoader(createCacheHost, new BinaryLoader.Arguments(), fileHandle.OpenReadStream());
                             break;
                         }
                     case CachingOptions.Auto:

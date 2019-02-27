@@ -70,6 +70,9 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The test data file", ShortName = "test")]
             public string TestFile;
 
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether we should cache input training data", ShortName = "cache")]
+            public bool? CacheData;
+
             [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", NullName = "<None>", SignatureType = typeof(SignatureCalibrator))]
             public IComponentFactory<ICalibratorTrainer> Calibrator = new PlattCalibratorTrainerFactory();
 
@@ -194,7 +197,7 @@ namespace Microsoft.ML.Data
             }
 
             var predictor = TrainUtils.Train(Host, ch, data, trainer, validData,
-                Args.Calibrator, Args.MaxCalibrationExamples, inputPredictor, testDataUsedInTrainer);
+                Args.Calibrator, Args.MaxCalibrationExamples, Args.CacheData, inputPredictor, testDataUsedInTrainer);
 
             using (var file = Host.CreateOutputFile(Args.OutputModelFile))
                 TrainUtils.SaveModel(Host, ch, file, predictor, data, cmd);
@@ -242,17 +245,17 @@ namespace Microsoft.ML.Data
         public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer,
             IComponentFactory<ICalibratorTrainer> calibrator, int maxCalibrationExamples)
         {
-            return TrainCore(env, ch, data, trainer, null, calibrator, maxCalibrationExamples);
+            return TrainCore(env, ch, data, trainer, null, calibrator, maxCalibrationExamples, false);
         }
 
         public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, RoleMappedData validData,
-            IComponentFactory<ICalibratorTrainer> calibrator, int maxCalibrationExamples, IPredictor inputPredictor = null, RoleMappedData testData = null)
+            IComponentFactory<ICalibratorTrainer> calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inputPredictor = null, RoleMappedData testData = null)
         {
-            return TrainCore(env, ch, data, trainer, validData, calibrator, maxCalibrationExamples, inputPredictor, testData);
+            return TrainCore(env, ch, data, trainer, validData, calibrator, maxCalibrationExamples, cacheData, inputPredictor, testData);
         }
 
         private static IPredictor TrainCore(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, RoleMappedData validData,
-            IComponentFactory<ICalibratorTrainer> calibrator, int maxCalibrationExamples, IPredictor inputPredictor = null, RoleMappedData testData = null)
+            IComponentFactory<ICalibratorTrainer> calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inputPredictor = null, RoleMappedData testData = null)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ch, nameof(ch));
@@ -261,8 +264,10 @@ namespace Microsoft.ML.Data
             ch.CheckValueOrNull(validData);
             ch.CheckValueOrNull(inputPredictor);
 
-            ch.Trace("Not caching");
+            AddCacheIfWanted(env, ch, trainer, ref data, cacheData);
             ch.Trace("Training");
+            if (validData != null)
+                AddCacheIfWanted(env, ch, trainer, ref validData, cacheData);
 
             if (inputPredictor != null && !trainer.Info.SupportsIncrementalTraining)
             {
@@ -480,6 +485,28 @@ namespace Microsoft.ML.Data
                 return true;
             }
             return false;
+        }
+
+        private static bool AddCacheIfWanted(IHostEnvironment env, IChannel ch, ITrainer trainer, ref RoleMappedData data, bool? cacheData)
+        {
+            Contracts.AssertValue(env, nameof(env));
+            env.AssertValue(ch, nameof(ch));
+            ch.AssertValue(trainer, nameof(trainer));
+            ch.AssertValue(data, nameof(data));
+
+            bool shouldCache = cacheData ?? !(data.Data is BinaryLoader) && trainer.Info.WantCaching;
+
+            if (shouldCache)
+            {
+                ch.Trace("Caching");
+                var prefetch = data.Schema.GetColumnRoles().Select(kc => kc.Value.Index).ToArray();
+                var cacheView = new CacheDataView(env, data.Data, prefetch);
+                // Because the prefetching worked, we know that these are valid columns.
+                data = new RoleMappedData(cacheView, data.Schema.GetColumnRoleNames());
+            }
+            else
+                ch.Trace("Not caching");
+            return shouldCache;
         }
 
         public static IEnumerable<KeyValuePair<ColumnRole, string>> CheckAndGenerateCustomColumns(IExceptionContext ectx, KeyValuePair<string, string>[] customColumnArg)
