@@ -14,24 +14,24 @@ using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Trainers.FactorizationMachine;
 
-[assembly: LoadableClass(FieldAwareFactorizationMachineTrainer.Summary, typeof(FieldAwareFactorizationMachineTrainer),
-    typeof(FieldAwareFactorizationMachineTrainer.Options), new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) }
-    , FieldAwareFactorizationMachineTrainer.UserName, FieldAwareFactorizationMachineTrainer.LoadName,
-    FieldAwareFactorizationMachineTrainer.ShortName, DocName = "trainer/FactorizationMachine.md")]
+[assembly: LoadableClass(FieldAwareFactorizationMachineBinaryClassificationTrainer.Summary, typeof(FieldAwareFactorizationMachineBinaryClassificationTrainer),
+    typeof(FieldAwareFactorizationMachineBinaryClassificationTrainer.Options), new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) }
+    , FieldAwareFactorizationMachineBinaryClassificationTrainer.UserName, FieldAwareFactorizationMachineBinaryClassificationTrainer.LoadName,
+    FieldAwareFactorizationMachineBinaryClassificationTrainer.ShortName, DocName = "trainer/FactorizationMachine.md")]
 
-[assembly: LoadableClass(typeof(void), typeof(FieldAwareFactorizationMachineTrainer), null, typeof(SignatureEntryPointModule), FieldAwareFactorizationMachineTrainer.LoadName)]
+[assembly: LoadableClass(typeof(void), typeof(FieldAwareFactorizationMachineBinaryClassificationTrainer), null, typeof(SignatureEntryPointModule), FieldAwareFactorizationMachineBinaryClassificationTrainer.LoadName)]
 
 namespace Microsoft.ML.Trainers.FactorizationMachine
 {
     /*
      Train a field-aware factorization machine using ADAGRAD (an advanced stochastic gradient method). See references below
-     for details. This trainer is essentially faster the one introduced in [2] because of some implementation tricks[3].
+     for details. This trainer is essentially faster than the one introduced in [2] because of some implementation tricks in [3].
      [1] http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf
      [2] https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
      [3] https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
     */
     /// <include file='doc.xml' path='doc/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
-    public sealed class FieldAwareFactorizationMachineTrainer : ITrainer<FieldAwareFactorizationMachineModelParameters>,
+    public sealed class FieldAwareFactorizationMachineBinaryClassificationTrainer : ITrainer<FieldAwareFactorizationMachineModelParameters>,
         IEstimator<FieldAwareFactorizationMachinePredictionTransformer>
     {
         internal const string Summary = "Train a field-aware factorization machine for binary classification";
@@ -41,28 +41,46 @@ namespace Microsoft.ML.Trainers.FactorizationMachine
 
         public sealed class Options : LearnerInputBaseWithWeight
         {
+            /// <summary>
+            /// Initial learning rate.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate", ShortName = "lr", SortOrder = 1)]
             [TlcModule.SweepableFloatParam(0.001f, 1.0f, isLogScale: true)]
             public float LearningRate = (float)0.1;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of training iterations", ShortName = "iter", SortOrder = 2)]
+            /// <summary>
+            /// Number of training iterations.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of training iterations", ShortName = "iters,iter", SortOrder = 2)]
             [TlcModule.SweepableLongParam(1, 100)]
-            public int Iters = 5;
+            public int NumberOfIterations = 5;
 
+            /// <summary>
+            /// Latent space dimension.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Latent space dimension", ShortName = "d", SortOrder = 3)]
             [TlcModule.SweepableLongParam(4, 100)]
-            public int LatentDim = 20;
+            public int LatentDimension = 20;
 
+            /// <summary>
+            /// Regularization coefficient of linear weights.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularization coefficient of linear weights", ShortName = "lambdaLinear", SortOrder = 4)]
             [TlcModule.SweepableFloatParam(1e-8f, 1f, isLogScale: true)]
             public float LambdaLinear = 0.0001f;
 
+            /// <summary>
+            /// Regularization coefficient of latent weights.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularization coefficient of latent weights", ShortName = "lambdaLatent", SortOrder = 5)]
             [TlcModule.SweepableFloatParam(1e-8f, 1f, isLogScale: true)]
             public float LambdaLatent = 0.0001f;
 
+            /// <summary>
+            /// Whether to normalize the input vectors so that the concatenation of all fields' feature vectors is unit-length.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to normalize the input vectors so that the concatenation of all fields' feature vectors is unit-length", ShortName = "norm", SortOrder = 6)]
-            public bool Norm = true;
+            public bool Normalize = true;
 
             /// <summary>
             /// Extra feature column names. The column named <see cref="LearnerInputBase.FeatureColumn"/> stores features from the first field.
@@ -73,12 +91,21 @@ namespace Microsoft.ML.Trainers.FactorizationMachine
                 ShortName = "exfeat", SortOrder = 7)]
             public string[] ExtraFeatureColumns;
 
+            /// <summary>
+            /// Whether to shuffle for each training iteration.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to shuffle for each training iteration", ShortName = "shuf", SortOrder = 90)]
             public bool Shuffle = true;
 
+            /// <summary>
+            /// Report traning progress or not.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Report traning progress or not", ShortName = "verbose", SortOrder = 91)]
             public bool Verbose = true;
 
+            /// <summary>
+            /// Radius of initial latent factors.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Radius of initial latent factors", ShortName = "rad", SortOrder = 110)]
             [TlcModule.SweepableFloatParam(0.1f, 1f)]
             public float Radius = 0.5f;
@@ -123,12 +150,12 @@ namespace Microsoft.ML.Trainers.FactorizationMachine
         private float _radius;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/> through the <see cref="Options"/> class.
+        /// Initializes a new instance of <see cref="FieldAwareFactorizationMachineBinaryClassificationTrainer"/> through the <see cref="Options"/> class.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="options">An instance of the legacy <see cref="Options"/> to apply advanced parameters to the algorithm.</param>
         [BestFriend]
-        internal FieldAwareFactorizationMachineTrainer(IHostEnvironment env, Options options)
+        internal FieldAwareFactorizationMachineBinaryClassificationTrainer(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoadName);
@@ -150,17 +177,17 @@ namespace Microsoft.ML.Trainers.FactorizationMachine
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/>.
+        /// Initializes a new instance of <see cref="FieldAwareFactorizationMachineBinaryClassificationTrainer"/>.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="featureColumns">The name of column hosting the features. The i-th element stores feature column of the i-th field.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="weights">The name of the optional weights' column.</param>
+        /// <param name="featureColumnNames">The name of column hosting the features. The i-th element stores feature column of the i-th field.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="weightColumnName">The name of the weight column (optional).</param>
         [BestFriend]
-        internal FieldAwareFactorizationMachineTrainer(IHostEnvironment env,
-            string[] featureColumns,
-            string labelColumn = DefaultColumnNames.Label,
-            string weights = null)
+        internal FieldAwareFactorizationMachineBinaryClassificationTrainer(IHostEnvironment env,
+            string[] featureColumnNames,
+            string labelColumnName = DefaultColumnNames.Label,
+            string weightColumnName = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoadName);
@@ -169,13 +196,13 @@ namespace Microsoft.ML.Trainers.FactorizationMachine
 
             Initialize(env, args);
 
-            FeatureColumns = new SchemaShape.Column[featureColumns.Length];
+            FeatureColumns = new SchemaShape.Column[featureColumnNames.Length];
 
-            for (int i = 0; i < featureColumns.Length; i++)
-                FeatureColumns[i] = new SchemaShape.Column(featureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
+            for (int i = 0; i < featureColumnNames.Length; i++)
+                FeatureColumns[i] = new SchemaShape.Column(featureColumnNames[i], SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
-            LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false);
-            WeightColumn = weights != null ? new SchemaShape.Column(weights, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false) : default;
+            LabelColumn = new SchemaShape.Column(labelColumnName, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false);
+            WeightColumn = weightColumnName != null ? new SchemaShape.Column(weightColumnName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false) : default;
         }
 
         /// <summary>
@@ -186,18 +213,18 @@ namespace Microsoft.ML.Trainers.FactorizationMachine
         /// <param name="options"></param>
         private void Initialize(IHostEnvironment env, Options options)
         {
-            _host.CheckUserArg(options.LatentDim > 0, nameof(options.LatentDim), "Must be positive");
+            _host.CheckUserArg(options.LatentDimension > 0, nameof(options.LatentDimension), "Must be positive");
             _host.CheckUserArg(options.LambdaLinear >= 0, nameof(options.LambdaLinear), "Must be non-negative");
             _host.CheckUserArg(options.LambdaLatent >= 0, nameof(options.LambdaLatent), "Must be non-negative");
             _host.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), "Must be positive");
-            _host.CheckUserArg(options.Iters >= 0, nameof(options.Iters), "Must be non-negative");
-            _latentDim = options.LatentDim;
+            _host.CheckUserArg(options.NumberOfIterations >= 0, nameof(options.NumberOfIterations), "Must be non-negative");
+            _latentDim = options.LatentDimension;
             _latentDimAligned = FieldAwareFactorizationMachineUtils.GetAlignedVectorLength(_latentDim);
             _lambdaLinear = options.LambdaLinear;
             _lambdaLatent = options.LambdaLatent;
             _learningRate = options.LearningRate;
-            _numIterations = options.Iters;
-            _norm = options.Norm;
+            _numIterations = options.NumberOfIterations;
+            _norm = options.Normalize;
             _shuffle = options.Shuffle;
             _verbose = options.Verbose;
             _radius = options.Radius;
@@ -341,7 +368,7 @@ namespace Microsoft.ML.Trainers.FactorizationMachine
             if (predictor != null)
             {
                 ch.Check(predictor.FeatureCount == totalFeatureCount, "Input model's feature count mismatches training feature count");
-                ch.Check(predictor.LatentDim == _latentDim, "Input model's latent dimension mismatches trainer's");
+                ch.Check(predictor.LatentDimension == _latentDim, "Input model's latent dimension mismatches trainer's");
             }
             if (validData != null)
             {
@@ -486,12 +513,12 @@ namespace Microsoft.ML.Trainers.FactorizationMachine
             var host = env.Register("Train a field-aware factorization machine");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input, () => new FieldAwareFactorizationMachineTrainer(host, input),
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input, () => new FieldAwareFactorizationMachineBinaryClassificationTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }
 
         /// <summary>
-        /// Continues the training of a <see cref="FieldAwareFactorizationMachineTrainer"/> using an already trained <paramref name="modelParameters"/> and/or validation data,
+        /// Continues the training of a <see cref="FieldAwareFactorizationMachineBinaryClassificationTrainer"/> using an already trained <paramref name="modelParameters"/> and/or validation data,
         /// and returns a <see cref="FieldAwareFactorizationMachinePredictionTransformer"/>.
         /// </summary>
         public FieldAwareFactorizationMachinePredictionTransformer Fit(IDataView trainData,

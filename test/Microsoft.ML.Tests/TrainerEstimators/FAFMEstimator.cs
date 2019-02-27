@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = DatasetUtils.GenerateFfmSamples(500);
             var dataView = mlContext.Data.ReadFromEnumerable(data);
 
-            var ffmArgs = new FieldAwareFactorizationMachineTrainer.Options();
+            var ffmArgs = new FieldAwareFactorizationMachineBinaryClassificationTrainer.Options();
 
             // Customized the field names.
             ffmArgs.FeatureColumn = nameof(DatasetUtils.FfmExample.Field0); // First field.
@@ -44,12 +44,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = new TextLoader(Env, GetFafmBCLoaderArgs())
                     .Read(GetDataPath(TestDatasets.breastCancer.trainFilename));
 
-            var ffmArgs = new FieldAwareFactorizationMachineTrainer.Options {
+            var ffmArgs = new FieldAwareFactorizationMachineBinaryClassificationTrainer.Options {
                 FeatureColumn = "Feature1", // Features from the 1st field.
                 ExtraFeatureColumns = new[] { "Feature2", "Feature3",  "Feature4" }, // 2nd field's feature column, 3rd field's feature column, 4th field's feature column.
                 Shuffle = false,
-                Iters = 3,
-                LatentDim = 7,
+                NumberOfIterations = 3,
+                LatentDimension = 7,
             };
 
             var est = ML.BinaryClassification.Trainers.FieldAwareFactorizationMachine(ffmArgs);

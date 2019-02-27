@@ -16,7 +16,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // This will create a sentiment.tsv file in the filesystem.
             // The string, dataFile, is the path to the downloaded file.
             // You can open this file, if you want to see the data. 
-            string dataFile = SamplesUtils.DatasetUtils.DownloadSentimentDataset();
+            string dataFile = SamplesUtils.DatasetUtils.DownloadSentimentDataset()[0];
 
             // A preview of the data. 
             // Sentiment	SentimentText

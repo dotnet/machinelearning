@@ -8,7 +8,7 @@ using Microsoft.ML.Trainers.FactorizationMachine;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Extension method to create <see cref="FieldAwareFactorizationMachineTrainer"/>
+    /// Extension method to create <see cref="FieldAwareFactorizationMachineBinaryClassificationTrainer"/>
     /// </summary>
     public static class FactorizationMachineExtensions
     {
@@ -22,17 +22,17 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[FieldAwareFactorizationMachine](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FieldAwareFactorizationMachine.cs)]
+        ///  [!code-csharp[FieldAwareFactorizationMachine](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/FieldAwareFactorizationMachine.cs)]
         /// ]]></format>
         /// </example>
-        public static FieldAwareFactorizationMachineTrainer FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static FieldAwareFactorizationMachineBinaryClassificationTrainer FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string[] featureColumnNames,
             string labelColumnName = DefaultColumnNames.Label,
             string exampleWeightColumnName = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FieldAwareFactorizationMachineTrainer(env, featureColumnNames, labelColumnName, exampleWeightColumnName);
+            return new FieldAwareFactorizationMachineBinaryClassificationTrainer(env, featureColumnNames, labelColumnName, exampleWeightColumnName);
         }
 
         /// <summary>
@@ -40,12 +40,18 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        public static FieldAwareFactorizationMachineTrainer FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            FieldAwareFactorizationMachineTrainer.Options options)
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[FieldAwareFactorizationMachine](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/FieldAwareFactorizationMachineWithOptions.cs)]
+        /// ]]></format>
+        /// </example>
+        public static FieldAwareFactorizationMachineBinaryClassificationTrainer FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            FieldAwareFactorizationMachineBinaryClassificationTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FieldAwareFactorizationMachineTrainer(env, options);
+            return new FieldAwareFactorizationMachineBinaryClassificationTrainer(env, options);
         }
     }
 }
