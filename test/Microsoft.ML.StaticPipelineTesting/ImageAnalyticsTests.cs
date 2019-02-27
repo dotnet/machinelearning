@@ -22,7 +22,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
 
-            var reader = TextLoaderStatic.CreateReader(env,
+            var reader = TextLoaderStatic.CreateLoader(env,
                 ctx => ctx.LoadText(0).LoadAsImage().AsGrayscale().Resize(10, 8).ExtractPixels());
 
             var schema = reader.AsDynamic.GetOutputSchema();
@@ -36,7 +36,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(8, vecType.Dimensions[1]);
             Assert.Equal(10, vecType.Dimensions[2]);
 
-            var readAsImage = TextLoaderStatic.CreateReader(env,
+            var readAsImage = TextLoaderStatic.CreateLoader(env,
                 ctx => ctx.LoadText(0).LoadAsImage());
             var est = readAsImage.MakeNewEstimator().Append(r => r.AsGrayscale().Resize(10, 8).ExtractPixels());
             var pipe= readAsImage.Append(est);

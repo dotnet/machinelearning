@@ -388,7 +388,7 @@ namespace Microsoft.ML.Transforms.Conversions
             public string ValueColumn;
 
             [Argument(ArgumentType.Multiple, HelpText = "The data loader", NullName = "<Auto>", SignatureType = typeof(SignatureDataLoader))]
-            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
+            public IComponentFactory<IMultiStreamSource, ILegacyDataLoader> Loader;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Specifies whether the values are key values or numeric, only valid when loader is not specified and the type of data is not an idv.",
@@ -611,7 +611,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                         try
                         {
-                            var textLoader = TextLoader.ReadFile(env, txtArgs, fileSource);
+                            var textLoader = TextLoader.LoadFile(env, txtArgs, fileSource);
                             valueColumn = GenerateValueColumn(env, textLoader, valueColumnName, 0, 1, options.DataFile);
                         }
                         catch (Exception ex)

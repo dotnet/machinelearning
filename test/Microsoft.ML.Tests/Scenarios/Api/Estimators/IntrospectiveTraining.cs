@@ -31,7 +31,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void IntrospectiveTraining()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true, allowQuoting: true);
+            var data = ml.Data.LoadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true, allowQuoting: true);
 
             var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(ml)
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void FastTreeClassificationIntrospectiveTraining()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true, allowQuoting: true);
+            var data = ml.Data.LoadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true, allowQuoting: true);
 
             var trainer = ml.BinaryClassification.Trainers.FastTree(numLeaves: 5, numTrees: 3);
 
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         {
             var ml = new MLContext(seed: 1, conc: 1);
             var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(1000);
-            var dataView = ml.Data.ReadFromEnumerable(data);
+            var dataView = ml.Data.LoadFromEnumerable(data);
 
             RegressionPredictionTransformer<FastForestRegressionModelParameters> pred = null;
             var trainer = ml.Regression.Trainers.FastForest(numLeaves: 5, numTrees: 3).WithOnFitDelegate(p => pred = p);

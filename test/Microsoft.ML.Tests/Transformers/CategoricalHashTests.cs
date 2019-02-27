@@ -50,7 +50,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = "1", B = "2", C = "3", }, new TestClass() { A = "4", B = "5", C = "6" } };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Categorical.OneHotHashEncoding(new[]{
                     new OneHotHashEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag),
                     new OneHotHashEncodingEstimator.ColumnOptions("CatB", "A", OneHotEncodingTransformer.OutputKind.Bin),
@@ -66,13 +66,13 @@ namespace Microsoft.ML.Tests.Transformers
         public void CategoricalHashStatic()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
                 ScalarString: ctx.LoadText(1),
                 VectorString: ctx.LoadText(1, 4)));
-            var data = reader.Read(dataPath);
+            var data = reader.Load(dataPath);
             var wrongCollection = new[] { new TestClass() { A = "1", B = "2", C = "3", }, new TestClass() { A = "4", B = "5", C = "6" } };
 
-            var invalidData = ML.Data.ReadFromEnumerable(wrongCollection);
+            var invalidData = ML.Data.LoadFromEnumerable(wrongCollection);
             var est = data.MakeNewEstimator().
                   Append(row => (
                       row.ScalarString,
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestMeta() { A = new string[2] { "A", "B"}, B = "C", C =new float[2] { 3.0f,4.0f}, D = -1.0f, E= new string[2]{"E","A"}, F="E"},
                 new TestMeta() { A = new string[2] { "A", "B"}, B = "C", C =new float[2] { 5.0f,6.0f}, D = 1.0f , E= new string[2]{"D","E"}, F="D"} };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var bagPipe = ML.Transforms.Categorical.OneHotHashEncoding(
                 new OneHotHashEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
                 new OneHotHashEncodingEstimator.ColumnOptions("CatB", "B", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = "1", B = "2", C = "3", }, new TestClass() { A = "4", B = "5", C = "6" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Categorical.OneHotHashEncoding(new[]{
                     new OneHotHashEncodingEstimator.ColumnOptions("CatHashA", "A"),
                     new OneHotHashEncodingEstimator.ColumnOptions("CatHashB", "B"),

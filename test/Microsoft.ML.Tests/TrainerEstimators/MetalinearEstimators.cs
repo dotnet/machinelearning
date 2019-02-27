@@ -80,9 +80,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Columns = TestDatasets.irisData.GetLoaderColumns(),
                 Separators = new[] { ',' },
             };
-            var reader = new TextLoader(Env, options: options);
+            var loader = new TextLoader(Env, options: options);
 
-            var data = reader.Read(GetDataPath(TestDatasets.irisData.trainFilename));
+            var data = loader.Load(GetDataPath(TestDatasets.irisData.trainFilename));
 
             var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
                 new SdcaNonCalibratedBinaryTrainer.Options {

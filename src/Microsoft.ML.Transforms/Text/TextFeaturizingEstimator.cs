@@ -641,7 +641,7 @@ namespace Microsoft.ML.Transforms.Text
                 ctx.CheckAtModel(GetVersionInfo());
                 int n = ctx.Reader.ReadInt32();
 
-                ctx.LoadModel<IDataLoader, SignatureLoadDataLoader>(env, out var loader, "Loader", new MultiFileSource(null));
+                ctx.LoadModel<ILegacyDataLoader, SignatureLoadDataLoader>(env, out var loader, "Loader", new MultiFileSource(null));
 
                 IDataView data = loader;
                 for (int i = 0; i < n; i++)

@@ -82,7 +82,7 @@ namespace Microsoft.ML.Data
                 saver = ImplOptions.Saver.CreateComponent(Host);
             }
 
-            IDataLoader loader = CreateAndSaveLoader();
+            ILegacyDataLoader loader = CreateAndSaveLoader();
             using (var file = Host.CreateOutputFile(ImplOptions.OutputDataFile))
                 DataSaverUtils.SaveDataView(ch, saver, loader, file, ImplOptions.KeepHidden);
         }

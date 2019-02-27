@@ -85,7 +85,7 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = "squeezenet/00000001/model.onnx";
             var samplevector = GetSampleArrayData();
-            var dataView = ML.Data.ReadFromEnumerable(
+            var dataView = ML.Data.LoadFromEnumerable(
                 new TestData[] {
                     new TestData()
                     {
@@ -102,9 +102,9 @@ namespace Microsoft.ML.Tests
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
             var pipe = ML.Transforms.ApplyOnnxModel(modelFile, new[] { "softmaxout_1" }, new[] { "data_0" });
 
-            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
-            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
-            var invalidDataWrongVectorSize = ML.Data.ReadFromEnumerable(sizeData);
+            var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);
+            var invalidDataWrongVectorSize = ML.Data.LoadFromEnumerable(sizeData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
 
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Tests
             var modelFile = "squeezenet/00000001/model.onnx";
             var samplevector = GetSampleArrayData();
 
-            var dataView = ML.Data.ReadFromEnumerable(
+            var dataView = ML.Data.LoadFromEnumerable(
                 new TestData[] {
                     new TestData()
                     {
@@ -186,10 +186,10 @@ namespace Microsoft.ML.Tests
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoaderStatic.CreateReader(env, ctx => (
+            var data = TextLoaderStatic.CreateLoader(env, ctx => (
                 imagePath: ctx.LoadText(0),
                 name: ctx.LoadText(1)))
-                .Read(dataFile);
+                .Load(dataFile);
 
             // Note that CamelCase column names are there to match the TF graph node names.
             var pipe = data.MakeNewEstimator()
@@ -232,7 +232,7 @@ namespace Microsoft.ML.Tests
             var env = new ConsoleEnvironment(seed: 1, conc: 1);
             var samplevector = GetSampleArrayData();
 
-            var dataView = ML.Data.ReadFromEnumerable(
+            var dataView = ML.Data.LoadFromEnumerable(
                 new TestData[] {
                     new TestData()
                     {
@@ -263,7 +263,7 @@ namespace Microsoft.ML.Tests
             var env = new ConsoleEnvironment(seed: 1, conc: 1);
             var samplevector = GetSampleArrayData();
 
-            var dataView = ML.Data.ReadFromEnumerable(
+            var dataView = ML.Data.LoadFromEnumerable(
                 new TestDataMulti[] {
                     new TestDataMulti()
                     {
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Tests
                     new TestDataUnknownDimensions(){input = new float[] {-1.1f, -1.3f, -1.2f }},
                     new TestDataUnknownDimensions(){input = new float[] {-1.1f, -1.3f, 1.2f }},
                 };
-            var idv = mlContext.Data.ReadFromEnumerable(data);
+            var idv = mlContext.Data.LoadFromEnumerable(data);
             var pipeline = ML.Transforms.ApplyOnnxModel(modelFile);
             var transformedValues = pipeline.Fit(idv).Transform(idv);
             var predictions = mlContext.Data.CreateEnumerable<PredictionUnknownDimensions>(transformedValues, reuseRowObject: false).ToArray();

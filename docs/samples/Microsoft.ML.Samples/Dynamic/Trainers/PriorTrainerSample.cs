@@ -21,9 +21,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Step 1: Read the data as an IDataView.
-            // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextLoader(
+            // Step 1: Load the data as an IDataView.
+            // First, we define the loader: specify the data columns and where to find them in the text file.
+            var loader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
                         new TextLoader.Column("Sentiment", DataKind.Single, 0),
@@ -32,8 +32,8 @@ namespace Microsoft.ML.Samples.Dynamic
                 hasHeader: true
             );
             
-            // Read the data
-            var data = reader.Read(dataFile);
+            // Load the data
+            var data = loader.Load(dataFile);
 
             // Split it between training and test data
             var trainTestData = mlContext.BinaryClassification.TrainTestSplit(data);

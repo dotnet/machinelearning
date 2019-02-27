@@ -45,7 +45,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Conversion.Hash(new[]{
                     new HashingEstimator.ColumnOptions("HashA", "A", hashBits:4, invertHash:-1),
                     new HashingEstimator.ColumnOptions("HashB", "B", hashBits:3, ordered:true),
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestMeta() { A=new float[2] { 3.5f, 2.5f}, B=1, C= new double[2] { 5.1f, 6.1f}, D= 7}};
 
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Conversion.Hash(new[] {
                 new HashingEstimator.ColumnOptions("HashA", "A", invertHash:1, hashBits:10),
                 new HashingEstimator.ColumnOptions("HashAUnlim", "A", invertHash:-1, hashBits:10),
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Conversion.Hash(new[]{
                     new HashingEstimator.ColumnOptions("HashA", "A", hashBits:4, invertHash:-1),
                     new HashingEstimator.ColumnOptions("HashB", "B", hashBits:3, ordered:true),

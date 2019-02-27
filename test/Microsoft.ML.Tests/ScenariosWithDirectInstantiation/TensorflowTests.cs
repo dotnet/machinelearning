@@ -34,7 +34,7 @@ namespace Microsoft.ML.Scenarios
             var modelLocation = "model_matmul/frozen_saved_model.pb";
             var mlContext = new MLContext(seed: 1, conc: 1);
             // Pipeline
-            var loader = mlContext.Data.ReadFromEnumerable(
+            var loader = mlContext.Data.LoadFromEnumerable(
                     new List<TestData>(new TestData[] {
                         new TestData() { a = new[] { 1.0f, 2.0f,
                                                      3.0f, 4.0f },
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Scenarios
             var mlContext = new MLContext(seed: 1, conc: 1);
             var data = GetShapeData();
             // Pipeline
-            var loader = mlContext.Data.ReadFromEnumerable(data);
+            var loader = mlContext.Data.LoadFromEnumerable(data);
             var inputs = new string[] { "OneDim", "TwoDim", "ThreeDim", "FourDim", "FourDimKnown" };
             var outputs = new string[] { "o_OneDim", "o_TwoDim", "o_ThreeDim", "o_FourDim", "o_FourDimKnown" };
 
@@ -250,7 +250,7 @@ namespace Microsoft.ML.Scenarios
             var mlContext = new MLContext(seed: 1, conc: 1);
             // Pipeline
 
-            var loader = mlContext.Data.ReadFromEnumerable(data);
+            var loader = mlContext.Data.LoadFromEnumerable(data);
 
             var inputs = new string[] { "f64", "f32", "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8", "b" };
             var outputs = new string[] { "o_f64", "o_f32", "o_i64", "o_i32", "o_i16", "o_i8", "o_u64", "o_u32", "o_u16", "o_u8", "o_b" };
@@ -499,8 +499,8 @@ namespace Microsoft.ML.Scenarios
                 allowSparse: true
                 );
 
-            var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
-            var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
+            var trainData = reader.Load(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
+            var testData = reader.Load(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
             var pipe = mlContext.Transforms.CopyColumns(("reshape_input", "Placeholder"))
                 .Append(mlContext.Transforms.ScoreTensorFlowModel("mnist_model/frozen_saved_model.pb", new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }))
@@ -540,8 +540,8 @@ namespace Microsoft.ML.Scenarios
                     allowSparse: true
                 );
 
-                var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
-                var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
+                var trainData = reader.Load(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
+                var testData = reader.Load(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
                 var pipe = mlContext.Transforms.Categorical.OneHotEncoding("OneHotLabel", "Label")
                     .Append(mlContext.Transforms.Normalize(new NormalizingEstimator.MinMaxColumnOptions("Features", "Placeholder")))
@@ -635,8 +635,8 @@ namespace Microsoft.ML.Scenarios
                     allowSparse: true
                 );
 
-                var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
-                var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
+                var trainData = reader.Load(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
+                var testData = reader.Load(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
                 IDataView preprocessedTrainData = null;
                 IDataView preprocessedTestData = null;
@@ -730,8 +730,8 @@ namespace Microsoft.ML.Scenarios
                 allowSparse: true
             );
 
-            var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
-            var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
+            var trainData = reader.Load(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
+            var testData = reader.Load(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
             var pipe = mlContext.Transforms.CopyColumns(("reshape_input", "Placeholder"))
                 .Append(mlContext.Transforms.ScoreTensorFlowModel("mnist_model", new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }))
@@ -851,7 +851,7 @@ namespace Microsoft.ML.Scenarios
 
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = mlContext.Data.ReadFromTextFile(dataFile,
+            var data = mlContext.Data.LoadFromTextFile(dataFile,
                 columns: new[]
                     {
                         new TextLoader.Column("ImagePath", DataKind.String, 0),
@@ -896,7 +896,7 @@ namespace Microsoft.ML.Scenarios
 
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = mlContext.Data.ReadFromTextFile(dataFile, columns: new[]
+            var data = mlContext.Data.LoadFromTextFile(dataFile, columns: new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.String, 0),
                         new TextLoader.Column("Name", DataKind.String, 1),
@@ -947,7 +947,7 @@ namespace Microsoft.ML.Scenarios
             var imageWidth = 28;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = mlContext.Data.ReadFromTextFile(dataFile,
+            var data = mlContext.Data.LoadFromTextFile(dataFile,
                 columns: new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.String, 0),
@@ -987,9 +987,9 @@ namespace Microsoft.ML.Scenarios
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
             var data = new[] { new TensorFlowSentiment() { Sentiment_Text = "this film was just brilliant casting location scenery story direction everyone's really suited the part they played and you could just imagine being there robert  is an amazing actor and now the same being director  father came from the same scottish island as myself so i loved the fact there was a real connection with this film the witty remarks throughout the film were great it was just brilliant so much that i bought the film as soon as it was released for  and would recommend it to everyone to watch and the fly fishing was amazing really cried at the end it was so sad and you know what they say if you cry at a film it must have been good and this definitely was also  to the two little boy's that played the  of norman and paul they were just brilliant children are often left out of the  list i think because the stars that play them all grown up are such a big profile for the whole film but these children are amazing and should be praised for what they have done don't you think the whole story was so lovely because it was true and was someone's life after all that was shared with us all" } };
-            var dataView = mlContext.Data.ReadFromEnumerable(data);
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
 
-            var lookupMap = mlContext.Data.ReadFromTextFile(@"sentiment_model/imdb_word_index.csv",
+            var lookupMap = mlContext.Data.LoadFromTextFile(@"sentiment_model/imdb_word_index.csv",
                 columns: new[]
                    {
                         new TextLoader.Column("Words", DataKind.String, 0),
@@ -1053,7 +1053,7 @@ namespace Microsoft.ML.Scenarios
             Assert.True(schema.TryGetColumnIndex("A", out var colIndex));
             Assert.True(schema.TryGetColumnIndex("B", out colIndex));
 
-            var dataview = mlContext.Data.CreateTextLoader<TextInput>().Read(new MultiFileSource(null));
+            var dataview = mlContext.Data.CreateTextLoader<TextInput>().Load(new MultiFileSource(null));
 
             var pipeline = mlContext.Transforms.ScoreTensorFlowModel(model, new[] { "Original_A", "Joined_Splited_Text" }, new[] { "A", "B" })
                 .Append(mlContext.Transforms.CopyColumns(("AOut", "Original_A"),("BOut", "Joined_Splited_Text")));

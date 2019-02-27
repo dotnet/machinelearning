@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = 2, B = 1 ,C= new float[2]{ 3, 4 } , D = new double[2]{ 5,6}},
             };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.ReplaceMissingValues(
                 new MissingValueReplacingEstimator.ColumnOptions("NAA", "A", MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.Mean),
                 new MissingValueReplacingEstimator.ColumnOptions("NAB", "B", MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.Mean),
@@ -55,16 +55,16 @@ namespace Microsoft.ML.Tests.Transformers
         public void NAReplaceStatic()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
                 ScalarFloat: ctx.LoadFloat(1),
                 ScalarDouble: ctx.LoadDouble(1),
                 VectorFloat: ctx.LoadFloat(1, 4),
                 VectorDoulbe: ctx.LoadDouble(1, 4)
             ));
 
-            var data = reader.Read(dataPath);
+            var data = reader.Load(dataPath);
             var wrongCollection = new[] { new TestClass() { A = 1, B = 3, C = new float[2] { 1, 2 }, D = new double[2] { 3, 4 } } };
-            var invalidData = ML.Data.ReadFromEnumerable(wrongCollection);
+            var invalidData = ML.Data.LoadFromEnumerable(wrongCollection);
 
             var est = data.MakeNewEstimator().
                    Append(row => (
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = 2, B = 1 ,C= new float[2]{ 3, 4 } , D = new double[2]{ 5,6}},
             };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.ReplaceMissingValues(
                 new MissingValueReplacingEstimator.ColumnOptions("NAA", "A", MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.Mean),
                 new MissingValueReplacingEstimator.ColumnOptions("NAB", "B", MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.Mean),

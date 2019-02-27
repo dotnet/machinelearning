@@ -30,10 +30,10 @@ namespace Microsoft.ML.Samples.Dynamic
                 "such a big profile for the whole film but these children are amazing and should be praised " +
                 "for what they have done don't you think the whole story was so lovely because it was true " +
                 "and was someone's life after all that was shared with us all" } };
-            var dataView = mlContext.Data.ReadFromEnumerable(data);
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
 
             // This is the dictionary to convert words into the integer indexes.
-            var lookupMap = mlContext.Data.ReadFromTextFile(Path.Combine(modelLocation, "imdb_word_index.csv"),
+            var lookupMap = mlContext.Data.LoadFromTextFile(Path.Combine(modelLocation, "imdb_word_index.csv"),
                 columns: new[]
                    {
                         new TextLoader.Column("Words", DataKind.String, 0),

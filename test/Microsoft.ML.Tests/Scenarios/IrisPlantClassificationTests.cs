@@ -37,8 +37,8 @@ namespace Microsoft.ML.Scenarios
             // Read training and test data sets
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             string testDataPath = dataPath;
-            var trainData = reader.Read(dataPath);
-            var testData = reader.Read(testDataPath);
+            var trainData = reader.Load(dataPath);
+            var testData = reader.Load(testDataPath);
 
             // Train the pipeline
             var trainedModel = pipe.Fit(trainData);

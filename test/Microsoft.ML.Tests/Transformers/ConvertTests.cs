@@ -74,7 +74,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
                                new TestClass() { A = 2, B = new int[2] { 3,4 } }};
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Conversion.ConvertType(columns: new[] {new TypeConvertingEstimator.ColumnOptions("ConvA", DataKind.Single, "A"),
                 new TypeConvertingEstimator.ColumnOptions("ConvB", DataKind.Single, "B")});
 
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Tests.Transformers
                 }
             };
 
-            var allTypesDataView = ML.Data.ReadFromEnumerable(allTypesData);
+            var allTypesDataView = ML.Data.LoadFromEnumerable(allTypesData);
             var allTypesPipe = ML.Transforms.Conversion.ConvertType(columns: new[] {
                 new TypeConvertingEstimator.ColumnOptions("ConvA", DataKind.Single, "AA"),
                 new TypeConvertingEstimator.ColumnOptions("ConvB", DataKind.Single, "AB"),
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestStringClass() { A = "Stay" }, new TestStringClass() { A = "awhile and listen" } };
 
             var mlContext = new MLContext();
-            var dataView = mlContext.Data.ReadFromEnumerable(data);
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
 
             var sideDataBuilder = new ArrayDataViewBuilder(mlContext);
             sideDataBuilder.AddColumn("Hello", "hello", "my", "friend");
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
                                new TestClass() { A = 2, B = new int[2] { 3,4 } }};
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Conversion.ConvertType(columns: new[] {new TypeConvertingEstimator.ColumnOptions("ConvA", typeof(double), "A"),
                 new TypeConvertingEstimator.ColumnOptions("ConvB", typeof(double), "B")});
 
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TypeConvertingEstimator.ColumnOptions("ConvA", DataKind.Double, "CatA"),
                 new TypeConvertingEstimator.ColumnOptions("ConvB", DataKind.UInt16, "CatB")
             }));
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             dataView = pipe.Fit(dataView).Transform(dataView);
             ValidateMetadata(dataView);
         }
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             };
 
-            var dataView = ML.Data.ReadFromEnumerable(dataArray);
+            var dataView = ML.Data.LoadFromEnumerable(dataArray);
 
             // Check old model can be loaded.
             var modelPath = GetDataPath("backcompat", "type-convert-key-model.zip");

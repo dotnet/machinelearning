@@ -17,7 +17,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable.
             var enumerableOfData = DatasetUtils.GetSampleTemperatureData(5);
-            var data = mlContext.Data.ReadFromEnumerable(enumerableOfData);
+            var data = mlContext.Data.LoadFromEnumerable(enumerableOfData);
 
             // Before we apply a filter, examine all the records in the dataset.
             Console.WriteLine($"Date\tTemperature");

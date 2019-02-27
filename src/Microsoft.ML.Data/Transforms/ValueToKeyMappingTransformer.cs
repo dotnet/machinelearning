@@ -116,7 +116,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 111, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureDataLoader))]
             [BestFriend]
-            internal IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
+            internal IComponentFactory<IMultiStreamSource, ILegacyDataLoader> Loader;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the text column containing the terms", ShortName = "termCol", SortOrder = 112, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string TermsColumn;
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <returns>The single-column data containing the term data from the file.</returns>
         [BestFriend]
         internal static IDataView GetKeyDataViewOrNull(IHostEnvironment env, IChannel ch,
-            string file, string termsColumn, IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory,
+            string file, string termsColumn, IComponentFactory<IMultiStreamSource, ILegacyDataLoader> loaderFactory,
             out bool autoConvert)
         {
             ch.AssertValue(env);
@@ -448,9 +448,9 @@ namespace Microsoft.ML.Transforms.Conversions
                             new TextLoader.Column("Term", DataKind.String, 0)
                         }
                     };
-                    var reader = new TextLoader(env, options: options, dataSample: fileSource);
+                    var loader = new TextLoader(env, options: options, dataSample: fileSource);
 
-                    keyData = reader.Read(fileSource);
+                    keyData = loader.Load(fileSource);
 
                     src = "Term";
                     // In this case they are relying on heuristics, so auto-loading in this case is most appropriate.

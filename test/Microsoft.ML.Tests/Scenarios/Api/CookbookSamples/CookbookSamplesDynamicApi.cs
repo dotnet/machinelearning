@@ -38,7 +38,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Read the data into a data view.
-            var data = mlContext.Data.ReadFromTextFile<InspectedRow>(dataPath,
+            var data = mlContext.Data.LoadFromTextFile<InspectedRow>(dataPath,
                 // First line of the file is a header, not a data row.
                 hasHeader: true
             );
@@ -76,8 +76,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Step one: read the data as an IDataView.
-            // Read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var trainData = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
+            // Read the file (remember though, loaders are lazy, so the actual reading will happen when the data is accessed).
+            var trainData = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
                 // Default separator is tab, but we need a semicolon.
                 separatorChar: ';'
 ,
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Step two: define the learning pipeline. 
 
-            // We 'start' the pipeline with the output of the reader.
+            // We 'start' the pipeline with the output of the loader.
             var pipeline =
                 // First 'normalize' the data (rescale to be
                 // between -1 and 1 for all examples), and then train the model.
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = pipeline.Fit(trainData);
 
             // Read the test dataset.
-            var testData = mlContext.Data.ReadFromTextFile<AdultData>(testDataPath,
+            var testData = mlContext.Data.LoadFromTextFile<AdultData>(testDataPath,
                 // Default separator is tab, but we need a semicolon.
                 separatorChar: ';'
 ,
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Step one: read the data as an IDataView.
             //  Retrieve the training data.
-            var trainData = mlContext.Data.ReadFromTextFile<IrisInput>(irisDataPath,
+            var trainData = mlContext.Data.LoadFromTextFile<IrisInput>(irisDataPath,
                 // Default separator is tab, but the dataset has comma.
                 separatorChar: ','
             );
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Read the training data.
-            var trainData = mlContext.Data.ReadFromTextFile<IrisInputAllFeatures>(dataPath,
+            var trainData = mlContext.Data.LoadFromTextFile<IrisInputAllFeatures>(dataPath,
                 // Default separator is tab, but the dataset has comma.
                 separatorChar: ','
             );
@@ -276,8 +276,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextLoader(new[]
+            // Define the loader: specify the data columns and where to find them in the text file.
+            var loader = mlContext.Data.CreateTextLoader(new[]
                 {
                     new TextLoader.Column("IsToxic", DataKind.Boolean, 0),
                     new TextLoader.Column("Message", DataKind.String, 1),
@@ -286,7 +286,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             );
 
             // Read the data.
-            var data = reader.Read(dataPath);
+            var data = loader.Load(dataPath);
 
             // Inspect the message texts that are read from the file.
             var messageTexts = data.GetColumn<string>(mlContext, "Message").Take(20).ToArray();
@@ -343,8 +343,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextLoader(new[]
+            // Define the loader: specify the data columns and where to find them in the text file.
+            var loader = mlContext.Data.CreateTextLoader(new[]
                 {
                     new TextLoader.Column("Label", DataKind.Boolean, 0),
                     // We will load all the categorical features into one vector column of size 8.
@@ -358,7 +358,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             );
 
             // Read the data.
-            var data = reader.Read(dataPath);
+            var data = loader.Load(dataPath);
 
             // Inspect the first 10 records of the categorical columns to check that they are correctly read.
             var catColumns = data.GetColumn<string[]>(mlContext, "CategoricalFeatures").Take(10).ToArray();
@@ -407,7 +407,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Step one: read the data as an IDataView.
-            var data = mlContext.Data.ReadFromTextFile<IrisInput>(dataPath,
+            var data = mlContext.Data.LoadFromTextFile<IrisInput>(dataPath,
                 // Default separator is tab, but the dataset has comma.
                 separatorChar: ','
             );
@@ -455,8 +455,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var reader = mlContext.Data.ReadFromTextFile<AdultData>(dataPath,
+            // Now read the file (remember though, loaders are lazy, so the actual reading will happen when the data is accessed).
+            var loader = mlContext.Data.LoadFromTextFile<AdultData>(dataPath,
                 // Default separator is tab, but we need a comma.
                 separatorChar: ',');
         }
@@ -477,7 +477,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         public void CustomTransformer()
         {
             var mlContext = new MLContext();
-            var data = mlContext.Data.ReadFromTextFile(GetDataPath("adult.tiny.with-schema.txt"), new[]
+            var data = mlContext.Data.LoadFromTextFile(GetDataPath("adult.tiny.with-schema.txt"), new[]
             {
                 new TextLoader.Column("Income", DataKind.Single, 10),
                 new TextLoader.Column("Features", DataKind.Single, 12, 14)

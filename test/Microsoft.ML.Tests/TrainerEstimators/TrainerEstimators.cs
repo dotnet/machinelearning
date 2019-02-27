@@ -38,7 +38,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 },
                 AllowSparse = true
             });
-            var data = reader.Read(GetDataPath(TestDatasets.mnistOneClass.trainFilename));
+            var data = reader.Load(GetDataPath(TestDatasets.mnistOneClass.trainFilename));
 
 
             // Pipeline.
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 },
                 AllowSparse = true
             });
-            var data = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
+            var data = reader.Load(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
 
 
             // Pipeline.
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                             new TextLoader.Column("Label", DataKind.Boolean, 0),
                             new TextLoader.Column("SentimentText", DataKind.String, 1)
                         }
-                    }).Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
+                    }).Load(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
             // Pipeline.
             var pipeline = new TextFeaturizingEstimator(Env, "Features", "SentimentText");
@@ -192,7 +192,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                         new TextLoader.Column("Workclass", DataKind.String, 1),
                         new TextLoader.Column("NumericFeatures", DataKind.Single, new [] { new TextLoader.Range(9, 14) })
                     }
-            }).Read(GetDataPath(TestDatasets.adultRanking.trainFilename));
+            }).Load(GetDataPath(TestDatasets.adultRanking.trainFilename));
 
             // Pipeline.
             var pipeline = new ValueToKeyMappingEstimator(Env, new[]{
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                             new TextLoader.Column("Label", DataKind.Single, 11),
                             new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(0, 10) } )
                         }
-                    }).Read(GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename));
+                    }).Load(GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename));
         }
 
         private TextLoader.Options GetIrisLoaderArgs()
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                             new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(0, 3) }),
                             new TextLoader.Column("Label", DataKind.String, 4)
                         }
-            }).Read(GetDataPath(IrisDataPath));
+            }).Load(GetDataPath(IrisDataPath));
 
             var pipeline = new ValueToKeyMappingEstimator(Env, "Label");
 

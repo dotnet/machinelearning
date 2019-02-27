@@ -58,7 +58,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Categorical.OneHotEncoding(new[]{
                     new OneHotEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag),
                     new OneHotEncodingEstimator.ColumnOptions("CatB", "A", OneHotEncodingTransformer.OutputKind.Bin),
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
             var mlContext = new MLContext();
-            var dataView = mlContext.Data.ReadFromEnumerable(data);
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
 
             var pipe = mlContext.Transforms.Categorical.OneHotHashEncoding("CatA", "A", 3, 0, OneHotEncodingTransformer.OutputKind.Bag)
                 .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CatB", "A", 2, 0, OneHotEncodingTransformer.OutputKind.Key))
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
             var mlContext = new MLContext();
-            var dataView = mlContext.Data.ReadFromEnumerable(data);
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
 
             var pipe = mlContext.Transforms.Categorical.OneHotEncoding("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag)
                 .Append(mlContext.Transforms.Categorical.OneHotEncoding("CatB", "A", OneHotEncodingTransformer.OutputKind.Key))
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestStringClass() { A = "Stay" }, new TestStringClass() { A = "awhile and listen" } };
 
             var mlContext = new MLContext();
-            var dataView = mlContext.Data.ReadFromEnumerable(data);
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
 
             var sideDataBuilder = new ArrayDataViewBuilder(mlContext);
             sideDataBuilder.AddColumn("Hello", "hello", "my", "friend");
@@ -141,13 +141,13 @@ namespace Microsoft.ML.Tests.Transformers
         public void CategoricalStatic()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
                 ScalarString: ctx.LoadText(1),
                 VectorString: ctx.LoadText(1, 4)));
-            var data = reader.Read(dataPath);
+            var data = reader.Load(dataPath);
             var wrongCollection = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
-            var invalidData = ML.Data.ReadFromEnumerable(wrongCollection);
+            var invalidData = ML.Data.LoadFromEnumerable(wrongCollection);
             var est = data.MakeNewEstimator().
                   Append(row => (
                   A: row.ScalarString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotScalarOutputKind.Ind),
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestMeta() { A=new string[2] { "A", "B"}, B="C", C=new int[2] { 3,5}, D= 6, E=new float[2] { 5.0f,6.0f}, F = 1.0f ,G= new string[2]{ "D", "E"}, H="D"} };
 
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Categorical.OneHotEncoding(new[] {
                 new OneHotEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag),
                 new OneHotEncodingEstimator.ColumnOptions("CatB", "B", OneHotEncodingTransformer.OutputKind.Bag),
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Categorical.OneHotEncoding(new[]{
                     new OneHotEncodingEstimator.ColumnOptions("TermA", "A"),
                     new OneHotEncodingEstimator.ColumnOptions("TermB", "B"),

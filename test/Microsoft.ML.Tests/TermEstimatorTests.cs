@@ -78,7 +78,7 @@ namespace Microsoft.ML.Tests
                     new ValueToKeyMappingEstimator.ColumnOptions("TermText1", "text1"),
                     new ValueToKeyMappingEstimator.ColumnOptions("TermText2", "text2")
                 });
-            var data = loader.Read(dataPath);
+            var data = loader.Load(dataPath);
             data = ML.Data.TakeRows(data, 10);
             var outputPath = GetOutputPath("Term", "Term.tsv");
             using (var ch = Env.Start("save"))
@@ -99,14 +99,14 @@ namespace Microsoft.ML.Tests
 
             var xydata = new[] { new TestClassXY() { X = 10, Y = 100 }, new TestClassXY() { X = -1, Y = -100 } };
             var stringData = new[] { new TestClassDifferentTypes { A = "1", B = "c", C = "b" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = new ValueToKeyMappingEstimator(Env, new[]{
                    new ValueToKeyMappingEstimator.ColumnOptions("TermA", "A"),
                    new ValueToKeyMappingEstimator.ColumnOptions("TermB", "B"),
                    new ValueToKeyMappingEstimator.ColumnOptions("TermC", "C")
                 });
-            var invalidData = ML.Data.ReadFromEnumerable(xydata);
-            var validFitNotValidTransformData = ML.Data.ReadFromEnumerable(stringData);
+            var invalidData = ML.Data.LoadFromEnumerable(xydata);
+            var validFitNotValidTransformData = ML.Data.LoadFromEnumerable(stringData);
             TestEstimatorCore(pipe, dataView, null, invalidData, validFitNotValidTransformData);
         }
 
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Tests
         void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var est = new ValueToKeyMappingEstimator(Env, new[]{
                     new ValueToKeyMappingEstimator.ColumnOptions("TermA", "A"),
                     new ValueToKeyMappingEstimator.ColumnOptions("TermB", "B"),
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Tests
         void TestMetadataCopy()
         {
             var data = new[] { new TestMetaClass() { Term = "A", NotUsed = 1 }, new TestMetaClass() { Term = "B" }, new TestMetaClass() { Term = "C" } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var termEst = new ValueToKeyMappingEstimator(Env, new[] {
                     new ValueToKeyMappingEstimator.ColumnOptions("T", "Term") });
 

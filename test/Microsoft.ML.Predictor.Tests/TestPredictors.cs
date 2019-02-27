@@ -605,7 +605,7 @@ namespace Microsoft.ML.RunTests
         public void TestTreeEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = ML.Data.ReadFromTextFile(dataPath);
+            var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
@@ -626,7 +626,7 @@ namespace Microsoft.ML.RunTests
         public void TestTreeEnsembleCombinerWithCategoricalSplits()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var dataView = ML.Data.ReadFromTextFile(dataPath);
+            var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var cat = ML.Transforms.Categorical.OneHotEncoding("Features", "Categories").Fit(dataView).Transform(dataView);
             var fastTrees = new PredictorModel[3];
@@ -728,7 +728,7 @@ namespace Microsoft.ML.RunTests
         public void TestEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = ML.Data.ReadFromTextFile(dataPath);
+            var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var predictors = new PredictorModel[]
             {
@@ -773,7 +773,7 @@ namespace Microsoft.ML.RunTests
         public void TestMultiClassEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = ML.Data.ReadFromTextFile(dataPath);
+            var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var predictors = new PredictorModel[]
             {

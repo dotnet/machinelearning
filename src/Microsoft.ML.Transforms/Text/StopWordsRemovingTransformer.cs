@@ -646,7 +646,7 @@ namespace Microsoft.ML.Transforms.Text
             public string DataFile;
 
             [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureDataLoader))]
-            internal IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
+            internal IComponentFactory<IMultiStreamSource, ILegacyDataLoader> Loader;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the text column containing the stopwords", ShortName = "stopwordsCol", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string StopwordsColumn;
@@ -705,13 +705,13 @@ namespace Microsoft.ML.Transforms.Text
         private readonly NormStr.Pool _stopWordsMap;
         private const string RegistrationName = "CustomStopWordsRemover";
 
-        private IDataLoader GetLoaderForStopwords(IChannel ch, string dataFile,
-            IComponentFactory<IMultiStreamSource, IDataLoader> loader, ref string stopwordsCol)
+        private ILegacyDataLoader GetLoaderForStopwords(IChannel ch, string dataFile,
+            IComponentFactory<IMultiStreamSource, ILegacyDataLoader> loader, ref string stopwordsCol)
         {
             Host.CheckValue(ch, nameof(ch));
 
             MultiFileSource fileSource = new MultiFileSource(dataFile);
-            IDataLoader dataLoader;
+            ILegacyDataLoader dataLoader;
 
             // First column using the file.
             if (loader == null)
@@ -747,9 +747,9 @@ namespace Microsoft.ML.Transforms.Text
                         },
                         Separators = new[] { ',' },
                     };
-                    var reader = new TextLoader(Host, options: options, dataSample: fileSource);
+                    var textLoader = new TextLoader(Host, options: options, dataSample: fileSource);
 
-                    dataLoader = reader.Read(fileSource) as IDataLoader;
+                    dataLoader = textLoader.Load(fileSource) as ILegacyDataLoader;
                 }
                 ch.AssertNonEmpty(stopwordsCol);
             }
@@ -759,7 +759,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         private void LoadStopWords(IChannel ch, ReadOnlyMemory<char> stopwords, string dataFile, string stopwordsColumn,
-            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory, out NormStr.Pool stopWordsMap)
+            IComponentFactory<IMultiStreamSource, ILegacyDataLoader> loaderFactory, out NormStr.Pool stopWordsMap)
         {
             Host.AssertValue(ch);
 
@@ -855,7 +855,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         internal CustomStopWordsRemovingTransformer(IHostEnvironment env, string stopwords,
-            string dataFile, string stopwordsColumn, IComponentFactory<IMultiStreamSource, IDataLoader> loader, params (string outputColumnName, string inputColumnName)[] columns) :
+            string dataFile, string stopwordsColumn, IComponentFactory<IMultiStreamSource, ILegacyDataLoader> loader, params (string outputColumnName, string inputColumnName)[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
             var ch = Host.Start("LoadStopWords");

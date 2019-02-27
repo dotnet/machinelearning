@@ -12,7 +12,7 @@ namespace Microsoft.ML
 {
     /// <summary>
     /// A catalog of operations over data that are not transformers or estimators.
-    /// This includes data readers, saving, caching, filtering etc.
+    /// This includes data loaders, saving, caching, filtering etc.
     /// </summary>
     public sealed class DataOperationsCatalog
     {
@@ -49,7 +49,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public IDataView ReadFromEnumerable<TRow>(IEnumerable<TRow> data, SchemaDefinition schemaDefinition = null)
+        public IDataView LoadFromEnumerable<TRow>(IEnumerable<TRow> data, SchemaDefinition schemaDefinition = null)
             where TRow : class
         {
             Environment.CheckValue(data, nameof(data));
