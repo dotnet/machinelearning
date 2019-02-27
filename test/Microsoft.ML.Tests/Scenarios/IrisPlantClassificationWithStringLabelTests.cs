@@ -29,8 +29,8 @@ namespace Microsoft.ML.Scenarios
             // Read training and test data sets
             string dataPath = GetDataPath("iris.data");
             string testDataPath = dataPath;
-            var trainData = reader.Read(dataPath);
-            var testData = reader.Read(testDataPath);
+            var trainData = reader.Load(dataPath);
+            var testData = reader.Load(testDataPath);
 
             // Create Estimator
             var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")

@@ -10,7 +10,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Trainers.FactorizationMachine
+namespace Microsoft.ML.Trainers
 {
     internal sealed class FieldAwareFactorizationMachineUtils
     {

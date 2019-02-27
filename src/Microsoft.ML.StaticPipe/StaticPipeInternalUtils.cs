@@ -24,7 +24,7 @@ namespace Microsoft.ML.StaticPipe
         /// <typeparam name="T">A type of either <see cref="ValueTuple"/> or one of the major <see cref="PipelineColumn"/> subclasses
         /// (for example, <see cref="Scalar{T}"/>, <see cref="Vector{T}"/>, etc.)</typeparam>
         /// <returns>An instance of <typeparamref name="T"/> where all <see cref="PipelineColumn"/> fields have the provided reconciler</returns>
-        public static T MakeAnalysisInstance<T>(out ReaderReconciler<int> fakeReconciler)
+        public static T MakeAnalysisInstance<T>(out LoaderReconciler<int> fakeReconciler)
         {
             var rec = new AnalyzeUtil.Rec();
             fakeReconciler = rec;
@@ -33,11 +33,11 @@ namespace Microsoft.ML.StaticPipe
 
         private static class AnalyzeUtil
         {
-            public sealed class Rec : ReaderReconciler<int>
+            public sealed class Rec : LoaderReconciler<int>
             {
                 public Rec() : base() { }
 
-                public override IDataReaderEstimator<int, IDataReader<int>> Reconcile(
+                public override IDataLoaderEstimator<int, IDataLoader<int>> Reconcile(
                     IHostEnvironment env, PipelineColumn[] toOutput, IReadOnlyDictionary<PipelineColumn, string> outputNames)
                 {
                     Contracts.AssertValue(env);

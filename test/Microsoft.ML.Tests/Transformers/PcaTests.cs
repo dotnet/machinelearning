@@ -27,15 +27,15 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void PcaWorkout()
         {
-            var data = TextLoaderStatic.CreateReader(_env,
+            var data = TextLoaderStatic.CreateLoader(_env,
                 c => (label: c.LoadFloat(11), weight: c.LoadFloat(0), features: c.LoadFloat(1, 10)),
                 separator: ';', hasHeader: true)
-                .Read(_dataSource);
+                .Load(_dataSource);
 
-            var invalidData = TextLoaderStatic.CreateReader(_env,
+            var invalidData = TextLoaderStatic.CreateLoader(_env,
                 c => (label: c.LoadFloat(11), weight: c.LoadFloat(0), features: c.LoadText(1, 10)),
                 separator: ';', hasHeader: true)
-                .Read(_dataSource);
+                .Load(_dataSource);
 
             var est = ML.Transforms.Projection.ProjectToPrincipalComponents("pca", "features", rank: 4, seed: 10);
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
@@ -49,10 +49,10 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestPcaEstimator()
         {
-            var data = TextLoaderStatic.CreateReader(ML,
+            var data = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(_dataSource);
+                .Load(_dataSource);
 
             var est = ML.Transforms.Projection.ProjectToPrincipalComponents("pca", "features", rank: 5, seed: 1);
             var outputPath = GetOutputPath("PCA", "pca.tsv");

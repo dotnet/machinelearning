@@ -32,7 +32,6 @@ namespace Microsoft.ML.EntryPoints
     {
         Auto,
         Memory,
-        Disk,
         None
     }
 
@@ -188,17 +187,18 @@ namespace Microsoft.ML.EntryPoints
                 var roleMappedData = new RoleMappedData(view, label, feature, group, weight, name, custom);
 
                 RoleMappedData cachedRoleMappedData = roleMappedData;
-                Cache.CachingType? cachingType = null;
+                IFileHandle fileHandle = null;
+
+                const string registrationName = "CreateCache";
+                var createCacheHost = host.Register(registrationName);
+
+                IDataView outputData = null;
+
                 switch (input.Caching)
                 {
                     case CachingOptions.Memory:
                         {
-                            cachingType = Cache.CachingType.Memory;
-                            break;
-                        }
-                    case CachingOptions.Disk:
-                        {
-                            cachingType = Cache.CachingType.Disk;
+                            outputData = new CacheDataView(host, roleMappedData.Data, null);
                             break;
                         }
                     case CachingOptions.Auto:
@@ -206,7 +206,7 @@ namespace Microsoft.ML.EntryPoints
                             // REVIEW: we should switch to hybrid caching in future.
                             if (!(input.TrainingData is BinaryLoader) && trainer.Info.WantCaching)
                                 // default to Memory so mml is on par with maml
-                                cachingType = Cache.CachingType.Memory;
+                                outputData = new CacheDataView(host, roleMappedData.Data, null);
                             break;
                         }
                     case CachingOptions.None:
@@ -215,17 +215,13 @@ namespace Microsoft.ML.EntryPoints
                         throw ch.ExceptParam(nameof(input.Caching), "Unknown option for caching: '{0}'", input.Caching);
                 }
 
-                if (cachingType.HasValue)
+                if (outputData != null)
                 {
-                    var cacheView = Cache.CacheData(host, new Cache.CacheInput()
-                    {
-                        Data = roleMappedData.Data,
-                        Caching = cachingType.Value
-                    }).OutputData;
-                    cachedRoleMappedData = new RoleMappedData(cacheView, roleMappedData.Schema.GetColumnRoleNames());
+                    cachedRoleMappedData = new RoleMappedData(outputData, roleMappedData.Schema.GetColumnRoleNames());
                 }
 
                 var predictor = TrainUtils.Train(host, ch, cachedRoleMappedData, trainer, calibrator, maxCalibrationExamples);
+                fileHandle?.Dispose();
                 return new TOut() { PredictorModel = new PredictorModelImpl(host, roleMappedData, input.TrainingData, predictor) };
             }
         }

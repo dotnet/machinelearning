@@ -221,36 +221,36 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The 'data reader' takes a certain kind of input and turns it into an <see cref="IDataView"/>.
+    /// The 'data loader' takes a certain kind of input and turns it into an <see cref="IDataView"/>.
     /// </summary>
-    /// <typeparam name="TSource">The type of input the reader takes.</typeparam>
-    public interface IDataReader<in TSource>
+    /// <typeparam name="TSource">The type of input the loader takes.</typeparam>
+    public interface IDataLoader<in TSource>
     {
         /// <summary>
         /// Produce the data view from the specified input.
-        /// Note that <see cref="IDataView"/>'s are lazy, so no actual reading happens here, just schema validation.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual loading happens here, just schema validation.
         /// </summary>
-        IDataView Read(TSource input);
+        IDataView Load(TSource input);
 
         /// <summary>
-        /// The output schema of the reader.
+        /// The output schema of the loader.
         /// </summary>
         DataViewSchema GetOutputSchema();
     }
 
     /// <summary>
-    /// Sometimes we need to 'fit' an <see cref="IDataReader{TIn}"/>.
-    /// A DataReader estimator is the object that does it.
+    /// Sometimes we need to 'fit' an <see cref="IDataLoader{TIn}"/>.
+    /// A DataLoader estimator is the object that does it.
     /// </summary>
-    public interface IDataReaderEstimator<in TSource, out TReader>
-        where TReader : IDataReader<TSource>
+    public interface IDataLoaderEstimator<in TSource, out TLoader>
+        where TLoader : IDataLoader<TSource>
     {
         // REVIEW: you could consider the transformer to take a different <typeparamref name="TSource"/>, but we don't have such components
         // yet, so why complicate matters?
         /// <summary>
-        /// Train and return a data reader.
+        /// Train and return a data loader.
         /// </summary>
-        TReader Fit(TSource input);
+        TLoader Fit(TSource input);
 
         /// <summary>
         /// The 'promise' of the output schema.

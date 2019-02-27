@@ -218,14 +218,14 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public readonly struct PivotColumnInfo
+            public readonly struct PivotColumnOptions
             {
                 public readonly string Name;
                 public readonly int Index;
                 public readonly int Size;
                 public readonly PrimitiveDataViewType ItemType;
 
-                public PivotColumnInfo(string name, int index, int size, PrimitiveDataViewType itemType)
+                public PivotColumnOptions(string name, int index, int size, PrimitiveDataViewType itemType)
                 {
                     Contracts.AssertNonEmpty(name);
                     Contracts.Assert(index >= 0);
@@ -244,7 +244,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Information of columns to be ungrouped in <see cref="_inputSchema"/>.
             /// </summary>
-            private readonly PivotColumnInfo[] _infos;
+            private readonly PivotColumnOptions[] _infos;
 
             /// <summary>
             /// <see cref="_pivotIndex"/>[i] is -1 means that the i-th column in both of <see cref="_inputSchema"/> and <see cref="OutputSchema"/>
@@ -319,13 +319,13 @@ namespace Microsoft.ML.Transforms
             }
 
             private static void Bind(IExceptionContext ectx, DataViewSchema inputSchema,
-                string[] pivotColumns, out PivotColumnInfo[] infos)
+                string[] pivotColumns, out PivotColumnOptions[] infos)
             {
                 Contracts.AssertValueOrNull(ectx);
                 ectx.AssertValue(inputSchema);
                 ectx.AssertNonEmpty(pivotColumns);
 
-                infos = new PivotColumnInfo[pivotColumns.Length];
+                infos = new PivotColumnOptions[pivotColumns.Length];
                 for (int i = 0; i < pivotColumns.Length; i++)
                 {
                     var name = pivotColumns[i];
@@ -337,7 +337,7 @@ namespace Microsoft.ML.Transforms
                     if (!(inputSchema[col].Type is VectorType colType))
                         throw ectx.ExceptUserArg(nameof(Options.Columns),
                             "Pivot column '{0}' has type '{1}', but must be a vector of primitive types", name, inputSchema[col].Type);
-                    infos[i] = new PivotColumnInfo(name, col, colType.Size, colType.ItemType);
+                    infos[i] = new PivotColumnOptions(name, col, colType.Size, colType.ItemType);
                 }
             }
 
@@ -399,13 +399,13 @@ namespace Microsoft.ML.Transforms
                 get { return _infos.Length; }
             }
 
-            public PivotColumnInfo GetPivotColumnInfo(int iinfo)
+            public PivotColumnOptions GetPivotColumnOptions(int iinfo)
             {
                 _ectx.Assert(0 <= iinfo && iinfo < _infos.Length);
                 return _infos[iinfo];
             }
 
-            public PivotColumnInfo GetPivotColumnInfoByCol(int col)
+            public PivotColumnOptions GetPivotColumnOptionsByCol(int col)
             {
                 _ectx.Assert(0 <= col && col < _inputSchema.Count);
                 _ectx.Assert(_pivotIndex[col] >= 0);
@@ -487,7 +487,7 @@ namespace Microsoft.ML.Transforms
                 var needed = new List<Func<int>>();
                 for (int i = 0; i < sizeColumnsLim; i++)
                 {
-                    var info = _ungroupBinding.GetPivotColumnInfo(i);
+                    var info = _ungroupBinding.GetPivotColumnOptions(i);
                     if (info.Size > 0)
                     {
                         if (_fixedSize == 0)
@@ -615,7 +615,7 @@ namespace Microsoft.ML.Transforms
                     return Input.GetGetter<TValue>(col);
 
                 if (_cachedGetters[col] == null)
-                    _cachedGetters[col] = MakeGetter<TValue>(col, _ungroupBinding.GetPivotColumnInfoByCol(col).ItemType);
+                    _cachedGetters[col] = MakeGetter<TValue>(col, _ungroupBinding.GetPivotColumnOptionsByCol(col).ItemType);
 
                 var result = _cachedGetters[col] as ValueGetter<TValue>;
                 Ch.Check(result != null, "Unexpected getter type requested");

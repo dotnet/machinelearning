@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.FactorizationMachine;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML
 {

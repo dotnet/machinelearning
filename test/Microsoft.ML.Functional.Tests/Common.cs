@@ -72,8 +72,8 @@ namespace Microsoft.ML.Functional.Tests
             Common.AssertEqual(data1.Schema, data2.Schema);
 
             // Define how to serialize the IDataView to objects.
-            var enumerable1 = mlContext.CreateEnumerable<TypeTestData>(data1, true);
-            var enumerable2 = mlContext.CreateEnumerable<TypeTestData>(data2, true);
+            var enumerable1 = mlContext.Data.CreateEnumerable<TypeTestData>(data1, true);
+            var enumerable2 = mlContext.Data.CreateEnumerable<TypeTestData>(data2, true);
 
             AssertEqual(enumerable1, enumerable2);
         }

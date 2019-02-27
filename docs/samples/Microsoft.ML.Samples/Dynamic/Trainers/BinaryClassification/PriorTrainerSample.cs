@@ -33,7 +33,7 @@ namespace Microsoft.ML.Samples.Dynamic
             );
 
             // Read the data
-            var trainData = reader.Read(trainFile);
+            var trainData = reader.Load(trainFile);
 
             // Step 2: Pipeline 
             // Featurize the text column through the FeaturizeText API. 
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var trainedPipeline = pipeline.Fit(trainData);
 
             // Step 4: Evaluate on the test set
-            var transformedData = trainedPipeline.Transform(reader.Read(testFile));
+            var transformedData = trainedPipeline.Transform(reader.Load(testFile));
             var evalMetrics = mlContext.BinaryClassification.Evaluate(transformedData, label: "Sentiment");
             SamplesUtils.ConsoleUtils.PrintMetrics(evalMetrics);
 

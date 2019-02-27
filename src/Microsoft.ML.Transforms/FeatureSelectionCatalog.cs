@@ -29,9 +29,9 @@ namespace Microsoft.ML
             string labelColumn = MutualInfoSelectDefaults.LabelColumn,
             int slotsInOutput = MutualInfoSelectDefaults.SlotsInOutput,
             int numBins = MutualInfoSelectDefaults.NumBins,
-            params SimpleColumnInfo[] columns)
+            params ColumnOptions[] columns)
             => new MutualInformationFeatureSelectingEstimator(CatalogUtils.GetEnvironment(catalog), labelColumn, slotsInOutput, numBins,
-                SimpleColumnInfo.ConvertToValueTuples(columns));
+                ColumnOptions.ConvertToValueTuples(columns));
 
         /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
         /// <param name="catalog">The transform's catalog.</param>
@@ -65,7 +65,7 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static CountFeatureSelectingEstimator SelectFeaturesBasedOnCount(this TransformsCatalog.FeatureSelectionTransforms catalog,
-            params CountFeatureSelectingEstimator.ColumnInfo[] columns)
+            params CountFeatureSelectingEstimator.ColumnOptions[] columns)
             => new CountFeatureSelectingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />

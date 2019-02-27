@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 using Microsoft.ML.Internal.CpuMath;
 
-namespace Microsoft.ML.Trainers.FactorizationMachine
+namespace Microsoft.ML.Trainers
 {
     internal static unsafe class FieldAwareFactorizationMachineInterface
     {

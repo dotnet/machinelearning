@@ -49,7 +49,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Let's now walk through the first ten records and see which feature drove the values the most
             // Get prediction scores and contributions
-            var scoringEnumerator = mlContext.CreateEnumerable<HousingRegressionScoreAndContribution>(outputData, true).GetEnumerator();
+            var scoringEnumerator = mlContext.Data.CreateEnumerable<HousingRegressionScoreAndContribution>(outputData, true).GetEnumerator();
             int index = 0;
             Console.WriteLine("Label\tScore\tBiggestFeature\tValue\tWeight\tContribution");
             while (scoringEnumerator.MoveNext() && index < 10)

@@ -10,7 +10,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers
 {
