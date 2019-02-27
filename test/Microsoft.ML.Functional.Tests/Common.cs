@@ -165,8 +165,8 @@ namespace Microsoft.ML.Functional.Tests
         /// <param name="metrics">The metrics object.</param>
         public static void AssertMetrics(AnomalyDetectionMetrics metrics)
         {
-            Assert.InRange(metrics.Auc, 0, 1);
-            Assert.InRange(metrics.DrAtK, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
+            Assert.InRange(metrics.DetectionRateAtKFalsePositives, 0, 1);
         }
 
         /// <summary>
@@ -176,8 +176,8 @@ namespace Microsoft.ML.Functional.Tests
         public static void AssertMetrics(BinaryClassificationMetrics metrics)
         {
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.Auc, 0, 1);
-            Assert.InRange(metrics.Auprc, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
             Assert.InRange(metrics.F1Score, 0, 1);
             Assert.InRange(metrics.NegativePrecision, 0, 1);
             Assert.InRange(metrics.NegativeRecall, 0, 1);
@@ -203,10 +203,10 @@ namespace Microsoft.ML.Functional.Tests
         /// <param name="metrics">The metrics object.</param>
         public static void AssertMetrics(ClusteringMetrics metrics)
         {
-            Assert.True(metrics.AvgMinScore >= 0);
-            Assert.True(metrics.Dbi >= 0);
-            if (!double.IsNaN(metrics.Nmi))
-                Assert.True(metrics.Nmi >= 0 && metrics.Nmi <= 1);
+            Assert.True(metrics.AverageDistance >= 0);
+            Assert.True(metrics.DaviesBouldinIndex >= 0);
+            if (!double.IsNaN(metrics.NormalizedMutualInformation))
+                Assert.True(metrics.NormalizedMutualInformation >= 0 && metrics.NormalizedMutualInformation <= 1);
         }
 
         /// <summary>
@@ -215,8 +215,8 @@ namespace Microsoft.ML.Functional.Tests
         /// <param name="metrics">The metrics object.</param>
         public static void AssertMetrics(MultiClassClassifierMetrics metrics)
         {
-            Assert.InRange(metrics.AccuracyMacro, 0, 1);
-            Assert.InRange(metrics.AccuracyMicro, 0, 1);
+            Assert.InRange(metrics.MacroAccuracy, 0, 1);
+            Assert.InRange(metrics.MicroAccuracy, 0, 1);
             Assert.True(metrics.LogLoss >= 0);
             Assert.InRange(metrics.TopKAccuracy, 0, 1);
         }
@@ -227,9 +227,9 @@ namespace Microsoft.ML.Functional.Tests
         /// <param name="metrics">The metrics object.</param>
         public static void AssertMetrics(RankingMetrics metrics)
         {
-            foreach (var dcg in metrics.Dcg)
+            foreach (var dcg in metrics.DiscountedCumulativeGains)
                 Assert.True(dcg >= 0);
-            foreach (var ndcg in metrics.Ndcg)
+            foreach (var ndcg in metrics.NormalizedDiscountedCumulativeGains)
                 Assert.InRange(ndcg, 0, 100);
         }
 
@@ -239,9 +239,9 @@ namespace Microsoft.ML.Functional.Tests
         /// <param name="metrics">The metrics object.</param>
         public static void AssertMetrics(RegressionMetrics metrics)
         {
-            Assert.True(metrics.Rms >= 0);
-            Assert.True(metrics.L1 >= 0);
-            Assert.True(metrics.L2 >= 0);
+            Assert.True(metrics.RootMeanSquaredError >= 0);
+            Assert.True(metrics.MeanAbsoluteError >= 0);
+            Assert.True(metrics.MeanSquaredError >= 0);
             Assert.True(metrics.RSquared <= 1);
         }
 

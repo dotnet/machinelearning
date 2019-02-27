@@ -108,7 +108,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var metrics = ML.BinaryClassification.Evaluate(result);
 
                 Assert.InRange(metrics.Accuracy, 0.8, 1);
-                Assert.InRange(metrics.Auc, 0.9, 1);
+                Assert.InRange(metrics.AreaUnderRocCurve, 0.9, 1);
                 Assert.InRange(metrics.LogLoss, 0, 0.6);
             }
 
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var metrics = ML.BinaryClassification.EvaluateNonCalibrated(result);
 
                 Assert.InRange(metrics.Accuracy, 0.7, 1);
-                Assert.InRange(metrics.Auc, 0.9, 1);
+                Assert.InRange(metrics.AreaUnderRocCurve, 0.9, 1);
             }
 
             Done();

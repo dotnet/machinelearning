@@ -46,7 +46,7 @@ namespace Microsoft.ML.Scenarios
             var predictions = transformer.Transform(data);
 
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-            Assert.Equal(1, metrics.AccuracyMicro, 2);
+            Assert.Equal(1, metrics.MicroAccuracy, 2);
 
             var predictFunction = transformer.CreatePredictionEngine<CifarData, CifarPrediction>(mlContext);
             var prediction = predictFunction.Predict(new CifarData()

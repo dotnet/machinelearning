@@ -443,7 +443,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     .Append(ML.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
             var model = pipe.Fit(dataView);
             var metrics = ML.MulticlassClassification.Evaluate(model.Transform(dataView));
-            Assert.True(metrics.AccuracyMacro > 0.8);
+            Assert.True(metrics.MacroAccuracy > 0.8);
             Thread.CurrentThread.CurrentCulture = currentCulture;
         }
     }

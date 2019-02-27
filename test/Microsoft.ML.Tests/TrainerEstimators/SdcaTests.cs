@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var metrics = mlContext.BinaryClassification.Evaluate(prediction);
 
             // Check a few metrics to make sure the trained model is ok.
-            Assert.InRange(metrics.Auc, 0.9, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.9, 1);
             Assert.InRange(metrics.LogLoss, 0, 0.5);
 
             var rawPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(prediction, false);
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(prediction);
 
             // Check a few metrics to make sure the trained model is ok.
-            Assert.InRange(metrics.Auc, 0.9, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.9, 1);
 
             var rawPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.NonCalibratedBinaryClassifierOutput>(prediction, false);
 

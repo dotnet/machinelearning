@@ -605,14 +605,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = pipeline.Fit(trainData);
             // Compute quality metrics on the test set.
             var metrics = mlContext.MulticlassClassification.Evaluate(model.Transform(testData), r => r.Label, r => r.Predictions);
-            Console.WriteLine(metrics.AccuracyMicro);
+            Console.WriteLine(metrics.MicroAccuracy);
 
             // Now run the 5-fold cross-validation experiment, using the same pipeline.
             var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline, r => r.Label, numFolds: 5);
 
             // The results object is an array of 5 elements. For each of the 5 folds, we have metrics, model and scored test data.
             // Let's compute the average micro-accuracy.
-            var microAccuracies = cvResults.Select(r => r.metrics.AccuracyMicro);
+            var microAccuracies = cvResults.Select(r => r.metrics.MicroAccuracy);
             Console.WriteLine(microAccuracies.Average());
         }
 
