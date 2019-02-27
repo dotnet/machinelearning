@@ -253,10 +253,7 @@ namespace Microsoft.ML.Trainers.FactorizationMachine
         /// <summary>
         /// The linear coefficients of the features. It's the symbol `w` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
         /// </summary>
-        public IReadOnlyList<float> GetLinearWeights()
-        {
-            return _linearWeights;
-        }
+        public IReadOnlyList<float> GetLinearWeights() => _linearWeights;
 
         /// <summary>
         /// Latent representation of each feature. Note that one feature may have <see cref="FieldCount"/> latent vectors

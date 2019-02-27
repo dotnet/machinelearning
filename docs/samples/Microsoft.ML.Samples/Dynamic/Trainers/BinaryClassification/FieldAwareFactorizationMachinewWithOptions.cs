@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.FactorizationMachine;
+using Microsoft.ML.Trainers.FactorizationMachine;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
