@@ -14,7 +14,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 
             // Create in-memory examples as C# native class and convert to IDataView
             var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(1000);
-            var dataView = mlContext.Data.ReadFromEnumerable(data);
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
 
             // Split the data into training and test sets. Only training set is used in fitting
             // the created pipeline. Metrics are computed on the test.
