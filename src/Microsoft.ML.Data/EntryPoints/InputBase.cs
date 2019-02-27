@@ -2,9 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.EntryPoints
 {
@@ -29,6 +34,100 @@ namespace Microsoft.ML.EntryPoints
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Name column name.", ShortName = "name", SortOrder = 2, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public string NameColumn = DefaultColumnNames.Name;
+    }
+
+    [BestFriend]
+    internal static class TrainerEntryPointsUtils
+    {
+        public static string FindColumn(IExceptionContext ectx, DataViewSchema schema, Optional<string> value)
+        {
+            Contracts.CheckValueOrNull(ectx);
+            ectx.CheckValue(schema, nameof(schema));
+            ectx.CheckValue(value, nameof(value));
+
+            if (string.IsNullOrEmpty(value?.Value))
+                return null;
+            if (!schema.TryGetColumnIndex(value, out int col))
+            {
+                if (value.IsExplicit)
+                    throw ectx.Except("Column '{0}' not found", value);
+                return null;
+            }
+            return value;
+        }
+
+        public static TOut Train<TArg, TOut>(IHost host, TArg input,
+            Func<ITrainer> createTrainer,
+            Func<string> getLabel = null,
+            Func<string> getWeight = null,
+            Func<string> getGroup = null,
+            Func<string> getName = null,
+            Func<IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>>> getCustom = null,
+            ICalibratorTrainerFactory calibrator = null,
+            int maxCalibrationExamples = 0)
+            where TArg : TrainerInputBase
+            where TOut : CommonOutputs.TrainerOutput, new()
+        {
+            using (var ch = host.Start("Training"))
+            {
+                var schema = input.TrainingData.Schema;
+                var feature = FindColumn(ch, schema, input.FeatureColumn);
+                var label = getLabel?.Invoke();
+                var weight = getWeight?.Invoke();
+                var group = getGroup?.Invoke();
+                var name = getName?.Invoke();
+                var custom = getCustom?.Invoke();
+
+                var trainer = createTrainer();
+
+                IDataView view = input.TrainingData;
+                TrainUtils.AddNormalizerIfNeeded(host, ch, trainer, ref view, feature, input.NormalizeFeatures);
+
+                ch.Trace("Binding columns");
+                var roleMappedData = new RoleMappedData(view, label, feature, group, weight, name, custom);
+
+                RoleMappedData cachedRoleMappedData = roleMappedData;
+                Cache.CachingType? cachingType = null;
+                switch (input.Caching)
+                {
+                    case CachingOptions.Memory:
+                        {
+                            cachingType = Cache.CachingType.Memory;
+                            break;
+                        }
+                    case CachingOptions.Disk:
+                        {
+                            cachingType = Cache.CachingType.Disk;
+                            break;
+                        }
+                    case CachingOptions.Auto:
+                        {
+                            // REVIEW: we should switch to hybrid caching in future.
+                            if (!(input.TrainingData is BinaryLoader) && trainer.Info.WantCaching)
+                                // default to Memory so mml is on par with maml
+                                cachingType = Cache.CachingType.Memory;
+                            break;
+                        }
+                    case CachingOptions.None:
+                        break;
+                    default:
+                        throw ch.ExceptParam(nameof(input.Caching), "Unknown option for caching: '{0}'", input.Caching);
+                }
+
+                if (cachingType.HasValue)
+                {
+                    var cacheView = Cache.CacheData(host, new Cache.CacheInput()
+                    {
+                        Data = roleMappedData.Data,
+                        Caching = cachingType.Value
+                    }).OutputData;
+                    cachedRoleMappedData = new RoleMappedData(cacheView, roleMappedData.Schema.GetColumnRoleNames());
+                }
+
+                var predictor = TrainUtils.Train(host, ch, cachedRoleMappedData, trainer, calibrator, maxCalibrationExamples);
+                return new TOut() { PredictorModel = new PredictorModelImpl(host, roleMappedData, input.TrainingData, predictor) };
+            }
+        }
     }
 
     /// <summary>

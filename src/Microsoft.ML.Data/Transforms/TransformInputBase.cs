@@ -14,6 +14,8 @@ namespace Microsoft.ML.Transforms
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITransformInput))]
     public abstract class TransformInputBase
     {
+        private protected TransformInputBase() { }
+
         /// <summary>
         /// The input dataset. Used only in entry-point methods, since the normal API mechanism for feeding in a dataset to
         /// create an <see cref="ITransformer"/> is to use the <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> method.
