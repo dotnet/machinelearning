@@ -1434,7 +1434,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 {
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.MinMaxColumn column, IHost host, DataViewType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.MinMaxColumnOptions column, IHost host, DataViewType srcType,
                     ValueGetter<TFloat> getter)
                 {
                     host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
@@ -1484,7 +1484,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 {
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.MinMaxColumn column, IHost host, VectorType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.MinMaxColumnOptions column, IHost host, VectorType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
@@ -1546,14 +1546,14 @@ namespace Microsoft.ML.Transforms.Normalizers
                     _buffer = new VBuffer<TFloat>(1, new TFloat[1]);
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.MeanVarColumn column, IHost host, DataViewType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.MeanVarColumnOptions column, IHost host, DataViewType srcType,
                     ValueGetter<TFloat> getter)
                 {
                     host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
                     return new MeanVarOneColumnFunctionBuilder(host, column.MaxTrainingExamples, column.FixZero, getter, false, column.UseCdf);
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.LogMeanVarColumn column, IHost host, DataViewType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.LogMeanVarColumnOptions column, IHost host, DataViewType srcType,
                     ValueGetter<TFloat> getter)
                 {
                     var lim = column.MaxTrainingExamples;
@@ -1620,7 +1620,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     _useCdf = useCdf;
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.MeanVarColumn column, IHost host, VectorType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.MeanVarColumnOptions column, IHost host, VectorType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
@@ -1628,7 +1628,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return new MeanVarVecColumnFunctionBuilder(host, cv, column.MaxTrainingExamples, column.FixZero, getter, false, column.UseCdf);
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.LogMeanVarColumn column, IHost host, VectorType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.LogMeanVarColumnOptions column, IHost host, VectorType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     var lim = column.MaxTrainingExamples;
@@ -1736,7 +1736,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     _values = new List<TFloat>();
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.BinningColumn column, IHost host, DataViewType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.BinningColumnOptions column, IHost host, DataViewType srcType,
                     ValueGetter<TFloat> getter)
                 {
                     var lim = column.MaxTrainingExamples;
@@ -1785,7 +1785,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     }
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.BinningColumn column, IHost host, VectorType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.BinningColumnOptions column, IHost host, VectorType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     var lim = column.MaxTrainingExamples;
@@ -1870,7 +1870,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return BinColumnFunction.Create(Host, binUpperBounds, _fix);
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.SupervisedBinningColumn column, IHost host, int valueColumnId, int labelColumnId, DataViewRow dataRow)
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.SupervisedBinningColumOptions column, IHost host, int valueColumnId, int labelColumnId, DataViewRow dataRow)
                 {
                     var lim = column.MaxTrainingExamples;
                     host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
@@ -1910,7 +1910,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return BinColumnFunction.Create(Host, binUpperBounds, _fix);
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.SupervisedBinningColumn column, IHost host, int valueColumnId, int labelColumnId, DataViewRow dataRow)
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.SupervisedBinningColumOptions column, IHost host, int valueColumnId, int labelColumnId, DataViewRow dataRow)
                 {
                     var lim = column.MaxTrainingExamples;
                     host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");

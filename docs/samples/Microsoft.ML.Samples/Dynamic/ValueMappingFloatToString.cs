@@ -54,7 +54,7 @@ namespace Microsoft.ML.Samples.Dynamic
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);
 
             // Getting the resulting data as an IEnumerable of SampleTemperatureDataWithCategory. This will contain the newly created column TemperatureCategory
-            IEnumerable<SampleTemperatureDataWithCategory> featureRows = mlContext.CreateEnumerable<SampleTemperatureDataWithCategory>(transformedData, reuseRowObject: false);
+            IEnumerable<SampleTemperatureDataWithCategory> featureRows = mlContext.Data.CreateEnumerable<SampleTemperatureDataWithCategory>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"Example of mapping float->string");
             Console.WriteLine($"Date\t\tTemperature\tTemperatureCategory");

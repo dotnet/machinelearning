@@ -44,7 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic
             {
                 var resample = mlContext.Data.BootstrapSample(data, seed: i);
 
-                var enumerable = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorSample>(resample, reuseRowObject: false);
+                var enumerable = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorSample>(resample, reuseRowObject: false);
                 Console.WriteLine($"Label\tFeatures[0]");
                 foreach (var row in enumerable)
                 {

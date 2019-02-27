@@ -66,7 +66,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // 'transformedData' is a 'promise' of data. Let's actually read it.
             var someRows = mlContext
                 // Convert to an enumerable of user-defined type. 
-                .CreateEnumerable<InspectedRow>(transformedData.AsDynamic, reuseRowObject: false)
+                .Data.CreateEnumerable<InspectedRow>(transformedData.AsDynamic, reuseRowObject: false)
                 // Take a couple values as an array.
                 .Take(4).ToArray();
 

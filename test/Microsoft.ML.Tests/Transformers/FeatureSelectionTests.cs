@@ -74,12 +74,12 @@ namespace Microsoft.ML.Tests.Transformers
 
             var columns = new[]
             {
-                new SlotsDroppingTransformer.ColumnInfo("dropped1", "VectorFloat", (min: 0, max: 1)),
-                new SlotsDroppingTransformer.ColumnInfo("dropped2", "VectorFloat"),
-                new SlotsDroppingTransformer.ColumnInfo("dropped3", "ScalarFloat", (min:0, max: 3)),
-                new SlotsDroppingTransformer.ColumnInfo("dropped4", "VectorFloat", (min: 1, max: 2)),
-                new SlotsDroppingTransformer.ColumnInfo("dropped5", "VectorDouble", (min: 1, null)),
-                new SlotsDroppingTransformer.ColumnInfo("dropped6", "VectorFloat", (min: 100, null))
+                new SlotsDroppingTransformer.ColumnOptions("dropped1", "VectorFloat", (min: 0, max: 1)),
+                new SlotsDroppingTransformer.ColumnOptions("dropped2", "VectorFloat"),
+                new SlotsDroppingTransformer.ColumnOptions("dropped3", "ScalarFloat", (min:0, max: 3)),
+                new SlotsDroppingTransformer.ColumnOptions("dropped4", "VectorFloat", (min: 1, max: 2)),
+                new SlotsDroppingTransformer.ColumnOptions("dropped5", "VectorDouble", (min: 1, null)),
+                new SlotsDroppingTransformer.ColumnOptions("dropped6", "VectorFloat", (min: 100, null))
             };
             var trans = new SlotsDroppingTransformer(ML, columns);
 
@@ -115,11 +115,11 @@ namespace Microsoft.ML.Tests.Transformers
             var data = ML.Data.Cache(reader.Read(new MultiFileSource(dataPath)).AsDynamic);
 
             var columns = new[] {
-                new CountFeatureSelectingEstimator.ColumnInfo("FeatureSelectDouble", "VectorDouble", minCount: 1),
-                new CountFeatureSelectingEstimator.ColumnInfo("ScalFeatureSelectMissing690", "ScalarFloat", minCount: 690),
-                new CountFeatureSelectingEstimator.ColumnInfo("ScalFeatureSelectMissing100", "ScalarFloat", minCount: 100),
-                new CountFeatureSelectingEstimator.ColumnInfo("VecFeatureSelectMissing690", "VectorDouble", minCount: 690),
-                new CountFeatureSelectingEstimator.ColumnInfo("VecFeatureSelectMissing100", "VectorDouble", minCount: 100)
+                new CountFeatureSelectingEstimator.ColumnOptions("FeatureSelectDouble", "VectorDouble", minCount: 1),
+                new CountFeatureSelectingEstimator.ColumnOptions("ScalFeatureSelectMissing690", "ScalarFloat", minCount: 690),
+                new CountFeatureSelectingEstimator.ColumnOptions("ScalFeatureSelectMissing100", "ScalarFloat", minCount: 100),
+                new CountFeatureSelectingEstimator.ColumnOptions("VecFeatureSelectMissing690", "VectorDouble", minCount: 690),
+                new CountFeatureSelectingEstimator.ColumnOptions("VecFeatureSelectMissing100", "VectorDouble", minCount: 100)
             };
             var est = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("FeatureSelect", "VectorFloat", count: 1)
                 .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(columns));
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("FeatureSelect", "VectorFloat", slotsInOutput: 1, labelColumn: "Label")
                 .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation(labelColumn: "Label", slotsInOutput: 2, numBins: 100,
-                    columns: new SimpleColumnInfo[] {
+                    columns: new ColumnOptions[] {
                         ("out1", "VectorFloat"),
                         ("out2", "VectorDouble")
                     }));

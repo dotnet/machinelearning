@@ -32,7 +32,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The column settings.</param>
         public static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
-                params OneHotEncodingEstimator.ColumnInfo[] columns)
+                params OneHotEncodingEstimator.ColumnOptions[] columns)
             => new OneHotEncodingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Microsoft.ML
         /// <param name="keyData">Specifies an ordering for the encoding. If specified, this should be a single column data view,
         /// and the key-values will be taken from that column. If unspecified, the ordering will be determined from the input data upon fitting.</param>
         public static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
-                OneHotEncodingEstimator.ColumnInfo[] columns,
+                OneHotEncodingEstimator.ColumnOptions[] columns,
                 IDataView keyData = null)
             => new OneHotEncodingEstimator(CatalogUtils.GetEnvironment(catalog), columns, keyData);
 
@@ -73,7 +73,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The column settings.</param>
         public static OneHotHashEncodingEstimator OneHotHashEncoding(this TransformsCatalog.CategoricalTransforms catalog,
-                params OneHotHashEncodingEstimator.ColumnInfo[] columns)
+                params OneHotHashEncodingEstimator.ColumnOptions[] columns)
             => new OneHotHashEncodingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

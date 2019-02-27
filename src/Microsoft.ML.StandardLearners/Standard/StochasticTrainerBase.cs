@@ -4,9 +4,8 @@
 
 using System;
 using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Trainers

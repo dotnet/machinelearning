@@ -161,7 +161,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Validate that the contributions are there
             var shuffledSubset = mlContext.Data.TakeRows(mlContext.Data.ShuffleRows(outputData), 10);
-            var scoringEnumerator = mlContext.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
+            var scoringEnumerator = mlContext.Data.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
 
             // Make sure the number of feature contributions returned matches the length of the input feature vector.
             foreach (var row in scoringEnumerator)
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Validate that the contributions are there
             var shuffledSubset = mlContext.Data.TakeRows(mlContext.Data.ShuffleRows(outputData), 10);
-            var scoringEnumerator = mlContext.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
+            var scoringEnumerator = mlContext.Data.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
 
             // Make sure the number of feature contributions returned matches the length of the input feature vector.
             foreach (var row in scoringEnumerator)
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Validate that the contributions are there
             var shuffledSubset = mlContext.Data.TakeRows(mlContext.Data.ShuffleRows(outputData), 10);
-            var scoringEnumerator = mlContext.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
+            var scoringEnumerator = mlContext.Data.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
 
             // Make sure the number of feature contributions returned matches the length of the input feature vector.
             foreach (var row in scoringEnumerator)
@@ -273,7 +273,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Validate that the contributions are there
             var shuffledSubset = mlContext.Data.TakeRows(mlContext.Data.ShuffleRows(outputData), 10);
-            var scoringEnumerator = mlContext.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
+            var scoringEnumerator = mlContext.Data.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
 
             // Make sure the number of feature contributions returned matches the length of the input feature vector.
             foreach (var row in scoringEnumerator)

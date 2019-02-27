@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.StaticPipe.Runtime
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// An object for <see cref="PipelineColumn"/> instances to indicate to the analysis code for static pipelines that

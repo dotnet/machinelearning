@@ -36,7 +36,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var engine = model.CreatePredictionEngine<IrisDataNoLabel, IrisPredictionNotCasted>(ml);
 
             var testLoader = ml.Data.ReadFromTextFile(dataPath, TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',', hasHeader: true);
-            var testData = ml.CreateEnumerable<IrisData>(testLoader, false);
+            var testData = ml.Data.CreateEnumerable<IrisData>(testLoader, false);
             
             // During prediction we will get Score column with 3 float values.
             // We need to find way to map each score to original label.

@@ -34,7 +34,7 @@ namespace Microsoft.ML.ImageAnalytics
     /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="VectorToImageConvertingEstimator" /> .
     /// </summary>
     /// <remarks>
-    /// <seealso cref="ImageEstimatorsCatalog.ConvertToImage(TransformsCatalog, VectorToImageConvertingEstimator.ColumnInfo[])" />
+    /// <seealso cref="ImageEstimatorsCatalog.ConvertToImage(TransformsCatalog, VectorToImageConvertingEstimator.ColumnOptions[])" />
     /// <seealso cref="ImageEstimatorsCatalog.ConvertToImage(TransformsCatalog, int, int, string, string, ImagePixelExtractingEstimator.ColorBits, ImagePixelExtractingEstimator.ColorsOrder, bool, float, float, int, int, int, int)"/>
     /// <seealso cref="ImageEstimatorsCatalog"/>
     /// </remarks>
@@ -175,14 +175,14 @@ namespace Microsoft.ML.ImageAnalytics
 
         private const string RegistrationName = "VectorToImageConverter";
 
-        private readonly VectorToImageConvertingEstimator.ColumnInfo[] _columns;
+        private readonly VectorToImageConvertingEstimator.ColumnOptions[] _columns;
 
         /// <summary>
         /// The columns passed to this <see cref="ITransformer"/>.
         /// </summary>
-        public IReadOnlyCollection<VectorToImageConvertingEstimator.ColumnInfo> Columns => _columns.AsReadOnly();
+        public IReadOnlyCollection<VectorToImageConvertingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
 
-        internal VectorToImageConvertingTransformer(IHostEnvironment env, params VectorToImageConvertingEstimator.ColumnInfo[] columns)
+        internal VectorToImageConvertingTransformer(IHostEnvironment env, params VectorToImageConvertingEstimator.ColumnOptions[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(columns);
@@ -217,7 +217,7 @@ namespace Microsoft.ML.ImageAnalytics
             int defaultRed = VectorToImageConvertingEstimator.Defaults.DefaultRed,
             int defaultGreen = VectorToImageConvertingEstimator.Defaults.DefaultGreen,
             int defaultBlue = VectorToImageConvertingEstimator.Defaults.DefaultBlue)
-            : this(env, new VectorToImageConvertingEstimator.ColumnInfo(outputColumnName, height, width, inputColumnName, colors, order, interleave, scale, offset, defaultAlpha, defaultRed, defaultGreen, defaultBlue))
+            : this(env, new VectorToImageConvertingEstimator.ColumnOptions(outputColumnName, height, width, inputColumnName, colors, order, interleave, scale, offset, defaultAlpha, defaultRed, defaultGreen, defaultBlue))
         {
         }
 
@@ -230,11 +230,11 @@ namespace Microsoft.ML.ImageAnalytics
 
             env.CheckValue(args.Columns, nameof(args.Columns));
 
-            var columns = new VectorToImageConvertingEstimator.ColumnInfo[args.Columns.Length];
+            var columns = new VectorToImageConvertingEstimator.ColumnOptions[args.Columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
                 var item = args.Columns[i];
-                columns[i] = new VectorToImageConvertingEstimator.ColumnInfo(item, args);
+                columns[i] = new VectorToImageConvertingEstimator.ColumnOptions(item, args);
             }
 
             var transformer = new VectorToImageConvertingTransformer(env, columns);
@@ -249,11 +249,11 @@ namespace Microsoft.ML.ImageAnalytics
             // *** Binary format ***
             // <base>
             // foreach added column
-            //   ColumnInfo
+            //   ColumnOptions
 
-            _columns = new VectorToImageConvertingEstimator.ColumnInfo[ColumnPairs.Length];
+            _columns = new VectorToImageConvertingEstimator.ColumnOptions[ColumnPairs.Length];
             for (int i = 0; i < _columns.Length; i++)
-                _columns[i] = new VectorToImageConvertingEstimator.ColumnInfo(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, ctx);
+                _columns[i] = new VectorToImageConvertingEstimator.ColumnOptions(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, ctx);
         }
 
         private static VectorToImageConvertingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -295,7 +295,7 @@ namespace Microsoft.ML.ImageAnalytics
                 _columns[i].Save(ctx);
         }
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(VectorToImageConvertingEstimator.ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(VectorToImageConvertingEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
@@ -350,7 +350,7 @@ namespace Microsoft.ML.ImageAnalytics
             }
 
             private ValueGetter<Bitmap> GetterFromType<TValue>(PrimitiveDataViewType srcType, DataViewRow input, int iinfo,
-                VectorToImageConvertingEstimator.ColumnInfo ex, bool needScale) where TValue : IConvertible
+                VectorToImageConvertingEstimator.ColumnOptions ex, bool needScale) where TValue : IConvertible
             {
                 Contracts.Assert(typeof(TValue) == srcType.RawType);
                 var getSrc = RowCursorUtils.GetVecGetterAs<TValue>(srcType, input, ColMapNewToOld[iinfo]);
@@ -421,7 +421,7 @@ namespace Microsoft.ML.ImageAnalytics
                     };
             }
 
-            private static ImageType[] ConstructTypes(VectorToImageConvertingEstimator.ColumnInfo[] columns)
+            private static ImageType[] ConstructTypes(VectorToImageConvertingEstimator.ColumnOptions[] columns)
             {
                 return columns.Select(c => new ImageType(c.Height, c.Width)).ToArray();
             }
@@ -433,7 +433,7 @@ namespace Microsoft.ML.ImageAnalytics
     /// </summary>
     /// <remarks>
     /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="VectorToImageConvertingTransformer"/>.
-    /// <seealso cref="ImageEstimatorsCatalog.ConvertToImage(TransformsCatalog, ColumnInfo[])" />
+    /// <seealso cref="ImageEstimatorsCatalog.ConvertToImage(TransformsCatalog, ColumnOptions[])" />
     /// <seealso cref="ImageEstimatorsCatalog.ConvertToImage(TransformsCatalog, int, int, string, string, ImagePixelExtractingEstimator.ColorBits, ImagePixelExtractingEstimator.ColorsOrder, bool, float, float, int, int, int, int)"/>
     /// <seealso cref="ImageEstimatorsCatalog"/>
     /// </remarks>
@@ -451,7 +451,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <summary>
         /// Describes how the transformer handles one image pixel extraction column pair.
         /// </summary>
-        public sealed class ColumnInfo
+        public sealed class ColumnOptions
         {
             /// <summary>Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
             public readonly string Name;
@@ -479,7 +479,7 @@ namespace Microsoft.ML.ImageAnalytics
             public bool Green => (Colors & ImagePixelExtractingEstimator.ColorBits.Green) != 0;
             public bool Blue => (Colors & ImagePixelExtractingEstimator.ColorBits.Blue) != 0;
 
-            internal ColumnInfo(VectorToImageConvertingTransformer.Column item, VectorToImageConvertingTransformer.Options args)
+            internal ColumnOptions(VectorToImageConvertingTransformer.Column item, VectorToImageConvertingTransformer.Options args)
             {
                 Contracts.CheckValue(item, nameof(item));
                 Contracts.CheckValue(args, nameof(args));
@@ -508,7 +508,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.CheckUserArg(FloatUtils.IsFiniteNonZero(Scale), nameof(item.Scale));
             }
 
-            internal ColumnInfo(string outputColumnName, string inputColumnName, ModelLoadContext ctx)
+            internal ColumnOptions(string outputColumnName, string inputColumnName, ModelLoadContext ctx)
             {
                 Contracts.AssertNonEmpty(outputColumnName);
                 Contracts.AssertNonEmpty(inputColumnName);
@@ -588,7 +588,7 @@ namespace Microsoft.ML.ImageAnalytics
             /// <param name="defaultRed">Default value for red color, would be overriden if <paramref name="colors"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Red"/>.</param>
             /// <param name="defaultGreen">Default value for grenn color, would be overriden if <paramref name="colors"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Green"/>.</param>
             /// <param name="defaultBlue">Default value for blue color, would be overriden if <paramref name="colors"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Blue"/>.</param>
-            public ColumnInfo(string name,
+            public ColumnOptions(string name,
                 int height, int width,
                 string inputColumnName = null,
                 ImagePixelExtractingEstimator.ColorBits colors = ImagePixelExtractingEstimator.Defaults.Colors,
@@ -717,7 +717,7 @@ namespace Microsoft.ML.ImageAnalytics
         ///</summary>
         /// <param name="env">The host environment.</param>
         /// <param name="columns">Describes the parameters of pixel extraction for each column pair.</param>
-        internal VectorToImageConvertingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        internal VectorToImageConvertingEstimator(IHostEnvironment env, params ColumnOptions[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorToImageConvertingEstimator)), new VectorToImageConvertingTransformer(env, columns))
         {
         }

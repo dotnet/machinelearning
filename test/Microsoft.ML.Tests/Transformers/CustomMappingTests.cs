@@ -76,8 +76,8 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(customEst, data);
             transformedData = customEst.Fit(data).Transform(data);
 
-            var inputs = ML.CreateEnumerable<MyInput>(transformedData, true);
-            var outputs = ML.CreateEnumerable<MyOutput>(transformedData, true);
+            var inputs = ML.Data.CreateEnumerable<MyInput>(transformedData, true);
+            var outputs = ML.Data.CreateEnumerable<MyOutput>(transformedData, true);
 
             Assert.True(inputs.Zip(outputs, (x, y) => y.Together == $"{x.Float1} + {string.Join(", ", x.Float4)}").All(x => x));
 

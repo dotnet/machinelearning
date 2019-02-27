@@ -67,7 +67,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Recommendation
             var testDataView = mlContext.Data.ReadFromEnumerable(testMatrix);
 
             // Feed the test data into the model and then iterate through all predictions.
-            foreach (var pred in mlContext.CreateEnumerable<MatrixElementForScore>(model.Transform(testDataView), false))
+            foreach (var pred in mlContext.Data.CreateEnumerable<MatrixElementForScore>(model.Transform(testDataView), false))
                 Console.WriteLine($"Predicted value at row {pred.MatrixRowIndex-1} and column {pred.MatrixColumnIndex-1} is {pred.Score}");
             // Predicted value at row 7 and column 1 is 2.828761
             // Predicted value at row 6 and column 3 is 3.642226

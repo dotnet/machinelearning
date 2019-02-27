@@ -11,18 +11,15 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Calibrator;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.FastTree;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
-using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.TreePredictor;
@@ -1376,7 +1373,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     }
                     // Convert the group column, if one exists.
                     if (examples.Schema.Group?.Name is string groupName)
-                        data = new TypeConvertingTransformer(Host, new TypeConvertingEstimator.ColumnInfo(groupName, DataKind.UInt64, groupName)).Transform(data);
+                        data = new TypeConvertingTransformer(Host, new TypeConvertingEstimator.ColumnOptions(groupName, DataKind.UInt64, groupName)).Transform(data);
 
                     // Since we've passed it through a few transforms, reconstitute the mapping on the
                     // newly transformed data.
@@ -3385,7 +3382,7 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         /// <summary>
         /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/>
-        /// <see cref="InternalTreeEnsemble"/> in <see cref="ML.FastTree.TreeEnsemble{T}"/>.
+        /// <see cref="InternalTreeEnsemble"/> in <see cref="ML.Trainers.FastTree.TreeEnsemble{T}"/>.
         /// </summary>
         public RegressionTreeEnsemble TrainedTreeEnsemble { get; }
 
@@ -3425,7 +3422,7 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         /// <summary>
         /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/>
-        /// <see cref="InternalTreeEnsemble"/> in <see cref="ML.FastTree.TreeEnsemble{T}"/>.
+        /// <see cref="InternalTreeEnsemble"/> in <see cref="ML.Trainers.FastTree.TreeEnsemble{T}"/>.
         /// </summary>
         public QuantileRegressionTreeEnsemble TrainedTreeEnsemble { get; }
 

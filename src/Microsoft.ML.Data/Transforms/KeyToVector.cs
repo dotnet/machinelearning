@@ -96,10 +96,10 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private const string RegistrationName = "KeyToVector";
 
-        public IReadOnlyCollection<KeyToVectorMappingEstimator.ColumnInfo> Columns => _columns.AsReadOnly();
-        private readonly KeyToVectorMappingEstimator.ColumnInfo[] _columns;
+        public IReadOnlyCollection<KeyToVectorMappingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
+        private readonly KeyToVectorMappingEstimator.ColumnOptions[] _columns;
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(KeyToVectorMappingEstimator.ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(KeyToVectorMappingEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, reason, type.ToString());
         }
 
-        internal KeyToVectorMappingTransformer(IHostEnvironment env, params KeyToVectorMappingEstimator.ColumnInfo[] columns) :
+        internal KeyToVectorMappingTransformer(IHostEnvironment env, params KeyToVectorMappingEstimator.ColumnOptions[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
@@ -185,9 +185,9 @@ namespace Microsoft.ML.Transforms.Conversions
             var bags = new bool[columnsLength];
             bags = ctx.Reader.ReadBoolArray(columnsLength);
 
-            _columns = new KeyToVectorMappingEstimator.ColumnInfo[columnsLength];
+            _columns = new KeyToVectorMappingEstimator.ColumnOptions[columnsLength];
             for (int i = 0; i < columnsLength; i++)
-                _columns[i] = new KeyToVectorMappingEstimator.ColumnInfo(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, bags[i]);
+                _columns[i] = new KeyToVectorMappingEstimator.ColumnOptions(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, bags[i]);
         }
 
         // Factory method for SignatureDataTransform.
@@ -198,12 +198,12 @@ namespace Microsoft.ML.Transforms.Conversions
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(options.Columns, nameof(options.Columns));
-            var cols = new KeyToVectorMappingEstimator.ColumnInfo[options.Columns.Length];
+            var cols = new KeyToVectorMappingEstimator.ColumnOptions[options.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
                 var item = options.Columns[i];
 
-                cols[i] = new KeyToVectorMappingEstimator.ColumnInfo(
+                cols[i] = new KeyToVectorMappingEstimator.ColumnOptions(
                     item.Name,
                     item.Source ?? item.Name,
                     item.Bag ?? options.Bag);
@@ -735,7 +735,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnInfo
+        public sealed class ColumnOptions
         {
             /// <summary> Name of the column resulting from the transformation of <cref see="InputColumnName"/>.</summary>
             public readonly string Name;
@@ -753,7 +753,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="bag">Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them. This is only relevant when the input column is a vector.</param>
-            public ColumnInfo(string name, string inputColumnName = null, bool bag = Defaults.Bag)
+            public ColumnOptions(string name, string inputColumnName = null, bool bag = Defaults.Bag)
             {
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
                 Name = name;
@@ -762,13 +762,13 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        internal KeyToVectorMappingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        internal KeyToVectorMappingEstimator(IHostEnvironment env, params ColumnOptions[] columns)
             : this(env, new KeyToVectorMappingTransformer(env, columns))
         {
         }
 
         internal KeyToVectorMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, bool bag = Defaults.Bag)
-            : this(env, new KeyToVectorMappingTransformer(env, new ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, bag)))
+            : this(env, new KeyToVectorMappingTransformer(env, new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, bag)))
         {
         }
 
