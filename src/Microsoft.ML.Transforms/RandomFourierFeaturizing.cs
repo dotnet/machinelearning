@@ -13,7 +13,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Transforms.Projections;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(RandomFourierFeaturizingTransformer.Summary, typeof(IDataTransform), typeof(RandomFourierFeaturizingTransformer), typeof(RandomFourierFeaturizingTransformer.Options), typeof(SignatureDataTransform),
     "Random Fourier Features Transform", "RffTransform", "Rff")]
@@ -27,7 +27,7 @@ using Microsoft.ML.Transforms.Projections;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(RandomFourierFeaturizingTransformer), null, typeof(SignatureLoadRowMapper),
     "Random Fourier Features Transform", RandomFourierFeaturizingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms.Projections
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// Maps vector columns to a feature space where the inner products approximate a user specified shift-invariant kernel.

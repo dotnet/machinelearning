@@ -11,14 +11,12 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(OneHotHashEncodingTransformer.Summary, typeof(IDataTransform), typeof(OneHotHashEncodingTransformer), typeof(OneHotHashEncodingTransformer.Options), typeof(SignatureDataTransform),
     OneHotHashEncodingTransformer.UserName, "CategoricalHashTransform", "CatHashTransform", "CategoricalHash", "CatHash")]
 
-namespace Microsoft.ML.Transforms.Categorical
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// Produces a column of indicator vectors. The mapping between a value and a corresponding index is done through hashing.

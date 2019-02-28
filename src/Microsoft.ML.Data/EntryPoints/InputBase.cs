@@ -187,11 +187,8 @@ namespace Microsoft.ML.EntryPoints
                 var roleMappedData = new RoleMappedData(view, label, feature, group, weight, name, custom);
 
                 RoleMappedData cachedRoleMappedData = roleMappedData;
-                IFileHandle fileHandle = null;
-
                 const string registrationName = "CreateCache";
                 var createCacheHost = host.Register(registrationName);
-
                 IDataView outputData = null;
 
                 switch (input.Caching)
@@ -221,7 +218,6 @@ namespace Microsoft.ML.EntryPoints
                 }
 
                 var predictor = TrainUtils.Train(host, ch, cachedRoleMappedData, trainer, calibrator, maxCalibrationExamples);
-                fileHandle?.Dispose();
                 return new TOut() { PredictorModel = new PredictorModelImpl(host, roleMappedData, input.TrainingData, predictor) };
             }
         }

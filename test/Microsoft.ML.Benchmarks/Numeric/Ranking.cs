@@ -9,7 +9,7 @@ using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 using System.IO;
 
 namespace Microsoft.ML.Benchmarks

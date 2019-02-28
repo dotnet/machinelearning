@@ -133,13 +133,13 @@ namespace Microsoft.ML.Tests
                 hasHeader: true);
 
             var pipeline = mlContext.Transforms.Normalize("Features").
-                Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeans.KMeansPlusPlusTrainer.Options
+                Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeansPlusPlusTrainer.Options
                 {
                     FeatureColumn = DefaultColumnNames.Features,
                     MaxIterations = 1,
                     ClustersCount = 4,
                     NumThreads = 1,
-                    InitAlgorithm = Trainers.KMeans.KMeansPlusPlusTrainer.InitAlgorithm.Random
+                    InitAlgorithm = Trainers.KMeansPlusPlusTrainer.InitAlgorithm.Random
                 }));
 
             var model = pipeline.Fit(data);
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Tests
                 separatorChar: '\t',
                 hasHeader: true);
 
-            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.Categorical.OneHotEncodingTransformer.OutputKind.Bag)
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingTransformer.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
             .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
@@ -404,7 +404,7 @@ namespace Microsoft.ML.Tests
                 separatorChar: '\t',
                 hasHeader: true);
 
-            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.Categorical.OneHotEncodingTransformer.OutputKind.Bag)
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingTransformer.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
             .Append(mlContext.Transforms.Normalize("Features"))

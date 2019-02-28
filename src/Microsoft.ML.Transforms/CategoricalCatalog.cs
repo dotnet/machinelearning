@@ -4,7 +4,7 @@
 
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {

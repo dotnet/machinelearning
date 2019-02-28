@@ -5,7 +5,7 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.SamplesUtils;
-using Microsoft.ML.Trainers.FactorizationMachine;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -34,8 +34,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0.9, 1);
-            Assert.InRange(metrics.Auc, 0.9, 1);
-            Assert.InRange(metrics.Auprc, 0.9, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.9, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.9, 1);
         }
 
         [Fact]

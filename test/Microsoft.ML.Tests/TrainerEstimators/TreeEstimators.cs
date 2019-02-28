@@ -12,7 +12,7 @@ using Microsoft.ML.LightGBM;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -443,7 +443,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     .Append(ML.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
             var model = pipe.Fit(dataView);
             var metrics = ML.MulticlassClassification.Evaluate(model.Transform(dataView));
-            Assert.True(metrics.AccuracyMacro > 0.8);
+            Assert.True(metrics.MacroAccuracy > 0.8);
             Thread.CurrentThread.CurrentCulture = currentCulture;
         }
     }

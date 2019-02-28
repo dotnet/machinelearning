@@ -14,8 +14,6 @@ using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Normalizers;
-using Microsoft.ML.Transforms.Projections;
 using Xunit;
 using Xunit.Abstractions;
 

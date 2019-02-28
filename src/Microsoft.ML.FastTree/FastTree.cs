@@ -21,7 +21,6 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.TreePredictor;
 using Newtonsoft.Json.Linq;
 using Float = System.Single;
