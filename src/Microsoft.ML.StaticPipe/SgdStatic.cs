@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.StaticPipe
@@ -81,9 +78,9 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.FeatureColumn = featuresName;
-                    options.LabelColumn = labelName;
-                    options.WeightColumn = weightsName;
+                    options.FeatureColumnName = featuresName;
+                    options.LabelColumnName = labelName;
+                    options.ExampleWeightColumnName = weightsName;
 
                     var trainer = new SgdBinaryTrainer(env, options);
 
@@ -164,9 +161,9 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.FeatureColumn = featuresName;
-                    options.LabelColumn = labelName;
-                    options.WeightColumn = weightsName;
+                    options.FeatureColumnName = featuresName;
+                    options.LabelColumnName = labelName;
+                    options.ExampleWeightColumnName = weightsName;
 
                     var trainer = new SgdNonCalibratedBinaryTrainer(env, options);
 

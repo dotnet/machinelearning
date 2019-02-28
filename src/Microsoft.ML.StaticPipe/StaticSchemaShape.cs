@@ -8,7 +8,7 @@ using System.Reflection;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.StaticPipe.Runtime
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// A schema shape with names corresponding to a type parameter in one of the typed variants

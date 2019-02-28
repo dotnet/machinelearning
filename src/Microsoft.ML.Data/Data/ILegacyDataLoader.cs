@@ -39,23 +39,23 @@ namespace Microsoft.ML.Data
     }
 
     /// <summary>
-    /// Signature for creating an <see cref="IDataLoader"/>.
+    /// Signature for creating an <see cref="ILegacyDataLoader"/>.
     /// </summary>
     [BestFriend]
     internal delegate void SignatureDataLoader(IMultiStreamSource data);
 
     /// <summary>
-    /// Signature for loading an <see cref="IDataLoader"/>.
+    /// Signature for loading an <see cref="ILegacyDataLoader"/>.
     /// </summary>
     [BestFriend]
     internal delegate void SignatureLoadDataLoader(ModelLoadContext ctx, IMultiStreamSource data);
 
     /// <summary>
-    /// Interface for a data loader. An <see cref="IDataLoader"/> can save its model information
+    /// Interface for a data loader. An <see cref="ILegacyDataLoader"/> can save its model information
     /// and is instantiatable from arguments and an <see cref="IMultiStreamSource"/> .
     /// </summary>
     [BestFriend]
-    internal interface IDataLoader : IDataView, ICanSaveModel
+    internal interface ILegacyDataLoader : IDataView, ICanSaveModel
     {
     }
 

@@ -35,7 +35,7 @@ namespace Microsoft.ML.Tests.Transformers
                 Separator = "\t",
                 HasHeader = true
             }, new MultiFileSource(dataPath));
-            var data = loader.Read(source);
+            var data = loader.Load(source);
 
             DataViewType GetType(DataViewSchema schema, string name)
             {
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Tests.Transformers
                 Separator = "\t",
                 HasHeader = true
             }, new MultiFileSource(dataPath));
-            var data = loader.Read(source);
+            var data = loader.Load(source);
 
             DataViewType GetType(DataViewSchema schema, string name)
             {
@@ -103,8 +103,8 @@ namespace Microsoft.ML.Tests.Transformers
             data = ML.Data.TakeRows(data, 10);
 
             var concater = new ColumnConcatenatingTransformer(ML,
-                new ColumnConcatenatingTransformer.ColumnInfo("f2", new[] { ("float1", "FLOAT1"), ("float1", "FLOAT2") }),
-                new ColumnConcatenatingTransformer.ColumnInfo("f3", new[] { ("float4", "FLOAT4"), ("float1", "FLOAT1") }));
+                new ColumnConcatenatingTransformer.ColumnOptions("f2", new[] { ("float1", "FLOAT1"), ("float1", "FLOAT2") }),
+                new ColumnConcatenatingTransformer.ColumnOptions("f3", new[] { ("float4", "FLOAT4"), ("float1", "FLOAT1") }));
             data = concater.Transform(data);
 
             // Test Columns property.

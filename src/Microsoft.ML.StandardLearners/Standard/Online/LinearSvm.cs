@@ -5,14 +5,15 @@
 using System;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
-using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(LinearSvmTrainer.Summary, typeof(LinearSvmTrainer), typeof(LinearSvmTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -22,7 +23,7 @@ using Microsoft.ML.Trainers.Online;
 
 [assembly: LoadableClass(typeof(void), typeof(LinearSvmTrainer), null, typeof(SignatureEntryPointModule), "LinearSvm")]
 
-namespace Microsoft.ML.Trainers.Online
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// Linear SVM that implements PEGASOS for training. See: http://ttic.uchicago.edu/~shai/papers/ShalevSiSr07.pdf
@@ -240,8 +241,8 @@ namespace Microsoft.ML.Trainers.Online
             int numIterations = Options.OnlineDefault.NumIterations)
             : this(env, new Options
             {
-                LabelColumn = labelColumn,
-                FeatureColumn = featureColumn,
+                LabelColumnName = labelColumn,
+                FeatureColumnName = featureColumn,
                 WeightColumn = weightColumn,
                 NumberOfIterations = numIterations,
             })
@@ -249,7 +250,7 @@ namespace Microsoft.ML.Trainers.Online
         }
 
         internal LinearSvmTrainer(IHostEnvironment env, Options options)
-            : base(options, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
+            : base(options, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             Contracts.CheckUserArg(options.Lambda > 0, nameof(options.Lambda), UserErrorPositive);
             Contracts.CheckUserArg(options.BatchSize > 0, nameof(options.BatchSize), UserErrorPositive);
@@ -285,9 +286,9 @@ namespace Microsoft.ML.Trainers.Online
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new LinearSvmTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }
 

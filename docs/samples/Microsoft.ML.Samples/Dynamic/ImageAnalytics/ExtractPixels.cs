@@ -31,7 +31,7 @@ namespace Microsoft.ML.Samples.Dynamic
                         new TextLoader.Column("ImagePath", DataKind.String, 0),
                         new TextLoader.Column("Name", DataKind.String, 1),
                 }
-            }).Read(imagesDataFile);
+            }).Load(imagesDataFile);
 
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
             // Image loading pipeline. 

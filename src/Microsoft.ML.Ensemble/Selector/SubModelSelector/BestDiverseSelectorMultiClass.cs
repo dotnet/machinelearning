@@ -11,13 +11,11 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Trainers.Ensemble;
-using Microsoft.ML.Trainers.Ensemble.DiversityMeasure;
-using Microsoft.ML.Trainers.Ensemble.SubModelSelector;
 
 [assembly: LoadableClass(typeof(BestDiverseSelectorMultiClass), typeof(BestDiverseSelectorMultiClass.Arguments),
     typeof(SignatureEnsembleSubModelSelector), BestDiverseSelectorMultiClass.UserName, BestDiverseSelectorMultiClass.LoadName)]
 
-namespace Microsoft.ML.Trainers.Ensemble.SubModelSelector
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal sealed class BestDiverseSelectorMultiClass : BaseDiverseSelector<VBuffer<Single>, IDiversityMeasure<VBuffer<Single>>>, IMulticlassSubModelSelector
     {

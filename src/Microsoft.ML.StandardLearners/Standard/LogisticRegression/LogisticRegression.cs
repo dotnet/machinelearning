@@ -6,12 +6,12 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers;
 
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="LogisticRegression"/>
         /// </summary>
         internal LogisticRegression(IHostEnvironment env, Options options)
-            : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
+            : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             _posWeight = 0;
             ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStats;
@@ -419,10 +419,10 @@ namespace Microsoft.ML.Trainers
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new LogisticRegression(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
     }
 

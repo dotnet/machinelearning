@@ -6,9 +6,9 @@ using System;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
@@ -34,7 +34,7 @@ namespace Microsoft.ML.LightGBM
         private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         internal LightGbmMulticlassTrainer(IHostEnvironment env, Options options)
-             : base(env, LoadNameValue, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumn))
+             : base(env, LoadNameValue, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
         {
             _numClass = -1;
         }
@@ -246,10 +246,10 @@ namespace Microsoft.ML.LightGBM
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
                 () => new LightGbmMulticlassTrainer(host, input),
-                getLabel: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+                getLabel: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
+                getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
     }
 }

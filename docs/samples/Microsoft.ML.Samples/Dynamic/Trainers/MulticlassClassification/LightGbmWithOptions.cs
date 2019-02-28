@@ -20,7 +20,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             var examples = DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);
 
             // Convert native C# class to IDataView, a consumble format to ML.NET functions.
-            var dataView = mlContext.Data.ReadFromEnumerable(examples);
+            var dataView = mlContext.Data.LoadFromEnumerable(examples);
 
             //////////////////// Data Preview ////////////////////
             // Label    Features
@@ -35,8 +35,8 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label")
                         .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new Options
                         {
-                            LabelColumn = "LabelIndex",
-                            FeatureColumn = "Features",
+                            LabelColumnName = "LabelIndex",
+                            FeatureColumnName = "Features",
                             Booster = new DartBooster.Options
                             {
                                 DropRate = 0.15,
@@ -60,12 +60,12 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             var metrics = mlContext.MulticlassClassification.Evaluate(dataWithPredictions, label: "LabelIndex");
 
             // Check if metrics are reasonable.
-            Console.WriteLine($"Macro accuracy: {metrics.AccuracyMacro:F4}, Micro accuracy: {metrics.AccuracyMicro:F4}.");
+            Console.WriteLine($"Macro accuracy: {metrics.MacroAccuracy:F4}, Micro accuracy: {metrics.MicroAccuracy:F4}.");
             // Console output:
             //   Macro accuracy: 0.8619, Micro accuracy: 0.8611.
 
             // IDataView with predictions, to an IEnumerable<DatasetUtils.MulticlassClassificationExample>.
-            var nativePredictions = mlContext.CreateEnumerable<DatasetUtils.MulticlassClassificationExample>(dataWithPredictions, false).ToList();
+            var nativePredictions = mlContext.Data.CreateEnumerable<DatasetUtils.MulticlassClassificationExample>(dataWithPredictions, false).ToList();
 
             // Get schema object out of the prediction. It contains metadata such as the mapping from predicted label index
             // (e.g., 1) to its actual label (e.g., "AA").

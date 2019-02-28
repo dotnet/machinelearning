@@ -6,10 +6,9 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
-using Microsoft.ML.Calibrator;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
@@ -51,7 +50,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Initializes a new instance of <see cref="BinaryClassificationGamTrainer"/>
         /// </summary>
         internal BinaryClassificationGamTrainer(IHostEnvironment env, Options options)
-             : base(env, options, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
+             : base(env, options, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             _sigmoidParameter = 1;
         }

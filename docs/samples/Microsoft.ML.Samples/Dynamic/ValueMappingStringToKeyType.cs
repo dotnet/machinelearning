@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Data;
-using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -36,7 +34,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable.
             IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();
-            IDataView trainData = mlContext.Data.ReadFromEnumerable(data);
+            IDataView trainData = mlContext.Data.LoadFromEnumerable(data);
 
             // Creating a list of keys based on the Education values from the dataset
             // These lists are created by hand for the demonstration, but the ValueMappingEstimator does take an IEnumerable.
@@ -65,7 +63,7 @@ namespace Microsoft.ML.Samples.Dynamic
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);
 
             // Getting the resulting data as an IEnumerable of SampleInfertDataWithFeatures.
-            IEnumerable<SampleInfertDataWithFeatures> featureRows = mlContext.CreateEnumerable<SampleInfertDataWithFeatures>(transformedData, reuseRowObject: false);
+            IEnumerable<SampleInfertDataWithFeatures> featureRows = mlContext.Data.CreateEnumerable<SampleInfertDataWithFeatures>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"Example of mapping string->keytype");
             Console.WriteLine($"Age\tEducation\tEducationCategory");

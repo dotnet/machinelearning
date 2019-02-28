@@ -11,7 +11,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Tools;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -45,11 +45,11 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             dataView = new ValueToKeyMappingEstimator(Env, new[]{
-                    new ValueToKeyMappingEstimator.ColumnInfo("TermA", "A"),
-                    new ValueToKeyMappingEstimator.ColumnInfo("TermB", "B"),
-                    new ValueToKeyMappingEstimator.ColumnInfo("TermC", "C", textKeyValues:true)
+                    new ValueToKeyMappingEstimator.ColumnOptions("TermA", "A"),
+                    new ValueToKeyMappingEstimator.ColumnOptions("TermB", "B"),
+                    new ValueToKeyMappingEstimator.ColumnOptions("TermC", "C", textKeyValues:true)
                 }).Fit(dataView).Transform(dataView);
 
             var pipe = ML.Transforms.Conversion.MapKeyToBinaryVector(("CatA", "TermA"), ("CatC", "TermC"));
@@ -61,17 +61,17 @@ namespace Microsoft.ML.Tests.Transformers
         public void KeyToBinaryVectorStatic()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(Env, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(Env, ctx => (
                 ScalarString: ctx.LoadText(1),
                 VectorString: ctx.LoadText(1, 4)
             ));
 
-            var data = reader.Read(dataPath);
+            var data = reader.Load(dataPath);
 
             // Non-pigsty Term.
             var dynamicData = new ValueToKeyMappingEstimator(Env, new[] {
-                new ValueToKeyMappingEstimator.ColumnInfo("A", "ScalarString"),
-                new ValueToKeyMappingEstimator.ColumnInfo("B", "VectorString") })
+                new ValueToKeyMappingEstimator.ColumnOptions("A", "ScalarString"),
+                new ValueToKeyMappingEstimator.ColumnOptions("B", "VectorString") })
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
 
             var data2 = dynamicData.AssertStatic(Env, ctx => (
@@ -97,12 +97,12 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestMeta() { A=new string[2] { "A", "B"}, B="C", C=new int[2] { 3,5}, D= 6} };
 
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var termEst = new ValueToKeyMappingEstimator(Env, new[] {
-                new ValueToKeyMappingEstimator.ColumnInfo("TA", "A", textKeyValues: true),
-                new ValueToKeyMappingEstimator.ColumnInfo("TB", "B", textKeyValues: true),
-                new ValueToKeyMappingEstimator.ColumnInfo("TC", "C"),
-                new ValueToKeyMappingEstimator.ColumnInfo("TD", "D") });
+                new ValueToKeyMappingEstimator.ColumnOptions("TA", "A", textKeyValues: true),
+                new ValueToKeyMappingEstimator.ColumnOptions("TB", "B", textKeyValues: true),
+                new ValueToKeyMappingEstimator.ColumnOptions("TC", "C"),
+                new ValueToKeyMappingEstimator.ColumnOptions("TD", "D") });
             var termTransformer = termEst.Fit(dataView);
             dataView = termTransformer.Transform(dataView);
 
@@ -148,11 +148,11 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var est = new ValueToKeyMappingEstimator(Env, new[]{
-                    new ValueToKeyMappingEstimator.ColumnInfo("TermA", "A"),
-                    new ValueToKeyMappingEstimator.ColumnInfo("TermB", "B", textKeyValues:true),
-                    new ValueToKeyMappingEstimator.ColumnInfo("TermC", "C")
+                    new ValueToKeyMappingEstimator.ColumnOptions("TermA", "A"),
+                    new ValueToKeyMappingEstimator.ColumnOptions("TermB", "B", textKeyValues:true),
+                    new ValueToKeyMappingEstimator.ColumnOptions("TermC", "C")
             });
             var transformer = est.Fit(dataView);
             dataView = transformer.Transform(dataView);

@@ -7,7 +7,7 @@ using System.IO;
 using System.Text;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Model
+namespace Microsoft.ML
 {
     /// <summary>
     /// This is a convenience context object for saving models to a repository, for

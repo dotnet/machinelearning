@@ -13,9 +13,9 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Reads data from one or more file <paramref name="path"/> into an <see cref="DataView"/>.
         /// </summary>
-        /// <param name="reader">The reader to use.</param>
+        /// <param name="loader">The loader to use.</param>
         /// <param name="path">One or more paths from which to load data.</param>
-        public static DataView<TShape> Read<TShape>(this DataReader<IMultiStreamSource, TShape> reader, params string[] path)
-            => reader.Read(new MultiFileSource(path));
+        public static DataView<TShape> Load<TShape>(this DataLoader<IMultiStreamSource, TShape> loader, params string[] path)
+            => loader.Load(new MultiFileSource(path));
     }
 }

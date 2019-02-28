@@ -5,7 +5,7 @@
 using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Trainers.KMeans;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML
 {
@@ -37,8 +37,8 @@ namespace Microsoft.ML
 
             var options = new KMeansPlusPlusTrainer.Options
             {
-                FeatureColumn = featureColumnName,
-                WeightColumn = exampleWeightColumnName,
+                FeatureColumnName = featureColumnName,
+                ExampleWeightColumnName = exampleWeightColumnName,
                 ClustersCount = clustersCount
             };
             return new KMeansPlusPlusTrainer(env, options);

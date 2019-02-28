@@ -4,7 +4,6 @@
 
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Trainers.Ensemble;
-using Microsoft.ML.Trainers.Ensemble.SubModelSelector;
 
 [assembly: EntryPointModule(typeof(AllSelectorFactory))]
 [assembly: EntryPointModule(typeof(AllSelectorMultiClassFactory))]

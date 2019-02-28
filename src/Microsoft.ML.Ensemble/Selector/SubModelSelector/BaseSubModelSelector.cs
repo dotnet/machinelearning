@@ -8,7 +8,7 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Trainers.Ensemble.SubModelSelector
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal abstract class BaseSubModelSelector<TOutput> : ISubModelSelector<TOutput>
     {

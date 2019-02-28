@@ -11,7 +11,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
-using Float = System.Single;
 
 [assembly: LoadableClass(typeof(MissingValueIndicatorTransform), typeof(MissingValueIndicatorTransform.Arguments), typeof(SignatureDataTransform),
     "", "MissingValueIndicatorTransform", "MissingValueTransform", "MissingTransform", "Missing")]
@@ -111,7 +110,7 @@ namespace Microsoft.ML.Transforms
                     // int: sizeof(Float)
                     // <remainder handled in ctors>
                     int cbFloat = ctx.Reader.ReadInt32();
-                    ch.CheckDecode(cbFloat == sizeof(Float));
+                    ch.CheckDecode(cbFloat == sizeof(float));
                     return new MissingValueIndicatorTransform(h, ctx, input);
                 });
         }
@@ -125,7 +124,7 @@ namespace Microsoft.ML.Transforms
             // *** Binary format ***
             // int: sizeof(Float)
             // <base>
-            ctx.Writer.Write(sizeof(Float));
+            ctx.Writer.Write(sizeof(float));
             SaveBase(ctx);
         }
 
@@ -243,12 +242,12 @@ namespace Microsoft.ML.Transforms
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             disposer = null;
 
-            ValueGetter<VBuffer<Float>> del;
+            ValueGetter<VBuffer<float>> del;
             if (Infos[iinfo].TypeSrc is VectorType)
             {
-                var getSrc = GetSrcGetter<VBuffer<Float>>(input, iinfo);
+                var getSrc = GetSrcGetter<VBuffer<float>>(input, iinfo);
                 del =
-                    (ref VBuffer<Float> dst) =>
+                    (ref VBuffer<float> dst) =>
                     {
                         getSrc(ref dst);
                         FillValues(Host, ref dst);
@@ -256,11 +255,11 @@ namespace Microsoft.ML.Transforms
             }
             else
             {
-                var getSrc = GetSrcGetter<Float>(input, iinfo);
+                var getSrc = GetSrcGetter<float>(input, iinfo);
                 del =
-                    (ref VBuffer<Float> dst) =>
+                    (ref VBuffer<float> dst) =>
                     {
-                        var src = default(Float);
+                        var src = default(float);
                         getSrc(ref src);
                         FillValues(src, ref dst);
                         Host.Assert(dst.Length == 2);
@@ -269,7 +268,7 @@ namespace Microsoft.ML.Transforms
             return del;
         }
 
-        private static void FillValues(Float input, ref VBuffer<Float> result)
+        private static void FillValues(float input, ref VBuffer<float> result)
         {
             if (input == 0)
             {
@@ -278,7 +277,7 @@ namespace Microsoft.ML.Transforms
             }
 
             var editor = VBufferEditor.Create(ref result, 2, 1);
-            if (Float.IsNaN(input))
+            if (float.IsNaN(input))
             {
                 editor.Values[0] = 1;
                 editor.Indices[0] = 1;
@@ -293,7 +292,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // This converts in place.
-        private static void FillValues(IExceptionContext ectx, ref VBuffer<Float> buffer)
+        private static void FillValues(IExceptionContext ectx, ref VBuffer<float> buffer)
         {
             int size = buffer.Length;
             ectx.Check(0 <= size & size < int.MaxValue / 2);
@@ -311,7 +310,7 @@ namespace Microsoft.ML.Transforms
                     var val = values[ivSrc];
                     if (val == 0)
                         continue;
-                    if (Float.IsNaN(val))
+                    if (float.IsNaN(val))
                     {
                         editor.Values[iivDst] = 1;
                         editor.Indices[iivDst] = 2 * ivSrc + 1;
@@ -339,7 +338,7 @@ namespace Microsoft.ML.Transforms
                     int iv = indices[iivSrc];
                     ectx.Assert(ivPrev < iv & iv < size);
                     ivPrev = iv;
-                    if (Float.IsNaN(val))
+                    if (float.IsNaN(val))
                     {
                         editor.Values[iivDst] = 1;
                         editor.Indices[iivDst] = 2 * iv + 1;

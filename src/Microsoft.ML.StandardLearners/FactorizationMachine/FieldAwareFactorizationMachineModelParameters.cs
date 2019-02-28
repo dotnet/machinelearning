@@ -8,27 +8,39 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.FactorizationMachine;
 using Microsoft.ML.Internal.CpuMath;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(FieldAwareFactorizationMachineModelParameters), null, typeof(SignatureLoadModel), "Field Aware Factorization Machine", FieldAwareFactorizationMachineModelParameters.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(FieldAwareFactorizationMachinePredictionTransformer), typeof(FieldAwareFactorizationMachinePredictionTransformer), null, typeof(SignatureLoadModel),
     "", FieldAwareFactorizationMachinePredictionTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.FactorizationMachine
+namespace Microsoft.ML.Trainers
 {
     public sealed class FieldAwareFactorizationMachineModelParameters : ModelParametersBase<float>, ISchemaBindableMapper
     {
         internal const string LoaderSignature = "FieldAwareFactMacPredict";
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         private bool _norm;
-        internal int FieldCount { get; }
-        internal int FeatureCount { get; }
-        internal int LatentDim { get; }
+
+        /// <summary>
+        /// Get the number of fields. It's the symbol `m` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+        /// </summary>
+        public int FieldCount { get; }
+
+        /// <summary>
+        /// Get the number of features. It's the symbol `n` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+        /// </summary>
+        public int FeatureCount { get; }
+
+        /// <summary>
+        /// Get the latent dimension. It's the tlngth of `v_{j, f}` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+        /// </summary>
+        public int LatentDimension { get; }
+
         internal int LatentDimAligned { get; }
         private readonly float[] _linearWeights;
         private readonly AlignedArray _latentWeightsAligned;
@@ -54,7 +66,7 @@ namespace Microsoft.ML.FactorizationMachine
         /// <param name="latentDim">The latent dimensions, which is the length of `v_{j, f}` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
         /// <param name="linearWeights">The linear coefficients of the features, which is the symbol `w` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
         /// <param name="latentWeights">Latent representation of each feature. Note that one feature may have <see cref="FieldCount"/> latent vectors
-        /// and each latent vector contains <see cref="LatentDim"/> values. In the f-th field, the j-th feature's latent vector, `v_{j, f}` in the doc
+        /// and each latent vector contains <see cref="LatentDimension"/> values. In the f-th field, the j-th feature's latent vector, `v_{j, f}` in the doc
         /// https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf, starts at latentWeights[j * fieldCount * latentDim + f * latentDim].
         /// The k-th element in v_{j, f} is latentWeights[j * fieldCount * latentDim + f * latentDim + k]. The size of the array must be featureCount x fieldCount x latentDim.</param>
         internal FieldAwareFactorizationMachineModelParameters(IHostEnvironment env, bool norm, int fieldCount, int featureCount, int latentDim,
@@ -70,7 +82,7 @@ namespace Microsoft.ML.FactorizationMachine
             _norm = norm;
             FieldCount = fieldCount;
             FeatureCount = featureCount;
-            LatentDim = latentDim;
+            LatentDimension = latentDim;
             _linearWeights = linearWeights;
 
             _latentWeightsAligned = new AlignedArray(FeatureCount * FieldCount * LatentDimAligned, 16);
@@ -79,11 +91,11 @@ namespace Microsoft.ML.FactorizationMachine
             {
                 for (int f = 0; f < FieldCount; f++)
                 {
-                    int index = j * FieldCount * LatentDim + f * LatentDim;
+                    int index = j * FieldCount * LatentDimension + f * LatentDimension;
                     int indexAligned = j * FieldCount * LatentDimAligned + f * LatentDimAligned;
                     for (int k = 0; k < LatentDimAligned; k++)
                     {
-                        if (k < LatentDim)
+                        if (k < LatentDimension)
                             _latentWeightsAligned[indexAligned + k] = latentWeights[index + k];
                         else
                             _latentWeightsAligned[indexAligned + k] = 0;
@@ -105,7 +117,7 @@ namespace Microsoft.ML.FactorizationMachine
             _norm = norm;
             FieldCount = fieldCount;
             FeatureCount = featureCount;
-            LatentDim = latentDim;
+            LatentDimension = latentDim;
             _linearWeights = linearWeights;
             _latentWeightsAligned = latentWeightsAligned;
         }
@@ -139,18 +151,18 @@ namespace Microsoft.ML.FactorizationMachine
             _norm = norm;
             FieldCount = fieldCount;
             FeatureCount = featureCount;
-            LatentDim = latentDim;
+            LatentDimension = latentDim;
             _linearWeights = linearWeights;
             _latentWeightsAligned = new AlignedArray(FeatureCount * FieldCount * LatentDimAligned, 16);
             for (int j = 0; j < FeatureCount; j++)
             {
                 for (int f = 0; f < FieldCount; f++)
                 {
-                    int vBias = j * FieldCount * LatentDim + f * LatentDim;
+                    int vBias = j * FieldCount * LatentDimension + f * LatentDimension;
                     int vBiasAligned = j * FieldCount * LatentDimAligned + f * LatentDimAligned;
                     for (int k = 0; k < LatentDimAligned; k++)
                     {
-                        if (k < LatentDim)
+                        if (k < LatentDimension)
                             _latentWeightsAligned[vBiasAligned + k] = latentWeights[vBias + k];
                         else
                             _latentWeightsAligned[vBiasAligned + k] = 0;
@@ -185,23 +197,23 @@ namespace Microsoft.ML.FactorizationMachine
 
             Host.Assert(FieldCount > 0);
             Host.Assert(FeatureCount > 0);
-            Host.Assert(LatentDim > 0);
+            Host.Assert(LatentDimension > 0);
             Host.Assert(Utils.Size(_linearWeights) == FeatureCount);
             Host.Assert(_latentWeightsAligned.Size == FeatureCount * FieldCount * LatentDimAligned);
 
             ctx.Writer.Write(_norm);
             ctx.Writer.Write(FieldCount);
             ctx.Writer.Write(FeatureCount);
-            ctx.Writer.Write(LatentDim);
+            ctx.Writer.Write(LatentDimension);
             ctx.Writer.WriteSingleArray(_linearWeights);
-            float[] latentWeights = new float[FeatureCount * FieldCount * LatentDim];
+            float[] latentWeights = new float[FeatureCount * FieldCount * LatentDimension];
             for (int j = 0; j < FeatureCount; j++)
             {
                 for (int f = 0; f < FieldCount; f++)
                 {
-                    int vBias = j * FieldCount * LatentDim + f * LatentDim;
+                    int vBias = j * FieldCount * LatentDimension + f * LatentDimension;
                     int vBiasAligned = j * FieldCount * LatentDimAligned + f * LatentDimAligned;
-                    for (int k = 0; k < LatentDim; k++)
+                    for (int k = 0; k < LatentDimension; k++)
                         latentWeights[vBias + k] = _latentWeightsAligned[vBiasAligned + k];
                 }
             }
@@ -238,42 +250,27 @@ namespace Microsoft.ML.FactorizationMachine
         }
 
         /// <summary>
-        /// Get the number of fields. It's the symbol `m` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
-        /// </summary>
-        public int GetFieldCount() => FieldCount;
-
-        /// <summary>
-        /// Get the number of features. It's the symbol `n` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
-        /// </summary>
-        public int GetFeatureCount() => FeatureCount;
-
-        /// <summary>
-        /// Get the latent dimension. It's the tlngth of `v_{j, f}` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
-        /// </summary>
-        public int GetLatentDim() => LatentDim;
-
-        /// <summary>
         /// The linear coefficients of the features. It's the symbol `w` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
         /// </summary>
-        public float[] GetLinearWeights() => _linearWeights;
+        public IReadOnlyList<float> GetLinearWeights() => _linearWeights;
 
         /// <summary>
         /// Latent representation of each feature. Note that one feature may have <see cref="FieldCount"/> latent vectors
-        /// and each latent vector contains <see cref="LatentDim"/> values. In the f-th field, the j-th feature's latent vector, `v_{j, f}` in the doc
+        /// and each latent vector contains <see cref="LatentDimension"/> values. In the f-th field, the j-th feature's latent vector, `v_{j, f}` in the doc
         /// https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf, starts at latentWeights[j * fieldCount * latentDim + f * latentDim].
         /// The k-th element in v_{j, f} is latentWeights[j * fieldCount * latentDim + f * latentDim + k].
         /// The size of the returned value is featureCount x fieldCount x latentDim.
         /// </summary>
-        public float[] GetLatentWeights()
+        public IReadOnlyList<float> GetLatentWeights()
         {
-            var latentWeights = new float[FeatureCount * FieldCount * LatentDim];
+            var latentWeights = new float[FeatureCount * FieldCount * LatentDimension];
             for (int j = 0; j < FeatureCount; j++)
             {
                 for (int f = 0; f < FieldCount; f++)
                 {
-                    int index = j * FieldCount * LatentDim + f * LatentDim;
+                    int index = j * FieldCount * LatentDimension + f * LatentDimension;
                     int indexAligned = j * FieldCount * LatentDimAligned + f * LatentDimAligned;
-                    for (int k = 0; k < LatentDim; k++)
+                    for (int k = 0; k < LatentDimension; k++)
                     {
                         latentWeights[index + k] = _latentWeightsAligned[indexAligned + k];
                     }
