@@ -48,7 +48,7 @@ namespace Microsoft.ML.Trainers
             /// More than 1000 weights might take a few minutes. For those cases consider using the instance of <see cref="ComputeLogisticRegressionStandardDeviation"/>
             /// present in the Microsoft.ML.HalLearners package. That computes the statistics using hardware acceleration.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat", SortOrder = 50)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat, ShowTrainingStats", SortOrder = 50)]
             public bool ShowTrainingStatistics = false;
 
             /// <summary>

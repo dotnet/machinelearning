@@ -25,7 +25,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// L2 regularization weight.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization weight", ShortName = "l2", SortOrder = 50)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization weight", ShortName = "l2, L2Weight", SortOrder = 50)]
             [TGUI(Label = "L2 Weight", Description = "Weight of L2 regularizer term", SuggestedSweeps = "0,0.1,1")]
             [TlcModule.SweepableFloatParamAttribute(0.0f, 1.0f, numSteps: 4)]
             public float L2Regularization = Defaults.L2Regularization;
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// L1 regularization weight.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "L1 regularization weight", ShortName = "l1", SortOrder = 50)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "L1 regularization weight", ShortName = "l1, L1Weight", SortOrder = 50)]
             [TGUI(Label = "L1 Weight", Description = "Weight of L1 regularizer term", SuggestedSweeps = "0,0.1,1")]
             [TlcModule.SweepableFloatParamAttribute(0.0f, 1.0f, numSteps: 4)]
             public float L1Regularization = Defaults.L1Regularization;
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Trainers
             /// Tolerance parameter for optimization convergence. (Low = slower, more accurate).
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance parameter for optimization convergence. Low = slower, more accurate",
-                ShortName = "ot", SortOrder = 50)]
+                ShortName = "ot, OptTol", SortOrder = 50)]
             [TGUI(Label = "Optimization Tolerance", Description = "Threshold for optimizer convergence", SuggestedSweeps = "1e-4,1e-7")]
             [TlcModule.SweepableDiscreteParamAttribute(new object[] { 1e-4f, 1e-7f })]
             public float OptmizationTolerance = Defaults.OptimizationTolerance;
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers
             /// Number of previous iterations to remember for estimate of Hessian.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Memory size for L-BFGS. Low=faster, less accurate",
-                ShortName = "m", SortOrder = 50)]
+                ShortName = "m, MemorySize", SortOrder = 50)]
             [TGUI(Description = "Memory size for L-BFGS", SuggestedSweeps = "5,20,50")]
             [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[] { 5, 20, 50 })]
             public int NumberOfPreviousIterationsToRemember = Defaults.NumberOfPreviousIterationsToRemember;
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Number of iterations.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum iterations.", ShortName = "maxiter")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum iterations.", ShortName = "maxiter, MaxIterations")]
             [TGUI(Label = "Max Number of Iterations")]
             [TlcModule.SweepableLongParamAttribute("MaxIterations", 1, int.MaxValue)]
             public int NumberOfIterations = Defaults.NumberOfIterations;
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Init Weights Diameter
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Init weights diameter", ShortName = "initwts", SortOrder = 140)]
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Init weights diameter", ShortName = "initwts, InitWtsDiameter", SortOrder = 140)]
             [TGUI(Label = "Initial Weights Scale", SuggestedSweeps = "0,0.1,0.5,1")]
             [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0.0f, 1.0f, numSteps: 5)]
             public float InitialWeightsDiameter = 0;
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Number of threads. Null means use the number of processors.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of threads", ShortName = "nt")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of threads", ShortName = "nt, NumThreads")]
             public int? NumberOfThreads;
 
             /// <summary>
