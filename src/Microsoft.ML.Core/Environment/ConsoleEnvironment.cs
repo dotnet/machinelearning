@@ -465,7 +465,6 @@ namespace Microsoft.ML.Runtime
             public Host(HostEnvironmentBase<ConsoleEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose)
                 : base(source, shortName, parentFullName, rand, verbose)
             {
-                IsCancelled = source.IsCancelled;
             }
 
             protected override IChannel CreateCommChannel(ChannelProviderBase parent, string name)

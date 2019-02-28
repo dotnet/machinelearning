@@ -104,7 +104,6 @@ namespace Microsoft.ML
             log(this, new LoggingEventArgs(msg));
         }
 
-        bool IHostEnvironment.IsCancelled => _env.IsCancelled;
         string IExceptionContext.ContextDescription => _env.ContextDescription;
         TException IExceptionContext.Process<TException>(TException ex) => _env.Process(ex);
         IHost IHostEnvironment.Register(string name, int? seed, bool? verbose) => _env.Register(name, seed, verbose);

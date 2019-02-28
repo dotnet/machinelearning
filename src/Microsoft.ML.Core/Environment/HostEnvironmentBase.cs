@@ -114,21 +114,6 @@ namespace Microsoft.ML.Runtime
                 : base(source, rand, verbose, shortName, parentFullName)
             {
                 Depth = source.Depth + 1;
-                _children = new List<WeakReference<IHost>>();
-            }
-
-            public void StopExecution()
-            {
-                lock (_cancelLock)
-                {
-                    IsCancelled = true;
-                    foreach (var child in _children)
-                    {
-                        if (child.TryGetTarget(out IHost host))
-                            host.StopExecution();
-                    }
-                    _children.Clear();
-                }
             }
 
             public new IHost Register(string name, int? seed = null, bool? verbose = null)
@@ -339,7 +324,7 @@ namespace Microsoft.ML.Runtime
 
         protected readonly ProgressReporting.ProgressTracker ProgressTracker;
 
-        public bool IsCancelled { get; protected set; }
+
 
         public ComponentCatalog ComponentCatalog { get; }
 
