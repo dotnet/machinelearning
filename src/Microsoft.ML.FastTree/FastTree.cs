@@ -115,7 +115,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // override with the directly provided values.
             FastTreeTrainerOptions.NumberOfLeaves = numLeaves;
             FastTreeTrainerOptions.NumberOfTrees = numTrees;
-            FastTreeTrainerOptions.MinExampleCountPerLeaf = minDatapointsInLeaves;
+            FastTreeTrainerOptions.MinimumExampleCountPerLeaf = minDatapointsInLeaves;
 
             FastTreeTrainerOptions.LabelColumnName = label.Name;
             FastTreeTrainerOptions.FeatureColumnName = featureColumn;
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             AnnotationUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, trainData.Schema.Feature.Value.Index, out CategoricalFeatures);
             var useTranspose = UseTranspose(FastTreeTrainerOptions.DiskTranspose, trainData) && (ValidData == null || UseTranspose(FastTreeTrainerOptions.DiskTranspose, ValidData));
-            var instanceConverter = new ExamplesToFastTreeBins(Host, FastTreeTrainerOptions.MaxBinCountPerFeature, useTranspose, !FastTreeTrainerOptions.FeatureFlocks, FastTreeTrainerOptions.MinExampleCountPerLeaf, GetMaxLabel());
+            var instanceConverter = new ExamplesToFastTreeBins(Host, FastTreeTrainerOptions.MaximumBinCountPerFeature, useTranspose, !FastTreeTrainerOptions.FeatureFlocks, FastTreeTrainerOptions.MinimumExampleCountPerLeaf, GetMaxLabel());
 
             TrainSet = instanceConverter.FindBinsAndReturnDataset(trainData, PredictionKind, ParallelTraining, CategoricalFeatures, FastTreeTrainerOptions.CategoricalSplit);
             FeatureMap = instanceConverter.FeatureMap;
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
                 using (Timer.Time(TimerEvent.TotalTrain))
                     Train(ch);
-                if (FastTreeTrainerOptions.ExecutionTimes)
+                if (FastTreeTrainerOptions.ExecutionTime)
                     PrintExecutionTimes(ch);
                 TrainedEnsemble = Ensemble;
                 if (FeatureMap != null)
@@ -423,7 +423,7 @@ namespace Microsoft.ML.Trainers.FastTree
             if (FastTreeTrainerOptions.FeatureFraction < 1.0)
             {
                 if (_featureSelectionRandom == null)
-                    _featureSelectionRandom = new Random(FastTreeTrainerOptions.FeatureSelectionRandomSeed);
+                    _featureSelectionRandom = new Random(FastTreeTrainerOptions.FeatureSelectionSeed);
 
                 for (int i = 0; i < TrainSet.NumFeatures; ++i)
                 {
@@ -593,7 +593,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected virtual BaggingProvider CreateBaggingProvider()
         {
             Contracts.Assert(FastTreeTrainerOptions.BaggingSize > 0);
-            return new BaggingProvider(TrainSet, FastTreeTrainerOptions.NumberOfLeaves, FastTreeTrainerOptions.RandomSeed, FastTreeTrainerOptions.BaggingExampleFraction);
+            return new BaggingProvider(TrainSet, FastTreeTrainerOptions.NumberOfLeaves, FastTreeTrainerOptions.Seed, FastTreeTrainerOptions.BaggingExampleFraction);
         }
 
         private protected virtual bool ShouldRandomStartOptimizer()
@@ -624,7 +624,7 @@ namespace Microsoft.ML.Trainers.FastTree
             if (Ensemble.NumTrees < numTotalTrees && ShouldRandomStartOptimizer())
             {
                 ch.Info("Randomizing start point");
-                OptimizationAlgorithm.TrainingScores.RandomizeScores(FastTreeTrainerOptions.RandomSeed, false);
+                OptimizationAlgorithm.TrainingScores.RandomizeScores(FastTreeTrainerOptions.Seed, false);
                 revertRandomStart = true;
             }
 
@@ -711,7 +711,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         {
                             revertRandomStart = false;
                             ch.Info("Reverting random score assignment");
-                            OptimizationAlgorithm.TrainingScores.RandomizeScores(FastTreeTrainerOptions.RandomSeed, true);
+                            OptimizationAlgorithm.TrainingScores.RandomizeScores(FastTreeTrainerOptions.Seed, true);
                         }
 
 #if !NO_STORE

@@ -138,7 +138,7 @@ namespace Microsoft.ML.Sweeper
                     {
                         FeatureFraction = _args.SplitRatio,
                         NumberOfTrees = _args.NumOfTrees,
-                        MinExampleCountPerLeaf = _args.NMinForSplit,
+                        MinimumExampleCountPerLeaf = _args.NMinForSplit,
                         LabelColumnName = DefaultColumnNames.Label,
                         FeatureColumnName = DefaultColumnNames.Features,
                     });

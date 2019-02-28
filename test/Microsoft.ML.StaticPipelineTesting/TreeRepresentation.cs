@@ -113,7 +113,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 NumberOfThreads = 1,
                 // This is the minimal samples to form a split (i.e., generating two extra nodes/leaves). For a small data set,
                 // we should set a small value. Otherwise, the trained trees could be empty.
-                MinExampleCountPerLeaf = 2
+                MinimumExampleCountPerLeaf = 2
             };
 
             var est = reader.MakeNewEstimator()

@@ -407,7 +407,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     options.MaximumTreeOutput,
                     options.GetDerivativesSampleRate,
                     options.BestStepRankingRegressionTrees,
-                    options.RandomSeed)
+                    options.Seed)
             {
                 if (options.DropoutRate > 0 && LearningRate > 0) // Don't do shrinkage if dropouts are used.
                     Shrinkage = 1.0 / LearningRate;

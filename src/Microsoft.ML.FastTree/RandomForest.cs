@@ -61,12 +61,12 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override TreeLearner ConstructTreeLearner(IChannel ch)
         {
             return new RandomForestLeastSquaresTreeLearner(
-                       TrainSet, FastTreeTrainerOptions.NumberOfLeaves, FastTreeTrainerOptions.MinExampleCountPerLeaf, FastTreeTrainerOptions.EntropyCoefficient,
+                       TrainSet, FastTreeTrainerOptions.NumberOfLeaves, FastTreeTrainerOptions.MinimumExampleCountPerLeaf, FastTreeTrainerOptions.EntropyCoefficient,
                        FastTreeTrainerOptions.FeatureFirstUsePenalty, FastTreeTrainerOptions.FeatureReusePenalty, FastTreeTrainerOptions.SoftmaxTemperature,
-                       FastTreeTrainerOptions.HistogramPoolSize, FastTreeTrainerOptions.RandomSeed, FastTreeTrainerOptions.FeatureFractionPerSplit,
-                       FastTreeTrainerOptions.AllowEmptyTrees, FastTreeTrainerOptions.GainConfidenceLevel, FastTreeTrainerOptions.MaxCategoricalGroupsPerNode,
-                       FastTreeTrainerOptions.MaxCategoricalSplitPoints, _quantileEnabled, FastTreeTrainerOptions.NumberOfQuantileSamples, ParallelTraining,
-                       FastTreeTrainerOptions.MinExamplePercentageForCategoricalSplit, FastTreeTrainerOptions.Bundling, FastTreeTrainerOptions.MinExamplesForCategoricalSplit, FastTreeTrainerOptions.Bias);
+                       FastTreeTrainerOptions.HistogramPoolSize, FastTreeTrainerOptions.Seed, FastTreeTrainerOptions.FeatureFractionPerSplit,
+                       FastTreeTrainerOptions.AllowEmptyTrees, FastTreeTrainerOptions.GainConfidenceLevel, FastTreeTrainerOptions.MaximumCategoricalGroupsPerNode,
+                       FastTreeTrainerOptions.MaximumCategoricalSplitPoints, _quantileEnabled, FastTreeTrainerOptions.NumberOfQuantileSamples, ParallelTraining,
+                       FastTreeTrainerOptions.MinimumExampleFractionForCategoricalSplit, FastTreeTrainerOptions.Bundling, FastTreeTrainerOptions.MinimumExamplesForCategoricalSplit, FastTreeTrainerOptions.Bias);
         }
 
         internal abstract class RandomForestObjectiveFunction : ObjectiveFunctionBase
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     maxStepSize,
                     1, // No derivative sampling in random forests.
                     false, // Improvements to quasi-newton step not relevant to RF.
-                    options.RandomSeed)
+                    options.Seed)
             {
             }
         }

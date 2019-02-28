@@ -197,7 +197,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 FastTreeTrainerOptions.MaximumTreeOutput,
                 FastTreeTrainerOptions.GetDerivativesSampleRate,
                 FastTreeTrainerOptions.BestStepRankingRegressionTrees,
-                FastTreeTrainerOptions.RandomSeed,
+                FastTreeTrainerOptions.Seed,
                 ParallelTraining);
         }
 

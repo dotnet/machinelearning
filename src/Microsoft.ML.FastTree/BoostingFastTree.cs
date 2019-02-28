@@ -61,12 +61,12 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override TreeLearner ConstructTreeLearner(IChannel ch)
         {
             return new LeastSquaresRegressionTreeLearner(
-                TrainSet, FastTreeTrainerOptions.NumberOfLeaves, FastTreeTrainerOptions.MinExampleCountPerLeaf, FastTreeTrainerOptions.EntropyCoefficient,
+                TrainSet, FastTreeTrainerOptions.NumberOfLeaves, FastTreeTrainerOptions.MinimumExampleCountPerLeaf, FastTreeTrainerOptions.EntropyCoefficient,
                 FastTreeTrainerOptions.FeatureFirstUsePenalty, FastTreeTrainerOptions.FeatureReusePenalty, FastTreeTrainerOptions.SoftmaxTemperature,
-                FastTreeTrainerOptions.HistogramPoolSize, FastTreeTrainerOptions.RandomSeed, FastTreeTrainerOptions.FeatureFractionPerSplit, FastTreeTrainerOptions.FilterZeroLambdas,
-                FastTreeTrainerOptions.AllowEmptyTrees, FastTreeTrainerOptions.GainConfidenceLevel, FastTreeTrainerOptions.MaxCategoricalGroupsPerNode,
-                FastTreeTrainerOptions.MaxCategoricalSplitPoints, BsrMaxTreeOutput(), ParallelTraining,
-                FastTreeTrainerOptions.MinExamplePercentageForCategoricalSplit, FastTreeTrainerOptions.Bundling, FastTreeTrainerOptions.MinExamplesForCategoricalSplit, FastTreeTrainerOptions.Bias);
+                FastTreeTrainerOptions.HistogramPoolSize, FastTreeTrainerOptions.Seed, FastTreeTrainerOptions.FeatureFractionPerSplit, FastTreeTrainerOptions.FilterZeroLambdas,
+                FastTreeTrainerOptions.AllowEmptyTrees, FastTreeTrainerOptions.GainConfidenceLevel, FastTreeTrainerOptions.MaximumCategoricalGroupsPerNode,
+                FastTreeTrainerOptions.MaximumCategoricalSplitPoints, BsrMaxTreeOutput(), ParallelTraining,
+                FastTreeTrainerOptions.MinimumExampleFractionForCategoricalSplit, FastTreeTrainerOptions.Bundling, FastTreeTrainerOptions.MinimumExamplesForCategoricalSplit, FastTreeTrainerOptions.Bias);
         }
 
         private protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Trainers.FastTree
             optimizationAlgorithm.ObjectiveFunction = ConstructObjFunc(ch);
             optimizationAlgorithm.Smoothing = FastTreeTrainerOptions.Smoothing;
             optimizationAlgorithm.DropoutRate = FastTreeTrainerOptions.DropoutRate;
-            optimizationAlgorithm.DropoutRng = new Random(FastTreeTrainerOptions.RandomSeed);
+            optimizationAlgorithm.DropoutRng = new Random(FastTreeTrainerOptions.Seed);
             optimizationAlgorithm.PreScoreUpdateEvent += PrintTestGraph;
 
             return optimizationAlgorithm;

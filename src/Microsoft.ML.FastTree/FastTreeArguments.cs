@@ -175,7 +175,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// The seed of the random number generator.
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The seed of the random number generator", ShortName = "r1,RngSeed")]
-        public int RandomSeed = 123;
+        public int Seed = 123;
 
         // this random seed is only for active feature selection
         /// <summary>
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The seed of the active feature selection", ShortName = "r3,FeatureSelectSeed", Hide = true)]
         [TGUI(NotGui = true)]
-        public int FeatureSelectionRandomSeed = 123;
+        public int FeatureSelectionSeed = 123;
 
         /// <summary>
         /// The entropy (regularization) coefficient between 0 and 1.
@@ -221,26 +221,26 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum categorical split groups to consider when splitting on a categorical feature. " +
                                                              "Split groups are a collection of split points. This is used to reduce overfitting when " +
-                                                             "there many categorical features.", ShortName = "mcg")]
-        public int MaxCategoricalGroupsPerNode = 64;
+                                                             "there many categorical features.", ShortName = "mcg,MaxCategoricalGroupsPerNode")]
+        public int MaximumCategoricalGroupsPerNode = 64;
 
         /// <summary>
         /// Maximum categorical split points to consider when splitting on a categorical feature.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum categorical split points to consider when splitting on a categorical feature.", ShortName = "maxcat")]
-        public int MaxCategoricalSplitPoints = 64;
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum categorical split points to consider when splitting on a categorical feature.", ShortName = "maxcat,MaxCategoricalSplitPoints")]
+        public int MaximumCategoricalSplitPoints = 64;
 
         /// <summary>
-        /// Minimum categorical example percentage in a bin to consider for a split.
+        /// Minimum categorical example percentage in a bin to consider for a split. Default is 0.1% of all training examples.
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum categorical docs percentage in a bin to consider for a split.", ShortName = "mdop,MinDocsPercentageForCategoricalSplit")]
-        public double MinExamplePercentageForCategoricalSplit = 0.001;
+        public double MinimumExampleFractionForCategoricalSplit = 0.001;
 
         /// <summary>
         /// Minimum categorical example count in a bin to consider for a split.
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum categorical doc count in a bin to consider for a split.", ShortName = "mdo,MinDocsForCategoricalSplit")]
-        public int MinExamplesForCategoricalSplit = 100;
+        public int MinimumExamplesForCategoricalSplit = 100;
 
         /// <summary>
         /// Bias for calculating gradient for each feature bin for a categorical feature.
@@ -263,7 +263,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Maximum number of distinct values (bins) per feature.
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum number of distinct values (bins) per feature", ShortName = "mb,MaxBins")]
-        public int MaxBinCountPerFeature = 255;  // save one for undefs
+        public int MaximumBinCountPerFeature = 255;  // save one for undefs
 
         /// <summary>
         /// Sparsity level needed to use sparse feature representation.
@@ -300,8 +300,8 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Print execution time breakdown to stdout.
         /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Print execution time breakdown to stdout", ShortName = "et")]
-        public bool ExecutionTimes;
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Print execution time breakdown to stdout", ShortName = "et,ExecutionTimes")]
+        public bool ExecutionTime;
 
         // REVIEW: Different from original FastRank arguments (shortname l vs. nl). Different default from TLC FR Wrapper (20 vs. 20).
         /// <summary>
@@ -320,7 +320,7 @@ namespace Microsoft.ML.Trainers.FastTree
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data", ShortName = "mil,MinDocumentsInLeafs", SortOrder = 3)]
         [TGUI(Description = "Minimum number of training instances required to form a leaf", SuggestedSweeps = "1,10,50")]
         [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
-        public int MinExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf;
+        public int MinimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf;
 
         /// <summary>
         /// Total number of decision trees to create in the ensemble.
@@ -332,7 +332,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public int NumberOfTrees = Defaults.NumberOfTrees;
 
         /// <summary>
-        /// The fraction of features (chosen randomly) to use on each iteration.
+        /// The fraction of features (chosen randomly) to use on each iteration. Use 0.9 if only 90% of features is needed.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "The fraction of features (chosen randomly) to use on each iteration", ShortName = "ff")]
         public Double FeatureFraction = 1;
@@ -344,7 +344,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public int BaggingSize;
 
         /// <summary>
-        /// Percentage of training examples used in each bag.
+        /// Percentage of training examples used in each bag. Default is 0.7 (70%).
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Percentage of training examples used in each bag", ShortName = "bagfrac,BaggingTrainFraction")]
         // REVIEW: sweeping bagfrac doesn't make sense unless 'baggingSize' is non-zero. The 'SuggestedSweeps' here
@@ -354,13 +354,13 @@ namespace Microsoft.ML.Trainers.FastTree
         public Double BaggingExampleFraction = 0.7;
 
         /// <summary>
-        /// The fraction of features (chosen randomly) to use on each split.
+        /// The fraction of features (chosen randomly) to use on each split. If it's value is 0.9, 90% of all features would be dropped in expectation.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "The fraction of features (chosen randomly) to use on each split", ShortName = "sf,SplitFraction")]
         public Double FeatureFractionPerSplit = 1;
 
         /// <summary>
-        /// Smoothing paramter for tree regularization.
+        /// Smoothing parameter for tree regularization.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Smoothing paramter for tree regularization", ShortName = "s")]
         public Double Smoothing;
@@ -392,7 +392,7 @@ namespace Microsoft.ML.Trainers.FastTree
         // REVIEW: Not used.
         [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum Number of trees after compression", ShortName = "cmpmax,MaxTreesAfterCompression", Hide = true)]
         [TGUI(NotGui = true)]
-        public int MaxTreeCountAfterCompression = -1;
+        public int MaximumTreeCountAfterCompression = -1;
 
         /// <summary>
         /// Print metrics graph for the first test set.
@@ -425,7 +425,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ectx.CheckUserArg(0 <= FeatureFraction && FeatureFraction <= 1, nameof(FeatureFraction), "Must be between 0 and 1.");
             ectx.CheckUserArg(0 <= FeatureFractionPerSplit && FeatureFractionPerSplit <= 1, nameof(FeatureFractionPerSplit), "Must be between 0 and 1.");
             ectx.CheckUserArg(0 <= SoftmaxTemperature, nameof(SoftmaxTemperature), "Must be non-negative.");
-            ectx.CheckUserArg(0 < MaxBinCountPerFeature, nameof(MaxBinCountPerFeature), "Must greater than 0.");
+            ectx.CheckUserArg(0 < MaximumBinCountPerFeature, nameof(MaximumBinCountPerFeature), "Must greater than 0.");
             ectx.CheckUserArg(0 <= SparsifyThreshold && SparsifyThreshold <= 1, nameof(SparsifyThreshold), "Must be between 0 and 1.");
             ectx.CheckUserArg(0 < NumberOfTrees, nameof(NumberOfTrees), "Must be positive.");
             ectx.CheckUserArg(0 <= Smoothing && Smoothing <= 1, nameof(Smoothing), "Must be between 0 and 1.");
@@ -433,10 +433,10 @@ namespace Microsoft.ML.Trainers.FastTree
             ectx.CheckUserArg(0 <= BaggingExampleFraction && BaggingExampleFraction <= 1, nameof(BaggingExampleFraction), "Must be between 0 and 1.");
             ectx.CheckUserArg(0 <= FeatureFirstUsePenalty, nameof(FeatureFirstUsePenalty), "Must be non-negative.");
             ectx.CheckUserArg(0 <= FeatureReusePenalty, nameof(FeatureReusePenalty), "Must be non-negative.");
-            ectx.CheckUserArg(0 <= MaxCategoricalGroupsPerNode, nameof(MaxCategoricalGroupsPerNode), "Must be non-negative.");
-            ectx.CheckUserArg(0 <= MaxCategoricalSplitPoints, nameof(MaxCategoricalSplitPoints), "Must be non-negative.");
-            ectx.CheckUserArg(0 <= MinExamplePercentageForCategoricalSplit, nameof(MinExamplePercentageForCategoricalSplit), "Must be non-negative.");
-            ectx.CheckUserArg(0 <= MinExamplesForCategoricalSplit, nameof(MinExamplesForCategoricalSplit), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= MaximumCategoricalGroupsPerNode, nameof(MaximumCategoricalGroupsPerNode), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= MaximumCategoricalSplitPoints, nameof(MaximumCategoricalSplitPoints), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= MinimumExampleFractionForCategoricalSplit, nameof(MinimumExampleFractionForCategoricalSplit), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= MinimumExamplesForCategoricalSplit, nameof(MinimumExamplesForCategoricalSplit), "Must be non-negative.");
             ectx.CheckUserArg(Bundle.None <= Bundling && Bundling <= Bundle.Adjacent, nameof(Bundling), "Must be between 0 and 2.");
             ectx.CheckUserArg(Bias >= 0, nameof(Bias), "Must be greater than equal to zero.");
         }

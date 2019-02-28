@@ -177,7 +177,7 @@ namespace Microsoft.ML.Trainers.FastTree
             if (FastTreeTrainerOptions.CompressEnsemble)
             {
                 _ensembleCompressor = new LassoBasedEnsembleCompressor();
-                _ensembleCompressor.Initialize(FastTreeTrainerOptions.NumberOfTrees, TrainSet, TrainSet.Ratings, FastTreeTrainerOptions.RandomSeed);
+                _ensembleCompressor.Initialize(FastTreeTrainerOptions.NumberOfTrees, TrainSet, TrainSet.Ratings, FastTreeTrainerOptions.Seed);
             }
         }
 
@@ -200,7 +200,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override BaggingProvider CreateBaggingProvider()
         {
             Host.Assert(FastTreeTrainerOptions.BaggingSize > 0);
-            return new RankingBaggingProvider(TrainSet, FastTreeTrainerOptions.NumberOfLeaves, FastTreeTrainerOptions.RandomSeed, FastTreeTrainerOptions.BaggingExampleFraction);
+            return new RankingBaggingProvider(TrainSet, FastTreeTrainerOptions.NumberOfLeaves, FastTreeTrainerOptions.Seed, FastTreeTrainerOptions.BaggingExampleFraction);
         }
 
         private protected override void PrepareLabels(IChannel ch)
@@ -556,7 +556,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     options.MaximumTreeOutput,
                     options.GetDerivativesSampleRate,
                     options.BestStepRankingRegressionTrees,
-                    options.RandomSeed)
+                    options.Seed)
             {
 
                 _labels = labels;
