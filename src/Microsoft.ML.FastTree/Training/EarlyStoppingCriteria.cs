@@ -7,7 +7,6 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Trainers.FastTree;
-using Float = System.Single;
 
 [assembly: LoadableClass(typeof(TolerantEarlyStoppingCriterion), typeof(TolerantEarlyStoppingCriterion.Options), typeof(SignatureEarlyStoppingCriterion), "Tolerant (TR)", "tr")]
 [assembly: LoadableClass(typeof(GLEarlyStoppingCriterion), typeof(GLEarlyStoppingCriterion.Options), typeof(SignatureEarlyStoppingCriterion), "Loss of Generality (GL)", "gl")]
@@ -35,7 +34,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="trainingScore">A non negative number. Higher score means better result unless "_lowerIsBetter" is true.</param>
         /// <param name="isBestCandidate">True if the current result is the best ever.</param>
         /// <returns>If true, the learning should stop.</returns>
-        public abstract bool CheckScore(Float validationScore, Float trainingScore, out bool isBestCandidate);
+        public abstract bool CheckScore(float validationScore, float trainingScore, out bool isBestCandidate);
     }
 
     [TlcModule.ComponentKind("EarlyStoppingCriterion")]
@@ -49,11 +48,11 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         public abstract class OptionsBase { }
 
-        private Float _bestScore;
+        private float _bestScore;
 
         protected readonly TOptions EarlyStoppingCriterionOptions;
         protected readonly bool LowerIsBetter;
-        protected Float BestScore {
+        protected float BestScore {
             get { return _bestScore; }
             set
             {
@@ -66,7 +65,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             EarlyStoppingCriterionOptions = options;
             LowerIsBetter = lowerIsBetter;
-            _bestScore = LowerIsBetter ? Float.PositiveInfinity : Float.NegativeInfinity;
+            _bestScore = LowerIsBetter ? float.PositiveInfinity : float.NegativeInfinity;
         }
 
         /// <summary>
@@ -74,7 +73,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         /// <param name="score">The latest score</param>
         /// <returns>True if the given score is the best ever.</returns>
-        protected bool CheckBestScore(Float score)
+        protected bool CheckBestScore(float score)
         {
             bool isBestEver = ((score > BestScore) != LowerIsBetter);
             if (isBestEver)
@@ -105,7 +104,7 @@ namespace Microsoft.ML.Trainers.FastTree
             Contracts.CheckUserArg(EarlyStoppingCriterionOptions.Threshold >= 0, nameof(options.Threshold), "Must be non-negative.");
         }
 
-        public override bool CheckScore(Float validationScore, Float trainingScore, out bool isBestCandidate)
+        public override bool CheckScore(float validationScore, float trainingScore, out bool isBestCandidate)
         {
             Contracts.Assert(validationScore >= 0);
 
@@ -128,14 +127,14 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Threshold in range [0,1].", ShortName = "th")]
             [TlcModule.Range(Min = 0.0f, Max = 1.0f)]
-            public Float Threshold = 0.01f;
+            public float Threshold = 0.01f;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The window size.", ShortName = "w")]
             [TlcModule.Range(Inf = 0)]
             public int WindowSize = 5;
         }
 
-        protected Queue<Float> PastScores;
+        protected Queue<float> PastScores;
 
         private protected MovingWindowEarlyStoppingCriterion(Options args, bool lowerIsBetter)
             : base(args, lowerIsBetter)
@@ -143,18 +142,18 @@ namespace Microsoft.ML.Trainers.FastTree
             Contracts.CheckUserArg(0 <= EarlyStoppingCriterionOptions.Threshold && args.Threshold <= 1, nameof(args.Threshold), "Must be in range [0,1].");
             Contracts.CheckUserArg(EarlyStoppingCriterionOptions.WindowSize > 0, nameof(args.WindowSize), "Must be positive.");
 
-            PastScores = new Queue<Float>(EarlyStoppingCriterionOptions.WindowSize);
+            PastScores = new Queue<float>(EarlyStoppingCriterionOptions.WindowSize);
         }
 
         /// <summary>
         /// Calculate the average score in the given list of scores.
         /// </summary>
         /// <returns>The moving average.</returns>
-        private Float GetRecentAvg(Queue<Float> recentScores)
+        private float GetRecentAvg(Queue<float> recentScores)
         {
-            Float avg = 0;
+            float avg = 0;
 
-            foreach (Float score in recentScores)
+            foreach (float score in recentScores)
                 avg += score;
 
             Contracts.Assert(recentScores.Count > 0);
@@ -166,10 +165,10 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         /// <param name="recentScores">The list of scores.</param>
         /// <returns>The best score.</returns>
-        private Float GetRecentBest(IEnumerable<Float> recentScores)
+        private float GetRecentBest(IEnumerable<float> recentScores)
         {
-            Float recentBestScore = LowerIsBetter ? Float.PositiveInfinity : Float.NegativeInfinity;
-            foreach (Float score in recentScores)
+            float recentBestScore = LowerIsBetter ? float.PositiveInfinity : float.NegativeInfinity;
+            foreach (float score in recentScores)
             {
                 if ((score > recentBestScore) != LowerIsBetter)
                     recentBestScore = score;
@@ -178,7 +177,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return recentBestScore;
         }
 
-        protected bool CheckRecentScores(Float score, int windowSize, out Float recentBest, out Float recentAverage)
+        protected bool CheckRecentScores(float score, int windowSize, out float recentBest, out float recentAverage)
         {
             if (PastScores.Count >= windowSize)
             {
@@ -191,8 +190,8 @@ namespace Microsoft.ML.Trainers.FastTree
             else
             {
                 PastScores.Enqueue(score);
-                recentBest = default(Float);
-                recentAverage = default(Float);
+                recentBest = default(float);
+                recentAverage = default(float);
                 return false;
             }
         }
@@ -223,7 +222,7 @@ namespace Microsoft.ML.Trainers.FastTree
             Contracts.CheckUserArg(0 <= EarlyStoppingCriterionOptions.Threshold && options.Threshold <= 1, nameof(options.Threshold), "Must be in range [0,1].");
         }
 
-        public override bool CheckScore(Float validationScore, Float trainingScore, out bool isBestCandidate)
+        public override bool CheckScore(float validationScore, float trainingScore, out bool isBestCandidate)
         {
             Contracts.Assert(validationScore >= 0);
 
@@ -254,15 +253,15 @@ namespace Microsoft.ML.Trainers.FastTree
         public LPEarlyStoppingCriterion(Options options, bool lowerIsBetter)
             : base(options, lowerIsBetter) { }
 
-        public override bool CheckScore(Float validationScore, Float trainingScore, out bool isBestCandidate)
+        public override bool CheckScore(float validationScore, float trainingScore, out bool isBestCandidate)
         {
             Contracts.Assert(validationScore >= 0);
             Contracts.Assert(trainingScore >= 0);
 
             isBestCandidate = CheckBestScore(validationScore);
 
-            Float recentBest;
-            Float recentAverage;
+            float recentBest;
+            float recentAverage;
             if (CheckRecentScores(trainingScore, EarlyStoppingCriterionOptions.WindowSize, out recentBest, out recentAverage))
             {
                 if (LowerIsBetter)
@@ -292,15 +291,15 @@ namespace Microsoft.ML.Trainers.FastTree
         public PQEarlyStoppingCriterion(Options options, bool lowerIsBetter)
             : base(options, lowerIsBetter) { }
 
-        public override bool CheckScore(Float validationScore, Float trainingScore, out bool isBestCandidate)
+        public override bool CheckScore(float validationScore, float trainingScore, out bool isBestCandidate)
         {
             Contracts.Assert(validationScore >= 0);
             Contracts.Assert(trainingScore >= 0);
 
             isBestCandidate = CheckBestScore(validationScore);
 
-            Float recentBest;
-            Float recentAverage;
+            float recentBest;
+            float recentAverage;
             if (CheckRecentScores(trainingScore, EarlyStoppingCriterionOptions.WindowSize, out recentBest, out recentAverage))
             {
                 if (LowerIsBetter)
@@ -333,17 +332,17 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         private int _count;
-        private Float _prevScore;
+        private float _prevScore;
 
         public UPEarlyStoppingCriterion(Options options, bool lowerIsBetter)
             : base(options, lowerIsBetter)
         {
             Contracts.CheckUserArg(EarlyStoppingCriterionOptions.WindowSize > 0, nameof(options.WindowSize), "Must be positive");
 
-            _prevScore = LowerIsBetter ? Float.PositiveInfinity : Float.NegativeInfinity;
+            _prevScore = LowerIsBetter ? float.PositiveInfinity : float.NegativeInfinity;
         }
 
-        public override bool CheckScore(Float validationScore, Float trainingScore, out bool isBestCandidate)
+        public override bool CheckScore(float validationScore, float trainingScore, out bool isBestCandidate)
         {
             Contracts.Assert(validationScore >= 0);
 

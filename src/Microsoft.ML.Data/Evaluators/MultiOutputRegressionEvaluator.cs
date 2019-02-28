@@ -12,9 +12,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
-using Float = System.Single;
 
 [assembly: LoadableClass(typeof(MultiOutputRegressionEvaluator), typeof(MultiOutputRegressionEvaluator), typeof(MultiOutputRegressionEvaluator.Arguments), typeof(SignatureEvaluator),
     "Multi Output Regression Evaluator", MultiOutputRegressionEvaluator.LoadName, "MultiOutputRegression", "MRE")]
@@ -246,7 +244,7 @@ namespace Microsoft.ML.Data
                     _fnLoss = new double[size];
                 }
 
-                public void Update(ReadOnlySpan<float> score, ReadOnlySpan<float> label, int length, Float weight)
+                public void Update(ReadOnlySpan<float> score, ReadOnlySpan<float> label, int length, float weight)
                 {
                     Contracts.Assert(length == _l1Loss.Length);
                     Contracts.Assert(score.Length >= length);
@@ -271,16 +269,16 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            private ValueGetter<VBuffer<Float>> _labelGetter;
-            private ValueGetter<VBuffer<Float>> _scoreGetter;
-            private ValueGetter<Float> _weightGetter;
+            private ValueGetter<VBuffer<float>> _labelGetter;
+            private ValueGetter<VBuffer<float>> _scoreGetter;
+            private ValueGetter<float> _weightGetter;
 
             private readonly int _size;
 
-            private VBuffer<Float> _label;
-            private VBuffer<Float> _score;
-            private readonly Float[] _labelArr;
-            private readonly Float[] _scoreArr;
+            private VBuffer<float> _label;
+            private VBuffer<float> _score;
+            private readonly float[] _labelArr;
+            private readonly float[] _scoreArr;
 
             public readonly Counters UnweightedCounters;
             public readonly Counters WeightedCounters;
@@ -293,8 +291,8 @@ namespace Microsoft.ML.Data
                 Host.Assert(size > 0);
 
                 _size = size;
-                _labelArr = new Float[_size];
-                _scoreArr = new Float[_size];
+                _labelArr = new float[_size];
+                _scoreArr = new float[_size];
                 UnweightedCounters = new Counters(lossFunction, _size);
                 Weighted = weighted;
                 WeightedCounters = Weighted ? new Counters(lossFunction, _size) : null;
@@ -307,13 +305,13 @@ namespace Microsoft.ML.Data
 
                 var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
-                _labelGetter = RowCursorUtils.GetVecGetterAs<Float>(NumberDataViewType.Single, row, schema.Label.Value.Index);
-                _scoreGetter = row.GetGetter<VBuffer<Float>>(score.Index);
+                _labelGetter = RowCursorUtils.GetVecGetterAs<float>(NumberDataViewType.Single, row, schema.Label.Value.Index);
+                _scoreGetter = row.GetGetter<VBuffer<float>>(score.Index);
                 Contracts.AssertValue(_labelGetter);
                 Contracts.AssertValue(_scoreGetter);
 
                 if (schema.Weight.HasValue)
-                    _weightGetter = row.GetGetter<Float>(schema.Weight.Value.Index);
+                    _weightGetter = row.GetGetter<float>(schema.Weight.Value.Index);
             }
 
             public override void ProcessRow()
@@ -329,7 +327,7 @@ namespace Microsoft.ML.Data
                     return;
                 }
 
-                Float weight = 1;
+                float weight = 1;
                 if (_weightGetter != null)
                 {
                     _weightGetter(ref weight);
@@ -466,15 +464,15 @@ namespace Microsoft.ML.Data
             disposer = null;
 
             long cachedPosition = -1;
-            var label = default(VBuffer<Float>);
-            var score = default(VBuffer<Float>);
+            var label = default(VBuffer<float>);
+            var score = default(VBuffer<float>);
 
-            ValueGetter<VBuffer<Float>> nullGetter = (ref VBuffer<Float> vec) => vec = default(VBuffer<Float>);
+            ValueGetter<VBuffer<float>> nullGetter = (ref VBuffer<float> vec) => vec = default(VBuffer<float>);
             var labelGetter = activeCols(LabelOutput) || activeCols(L1Output) || activeCols(L2Output) || activeCols(DistCol)
-                ? RowCursorUtils.GetVecGetterAs<Float>(NumberDataViewType.Single, input, LabelIndex)
+                ? RowCursorUtils.GetVecGetterAs<float>(NumberDataViewType.Single, input, LabelIndex)
                 : nullGetter;
             var scoreGetter = activeCols(ScoreOutput) || activeCols(L1Output) || activeCols(L2Output) || activeCols(DistCol)
-                ? input.GetGetter<VBuffer<Float>>(ScoreIndex)
+                ? input.GetGetter<VBuffer<float>>(ScoreIndex)
                 : nullGetter;
             Action updateCacheIfNeeded =
                 () =>
@@ -490,8 +488,8 @@ namespace Microsoft.ML.Data
             var getters = new Delegate[5];
             if (activeCols(LabelOutput))
             {
-                ValueGetter<VBuffer<Float>> labelFn =
-                    (ref VBuffer<Float> dst) =>
+                ValueGetter<VBuffer<float>> labelFn =
+                    (ref VBuffer<float> dst) =>
                     {
                         updateCacheIfNeeded();
                         label.CopyTo(ref dst);
@@ -500,8 +498,8 @@ namespace Microsoft.ML.Data
             }
             if (activeCols(ScoreOutput))
             {
-                ValueGetter<VBuffer<Float>> scoreFn =
-                    (ref VBuffer<Float> dst) =>
+                ValueGetter<VBuffer<float>> scoreFn =
+                    (ref VBuffer<float> dst) =>
                     {
                         updateCacheIfNeeded();
                         score.CopyTo(ref dst);

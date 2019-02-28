@@ -15,7 +15,6 @@ using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Numeric;
 using Newtonsoft.Json.Linq;
-using Float = System.Single;
 
 [assembly: LoadableClass(typeof(MultiClassClassifierScorer),
     typeof(MultiClassClassifierScorer.Arguments), typeof(SignatureDataScorer),
@@ -502,10 +501,10 @@ namespace Microsoft.ML.Data
             Host.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
             Host.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
 
-            ValueGetter<VBuffer<Float>> mapperScoreGetter = output.GetGetter<VBuffer<Float>>(Bindings.ScoreColumnIndex);
+            ValueGetter<VBuffer<float>> mapperScoreGetter = output.GetGetter<VBuffer<float>>(Bindings.ScoreColumnIndex);
 
             long cachedPosition = -1;
-            VBuffer<Float> score = default;
+            VBuffer<float> score = default;
             int scoreLength = Bindings.PredColType.GetKeyCountAsInt32(Host);
 
             ValueGetter<uint> predFn =
@@ -519,8 +518,8 @@ namespace Microsoft.ML.Data
                     else
                         dst = (uint)index + 1;
                 };
-            ValueGetter<VBuffer<Float>> scoreFn =
-                (ref VBuffer<Float> dst) =>
+            ValueGetter<VBuffer<float>> scoreFn =
+                (ref VBuffer<float> dst) =>
                 {
                     EnsureCachedPosition(ref cachedPosition, ref score, output, mapperScoreGetter);
                     Host.Check(score.Length == scoreLength);
