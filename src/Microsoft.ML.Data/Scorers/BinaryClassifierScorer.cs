@@ -7,15 +7,13 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Newtonsoft.Json.Linq;
-using Float = System.Single;
 
 [assembly: LoadableClass(typeof(BinaryClassifierScorer), typeof(BinaryClassifierScorer.Arguments), typeof(SignatureDataScorer),
     "Binary Classifier Scorer", "BinaryClassifierScorer", "BinaryClassifier", "Binary",
-    "bin", MetadataUtils.Const.ScoreColumnKind.BinaryClassification)]
+    "bin", AnnotationUtils.Const.ScoreColumnKind.BinaryClassification)]
 
 [assembly: LoadableClass(typeof(BinaryClassifierScorer), null, typeof(SignatureLoadDataTransform),
     "Binary Classifier Scorer", BinaryClassifierScorer.LoaderSignature)]
@@ -46,7 +44,7 @@ namespace Microsoft.ML.Data
 
         private const string RegistrationName = "BinaryClassifierScore";
 
-        private readonly Float _threshold;
+        private readonly float _threshold;
 
         /// <summary>
         /// This function performs a number of checks on the inputs and, if appropriate and possible, will produce
@@ -65,7 +63,7 @@ namespace Microsoft.ML.Data
 
             if (trainSchema?.Label == null)
                 return mapper; // We don't even have a label identified in a training schema.
-            var keyType = trainSchema.Label.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+            var keyType = trainSchema.Label.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
             if (keyType == null || !CanWrap(mapper, keyType))
                 return mapper;
 
@@ -95,9 +93,9 @@ namespace Microsoft.ML.Data
                 return false; // We could cover this case, but it is of no practical worth as far as I see, so I decline to do so.
 
             int scoreIdx;
-            if (!mapper.OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIdx))
+            if (!mapper.OutputSchema.TryGetColumnIndex(AnnotationUtils.Const.ScoreValueKind.Score, out scoreIdx))
                 return false; // The mapper doesn't even publish a score column to attach the metadata to.
-            if (mapper.OutputSchema[scoreIdx].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.TrainingLabelValues)?.Type != null)
+            if (mapper.OutputSchema[scoreIdx].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.TrainingLabelValues)?.Type != null)
                 return false; // The mapper publishes a score column, and already produces its own slot names.
 
             return labelNameType is VectorType vectorType && vectorType.Size == 2;
@@ -113,19 +111,19 @@ namespace Microsoft.ML.Data
             var labelColumn = trainSchema.Label.Value;
 
             // Key values from the training schema label, will map to slot names of the score output.
-            var type = labelColumn.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+            var type = labelColumn.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
             env.AssertValue(type);
 
             // Wrap the fetching of the metadata as a simple getter.
             ValueGetter<VBuffer<T>> getter = (ref VBuffer<T> value) =>
                 labelColumn.GetKeyValues(ref value);
 
-            return MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type, getter, MetadataUtils.Kinds.TrainingLabelValues, CanWrap);
+            return MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type, getter, AnnotationUtils.Kinds.TrainingLabelValues, CanWrap);
         }
 
         [BestFriend]
         internal BinaryClassifierScorer(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
-            : base(args, env, data, WrapIfNeeded(env, mapper, trainSchema), trainSchema, RegistrationName, MetadataUtils.Const.ScoreColumnKind.BinaryClassification,
+            : base(args, env, data, WrapIfNeeded(env, mapper, trainSchema), trainSchema, RegistrationName, AnnotationUtils.Const.ScoreColumnKind.BinaryClassification,
                 Contracts.CheckRef(args, nameof(args)).ThresholdColumn, OutputTypeMatches, GetPredColType)
         {
             Contracts.CheckValue(args, nameof(args));
@@ -148,11 +146,11 @@ namespace Microsoft.ML.Data
 
             // *** Binary format ***
             // <base info>
-            // int: sizeof(Float)
-            // Float: threshold
+            // int: sizeof(float)
+            // float: threshold
 
             int cbFloat = ctx.Reader.ReadInt32();
-            Contracts.CheckDecode(cbFloat == sizeof(Float));
+            Contracts.CheckDecode(cbFloat == sizeof(float));
             _threshold = ctx.Reader.ReadFloat();
         }
 
@@ -174,11 +172,11 @@ namespace Microsoft.ML.Data
 
             // *** Binary format ***
             // <base info>
-            // int: sizeof(Float)
-            // Float: threshold
+            // int: sizeof(float)
+            // float: threshold
 
             base.SaveCore(ctx);
-            ctx.Writer.Write(sizeof(Float));
+            ctx.Writer.Write(sizeof(float));
             ctx.Writer.Write(_threshold);
         }
 
@@ -224,13 +222,13 @@ namespace Microsoft.ML.Data
             Host.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
             Host.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
 
-            ValueGetter<Float> mapperScoreGetter = output.GetGetter<Float>(Bindings.ScoreColumnIndex);
+            ValueGetter<float> mapperScoreGetter = output.GetGetter<float>(Bindings.ScoreColumnIndex);
 
             long cachedPosition = -1;
-            Float score = 0;
+            float score = 0;
 
-            ValueGetter<Float> scoreFn =
-                (ref Float dst) =>
+            ValueGetter<float> scoreFn =
+                (ref float dst) =>
                 {
                     EnsureCachedPosition(ref cachedPosition, ref score, output, mapperScoreGetter);
                     dst = score;
@@ -257,13 +255,13 @@ namespace Microsoft.ML.Data
             return predFn;
         }
 
-        private void GetPredictedLabelCore(Float score, ref bool value)
+        private void GetPredictedLabelCore(float score, ref bool value)
         {
             //Behavior for NA values is undefined.
             value = score > _threshold;
         }
 
-        private void GetPredictedLabelCoreAsKey(Float score, ref uint value)
+        private void GetPredictedLabelCoreAsKey(float score, ref uint value)
         {
             value = (uint)(score > _threshold ? 2 : score <= _threshold ? 1 : 0);
         }

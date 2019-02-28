@@ -9,6 +9,7 @@
     <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
     <ProjectReference Include="../Microsoft.ML.ImageAnalytics/Microsoft.ML.ImageAnalytics.nupkgproj" />
     <ProjectReference Include="../Microsoft.ML.Recommender/Microsoft.ML.Recommender.nupkgproj" />
+    <ProjectReference Include="../Microsoft.ML.FastTree/Microsoft.ML.FastTree.nupkgproj" />
   </ItemGroup>
 
 </Project>

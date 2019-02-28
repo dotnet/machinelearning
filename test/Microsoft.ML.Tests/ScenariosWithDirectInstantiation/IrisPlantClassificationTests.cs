@@ -35,8 +35,8 @@ namespace Microsoft.ML.Scenarios
             // Read training and test data sets
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             string testDataPath = dataPath;
-            var trainData = reader.Read(dataPath);
-            var testData = reader.Read(testDataPath);
+            var trainData = reader.Load(dataPath);
+            var testData = reader.Load(testDataPath);
 
             // Train the pipeline
             var trainedModel = pipe.Fit(trainData);
@@ -90,8 +90,8 @@ namespace Microsoft.ML.Scenarios
 
         private void CompareMetrics(MultiClassClassifierMetrics metrics)
         {
-            Assert.Equal(.98, metrics.AccuracyMacro);
-            Assert.Equal(.98, metrics.AccuracyMicro, 2);
+            Assert.Equal(.98, metrics.MacroAccuracy);
+            Assert.Equal(.98, metrics.MicroAccuracy, 2);
             Assert.InRange(metrics.LogLoss, .05, .06);
             Assert.InRange(metrics.LogLossReduction, 94, 96);
 

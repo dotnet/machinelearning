@@ -12,9 +12,8 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(TypeConvertingTransformer.Summary, typeof(IDataTransform), typeof(TypeConvertingTransformer), typeof(TypeConvertingTransformer.Options), typeof(SignatureDataTransform),
     TypeConvertingTransformer.UserName, TypeConvertingTransformer.ShortName, "ConvertTransform", DocName = "transform/ConvertTransform.md")]
@@ -30,7 +29,7 @@ using Microsoft.ML.Transforms.Conversions;
 
 [assembly: EntryPointModule(typeof(TypeConversion))]
 
-namespace Microsoft.ML.Transforms.Conversions
+namespace Microsoft.ML.Transforms
 {
     internal static class TypeConversion
     {
@@ -171,13 +170,13 @@ namespace Microsoft.ML.Transforms.Conversions
         private const string RegistrationName = "Convert";
 
         /// <summary>
-        /// A collection of <see cref="TypeConvertingEstimator.ColumnInfo"/> describing the settings of the transformation.
+        /// A collection of <see cref="TypeConvertingEstimator.ColumnOptions"/> describing the settings of the transformation.
         /// </summary>
-        public IReadOnlyCollection<TypeConvertingEstimator.ColumnInfo> Columns => _columns.AsReadOnly();
+        public IReadOnlyCollection<TypeConvertingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
 
-        private readonly TypeConvertingEstimator.ColumnInfo[] _columns;
+        private readonly TypeConvertingEstimator.ColumnOptions[] _columns;
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(TypeConvertingEstimator.ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(TypeConvertingEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckNonEmpty(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
@@ -192,14 +191,14 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="outputKind">The expected type of the converted column.</param>
         /// <param name="outputKeyCount">New key count if we work with key type.</param>
         internal TypeConvertingTransformer(IHostEnvironment env, string outputColumnName, DataKind outputKind, string inputColumnName = null, KeyCount outputKeyCount = null)
-            : this(env, new TypeConvertingEstimator.ColumnInfo(outputColumnName, outputKind, inputColumnName ?? outputColumnName, outputKeyCount))
+            : this(env, new TypeConvertingEstimator.ColumnOptions(outputColumnName, outputKind, inputColumnName ?? outputColumnName, outputKeyCount))
         {
         }
 
         /// <summary>
         /// Create a <see cref="TypeConvertingTransformer"/> that takes multiple pairs of columns.
         /// </summary>
-        internal TypeConvertingTransformer(IHostEnvironment env, params TypeConvertingEstimator.ColumnInfo[] columns)
+        internal TypeConvertingTransformer(IHostEnvironment env, params TypeConvertingEstimator.ColumnOptions[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TypeConvertingTransformer)), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
@@ -260,7 +259,7 @@ namespace Microsoft.ML.Transforms.Conversions
             //   if there is a keyCount
             //     ulong: keyCount (0 for unspecified)
 
-            _columns = new TypeConvertingEstimator.ColumnInfo[columnsLength];
+            _columns = new TypeConvertingEstimator.ColumnOptions[columnsLength];
             for (int i = 0; i < columnsLength; i++)
             {
                 byte b = ctx.Reader.ReadByte();
@@ -289,7 +288,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     keyCount = new KeyCount(count);
 
                 }
-                _columns[i] = new TypeConvertingEstimator.ColumnInfo(ColumnPairs[i].outputColumnName, kind.ToDataKind(), ColumnPairs[i].inputColumnName, keyCount);
+                _columns[i] = new TypeConvertingEstimator.ColumnOptions(ColumnPairs[i].outputColumnName, kind.ToDataKind(), ColumnPairs[i].inputColumnName, keyCount);
             }
         }
 
@@ -301,7 +300,7 @@ namespace Microsoft.ML.Transforms.Conversions
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(options.Columns, nameof(options.Columns));
-            var cols = new TypeConvertingEstimator.ColumnInfo[options.Columns.Length];
+            var cols = new TypeConvertingEstimator.ColumnOptions[options.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
                 var item = options.Columns[i];
@@ -337,7 +336,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     kind = tempResultType.Value;
                 }
-                cols[i] = new TypeConvertingEstimator.ColumnInfo(item.Name, kind.ToDataKind(), item.Source ?? item.Name, keyCount);
+                cols[i] = new TypeConvertingEstimator.ColumnOptions(item.Name, kind.ToDataKind(), item.Source ?? item.Name, keyCount);
             };
             return new TypeConvertingTransformer(env, cols).MakeDataTransform(input);
         }
@@ -438,10 +437,10 @@ namespace Microsoft.ML.Transforms.Conversions
                 var result = new DataViewSchema.DetachedColumn[_parent._columns.Length];
                 for (int i = 0; i < _parent._columns.Length; i++)
                 {
-                    var builder = new DataViewSchema.Metadata.Builder();
+                    var builder = new DataViewSchema.Annotations.Builder();
                     var srcType = InputSchema[_srcCols[i]].Type;
                     if (_types[i].IsKnownSizeVector())
-                        builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
+                        builder.Add(InputSchema[ColMapNewToOld[i]].Annotations, name => name == AnnotationUtils.Kinds.SlotNames);
 
                     DataViewType srcItemType = srcType.GetItemType();
                     DataViewType currentItemType = _types[i].GetItemType();
@@ -451,17 +450,17 @@ namespace Microsoft.ML.Transforms.Conversions
                     if (srcItemKeyType != null && currentItemKeyType != null &&
                         srcItemKeyType.Count > 0 && srcItemKeyType.Count == currentItemKeyType.Count)
                     {
-                        builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.KeyValues);
+                        builder.Add(InputSchema[ColMapNewToOld[i]].Annotations, name => name == AnnotationUtils.Kinds.KeyValues);
                     }
 
                     if (srcItemType is NumberDataViewType && currentItemType is NumberDataViewType)
-                        builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.IsNormalized);
+                        builder.Add(InputSchema[ColMapNewToOld[i]].Annotations, name => name == AnnotationUtils.Kinds.IsNormalized);
                     if (srcType is BooleanDataViewType && currentItemType is NumberDataViewType)
                     {
                         ValueGetter<bool> getter = (ref bool dst) => dst = true;
-                        builder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, getter);
+                        builder.Add(AnnotationUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, getter);
                     }
-                    result[i] = new DataViewSchema.DetachedColumn(_parent._columns[i].Name, _types[i], builder.ToMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent._columns[i].Name, _types[i], builder.ToAnnotations());
                 }
                 return result;
             }
@@ -527,7 +526,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnInfo
+        public sealed class ColumnOptions
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
@@ -553,7 +552,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <param name="outputKind">The expected kind of the converted column.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="outputKeyCount">New key count, if we work with key type.</param>
-            public ColumnInfo(string name, DataKind outputKind, string inputColumnName, KeyCount outputKeyCount = null)
+            public ColumnOptions(string name, DataKind outputKind, string inputColumnName, KeyCount outputKeyCount = null)
             {
                 Name = name;
                 InputColumnName = inputColumnName ?? name;
@@ -568,7 +567,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <param name="type">The expected kind of the converted column.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="outputKeyCount">New key count, if we work with key type.</param>
-            public ColumnInfo(string name, Type type, string inputColumnName, KeyCount outputKeyCount = null)
+            public ColumnOptions(string name, Type type, string inputColumnName, KeyCount outputKeyCount = null)
             {
                 Name = name;
                 InputColumnName = inputColumnName ?? name;
@@ -589,14 +588,14 @@ namespace Microsoft.ML.Transforms.Conversions
         internal TypeConvertingEstimator(IHostEnvironment env,
             string outputColumnName, string inputColumnName = null,
             DataKind outputKind = Defaults.DefaultOutputKind)
-            : this(env, new ColumnInfo(outputColumnName, outputKind, inputColumnName ?? outputColumnName))
+            : this(env, new ColumnOptions(outputColumnName, outputKind, inputColumnName ?? outputColumnName))
         {
         }
 
         /// <summary>
         /// Create a <see cref="TypeConvertingEstimator"/> that takes multiple pairs of columns.
         /// </summary>
-        internal TypeConvertingEstimator(IHostEnvironment env, params ColumnInfo[] columns) :
+        internal TypeConvertingEstimator(IHostEnvironment env, params ColumnOptions[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TypeConvertingEstimator)), new TypeConvertingTransformer(env, columns))
         {
         }
@@ -619,17 +618,17 @@ namespace Microsoft.ML.Transforms.Conversions
                     throw Host.ExceptParam(nameof(inputSchema), $"Don't know how to convert {colInfo.InputColumnName} into {newType.ToString()}");
                 var metadata = new List<SchemaShape.Column>();
                 if (col.ItemType is BooleanDataViewType && newType is NumberDataViewType)
-                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                    metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                     if (col.Kind == SchemaShape.Column.VectorKind.Vector)
-                        metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, slotMeta.ItemType, false));
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))
+                        metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, slotMeta.ItemType, false));
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var keyMeta))
                     if (col.ItemType is KeyType)
-                        metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.IsNormalized, out var normMeta))
+                        metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.IsNormalized, out var normMeta))
                     if (col.ItemType is NumberDataViewType && newType is NumberDataViewType)
-                        metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, normMeta.ItemType, false));
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.Kind, newType, false, col.Metadata);
+                        metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, normMeta.ItemType, false));
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.Kind, newType, false, col.Annotations);
             }
             return new SchemaShape(result.Values);
         }

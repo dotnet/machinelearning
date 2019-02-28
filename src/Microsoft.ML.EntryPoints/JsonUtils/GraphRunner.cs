@@ -5,7 +5,7 @@
 using System.Linq;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.EntryPoints.JsonUtils
+namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
     /// This class runs a graph of entry points with the specified inputs, and produces the specified outputs.

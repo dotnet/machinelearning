@@ -4,7 +4,6 @@
 
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Trainers.Ensemble;
-using Microsoft.ML.Trainers.Ensemble.FeatureSelector;
 
 [assembly: EntryPointModule(typeof(AllFeatureSelectorFactory))]
 [assembly: EntryPointModule(typeof(RandomFeatureSelector))]

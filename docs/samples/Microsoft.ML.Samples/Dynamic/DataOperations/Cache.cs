@@ -44,7 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic
         {
             int lines = 0;
             double columnAverage = 0.0;
-            var enumerable = mlContext.CreateEnumerable<DatasetUtils.HousingRegression>(data, reuseRowObject: true);
+            var enumerable = mlContext.Data.CreateEnumerable<DatasetUtils.HousingRegression>(data, reuseRowObject: true);
             var watch = System.Diagnostics.Stopwatch.StartNew();
             foreach (var row in enumerable)
             {

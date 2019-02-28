@@ -4,12 +4,12 @@
 
 using Microsoft.ML;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.ImageAnalytics.EntryPoints;
+using Microsoft.ML.ImageAnalytics;
 
-[assembly: LoadableClass(typeof(void), typeof(ImageAnalytics), null, typeof(SignatureEntryPointModule), "ImageAnalytics")]
-namespace Microsoft.ML.ImageAnalytics.EntryPoints
+[assembly: LoadableClass(typeof(void), typeof(ImageAnalyticsEntryPoints), null, typeof(SignatureEntryPointModule), "ImageAnalytics")]
+namespace Microsoft.ML.ImageAnalytics
 {
-    internal static class ImageAnalytics
+    internal static class ImageAnalyticsEntryPoints
     {
         [TlcModule.EntryPoint(Name = "Transforms.ImageLoader", Desc = ImageLoadingTransformer.Summary,
             UserName = ImageLoadingTransformer.UserName, ShortName = ImageLoadingTransformer.LoaderSignature)]

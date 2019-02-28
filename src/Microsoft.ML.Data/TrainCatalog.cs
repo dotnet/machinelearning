@@ -6,9 +6,7 @@ using System;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.Evaluators.Metrics;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML
 {
@@ -227,12 +225,12 @@ namespace Microsoft.ML
                     // Generate a new column with the hashed samplingKeyColumn.
                     while (data.Schema.TryGetColumnIndex(samplingKeyColumn, out tmp))
                         samplingKeyColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
-                    HashingEstimator.ColumnInfo columnInfo;
+                    HashingEstimator.ColumnOptions columnOptions;
                     if (seed.HasValue)
-                        columnInfo = new HashingEstimator.ColumnInfo(samplingKeyColumn, origStratCol, 30, seed.Value);
+                        columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, seed.Value);
                     else
-                        columnInfo = new HashingEstimator.ColumnInfo(samplingKeyColumn, origStratCol, 30);
-                    data = new HashingEstimator(Environment, columnInfo).Fit(data).Transform(data);
+                        columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30);
+                    data = new HashingEstimator(Environment, columnOptions).Fit(data).Transform(data);
                 }
             }
         }
@@ -403,9 +401,9 @@ namespace Microsoft.ML
         /// <param name="data">The scored data.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="label">The name of the optional label column in <paramref name="data"/>.
-        /// If present, the <see cref="ClusteringMetrics.Nmi"/> metric will be computed.</param>
+        /// If present, the <see cref="ClusteringMetrics.NormalizedMutualInformation"/> metric will be computed.</param>
         /// <param name="features">The name of the optional features column in <paramref name="data"/>.
-        /// If present, the <see cref="ClusteringMetrics.Dbi"/> metric will be computed.</param>
+        /// If present, the <see cref="ClusteringMetrics.DaviesBouldinIndex"/> metric will be computed.</param>
         /// <returns>The evaluation result.</returns>
         public ClusteringMetrics Evaluate(IDataView data,
             string label = null,
@@ -623,7 +621,7 @@ namespace Microsoft.ML
         /// <param name="groupId">The name of the groupId column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public RankerMetrics Evaluate(IDataView data,
+        public RankingMetrics Evaluate(IDataView data,
             string label = DefaultColumnNames.Label,
             string groupId = DefaultColumnNames.GroupId,
             string score = DefaultColumnNames.Score)
@@ -633,7 +631,7 @@ namespace Microsoft.ML
             Environment.CheckNonEmpty(score, nameof(score));
             Environment.CheckNonEmpty(groupId, nameof(groupId));
 
-            var eval = new RankerEvaluator(Environment, new RankerEvaluator.Arguments() { });
+            var eval = new RankingEvaluator(Environment, new RankingEvaluator.Arguments() { });
             return eval.Evaluate(data, label, groupId, score);
         }
     }
@@ -669,7 +667,7 @@ namespace Microsoft.ML
         /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
-        /// <param name="k">The number of false positives to compute the <see cref="AnomalyDetectionMetrics.DrAtK"/> metric. </param>
+        /// <param name="k">The number of false positives to compute the <see cref="AnomalyDetectionMetrics.DetectionRateAtKFalsePositives"/> metric. </param>
         /// <returns>Evaluation results.</returns>
         public AnomalyDetectionMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
             string predictedLabel = DefaultColumnNames.PredictedLabel, int k = 10)

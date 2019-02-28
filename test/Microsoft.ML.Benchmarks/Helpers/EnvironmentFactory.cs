@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Training;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Benchmarks
@@ -11,7 +11,7 @@ namespace Microsoft.ML.Benchmarks
     internal static class EnvironmentFactory
     {
         internal static MLContext CreateClassificationEnvironment<TLoader, TTransformer, TTrainer, TModel>()
-           where TLoader : IDataReader<IMultiStreamSource>
+           where TLoader : IDataLoader<IMultiStreamSource>
            where TTransformer : ITransformer
            where TTrainer : ITrainerEstimator<ISingleFeaturePredictionTransformer<TModel>, TModel>
            where TModel : class
@@ -27,7 +27,7 @@ namespace Microsoft.ML.Benchmarks
         }
 
         internal static MLContext CreateRankingEnvironment<TEvaluator, TLoader, TTransformer, TTrainer, TModel>()
-            where TLoader : IDataReader<IMultiStreamSource>
+            where TLoader : IDataLoader<IMultiStreamSource>
             where TTransformer : ITransformer
             where TTrainer : ITrainerEstimator<ISingleFeaturePredictionTransformer<TModel>, TModel>
            where TModel : class

@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.StaticPipe
@@ -19,7 +16,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         ///  Predict a target using logistic regression trained with the <see cref="SgdBinaryTrainer"/> trainer.
         /// </summary>
-        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The name of the label column.</param>
         /// <param name="features">The name of the feature column.</param>
         /// <param name="weights">The name for the example weight column.</param>
@@ -59,7 +56,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         ///  Predict a target using logistic regression trained with the <see cref="SgdBinaryTrainer"/> trainer.
         /// </summary>
-        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The name of the label column.</param>
         /// <param name="features">The name of the feature column.</param>
         /// <param name="weights">The name for the example weight column.</param>
@@ -81,9 +78,9 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.FeatureColumn = featuresName;
-                    options.LabelColumn = labelName;
-                    options.WeightColumn = weightsName;
+                    options.FeatureColumnName = featuresName;
+                    options.LabelColumnName = labelName;
+                    options.ExampleWeightColumnName = weightsName;
 
                     var trainer = new SgdBinaryTrainer(env, options);
 
@@ -99,7 +96,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         ///  Predict a target using a linear classification model trained with the <see cref="SgdNonCalibratedBinaryTrainer"/> trainer.
         /// </summary>
-        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The name of the label column.</param>
         /// <param name="features">The name of the feature column.</param>
         /// <param name="weights">The name for the example weight column.</param>
@@ -142,7 +139,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         ///  Predict a target using a linear classification model trained with the <see cref="SgdNonCalibratedBinaryTrainer"/> trainer.
         /// </summary>
-        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The name of the label column.</param>
         /// <param name="features">The name of the feature column.</param>
         /// <param name="weights">The name for the example weight column.</param>
@@ -164,9 +161,9 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.FeatureColumn = featuresName;
-                    options.LabelColumn = labelName;
-                    options.WeightColumn = weightsName;
+                    options.FeatureColumnName = featuresName;
+                    options.LabelColumnName = labelName;
+                    options.ExampleWeightColumnName = weightsName;
 
                     var trainer = new SgdNonCalibratedBinaryTrainer(env, options);
 

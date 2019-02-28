@@ -14,10 +14,10 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 
-[assembly: LoadableClass(TextLoader.Summary, typeof(IDataLoader), typeof(TextLoader), typeof(TextLoader.Options), typeof(SignatureDataLoader),
+[assembly: LoadableClass(TextLoader.Summary, typeof(ILegacyDataLoader), typeof(TextLoader), typeof(TextLoader.Options), typeof(SignatureDataLoader),
     "Text Loader", "TextLoader", "Text", DocName = "loader/TextLoader.md")]
 
-[assembly: LoadableClass(TextLoader.Summary, typeof(IDataLoader), typeof(TextLoader), null, typeof(SignatureLoadDataLoader),
+[assembly: LoadableClass(TextLoader.Summary, typeof(ILegacyDataLoader), typeof(TextLoader), null, typeof(SignatureLoadDataLoader),
     "Text Loader", TextLoader.LoaderSignature)]
 
 namespace Microsoft.ML.Data
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Loads a text file into an IDataView. Supports basic mapping from input columns to <see cref="IDataView"/> columns.
     /// </summary>
-    public sealed partial class TextLoader : IDataReader<IMultiStreamSource>, ICanSaveModel
+    public sealed partial class TextLoader : IDataLoader<IMultiStreamSource>, ICanSaveModel
     {
         /// <summary>
         /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
@@ -645,8 +645,8 @@ namespace Microsoft.ML.Data
             /// </summary>
             public readonly ColInfo[] Infos;
             /// <summary>
-            /// <see cref="Infos"/>[i] stores the i-th column's metadata, named <see cref="MetadataUtils.Kinds.SlotNames"/>
-            /// in <see cref="DataViewSchema.Metadata"/>.
+            /// <see cref="Infos"/>[i] stores the i-th column's metadata, named <see cref="AnnotationUtils.Kinds.SlotNames"/>
+            /// in <see cref="DataViewSchema.Annotations"/>.
             /// </summary>
             private readonly VBuffer<ReadOnlyMemory<char>>[] _slotNames;
             /// <summary>
@@ -1007,9 +1007,9 @@ namespace Microsoft.ML.Data
                     if (names.Length > 0)
                     {
                         // Slot names present! Let's add them.
-                        var metadataBuilder = new DataViewSchema.Metadata.Builder();
+                        var metadataBuilder = new DataViewSchema.Annotations.Builder();
                         metadataBuilder.AddSlotNames(names.Length, (ref VBuffer<ReadOnlyMemory<char>> value) => names.CopyTo(ref value));
-                        schemaBuilder.AddColumn(info.Name, info.ColType, metadataBuilder.ToMetadata());
+                        schemaBuilder.AddColumn(info.Name, info.ColType, metadataBuilder.ToAnnotations());
                     }
                     else
                         // Slot names is empty.
@@ -1089,32 +1089,8 @@ namespace Microsoft.ML.Data
         /// Loads a text file into an <see cref="IDataView"/>. Supports basic mapping from input columns to IDataView columns.
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="columns">Defines a mapping between input columns in the file and IDataView columns.</param>
-        /// <param name="separatorChar"> The character used as separator between data points in a row. By default the tab character is used as separator.</param>
-        /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
-        /// <param name="allowQuoting">Whether the content of a column can be parsed from a string starting and ending with quote.</param>
-        /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
-        internal TextLoader(IHostEnvironment env, Column[] columns, char separatorChar = Defaults.Separator,
-            bool hasHeader = Defaults.HasHeader, bool allowSparse = Defaults.AllowSparse,
-            bool allowQuoting = Defaults.AllowQuoting, IMultiStreamSource dataSample = null)
-            : this(env, MakeArgs(columns, hasHeader, new[] { separatorChar }, allowSparse, allowQuoting), dataSample)
-        {
-        }
-
-        private static Options MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars, bool allowSparse, bool allowQuoting)
-        {
-            Contracts.AssertValue(separatorChars);
-            var result = new Options { Columns = columns, HasHeader = hasHeader, Separators = separatorChars, AllowSparse = allowSparse, AllowQuoting = allowQuoting };
-            return result;
-        }
-
-        /// <summary>
-        /// Loads a text file into an <see cref="IDataView"/>. Supports basic mapping from input columns to IDataView columns.
-        /// </summary>
-        /// <param name="env">The environment to use.</param>
         /// <param name="options">Defines the settings of the load operation.</param>
-        /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
+        /// <param name="dataSample">Allows to expose items that can be used for loading.</param>
         internal TextLoader(IHostEnvironment env, Options options = null, IMultiStreamSource dataSample = null)
         {
             options = options ?? new Options();
@@ -1248,7 +1224,7 @@ namespace Microsoft.ML.Data
         {
 #pragma warning disable 649 // never assigned
             [Argument(ArgumentType.Multiple, SignatureType = typeof(SignatureDataLoader))]
-            public IComponentFactory<IDataLoader> Loader;
+            public IComponentFactory<ILegacyDataLoader> Loader;
 #pragma warning restore 649 // never assigned
         }
 
@@ -1315,7 +1291,7 @@ namespace Microsoft.ML.Data
 
                 // Make sure the loader binds to us.
                 var info = host.ComponentCatalog.GetLoadableClassInfo<SignatureDataLoader>(loader.Name);
-                if (info.Type != typeof(IDataLoader) || info.ArgType != typeof(Options))
+                if (info.Type != typeof(ILegacyDataLoader) || info.ArgType != typeof(Options))
                     goto LDone;
 
                 var optionsNew = new Options();
@@ -1412,16 +1388,16 @@ namespace Microsoft.ML.Data
         }
 
         // These are legacy constructors needed for ComponentCatalog.
-        internal static IDataLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
-            => (IDataLoader)Create(env, ctx).Read(files);
-        internal static IDataLoader Create(IHostEnvironment env, Options options, IMultiStreamSource files)
-            => (IDataLoader)new TextLoader(env, options, files).Read(files);
+        internal static ILegacyDataLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
+            => (ILegacyDataLoader)Create(env, ctx).Load(files);
+        internal static ILegacyDataLoader Create(IHostEnvironment env, Options options, IMultiStreamSource files)
+            => (ILegacyDataLoader)new TextLoader(env, options, files).Load(files);
 
         /// <summary>
-        /// Convenience method to create a <see cref="TextLoader"/> and use it to read a specified file.
+        /// Convenience method to create a <see cref="TextLoader"/> and use it to load a specified file.
         /// </summary>
-        internal static IDataView ReadFile(IHostEnvironment env, Options options, IMultiStreamSource fileSource)
-            => new TextLoader(env, options, fileSource).Read(fileSource);
+        internal static IDataView LoadFile(IHostEnvironment env, Options options, IMultiStreamSource fileSource)
+            => new TextLoader(env, options, fileSource).Load(fileSource);
 
         void ICanSaveModel.Save(ModelSaveContext ctx)
         {
@@ -1449,22 +1425,23 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// The output <see cref="DataViewSchema"/> that will be produced by the reader.
+        /// The output <see cref="DataViewSchema"/> that will be produced by the loader.
         /// </summary>
         public DataViewSchema GetOutputSchema() => _bindings.OutputSchema;
 
         /// <summary>
-        /// Reads data from <paramref name="source"/> into an <see cref="IDataView"/>.
+        /// Loads data from <paramref name="source"/> into an <see cref="IDataView"/>.
         /// </summary>
         /// <param name="source">The source from which to load data.</param>
-        public IDataView Read(IMultiStreamSource source) => new BoundLoader(this, source);
+        public IDataView Load(IMultiStreamSource source) => new BoundLoader(this, source);
 
-        internal static TextLoader CreateTextReader<TInput>(IHostEnvironment host,
+        internal static TextLoader CreateTextLoader<TInput>(IHostEnvironment host,
            bool hasHeader = Defaults.HasHeader,
            char separator = Defaults.Separator,
-           bool allowQuotedStrings = Defaults.AllowQuoting,
+           bool allowQuoting = Defaults.AllowQuoting,
            bool supportSparse = Defaults.AllowSparse,
-           bool trimWhitespace = Defaults.TrimWhitespace)
+           bool trimWhitespace = Defaults.TrimWhitespace,
+           IMultiStreamSource dataSample = null)
         {
             var userType = typeof(TInput);
 
@@ -1519,25 +1496,25 @@ namespace Microsoft.ML.Data
             {
                 HasHeader = hasHeader,
                 Separators = new[] { separator },
-                AllowQuoting = allowQuotedStrings,
+                AllowQuoting = allowQuoting,
                 AllowSparse = supportSparse,
                 TrimWhitespace = trimWhitespace,
                 Columns = columns.ToArray()
             };
 
-            return new TextLoader(host, options);
+            return new TextLoader(host, options, dataSample: dataSample);
         }
 
-        private sealed class BoundLoader : IDataLoader
+        private sealed class BoundLoader : ILegacyDataLoader
         {
-            private readonly TextLoader _reader;
+            private readonly TextLoader _loader;
             private readonly IHost _host;
             private readonly IMultiStreamSource _files;
 
-            public BoundLoader(TextLoader reader, IMultiStreamSource files)
+            public BoundLoader(TextLoader loader, IMultiStreamSource files)
             {
-                _reader = reader;
-                _host = reader._host.Register(nameof(BoundLoader));
+                _loader = loader;
+                _host = loader._host.Register(nameof(BoundLoader));
                 _files = files;
             }
 
@@ -1551,23 +1528,23 @@ namespace Microsoft.ML.Data
             // REVIEW: Should we try to support shuffling?
             public bool CanShuffle => false;
 
-            public DataViewSchema Schema => _reader._bindings.OutputSchema;
+            public DataViewSchema Schema => _loader._bindings.OutputSchema;
 
             public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
-                var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, columnsNeeded);
-                return Cursor.Create(_reader, _files, active);
+                var active = Utils.BuildArray(_loader._bindings.OutputSchema.Count, columnsNeeded);
+                return Cursor.Create(_loader, _files, active);
             }
 
             public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
-                var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, columnsNeeded);
-                return Cursor.CreateSet(_reader, _files, active, n);
+                var active = Utils.BuildArray(_loader._bindings.OutputSchema.Count, columnsNeeded);
+                return Cursor.CreateSet(_loader, _files, active, n);
             }
 
-            void ICanSaveModel.Save(ModelSaveContext ctx) => ((ICanSaveModel)_reader).Save(ctx);
+            void ICanSaveModel.Save(ModelSaveContext ctx) => ((ICanSaveModel)_loader).Save(ctx);
         }
     }
 }

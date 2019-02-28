@@ -20,7 +20,7 @@ using Microsoft.ML.Transforms;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
+using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
 namespace Microsoft.ML.Tests
 {
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tests
         }
 
         /// <summary>
-        /// In this test, we convert a trained <see cref="TransformerChain"/> into ONNX <see cref="UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ModelProto"/> file and then
+        /// In this test, we convert a trained <see cref="TransformerChain"/> into ONNX <see cref="ModelProto"/> file and then
         /// call <see cref="OnnxScoringEstimator"/> to evaluate that file. The outputs of <see cref="OnnxScoringEstimator"/> are checked against the original
         /// ML.NET model's outputs.
         /// </summary>
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Tests
             // Step 1: Create and train a ML.NET pipeline.
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var data = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
+            var data = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
                 separatorChar: ';'
 ,
                 hasHeader: true);
@@ -128,18 +128,18 @@ namespace Microsoft.ML.Tests
 
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var data = mlContext.Data.ReadFromTextFile<BreastCancerFeatureVector>(dataPath,
+            var data = mlContext.Data.LoadFromTextFile<BreastCancerFeatureVector>(dataPath,
                 separatorChar: '\t',
                 hasHeader: true);
 
             var pipeline = mlContext.Transforms.Normalize("Features").
-                Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeans.KMeansPlusPlusTrainer.Options
+                Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeansPlusPlusTrainer.Options
                 {
-                    FeatureColumn = DefaultColumnNames.Features,
+                    FeatureColumnName = DefaultColumnNames.Features,
                     MaxIterations = 1,
                     ClustersCount = 4,
                     NumThreads = 1,
-                    InitAlgorithm = Trainers.KMeans.KMeansPlusPlusTrainer.InitAlgorithm.Random
+                    InitAlgorithm = Trainers.KMeansPlusPlusTrainer.InitAlgorithm.Random
                 }));
 
             var model = pipeline.Fit(data);
@@ -206,12 +206,12 @@ namespace Microsoft.ML.Tests
 
             string dataPath = GetDataPath("breast-cancer.txt");
 
-            var data = mlContext.Data.ReadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
+            var data = mlContext.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
                 separatorChar: '\t',
                 hasHeader: true);
 
-            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.Categorical.OneHotEncodingTransformer.OutputKind.Bag)
-            .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnInfo("F2")))
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingTransformer.OutputKind.Bag)
+            .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
             .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
 
@@ -304,7 +304,7 @@ namespace Microsoft.ML.Tests
             // Step 1: Create and train a ML.NET pipeline.
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var data = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
+            var data = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
                 separatorChar: ';'
 ,
                 hasHeader: true);
@@ -337,7 +337,7 @@ namespace Microsoft.ML.Tests
             // Step 1: Create and train a ML.NET pipeline.
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var data = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
+            var data = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
                 separatorChar: ';'
 ,
                 hasHeader: true);
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
-            var data = mlContext.Data.ReadFromTextFile<BreastCancerMulticlassExample>(dataPath,
+            var data = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExample>(dataPath,
                 separatorChar: '\t',
                 hasHeader: true);
 
@@ -400,12 +400,12 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
-            var data = mlContext.Data.ReadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
+            var data = mlContext.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
                 separatorChar: '\t',
                 hasHeader: true);
 
-            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.Categorical.OneHotEncodingTransformer.OutputKind.Bag)
-            .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnInfo("F2")))
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingTransformer.OutputKind.Bag)
+            .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
             .Append(mlContext.Transforms.Normalize("Features"))
             .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
             var dataPath = GetDataPath(@"small-sentiment-test.tsv");
             var embedNetworkPath = GetDataPath(@"shortsentiment.emd");
-            var data = mlContext.Data.ReadFromTextFile<SmallSentimentExample>(dataPath, separatorChar: '\t', hasHeader: false);
+            var data = mlContext.Data.LoadFromTextFile<SmallSentimentExample>(dataPath, separatorChar: '\t', hasHeader: false);
 
             var pipeline = mlContext.Transforms.Text.ExtractWordEmbeddings("Embed", embedNetworkPath, "Tokens");
             var model = pipeline.Fit(data);

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using Float = System.Single;
 
 namespace Microsoft.ML.Internal.Utilities
 {
@@ -318,7 +317,7 @@ namespace Microsoft.ML.Internal.Utilities
         private HeapNode.Heap<Peg> _pegHeap; // heap used for selecting the largest energy decrease
         private int[] _accum; // integral of counts
         private int[] _path; // current set of pegs
-        private Float _meanBinSize;
+        private float _meanBinSize;
 
         public GreedyBinFinder()
         {
@@ -338,7 +337,7 @@ namespace Microsoft.ML.Internal.Utilities
                 _accum = new int[CountValues + 1];
             for (int i = 0; i < CountValues; i++)
                 _accum[i + 1] = _accum[i] + counts[i];
-            _meanBinSize = (Float)_accum[CountValues] / CountBins;
+            _meanBinSize = (float)_accum[CountValues] / CountBins;
 
             PlacePegs();
 

@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Data
             var predictor = TrainUtils.Train(Host, ch, data, trainer, validData,
                 ImplOptions.Calibrator, ImplOptions.MaxCalibrationExamples, ImplOptions.CacheData, inputPredictor, testDataUsedInTrainer);
 
-            IDataLoader testPipe;
+            ILegacyDataLoader testPipe;
             bool hasOutfile = !string.IsNullOrEmpty(ImplOptions.OutputModelFile);
             var tempFilePath = hasOutfile ? null : Path.GetTempFileName();
 

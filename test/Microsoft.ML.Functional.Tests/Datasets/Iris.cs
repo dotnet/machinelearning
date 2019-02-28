@@ -37,7 +37,7 @@ namespace Microsoft.ML.Functional.Tests.Datasets
         public static IDataView LoadAsRankingProblem(MLContext mlContext, string filePath, bool hasHeader, char separatorChar, int seed = 1)
         {
             // Load the Iris data.
-            var data = mlContext.Data.ReadFromTextFile<Iris>(filePath, hasHeader: hasHeader, separatorChar: separatorChar);
+            var data = mlContext.Data.LoadFromTextFile<Iris>(filePath, hasHeader: hasHeader, separatorChar: separatorChar);
 
             // Create a function that generates a random groupId.
             var rng = new Random(seed);

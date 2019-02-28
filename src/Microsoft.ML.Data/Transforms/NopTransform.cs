@@ -9,6 +9,7 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(NopTransform.Summary, typeof(NopTransform), null, typeof(SignatureLoadDataTransform),
     "", NopTransform.LoaderSignature)]
@@ -123,10 +124,11 @@ namespace Microsoft.ML.Data
         public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             => Source.GetRowCursorSet(columnsNeeded, n, rand);
 
-        public Func<int, bool> GetDependencies(Func<int, bool> predicate)
-        {
-            return predicate;
-        }
+        /// <summary>
+        /// Given a set of columns, return the input columns that are needed to generate those output columns.
+        /// </summary>
+        IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
+            => dependingColumns;
 
         public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
         {

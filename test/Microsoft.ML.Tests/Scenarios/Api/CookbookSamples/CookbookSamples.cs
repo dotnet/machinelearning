@@ -14,7 +14,6 @@ using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -38,8 +37,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Create the reader: define the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextReader(ctx => (
+            // Create the loader: define the data columns and where to find them in the text file.
+            var loader = mlContext.Data.CreateTextLoader(ctx => (
                     // A boolean column depicting the 'target label'.
                     IsOver50K: ctx.LoadBool(0),
                     // Three text columns.
@@ -50,7 +49,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Start creating our processing pipeline. For now, let's just concatenate all the text columns
             // together into one.
-            var pipeline = reader.MakeNewEstimator()
+            var pipeline = loader.MakeNewEstimator()
                 .Append(row => (
                         row.IsOver50K,
                         AllFeatures: row.Workclass.ConcatWith(row.Education, row.MaritalStatus)
@@ -58,7 +57,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Let's verify that the data has been read correctly. 
             // First, we read the data file.
-            var data = reader.Read(dataPath);
+            var data = loader.Load(dataPath);
 
             // Fit our data pipeline and transform data with it.
             var transformedData = pipeline.Fit(data).Transform(data);
@@ -66,7 +65,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // 'transformedData' is a 'promise' of data. Let's actually read it.
             var someRows = mlContext
                 // Convert to an enumerable of user-defined type. 
-                .CreateEnumerable<InspectedRow>(transformedData.AsDynamic, reuseRowObject: false)
+                .Data.CreateEnumerable<InspectedRow>(transformedData.AsDynamic, reuseRowObject: false)
                 // Take a couple values as an array.
                 .Take(4).ToArray();
 
@@ -79,7 +78,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // The same extension method also applies to the dynamic-typed data, except you have to
             // specify the column name and type:
             var dynamicData = transformedData.AsDynamic;
-            var sameFeatureColumns = dynamicData.GetColumn<string[]>(mlContext, "AllFeatures")
+            var sameFeatureColumns = dynamicData.GetColumn<string[]>(dynamicData.Schema["AllFeatures"])
                 .Take(20).ToArray();
         }
 
@@ -94,8 +93,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Step one: read the data as an IDataView.
-            // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextReader(ctx => (
+            // First, we define the loader: specify the data columns and where to find them in the text file.
+            var loader = mlContext.Data.CreateTextLoader(ctx => (
                     // We read the first 11 values as a single float vector.
                     FeatureVector: ctx.LoadFloat(0, 10),
                     // Separately, read the target variable.
@@ -107,8 +106,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 separator: ';');
 
 
-            // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var trainData = reader.Read(trainDataPath);
+            // Now read the file (remember though, loaders are lazy, so the actual reading will happen when the data is accessed).
+            var trainData = loader.Load(trainDataPath);
 
             // Sometime, caching data in-memory after its first access can save some loading time when the data is going to used
             // several times somewhere. The caching mechanism is also lazy; it only caches things after being used.
@@ -118,8 +117,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Step two: define the learning pipeline. 
 
-            // We 'start' the pipeline with the output of the reader.
-            var pipeline = reader.MakeNewEstimator()
+            // We 'start' the pipeline with the output of the loader.
+            var pipeline = loader.MakeNewEstimator()
                 // We add a step for caching data in memory so that the downstream iterative training
                 // algorithm can efficiently scan through the data multiple times. Otherwise, the following
                 // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.
@@ -143,7 +142,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = pipeline.Fit(trainData);
 
             // Read the test dataset.
-            var testData = reader.Read(testDataPath);
+            var testData = loader.Load(testDataPath);
             // Calculate metrics of the model on the test data.
             var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: r => r.Target, score: r => r.Prediction);
 
@@ -173,8 +172,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Step one: read the data as an IDataView.
-            // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextReader(ctx => (
+            // First, we define the loader: specify the data columns and where to find them in the text file.
+            var loader = mlContext.Data.CreateTextLoader(ctx => (
                     // The four features of the Iris dataset.
                     SepalLength: ctx.LoadFloat(0),
                     SepalWidth: ctx.LoadFloat(1),
@@ -187,10 +186,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 separator: ',');
 
             // Retrieve the training data.
-            var trainData = reader.Read(irisDataPath);
+            var trainData = loader.Load(irisDataPath);
 
             // Build the training pipeline.
-            var pipeline = reader.MakeNewEstimator()
+            var pipeline = loader.MakeNewEstimator()
                 .Append(r => (
                     r.Label,
                     // Concatenate all the features together into one column 'Features'.
@@ -251,8 +250,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Step one: read the data as an IDataView.
-            // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextReader(ctx => (
+            // First, we define the loader: specify the data columns and where to find them in the text file.
+            var loader = mlContext.Data.CreateTextLoader(ctx => (
                     // The four features of the Iris dataset.
                     SepalLength: ctx.LoadFloat(0),
                     SepalWidth: ctx.LoadFloat(1),
@@ -265,14 +264,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 separator: ',');
 
             // Retrieve the training data.
-            var trainData = reader.Read(dataPath);
+            var trainData = loader.Load(dataPath);
 
             // This is the predictor ('weights collection') that we will train.
             MulticlassLogisticRegressionModelParameters predictor = null;
             // And these are the normalizer scales that we will learn.
             ImmutableArray<float> normScales;
             // Build the training pipeline.
-            var pipeline = reader.MakeNewEstimator()
+            var pipeline = loader.MakeNewEstimator()
                 .Append(r => (
                     r.Label,
                     // Concatenate all the features together into one column 'Features'.
@@ -323,8 +322,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextReader(ctx => (
+            // Define the loader: specify the data columns and where to find them in the text file.
+            var loader = mlContext.Data.CreateTextLoader(ctx => (
                     // The four features of the Iris dataset will be grouped together as one Features column.
                     Features: ctx.LoadFloat(0, 3),
                     // Label: kind of iris.
@@ -334,10 +333,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 separator: ',');
 
             // Read the training data.
-            var trainData = reader.Read(dataPath);
+            var trainData = loader.Load(dataPath);
 
             // Apply all kinds of standard ML.NET normalization to the raw features.
-            var pipeline = reader.MakeNewEstimator()
+            var pipeline = loader.MakeNewEstimator()
                 .Append(r => (
                     MinMaxNormalized: r.Features.Normalize(fixZero: true),
                     MeanVarNormalized: r.Features.NormalizeByMeanVar(fixZero: false),
@@ -391,9 +390,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             IEnumerable<CustomerChurnInfo> churnData = GetChurnInfo();
 
             // Turn the data into the ML.NET data view.
-            // We can use CreateDataView or CreateStreamingDataView, depending on whether 'churnData' is an IList, 
+            // We can use CreateDataView or ReadFromEnumerable, depending on whether 'churnData' is an IList, 
             // or merely an IEnumerable.
-            var trainData = mlContext.Data.ReadFromEnumerable(churnData);
+            var trainData = mlContext.Data.LoadFromEnumerable(churnData);
 
             // Now note that 'trainData' is just an IDataView, so we face a choice here: either declare the static type
             // and proceed in the statically typed fashion, or keep dynamic types and build a dynamic pipeline.
@@ -439,20 +438,20 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextReader(ctx => (
+            // Define the loader: specify the data columns and where to find them in the text file.
+            var loader = mlContext.Data.CreateTextLoader(ctx => (
                     IsToxic: ctx.LoadBool(0),
                     Message: ctx.LoadText(1)
                 ), hasHeader: true);
 
             // Read the data.
-            var data = reader.Read(dataPath);
+            var data = loader.Load(dataPath);
 
             // Inspect the message texts that are read from the file.
             var messageTexts = data.GetColumn(x => x.Message).Take(20).ToArray();
 
             // Apply various kinds of text operations supported by ML.NET.
-            var pipeline = reader.MakeNewEstimator()
+            var pipeline = loader.MakeNewEstimator()
                 // Cache data in memory in an on-demand manner. Columns used in any downstream step will be
                 // cached in memory at their first uses. This step can be removed if user's machine doesn't
                 // have enough memory.
@@ -501,8 +500,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextReader(ctx => (
+            // Define the loader: specify the data columns and where to find them in the text file.
+            var loader = mlContext.Data.CreateTextLoader(ctx => (
                     Label: ctx.LoadBool(0),
                     // We will load all the categorical features into one vector column of size 8.
                     CategoricalFeatures: ctx.LoadText(1, 8),
@@ -513,13 +512,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 ), hasHeader: true);
 
             // Read the data.
-            var data = reader.Read(dataPath);
+            var data = loader.Load(dataPath);
 
             // Inspect the categorical columns to check that they are correctly read.
             var catColumns = data.GetColumn(r => r.CategoricalFeatures).Take(10).ToArray();
 
             // Build several alternative featurization pipelines.
-            var pipeline = reader.MakeNewEstimator()
+            var pipeline = loader.MakeNewEstimator()
                 // Cache data in memory in an on-demand manner. Columns used in any downstream step will be
                 // cached in memory at their first uses. This step can be removed if user's machine doesn't
                 // have enough memory.
@@ -568,8 +567,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Step one: read the data as an IDataView.
-            // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextReader(ctx => (
+            // First, we define the loader: specify the data columns and where to find them in the text file.
+            var loader = mlContext.Data.CreateTextLoader(ctx => (
                     // The four features of the Iris dataset.
                     SepalLength: ctx.LoadFloat(0),
                     SepalWidth: ctx.LoadFloat(1),
@@ -582,10 +581,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 separator: ',');
 
             // Read the data.
-            var data = reader.Read(dataPath);
+            var data = loader.Load(dataPath);
 
             // Build the training pipeline.
-            var pipeline = reader.MakeNewEstimator()
+            var pipeline = loader.MakeNewEstimator()
                 .Append(r => (
                     // Convert string label to a key.
                     Label: r.Label.ToKey(),
@@ -606,14 +605,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = pipeline.Fit(trainData);
             // Compute quality metrics on the test set.
             var metrics = mlContext.MulticlassClassification.Evaluate(model.Transform(testData), r => r.Label, r => r.Predictions);
-            Console.WriteLine(metrics.AccuracyMicro);
+            Console.WriteLine(metrics.MicroAccuracy);
 
             // Now run the 5-fold cross-validation experiment, using the same pipeline.
             var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline, r => r.Label, numFolds: 5);
 
             // The results object is an array of 5 elements. For each of the 5 folds, we have metrics, model and scored test data.
             // Let's compute the average micro-accuracy.
-            var microAccuracies = cvResults.Select(r => r.metrics.AccuracyMicro);
+            var microAccuracies = cvResults.Select(r => r.metrics.MicroAccuracy);
             Console.WriteLine(microAccuracies.Average());
         }
 
@@ -628,8 +627,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Read the data as an IDataView.
-            // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextReader(ctx => (
+            // First, we define the loader: specify the data columns and where to find them in the text file.
+            var loader = mlContext.Data.CreateTextLoader(ctx => (
                     // The four features of the Iris dataset.
                     SepalLength: ctx.LoadFloat(0),
                     SepalWidth: ctx.LoadFloat(1),
@@ -642,10 +641,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 separator: ',');
 
             // Read the data.
-            var data = reader.Read(dataPath);
+            var data = loader.Load(dataPath);
 
             // Build the pre-processing pipeline.
-            var pipeline = reader.MakeNewEstimator()
+            var pipeline = loader.MakeNewEstimator()
                 .Append(r => (
                     // Convert string label to a key.
                     Label: r.Label.ToKey(),
@@ -666,7 +665,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // ultimately call dynamicPipe.Fit(data.AsDynamic) to get the model, or we could go back into the static world.
             // Here's how we go back to the static pipeline:
             var staticFinalPipe = dynamicPipe.AssertStatic(mlContext,
-                    // Declare the shape of the input. As you can see, it's identical to the shape of the reader:
+                    // Declare the shape of the input. As you can see, it's identical to the shape of the loader:
                     // four float features and a string label.
                     c => (
                         SepalLength: c.R4.Scalar,

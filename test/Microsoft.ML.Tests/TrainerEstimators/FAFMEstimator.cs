@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.FactorizationMachine;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.SamplesUtils;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -17,12 +17,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var mlContext = new MLContext(seed: 0);
             var data = DatasetUtils.GenerateFfmSamples(500);
-            var dataView = mlContext.Data.ReadFromEnumerable(data);
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
 
-            var ffmArgs = new FieldAwareFactorizationMachineTrainer.Options();
+            var ffmArgs = new FieldAwareFactorizationMachineBinaryClassificationTrainer.Options();
 
             // Customized the field names.
-            ffmArgs.FeatureColumn = nameof(DatasetUtils.FfmExample.Field0); // First field.
+            ffmArgs.FeatureColumnName = nameof(DatasetUtils.FfmExample.Field0); // First field.
             ffmArgs.ExtraFeatureColumns = new[]{ nameof(DatasetUtils.FfmExample.Field1), nameof(DatasetUtils.FfmExample.Field2) };
 
             var pipeline = mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine(ffmArgs);
@@ -34,22 +34,22 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0.9, 1);
-            Assert.InRange(metrics.Auc, 0.9, 1);
-            Assert.InRange(metrics.Auprc, 0.9, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.9, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.9, 1);
         }
 
         [Fact]
         public void FieldAwareFactorizationMachine_Estimator()
         {
             var data = new TextLoader(Env, GetFafmBCLoaderArgs())
-                    .Read(GetDataPath(TestDatasets.breastCancer.trainFilename));
+                    .Load(GetDataPath(TestDatasets.breastCancer.trainFilename));
 
-            var ffmArgs = new FieldAwareFactorizationMachineTrainer.Options {
-                FeatureColumn = "Feature1", // Features from the 1st field.
+            var ffmArgs = new FieldAwareFactorizationMachineBinaryClassificationTrainer.Options {
+                FeatureColumnName = "Feature1", // Features from the 1st field.
                 ExtraFeatureColumns = new[] { "Feature2", "Feature3",  "Feature4" }, // 2nd field's feature column, 3rd field's feature column, 4th field's feature column.
                 Shuffle = false,
-                Iters = 3,
-                LatentDim = 7,
+                NumberOfIterations = 3,
+                LatentDimension = 7,
             };
 
             var est = ML.BinaryClassification.Trainers.FieldAwareFactorizationMachine(ffmArgs);

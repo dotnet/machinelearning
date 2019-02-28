@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Trainers.Online;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -118,8 +116,8 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.LabelColumn = labelName;
-                    options.FeatureColumn = featuresName;
+                    options.LabelColumnName = labelName;
+                    options.FeatureColumnName = featuresName;
 
                     var trainer = new AveragedPerceptronTrainer(env, options);
 
@@ -222,8 +220,8 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.LabelColumn = labelName;
-                    options.FeatureColumn = featuresName;
+                    options.LabelColumnName = labelName;
+                    options.FeatureColumnName = featuresName;
 
                     var trainer = new OnlineGradientDescentTrainer(env, options);
 

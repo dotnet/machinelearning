@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.LightGBM;
-using static Microsoft.ML.LightGBM.Options;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 {
-    class LightGbmRegressionWithOptions
+    class LightGbm
     {
         // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
         public static void Example()
@@ -27,27 +25,19 @@ namespace Microsoft.ML.Samples.Dynamic
 
             var split = mlContext.Regression.TrainTestSplit(dataView, testFraction: 0.1);
 
-            // Create a pipeline with LightGbm estimator with advanced options.
-            // Here we only need LightGbm trainer as data is already processed
-            // in a form consumable by the trainer.
+            // Create the estimator, here we only need LightGbm trainer
+            // as data is already processed in a form consumable by the trainer.
             var labelName = "MedianHomeValue";
             var featureNames = dataView.Schema
                 .Select(column => column.Name) // Get the column names
                 .Where(name => name != labelName) // Drop the Label
                 .ToArray();
             var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
-                           .Append(mlContext.Regression.Trainers.LightGbm(new Options
-                           {
-                               LabelColumn = labelName,
-                               NumLeaves = 4,
-                               MinDataPerLeaf = 6,
-                               LearningRate = 0.001,
-                               Booster = new GossBooster.Options
-                               {
-                                   TopRate = 0.3,
-                                   OtherRate = 0.2
-                               }
-                           }));
+                           .Append(mlContext.Regression.Trainers.LightGbm(
+                                            labelColumnName: labelName,
+                                            numLeaves: 4,
+                                            minDataPerLeaf: 6,
+                                            learningRate: 0.001));
 
             // Fit this pipeline to the training data.
             var model = pipeline.Fit(split.TrainSet);
@@ -64,12 +54,12 @@ namespace Microsoft.ML.Samples.Dynamic
             var metrics = mlContext.Regression.Evaluate(dataWithPredictions, label: labelName);
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
-            // Output
-            // L1: 4.97
-            // L2: 51.37
-            // LossFunction: 51.37
-            // RMS: 7.17
-            // RSquared: 0.08
+            // Expected output
+            //   L1: 4.97
+            //   L2: 51.37
+            //   LossFunction: 51.37
+            //   RMS: 7.17
+            //   RSquared: 0.08
         }
     }
 }

@@ -45,20 +45,18 @@ namespace Microsoft.ML
             Contracts.CheckParam(maxRows >= 0, nameof(maxRows));
             Contracts.CheckParam(maxTrainingRows >= 0, nameof(maxTrainingRows));
 
-            using (var env = new LocalEnvironment(conc: 1))
-            {
-                var trainData = SkipTakeFilter.Create(env, new SkipTakeFilter.TakeOptions { Count = maxTrainingRows }, data);
-                return new DataDebuggerPreview(estimator.Fit(trainData).Transform(data), maxRows);
-            }
+            var env = new LocalEnvironment(conc: 1);
+            var trainData = SkipTakeFilter.Create(env, new SkipTakeFilter.TakeOptions { Count = maxTrainingRows }, data);
+            return new DataDebuggerPreview(estimator.Fit(trainData).Transform(data), maxRows);
         }
 
         /// <summary>
-        /// Preview an effect of the <paramref name="reader"/> on a given <paramref name="source"/>.
+        /// Preview an effect of the <paramref name="loader"/> on a given <paramref name="source"/>.
         /// </summary>
-        /// <param name="reader">The data reader to preview</param>
+        /// <param name="loader">The data loader to preview</param>
         /// <param name="source">The source to pull the data from</param>
         /// <param name="maxRows">Maximum number of rows to pull</param>
-        public static DataDebuggerPreview Preview<TSource>(this IDataReader<TSource> reader, TSource source, int maxRows = DataDebuggerPreview.Defaults.MaxRows)
-            => new DataDebuggerPreview(reader.Read(source), maxRows);
+        public static DataDebuggerPreview Preview<TSource>(this IDataLoader<TSource> loader, TSource source, int maxRows = DataDebuggerPreview.Defaults.MaxRows)
+            => new DataDebuggerPreview(loader.Load(source), maxRows);
     }
 }

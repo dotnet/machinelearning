@@ -3,7 +3,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class SDCALogisticRegression
     {
@@ -12,7 +12,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Downloading the dataset from github.com/dotnet/machinelearning.
             // This will create a sentiment.tsv file in the filesystem.
             // You can open this file, if you want to see the data. 
-            string dataFile = SamplesUtils.DatasetUtils.DownloadSentimentDataset();
+            string dataFile = SamplesUtils.DatasetUtils.DownloadSentimentDataset()[0];
 
             // A preview of the data. 
             // Sentiment	SentimentText
@@ -23,9 +23,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Step 1: Read the data as an IDataView.
-            // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextLoader(
+            // Step 1: Load the data as an IDataView.
+            // First, we define the loader: specify the data columns and where to find them in the text file.
+            var loader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
                         new TextLoader.Column("Sentiment", DataKind.Boolean, 0),
@@ -34,8 +34,8 @@ namespace Microsoft.ML.Samples.Dynamic
                 hasHeader: true
             );
             
-            // Read the data
-            var data = reader.Read(dataFile);
+            // Load the data
+            var data = loader.Load(dataFile);
 
             // ML.NET doesn't cache data set by default. Therefore, if one reads a data set from a file and accesses it many times, it can be slow due to
             // expensive featurization and disk operations. When the considered data can fit into memory, a solution is to cache the data in memory. Caching is especially
@@ -62,8 +62,8 @@ namespace Microsoft.ML.Samples.Dynamic
             var advancedPipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
                                   .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
                                       new SdcaBinaryTrainer.Options { 
-                                        LabelColumn = "Sentiment",
-                                        FeatureColumn = "Features",
+                                        LabelColumnName = "Sentiment",
+                                        FeatureColumnName = "Features",
                                         ConvergenceTolerance = 0.01f,  // The learning rate for adjusting bias from being regularized
                                         NumThreads = 2, // Degree of lock-free parallelism 
                                       }));

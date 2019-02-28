@@ -12,7 +12,7 @@ using Microsoft.ML.LightGBM;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -114,8 +114,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var trainer = ML.Ranking.Trainers.FastTree(
                 new FastTreeRankingTrainer.Options
                 {
-                    FeatureColumn = "NumericFeatures",
-                    NumTrees = 10
+                    FeatureColumnName = "NumericFeatures",
+                    NumTrees = 10,
+                    RowGroupColumnName = "Group"
                 });
 
             var pipeWithTrainer = pipe.Append(trainer);
@@ -134,7 +135,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetRankingPipeline();
 
-            var trainer = ML.Ranking.Trainers.LightGbm(labelColumnName: "Label0", featureColumnName: "NumericFeatures", rowGroupColumnName: "Group", learningRate: 0.4);
+            var trainer = ML.Ranking.Trainers.LightGbm(new Options() { LabelColumnName = "Label0", FeatureColumnName = "NumericFeatures", RowGroupColumnName = "Group", LearningRate = 0.4 });
 
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
@@ -259,7 +260,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             [VectorType(_columnNumber)]
             public float[] Features;
-            [KeyType(Count = _classNumber)]
+            [KeyType(_classNumber)]
             public uint Label;
             [VectorType(_classNumber)]
             public float[] Score;
@@ -290,7 +291,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }
 
             var mlContext = new MLContext(seed: 0, conc: 1);
-            var dataView = mlContext.Data.ReadFromEnumerable(dataList);
+            var dataView = mlContext.Data.LoadFromEnumerable(dataList);
             int numberOfTrainingIterations = 3;
             var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, new Options
             {
@@ -302,7 +303,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var gbm = gbmTrainer.Fit(dataView);
             var predicted = gbm.Transform(dataView);
-            mlnetPredictions = mlContext.CreateEnumerable<GbmExample>(predicted, false).ToList();
+            mlnetPredictions = mlContext.Data.CreateEnumerable<GbmExample>(predicted, false).ToList();
 
             // Convert training to LightGBM's native format and train LightGBM model via its APIs
             // Convert the whole training matrix to CSC format required by LightGBM interface. Notice that the training matrix
@@ -442,7 +443,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     .Append(ML.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
             var model = pipe.Fit(dataView);
             var metrics = ML.MulticlassClassification.Evaluate(model.Transform(dataView));
-            Assert.True(metrics.AccuracyMacro > 0.8);
+            Assert.True(metrics.MacroAccuracy > 0.8);
             Thread.CurrentThread.CurrentCulture = currentCulture;
         }
     }

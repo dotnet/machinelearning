@@ -22,7 +22,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var catalog = new RegressionCatalog(env);
 
-            var reader = TextLoaderStatic.CreateReader(env,
+            var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
@@ -99,7 +99,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var catalog = new RegressionCatalog(env);
 
-            var reader = TextLoaderStatic.CreateReader(env,
+            var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true);
 

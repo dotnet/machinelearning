@@ -42,9 +42,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var outNoInitData = notInitPredictor.Transform(transformedData);
 
             int numExamples = 10;
-            var col1 = data.GetColumn<float>(Env, "Score").Take(numExamples).ToArray();
-            var col2 = outInitData.GetColumn<float>(Env, "Score").Take(numExamples).ToArray();
-            var col3 = outNoInitData.GetColumn<float>(Env, "Score").Take(numExamples).ToArray();
+            var col1 = data.GetColumn<float>(data.Schema["Score"]).Take(numExamples).ToArray();
+            var col2 = outInitData.GetColumn<float>(outInitData.Schema["Score"]).Take(numExamples).ToArray();
+            var col3 = outNoInitData.GetColumn<float>(outNoInitData.Schema["Score"]).Take(numExamples).ToArray();
 
             bool col12Diff = default;
             bool col23Diff = default;

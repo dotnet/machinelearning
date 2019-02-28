@@ -33,7 +33,7 @@ namespace Microsoft.ML.Data
     /// Loads a parquet file into an IDataView. Supports basic mapping from Parquet input column data types to framework data types.
     /// </summary>
     [BestFriend]
-    internal sealed class ParquetLoader : IDataLoader, IDisposable
+    internal sealed class ParquetLoader : ILegacyDataLoader, IDisposable
     {
         /// <summary>
         /// A Column is a singular representation that consolidates all the related column chunks in the
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Data
                 case DataType.Int64:
                     return NumberDataViewType.Int64;
                 case DataType.Int96:
-                    return NumberDataViewType.DataViewRowId;
+                    return RowIdDataViewType.Instance;
                 case DataType.ByteArray:
                     return new VectorType(NumberDataViewType.Byte);
                 case DataType.String:

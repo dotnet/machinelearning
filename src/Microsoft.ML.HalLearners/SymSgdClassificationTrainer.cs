@@ -8,15 +8,15 @@ using System.Runtime.InteropServices;
 using System.Security;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.HalLearners;
-using Microsoft.ML.Training;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(SymSgdClassificationTrainer), typeof(SymSgdClassificationTrainer.Options),
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers.HalLearners
         internal const string ShortName = "SymSGD";
 
         ///<summary> Advanced options for trainer.</summary>
-        public sealed class Options : LearnerInputBaseWithLabel
+        public sealed class Options : TrainerInputBaseWithLabel
         {
             /// <summary>
             /// Degree of lock-free parallelism. Determinism not guaranteed if this is set to higher than 1.
@@ -198,8 +198,8 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// Initializes a new instance of <see cref="SymSgdClassificationTrainer"/>
         /// </summary>
         internal SymSgdClassificationTrainer(IHostEnvironment env, Options options)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumn),
-                  TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName),
+                  TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             Host.CheckValue(options, nameof(options));
             options.Check(Host);
@@ -233,9 +233,9 @@ namespace Microsoft.ML.Trainers.HalLearners
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
@@ -250,9 +250,9 @@ namespace Microsoft.ML.Trainers.HalLearners
             host.CheckValue(options, nameof(options));
             EntryPointUtils.CheckInputArgs(host, options);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, options,
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, options,
                 () => new SymSgdClassificationTrainer(host, options),
-                () => LearnerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.LabelColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.LabelColumnName));
         }
 
         // We buffer instances from the cursor (limited to memorySize) and passes that buffer to

@@ -11,7 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.EntryPoints.JsonUtils
+namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
     /// The class that creates and wraps around an instance of an input object and gradually populates all fields, keeping track of missing
@@ -850,8 +850,8 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
             public const string RSquared = RegressionLossEvaluatorBase<MultiOutputRegressionEvaluator.Aggregator>.RSquared;
             public const string LogLoss = BinaryClassifierEvaluator.LogLoss;
             public const string LogLossReduction = BinaryClassifierEvaluator.LogLossReduction;
-            public const string Ndcg = RankerEvaluator.Ndcg;
-            public const string Dcg = RankerEvaluator.Dcg;
+            public const string Ndcg = RankingEvaluator.Ndcg;
+            public const string Dcg = RankingEvaluator.Dcg;
             public const string PositivePrecision = BinaryClassifierEvaluator.PosPrecName;
             public const string PositiveRecall = BinaryClassifierEvaluator.PosRecallName;
             public const string NegativePrecision = BinaryClassifierEvaluator.NegPrecName;

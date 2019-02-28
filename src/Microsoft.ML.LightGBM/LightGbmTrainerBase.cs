@@ -5,10 +5,9 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Training;
 
 namespace Microsoft.ML.LightGBM
 {
@@ -76,16 +75,17 @@ namespace Microsoft.ML.LightGBM
             LightGbmTrainerOptions.LearningRate = learningRate;
             LightGbmTrainerOptions.NumBoostRound = numBoostRound;
 
-            LightGbmTrainerOptions.LabelColumn = label.Name;
-            LightGbmTrainerOptions.FeatureColumn = featureColumn;
-            LightGbmTrainerOptions.WeightColumn = weightColumn;
-            LightGbmTrainerOptions.GroupIdColumn = groupIdColumn;
+            LightGbmTrainerOptions.LabelColumnName = label.Name;
+            LightGbmTrainerOptions.FeatureColumnName = featureColumn;
+            LightGbmTrainerOptions.ExampleWeightColumnName = weightColumn;
+            LightGbmTrainerOptions.RowGroupColumnName = groupIdColumn;
 
             InitParallelTraining();
         }
 
         private protected LightGbmTrainerBase(IHostEnvironment env, string name, Options options, SchemaShape.Column label)
-           : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
+           : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), label,
+                 TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName), TrainerUtils.MakeU4ScalarColumn(options.RowGroupColumnName))
         {
             Host.CheckValue(options, nameof(options));
 
@@ -164,7 +164,7 @@ namespace Microsoft.ML.LightGBM
             ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "Need a label column");
         }
 
-        protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategarical, int totalCats, bool hiddenMsg=false)
+        protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategarical, int totalCats, bool hiddenMsg = false)
         {
             double learningRate = LightGbmTrainerOptions.LearningRate ?? DefaultLearningRate(numRow, hasCategarical, totalCats);
             int numLeaves = LightGbmTrainerOptions.NumLeaves ?? DefaultNumLeaves(numRow, hasCategarical, totalCats);
@@ -280,7 +280,7 @@ namespace Microsoft.ML.LightGBM
             if (useCat)
             {
                 var featureCol = trainData.Schema.Schema[DefaultColumnNames.Features];
-                MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureCol.Index, out categoricalFeatures);
+                AnnotationUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureCol.Index, out categoricalFeatures);
             }
             var colType = trainData.Schema.Feature.Value.Type;
             int rawNumCol = colType.GetVectorSize();
@@ -585,7 +585,7 @@ namespace Microsoft.ML.LightGBM
             int[] nonZeroCntPerColumn = new int[catMetaData.NumCol];
             int estimateNonZeroCnt = (int)(numSampleRow * density);
             estimateNonZeroCnt = Math.Max(1, estimateNonZeroCnt);
-            for(int i = 0; i < catMetaData.NumCol; i++)
+            for (int i = 0; i < catMetaData.NumCol; i++)
             {
                 nonZeroCntPerColumn[i] = 0;
                 sampleValuePerColumn[i] = new double[estimateNonZeroCnt];

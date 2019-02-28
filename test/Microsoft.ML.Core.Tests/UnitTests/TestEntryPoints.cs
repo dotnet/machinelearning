@@ -8,28 +8,22 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Core.Tests.UnitTests;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.EntryPoints.JsonUtils;
 using Microsoft.ML.ImageAnalytics;
-using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.LightGBM;
+using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.HalLearners;
-using Microsoft.ML.Trainers.PCA;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
-using Microsoft.ML.Transforms.Normalizers;
-using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.Transforms.TimeSeries;
 using Newtonsoft.Json;
@@ -165,21 +159,6 @@ namespace Microsoft.ML.RunTests
             var data2 = ModelOperations.Apply(Env, new ModelOperations.ApplyTransformModelInput() { Data = dataView, TransformModel = data1.Model });
 
             CheckSameValues(data1.OutputData, data2.OutputData);
-            Done();
-        }
-
-        [Fact]
-        public void EntryPointCaching()
-        {
-            var dataView = GetBreastCancerDataviewWithTextColumns();
-
-            dataView = Env.CreateTransform("Term{col=F1}", dataView);
-
-            var cached1 = Cache.CacheData(Env, new Cache.CacheInput() { Data = dataView, Caching = Cache.CachingType.Memory });
-            CheckSameValues(dataView, cached1.OutputData);
-
-            var cached2 = Cache.CacheData(Env, new Cache.CacheInput() { Data = dataView, Caching = Cache.CachingType.Disk });
-            CheckSameValues(dataView, cached2.OutputData);
             Done();
         }
 
@@ -387,18 +366,18 @@ namespace Microsoft.ML.RunTests
 
             InputBuilder ib1 = new InputBuilder(Env, typeof(LogisticRegression.Options), catalog);
             // Ensure that InputBuilder unwraps the Optional<string> correctly.
-            var weightType = ib1.GetFieldTypeOrNull("WeightColumn");
+            var weightType = ib1.GetFieldTypeOrNull("ExampleWeightColumnName");
             Assert.True(weightType.Equals(typeof(string)));
 
             var instance = ib1.GetInstance() as LogisticRegression.Options;
-            Assert.True(instance.WeightColumn == null);
+            Assert.True(instance.ExampleWeightColumnName == null);
 
-            ib1.TrySetValue("WeightColumn", "OtherWeight");
-            Assert.Equal("OtherWeight", instance.WeightColumn);
+            ib1.TrySetValue("ExampleWeightColumnName", "OtherWeight");
+            Assert.Equal("OtherWeight", instance.ExampleWeightColumnName);
 
             var tok = (JToken)JValue.CreateString("AnotherWeight");
-            ib1.TrySetValueJson("WeightColumn", tok);
-            Assert.Equal("AnotherWeight", instance.WeightColumn);
+            ib1.TrySetValueJson("ExampleWeightColumnName", tok);
+            Assert.Equal("AnotherWeight", instance.ExampleWeightColumnName);
         }
 
         [Fact]
@@ -456,11 +435,11 @@ namespace Microsoft.ML.RunTests
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
                         .ScoredData;
                 individualScores[i] = new ColumnCopyingTransformer(Env, (
-                    (MetadataUtils.Const.ScoreValueKind.Score + i).ToString(),
-                     MetadataUtils.Const.ScoreValueKind.Score)
+                    (AnnotationUtils.Const.ScoreValueKind.Score + i).ToString(),
+                     AnnotationUtils.Const.ScoreValueKind.Score)
                     ).Transform(individualScores[i]);
 
-                individualScores[i] = new ColumnSelectingTransformer(Env, null, new[] { MetadataUtils.Const.ScoreValueKind.Score }).Transform(individualScores[i]);
+                individualScores[i] = new ColumnSelectingTransformer(Env, null, new[] { AnnotationUtils.Const.ScoreValueKind.Score }).Transform(individualScores[i]);
             }
 
             var avgEnsembleInput = new EnsembleCreator.ClassifierInput { Models = predictorModels, ModelCombiner = EnsembleCreator.ClassifierCombiner.Average };
@@ -490,22 +469,22 @@ namespace Microsoft.ML.RunTests
             using (var curs3 = regScored.GetRowCursorForAllColumns())
             using (var curs4 = zippedScores.GetRowCursorForAllColumns())
             {
-                var scoreColumn = curs1.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                var scoreColumn = curs1.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var avgScoreGetter = curs1.GetGetter<Single>(scoreColumn.Value.Index);
 
-                scoreColumn = curs2.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs2.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var medScoreGetter = curs2.GetGetter<Single>(scoreColumn.Value.Index);
 
-                scoreColumn = curs3.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs3.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var regScoreGetter = curs3.GetGetter<Single>(scoreColumn.Value.Index);
 
                 var individualScoreGetters = new ValueGetter<Single>[nModels];
                 for (int i = 0; i < nModels; i++)
                 {
-                    scoreColumn = curs4.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score + i);
+                    scoreColumn = curs4.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score + i);
                     individualScoreGetters[i] = curs4.GetGetter<Single>(scoreColumn.Value.Index);
                 }
 
@@ -740,8 +719,8 @@ namespace Microsoft.ML.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RandomFourierFeaturizingEstimator.ColumnInfo("Features1", 10, false, "Features"),
-                    new RandomFourierFeaturizingEstimator.ColumnInfo("Features2", 10, false, "Features"),
+                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features1", 10, false, "Features"),
+                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
 
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
@@ -819,30 +798,30 @@ namespace Microsoft.ML.RunTests
                 }).ScoredData;
 
             // Make sure the scorers have the correct types.
-            var scoreCol = binaryScored.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+            var scoreCol = binaryScored.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
             Assert.True(scoreCol.HasValue, "Data scored with binary ensemble does not have a score column");
-            var type = binaryScored.Schema[scoreCol.Value.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.ScoreColumnKind)?.Type;
+            var type = binaryScored.Schema[scoreCol.Value.Index].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.ScoreColumnKind)?.Type;
             Assert.True(type is TextDataViewType, "Binary ensemble scored data does not have correct type of metadata.");
             var kind = default(ReadOnlyMemory<char>);
-            binaryScored.Schema[scoreCol.Value.Index].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
-            Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.BinaryClassification, kind),
-                $"Binary ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.BinaryClassification}', but is instead '{kind}'");
+            binaryScored.Schema[scoreCol.Value.Index].Annotations.GetValue(AnnotationUtils.Kinds.ScoreColumnKind, ref kind);
+            Assert.True(ReadOnlyMemoryUtils.EqualsStr(AnnotationUtils.Const.ScoreColumnKind.BinaryClassification, kind),
+                $"Binary ensemble scored data column type should be '{AnnotationUtils.Const.ScoreColumnKind.BinaryClassification}', but is instead '{kind}'");
 
-            scoreCol = regressionScored.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+            scoreCol = regressionScored.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
             Assert.True(scoreCol.HasValue, "Data scored with regression ensemble does not have a score column");
-            type = regressionScored.Schema[scoreCol.Value.Index].Metadata.Schema[MetadataUtils.Kinds.ScoreColumnKind].Type;
+            type = regressionScored.Schema[scoreCol.Value.Index].Annotations.Schema[AnnotationUtils.Kinds.ScoreColumnKind].Type;
             Assert.True(type is TextDataViewType, "Regression ensemble scored data does not have correct type of metadata.");
-            regressionScored.Schema[scoreCol.Value.Index].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
-            Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.Regression, kind),
-                $"Regression ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.Regression}', but is instead '{kind}'");
+            regressionScored.Schema[scoreCol.Value.Index].Annotations.GetValue(AnnotationUtils.Kinds.ScoreColumnKind, ref kind);
+            Assert.True(ReadOnlyMemoryUtils.EqualsStr(AnnotationUtils.Const.ScoreColumnKind.Regression, kind),
+                $"Regression ensemble scored data column type should be '{AnnotationUtils.Const.ScoreColumnKind.Regression}', but is instead '{kind}'");
 
-            scoreCol = anomalyScored.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+            scoreCol = anomalyScored.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
             Assert.True(scoreCol.HasValue, "Data scored with anomaly detection ensemble does not have a score column");
-            type = anomalyScored.Schema[scoreCol.Value.Index].Metadata.Schema[MetadataUtils.Kinds.ScoreColumnKind].Type;
+            type = anomalyScored.Schema[scoreCol.Value.Index].Annotations.Schema[AnnotationUtils.Kinds.ScoreColumnKind].Type;
             Assert.True(type is TextDataViewType, "Anomaly detection ensemble scored data does not have correct type of metadata.");
-            anomalyScored.Schema[scoreCol.Value.Index].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
-            Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.AnomalyDetection, kind),
-                $"Anomaly detection ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.AnomalyDetection}', but is instead '{kind}'");
+            anomalyScored.Schema[scoreCol.Value.Index].Annotations.GetValue(AnnotationUtils.Kinds.ScoreColumnKind, ref kind);
+            Assert.True(ReadOnlyMemoryUtils.EqualsStr(AnnotationUtils.Const.ScoreColumnKind.AnomalyDetection, kind),
+                $"Anomaly detection ensemble scored data column type should be '{AnnotationUtils.Const.ScoreColumnKind.AnomalyDetection}', but is instead '{kind}'");
 
             var modelPath = DeleteOutputPath("SavePipe", "PipelineEnsembleModel.zip");
             using (var file = Env.CreateOutputFile(modelPath))
@@ -872,34 +851,34 @@ namespace Microsoft.ML.RunTests
             using (var curs4 = individualScores[4].GetRowCursorForAllColumns())
             using (var cursSaved = scoredFromSaved.GetRowCursorForAllColumns())
             {
-                var scoreColumn = curs0.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                var scoreColumn = curs0.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter0 = curs0.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = curs1.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs1.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter1 = curs1.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = curs2.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs2.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter2 = curs2.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = curs3.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs3.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter3 = curs3.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = curs4.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs4.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter4 = curs4.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursReg.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursReg.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterReg = cursReg.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursBin.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursBin.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterBin = cursBin.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursBinCali.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursBinCali.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterBinCali = cursBinCali.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursSaved.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursSaved.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterSaved = cursSaved.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursAnom.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursAnom.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterAnom = cursAnom.GetGetter<Single>(scoreColumn.Value.Index);
 
@@ -1093,31 +1072,31 @@ namespace Microsoft.ML.RunTests
             using (var curs4 = individualScores[4].GetRowCursorForAllColumns())
             using (var cursSaved = scoredFromSaved.GetRowCursorForAllColumns())
             {
-                var scoreColumn = curs0.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                var scoreColumn = curs0.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter0 = curs0.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = curs1.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs1.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter1 = curs1.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = curs2.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs2.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter2 = curs2.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = curs3.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs3.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter3 = curs3.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = curs4.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs4.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter4 = curs4.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursReg.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursReg.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterReg = cursReg.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursBin.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursBin.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterBin = cursBin.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursBinCali.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursBinCali.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterBinCali = cursBinCali.GetGetter<Single>(scoreColumn.Value.Index);
-                scoreColumn = cursSaved.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursSaved.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterSaved = cursSaved.GetGetter<Single>(scoreColumn.Value.Index);
 
@@ -1192,8 +1171,8 @@ namespace Microsoft.ML.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RandomFourierFeaturizingEstimator.ColumnInfo("Features1", 10, false, "Features"),
-                    new RandomFourierFeaturizingEstimator.ColumnInfo("Features2", 10, false, "Features"),
+                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features1", 10, false, "Features"),
+                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
 
@@ -1251,25 +1230,25 @@ namespace Microsoft.ML.RunTests
             using (var curs3 = individualScores[3].GetRowCursorForAllColumns())
             using (var curs4 = individualScores[4].GetRowCursorForAllColumns())
             {
-                var scoreColumn = curs0.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                var scoreColumn = curs0.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter0 = curs0.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
-                scoreColumn = curs1.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs1.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter1 = curs1.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
-                scoreColumn = curs2.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs2.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter2 = curs2.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
-                scoreColumn = curs3.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs3.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter3 = curs3.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
-                scoreColumn = curs4.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs4.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter4 = curs4.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
-                scoreColumn = curs.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = curs.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getter = curs.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
-                scoreColumn = cursSaved.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                scoreColumn = cursSaved.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
                 var getterSaved = cursSaved.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
 
@@ -1338,7 +1317,7 @@ namespace Microsoft.ML.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new OneHotEncodingEstimator(Env, "Cat").Fit(data).Transform(data);
-                data = new ColumnConcatenatingTransformer(Env, new ColumnConcatenatingTransformer.ColumnInfo("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
+                data = new ColumnConcatenatingTransformer(Env, new ColumnConcatenatingTransformer.ColumnOptions("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
                 if (i % 2 == 0)
                 {
                     var lrInput = new LogisticRegression.Options
@@ -1894,7 +1873,7 @@ namespace Microsoft.ML.RunTests
                         }
                       },";
 
-            RunTrainScoreEvaluate("Trainers.FastTreeRanker", "Models.RankerEvaluator",
+            RunTrainScoreEvaluate("Trainers.FastTreeRanker", "Models.RankingEvaluator",
                 dataPath, warningsPath, overallMetricsPath, instanceMetricsPath,
                 splitterInput: "output_data3", transforms: transforms);
 
@@ -3383,8 +3362,8 @@ namespace Microsoft.ML.RunTests
                     DataSaverUtils.SaveDataView(ch, saver, mcOutput.Stats, file);
             }
 
-            CheckEquality(@"../Common/EntryPoints", "lr-weights.txt", digitsOfPrecision: 6);
-            CheckEquality(@"../Common/EntryPoints", "lr-stats.txt", digitsOfPrecision: 6);
+            CheckEquality(@"../Common/EntryPoints", "lr-weights.txt", digitsOfPrecision: 4);
+            CheckEquality(@"../Common/EntryPoints", "lr-stats.txt", digitsOfPrecision: 3);
             CheckEquality(@"../Common/EntryPoints", "mc-lr-weights.txt", digitsOfPrecision: 3);
             CheckEquality(@"../Common/EntryPoints", "mc-lr-stats.txt", digitsOfPrecision: 5);
             Done();
@@ -3549,10 +3528,10 @@ namespace Microsoft.ML.RunTests
 
             var fastTree = Trainers.FastTree.FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Options
             {
-                FeatureColumn = "Features",
+                FeatureColumnName = "Features",
                 NumTrees = 5,
                 NumLeaves = 4,
-                LabelColumn = DefaultColumnNames.Label,
+                LabelColumnName = DefaultColumnNames.Label,
                 TrainingData = concat.OutputData
             });
 
@@ -3997,9 +3976,9 @@ namespace Microsoft.ML.RunTests
                             'Shuffle': false,
                             'CheckFrequency': null,
                             'BiasLearningRate': 0.0,
-                            'LabelColumn': 'Label',
+                            'LabelColumnName': 'Label',
                             'TrainingData': '$Var_51d3ddc9792d4c6eb975e600e87b8cbc',
-                            'FeatureColumn': 'Features',
+                            'FeatureColumnName': 'Features',
                             'NormalizeFeatures': 'Auto',
                             'Caching': 'Auto'
                         },
@@ -4168,10 +4147,10 @@ namespace Microsoft.ML.RunTests
                                         'NumThreads': 1,
                                         'DenseOptimizer': false,
                                         'EnforceNonNegativity': false,
-                                        'WeightColumn': 'Weight1',
-                                        'LabelColumn': 'Label',
+                                        'ExampleWeightColumnName': 'Weight1',
+                                        'LabelColumnName': 'Label',
                                         'TrainingData': '$Var_8b36a1e70c9f4504973140ad15eac72f',
-                                        'FeatureColumn': 'Features',
+                                        'FeatureColumnName': 'Features',
                                         'NormalizeFeatures': 'Auto',
                                         'Caching': 'Auto'
                                     },
@@ -4354,9 +4333,9 @@ namespace Microsoft.ML.RunTests
                                         'Shuffle': true,
                                         'CheckFrequency': null,
                                         'BiasLearningRate': 0.0,
-                                        'LabelColumn': 'Label',
+                                        'LabelColumnName': 'Label',
                                         'TrainingData': '$Var_a060169d8a924964b71447904c0d2ee9',
-                                        'FeatureColumn': 'Features',
+                                        'FeatureColumnName': 'Features',
                                         'NormalizeFeatures': 'Auto',
                                         'Caching': 'Auto'
                                     },
@@ -4458,7 +4437,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(countCol.HasValue);
             foldCol = schema.GetColumnOrNull("Fold Index");
             Assert.True(foldCol.HasValue);
-            var type = schema["Count"].Metadata.Schema[MetadataUtils.Kinds.SlotNames].Type;
+            var type = schema["Count"].Annotations.Schema[AnnotationUtils.Kinds.SlotNames].Type;
             Assert.True(type is VectorType vecType && vecType.ItemType is TextDataViewType && vecType.Size == 10);
             var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
             schema["Count"].GetSlotNames(ref slotNames);
@@ -4591,10 +4570,10 @@ namespace Microsoft.ML.RunTests
                                         'NumThreads': 1,
                                         'DenseOptimizer': false,
                                         'EnforceNonNegativity': false,
-                                        'WeightColumn': null,
-                                        'LabelColumn': 'Label',
+                                        'ExampleWeightColumnName': null,
+                                        'LabelColumnName': 'Label',
                                         'TrainingData': '$Var_fb8137cb48ac49a7b1b56aa3ed5e0b23',
-                                        'FeatureColumn': 'Features',
+                                        'FeatureColumnName': 'Features',
                                         'NormalizeFeatures': 'Auto',
                                         'Caching': 'Auto'
                                     },
@@ -4761,9 +4740,9 @@ namespace Microsoft.ML.RunTests
                                         'Shuffle': true,
                                         'CheckFrequency': null,
                                         'BiasLearningRate': 0.0,
-                                        'LabelColumn': 'Label',
+                                        'LabelColumnName': 'Label',
                                         'TrainingData': '$Var_44f5c60e439b49fe9e5bf372be4613ee',
-                                        'FeatureColumn': 'Features',
+                                        'FeatureColumnName': 'Features',
                                         'NormalizeFeatures': 'Auto',
                                         'Caching': 'Auto'
                                     },
@@ -5053,11 +5032,11 @@ namespace Microsoft.ML.RunTests
                                     'PrintTestGraph': false,
                                     'PrintTrainValidGraph': false,
                                     'TestFrequency': 2147483647,
-                                    'GroupIdColumn': 'GroupId1',
-                                    'WeightColumn': null,
-                                    'LabelColumn': 'Label1',
+                                    'RowGroupColumnName': 'GroupId1',
+                                    'ExampleWeightColumnName': null,
+                                    'LabelColumnName': 'Label1',
                                     'TrainingData': '$Var_8f51ed90f5b642b2a80eeb628d67a5b3',
-                                    'FeatureColumn': 'Features',
+                                    'FeatureColumnName': 'Features',
                                     'NormalizeFeatures': 'Auto',
                                     'Caching': 'Auto'
                                 },
@@ -5269,9 +5248,9 @@ namespace Microsoft.ML.RunTests
                                         'Shuffle': true,
                                         'CheckFrequency': null,
                                         'BiasLearningRate': 0.0,
-                                        'LabelColumn': 'Label',
+                                        'LabelColumnName': 'Label',
                                         'TrainingData': '$Var_9aa1732198964d7f979a0bbec5db66c2',
-                                        'FeatureColumn': 'Features',
+                                        'FeatureColumnName': 'Features',
                                         'NormalizeFeatures': 'Auto',
                                         'Caching': 'Auto'
                                     },
@@ -5284,10 +5263,10 @@ namespace Microsoft.ML.RunTests
                                 'Model': '$Var_a229f40df6494a93a794ffd5480d5549'
                             },
                             'UseProbabilities': true,
-                            'WeightColumn': null,
-                            'LabelColumn': 'Label',
+                            'ExampleWeightColumnName': null,
+                            'LabelColumnName': 'Label',
                             'TrainingData': '$Var_672f860e44304ba8bd1c1a6e4b5ba9c5',
-                            'FeatureColumn': 'Features',
+                            'FeatureColumnName': 'Features',
                             'NormalizeFeatures': 'Auto',
                             'Caching': 'Auto'
                         },
@@ -5439,9 +5418,9 @@ namespace Microsoft.ML.RunTests
                                         'InitialWeights': null,
                                         'InitialWeightsDiameter': 0.0,
                                         'Shuffle': false,
-                                        'LabelColumn': 'Label',
+                                        'LabelColumnName': 'Label',
                                         'TrainingData': '$Var_9ccc8bce4f6540eb8a244ab40585602a',
-                                        'FeatureColumn': 'Features',
+                                        'FeatureColumnName': 'Features',
                                         'NormalizeFeatures': 'Auto',
                                         'Caching': 'Auto'
                                     },
@@ -5454,10 +5433,10 @@ namespace Microsoft.ML.RunTests
                                 'Model': '$Var_b47f7facc1c540e39d8b82ab64df6592'
                             },
                             'UseProbabilities': true,
-                            'WeightColumn': null,
-                            'LabelColumn': 'Label',
+                            'ExampleWeightColumnName': null,
+                            'LabelColumnName': 'Label',
                             'TrainingData': '$Var_f38b99289df746319edd57a3ccfb85a2',
-                            'FeatureColumn': 'Features',
+                            'FeatureColumnName': 'Features',
                             'NormalizeFeatures': 'Auto',
                             'Caching': 'Auto'
                         },

@@ -11,8 +11,6 @@ using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Internal.Internallearn
 {
-    using Float = System.Single;
-
     /// <summary>
     /// Various utilities
     /// </summary>
@@ -92,7 +90,7 @@ namespace Microsoft.ML.Internal.Internallearn
         /// <summary>
         /// Make a string representation of an array
         /// </summary>
-        public static string Array2String(Float[] a, string sep)
+        public static string Array2String(float[] a, string sep)
         {
             StringBuilder sb = new StringBuilder();
             if (a.Length == 0)

@@ -6,22 +6,26 @@ using Microsoft.Data.DataView;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class RankerMetrics
+    /// <summary>
+    /// Evaluation results for rankers.
+    /// </summary>
+    public sealed class RankingMetrics
     {
         /// <summary>
         /// Array of normalized discounted cumulative gains where i-th element represent NDCG@i.
         /// <image src="https://github.com/dotnet/machinelearning/tree/master/docs/images/NDCG.png"></image>
         /// </summary>
-        public double[] Ndcg { get; }
+        public double[] NormalizedDiscountedCumulativeGains { get; }
 
         /// <summary>
-        ///Array of discounted cumulative gains where i-th element represent DCG@i.
-        /// <a href="https://en.wikipedia.org/wiki/Discounted_cumulative_gain">Discounted Cumulative gain</a>
-        /// is the sum of the gains, for all the instances i, normalized by the natural logarithm of the instance + 1.
+        /// Array of discounted cumulative gains where i-th element represent DCG@i.
+        /// Discounted Cumulative gain is the sum of the gains, for all the instances i,
+        /// normalized by the natural logarithm of the instance + 1.
         /// Note that unline the Wikipedia article, ML.Net uses the natural logarithm.
         /// <image src="https://github.com/dotnet/machinelearning/tree/master/docs/images/DCG.png"></image>
         /// </summary>
-        public double[] Dcg { get; }
+        /// <remarks><a href="https://en.wikipedia.org/wiki/Discounted_cumulative_gain">Discounted Cumulative gain.</a></remarks>
+        public double[] DiscountedCumulativeGains { get; }
 
         private static T Fetch<T>(IExceptionContext ectx, DataViewRow row, string name)
         {
@@ -32,20 +36,20 @@ namespace Microsoft.ML.Data
             return val;
         }
 
-        internal RankerMetrics(IExceptionContext ectx, DataViewRow overallResult)
+        internal RankingMetrics(IExceptionContext ectx, DataViewRow overallResult)
         {
             VBuffer<double> Fetch(string name) => Fetch<VBuffer<double>>(ectx, overallResult, name);
 
-            Dcg = Fetch(RankerEvaluator.Dcg).GetValues().ToArray();
-            Ndcg = Fetch(RankerEvaluator.Ndcg).GetValues().ToArray();
+            DiscountedCumulativeGains = Fetch(RankingEvaluator.Dcg).GetValues().ToArray();
+            NormalizedDiscountedCumulativeGains = Fetch(RankingEvaluator.Ndcg).GetValues().ToArray();
         }
 
-        internal RankerMetrics(double[] dcg, double[] ndcg)
+        internal RankingMetrics(double[] dcg, double[] ndcg)
         {
-            Dcg = new double[dcg.Length];
-            dcg.CopyTo(Dcg, 0);
-            Ndcg = new double[ndcg.Length];
-            ndcg.CopyTo(Ndcg, 0);
+            DiscountedCumulativeGains = new double[dcg.Length];
+            dcg.CopyTo(DiscountedCumulativeGains, 0);
+            NormalizedDiscountedCumulativeGains = new double[ndcg.Length];
+            ndcg.CopyTo(NormalizedDiscountedCumulativeGains, 0);
         }
     }
 }

@@ -14,8 +14,7 @@ using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
-using Microsoft.ML.Trainers.KMeans;
-using Microsoft.ML.Training;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(KMeansPlusPlusTrainer.Summary, typeof(KMeansPlusPlusTrainer), typeof(KMeansPlusPlusTrainer.Options),
     new[] { typeof(SignatureClusteringTrainer), typeof(SignatureTrainer) },
@@ -25,7 +24,7 @@ using Microsoft.ML.Training;
 
 [assembly: LoadableClass(typeof(void), typeof(KMeansPlusPlusTrainer), null, typeof(SignatureEntryPointModule), "KMeans")]
 
-namespace Microsoft.ML.Trainers.KMeans
+namespace Microsoft.ML.Trainers
     {
     /// <include file='./doc.xml' path='doc/members/member[@name="KMeans++"]/*' />
     public class KMeansPlusPlusTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansModelParameters>, KMeansModelParameters>
@@ -51,7 +50,7 @@ namespace Microsoft.ML.Trainers.KMeans
             public const int ClustersCount = 5;
         }
 
-        public sealed class Options : UnsupervisedLearnerInputBaseWithWeight
+        public sealed class Options : UnsupervisedTrainerInputBaseWithWeight
         {
             /// <summary>
             /// The number of clusters.
@@ -117,12 +116,12 @@ namespace Microsoft.ML.Trainers.KMeans
         /// <param name="env">The <see cref="IHostEnvironment"/> to use.</param>
         /// <param name="options">The advanced options of the algorithm.</param>
         internal KMeansPlusPlusTrainer(IHostEnvironment env, Options options)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), default, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), default, TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName))
         {
             Host.CheckValue(options, nameof(options));
             Host.CheckUserArg(options.ClustersCount > 0, nameof(options.ClustersCount), "Must be positive");
 
-            _featureColumn = options.FeatureColumn;
+            _featureColumn = options.FeatureColumnName;
 
             _k = options.ClustersCount;
 
@@ -249,9 +248,9 @@ namespace Microsoft.ML.Trainers.KMeans
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.ClusteringOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.ClusteringOutput>(host, input,
                 () => new KMeansPlusPlusTrainer(host, input),
-                getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+                getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
@@ -262,13 +261,13 @@ namespace Microsoft.ML.Trainers.KMeans
                         SchemaShape.Column.VectorKind.Vector,
                         NumberDataViewType.Single,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
 
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel,
                         SchemaShape.Column.VectorKind.Scalar,
                         NumberDataViewType.UInt32,
                         true,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 

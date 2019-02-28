@@ -8,6 +8,7 @@ namespace Microsoft.ML.Samples.Static
 {
     public class FastTreeRegressionExample
     {
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
         public static void FastTreeRegression()
         {
             // Downloading a regression dataset from github.com/dotnet/machinelearning
@@ -19,21 +20,21 @@ namespace Microsoft.ML.Samples.Static
             // as well as the source of randomness.
             var mlContext = new MLContext();
 
-            // Creating a data reader, based on the format of the data
-            var reader = TextLoaderStatic.CreateReader(mlContext, c => (
+            // Creating a data loader, based on the format of the data
+            var loader = TextLoaderStatic.CreateLoader(mlContext, c => (
                         label: c.LoadFloat(0),
                         features: c.LoadFloat(1, 6)
                     ),
                 separator: '\t', hasHeader: true);
 
-            // Read the data, and leave 10% out, so we can use them for testing
-            var data = reader.Read(dataFile);
+            // Load the data, and leave 10% out, so we can use them for testing
+            var data = loader.Load(dataFile);
 
             // The predictor that gets produced out of training
             FastTreeRegressionModelParameters pred = null;
 
             // Create the estimator
-            var learningPipeline = reader.MakeNewEstimator()
+            var learningPipeline = loader.MakeNewEstimator()
                 .Append(r => (r.label, score: mlContext.Regression.Trainers.FastTree(
                                             r.label,
                                             r.features,
@@ -47,10 +48,10 @@ namespace Microsoft.ML.Samples.Static
 
             var cvResults = mlContext.Regression.CrossValidate(data, learningPipeline, r => r.label, numFolds: 5);
             var averagedMetrics = (
-                L1: cvResults.Select(r => r.metrics.L1).Average(),
-                L2: cvResults.Select(r => r.metrics.L2).Average(),
-                LossFn: cvResults.Select(r => r.metrics.LossFn).Average(),
-                Rms: cvResults.Select(r => r.metrics.Rms).Average(),
+                L1: cvResults.Select(r => r.metrics.MeanAbsoluteError).Average(),
+                L2: cvResults.Select(r => r.metrics.MeanSquaredError).Average(),
+                LossFn: cvResults.Select(r => r.metrics.LossFunction).Average(),
+                Rms: cvResults.Select(r => r.metrics.RootMeanSquaredError).Average(),
                 RSquared: cvResults.Select(r => r.metrics.RSquared).Average()
             );
             Console.WriteLine($"L1 - {averagedMetrics.L1}");    // 3.091095

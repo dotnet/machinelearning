@@ -27,11 +27,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // This data contains three columns, Label, Col, and Row where Col and Row will be treated as the expected input names
             // of the trained matrix factorization model.
             var data = new TextLoader(Env, GetLoaderArgs(labelColumnName, matrixColumnIndexColumnName, matrixRowIndexColumnName))
-                    .Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
+                    .Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
 
             // "invalidData" is not compatible to "data" because it contains columns Label, ColRenamed, and RowRenamed (no column is Col or Row).
             var invalidData = new TextLoader(Env, GetLoaderArgs(labelColumnName, matrixColumnIndexColumnName + "Renamed", matrixRowIndexColumnName + "Renamed"))
-                    .Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
+                    .Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
 
             var options = new MatrixFactorizationTrainer.Options
             {
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var reader = new TextLoader(mlContext, GetLoaderArgs(labelColumnName, userColumnName, itemColumnName));
 
             // Read training data as an IDataView object
-            var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
+            var data = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
 
             // Create a pipeline with a single operator.
             var options = new MatrixFactorizationTrainer.Options
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.Equal(rightMatrix[rightMatrix.Count - 1], (double)0.380032182, 5);
             }
             // Read the test data set as an IDataView
-            var testData = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
+            var testData = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
 
             // Apply the trained model to the test set
             var prediction = model.Transform(testData);
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 // Linux case
                 var expectedUnixL2Error = 0.616821448679879; // Linux baseline
-                Assert.InRange(metrices.L2, expectedUnixL2Error - tolerance, expectedUnixL2Error + tolerance);
+                Assert.InRange(metrices.MeanSquaredError, expectedUnixL2Error - tolerance, expectedUnixL2Error + tolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 // Windows case
                 var expectedWindowsL2Error = 0.61528733643754685; // Windows baseline
-                Assert.InRange(metrices.L2, expectedWindowsL2Error - tolerance, expectedWindowsL2Error + tolerance);
+                Assert.InRange(metrices.MeanSquaredError, expectedWindowsL2Error - tolerance, expectedWindowsL2Error + tolerance);
             }
 
             var modelWithValidation = pipeline.Fit(data, testData);
@@ -171,10 +171,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         internal class MatrixElement
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex.
-            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(_synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount + _synthesizedMatrixRowCount.
-            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixRowCount)]
+            [KeyType(_synthesizedMatrixRowCount + _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
             public float Value;
@@ -182,9 +182,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         internal class MatrixElementForScore
         {
-            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(_synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
-            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixRowCount)]
+            [KeyType(_synthesizedMatrixRowCount + _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Score;
         }
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     dataMatrix.Add(new MatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var dataView = ML.Data.ReadFromEnumerable(dataMatrix);
+            var dataView = ML.Data.LoadFromEnumerable(dataMatrix);
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 score: nameof(MatrixElementForScore.Score));
 
             // Native test. Just check the pipeline runs.
-            Assert.True(metrics.L2 < 0.1);
+            Assert.True(metrics.MeanSquaredError < 0.1);
 
             // Create two two entries for making prediction. Of course, the prediction value, Score, is unknown so it's default.
             var testMatrix = new List<MatrixElementForScore>() {
@@ -246,20 +246,20 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 new MatrixElementForScore() { MatrixColumnIndex = 3, MatrixRowIndex = 6, Score = default } };
 
             // Again, convert the test data to a format supported by ML.NET.
-            var testDataView = mlContext.Data.ReadFromEnumerable(testMatrix);
+            var testDataView = mlContext.Data.LoadFromEnumerable(testMatrix);
 
             // Feed the test data into the model and then iterate through all predictions.
-            foreach (var pred in mlContext.CreateEnumerable<MatrixElementForScore>(model.Transform(testDataView), false))
+            foreach (var pred in mlContext.Data.CreateEnumerable<MatrixElementForScore>(model.Transform(testDataView), false))
                 Assert.True(pred.Score != 0);
         }
 
         internal class MatrixElementZeroBased
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
-            [KeyType(Count = _synthesizedMatrixColumnCount)]
+            [KeyType(_synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
-            [KeyType(Count = _synthesizedMatrixRowCount)]
+            [KeyType(_synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
             public float Value;
@@ -269,11 +269,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
             // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount are allowed keys.
-            [KeyType(Count = _synthesizedMatrixColumnCount)]
+            [KeyType(_synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
             // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount are allowed keys.
-            [KeyType(Count = _synthesizedMatrixRowCount)]
+            [KeyType(_synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Score;
         }
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     dataMatrix.Add(new MatrixElementZeroBased() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var dataView = ML.Data.ReadFromEnumerable(dataMatrix);
+            var dataView = ML.Data.LoadFromEnumerable(dataMatrix);
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
@@ -328,9 +328,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
 
             // Make sure the prediction error is not too large.
-            Assert.InRange(metrics.L2, 0, 0.1);
+            Assert.InRange(metrics.MeanSquaredError, 0, 0.1);
 
-            foreach (var pred in mlContext.CreateEnumerable<MatrixElementZeroBasedForScore>(prediction, false))
+            foreach (var pred in mlContext.Data.CreateEnumerable<MatrixElementZeroBasedForScore>(prediction, false))
                 // Test data contains no out-of-range indexes (i.e., all indexes can be found in the training matrix),
                 // so NaN should never happen.
                 Assert.True(!float.IsNaN(pred.Score));
@@ -345,12 +345,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             };
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var invalidTestDataView = mlContext.Data.ReadFromEnumerable(invalidTestMatrix);
+            var invalidTestDataView = mlContext.Data.LoadFromEnumerable(invalidTestMatrix);
 
             // Apply the trained model to the examples with out-of-range indexes. 
             var invalidPrediction = model.Transform(invalidTestDataView);
 
-            foreach (var pred in mlContext.CreateEnumerable<MatrixElementZeroBasedForScore>(invalidPrediction, false))
+            foreach (var pred in mlContext.Data.CreateEnumerable<MatrixElementZeroBasedForScore>(invalidPrediction, false))
                 // The presence of out-of-range indexes may lead to NaN
                 Assert.True(float.IsNaN(pred.Score));
         }
@@ -375,18 +375,18 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         private class OneClassMatrixElementZeroBased
         {
-            [KeyType(Count = _oneClassMatrixColumnCount)]
+            [KeyType(_oneClassMatrixColumnCount)]
             public uint MatrixColumnIndex;
-            [KeyType(Count = _oneClassMatrixRowCount)]
+            [KeyType(_oneClassMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Value;
         }
 
         private class OneClassMatrixElementZeroBasedForScore
         {
-            [KeyType(Count = _oneClassMatrixColumnCount)]
+            [KeyType(_oneClassMatrixColumnCount)]
             public uint MatrixColumnIndex;
-            [KeyType(Count = _oneClassMatrixRowCount)]
+            [KeyType(_oneClassMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Value;
             public float Score;
@@ -409,7 +409,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 0, MatrixRowIndex = 2, Value = 1 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var dataView = ML.Data.ReadFromEnumerable(dataMatrix);
+            var dataView = ML.Data.LoadFromEnumerable(dataMatrix);
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
 
             // Make sure the prediction error is not too large.
-            Assert.InRange(metrics.L2, 0, 0.0016);
+            Assert.InRange(metrics.MeanSquaredError, 0, 0.0016);
 
             // Create data for testing. Note that the 2nd element is not specified in the training data so it should
             // be close to the constant specified by s.C = 0.15. Comparing with the data structure used in training phase,
@@ -452,12 +452,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 2, Value = 0, Score = 0 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var testDataView = ML.Data.ReadFromEnumerable(testDataMatrix);
+            var testDataView = ML.Data.LoadFromEnumerable(testDataMatrix);
 
             // Apply the trained model to the test data.
             var testPrediction = model.Transform(testDataView);
 
-            var testResults = mlContext.CreateEnumerable<OneClassMatrixElementZeroBasedForScore>(testPrediction, false).ToList();
+            var testResults = mlContext.Data.CreateEnumerable<OneClassMatrixElementZeroBasedForScore>(testPrediction, false).ToList();
             // Positive example (i.e., examples can be found in dataMatrix) is close to 1.
             CompareNumbersWithTolerance(0.982391, testResults[0].Score, digitsOfPrecision: 5);
             // Negative example (i.e., examples can not be found in dataMatrix) is close to 0.15 (specified by s.C = 0.15 in the trainer).
@@ -516,12 +516,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 2, Value = 0, Score = 0 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var testDataView = ML.Data.ReadFromEnumerable(testDataMatrix);
+            var testDataView = ML.Data.LoadFromEnumerable(testDataMatrix);
 
             // Apply the trained model to the test data.
             var testPrediction = model.Transform(testDataView);
 
-            var testResults = mlContext.CreateEnumerable<OneClassMatrixElementZeroBasedForScore>(testPrediction, false).ToList();
+            var testResults = mlContext.Data.CreateEnumerable<OneClassMatrixElementZeroBasedForScore>(testPrediction, false).ToList();
             // Positive example (i.e., examples can be found in dataMatrix) is close to 1.
             CompareNumbersWithTolerance(0.982391, testResults[0].Score, digitsOfPrecision: 5);
             // Negative example (i.e., examples can not be found in dataMatrix) is close to 0.15 (specified by s.C = 0.15 in the trainer).
@@ -545,7 +545,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 0, MatrixRowIndex = 1, Value = 1 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var dataView = ML.Data.ReadFromEnumerable(dataMatrix);
+            var dataView = ML.Data.LoadFromEnumerable(dataMatrix);
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
@@ -577,7 +577,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
 
             // Make sure the prediction error is not too large.
-            Assert.InRange(metrics.L2, 0, 0.0016);
+            Assert.InRange(metrics.MeanSquaredError, 0, 0.0016);
 
             // Create data for testing.
             var testDataMatrix = new List<OneClassMatrixElementZeroBasedForScore>();
@@ -586,12 +586,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 2, Value = 0, Score = 0 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var testDataView = ML.Data.ReadFromEnumerable(testDataMatrix);
+            var testDataView = ML.Data.LoadFromEnumerable(testDataMatrix);
 
             // Apply the trained model to the test data.
             var testPrediction = model.Transform(testDataView);
 
-            var testResults = mlContext.CreateEnumerable<OneClassMatrixElementZeroBasedForScore>(testPrediction, false).ToList();
+            var testResults = mlContext.Data.CreateEnumerable<OneClassMatrixElementZeroBasedForScore>(testPrediction, false).ToList();
             // Positive example (i.e., examples can be found in dataMatrix) is close to 1.
             CompareNumbersWithTolerance(0.9823623, testResults[0].Score, digitsOfPrecision: 5);
             // Negative examples' scores (i.e., examples can not be found in dataMatrix) are closer
