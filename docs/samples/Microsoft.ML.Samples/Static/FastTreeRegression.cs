@@ -8,6 +8,7 @@ namespace Microsoft.ML.Samples.Static
 {
     public class FastTreeRegressionExample
     {
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
         public static void FastTreeRegression()
         {
             // Downloading a regression dataset from github.com/dotnet/machinelearning
