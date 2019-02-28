@@ -20,7 +20,7 @@ namespace Microsoft.ML.Trainers
       where TModel : class
       where TOptions : LbfgsTrainerBase<TOptions, TTransformer, TModel>.OptionsBase, new ()
     {
-        public abstract class OptionsBase : LearnerInputBaseWithWeight
+        public abstract class OptionsBase : TrainerInputBaseWithWeight
         {
             /// <summary>
             /// L2 regularization weight.
@@ -188,9 +188,9 @@ namespace Microsoft.ML.Trainers
             bool enforceNoNegativity)
             : this(env, new TOptions
                         {
-                            FeatureColumn = featureColumn,
-                            LabelColumn = labelColumn.Name,
-                            WeightColumn = weightColumn,
+                            FeatureColumnName = featureColumn,
+                            LabelColumnName = labelColumn.Name,
+                            ExampleWeightColumnName = weightColumn,
                             L1Regularization = l1Weight,
                             L2Regularization = l2Weight,
                             OptmizationTolerance = optimizationTolerance,
@@ -205,8 +205,8 @@ namespace Microsoft.ML.Trainers
             TOptions options,
             SchemaShape.Column labelColumn,
             Action<TOptions> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumn),
-                  labelColumn, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName),
+                  labelColumn, TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName))
         {
             Host.CheckValue(options, nameof(options));
             LbfgsTrainerOptions = options;
@@ -214,9 +214,9 @@ namespace Microsoft.ML.Trainers
             // Apply the advanced args, if the user supplied any.
             advancedSettings?.Invoke(options);
 
-            options.FeatureColumn = FeatureColumn.Name;
-            options.LabelColumn = LabelColumn.Name;
-            options.WeightColumn = WeightColumn.Name;
+            options.FeatureColumnName = FeatureColumn.Name;
+            options.LabelColumnName = LabelColumn.Name;
+            options.ExampleWeightColumnName = WeightColumn.Name;
             Host.CheckUserArg(!LbfgsTrainerOptions.UseThreads || LbfgsTrainerOptions.NumberOfThreads > 0 || LbfgsTrainerOptions.NumberOfThreads == null,
               nameof(LbfgsTrainerOptions.NumberOfThreads), "numThreads must be positive (or empty for default)");
             Host.CheckUserArg(LbfgsTrainerOptions.L2Regularization >= 0, nameof(LbfgsTrainerOptions.L2Regularization), "Must be non-negative");
@@ -268,9 +268,9 @@ namespace Microsoft.ML.Trainers
         {
             var args = new TOptions
             {
-                FeatureColumn = featureColumn,
-                LabelColumn = labelColumn.Name,
-                WeightColumn = weightColumn,
+                FeatureColumnName = featureColumn,
+                LabelColumnName = labelColumn.Name,
+                ExampleWeightColumnName = weightColumn,
                 L1Regularization = l1Weight,
                 L2Regularization = l2Weight,
                 OptmizationTolerance = optimizationTolerance,
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Trainers
                 EnforceNonNegativity = enforceNoNegativity
             };
 
-            args.WeightColumn = weightColumn;
+            args.ExampleWeightColumnName = weightColumn;
             return args;
         }
 

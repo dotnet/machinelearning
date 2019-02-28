@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests
 
             var pipe = ML.Transforms.CopyColumns("F1", "Features")
                 .Append(ML.Transforms.Normalize("Norm1", "F1"))
-                .Append(ML.Transforms.Normalize("Norm2", "F1", Transforms.Normalizers.NormalizingEstimator.NormalizerMode.MeanVariance));
+                .Append(ML.Transforms.Normalize("Norm2", "F1", Transforms.NormalizingEstimator.NormalizerMode.MeanVariance));
 
             pipe.Fit(ML.Data.LoadFromEnumerable(trainData));
 
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Tests
             pipe = ML.Transforms.CopyColumns("F1", "Features")
                 .AppendCacheCheckpoint(ML)
                 .Append(ML.Transforms.Normalize("Norm1", "F1"))
-                .Append(ML.Transforms.Normalize("Norm2", "F1", Transforms.Normalizers.NormalizingEstimator.NormalizerMode.MeanVariance));
+                .Append(ML.Transforms.Normalize("Norm2", "F1", Transforms.NormalizingEstimator.NormalizerMode.MeanVariance));
 
             pipe.Fit(ML.Data.LoadFromEnumerable(trainData));
 
@@ -66,15 +66,15 @@ namespace Microsoft.ML.Tests
         {
             var src = Enumerable.Range(0, 100).Select(c => new MyData()).ToArray();
             var data = ML.Data.LoadFromEnumerable(src);
-            data.GetColumn<float[]>(ML, "Features").ToArray();
-            data.GetColumn<float[]>(ML, "Features").ToArray();
+            data.GetColumn<float[]>(data.Schema["Features"]).ToArray();
+            data.GetColumn<float[]>(data.Schema["Features"]).ToArray();
             Assert.True(src.All(x => x.AccessCount == 2));
 
             src = Enumerable.Range(0, 100).Select(c => new MyData()).ToArray();
             data = ML.Data.LoadFromEnumerable(src);
             data = ML.Data.Cache(data);
-            data.GetColumn<float[]>(ML, "Features").ToArray();
-            data.GetColumn<float[]>(ML, "Features").ToArray();
+            data.GetColumn<float[]>(data.Schema["Features"]).ToArray();
+            data.GetColumn<float[]>(data.Schema["Features"]).ToArray();
             Assert.True(src.All(x => x.AccessCount == 1));
         }
 

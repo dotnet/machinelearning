@@ -8,7 +8,6 @@ using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.KMeans;
 using Xunit;
 using Xunit.Abstractions;
 

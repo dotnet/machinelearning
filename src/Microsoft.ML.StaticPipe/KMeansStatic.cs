@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Trainers.KMeans;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -40,9 +40,9 @@ namespace Microsoft.ML.StaticPipe
             {
                 var options = new KMeansPlusPlusTrainer.Options
                 {
-                    FeatureColumn = featuresName,
+                    FeatureColumnName = featuresName,
                     ClustersCount = clustersCount,
-                    WeightColumn = weightsName
+                    ExampleWeightColumnName = weightsName
                 };
 
                 var trainer = new KMeansPlusPlusTrainer(env, options);
@@ -80,8 +80,8 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Clustering(
             (env, featuresName, weightsName) =>
             {
-                options.FeatureColumn = featuresName;
-                options.WeightColumn = weightsName;
+                options.FeatureColumnName = featuresName;
+                options.ExampleWeightColumnName = weightsName;
 
                 var trainer = new KMeansPlusPlusTrainer(env, options);
 

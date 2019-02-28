@@ -10,7 +10,6 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
-using Float = System.Single;
 
 [assembly: LoadableClass(typeof(RegressionEvaluator), typeof(RegressionEvaluator), typeof(RegressionEvaluator.Arguments), typeof(SignatureEvaluator),
     "Regression Evaluator", RegressionEvaluator.LoadName, "Regression")]
@@ -26,7 +25,7 @@ namespace Microsoft.ML.Data
 {
     [BestFriend]
     internal sealed class RegressionEvaluator :
-        RegressionEvaluatorBase<RegressionEvaluator.Aggregator, Float, Double>
+        RegressionEvaluatorBase<RegressionEvaluator.Aggregator, float, Double>
     {
         public sealed class Arguments : ArgumentsBase
         {
@@ -107,7 +106,7 @@ namespace Microsoft.ML.Data
                     }
                 }
 
-                protected override void UpdateCore(Float label, in float score, in double loss, Float weight)
+                protected override void UpdateCore(float label, in float score, in double loss, float weight)
                 {
                     Double currL1Loss = Math.Abs((Double)label - score);
                     TotalL1Loss += currL1Loss * weight;
@@ -145,9 +144,9 @@ namespace Microsoft.ML.Data
                 loss = LossFunction.Loss(score, label);
             }
 
-            protected override bool IsNaN(in Float score)
+            protected override bool IsNaN(in float score)
             {
-                return Float.IsNaN(score);
+                return float.IsNaN(score);
             }
 
             public override void AddColumn(ArrayDataViewBuilder dvBldr, string metricName, params double[] metric)
@@ -267,14 +266,14 @@ namespace Microsoft.ML.Data
             disposer = null;
 
             long cachedPosition = -1;
-            Float label = 0;
-            Float score = 0;
+            float label = 0;
+            float score = 0;
 
-            ValueGetter<Float> nan = (ref Float value) => value = Single.NaN;
+            ValueGetter<float> nan = (ref float value) => value = Single.NaN;
             var labelGetter = activeCols(L1Col) || activeCols(L2Col) ? RowCursorUtils.GetLabelGetter(input, LabelIndex) : nan;
-            ValueGetter<Float> scoreGetter;
+            ValueGetter<float> scoreGetter;
             if (activeCols(L1Col) || activeCols(L2Col))
-                scoreGetter = input.GetGetter<Float>(ScoreIndex);
+                scoreGetter = input.GetGetter<float>(ScoreIndex);
             else
                 scoreGetter = nan;
             Action updateCacheIfNeeded =

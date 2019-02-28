@@ -6,12 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Tools;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -647,7 +646,7 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(result.Schema[labelIdx].Type is KeyType);
                 Assert.Equal((ulong)5, result.Schema[labelIdx].Type.GetItemType().GetKeyCount());
 
-                var t = result.GetColumn<uint>(Env, "Label");
+                var t = result.GetColumn<uint>(result.Schema["Label"]);
                 uint s = t.First();
                 Assert.Equal((uint)3, s);
             }

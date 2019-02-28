@@ -92,9 +92,9 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
                {
-                   options.LabelColumn = labelName;
-                   options.FeatureColumn = featuresName;
-                   options.WeightColumn = weightsName;
+                   options.LabelColumnName = labelName;
+                   options.FeatureColumnName = featuresName;
+                   options.ExampleWeightColumnName = weightsName;
 
                    var trainer = new FastTreeRegressionTrainer(env, options);
                    if (onFit != null)
@@ -188,9 +188,9 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
                {
-                   options.LabelColumn = labelName;
-                   options.FeatureColumn = featuresName;
-                   options.WeightColumn = weightsName;
+                   options.LabelColumnName = labelName;
+                   options.FeatureColumnName = featuresName;
+                   options.ExampleWeightColumnName = weightsName;
 
                    var trainer = new FastTreeBinaryClassificationTrainer(env, options);
 
@@ -272,10 +272,10 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
                (env, labelName, featuresName, groupIdName, weightsName) =>
                {
-                   options.LabelColumn = labelName;
-                   options.FeatureColumn = featuresName;
-                   options.GroupIdColumn = groupIdName;
-                   options.WeightColumn = weightsName;
+                   options.LabelColumnName = labelName;
+                   options.FeatureColumnName = featuresName;
+                   options.RowGroupColumnName = groupIdName;
+                   options.ExampleWeightColumnName = weightsName;
 
                    var trainer = new FastTreeRankingTrainer(env, options);
                    if (onFit != null)

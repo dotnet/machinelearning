@@ -11,7 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
@@ -306,7 +306,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // this function will accept dataview and return content of "Workclass" column as List of strings.
             Func<IDataView, List<string>> getWorkclass = (IDataView view) =>
             {
-                return view.GetColumn<ReadOnlyMemory<char>>(mlContext, "Workclass").Select(x => x.ToString()).ToList();
+                return view.GetColumn<ReadOnlyMemory<char>>(view.Schema["Workclass"]).Select(x => x.ToString()).ToList();
             };
 
             // Let's test what train test properly works with seed.

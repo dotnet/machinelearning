@@ -5,9 +5,8 @@
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Trainers.KMeans;
-using Microsoft.ML.Trainers.PCA;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -74,8 +73,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Pipeline.
             var pipeline = new KMeansPlusPlusTrainer(Env, new KMeansPlusPlusTrainer.Options
             {
-                FeatureColumn = featureColumn,
-                WeightColumn = weights,
+                FeatureColumnName = featureColumn,
+                ExampleWeightColumnName = weights,
                 InitAlgorithm = KMeansPlusPlusTrainer.InitAlgorithm.KMeansParallel,
             });
 
@@ -109,7 +108,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var metrics = ML.BinaryClassification.Evaluate(result);
 
                 Assert.InRange(metrics.Accuracy, 0.8, 1);
-                Assert.InRange(metrics.Auc, 0.9, 1);
+                Assert.InRange(metrics.AreaUnderRocCurve, 0.9, 1);
                 Assert.InRange(metrics.LogLoss, 0, 0.6);
             }
 
@@ -140,7 +139,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var metrics = ML.BinaryClassification.EvaluateNonCalibrated(result);
 
                 Assert.InRange(metrics.Accuracy, 0.7, 1);
-                Assert.InRange(metrics.Auc, 0.9, 1);
+                Assert.InRange(metrics.AreaUnderRocCurve, 0.9, 1);
             }
 
             Done();
