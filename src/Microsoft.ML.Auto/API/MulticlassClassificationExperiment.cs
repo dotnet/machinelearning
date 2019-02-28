@@ -96,8 +96,7 @@ namespace Microsoft.ML.Auto
         public static RunResult<MultiClassClassifierMetrics> Best(this IEnumerable<RunResult<MultiClassClassifierMetrics>> results, MulticlassClassificationMetric metric = MulticlassClassificationMetric.AccuracyMicro)
         {
             var metricsAgent = new MultiMetricsAgent(metric);
-            double maxScore = results.Select(r => metricsAgent.GetScore(r.Metrics)).Max();
-            return results.First(r => metricsAgent.GetScore(r.Metrics) == maxScore);
+            return RunResultUtil.GetBestRunResult(results, metricsAgent);
         }
     }
 }

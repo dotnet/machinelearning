@@ -93,8 +93,7 @@ namespace Microsoft.ML.Auto
         public static RunResult<RegressionMetrics> Best(this IEnumerable<RunResult<RegressionMetrics>> results, RegressionMetric metric = RegressionMetric.RSquared)
         {
             var metricsAgent = new RegressionMetricsAgent(metric);
-            double maxScore = results.Select(r => metricsAgent.GetScore(r.Metrics)).Max();
-            return results.First(r => metricsAgent.GetScore(r.Metrics) == maxScore);
+            return RunResultUtil.GetBestRunResult(results, metricsAgent);
         }
     }
 }

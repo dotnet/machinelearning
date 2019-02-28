@@ -98,8 +98,7 @@ namespace Microsoft.ML.Auto
         public static RunResult<BinaryClassificationMetrics> Best(this IEnumerable<RunResult<BinaryClassificationMetrics>> results, BinaryClassificationMetric metric = BinaryClassificationMetric.Accuracy)
         {
             var metricsAgent = new BinaryMetricsAgent(metric);
-            double maxScore = results.Select(r => metricsAgent.GetScore(r.Metrics)).Max();
-            return results.First(r => metricsAgent.GetScore(r.Metrics) == maxScore);
+            return RunResultUtil.GetBestRunResult(results, metricsAgent);
         }
     }
 }
