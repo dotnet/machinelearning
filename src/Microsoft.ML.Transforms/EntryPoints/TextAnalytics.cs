@@ -5,7 +5,6 @@
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(typeof(void), typeof(TextAnalytics), null, typeof(SignatureEntryPointModule), "TextAnalytics")]
@@ -120,7 +119,7 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "LightLda", input);
-            var cols = input.Columns.Select(colPair => new LatentDirichletAllocationEstimator.ColumnInfo(colPair, input)).ToArray();
+            var cols = input.Columns.Select(colPair => new LatentDirichletAllocationEstimator.ColumnOptions(colPair, input)).ToArray();
             var est = new LatentDirichletAllocationEstimator(h, cols);
             var view = est.Fit(input.Data).Transform(input.Data);
 

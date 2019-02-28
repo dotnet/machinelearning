@@ -17,7 +17,6 @@ using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -64,7 +63,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 + "1 1 2 4 15";
             var dataSource = new BytesStreamSource(data);
 
-            var text = TextLoaderStatic.CreateReader(env, ctx => (
+            var text = TextLoaderStatic.CreateLoader(env, ctx => (
                 label: ctx.LoadBool(0),
                 text: ctx.LoadText(1),
                 numericFeatures: ctx.LoadFloat(2, null)), // If fit correctly, this ought to be equivalent to max of 4, that is, length of 3.
@@ -73,7 +72,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // While we have a type-safe wrapper for `IDataView` it is utterly useless except as an input to the `Fit` functions
             // of the other statically typed wrappers. We perhaps ought to make it useful in its own right, but perhaps not now.
             // For now, just operate over the actual `IDataView`.
-            var textData = text.Read(dataSource).AsDynamic;
+            var textData = text.Load(dataSource).AsDynamic;
 
             var schema = textData.Schema;
             // First verify that the columns are there. There ought to be at least one column corresponding to the identifiers in the tuple.
@@ -119,7 +118,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = text.MakeNewEstimator().Append(r => (text: r.label, label: r.numericFeatures));
             var newText = text.Append(est);
-            var newTextData = newText.Fit(dataSource).Read(dataSource);
+            var newTextData = newText.Fit(dataSource).Load(dataSource);
 
             schema = newTextData.AsDynamic.Schema;
             // First verify that the columns are there. There ought to be at least one column corresponding to the identifiers in the tuple.
@@ -173,7 +172,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 Assert.Equal(expected, thisSchema[thisCol].Type);
             }
 
-            var text = TextLoaderStatic.CreateReader(env, ctx => (
+            var text = TextLoaderStatic.CreateLoader(env, ctx => (
                 yo: new Obnoxious1(ctx.LoadText(0), ctx.LoadFloat(1, 5)),
                 dawg: new Obnoxious2() { Biz = ctx.LoadText(2), Blam = ctx.LoadDouble(1, 2) },
                 how: MakeObnoxious3(ctx.LoadBool(2), new Obnoxious1(ctx.LoadText(0), ctx.LoadFloat(1, 4)),
@@ -191,7 +190,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Helper(schema, "how.Donut.friend.Biz", TextDataViewType.Instance);
             Helper(schema, "how.Donut.friend.Blam", new VectorType(NumberDataViewType.Double, 10));
 
-            var textData = text.Read(null);
+            var textData = text.Load(null);
 
             var est = text.MakeNewEstimator().Append(r => r.how.Donut.friend.Blam.ConcatWith(r.dawg.Blam));
             var outData = est.Fit(textData).Transform(textData);
@@ -260,30 +259,30 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // We'll test a few things here. First, the case where the key-value metadata is text.
             var metaValues1 = new VBuffer<ReadOnlyMemory<char>>(3, new[] { "a".AsMemory(), "b".AsMemory(), "c".AsMemory() });
-            var metaBuilder = new DataViewSchema.Metadata.Builder();
+            var metaBuilder = new DataViewSchema.Annotations.Builder();
             metaBuilder.AddKeyValues<ReadOnlyMemory<char>>(3, TextDataViewType.Instance, metaValues1.CopyTo);
 
-            var builder = new DataViewSchema.Metadata.Builder();
-            builder.AddPrimitiveValue("stay", new KeyType(typeof(uint), 3), 2u, metaBuilder.ToMetadata());
+            var builder = new DataViewSchema.Annotations.Builder();
+            builder.AddPrimitiveValue("stay", new KeyType(typeof(uint), 3), 2u, metaBuilder.ToAnnotations());
 
             // Next the case where those values are ints.
             var metaValues2 = new VBuffer<int>(3, new int[] { 1, 2, 3, 4 });
-            metaBuilder = new DataViewSchema.Metadata.Builder();
+            metaBuilder = new DataViewSchema.Annotations.Builder();
             metaBuilder.AddKeyValues<int>(3, NumberDataViewType.Int32, metaValues2.CopyTo);
             var value2 = new VBuffer<byte>(2, 0, null, null);
-            builder.Add<VBuffer<byte>>("awhile", new VectorType(new KeyType(typeof(byte), 3), 2), value2.CopyTo, metaBuilder.ToMetadata());
+            builder.Add<VBuffer<byte>>("awhile", new VectorType(new KeyType(typeof(byte), 3), 2), value2.CopyTo, metaBuilder.ToAnnotations());
 
             // Then the case where a value of that kind exists, but is of not of the right kind, in which case it should not be identified as containing that metadata.
-            metaBuilder = new DataViewSchema.Metadata.Builder();
-            metaBuilder.AddPrimitiveValue(MetadataUtils.Kinds.KeyValues, NumberDataViewType.Single, 2f);
-            builder.AddPrimitiveValue("and", new KeyType(typeof(ushort), 2), (ushort)1, metaBuilder.ToMetadata());
+            metaBuilder = new DataViewSchema.Annotations.Builder();
+            metaBuilder.AddPrimitiveValue(AnnotationUtils.Kinds.KeyValues, NumberDataViewType.Single, 2f);
+            builder.AddPrimitiveValue("and", new KeyType(typeof(ushort), 2), (ushort)1, metaBuilder.ToAnnotations());
 
             // Then a final case where metadata of that kind is actaully simply altogether absent.
             var value4 = new VBuffer<uint>(5, 0, null, null);
             builder.Add<VBuffer<uint>>("listen", new VectorType(new KeyType(typeof(uint), 2)), value4.CopyTo);
 
             // Finally compose a trivial data view out of all this.
-            var view = RowCursorUtils.RowAsDataView(env, MetadataUtils.MetadataAsRow(builder.ToMetadata()));
+            var view = RowCursorUtils.RowAsDataView(env, AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations()));
 
             // Whew! I'm glad that's over with. Let us start running the test in ernest.
             // First let's do a direct match of the types to ensure that works.
@@ -367,10 +366,10 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
-            var reader = TextLoaderStatic.CreateReader(env,
+            var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
-            var data = reader.Read(dataSource);
+            var data = reader.Load(dataSource);
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, r.features, bin: r.features.NormalizeByBinning(), mm: r.features.Normalize()));
@@ -392,10 +391,10 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
-            var reader = TextLoaderStatic.CreateReader(ml,
+            var reader = TextLoaderStatic.CreateLoader(ml,
                 c => c.LoadFloat(0, 2),
                 separator: ';', hasHeader: true);
-            var data = reader.Read(dataSource);
+            var data = reader.Load(dataSource);
 
             // These will be populated once we call fit.
             ImmutableArray<float> mm;
@@ -434,11 +433,11 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("iris.data");
-            var reader = TextLoaderStatic.CreateReader(env,
+            var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadText(4), values: c.LoadFloat(0, 3)),
                 separator: ',');
             var dataSource = new MultiFileSource(dataPath);
-            var data = reader.Read(dataSource);
+            var data = reader.Load(dataSource);
 
             var est = data.MakeNewEstimator()
                 .Append(r => (labelKey: r.label.ToKey(), valuesKey: r.values.ToKey(onFit: m => { })))
@@ -454,9 +453,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(schema[valuesCol].Type is VectorType valuesVecType && valuesVecType.ItemType is KeyType);
             Assert.True(schema[valuesKeyCol].Type is VectorType valuesKeyVecType && valuesKeyVecType.ItemType is KeyType);
 
-            var labelKeyType = schema[labelCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-            var valuesKeyType = schema[valuesCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-            var valuesKeyKeyType = schema[valuesKeyCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
+            var labelKeyType = schema[labelCol].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type;
+            var valuesKeyType = schema[valuesCol].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type;
+            var valuesKeyKeyType = schema[valuesKeyCol].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type;
             Assert.NotNull(labelKeyType);
             Assert.NotNull(valuesKeyType);
             Assert.NotNull(valuesKeyKeyType);
@@ -472,11 +471,11 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("iris.data");
-            var reader = TextLoaderStatic.CreateReader(env,
+            var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadText(4), values: c.LoadFloat(0, 3), value: c.LoadFloat(2)),
                 separator: ',');
             var dataSource = new MultiFileSource(dataPath);
-            var data = reader.Read(dataSource);
+            var data = reader.Load(dataSource);
 
             var est = data.MakeNewEstimator()
                 .Append(r => (
@@ -510,11 +509,11 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoaderStatic.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
-            var data = reader.Read(dataSource);
+            var data = reader.Load(dataSource);
 
             var est = data.MakeNewEstimator()
                 .Append(r => (
@@ -537,11 +536,11 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoaderStatic.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
-            var data = reader.Read(dataSource);
+            var data = reader.Load(dataSource);
 
             var est = data.MakeNewEstimator()
                 .Append(r => (
@@ -566,11 +565,11 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoaderStatic.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
-            var data = reader.Read(dataSource);
+            var data = reader.Load(dataSource);
 
             var est = data.MakeNewEstimator()
                 .Append(r => (
@@ -595,11 +594,11 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoaderStatic.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
-            var data = reader.Read(dataSource);
+            var data = reader.Load(dataSource);
 
             var est = data.MakeNewEstimator()
                 .Append(r => (
@@ -627,10 +626,10 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
-            var reader = TextLoaderStatic.CreateReader(env,
+            var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
-            var data = reader.Read(dataSource);
+            var data = reader.Load(dataSource);
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label,
@@ -663,11 +662,11 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoaderStatic.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
-            var data = reader.Read(dataSource);
+            var data = reader.Load(dataSource);
 
             // This will be populated once we call fit.
             LdaSummary ldaSummary;
@@ -691,11 +690,11 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoaderStatic.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
-            var data = reader.Read(dataSource);
+            var data = reader.Load(dataSource);
 
             var est = data.MakeNewEstimator()
                 .Append(r => (
@@ -724,9 +723,9 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var ctx = new BinaryClassificationCatalog(env);
 
-            var reader = TextLoaderStatic.CreateReader(env,
+            var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(1, 4)));
-            var data = reader.Read(dataSource);
+            var data = reader.Load(dataSource);
 
             var (train, test) = ctx.TrainTestSplit(data, 0.5);
 
@@ -752,10 +751,10 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
-            var reader = TextLoaderStatic.CreateReader(env,
+            var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
-            var data = reader.Read(dataSource);
+            var data = reader.Load(dataSource);
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label,
@@ -774,14 +773,14 @@ namespace Microsoft.ML.StaticPipelineTesting
             var ml = new MLContext(0);
 
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(ml, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(ml, ctx => (
                 ScalarFloat: ctx.LoadFloat(1),
                 ScalarDouble: ctx.LoadDouble(1),
                 VectorFloat: ctx.LoadFloat(1, 4),
                 VectorDoulbe: ctx.LoadDouble(1, 4)
             ));
 
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Load(new MultiFileSource(dataPath));
 
             var est = data.MakeNewEstimator().
                    Append(row => (
@@ -793,10 +792,10 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             IDataView newData = ml.Data.TakeRows(est.Fit(data).Transform(data).AsDynamic, 4);
             Assert.NotNull(newData);
-            bool[] ScalarFloat = newData.GetColumn<bool>(ml, "A").ToArray();
-            bool[] ScalarDouble = newData.GetColumn<bool>(ml, "B").ToArray();
-            bool[][] VectorFloat = newData.GetColumn<bool[]>(ml, "C").ToArray();
-            bool[][] VectorDoulbe = newData.GetColumn<bool[]>(ml, "D").ToArray();
+            bool[] ScalarFloat = newData.GetColumn<bool>(newData.Schema["A"]).ToArray();
+            bool[] ScalarDouble = newData.GetColumn<bool>(newData.Schema["B"]).ToArray();
+            bool[][] VectorFloat = newData.GetColumn<bool[]>(newData.Schema["C"]).ToArray();
+            bool[][] VectorDoulbe = newData.GetColumn<bool[]>(newData.Schema["D"]).ToArray();
 
             Assert.NotNull(ScalarFloat);
             Assert.NotNull(ScalarDouble);
@@ -817,11 +816,11 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoaderStatic.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
-            var data = reader.Read(dataSource);
+            var data = reader.Load(dataSource);
 
             var est = data.MakeNewEstimator()
                 .Append(r => (
@@ -846,10 +845,10 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataSource = GetDataPath("generated_regression_dataset.csv");
-            var reader = TextLoaderStatic.CreateReader(env,
+            var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
-            var data = reader.Read(dataSource);
+            var data = reader.Load(dataSource);
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, pca: r.features.ToPrincipalComponents(rank: 5)));
             var tdata = est.Fit(data).Transform(data);
@@ -868,12 +867,12 @@ namespace Microsoft.ML.StaticPipelineTesting
                + "1 1 2 4 15";
             var dataSource = new BytesStreamSource(content);
 
-            var text = ml.Data.CreateTextReader(ctx => (
+            var text = ml.Data.CreateTextLoader(ctx => (
                label: ctx.LoadBool(0),
                text: ctx.LoadText(1),
                numericFeatures: ctx.LoadDouble(2, null)), // If fit correctly, this ought to be equivalent to max of 4, that is, length of 3.
                 dataSource, separator: ' ');
-            var data = text.Read(dataSource);
+            var data = text.Load(dataSource);
             var est = text.MakeNewEstimator().Append(r => (floatLabel: r.label.ToFloat(), txtFloat: r.text.ToFloat(), num: r.numericFeatures.ToFloat()));
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;

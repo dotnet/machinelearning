@@ -121,7 +121,7 @@ namespace Microsoft.ML.Trainers
 
             // Try to get the label key values metedata.
             var labelCol = data.Schema.Label.Value;
-            var labelMetadataType = labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
+            var labelMetadataType = labelCol.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type;
             if (!(labelMetadataType is VectorType vecType && vecType.ItemType == TextDataViewType.Instance && vecType.Size == _numClasses))
             {
                 _labelNames = null;
@@ -313,11 +313,11 @@ namespace Microsoft.ML.Trainers
             bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
             Contracts.Assert(success);
 
-            var metadata = new SchemaShape(labelCol.Metadata.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
-                .Concat(MetadataUtils.GetTrainerOutputMetadata()));
+            var metadata = new SchemaShape(labelCol.Annotations.Where(x => x.Name == AnnotationUtils.Kinds.KeyValues)
+                .Concat(AnnotationUtils.GetTrainerOutputAnnotation()));
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.AnnotationsForMulticlassScoreColumn(labelCol))),
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, metadata)
             };
         }
@@ -794,7 +794,7 @@ namespace Microsoft.ML.Trainers
             List<KeyValuePair<string, object>> results = new List<KeyValuePair<string, object>>();
 
             var names = default(VBuffer<ReadOnlyMemory<char>>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numFeatures, ref names);
+            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numFeatures, ref names);
             for (int classNumber = 0; classNumber < _biases.Length; classNumber++)
             {
                 results.Add(new KeyValuePair<string, object>(
@@ -971,7 +971,7 @@ namespace Microsoft.ML.Trainers
 
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames =
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
-                    MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numFeatures, ref dst);
+                    AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numFeatures, ref dst);
 
             // Add the bias and the weight columns.
             bldr.AddColumn("Bias", NumberDataViewType.Single, _biases);
@@ -992,7 +992,7 @@ namespace Microsoft.ML.Trainers
 
             VBuffer<ReadOnlyMemory<char>> names = default;
             var meta = _stats.MakeStatisticsMetadata(null, schema, in names);
-            return MetadataUtils.MetadataAsRow(meta);
+            return AnnotationUtils.AnnotationsAsRow(meta);
         }
     }
 

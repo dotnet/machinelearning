@@ -9,9 +9,8 @@ using System.IO;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
-using Microsoft.ML.Calibrator;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -19,6 +18,7 @@ using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
 // This is for deserialization from a model repository.
@@ -364,14 +364,14 @@ namespace Microsoft.ML.Trainers
         private protected virtual DataViewRow GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
-            var subBuilder = new DataViewSchema.Metadata.Builder();
+            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
+            var subBuilder = new DataViewSchema.Annotations.Builder();
             subBuilder.AddSlotNames(Weight.Length, (ref VBuffer<ReadOnlyMemory<char>> dst) => names.CopyTo(ref dst));
             var colType = new VectorType(NumberDataViewType.Single, Weight.Length);
-            var builder = new DataViewSchema.Metadata.Builder();
+            var builder = new DataViewSchema.Annotations.Builder();
             builder.AddPrimitiveValue("Bias", NumberDataViewType.Single, Bias);
-            builder.Add("Weights", colType, (ref VBuffer<float> dst) => Weight.CopyTo(ref dst), subBuilder.ToMetadata());
-            return MetadataUtils.MetadataAsRow(builder.ToMetadata());
+            builder.Add("Weights", colType, (ref VBuffer<float> dst) => Weight.CopyTo(ref dst), subBuilder.ToAnnotations());
+            return AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
         }
 
         DataViewRow ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema) => GetSummaryIRowOrNull(schema);
@@ -528,9 +528,9 @@ namespace Microsoft.ML.Trainers
             if (_stats == null)
                 return null;
             var names = default(VBuffer<ReadOnlyMemory<char>>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
+            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
             var meta = _stats.MakeStatisticsMetadata(this, schema, in names);
-            return MetadataUtils.MetadataAsRow(meta);
+            return AnnotationUtils.AnnotationsAsRow(meta);
         }
 
         private protected override void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null)

@@ -14,7 +14,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable and then read it as a ML.NET data set.
             IEnumerable<SamplesUtils.DatasetUtils.SampleTopicsData> data = SamplesUtils.DatasetUtils.GetTopicsData();
-            var trainData = ml.Data.ReadFromEnumerable(data);
+            var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of one of the columns of the the topics data. 
             // The Review column contains the keys associated with a particular body of text.  
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformed_data = transformer.Transform(trainData);
 
             // Column obtained after processing the input.
-            var ldaFeaturesColumn = transformed_data.GetColumn<VBuffer<float>>(ml, ldaFeatures);
+            var ldaFeaturesColumn = transformed_data.GetColumn<VBuffer<float>>(transformed_data.Schema[ldaFeatures]);
 
             Console.WriteLine($"{ldaFeatures} column obtained post-transformation.");
             foreach (var featureRow in ldaFeaturesColumn)

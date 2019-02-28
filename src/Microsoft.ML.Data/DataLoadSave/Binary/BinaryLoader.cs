@@ -37,7 +37,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Data.IO
 {
     [BestFriend]
-    internal sealed class BinaryLoader : IDataLoader, IDisposable
+    internal sealed class BinaryLoader : ILegacyDataLoader, IDisposable
     {
         public sealed class Arguments
         {
@@ -653,15 +653,15 @@ namespace Microsoft.ML.Data.IO
                 if (Utils.Size(metadataArray) > 0)
                 {
                     // We got some metadata fields here.
-                    var metadataBuilder = new DataViewSchema.Metadata.Builder();
+                    var metadataBuilder = new DataViewSchema.Annotations.Builder();
                     foreach(var loadedMetadataColumn in metadataArray)
                     {
                         var metadataGetter = loadedMetadataColumn.GetGetter();
                         if (metadataGetter == null)
-                            throw MetadataUtils.ExceptGetMetadata();
+                            throw AnnotationUtils.ExceptGetAnnotation();
                         metadataBuilder.Add(loadedMetadataColumn.Kind, loadedMetadataColumn.Codec.Type, metadataGetter);
                     }
-                    schemaBuilder.AddColumn(loadedColumn.Name, loadedColumn.Type, metadataBuilder.ToMetadata());
+                    schemaBuilder.AddColumn(loadedColumn.Name, loadedColumn.Type, metadataBuilder.ToAnnotations());
                 }
                 else
                     // This case has no metadata.
@@ -797,9 +797,9 @@ namespace Microsoft.ML.Data.IO
         }
 
         /// <summary>
-        /// Constructs a new data view reader.
+        /// Constructs a new data view loader.
         /// </summary>
-        /// <param name="stream">A seekable, readable stream. Note that the data view reader assumes
+        /// <param name="stream">A seekable, readable stream. Note that the data view loader assumes
         /// that it is the exclusive owner of this stream.</param>
         /// <param name="args">Arguments</param>
         /// <param name="env">Host environment</param>

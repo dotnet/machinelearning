@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.PCA;
-using Microsoft.ML.Transforms.Projections;
-using static Microsoft.ML.Trainers.PCA.RandomizedPcaTrainer;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
+using static Microsoft.ML.Trainers.RandomizedPcaTrainer;
 
 namespace Microsoft.ML
 {
@@ -34,7 +34,7 @@ namespace Microsoft.ML
         /// <summary>Initializes a new instance of <see cref="PrincipalComponentAnalysisEstimator"/>.</summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Input columns to apply PrincipalComponentAnalysis on.</param>
-        public static PrincipalComponentAnalysisEstimator ProjectToPrincipalComponents(this TransformsCatalog.ProjectionTransforms catalog, params PrincipalComponentAnalysisEstimator.ColumnInfo[] columns)
+        public static PrincipalComponentAnalysisEstimator ProjectToPrincipalComponents(this TransformsCatalog.ProjectionTransforms catalog, params PrincipalComponentAnalysisEstimator.ColumnOptions[] columns)
             => new PrincipalComponentAnalysisEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>

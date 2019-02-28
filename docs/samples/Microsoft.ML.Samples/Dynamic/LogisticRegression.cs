@@ -31,7 +31,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // 14. Column: native-country (text/categorical)
             // 15. Column: Column [Label]: IsOver50K (boolean)
 
-            var reader = ml.Data.CreateTextLoader(new TextLoader.Options
+            var loader = ml.Data.CreateTextLoader(new TextLoader.Options
             {
                 Separators = new[] { ',' },
                 HasHeader = true,
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 }
             });
 
-            IDataView data = reader.Read(dataFilePath);
+            IDataView data = loader.Load(dataFilePath);
 
             var split = ml.BinaryClassification.TrainTestSplit(data, testFraction: 0.2);
 
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var metrics = ml.BinaryClassification.Evaluate(dataWithPredictions);
 
             Console.WriteLine($"Accuracy: {metrics.Accuracy}"); // 0.80
-            Console.WriteLine($"AUC: {metrics.Auc}"); // 0.64
+            Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve}"); // 0.64
             Console.WriteLine($"F1 Score: {metrics.F1Score}"); // 0.39
 
             Console.WriteLine($"Negative Precision: {metrics.NegativePrecision}"); // 0.81

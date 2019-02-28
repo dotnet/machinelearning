@@ -13,8 +13,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ValueMappingTransformer.Summary, typeof(IDataTransform), typeof(ValueMappingTransformer),
     typeof(ValueMappingTransformer.Options), typeof(SignatureDataTransform),
@@ -30,7 +29,7 @@ using Microsoft.ML.Transforms.Conversions;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(ValueMappingTransformer), null, typeof(SignatureLoadRowMapper),
     ValueMappingTransformer.UserName, ValueMappingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms.Conversions
+namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="ValueMappingEstimator"]/*' />
     public class ValueMappingEstimator : TrivialEstimator<ValueMappingTransformer>
@@ -331,7 +330,7 @@ namespace Microsoft.ML.Transforms.Conversions
         private byte[] _dataView;
 
         internal DataViewType ValueColumnType => _valueMap.ValueType;
-        internal DataViewSchema.Metadata ValueColumnMetadata { get; }
+        internal DataViewSchema.Annotations ValueColumnMetadata { get; }
 
         private static VersionInfo GetVersionInfo()
         {
@@ -388,7 +387,7 @@ namespace Microsoft.ML.Transforms.Conversions
             public string ValueColumn;
 
             [Argument(ArgumentType.Multiple, HelpText = "The data loader", NullName = "<Auto>", SignatureType = typeof(SignatureDataLoader))]
-            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
+            public IComponentFactory<IMultiStreamSource, ILegacyDataLoader> Loader;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Specifies whether the values are key values or numeric, only valid when loader is not specified and the type of data is not an idv.",
@@ -405,7 +404,7 @@ namespace Microsoft.ML.Transforms.Conversions
             _valueMap = CreateValueMapFromDataView(lookupMap, keyColumn, valueColumn);
             int valueColumnIdx = 0;
             Host.Check(lookupMap.Schema.TryGetColumnIndex(valueColumn, out valueColumnIdx));
-            ValueColumnMetadata = lookupMap.Schema[valueColumnIdx].Metadata;
+            ValueColumnMetadata = lookupMap.Schema[valueColumnIdx].Annotations;
 
             // Create the byte array of the original IDataView, this is used for saving out the data.
             _dataView = GetBytesFromDataView(Host, lookupMap, keyColumn, valueColumn);
@@ -611,7 +610,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                         try
                         {
-                            var textLoader = TextLoader.ReadFile(env, txtArgs, fileSource);
+                            var textLoader = TextLoader.LoadFile(env, txtArgs, fileSource);
                             valueColumn = GenerateValueColumn(env, textLoader, valueColumnName, 0, 1, options.DataFile);
                         }
                         catch (Exception ex)
@@ -763,16 +762,16 @@ namespace Microsoft.ML.Transforms.Conversions
                 ValueType = valueType;
             }
 
-            public static ValueMap Create(DataViewType keyType, DataViewType valueType, DataViewSchema.Metadata valueMetadata)
+            public static ValueMap Create(DataViewType keyType, DataViewType valueType, DataViewSchema.Annotations valueMetadata)
             {
-                Func<DataViewType, DataViewType, DataViewSchema.Metadata, ValueMap> del = CreateValueMapInvoke<int, int>;
+                Func<DataViewType, DataViewType, DataViewSchema.Annotations, ValueMap> del = CreateValueMapInvoke<int, int>;
                 var meth = del.Method.GetGenericMethodDefinition().MakeGenericMethod(keyType.RawType, valueType.RawType);
                 return (ValueMap)meth.Invoke(null, new object[] { keyType, valueType, valueMetadata });
             }
 
             private static ValueMap CreateValueMapInvoke<TKey, TValue>(DataViewType keyType,
                                                                                 DataViewType valueType,
-                                                                                DataViewSchema.Metadata valueMetadata)
+                                                                                DataViewSchema.Annotations valueMetadata)
                 => new ValueMap<TKey, TValue>(keyType, valueType, valueMetadata);
 
             public abstract void Train(IHostEnvironment env, DataViewRowCursor cursor);
@@ -789,7 +788,7 @@ namespace Microsoft.ML.Transforms.Conversions
         {
             private Dictionary<TKey, TValue> _mapping;
             private TValue _missingValue;
-            private DataViewSchema.Metadata _valueMetadata;
+            private DataViewSchema.Annotations _valueMetadata;
 
             private Dictionary<TKey, TValue> CreateDictionary()
             {
@@ -798,7 +797,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 return new Dictionary<TKey, TValue>();
             }
 
-            public ValueMap(DataViewType keyType, DataViewType valueType, DataViewSchema.Metadata valueMetadata)
+            public ValueMap(DataViewType keyType, DataViewType valueType, DataViewSchema.Annotations valueMetadata)
                 : base(keyType, valueType)
             {
                 _mapping = CreateDictionary();
@@ -974,14 +973,14 @@ namespace Microsoft.ML.Transforms.Conversions
         {
             private readonly DataViewSchema _inputSchema;
             private readonly ValueMap _valueMap;
-            private readonly DataViewSchema.Metadata _valueMetadata;
+            private readonly DataViewSchema.Annotations _valueMetadata;
             private readonly (string outputColumnName, string inputColumnName)[] _columns;
             private readonly ValueMappingTransformer _parent;
 
             internal Mapper(ValueMappingTransformer transform,
                             DataViewSchema inputSchema,
                             ValueMap valueMap,
-                            DataViewSchema.Metadata valueMetadata,
+                            DataViewSchema.Annotations valueMetadata,
                             (string outputColumnName, string inputColumnName)[] columns)
                 : base(transform.Host.Register(nameof(Mapper)), transform, inputSchema)
             {

@@ -14,7 +14,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
 using Newtonsoft.Json;
-using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
+using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
 [assembly: LoadableClass(SaveOnnxCommand.Summary, typeof(SaveOnnxCommand), typeof(SaveOnnxCommand.Arguments), typeof(SignatureCommand),
     "Save ONNX", "SaveOnnx", DocName = "command/SaveOnnx.md")]
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             ch.AssertValue(end);
 
-            source = trueEnd = (end as CompositeDataLoader)?.View ?? end;
+            source = trueEnd = (end as LegacyCompositeDataLoader)?.View ?? end;
             IDataTransform transform = source as IDataTransform;
             transforms = new LinkedList<ITransformCanSaveOnnx>();
             while (transform != null)
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Model.OnnxConverter
 
         private void Run(IChannel ch)
         {
-            IDataLoader loader = null;
+            ILegacyDataLoader loader = null;
             IPredictor rawPred = null;
             IDataView view;
             RoleMappedSchema trainSchema = null;

@@ -3,7 +3,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.Trainers.HalLearners;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 {
     public static class OrdinaryLeastSquaresWithOptions
     {
@@ -19,11 +19,11 @@ namespace Microsoft.ML.Samples.Dynamic
             // as well as the source of randomness.
             var mlContext = new MLContext(seed: 3);
 
-            // Creating a data reader, based on the format of the data
+            // Creating a data loader, based on the format of the data
             // The data is tab separated with all numeric columns.
             // The first column being the label and rest are numeric features
             // Here only seven numeric columns are used as features
-            var dataView = mlContext.Data.ReadFromTextFile(dataFile, new TextLoader.Options
+            var dataView = mlContext.Data.LoadFromTextFile(dataFile, new TextLoader.Options
             {
                 Separators = new[] { '\t' },
                 HasHeader = true,
@@ -59,11 +59,13 @@ namespace Microsoft.ML.Samples.Dynamic
             var metrics = mlContext.Regression.Evaluate(dataWithPredictions);
 
             ConsoleUtils.PrintMetrics(metrics);
-            // L1: 4.14
-            // L2: 32.35
-            // LossFunction: 32.35
-            // RMS: 5.69
-            // RSquared: 0.56
+            
+            // Expected output:
+            //   L1: 4.14
+            //   L2: 32.35
+            //   LossFunction: 32.35
+            //   RMS: 5.69
+            //   RSquared: 0.56
         }
     }
 }

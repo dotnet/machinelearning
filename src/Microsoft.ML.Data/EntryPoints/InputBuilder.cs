@@ -11,7 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.EntryPoints.JsonUtils
+namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
     /// The class that creates and wraps around an instance of an input object and gradually populates all fields, keeping track of missing

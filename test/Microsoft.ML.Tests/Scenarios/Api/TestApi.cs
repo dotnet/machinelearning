@@ -11,7 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var env = new MLContext(seed: 0);
             // Correct use of CursorChannel attribute.
             var data1 = Utils.CreateArray(10, new OneIChannelWithAttribute());
-            var idv1 = env.Data.ReadFromEnumerable(data1);
+            var idv1 = env.Data.LoadFromEnumerable(data1);
             Assert.Null(data1[0].Channel);
 
             var filter1 = LambdaTransform.CreateFilter<OneIChannelWithAttribute, object>(env, idv1,
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             // Error case: non-IChannel field marked with attribute.
             var data2 = Utils.CreateArray(10, new OneStringWithAttribute());
-            var idv2 = env.Data.ReadFromEnumerable(data2);
+            var idv2 = env.Data.LoadFromEnumerable(data2);
             Assert.Null(data2[0].Channel);
 
             var filter2 = LambdaTransform.CreateFilter<OneStringWithAttribute, object>(env, idv2,
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             // Error case: multiple fields marked with attributes.
             var data3 = Utils.CreateArray(10, new TwoIChannelsWithAttributes());
-            var idv3 = env.Data.ReadFromEnumerable(data3);
+            var idv3 = env.Data.LoadFromEnumerable(data3);
             Assert.Null(data3[0].ChannelOne);
             Assert.Null(data3[2].ChannelTwo);
 
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var example4 = new TwoIChannelsOnlyOneWithAttribute();
             Assert.Null(example4.ChannelTwo);
             Assert.Null(example4.ChannelOne);
-            var idv4 = env.Data.ReadFromEnumerable(Utils.CreateArray(10, example4));
+            var idv4 = env.Data.LoadFromEnumerable(Utils.CreateArray(10, example4));
 
             var filter4 = LambdaTransform.CreateFilter<TwoIChannelsOnlyOneWithAttribute, object>(env, idv4,
                 (input, state) =>
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         {
             var env = new MLContext(seed: 42);
             var data = ReadBreastCancerExamples();
-            var idv = env.Data.ReadFromEnumerable(data);
+            var idv = env.Data.LoadFromEnumerable(data);
 
             var filter = LambdaTransform.CreateFilter<BreastCancerExample, object>(env, idv,
                 (input, state) => input.Label == 0, null);
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             Assert.Null(filter.GetRowCount());
 
             // test re-apply
-            var applied = env.Data.ReadFromEnumerable(data);
+            var applied = env.Data.LoadFromEnumerable(data);
             applied = ApplyTransformUtils.ApplyAllTransformsToData(env, filter, applied);
 
             var saver = new TextSaver(env, new TextSaver.Arguments());
@@ -211,55 +211,55 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var kindVBuffer = "Testing VBuffer as metadata.";
             var valueVBuffer = new VBuffer<float>(4, new float[] { 4, 6, 89, 5 });
 
-            var metaFloat = new MetadataInfo<float>(kindFloat, valueFloat, coltypeFloat);
-            var metaString = new MetadataInfo<string>(kindString, valueString);
+            var metaFloat = new AnnotationInfo<float>(kindFloat, valueFloat, coltypeFloat);
+            var metaString = new AnnotationInfo<string>(kindString, valueString);
 
             // Add Metadata.
             var labelColumn = autoSchema[0];
             var labelColumnWithMetadata = new SchemaDefinition.Column(mlContext, labelColumn.MemberName, labelColumn.ColumnType,
-                metadataInfos: new MetadataInfo[] { metaFloat, metaString });
+                annotationInfos: new AnnotationInfo[] { metaFloat, metaString });
 
             var featureColumnWithMetadata = autoSchema[1];
-            featureColumnWithMetadata.AddMetadata(kindStringArray, valueStringArray);
-            featureColumnWithMetadata.AddMetadata(kindFloatArray, valueFloatArray);
-            featureColumnWithMetadata.AddMetadata(kindVBuffer, valueVBuffer);
+            featureColumnWithMetadata.AddAnnotation(kindStringArray, valueStringArray);
+            featureColumnWithMetadata.AddAnnotation(kindFloatArray, valueFloatArray);
+            featureColumnWithMetadata.AddAnnotation(kindVBuffer, valueVBuffer);
 
             var mySchema = new SchemaDefinition { labelColumnWithMetadata, featureColumnWithMetadata };
-            var idv = mlContext.Data.ReadFromEnumerable(data, mySchema);
+            var idv = mlContext.Data.LoadFromEnumerable(data, mySchema);
 
-            Assert.True(idv.Schema[0].Metadata.Schema.Count == 2);
-            Assert.True(idv.Schema[0].Metadata.Schema[0].Name == kindFloat);
-            Assert.True(idv.Schema[0].Metadata.Schema[0].Type == coltypeFloat);
-            Assert.True(idv.Schema[0].Metadata.Schema[1].Name == kindString);
-            Assert.True(idv.Schema[0].Metadata.Schema[1].Type == TextDataViewType.Instance);
+            Assert.True(idv.Schema[0].Annotations.Schema.Count == 2);
+            Assert.True(idv.Schema[0].Annotations.Schema[0].Name == kindFloat);
+            Assert.True(idv.Schema[0].Annotations.Schema[0].Type == coltypeFloat);
+            Assert.True(idv.Schema[0].Annotations.Schema[1].Name == kindString);
+            Assert.True(idv.Schema[0].Annotations.Schema[1].Type == TextDataViewType.Instance);
 
-            Assert.True(idv.Schema[1].Metadata.Schema.Count == 3);
-            Assert.True(idv.Schema[1].Metadata.Schema[0].Name == kindStringArray);
-            Assert.True(idv.Schema[1].Metadata.Schema[0].Type is VectorType vectorType && vectorType.ItemType is TextDataViewType);
-            Assert.Throws<ArgumentOutOfRangeException>(() => idv.Schema[1].Metadata.Schema[kindFloat]);
+            Assert.True(idv.Schema[1].Annotations.Schema.Count == 3);
+            Assert.True(idv.Schema[1].Annotations.Schema[0].Name == kindStringArray);
+            Assert.True(idv.Schema[1].Annotations.Schema[0].Type is VectorType vectorType && vectorType.ItemType is TextDataViewType);
+            Assert.Throws<ArgumentOutOfRangeException>(() => idv.Schema[1].Annotations.Schema[kindFloat]);
 
             float retrievedFloat = 0;
-            idv.Schema[0].Metadata.GetValue(kindFloat, ref retrievedFloat);
+            idv.Schema[0].Annotations.GetValue(kindFloat, ref retrievedFloat);
             Assert.True(Math.Abs(retrievedFloat - valueFloat) < .000001);
 
             ReadOnlyMemory<char> retrievedReadOnlyMemory = new ReadOnlyMemory<char>();
-            idv.Schema[0].Metadata.GetValue(kindString, ref retrievedReadOnlyMemory);
+            idv.Schema[0].Annotations.GetValue(kindString, ref retrievedReadOnlyMemory);
             Assert.True(retrievedReadOnlyMemory.Span.SequenceEqual(valueString.AsMemory().Span));
 
             VBuffer<ReadOnlyMemory<char>> retrievedReadOnlyMemoryVBuffer = new VBuffer<ReadOnlyMemory<char>>();
-            idv.Schema[1].Metadata.GetValue(kindStringArray, ref retrievedReadOnlyMemoryVBuffer);
+            idv.Schema[1].Annotations.GetValue(kindStringArray, ref retrievedReadOnlyMemoryVBuffer);
             Assert.True(retrievedReadOnlyMemoryVBuffer.DenseValues().Select((s, i) => s.ToString() == valueStringArray[i]).All(b => b));
 
             VBuffer<float> retrievedFloatVBuffer = new VBuffer<float>(1, new float[] { 2 });
-            idv.Schema[1].Metadata.GetValue(kindFloatArray, ref retrievedFloatVBuffer);
+            idv.Schema[1].Annotations.GetValue(kindFloatArray, ref retrievedFloatVBuffer);
             VBuffer<float> valueFloatVBuffer = new VBuffer<float>(valueFloatArray.Length, valueFloatArray);
             Assert.True(retrievedFloatVBuffer.Items().SequenceEqual(valueFloatVBuffer.Items()));
 
             VBuffer<float> retrievedVBuffer = new VBuffer<float>();
-            idv.Schema[1].Metadata.GetValue(kindVBuffer, ref retrievedVBuffer);
+            idv.Schema[1].Annotations.GetValue(kindVBuffer, ref retrievedVBuffer);
             Assert.True(retrievedVBuffer.Items().SequenceEqual(valueVBuffer.Items()));
 
-            Assert.Throws<InvalidOperationException>(() => idv.Schema[1].Metadata.GetValue(kindFloat, ref retrievedReadOnlyMemoryVBuffer));
+            Assert.Throws<InvalidOperationException>(() => idv.Schema[1].Annotations.GetValue(kindFloat, ref retrievedReadOnlyMemoryVBuffer));
         }
 
         private List<BreastCancerExample> ReadBreastCancerExamples()
@@ -297,7 +297,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             // Create the reader: define the data columns and where to find them in the text file.
-            var input = mlContext.Data.ReadFromTextFile(dataPath, new[] {
+            var input = mlContext.Data.LoadFromTextFile(dataPath, new[] {
                             new TextLoader.Column("Label", DataKind.Boolean, 0),
                             new TextLoader.Column("Workclass", DataKind.String, 1),
                             new TextLoader.Column("Education", DataKind.String,2),
@@ -306,7 +306,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // this function will accept dataview and return content of "Workclass" column as List of strings.
             Func<IDataView, List<string>> getWorkclass = (IDataView view) =>
             {
-                return view.GetColumn<ReadOnlyMemory<char>>(mlContext, "Workclass").Select(x => x.ToString()).ToList();
+                return view.GetColumn<ReadOnlyMemory<char>>(view.Schema["Workclass"]).Select(x => x.ToString()).ToList();
             };
 
             // Let's test what train test properly works with seed.

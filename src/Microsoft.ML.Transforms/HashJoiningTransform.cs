@@ -13,8 +13,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(HashJoiningTransform.Summary, typeof(HashJoiningTransform), typeof(HashJoiningTransform.Arguments), typeof(SignatureDataTransform),
     HashJoiningTransform.UserName, "HashJoinTransform", HashJoiningTransform.RegistrationName)]
@@ -24,7 +23,7 @@ using Microsoft.ML.Transforms.Conversions;
 
 [assembly: EntryPointModule(typeof(HashJoin))]
 
-namespace Microsoft.ML.Transforms.Conversions
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// This transform hashes its input columns. Each column is hashed separately, and within each
@@ -106,7 +105,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        public sealed class ColumnInfoEx
+        public sealed class ColumnOptions
         {
             // Either VBuffer<Key<U4>> or a single Key<U4>.
             // Note that if CustomSlotMap contains only one array, the output type of the transform will a single Key<U4>.
@@ -124,7 +123,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 get { return OutputColumnType.GetValueCount(); }
             }
 
-            public ColumnInfoEx(int[][] slotMap, int hashBits, uint hashSeed, bool ordered)
+            public ColumnOptions(int[][] slotMap, int hashBits, uint hashSeed, bool ordered)
             {
                 Contracts.CheckValueOrNull(slotMap);
                 Contracts.Check(NumBitsMin <= hashBits && hashBits < NumBitsLim);
@@ -173,7 +172,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 loaderAssemblyName: typeof(HashJoiningTransform).Assembly.FullName);
         }
 
-        private readonly ColumnInfoEx[] _exes;
+        private readonly ColumnOptions[] _exes;
 
         /// <summary>
         /// Initializes a new instance of <see cref="HashJoiningTransform"/>.
@@ -204,12 +203,12 @@ namespace Microsoft.ML.Transforms.Conversions
             if (args.HashBits < NumBitsMin || args.HashBits >= NumBitsLim)
                 throw Host.ExceptUserArg(nameof(args.HashBits), "hashBits should be between {0} and {1} inclusive", NumBitsMin, NumBitsLim - 1);
 
-            _exes = new ColumnInfoEx[Infos.Length];
+            _exes = new ColumnOptions[Infos.Length];
             for (int i = 0; i < Infos.Length; i++)
             {
                 var hashBits = args.Columns[i].HashBits ?? args.HashBits;
                 Host.CheckUserArg(NumBitsMin <= hashBits && hashBits < NumBitsLim, nameof(args.HashBits));
-                _exes[i] = CreateColumnInfoEx(
+                _exes[i] = CreateColumnOptionsEx(
                     args.Columns[i].Join ?? args.Join,
                     args.Columns[i].CustomSlotMap,
                     args.Columns[i].HashBits ?? args.HashBits,
@@ -238,7 +237,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             Host.AssertNonEmpty(Infos);
 
-            _exes = new ColumnInfoEx[Infos.Length];
+            _exes = new ColumnOptions[Infos.Length];
             for (int i = 0; i < Infos.Length; i++)
             {
                 int hashBits = ctx.Reader.ReadInt32();
@@ -268,7 +267,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     }
                 }
 
-                _exes[i] = new ColumnInfoEx(slotMap, hashBits, hashSeed, ordered);
+                _exes[i] = new ColumnOptions(slotMap, hashBits, hashSeed, ordered);
             }
 
             SetMetadata();
@@ -327,7 +326,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        private ColumnInfoEx CreateColumnInfoEx(bool join, string customSlotMap, int hashBits, uint hashSeed, bool ordered, ColInfo colInfo)
+        private ColumnOptions CreateColumnOptionsEx(bool join, string customSlotMap, int hashBits, uint hashSeed, bool ordered, ColInfo colInfo)
         {
             int[][] slotMap = null;
             if (colInfo.TypeSrc is VectorType vectorType)
@@ -340,7 +339,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(Utils.Size(slotMap) >= 1);
             }
 
-            return new ColumnInfoEx(slotMap, hashBits, hashSeed, ordered);
+            return new ColumnOptions(slotMap, hashBits, hashSeed, ordered);
         }
 
         private int[][] CompileSlotMap(string slotMapString, int srcSlotCount)
@@ -399,7 +398,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     continue;
                 using (var bldr = md.BuildMetadata(i))
                 {
-                    bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.SlotNames,
+                    bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(AnnotationUtils.Kinds.SlotNames,
                         new VectorType(TextDataViewType.Instance, ex.SlotMap.Length), GetSlotNames);
                 }
             }
@@ -420,7 +419,7 @@ namespace Microsoft.ML.Transforms.Conversions
             VBuffer<ReadOnlyMemory<char>> srcSlotNames = default;
             if (!useDefaultSlotNames)
             {
-                Source.Schema[Infos[iinfo].Source].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref srcSlotNames);
+                Source.Schema[Infos[iinfo].Source].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref srcSlotNames);
                 useDefaultSlotNames =
                     !srcSlotNames.IsDense
                     || srcSlotNames.Length != Infos[iinfo].TypeSrc.GetValueCount();

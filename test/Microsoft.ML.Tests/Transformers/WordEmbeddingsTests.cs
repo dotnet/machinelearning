@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.Transformers
                             new TextLoader.Column("Label", DataKind.Boolean, 0),
                             new TextLoader.Column("SentimentText", DataKind.String, 1)
                        }
-                   }).Read(GetDataPath(dataPath));
+                   }).Load(GetDataPath(dataPath));
 
             var est = ML.Transforms.Text.NormalizeText("NormalizedText", "SentimentText", keepDiacritics: false, keepPunctuations: false)
                   .Append(ML.Transforms.Text.TokenizeWords("Words", "NormalizedText"))
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Tests.Transformers
                             new TextLoader.Column("Label", DataKind.Boolean, 0),
                             new TextLoader.Column("SentimentText", DataKind.String, 1)
                        }
-                   }).Read(GetDataPath(dataPath));
+                   }).Load(GetDataPath(dataPath));
 
             var est = ML.Transforms.Text.NormalizeText("NormalizedText", "SentimentText", keepDiacritics: false, keepPunctuations: false)
                   .Append(ML.Transforms.Text.TokenizeWords("Words", "NormalizedText"))

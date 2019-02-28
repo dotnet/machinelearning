@@ -44,8 +44,8 @@ namespace Microsoft.ML.Benchmarks
         {
             if (_metrics != null)
                 yield return new Metric(
-                    nameof(MultiClassClassifierMetrics.AccuracyMacro),
-                    _metrics.AccuracyMacro.ToString("0.##", CultureInfo.InvariantCulture));
+                    nameof(MultiClassClassifierMetrics.MacroAccuracy),
+                    _metrics.MacroAccuracy.ToString("0.##", CultureInfo.InvariantCulture));
         }
 
         [Benchmark]
@@ -53,19 +53,22 @@ namespace Microsoft.ML.Benchmarks
 
         private TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> Train(string dataPath)
         {
-            var reader = new TextLoader(mlContext,
-                columns: new[]
-                    {
-                            new TextLoader.Column("Label", DataKind.Single, 0),
-                            new TextLoader.Column("SepalLength", DataKind.Single, 1),
-                            new TextLoader.Column("SepalWidth", DataKind.Single, 2),
-                            new TextLoader.Column("PetalLength", DataKind.Single, 3),
-                            new TextLoader.Column("PetalWidth", DataKind.Single, 4),
-                    },
-                hasHeader: true
-                );
+            // Create text loader.
+            var options = new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("SepalLength", DataKind.Single, 1),
+                    new TextLoader.Column("SepalWidth", DataKind.Single, 2),
+                    new TextLoader.Column("PetalLength", DataKind.Single, 3),
+                    new TextLoader.Column("PetalWidth", DataKind.Single, 4),
+                },
+                HasHeader = true,
+            };
+            var loader = new TextLoader(mlContext, options: options);
 
-            IDataView data = reader.Read(dataPath);
+            IDataView data = loader.Load(dataPath);
 
             var pipeline = new ColumnConcatenatingEstimator(mlContext, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
@@ -89,7 +92,7 @@ namespace Microsoft.ML.Benchmarks
                 AllowSparse = false
             };
 
-            var loader = mlContext.Data.ReadFromTextFile(_sentimentDataPath, arguments);
+            var loader = mlContext.Data.LoadFromTextFile(_sentimentDataPath, arguments);
             var text = mlContext.Transforms.Text.FeaturizeText("WordEmbeddings", new List<string> { "SentimentText" }, 
                 new TextFeaturizingEstimator.Options { 
                     OutputTokens = true,
@@ -116,19 +119,22 @@ namespace Microsoft.ML.Benchmarks
             _predictionEngine = _trainedModel.CreatePredictionEngine<IrisData, IrisPrediction>(mlContext);
             _consumer.Consume(_predictionEngine.Predict(_example));
 
-            var reader = new TextLoader(mlContext,
-                columns: new[]
-                    {
-                            new TextLoader.Column("Label", DataKind.Single, 0),
-                            new TextLoader.Column("SepalLength", DataKind.Single, 1),
-                            new TextLoader.Column("SepalWidth", DataKind.Single, 2),
-                            new TextLoader.Column("PetalLength", DataKind.Single, 3),
-                            new TextLoader.Column("PetalWidth", DataKind.Single, 4),
-                    },
-                hasHeader: true
-                );
+            // Create text loader.
+            var options = new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("SepalLength", DataKind.Single, 1),
+                    new TextLoader.Column("SepalWidth", DataKind.Single, 2),
+                    new TextLoader.Column("PetalLength", DataKind.Single, 3),
+                    new TextLoader.Column("PetalWidth", DataKind.Single, 4),
+                },
+                HasHeader = true,
+            };
+            var loader = new TextLoader(mlContext, options: options);
 
-            IDataView testData = reader.Read(_dataPath);
+            IDataView testData = loader.Load(_dataPath);
             IDataView scoredTestData = _trainedModel.Transform(testData);
             var evaluator = new MultiClassClassifierEvaluator(mlContext, new MultiClassClassifierEvaluator.Arguments());
             _metrics = evaluator.Evaluate(scoredTestData, DefaultColumnNames.Label, DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel);
@@ -149,13 +155,13 @@ namespace Microsoft.ML.Benchmarks
         public float[] PredictIris() => _predictionEngine.Predict(_example).PredictedLabels;
 
         [Benchmark]
-        public void PredictIrisBatchOf1() => _trainedModel.Transform(mlContext.Data.ReadFromEnumerable(_batches[0]));
+        public void PredictIrisBatchOf1() => _trainedModel.Transform(mlContext.Data.LoadFromEnumerable(_batches[0]));
 
         [Benchmark]
-        public void PredictIrisBatchOf2() => _trainedModel.Transform(mlContext.Data.ReadFromEnumerable(_batches[1]));
+        public void PredictIrisBatchOf2() => _trainedModel.Transform(mlContext.Data.LoadFromEnumerable(_batches[1]));
 
         [Benchmark]
-        public void PredictIrisBatchOf5() => _trainedModel.Transform(mlContext.Data.ReadFromEnumerable(_batches[2]));
+        public void PredictIrisBatchOf5() => _trainedModel.Transform(mlContext.Data.LoadFromEnumerable(_batches[2]));
     }
 
     public class IrisData

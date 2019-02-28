@@ -101,7 +101,7 @@ namespace Microsoft.ML.Transforms
             using (var pipeLoaderEntry = rep.OpenEntry(ModelFileUtils.DirDataLoaderModel, ModelLoadContext.ModelStreamName))
             using (var ctx = new ModelLoadContext(rep, pipeLoaderEntry, ModelFileUtils.DirDataLoaderModel))
             {
-                currentView = CompositeDataLoader.LoadSelectedTransforms(ctx, input, h, predicate);
+                currentView = LegacyCompositeDataLoader.LoadSelectedTransforms(ctx, input, h, predicate);
 
                 if (currentView == input)
                 {

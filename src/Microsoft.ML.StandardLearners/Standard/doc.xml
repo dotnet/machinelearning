@@ -40,7 +40,7 @@
             MaxIterations = 100,
             NumThreads = 7,
             LossFunction = new SmoothedHingeLossSDCAClassificationLossFunction(),
-            Caching = Microsoft.ML.Models.CachingOptions.Disk
+            Caching = Microsoft.ML.Models.CachingOptions.Memory
           }
         </code>
       </example>

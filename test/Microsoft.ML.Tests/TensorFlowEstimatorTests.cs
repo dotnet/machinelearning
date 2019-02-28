@@ -60,7 +60,7 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
 
-            var dataView = ML.Data.ReadFromEnumerable(
+            var dataView = ML.Data.LoadFromEnumerable(
                 new List<TestData>(new TestData[] {
                     new TestData()
                     {
@@ -79,9 +79,9 @@ namespace Microsoft.ML.Tests
             var sizeData = new List<TestDataSize> { new TestDataSize() { a = new float[2], b = new float[2] } };
             var pipe = ML.Transforms.ScoreTensorFlowModel(modelFile, new[] { "c" }, new[] { "a", "b" });
 
-            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
-            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable( stringData);
-            var invalidDataWrongVectorSize = ML.Data.ReadFromEnumerable( sizeData);
+            var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.LoadFromEnumerable( stringData);
+            var invalidDataWrongVectorSize = ML.Data.LoadFromEnumerable( sizeData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
 
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
 
-            var dataView = ML.Data.ReadFromEnumerable(
+            var dataView = ML.Data.LoadFromEnumerable(
                 new List<TestData>(new TestData[] {
                     new TestData()
                     {
@@ -150,10 +150,10 @@ namespace Microsoft.ML.Tests
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoaderStatic.CreateReader(mlContext, ctx => (
+            var data = TextLoaderStatic.CreateLoader(mlContext, ctx => (
                 imagePath: ctx.LoadText(0),
                 name: ctx.LoadText(1)))
-                .Read(dataFile);
+                .Load(dataFile);
 
             // Note that CamelCase column names are there to match the TF graph node names.
             var pipe = data.MakeNewEstimator()
@@ -197,10 +197,10 @@ namespace Microsoft.ML.Tests
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoaderStatic.CreateReader(mlContext, ctx => (
+            var data = TextLoaderStatic.CreateLoader(mlContext, ctx => (
                 imagePath: ctx.LoadText(0),
                 name: ctx.LoadText(1)))
-                .Read(dataFile);
+                .Load(dataFile);
 
             // Note that CamelCase column names are there to match the TF graph node names.
             var pipe = data.MakeNewEstimator()

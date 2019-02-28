@@ -13,9 +13,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
-using Float = System.Single;
 
 [assembly: LoadableClass(NAFilter.Summary, typeof(NAFilter), typeof(NAFilter.Arguments), typeof(SignatureDataTransform),
     NAFilter.FriendlyName, NAFilter.ShortName, "MissingValueFilter", "MissingFilter")]
@@ -179,7 +177,7 @@ namespace Microsoft.ML.Transforms
             // int: sizeof(Float)
             // int: number of columns
             // int[]: ids of column names
-            ctx.Writer.Write(sizeof(Float));
+            ctx.Writer.Write(sizeof(float));
             Host.Assert(_infos.Length > 0);
             ctx.Writer.Write(_infos.Length);
             foreach (var info in _infos)
