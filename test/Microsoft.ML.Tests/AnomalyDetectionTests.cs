@@ -116,7 +116,7 @@ namespace Microsoft.ML.Tests
                 new DataPoint(){ Features= new float[3] {-100, 50, -100} }
             };
 
-            // Convert native C# class to IDataView, a consumble format to ML.NET functions.
+            // Convert the List<DataPoint> to IDataView, a consumble format to ML.NET functions.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
             // Train the anomaly detector.
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Tests
             // Apply the trained model on the training data.
             var transformed = model.Transform(data);
 
-            // Read ML.NET predictions into C# class.
+            // Read ML.NET predictions into IEnumerable<Result>.
             var results = mlContext.Data.CreateEnumerable<Result>(transformed, reuseRowObject: false).ToList();
 
             // First 5 examples are inliers.
