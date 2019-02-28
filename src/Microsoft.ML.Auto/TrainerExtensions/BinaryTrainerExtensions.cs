@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.HalLearners;
@@ -26,7 +27,7 @@ namespace Microsoft.ML.Auto
             ColumnInformation columnInfo)
         {
             AveragedPerceptronTrainer.Options options = null;
-            if (sweepParams == null)
+            if (sweepParams == null || !sweepParams.Any())
             {
                 options = new AveragedPerceptronTrainer.Options();
                 options.NumberOfIterations = DefaultNumIterations;
@@ -35,6 +36,10 @@ namespace Microsoft.ML.Auto
             else
             {
                 options = TrainerExtensionUtil.CreateOptions<AveragedPerceptronTrainer.Options>(sweepParams, columnInfo.LabelColumn);
+                if (!sweepParams.Any(p => p.Name == "NumberOfIterations"))
+                {
+                    options.NumberOfIterations = DefaultNumIterations;
+                }
             }
             return mlContext.BinaryClassification.Trainers.AveragedPerceptron(options);
         }
@@ -43,11 +48,11 @@ namespace Microsoft.ML.Auto
         {
             Dictionary<string, object> additionalProperties = null;
 
-            if(sweepParams == null)
+            if (sweepParams == null || !sweepParams.Any(p => p.Name != "NumberOfIterations"))
             {
                 additionalProperties = new Dictionary<string, object>()
                 {
-                    { "NumIterations", "10" }
+                    { "NumberOfIterations", DefaultNumIterations.ToString() }
                 };
             }
 
