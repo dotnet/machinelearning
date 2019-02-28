@@ -44,7 +44,7 @@ namespace Samples
             // STEP 5: Evaluate test data
             IDataView testDataViewWithBestScore = best.Model.Transform(testDataView);
             var testMetrics = mlContext.BinaryClassification.EvaluateNonCalibrated(testDataViewWithBestScore, label: LabelColumn);
-            Console.WriteLine($"Accuracy of best model on test data: {best.Metrics.Accuracy}");
+            Console.WriteLine($"Accuracy of best model on test data: {testMetrics.Accuracy}");
 
             // STEP 6: Save the best model for later deployment and inferencing
             using (var fs = File.Create(ModelPath))

@@ -43,7 +43,7 @@ namespace Samples
             // STEP 5: Evaluate test data
             IDataView testDataViewWithBestScore = best.Model.Transform(testDataView);
             var testMetrics = mlContext.MulticlassClassification.Evaluate(testDataViewWithBestScore);
-            Console.WriteLine($"AccuracyMacro of best model on test data: {best.Metrics.AccuracyMacro}");
+            Console.WriteLine($"AccuracyMacro of best model on test data: {testMetrics.AccuracyMacro}");
 
             // STEP 6: Save the best model for later deployment and inferencing
             using (var fs = File.Create(ModelPath))

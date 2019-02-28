@@ -34,7 +34,7 @@ namespace Samples
             // STEP 3: Auto featurize, auto train and auto hyperparameter tune
             Console.WriteLine($"Invoking new AutoML regression experiment...");
             var runResults = mlContext.AutoInference()
-                .CreateRegressionExperiment(0)
+                .CreateRegressionExperiment(60)
                 .Execute(trainDataView, LabelColumn);
             
             // STEP 4: Print metric from best model
@@ -44,7 +44,7 @@ namespace Samples
             // STEP 5: Evaluate test data
             IDataView testDataViewWithBestScore = best.Model.Transform(testDataView);
             var testMetrics = mlContext.Regression.Evaluate(testDataViewWithBestScore, label: LabelColumn);
-            Console.WriteLine($"RSquared of best model on test data: {best.Metrics.RSquared}");
+            Console.WriteLine($"RSquared of best model on test data: {testMetrics.RSquared}");
 
             // STEP 6: Save the best model for later deployment and inferencing
             using (var fs = File.Create(ModelPath))
