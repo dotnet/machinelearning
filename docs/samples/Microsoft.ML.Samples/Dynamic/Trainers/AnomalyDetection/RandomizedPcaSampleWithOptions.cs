@@ -5,7 +5,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.AnomalyDetection
 {
-    public static class RandomizedPcaSample
+    class RandomizedPcaSampleWithOptions
     {
         // Example with 3 feature values. A training data set is a collection of such examples.
         private class DataPoint
@@ -45,8 +45,15 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.AnomalyDetection
             // Convert the List<DataPoint> to IDataView, a consumble format to ML.NET functions.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
+            var options = new ML.Trainers.RandomizedPcaTrainer.Options()
+            {
+                FeatureColumnName = nameof(DataPoint.Features),
+                Rank = 1,
+                Seed = 10,
+            };
+
             // Create an anomaly detector. Its underlying algorithm is randomized PCA.
-            var pipeline = mlContext.AnomalyDetection.Trainers.RandomizedPca(featureColumnName: nameof(DataPoint.Features), rank: 1, center: false);
+            var pipeline = mlContext.AnomalyDetection.Trainers.RandomizedPca(options);
 
             // Train the anomaly detector.
             var model = pipeline.Fit(data);
