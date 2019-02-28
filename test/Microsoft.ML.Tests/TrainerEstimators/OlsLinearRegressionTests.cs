@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.ML.Trainers.HalLearners;
+using Microsoft.ML.Trainers.Mkl;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators

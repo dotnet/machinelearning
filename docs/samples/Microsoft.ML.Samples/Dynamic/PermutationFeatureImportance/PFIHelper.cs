@@ -3,7 +3,7 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.SamplesUtils;
-using Microsoft.ML.Trainers.HalLearners;
+using Microsoft.ML.Trainers.Mkl;
 
 namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
 {

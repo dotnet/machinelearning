@@ -6,7 +6,7 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Trainers.HalLearners;
+using Microsoft.ML.Trainers.Mkl;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
