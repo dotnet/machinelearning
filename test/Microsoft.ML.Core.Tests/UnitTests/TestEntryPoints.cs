@@ -3338,7 +3338,7 @@ namespace Microsoft.ML.RunTests
                 TrainingData = dataView,
                 NormalizeFeatures = NormalizeOption.Yes,
                 NumberOfThreads = 1,
-                ShowTrainingStats = true
+                ShowTrainingStatistics = true
             };
             var mcModel = LogisticRegression.TrainMultiClass(Env, mcLrInput).PredictorModel;
 

@@ -13814,11 +13814,12 @@
           "Default": "Auto"
         },
         {
-          "Name": "ShowTrainingStats",
+          "Name": "ShowTrainingStatistics",
           "Type": "Bool",
           "Desc": "Show statistics of training examples.",
           "Aliases": [
-            "stat"
+            "stat",
+            "ShowTrainingStats"
           ],
           "Required": false,
           "SortOrder": 50.0,

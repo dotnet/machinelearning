@@ -45,8 +45,11 @@ namespace Microsoft.ML.Trainers
 
         public sealed class Options : OptionsBase
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat", SortOrder = 50)]
-            public bool ShowTrainingStats = false;
+            /// <summary>
+            /// If set to <value>true</value>training statistics will be generated at the end of training.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat, ShowTrainingStats", SortOrder = 50)]
+            public bool ShowTrainingStatistics = false;
         }
 
         private int _numClasses;
@@ -94,7 +97,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
-            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStats;
+            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStatistics;
         }
 
         /// <summary>
@@ -103,7 +106,7 @@ namespace Microsoft.ML.Trainers
         internal MulticlassLogisticRegression(IHostEnvironment env, Options options)
             : base(env, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumn))
         {
-            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStats;
+            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStatistics;
         }
 
         private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
@@ -333,6 +336,9 @@ namespace Microsoft.ML.Trainers
             => TrainTransformer(trainData, initPredictor: modelParameters);
     }
 
+    /// <summary>
+    /// The model parameters class for Multiclass Logistic Regression.
+    /// </summary>
     public sealed class MulticlassLogisticRegressionModelParameters :
         ModelParametersBase<VBuffer<float>>,
         IValueMapper,
