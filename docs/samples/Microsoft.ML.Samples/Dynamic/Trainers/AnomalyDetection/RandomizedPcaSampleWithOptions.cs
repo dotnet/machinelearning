@@ -5,7 +5,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.AnomalyDetection
 {
-    class RandomizedPcaSampleWithOptions
+    public static class RandomizedPcaSampleWithOptions
     {
         // Example with 3 feature values. A training data set is a collection of such examples.
         private class DataPoint
