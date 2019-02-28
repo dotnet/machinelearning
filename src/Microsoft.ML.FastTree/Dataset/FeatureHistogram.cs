@@ -5,7 +5,7 @@
 using System;
 using System.Linq;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
 #if USE_SINGLE_PRECISION
     using FloatType = System.Single;
@@ -16,7 +16,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     /// <summary>
     /// Class to represent statistics of the feature used by LeastSquaresRegressionTreeLearner
     /// </summary>
-    public sealed class FeatureHistogram
+    internal sealed class FeatureHistogram
     {
         public readonly FloatType[] SumTargetsByBin;
         public readonly double[] SumWeightsByBin;
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         }
     }
 
-    public sealed class SumupInputData
+    internal sealed class SumupInputData
     {
         public int TotalCount;
         public double SumTargets;

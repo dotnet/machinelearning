@@ -7,10 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.TimeSeries
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     internal interface IStatefulRowToRowMapper : IRowToRowMapper
     {
@@ -18,12 +17,21 @@ namespace Microsoft.ML.TimeSeries
 
     internal interface IStatefulTransformer : ITransformer
     {
-        IRowToRowMapper GetStatefulRowToRowMapper(Schema inputSchema);
+        /// <summary>
+        /// Same as <see cref="ITransformer.GetRowToRowMapper(DataViewSchema)"/> but also supports mechanism to save the state.
+        /// </summary>
+        /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
+        /// <returns>The row to row mapper.</returns>
+        IRowToRowMapper GetStatefulRowToRowMapper(DataViewSchema inputSchema);
 
+        /// <summary>
+        /// Creates a clone of the transfomer. Used for taking the snapshot of the state.
+        /// </summary>
+        /// <returns></returns>
         IStatefulTransformer Clone();
     }
 
-    internal abstract class StatefulRow : Row
+    internal abstract class StatefulRow : DataViewRow
     {
         public abstract Action<long> GetPinger();
     }
@@ -32,7 +40,7 @@ namespace Microsoft.ML.TimeSeries
     {
         void CloneState();
 
-        Action<long> CreatePinger(Row input, Func<int, bool> activeOutput, out Action disposer);
+        Action<long> CreatePinger(DataViewRow input, Func<int, bool> activeOutput, out Action disposer);
     }
 
     /// <summary>
@@ -90,13 +98,17 @@ namespace Microsoft.ML.TimeSeries
                 return transformer is IStatefulTransformer ? ((IStatefulTransformer)transformer).Clone() : transformer;
         }
 
+        /// <summary>
+        /// Contructor for creating time series specific prediction engine. It allows update the time series model to be updated with the observations
+        /// seen at prediction time via <see cref="CheckPoint(IHostEnvironment, string)"/>
+        /// </summary>
         public TimeSeriesPredictionFunction(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null) :
             base(env, CloneTransformers(transformer), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
         {
         }
 
-        internal Row GetStatefulRows(Row input, IRowToRowMapper mapper, Func<int, bool> active, List<StatefulRow> rows)
+        internal DataViewRow GetStatefulRows(DataViewRow input, IRowToRowMapper mapper, Func<int, bool> active, List<StatefulRow> rows)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValue(active, nameof(active));
@@ -130,9 +142,13 @@ namespace Microsoft.ML.TimeSeries
             var deps = new Func<int, bool>[innerMappers.Length];
             deps[deps.Length - 1] = active;
             for (int i = deps.Length - 1; i >= 1; --i)
-                deps[i - 1] = innerMappers[i].GetDependencies(deps[i]);
+            {
+                var inputCols = innerMappers[i].OutputSchema.Where(c => deps[i](c.Index));
+                var cols = innerMappers[i].GetDependencies(inputCols).ToArray();
+                deps[i - 1] = c => cols.Length > 0 ? cols.Any(col => col.Index == c) : false;
+            }
 
-            Row result = input;
+            DataViewRow result = input;
             for (int i = 0; i < innerMappers.Length; ++i)
             {
                 result = GetStatefulRows(result, innerMappers[i], deps[i], rows);
@@ -156,7 +172,7 @@ namespace Microsoft.ML.TimeSeries
                  SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition, out Action disposer, out IRowReadableAs<TDst> outputRow)
         {
             List<StatefulRow> rows = new List<StatefulRow>();
-            Row outputRowLocal = outputRowLocal = GetStatefulRows(inputRow, mapper, col => true, rows);
+            DataViewRow outputRowLocal = outputRowLocal = GetStatefulRows(inputRow, mapper, col => true, rows);
             var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.OutputSchema), ignoreMissingColumns, outputSchemaDefinition);
             _pinger = CreatePinger(rows);
             disposer = outputRowLocal.Dispose;
@@ -171,7 +187,7 @@ namespace Microsoft.ML.TimeSeries
                 return transformer.IsRowToRowMapper || transformer is IStatefulTransformer;
         }
 
-        private IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        private IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.Check(IsRowToRowMapper(InputTransformer), nameof(GetRowToRowMapper) +
@@ -187,7 +203,7 @@ namespace Microsoft.ML.TimeSeries
 
             var transformers = ((ITransformerChainAccessor )InputTransformer).Transformers;
             IRowToRowMapper[] mappers = new IRowToRowMapper[transformers.Length];
-            Schema schema = inputSchema;
+            DataViewSchema schema = inputSchema;
             for (int i = 0; i < mappers.Length; ++i)
             {
                 if (transformers[i] is IStatefulTransformer)
@@ -200,7 +216,7 @@ namespace Microsoft.ML.TimeSeries
             return new CompositeRowToRowMapper(inputSchema, mappers);
         }
 
-        protected override Func<Schema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
+        private protected override Func<DataViewSchema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
         {
             ectx.CheckValue(transformer, nameof(transformer));
             ectx.CheckParam(IsRowToRowMapper(transformer), nameof(transformer), "Must be a row to row mapper or " + nameof(IStatefulTransformer));

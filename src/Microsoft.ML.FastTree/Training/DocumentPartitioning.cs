@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
 #if USE_SINGLE_PRECISION
     using FloatType = System.Single;
@@ -15,7 +15,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     using FloatType = System.Double;
 #endif
 
-    public sealed class DocumentPartitioning
+    internal sealed class DocumentPartitioning
     {
         private readonly int[] _leafBegin;
         private readonly int[] _leafCount;
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// Constructs partitioning object based on the documents and RegressionTree splits
         /// NOTE: It has been optimized for speed and multiprocs with 10x gain on naive LINQ implementation
         /// </summary>
-        public DocumentPartitioning(RegressionTree tree, Dataset dataset)
+        internal DocumentPartitioning(InternalRegressionTree tree, Dataset dataset)
             : this(dataset.NumDocs, tree.NumLeaves)
         {
             using (Timer.Time(TimerEvent.DocumentPartitioningConstruction))

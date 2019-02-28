@@ -5,7 +5,7 @@
 using System;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.TimeSeriesProcessing
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
     /// This class encapsulates the trajectory matrix of a time-series used in Singular Spectrum Analysis (SSA).
@@ -27,7 +27,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// This class does not explicitly store the trajectory matrix though. Furthermore, since the trajectory matrix is
     /// a Hankel matrix, its multiplication by an arbitrary vector is implemented efficiently using the Discrete Fast Fourier Transform.
     /// </summary>
-    public sealed class TrajectoryMatrix
+    internal sealed class TrajectoryMatrix
     {
         /// <summary>
         /// The time series data

@@ -134,7 +134,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public static RowCursor Create(TextLoader parent, IMultiStreamSource files, bool[] active)
+            public static DataViewRowCursor Create(TextLoader parent, IMultiStreamSource files, bool[] active)
             {
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Data
                 return new Cursor(parent, stats, active, reader, srcNeeded, cthd);
             }
 
-            public static RowCursor[] CreateSet(TextLoader parent, IMultiStreamSource files, bool[] active, int n)
+            public static DataViewRowCursor[] CreateSet(TextLoader parent, IMultiStreamSource files, bool[] active, int n)
             {
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
@@ -166,9 +166,9 @@ namespace Microsoft.ML.Data
                 var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent._maxRows, cthd);
                 var stats = new ParseStats(parent._host, cthd);
                 if (cthd <= 1)
-                    return new RowCursor[1] { new Cursor(parent, stats, active, reader, srcNeeded, 1) };
+                    return new DataViewRowCursor[1] { new Cursor(parent, stats, active, reader, srcNeeded, 1) };
 
-                var cursors = new RowCursor[cthd];
+                var cursors = new DataViewRowCursor[cthd];
                 try
                 {
                     for (int i = 0; i < cursors.Length; i++)
@@ -195,13 +195,13 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public override ValueGetter<RowId> GetIdGetter()
+            public override ValueGetter<DataViewRowId> GetIdGetter()
             {
                 return
-                    (ref RowId val) =>
+                    (ref DataViewRowId val) =>
                     {
                         Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
-                        val = new RowId((ulong)_total, 0);
+                        val = new DataViewRowId((ulong)_total, 0);
                     };
             }
 
@@ -269,7 +269,7 @@ namespace Microsoft.ML.Data
                 return sb.ToString();
             }
 
-            public override Schema Schema => _bindings.OutputSchema;
+            public override DataViewSchema Schema => _bindings.OutputSchema;
 
             protected override void Dispose(bool disposing)
             {
@@ -395,7 +395,7 @@ namespace Microsoft.ML.Data
 
                 // The line reader can be referenced by multiple workers. This is the reference count.
                 private int _cref;
-                private BlockingCollection<LineBatch> _queue;
+                private BlockingQueue<LineBatch> _queue;
                 private Task _thdRead;
                 private volatile bool _abort;
 
@@ -415,7 +415,7 @@ namespace Microsoft.ML.Data
                     _files = files;
                     _cref = cref;
 
-                    _queue = new BlockingCollection<LineBatch>(bufSize);
+                    _queue = new BlockingQueue<LineBatch>(bufSize);
                     _thdRead = Utils.RunOnBackgroundThread(ThreadProc);
                 }
 
@@ -638,7 +638,7 @@ namespace Microsoft.ML.Data
                 private readonly OrderedWaiter _waiterPublish;
 
                 // A small capacity blocking collection that the main cursor thread consumes.
-                private readonly BlockingCollection<RowBatch> _queue;
+                private readonly BlockingQueue<RowBatch> _queue;
 
                 private readonly Task[] _threads;
 
@@ -673,7 +673,7 @@ namespace Microsoft.ML.Data
 
                     // The size limit here ensures that worker threads are never writing to
                     // a range that is being served up by the cursor.
-                    _queue = new BlockingCollection<RowBatch>(2);
+                    _queue = new BlockingQueue<RowBatch>(2);
 
                     _threads = new Task[cthd];
                     _threadsRunning = cthd;

@@ -13,7 +13,7 @@ namespace Microsoft.ML.Numeric
     /// <summary>
     /// An object which is used to decide whether to stop optimization.
     /// </summary>
-    public interface ITerminationCriterion
+    internal interface ITerminationCriterion
     {
         /// <summary>
         /// Name appropriate for display to the user.
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Numeric
     /// <summary>
     /// A wrapper for a termination criterion that checks the gradient at a specified interval
     /// </summary>
-    public sealed class GradientCheckingMonitor : ITerminationCriterion
+    internal sealed class GradientCheckingMonitor : ITerminationCriterion
     {
         private const string _checkingMessage = "  Checking gradient...";
         private readonly ITerminationCriterion _termCrit;
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Numeric
     /// <summary>
     /// An abstract partial implementation of ITerminationCriterion for those which do not require resetting
     /// </summary>
-    public abstract class StaticTerminationCriterion : ITerminationCriterion
+    internal abstract class StaticTerminationCriterion : ITerminationCriterion
     {
         public abstract string FriendlyName { get; }
 
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Numeric
     /// <summary>
     /// Terminates when the geometrically-weighted average improvement falls below the tolerance
     /// </summary>
-    public sealed class MeanImprovementCriterion : ITerminationCriterion
+    internal sealed class MeanImprovementCriterion : ITerminationCriterion
     {
         private readonly Float _tol;
         private readonly Float _lambda;
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Numeric
     /// <remarks>
     /// Inappropriate for functions whose optimal value is non-positive, because of normalization
     /// </remarks>
-    public sealed class MeanRelativeImprovementCriterion : ITerminationCriterion
+    internal sealed class MeanRelativeImprovementCriterion : ITerminationCriterion
     {
         private readonly int _n;
         private readonly Float _tol;
@@ -280,7 +280,7 @@ namespace Microsoft.ML.Numeric
     /// that H > (1 / sigmaSq) * I at all points)
     /// Inappropriate for functions whose optimal value is non-positive, because of normalization
     /// </remarks>
-    public sealed class UpperBoundOnDistanceWithL2 : StaticTerminationCriterion
+    internal sealed class UpperBoundOnDistanceWithL2 : StaticTerminationCriterion
     {
         private readonly Float _sigmaSq;
         private readonly Float _tol;
@@ -345,7 +345,7 @@ namespace Microsoft.ML.Numeric
     /// <remarks>
     /// Inappropriate for functions whose optimal value is non-positive, because of normalization
     /// </remarks>
-    public sealed class RelativeNormGradient : StaticTerminationCriterion
+    internal sealed class RelativeNormGradient : StaticTerminationCriterion
     {
         private readonly Float _tol;
 

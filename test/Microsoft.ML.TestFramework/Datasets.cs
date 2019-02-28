@@ -14,6 +14,8 @@ namespace Microsoft.ML.RunTests
         public string testFilename;
         public string validFilename;
         public string labelFilename;
+        public char fileSeparator;
+        public bool fileHasHeader;
 
         // REVIEW: Replace these with appropriate SubComponents!
         public string settings;
@@ -158,7 +160,26 @@ namespace Microsoft.ML.RunTests
             name = "housing",
             trainFilename = "housing.txt",
             testFilename = "housing.txt",
-            loaderSettings = "loader=Text{col=Label:0 col=Features:~ header=+}"
+            fileSeparator = '\t',
+            fileHasHeader = true,
+            loaderSettings = "loader=Text{col=Label:0 col=Features:~ header=+}",
+            GetLoaderColumns = () =>
+            {
+                return new[] {
+                    new TextLoader.Column("MedianHomeValue", DataKind.Single, 0),
+                    new TextLoader.Column("CrimesPerCapita", DataKind.Single, 1),
+                    new TextLoader.Column("PercentResidental", DataKind.Single, 2),
+                    new TextLoader.Column("PercentNonRetail", DataKind.Single, 3),
+                    new TextLoader.Column("CharlesRiver", DataKind.Single, 4),
+                    new TextLoader.Column("NitricOxides", DataKind.Single, 5),
+                    new TextLoader.Column("RoomsPerDwelling", DataKind.Single, 6),
+                    new TextLoader.Column("PercentPre40s", DataKind.Single, 7),
+                    new TextLoader.Column("EmploymentDistance", DataKind.Single, 8),
+                    new TextLoader.Column("HighwayDistance", DataKind.Single, 9),
+                    new TextLoader.Column("TaxRate", DataKind.Single, 10),
+                    new TextLoader.Column("TeacherRatio", DataKind.Single, 11),
+                };
+            }
         };
 
         public static TestDataset generatedRegressionDatasetmacro = new TestDataset
@@ -189,12 +210,14 @@ namespace Microsoft.ML.RunTests
             name = "sentiment",
             trainFilename = "wikipedia-detox-250-line-data.tsv",
             testFilename = "wikipedia-detox-250-line-test.tsv",
+            fileHasHeader = true,
+            fileSeparator = '\t',
             GetLoaderColumns = () =>
              {
                  return new[]
                  {
-                    new TextLoader.Column("Label", DataKind.BL, 0),
-                    new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                    new TextLoader.Column("Label", DataKind.Boolean, 0),
+                    new TextLoader.Column("SentimentText", DataKind.String, 1)
                  };
              }
         };
@@ -381,11 +404,11 @@ namespace Microsoft.ML.RunTests
             {
                 return new[]
                 {
-                    new TextLoader.Column("SepalLength", DataKind.R4, 0),
-                    new TextLoader.Column("SepalWidth", DataKind.R4, 1),
-                    new TextLoader.Column("PetalLength", DataKind.R4, 2),
-                    new TextLoader.Column("PetalWidth",DataKind.R4, 3),
-                    new TextLoader.Column("Label", DataKind.Text, 4)
+                    new TextLoader.Column("SepalLength", DataKind.Single, 0),
+                    new TextLoader.Column("SepalWidth", DataKind.Single, 1),
+                    new TextLoader.Column("PetalLength", DataKind.Single, 2),
+                    new TextLoader.Column("PetalWidth",DataKind.Single, 3),
+                    new TextLoader.Column("Label", DataKind.String, 4)
                 };
             }
         };
@@ -422,7 +445,7 @@ namespace Microsoft.ML.RunTests
             name = "iris",
             trainFilename = @"iris.txt",
             testFilename = @"iris.txt",
-            loaderSettings = "loader=Text{col=Label:U4[0-4]:0 col=Features:1-4}",
+            loaderSettings = "loader=Text{col=Label:U4[0-2]:0 col=Features:1-4}",
         };
 
         public static TestDataset iris = new TestDataset()
@@ -430,6 +453,8 @@ namespace Microsoft.ML.RunTests
             name = "iris",
             trainFilename = @"iris.txt",
             testFilename = @"iris.txt",
+            fileHasHeader = true,
+            fileSeparator = '\t'
         };
 
         public static TestDataset irisMissing = new TestDataset()
@@ -638,6 +663,8 @@ namespace Microsoft.ML.RunTests
             name = "mnistOneClass",
             trainFilename = @"MNIST.Train.0-class.tiny.txt",
             testFilename = @"MNIST.Test.tiny.txt",
+            fileHasHeader = false,
+            fileSeparator = '\t',
             settings = ""
         };
 
@@ -687,6 +714,8 @@ namespace Microsoft.ML.RunTests
             name = "trivialMatrixFactorization",
             trainFilename = @"trivial-train.tsv",
             testFilename = @"trivial-test.tsv",
+            fileHasHeader = true,
+            fileSeparator = '\t',
             loaderSettings = "loader=Text{col=Label:R4:0 col=User:U4[0-19]:1 col=Item:U4[0-39]:2 header+}"
         };
     }

@@ -7,7 +7,6 @@ using System.IO;
 using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -22,7 +21,8 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// Utility class for creating transforms easily.
     /// </summary>
-    public static class LambdaTransform
+    [BestFriend]
+    internal static class LambdaTransform
     {
         /// <summary>
         /// A delegate type to create a persistent transform, utilized by the creation functions
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="input">The dataview this transform should be persisted on</param>
         /// <returns>A transform of the input data, as parameterized by the binary input
         /// stream</returns>
-        public delegate ITransformTemplate LoadDelegate(BinaryReader reader, IHostEnvironment env, IDataView input);
+        internal delegate ITransformTemplate LoadDelegate(BinaryReader reader, IHostEnvironment env, IDataView input);
 
         internal const string LoaderSignature = "CustomTransformer";
 
@@ -68,9 +68,13 @@ namespace Microsoft.ML.Transforms
 
             var contractName = ctx.LoadString();
 
-            var composition = env.GetCompositionContainer();
-            ITransformer transformer = composition.GetExportedValue<ITransformer>(contractName);
-            return transformer;
+            object factoryObject = env.ComponentCatalog.GetExtensionValue(env, typeof(CustomMappingFactoryAttributeAttribute), contractName);
+            if (!(factoryObject is ICustomMappingFactory mappingFactory))
+            {
+                throw env.Except($"The class with contract '{contractName}' must derive from '{typeof(CustomMappingFactory<,>).FullName}'.");
+            }
+
+            return mappingFactory.CreateTransformer(env, contractName);
         }
 
         /// <summary>
@@ -203,7 +207,7 @@ namespace Microsoft.ML.Transforms
     ///  * a custom save action that serializes the transform 'state' to the binary writer.
     ///  * a custom load action that de-serializes the transform from the binary reader. This must be a public static method of a public class.
     /// </summary>
-    internal abstract class LambdaTransformBase
+    internal abstract class LambdaTransformBase : ICanSaveModel
     {
         private readonly Action<BinaryWriter> _saveAction;
         private readonly byte[] _loadFuncBytes;
@@ -247,7 +251,7 @@ namespace Microsoft.ML.Transforms
             AssertConsistentSerializable();
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Check(CanSave(), "Cannot save this transform as it was not specified as being savable");

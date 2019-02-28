@@ -6,9 +6,9 @@ using Microsoft.ML.Transforms.Normalizers;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class NormalizerExample
+    public static class NormalizerTransform
     {
-        public static void Normalizer()
+        public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -16,7 +16,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();
-            var trainData = ml.Data.ReadFromEnumerable(data);
+            var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
             //
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Composing a different pipeline if we wanted to normalize more than one column at a time. 
             // Using log scale as the normalization mode. 
-            var multiColPipeline = ml.Transforms.Normalize(NormalizingEstimator.NormalizerMode.LogMeanVariance, new[] { ("LogInduced", "Induced"), ("LogSpontaneous", "Spontaneous") });
+            var multiColPipeline = ml.Transforms.Normalize(NormalizingEstimator.NormalizerMode.LogMeanVariance, new ColumnOptions[] { ("LogInduced", "Induced"), ("LogSpontaneous", "Spontaneous") });
             // The transformed data.
             var multiColtransformer = multiColPipeline.Fit(trainData);
             var multiColtransformedData = multiColtransformer.Transform(trainData);

@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
 #if USE_SINGLE_PRECISION
     using FloatType = Single;
@@ -103,11 +103,6 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         public override int SizeInBytes()
         {
             return _values.SizeInBytes() + _deltas.SizeInBytes() + sizeof(int) + base.SizeInBytes();
-        }
-
-        public override MD5Hash MD5Hash
-        {
-            get { return MD5Hasher.Hash(_deltas) ^ _values.MD5Hash; }
         }
 
         public override int Length { get { return _length; } }

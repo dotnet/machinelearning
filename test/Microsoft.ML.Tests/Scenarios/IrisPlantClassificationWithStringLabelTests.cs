@@ -17,11 +17,11 @@ namespace Microsoft.ML.Scenarios
 
             var reader = mlContext.Data.CreateTextLoader(columns: new[]
                 {
-                    new TextLoader.Column("SepalLength", DataKind.R4, 0),
-                    new TextLoader.Column("SepalWidth", DataKind.R4, 1),
-                    new TextLoader.Column("PetalLength", DataKind.R4, 2),
-                    new TextLoader.Column("PetalWidth", DataKind.R4, 3),
-                    new TextLoader.Column("IrisPlantType", DataKind.TX, 4),
+                    new TextLoader.Column("SepalLength", DataKind.Single, 0),
+                    new TextLoader.Column("SepalWidth", DataKind.Single, 1),
+                    new TextLoader.Column("PetalLength", DataKind.Single, 2),
+                    new TextLoader.Column("PetalWidth", DataKind.Single, 3),
+                    new TextLoader.Column("IrisPlantType", DataKind.String, 4),
                 },
                 separatorChar: ','
             );
@@ -29,8 +29,8 @@ namespace Microsoft.ML.Scenarios
             // Read training and test data sets
             string dataPath = GetDataPath("iris.data");
             string testDataPath = dataPath;
-            var trainData = reader.Read(dataPath);
-            var testData = reader.Read(testDataPath);
+            var trainData = reader.Load(dataPath);
+            var testData = reader.Load(testDataPath);
 
             // Create Estimator
             var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")

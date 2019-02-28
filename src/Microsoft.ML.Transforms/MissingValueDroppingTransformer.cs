@@ -10,14 +10,13 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(MissingValueDroppingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueDroppingTransformer), typeof(MissingValueDroppingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(MissingValueDroppingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueDroppingTransformer), typeof(MissingValueDroppingTransformer.Options), typeof(SignatureDataTransform),
     MissingValueDroppingTransformer.FriendlyName, MissingValueDroppingTransformer.ShortName, "NADropTransform")]
 
 [assembly: LoadableClass(MissingValueDroppingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueDroppingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -34,13 +33,13 @@ namespace Microsoft.ML.Transforms
     /// <include file='doc.xml' path='doc/members/member[@name="NADrop"]'/>
     public sealed class MissingValueDroppingTransformer : OneToOneTransformerBase
     {
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to drop the NAs for", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to drop the NAs for", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
         }
 
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             internal static Column Parse(string str)
             {
@@ -75,6 +74,9 @@ namespace Microsoft.ML.Transforms
 
         private const string RegistrationName = "DropNAs";
 
+        /// <summary>
+        /// The names of the input columns of the transformation and the corresponding names for the output columns.
+        /// </summary>
         public IReadOnlyList<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
@@ -82,13 +84,13 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
-        public MissingValueDroppingTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
+        internal MissingValueDroppingTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueDroppingTransformer)), columns)
         {
         }
 
-        internal MissingValueDroppingTransformer(IHostEnvironment env, Arguments args)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueDroppingTransformer)), GetColumnPairs(args.Column))
+        internal MissingValueDroppingTransformer(IHostEnvironment env, Options options)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueDroppingTransformer)), GetColumnPairs(options.Columns))
         {
         }
 
@@ -101,7 +103,7 @@ namespace Microsoft.ML.Transforms
         private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(Column[] columns)
             => columns.Select(c => (c.Name, c.Source ?? c.Name)).ToArray();
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var inType = inputSchema[srcCol].Type;
             if (!(inType is VectorType))
@@ -118,21 +120,21 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
-            => new MissingValueDroppingTransformer(env, args).MakeDataTransform(input);
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
+            => new MissingValueDroppingTransformer(env, options).MakeDataTransform(input);
 
         // Factory method for SignatureLoadDataTransform.
         private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         /// <summary>
         /// Saves the transform.
         /// </summary>
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -140,23 +142,23 @@ namespace Microsoft.ML.Transforms
             SaveColumns(ctx);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly MissingValueDroppingTransformer _parent;
 
-            private readonly ColumnType[] _srcTypes;
+            private readonly DataViewType[] _srcTypes;
             private readonly int[] _srcCols;
-            private readonly ColumnType[] _types;
+            private readonly DataViewType[] _types;
             private readonly Delegate[] _isNAs;
 
-            public Mapper(MissingValueDroppingTransformer parent, Schema inputSchema) :
+            public Mapper(MissingValueDroppingTransformer parent, DataViewSchema inputSchema) :
                 base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _types = new ColumnType[_parent.ColumnPairs.Length];
-                _srcTypes = new ColumnType[_parent.ColumnPairs.Length];
+                _types = new DataViewType[_parent.ColumnPairs.Length];
+                _srcTypes = new DataViewType[_parent.ColumnPairs.Length];
                 _srcCols = new int[_parent.ColumnPairs.Length];
                 _isNAs = new Delegate[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
@@ -164,7 +166,7 @@ namespace Microsoft.ML.Transforms
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
                     _srcTypes[i] = srcCol.Type;
-                    _types[i] = new VectorType((PrimitiveType)srcCol.Type.GetItemType());
+                    _types[i] = new VectorType((PrimitiveDataViewType)srcCol.Type.GetItemType());
                     _isNAs[i] = GetIsNADelegate(srcCol.Type);
                 }
             }
@@ -172,37 +174,37 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Returns the isNA predicate for the respective type.
             /// </summary>
-            private Delegate GetIsNADelegate(ColumnType type)
+            private Delegate GetIsNADelegate(DataViewType type)
             {
-                Func<ColumnType, Delegate> func = GetIsNADelegate<int>;
+                Func<DataViewType, Delegate> func = GetIsNADelegate<int>;
                 return Utils.MarshalInvoke(func, type.GetItemType().RawType, type);
             }
 
-            private Delegate GetIsNADelegate<T>(ColumnType type) => Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.GetItemType());
+            private Delegate GetIsNADelegate<T>(DataViewType type) => Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.GetItemType());
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    var builder = new MetadataBuilder();
-                    builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, x => x == MetadataUtils.Kinds.KeyValues || x == MetadataUtils.Kinds.IsNormalized);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
+                    var builder = new DataViewSchema.Annotations.Builder();
+                    builder.Add(InputSchema[ColMapNewToOld[i]].Annotations, x => x == AnnotationUtils.Kinds.KeyValues || x == AnnotationUtils.Kinds.IsNormalized);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.ToAnnotations());
                 }
                 return result;
             }
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
 
-                Func<Row, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
+                Func<DataViewRow, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].GetItemType().RawType);
                 return (Delegate)methodInfo.Invoke(this, new object[] { input, iinfo });
             }
 
-            private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(Row input, int iinfo)
+            private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(DataViewRow input, int iinfo)
             {
                 var srcGetter = input.GetGetter<VBuffer<TDst>>(_srcCols[iinfo]);
                 var buffer = default(VBuffer<TDst>);
@@ -348,7 +350,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
-        public MissingValueDroppingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
+        internal MissingValueDroppingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueDroppingEstimator)), new MissingValueDroppingTransformer(env, columns))
         {
             Contracts.CheckValue(env, nameof(env));
@@ -360,13 +362,14 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The environment to use.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        public MissingValueDroppingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null)
+        internal MissingValueDroppingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null)
             : this(env, (outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
 
         /// <summary>
-        /// Returns the schema that would be produced by the transformation.
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
         /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
@@ -379,9 +382,9 @@ namespace Microsoft.ML.Transforms
                 if (!(col.Kind == SchemaShape.Column.VectorKind.Vector || col.Kind == SchemaShape.Column.VectorKind.VariableVector))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.inputColumnName, "known-size vector", col.GetTypeString());
                 var metadata = new List<SchemaShape.Column>();
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var keyMeta))
                     metadata.Add(keyMeta);
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.IsNormalized, out var normMeta))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.IsNormalized, out var normMeta))
                     metadata.Add(normMeta);
                 result[colPair.outputColumnName] = new SchemaShape.Column(colPair.outputColumnName, SchemaShape.Column.VectorKind.VariableVector, col.ItemType, false, new SchemaShape(metadata.ToArray()));
             }

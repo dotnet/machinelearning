@@ -6,15 +6,12 @@ using System;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(FastForestRegression.Summary, typeof(FastForestRegression), typeof(FastForestRegression.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -29,10 +26,119 @@ using Microsoft.ML.Training;
 namespace Microsoft.ML.Trainers.FastTree
 {
     public sealed class FastForestRegressionModelParameters :
-        TreeEnsembleModelParameters,
+        TreeEnsembleModelParametersBasedOnQuantileRegressionTree,
         IQuantileValueMapper,
         IQuantileRegressionPredictor
     {
+        private sealed class QuantileStatistics
+        {
+            private readonly float[] _data;
+            private readonly float[] _weights;
+
+            //This holds the cumulative sum of _weights to search the rank easily by binary search.
+            private float[] _weightedSums;
+            private SummaryStatistics _summaryStatistics;
+
+            /// <summary>
+            /// data array will be modified because of sorting if it is not already sorted yet and this class owns the data.
+            /// Modifying the data outside will lead to erroneous output by this class
+            /// </summary>
+            public QuantileStatistics(float[] data, float[] weights = null, bool isSorted = false)
+            {
+                Contracts.CheckValue(data, nameof(data));
+                Contracts.Check(weights == null || weights.Length == data.Length, "weights");
+
+                _data = data;
+                _weights = weights;
+
+                if (!isSorted)
+                    Array.Sort(_data);
+                else
+                    Contracts.Assert(Utils.IsMonotonicallyIncreasing(_data));
+            }
+
+            /// <summary>
+            /// There are many ways to estimate quantile. This implementations is based on R-8, SciPy-(1/3,1/3)
+            /// https://en.wikipedia.org/wiki/Quantile#Estimating_the_quantiles_of_a_population
+            /// </summary>
+            public float GetQuantile(float p)
+            {
+                Contracts.CheckParam(0 <= p && p <= 1, nameof(p), "Probablity argument for Quantile function should be between 0 to 1 inclusive");
+
+                if (_data.Length == 0)
+                    return float.NaN;
+
+                if (p == 0 || _data.Length == 1)
+                    return _data[0];
+                if (p == 1)
+                    return _data[_data.Length - 1];
+
+                float h = GetRank(p);
+
+                if (h <= 1)
+                    return _data[0];
+
+                if (h >= _data.Length)
+                    return _data[_data.Length - 1];
+
+                var hf = (int)h;
+                return (float)(_data[hf - 1] + (h - hf) * (_data[hf] - _data[hf - 1]));
+            }
+
+            private float GetRank(float p)
+            {
+                const float oneThird = (float)1 / 3;
+
+                // holds length of the _data array if the weights is null or holds the sum of weights
+                float weightedLength = _data.Length;
+
+                if (_weights != null)
+                {
+                    if (_weightedSums == null)
+                    {
+                        _weightedSums = new float[_weights.Length];
+                        _weightedSums[0] = _weights[0];
+                        for (int i = 1; i < _weights.Length; i++)
+                            _weightedSums[i] = _weights[i] + _weightedSums[i - 1];
+                    }
+
+                    weightedLength = _weightedSums[_weightedSums.Length - 1];
+                }
+
+                // This implementations is based on R-8, SciPy-(1/3,1/3)
+                // https://en.wikipedia.org/wiki/Quantile#Estimating_the_quantiles_of_a_population
+                var h = (_weights == null) ? (weightedLength + oneThird) * p + oneThird : weightedLength * p;
+
+                if (_weights == null)
+                    return h;
+
+                return _weightedSums.FindIndexSorted(h);
+            }
+
+            private SummaryStatistics SummaryStatistics
+            {
+                get
+                {
+                    if (_summaryStatistics == null)
+                    {
+                        _summaryStatistics = new SummaryStatistics();
+                        if (_weights != null)
+                        {
+                            for (int i = 0; i < _data.Length; i++)
+                                _summaryStatistics.Add(_data[i], _weights[i]);
+                        }
+                        else
+                        {
+                            for (int i = 0; i < _data.Length; i++)
+                                _summaryStatistics.Add(_data[i]);
+                        }
+                    }
+
+                    return _summaryStatistics;
+                }
+            }
+        }
+
         private readonly int _quantileSampleCount;
 
         internal const string LoaderSignature = "FastForestRegressionExec";
@@ -54,13 +160,13 @@ namespace Microsoft.ML.Trainers.FastTree
                 loaderAssemblyName: typeof(FastForestRegressionModelParameters).Assembly.FullName);
         }
 
-        protected override uint VerNumFeaturesSerialized => 0x00010003;
+        private protected override uint VerNumFeaturesSerialized => 0x00010003;
 
-        protected override uint VerDefaultValueSerialized => 0x00010005;
+        private protected override uint VerDefaultValueSerialized => 0x00010005;
 
-        protected override uint VerCategoricalSplitSerialized => 0x00010006;
+        private protected override uint VerCategoricalSplitSerialized => 0x00010006;
 
-        public FastForestRegressionModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs, int samplesCount)
+        internal FastForestRegressionModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs, int samplesCount)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
             _quantileSampleCount = samplesCount;
@@ -99,9 +205,9 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FastForestRegressionModelParameters(env, ctx);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        protected override void Map(in VBuffer<float> src, ref float dst)
+        private protected override void Map(in VBuffer<float> src, ref float dst)
         {
             int inputVectorSize = InputType.GetVectorSize();
             if (inputVectorSize > 0)
@@ -120,7 +226,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     // REVIEW: Should make this more efficient - it repeatedly allocates too much stuff.
                     float[] weights = null;
                     var distribution = TrainedEnsemble.GetDistribution(in src, _quantileSampleCount, out weights);
-                    IQuantileDistribution<float> qdist = new QuantileStatistics(distribution, weights);
+                    QuantileStatistics qdist = new QuantileStatistics(distribution, weights);
 
                     var editor = VBufferEditor.Create(ref dst, quantiles.Length);
                     for (int i = 0; i < quantiles.Length; i++)
@@ -140,14 +246,14 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastForestRegression
         : RandomForestTrainerBase<FastForestRegression.Options, RegressionPredictionTransformer<FastForestRegressionModelParameters>, FastForestRegressionModelParameters>
     {
-        public sealed class Options : FastForestArgumentsBase
+        public sealed class Options : FastForestOptionsBase
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Shuffle the labels on every iteration. " +
                 "Useful probably only if using this tree as a tree leaf featurizer for multiclass.")]
             public bool ShuffleLabels;
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         internal const string Summary = "Trains a random forest to fit target values using least-squares.";
         internal const string LoadNameValue = "FastForestRegression";
@@ -164,16 +270,14 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="numLeaves">The max number of leaves in each regression tree.</param>
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="minDatapointsInLeaves">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
-        /// <param name="learningRate">The learning rate.</param>
         internal FastForestRegression(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
-            : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, learningRate)
+            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves)
+            : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -206,34 +310,38 @@ namespace Microsoft.ML.Trainers.FastTree
                 ConvertData(trainData);
                 TrainCore(ch);
             }
-            return new FastForestRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs, Args.QuantileSampleCount);
+            return new FastForestRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions, FastTreeTrainerOptions.QuantileSampleCount);
         }
 
-        protected override void PrepareLabels(IChannel ch)
+        private protected override void PrepareLabels(IChannel ch)
         {
         }
 
-        protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
+        private protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
-            return ObjectiveFunctionImplBase.Create(TrainSet, Args);
+            return ObjectiveFunctionImplBase.Create(TrainSet, FastTreeTrainerOptions);
         }
 
-        protected override Test ConstructTestForTrainingData()
+        private protected override Test ConstructTestForTrainingData()
         {
             return new RegressionTest(ConstructScoreTracker(TrainSet));
         }
 
-        protected override RegressionPredictionTransformer<FastForestRegressionModelParameters> MakeTransformer(FastForestRegressionModelParameters model, Schema trainSchema)
+        private protected override RegressionPredictionTransformer<FastForestRegressionModelParameters> MakeTransformer(FastForestRegressionModelParameters model, DataViewSchema trainSchema)
          => new RegressionPredictionTransformer<FastForestRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<FastForestRegressionModelParameters> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="FastForestRegression"/> using both training and validation data, returns
+        /// a <see cref="RegressionPredictionTransformer{FastForestRegressionModelParameters}"/>.
+        /// </summary>
+        public RegressionPredictionTransformer<FastForestRegressionModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
@@ -319,9 +427,7 @@ namespace Microsoft.ML.Trainers.FastTree
         [TlcModule.EntryPoint(Name = "Trainers.FastForestRegressor",
             Desc = FastForestRegression.Summary,
             UserName = FastForestRegression.LoadNameValue,
-            ShortName = FastForestRegression.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastForest""]/*' />",
-                                 @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastForestRegressor""]/*' />"})]
+            ShortName = FastForestRegression.ShortName)]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, FastForestRegression.Options input)
         {
             Contracts.CheckValue(env, nameof(env));

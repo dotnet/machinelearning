@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
@@ -22,7 +23,7 @@ namespace Microsoft.ML.EntryPoints
     internal sealed class TransformModelImpl : TransformModel
     {
         // The cached schema of the root of the _chain.
-        private readonly Schema _schemaRoot;
+        private readonly DataViewSchema _schemaRoot;
 
         /// <summary>
         /// This contains the transforms to save instantiated on an <see cref="IDataView"/> with
@@ -44,14 +45,14 @@ namespace Microsoft.ML.EntryPoints
         /// if transform model A needs column X and model B needs Y, that is NOT produced by A,
         /// then trimming A's input schema would cause composition to fail.
         /// </summary>
-        internal override Schema InputSchema => _schemaRoot;
+        internal override DataViewSchema InputSchema => _schemaRoot;
 
         /// <summary>
         /// The resulting schema once applied to this model. The <see cref="InputSchema"/> might have
         /// columns that are not needed by this transform and these columns will be seen in the
         /// <see cref="OutputSchema"/> produced by this transform.
         /// </summary>
-        internal override Schema OutputSchema => _chain.Schema;
+        internal override DataViewSchema OutputSchema => _chain.Schema;
 
         /// <summary>
         /// Create a TransformModel containing the transforms from "result" back to "input".
@@ -67,7 +68,7 @@ namespace Microsoft.ML.EntryPoints
             _chain = ApplyTransformUtils.ApplyAllTransformsToData(env, result, root, input);
         }
 
-        private TransformModelImpl(IHostEnvironment env, Schema schemaRoot, IDataView chain)
+        private TransformModelImpl(IHostEnvironment env, DataViewSchema schemaRoot, IDataView chain)
         {
             Contracts.AssertValue(env);
             env.AssertValue(schemaRoot);
@@ -80,7 +81,7 @@ namespace Microsoft.ML.EntryPoints
         /// Create a TransformModel containing the given (optional) transforms applied to the
         /// given root schema.
         /// </summary>
-        public TransformModelImpl(IHostEnvironment env, Schema schemaRoot, IDataTransform[] xfs)
+        public TransformModelImpl(IHostEnvironment env, DataViewSchema schemaRoot, IDataTransform[] xfs)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(schemaRoot, nameof(schemaRoot));
@@ -148,7 +149,7 @@ namespace Microsoft.ML.EntryPoints
             env.CheckValue(input, nameof(input));
 
             IDataView view;
-            Schema schemaRoot = input.InputSchema;
+            DataViewSchema schemaRoot = input.InputSchema;
             var mod = input as TransformModelImpl;
             if (mod != null)
                 view = ApplyTransformUtils.ApplyAllTransformsToData(env, _chain, mod._chain);
@@ -192,14 +193,14 @@ namespace Microsoft.ML.EntryPoints
         private sealed class CompositeRowToRowMapper : IRowToRowMapper
         {
             private readonly IDataView _chain;
-            private readonly Schema _rootSchema;
+            private readonly DataViewSchema _rootSchema;
             private readonly IExceptionContext _ectx;
 
-            public Schema Schema => _chain.Schema;
+            public DataViewSchema Schema => _chain.Schema;
 
-            public Schema OutputSchema => Schema;
+            public DataViewSchema OutputSchema => Schema;
 
-            public CompositeRowToRowMapper(IExceptionContext ectx, IDataView chain, Schema rootSchema)
+            public CompositeRowToRowMapper(IExceptionContext ectx, IDataView chain, DataViewSchema rootSchema)
             {
                 Contracts.CheckValue(ectx, nameof(ectx));
                 _ectx = ectx;
@@ -222,25 +223,28 @@ namespace Microsoft.ML.EntryPoints
                 return true;
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
                 _ectx.Assert(IsCompositeRowToRowMapper(_chain));
 
                 var transform = _chain as IDataTransform;
-                var pred = predicate;
+                var cols = dependingColumns;
                 while (transform != null)
                 {
                     var mapper = transform as IRowToRowMapper;
                     _ectx.AssertValue(mapper);
-                    pred = mapper.GetDependencies(pred);
+                    cols = mapper.GetDependencies(cols);
                     transform = transform.Source as IDataTransform;
                 }
-                return pred;
+                return cols;
             }
 
-            public Schema InputSchema => _rootSchema;
+            public DataViewSchema InputSchema => _rootSchema;
 
-            public Row GetRow(Row input, Func<int, bool> active)
+            public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
             {
                 _ectx.Assert(IsCompositeRowToRowMapper(_chain));
                 _ectx.AssertValue(input);
@@ -258,7 +262,8 @@ namespace Microsoft.ML.EntryPoints
                     _ectx.AssertValue(mapper);
                     mappers.Add(mapper);
                     actives.Add(activeCur);
-                    activeCur = mapper.GetDependencies(activeCur);
+                    var activeCurCol = mapper.GetDependencies(mapper.OutputSchema.Where(col => activeCur(col.Index)));
+                    activeCur = RowCursorUtils.FromColumnsToPredicate(activeCurCol, mapper.InputSchema);
                     transform = transform.Source as IDataTransform;
                 }
                 mappers.Reverse();

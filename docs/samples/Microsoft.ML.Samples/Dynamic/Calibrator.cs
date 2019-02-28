@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.ML.Calibrator;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
@@ -8,15 +8,15 @@ namespace Microsoft.ML.Samples.Dynamic
     /// <summary>
     /// This example first trains a StochasticDualCoordinateAscentBinary Classifier and then convert its output to probability via training a calibrator.  
     /// </summary>
-    public class CalibratorExample
+    public static class Calibrator
     {
-        public static void Calibration()
+        public static void Example()
         {
             // Downloading the dataset from github.com/dotnet/machinelearning.
             // This will create a sentiment.tsv file in the filesystem.
             // The string, dataFile, is the path to the downloaded file.
             // You can open this file, if you want to see the data. 
-            string dataFile = SamplesUtils.DatasetUtils.DownloadSentimentDataset();
+            string dataFile = SamplesUtils.DatasetUtils.DownloadSentimentDataset()[0];
 
             // A preview of the data. 
             // Sentiment	SentimentText
@@ -28,40 +28,40 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Create a text loader.
-            var reader = mlContext.Data.CreateTextLoader(new TextLoader.Arguments()
+            var loader = mlContext.Data.CreateTextLoader(new TextLoader.Options()
             {
                 Separators = new[] { '\t' },
                 HasHeader = true,
-                Column = new[]
+                Columns = new[]
                     {
-                        new TextLoader.Column("Sentiment", DataKind.BL, 0),
-                        new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                        new TextLoader.Column("Sentiment", DataKind.Boolean, 0),
+                        new TextLoader.Column("SentimentText", DataKind.String, 1)
                     }
             });
 
-            // Read the data
-            var data = reader.Read(dataFile);
+            // Load the data
+            var data = loader.Load(dataFile);
 
             // Split the dataset into two parts: one used for training, the other to train the calibrator
-            var (trainData, calibratorTrainingData) = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
+            var split = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
 
             // Featurize the text column through the FeaturizeText API. 
             // Then append the StochasticDualCoordinateAscentBinary binary classifier, setting the "Label" column as the label of the dataset, and 
             // the "Features" column produced by FeaturizeText as the features column. 
             var pipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
-                    .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                        labelColumn: "Sentiment", 
-                        featureColumn: "Features", 
+                    .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+                        labelColumnName: "Sentiment", 
+                        featureColumnName: "Features", 
                         l2Const: 0.001f, 
                         loss: new HingeLoss())); // By specifying loss: new HingeLoss(), StochasticDualCoordinateAscent will train a support vector machine (SVM).
 
             // Fit the pipeline, and get a transformer that knows how to score new data.  
-            var transformer = pipeline.Fit(trainData);
-            IPredictor model = transformer.LastTransformer.Model;
+            var transformer = pipeline.Fit(split.TrainSet);
+            var model = transformer.LastTransformer.Model;
 
             // Let's score the new data. The score will give us a numerical estimation of the chance that the particular sample 
             // bears positive sentiment. This estimate is relative to the numbers obtained. 
-            var scoredData = transformer.Transform(calibratorTrainingData);
+            var scoredData = transformer.Transform(split.TestSet);
             var scoredDataPreview = scoredData.Preview();
 
             PrintRowViewValues(scoredDataPreview);
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Let's train a calibrator estimator on this scored dataset. The trained calibrator estimator produces a transformer
             // that can transform the scored data by adding a new column names "Probability". 
-            var calibratorEstimator = new PlattCalibratorEstimator(mlContext, model, "Sentiment", "Features");
+            var calibratorEstimator = new PlattCalibratorEstimator(mlContext, "Sentiment", "Score");
             var calibratorTransformer = calibratorEstimator.Fit(scoredData);
 
             // Transform the scored data with a calibrator transfomer by adding a new column names "Probability". 

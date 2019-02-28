@@ -13,7 +13,7 @@ namespace Microsoft.ML.Numeric
     /// <summary>
     /// Limited-memory BFGS quasi-Newton optimization routine
     /// </summary>
-    public class Optimizer
+    internal class Optimizer
     {
         /// Based on Nocedal and Wright, "Numerical Optimization, Second Edition"
 

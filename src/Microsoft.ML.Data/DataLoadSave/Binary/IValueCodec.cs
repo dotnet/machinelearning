@@ -38,7 +38,7 @@ namespace Microsoft.ML.Data.IO
         /// <summary>
         /// The column type for this codec.
         /// </summary>
-        ColumnType Type { get; }
+        DataViewType Type { get; }
     }
 
     /// <summary>

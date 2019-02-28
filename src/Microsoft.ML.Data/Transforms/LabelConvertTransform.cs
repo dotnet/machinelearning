@@ -22,7 +22,8 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Transforms
 {
-    public sealed class LabelConvertTransform : OneToOneTransformBase
+    [BestFriend]
+    internal sealed class LabelConvertTransform : OneToOneTransformBase
     {
         public sealed class Column : OneToOneColumn
         {
@@ -45,8 +46,9 @@ namespace Microsoft.ML.Transforms
 
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col")]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)",
+                Name = "Column", ShortName = "col")]
+            public Column[] Columns;
         }
 
         internal const string Summary = "Convert a label column into a standard floating point representation.";
@@ -74,15 +76,15 @@ namespace Microsoft.ML.Transforms
         /// <param name="outputColumnName">Name of the output column.</param>
         /// <param name="inputColumnName">Name of the input column.  If this is null '<paramref name="outputColumnName"/>' will be used.</param>
         public LabelConvertTransform(IHostEnvironment env, IDataView input, string outputColumnName, string inputColumnName = null)
-            : this(env, new Arguments() { Column = new[] { new Column() { Source = inputColumnName ?? outputColumnName, Name = outputColumnName } } }, input)
+            : this(env, new Arguments() { Columns = new[] { new Column() { Source = inputColumnName ?? outputColumnName, Name = outputColumnName } } }, input)
         {
         }
 
         public LabelConvertTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column, input, RowCursorUtils.TestGetLabelGetter)
+            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Columns, input, RowCursorUtils.TestGetLabelGetter)
         {
             Contracts.AssertNonEmpty(Infos);
-            Contracts.Assert(Infos.Length == Utils.Size(args.Column));
+            Contracts.Assert(Infos.Length == Utils.Size(args.Columns));
             Metadata.Seal();
         }
 
@@ -119,7 +121,7 @@ namespace Microsoft.ML.Transforms
                 });
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -133,10 +135,10 @@ namespace Microsoft.ML.Transforms
             SaveBase(ctx);
         }
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
+        protected override DataViewType GetColumnTypeCore(int iinfo)
         {
             Contracts.Assert(0 <= iinfo & iinfo < Infos.Length);
-            return NumberType.Float;
+            return NumberDataViewType.Single;
         }
 
         private void SetMetadata()
@@ -163,10 +165,10 @@ namespace Microsoft.ML.Transforms
             // output column with KeyValues metadata, but maybe this output is actually useful?
             // Certainly there's nothing contractual requiring I suppress this. Should I suppress
             // anything else?
-            return kind != MetadataUtils.Kinds.KeyValues;
+            return kind != AnnotationUtils.Kinds.KeyValues;
         }
 
-        protected override Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer)
+        protected override Delegate GetGetterCore(IChannel ch, DataViewRow input, int iinfo, out Action disposer)
         {
             Contracts.AssertValueOrNull(ch);
             Contracts.AssertValue(input);
@@ -187,7 +189,7 @@ namespace Microsoft.ML.Transforms
                 return null;
             // THe following slot type will be the same for any columns, so we have only one field,
             // as opposed to one for each column.
-            Interlocked.CompareExchange(ref _slotType, new VectorType(NumberType.Float, srcSlotType), null);
+            Interlocked.CompareExchange(ref _slotType, new VectorType(NumberDataViewType.Single, srcSlotType), null);
             return _slotType;
         }
 

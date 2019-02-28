@@ -2,15 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
+using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
+    Microsoft.ML.InternalCodeAnalyzer.InstanceInitializerAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
-    public sealed class InstanceInitializerTest : DiagnosticVerifier<InstanceInitializerAnalyzer>
+    public sealed class InstanceInitializerTest
     {
         [Fact]
-        public void InstanceInitializer()
+        public async Task InstanceInitializer()
         {
             const string test = @"
 namespace TestNamespace
@@ -23,22 +27,19 @@ namespace TestNamespace
         private static int _muck = 4;
         private readonly float _blorg = 3.0f;
         private string _fooBacking;
-        public string Foo { get; set => _fooBacking = value; }
+        public string Foo { get => _fooBacking; set => _fooBacking = value; }
         public string Bar { get; } = ""Hello"";
         public static string Bizz { get; } = ""Nice"";
     }
 }";
 
-            var analyzer = GetCSharpDiagnosticAnalyzer();
-            var diag = analyzer.SupportedDiagnostics[0];
-
             var expected = new DiagnosticResult[] {
-                diag.CreateDiagnosticResult(5, 21, "_foo", "field"),
-                diag.CreateDiagnosticResult(9, 32, "_blorg", "field"),
-                diag.CreateDiagnosticResult(12, 23, "Bar", "property"),
+                VerifyCS.Diagnostic().WithLocation(6, 21).WithArguments("_foo", "field"),
+                VerifyCS.Diagnostic().WithLocation(10, 32).WithArguments("_blorg", "field"),
+                VerifyCS.Diagnostic().WithLocation(13, 23).WithArguments("Bar", "property"),
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCS.VerifyAnalyzerAsync(test, expected);
         }
     }
 }

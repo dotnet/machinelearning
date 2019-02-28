@@ -7,11 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Ensemble;
-using Microsoft.ML.Ensemble.EntryPoints;
-using Microsoft.ML.Ensemble.OutputCombiners;
-using Microsoft.ML.Ensemble.Selector;
+using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.Online;
 
 [assembly: LoadableClass(EnsembleTrainer.Summary, typeof(EnsembleTrainer), typeof(EnsembleTrainer.Arguments),
@@ -21,7 +19,7 @@ using Microsoft.ML.Trainers.Online;
 [assembly: LoadableClass(typeof(EnsembleTrainer), typeof(EnsembleTrainer.Arguments), typeof(SignatureModelCombiner),
     "Binary Classification Ensemble Model Combiner", EnsembleTrainer.LoadNameValue, "pe", "ParallelEnsemble")]
 
-namespace Microsoft.ML.Ensemble
+namespace Microsoft.ML.Trainers.Ensemble
 {
     using TDistPredictor = IDistPredictorProducing<Single, Single>;
     using TScalarPredictor = IPredictorProducing<Single>;
@@ -58,7 +56,11 @@ namespace Microsoft.ML.Ensemble
                 BasePredictors = new[]
                 {
                     ComponentFactoryUtils.CreateFromFunction(
-                        env => new LinearSvmTrainer(env))
+                        env => {
+                            var trainerEstimator = new LinearSvmTrainer(env);
+                            return TrainerUtils.MapTrainerEstimatorToTrainer<LinearSvmTrainer,
+                                LinearBinaryModelParameters, LinearBinaryModelParameters>(env, trainerEstimator);
+                        })
                 };
             }
         }
@@ -79,9 +81,9 @@ namespace Microsoft.ML.Ensemble
             Host.CheckParam(predictionKind == PredictionKind.BinaryClassification, nameof(PredictionKind));
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<TScalarPredictor>> models)
+        private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<float>> models)
         {
             if (models.All(m => m.Predictor is TDistPredictor))
                 return new EnsembleDistributionModelParameters(Host, PredictionKind, CreateModels<TDistPredictor>(models), Combiner);
@@ -98,12 +100,12 @@ namespace Microsoft.ML.Ensemble
             {
                 Host.CheckParam(models.All(m => m is TDistPredictor), nameof(models));
                 return new EnsembleDistributionModelParameters(Host, p.PredictionKind,
-                    models.Select(k => new FeatureSubsetModel<TDistPredictor>((TDistPredictor)k)).ToArray(), combiner);
+                    models.Select(k => new FeatureSubsetModel<float>((TDistPredictor)k)).ToArray(), combiner);
             }
 
             Host.CheckParam(models.All(m => m is TScalarPredictor), nameof(models));
             return new EnsembleModelParameters(Host, p.PredictionKind,
-                    models.Select(k => new FeatureSubsetModel<TScalarPredictor>((TScalarPredictor)k)).ToArray(), combiner);
+                    models.Select(k => new FeatureSubsetModel<float>((TScalarPredictor)k)).ToArray(), combiner);
         }
     }
 }

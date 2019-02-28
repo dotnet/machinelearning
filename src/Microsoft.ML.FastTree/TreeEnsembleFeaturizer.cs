@@ -5,13 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
@@ -41,7 +42,7 @@ namespace Microsoft.ML.Data
     /// 2. An indicator vector for the leaves that the feature vector falls on in the tree ensemble.
     /// 3. An indicator vector for the internal nodes on the paths that the feature vector falls on in the tree ensemble.
     /// </summary>
-    public sealed class TreeEnsembleFeaturizerBindableMapper : ISchemaBindableMapper, ICanSaveModel
+    internal sealed class TreeEnsembleFeaturizerBindableMapper : ISchemaBindableMapper, ICanSaveModel
     {
         public static class OutputColumnNames
         {
@@ -74,9 +75,9 @@ namespace Microsoft.ML.Data
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
 
-            public Schema InputSchema => InputRoleMappedSchema.Schema;
-            public Schema OutputSchema { get; }
-            private Schema.Column FeatureColumn => InputRoleMappedSchema.Feature.Value;
+            public DataViewSchema InputSchema => InputRoleMappedSchema.Schema;
+            public DataViewSchema OutputSchema { get; }
+            private DataViewSchema.Column FeatureColumn => InputRoleMappedSchema.Feature.Value;
 
             public ISchemaBindableMapper Bindable => _owner;
 
@@ -94,10 +95,10 @@ namespace Microsoft.ML.Data
                 InputRoleMappedSchema = schema;
 
                 // A vector containing the output of each tree on a given example.
-                var treeValueType = new VectorType(NumberType.Float, owner._ensemble.TrainedEnsemble.NumTrees);
+                var treeValueType = new VectorType(NumberDataViewType.Single, owner._ensemble.TrainedEnsemble.NumTrees);
                 // An indicator vector with length = the total number of leaves in the ensemble, indicating which leaf the example
                 // ends up in all the trees in the ensemble.
-                var leafIdType = new VectorType(NumberType.Float, owner._totalLeafCount);
+                var leafIdType = new VectorType(NumberDataViewType.Single, owner._totalLeafCount);
                 // An indicator vector with length = the total number of nodes in the ensemble, indicating the nodes on
                 // the paths of the example in all the trees in the ensemble.
                 // The total number of nodes in a binary tree is equal to the number of internal nodes + the number of leaf nodes,
@@ -105,35 +106,35 @@ namespace Microsoft.ML.Data
                 // plus one (since the root node is not a child of any node). So we have #internal + #leaf = 2*(#internal) + 1,
                 // which means that #internal = #leaf - 1.
                 // Therefore, the number of internal nodes in the ensemble is #leaf - #trees.
-                var pathIdType = new VectorType(NumberType.Float, owner._totalLeafCount - owner._ensemble.TrainedEnsemble.NumTrees);
+                var pathIdType = new VectorType(NumberDataViewType.Single, owner._totalLeafCount - owner._ensemble.TrainedEnsemble.NumTrees);
 
                 // Start creating output schema with types derived above.
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
 
                 // Metadata of tree values.
-                var treeIdMetadataBuilder = new MetadataBuilder();
-                treeIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(treeValueType.Size),
+                var treeIdMetadataBuilder = new DataViewSchema.Annotations.Builder();
+                treeIdMetadataBuilder.Add(AnnotationUtils.Kinds.SlotNames, AnnotationUtils.GetNamesType(treeValueType.Size),
                     (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetTreeSlotNames);
                 // Add the column of trees' output values
-                schemaBuilder.AddColumn(OutputColumnNames.Trees, treeValueType, treeIdMetadataBuilder.GetMetadata());
+                schemaBuilder.AddColumn(OutputColumnNames.Trees, treeValueType, treeIdMetadataBuilder.ToAnnotations());
 
                 // Metadata of leaf IDs.
-                var leafIdMetadataBuilder = new MetadataBuilder();
-                leafIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(leafIdType.Size),
+                var leafIdMetadataBuilder = new DataViewSchema.Annotations.Builder();
+                leafIdMetadataBuilder.Add(AnnotationUtils.Kinds.SlotNames, AnnotationUtils.GetNamesType(leafIdType.Size),
                     (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetLeafSlotNames);
-                leafIdMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, (ref bool value) => value = true);
+                leafIdMetadataBuilder.Add(AnnotationUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ref bool value) => value = true);
                 // Add the column of leaves' IDs where the input example reaches.
-                schemaBuilder.AddColumn(OutputColumnNames.Leaves, leafIdType, leafIdMetadataBuilder.GetMetadata());
+                schemaBuilder.AddColumn(OutputColumnNames.Leaves, leafIdType, leafIdMetadataBuilder.ToAnnotations());
 
                 // Metadata of path IDs.
-                var pathIdMetadataBuilder = new MetadataBuilder();
-                pathIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(pathIdType.Size),
+                var pathIdMetadataBuilder = new DataViewSchema.Annotations.Builder();
+                pathIdMetadataBuilder.Add(AnnotationUtils.Kinds.SlotNames, AnnotationUtils.GetNamesType(pathIdType.Size),
                     (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetPathSlotNames);
-                pathIdMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, (ref bool value) => value = true);
+                pathIdMetadataBuilder.Add(AnnotationUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ref bool value) => value = true);
                 // Add the column of encoded paths which the input example passes.
-                schemaBuilder.AddColumn(OutputColumnNames.Paths, pathIdType, pathIdMetadataBuilder.GetMetadata());
+                schemaBuilder.AddColumn(OutputColumnNames.Paths, pathIdType, pathIdMetadataBuilder.ToAnnotations());
 
-                OutputSchema = schemaBuilder.GetSchema();
+                OutputSchema = schemaBuilder.ToSchema();
 
                 // Tree values must be the first output column.
                 Contracts.Assert(OutputSchema[OutputColumnNames.Trees].Index == TreeValuesColumnId);
@@ -143,14 +144,14 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(OutputSchema[OutputColumnNames.Paths].Index == PathIdsColumnId);
             }
 
-            public Row GetRow(Row input, Func<int, bool> predicate)
+            public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
             {
                 _ectx.CheckValue(input, nameof(input));
                 _ectx.CheckValue(predicate, nameof(predicate));
                 return new SimpleRow(OutputSchema, input, CreateGetters(input, predicate));
             }
 
-            private Delegate[] CreateGetters(Row input, Func<int, bool> predicate)
+            private Delegate[] CreateGetters(DataViewRow input, Func<int, bool> predicate)
             {
                 _ectx.AssertValue(input);
                 _ectx.AssertValue(predicate);
@@ -193,7 +194,7 @@ namespace Microsoft.ML.Data
             private sealed class State
             {
                 private readonly IExceptionContext _ectx;
-                private readonly Row _input;
+                private readonly DataViewRow _input;
                 private readonly TreeEnsembleModelParameters _ensemble;
                 private readonly int _numTrees;
                 private readonly int _numLeaves;
@@ -210,7 +211,7 @@ namespace Microsoft.ML.Data
                 private long _cachedLeafBuilderPosition;
                 private long _cachedPathBuilderPosition;
 
-                public State(IExceptionContext ectx, Row input, TreeEnsembleModelParameters ensemble, int numLeaves, int featureIndex)
+                public State(IExceptionContext ectx, DataViewRow input, TreeEnsembleModelParameters ensemble, int numLeaves, int featureIndex)
                 {
                     Contracts.AssertValue(ectx);
                     _ectx = ectx;
@@ -329,14 +330,15 @@ namespace Microsoft.ML.Data
                 yield return RoleMappedSchema.ColumnRole.Feature.Bind(FeatureColumn.Name);
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            public IEnumerable<DataViewSchema.Column> GetDependenciesForNewColumns(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
-                for (int i = 0; i < OutputSchema.Count; i++)
-                {
-                    if (predicate(i))
-                        return col => col == FeatureColumn.Index;
-                }
-                return col => false;
+                if (dependingColumns.Count() == 0)
+                    return Enumerable.Empty<DataViewSchema.Column>();
+
+                return Enumerable.Repeat(FeatureColumn, 1);
             }
         }
 
@@ -366,8 +368,14 @@ namespace Microsoft.ML.Data
             _host.CheckValue(args, nameof(args));
             _host.CheckValue(predictor, nameof(predictor));
 
-            if (predictor is CalibratedPredictorBase)
-                predictor = ((CalibratedPredictorBase)predictor).SubPredictor;
+            // This function accepts models trained by FastTreeTrainer family. There are four types that "predictor" can be.
+            //  1. CalibratedPredictorBase<FastTreeBinaryModelParameters, PlattCalibrator>
+            //  2. FastTreeRankingModelParameters
+            //  3. FastTreeRegressionModelParameters
+            //  4. FastTreeTweedieModelParameters
+            // Only (1) needs a special cast right below because all others are derived from TreeEnsembleModelParameters.
+            if (predictor is CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator> calibrated)
+                predictor = calibrated.SubModel;
             _ensemble = predictor as TreeEnsembleModelParameters;
             _host.Check(_ensemble != null, "Predictor in model file does not have compatible type");
 
@@ -387,7 +395,7 @@ namespace Microsoft.ML.Data
             _totalLeafCount = CountLeaves(_ensemble);
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -581,8 +589,8 @@ namespace Microsoft.ML.Data
                     Contracts.Assert(data.Schema.Feature.HasValue);
 
                     // Make sure that the given predictor has the correct number of input features.
-                    if (predictor is CalibratedPredictorBase)
-                        predictor = ((CalibratedPredictorBase)predictor).SubPredictor;
+                    if (predictor is IWeaklyTypedCalibratedModelParameters calibrated)
+                        predictor = calibrated.WeeklyTypedSubModel;
                     // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                     // be non-null.
                     var vm = predictor as IValueMapper;
@@ -646,8 +654,8 @@ namespace Microsoft.ML.Data
                 ch.Assert(predictor == predictor2);
 
                 // Make sure that the given predictor has the correct number of input features.
-                if (predictor is CalibratedPredictorBase)
-                    predictor = ((CalibratedPredictorBase)predictor).SubPredictor;
+                if (predictor is CalibratedModelParametersBase<IPredictorProducing<float>, Calibrators.ICalibrator>)
+                    predictor = ((CalibratedModelParametersBase<IPredictorProducing<float>, Calibrators.ICalibrator>)predictor).SubModel;
                 // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                 // be non-null.
                 var vm = predictor as IValueMapper;
@@ -661,7 +669,7 @@ namespace Microsoft.ML.Data
 
                 ISchemaBindableMapper bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
                 var bound = bindable.Bind(env, data.Schema);
-               return new GenericScorer(env, scorerArgs, data.Data, bound, data.Schema);
+                return new GenericScorer(env, scorerArgs, data.Data, bound, data.Schema);
             }
         }
 
@@ -708,7 +716,7 @@ namespace Microsoft.ML.Data
                     };
             }
 
-            return LambdaColumnMapper.Create(env, "Key to Float Mapper", input, col, col, type, NumberType.Float, mapper);
+            return LambdaColumnMapper.Create(env, "Key to Float Mapper", input, col, col, type, NumberDataViewType.Single, mapper);
         }
 
         private static IDataView AppendLabelTransform(IHostEnvironment env, IChannel ch, IDataView input, string labelName, int labelPermutationSeed)
@@ -722,7 +730,7 @@ namespace Microsoft.ML.Data
             if (!col.HasValue)
                 throw ch.ExceptSchemaMismatch(nameof(input), "label", labelName);
 
-            ColumnType labelType = col.Value.Type;
+            DataViewType labelType = col.Value.Type;
             if (!(labelType is KeyType))
             {
                 if (labelPermutationSeed != 0)
@@ -741,8 +749,7 @@ namespace Microsoft.ML.Data
         [TlcModule.EntryPoint(Name = "Transforms.TreeLeafFeaturizer",
             Desc = TreeEnsembleFeaturizerTransform.TreeEnsembleSummary,
             UserName = TreeEnsembleFeaturizerTransform.UserName,
-            ShortName = TreeEnsembleFeaturizerBindableMapper.LoadNameShort,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""TreeEnsembleFeaturizerTransform""]/*'/>" })]
+            ShortName = TreeEnsembleFeaturizerBindableMapper.LoadNameShort)]
         public static CommonOutputs.TransformOutput Featurizer(IHostEnvironment env, TreeEnsembleFeaturizerTransform.ArgumentsForEntryPoint input)
         {
             Contracts.CheckValue(env, nameof(env));

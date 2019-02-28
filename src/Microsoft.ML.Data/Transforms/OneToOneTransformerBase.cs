@@ -32,7 +32,8 @@ namespace Microsoft.ML.Data
             ColumnPairs = columns;
         }
 
-        protected OneToOneTransformerBase(IHost host, ModelLoadContext ctx) : base(host)
+        [BestFriend]
+        private protected OneToOneTransformerBase(IHost host, ModelLoadContext ctx) : base(host)
         {
             // *** Binary format ***
             // int: number of added columns
@@ -68,7 +69,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private void CheckInput(Schema inputSchema, int col, out int srcCol)
+        private void CheckInput(DataViewSchema inputSchema, int col, out int srcCol)
         {
             Contracts.AssertValue(inputSchema);
             Contracts.Assert(0 <= col && col < ColumnPairs.Length);
@@ -78,7 +79,8 @@ namespace Microsoft.ML.Data
             CheckInputColumn(inputSchema, col, srcCol);
         }
 
-        protected virtual void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        [BestFriend]
+        private protected virtual void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             // By default, there are no extra checks.
         }
@@ -88,7 +90,7 @@ namespace Microsoft.ML.Data
             protected readonly Dictionary<int, int> ColMapNewToOld;
             private readonly OneToOneTransformerBase _parent;
 
-            protected OneToOneMapperBase(IHost host, OneToOneTransformerBase parent, Schema inputSchema) : base(host, inputSchema, parent)
+            protected OneToOneMapperBase(IHost host, OneToOneTransformerBase parent, DataViewSchema inputSchema) : base(host, inputSchema, parent)
             {
                 Contracts.AssertValue(parent);
                 _parent = parent;
@@ -110,7 +112,7 @@ namespace Microsoft.ML.Data
                 return col => active[col];
             }
 
-            public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
+            private protected override void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);
         }
     }
 }

@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.CpuMath;
@@ -17,9 +16,8 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.PCA;
-using Microsoft.ML.Training;
 
-[assembly: LoadableClass(RandomizedPcaTrainer.Summary, typeof(RandomizedPcaTrainer), typeof(RandomizedPcaTrainer.Arguments),
+[assembly: LoadableClass(RandomizedPcaTrainer.Summary, typeof(RandomizedPcaTrainer), typeof(RandomizedPcaTrainer.Options),
     new[] { typeof(SignatureAnomalyDetectorTrainer), typeof(SignatureTrainer) },
     RandomizedPcaTrainer.UserNameValue,
     RandomizedPcaTrainer.LoadNameValue,
@@ -31,7 +29,7 @@ using Microsoft.ML.Training;
 [assembly: LoadableClass(typeof(void), typeof(RandomizedPcaTrainer), null, typeof(SignatureEntryPointModule), RandomizedPcaTrainer.LoadNameValue)]
 
 namespace Microsoft.ML.Trainers.PCA
-{
+    {
     // REVIEW: make RFF transformer an option here.
 
     /// <summary>
@@ -49,24 +47,31 @@ namespace Microsoft.ML.Trainers.PCA
         internal const string Summary = "This algorithm trains an approximate PCA using Randomized SVD algorithm. "
             + "This PCA can be made into Kernel PCA by using Random Fourier Features transform.";
 
-        public class Arguments : UnsupervisedLearnerInputBaseWithWeight
+        public sealed class Options : UnsupervisedLearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of components in the PCA", ShortName = "k", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "10,20,40,80")]
             [TlcModule.SweepableDiscreteParam("Rank", new object[] { 10, 20, 40, 80 })]
-            public int Rank = 20;
+            public int Rank = Defaults.NumComponents;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Oversampling parameter for randomized PCA training", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "10,20,40")]
             [TlcModule.SweepableDiscreteParam("Oversampling", new object[] { 10, 20, 40 })]
-            public int Oversampling = 20;
+            public int Oversampling = Defaults.OversamplingParameters;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "If enabled, data is centered to be zero mean", ShortName = "center")]
             [TlcModule.SweepableDiscreteParam("Center", null, isBool: true)]
-            public bool Center = true;
+            public bool Center = Defaults.IsCenteredZeroMean;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The seed for random number generation", ShortName = "seed")]
             public int? Seed;
+
+            internal static class Defaults
+            {
+                public const int NumComponents = 20;
+                public const int OversamplingParameters = 20;
+                public const bool IsCenteredZeroMean = true;
+            }
         }
 
         private readonly int _rank;
@@ -75,7 +80,7 @@ namespace Microsoft.ML.Trainers.PCA
         private readonly int _seed;
         private readonly string _featureColumn;
 
-        public override PredictionKind PredictionKind => PredictionKind.AnomalyDetection;
+        private protected override PredictionKind PredictionKind => PredictionKind.AnomalyDetection;
 
         // The training performs two passes, only. Probably not worth caching.
         private static readonly TrainerInfo _info = new TrainerInfo(caching: false);
@@ -91,35 +96,35 @@ namespace Microsoft.ML.Trainers.PCA
         /// <param name="oversampling">Oversampling parameter for randomized PCA training.</param>
         /// <param name="center">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation.</param>
-        public RandomizedPcaTrainer(IHostEnvironment env,
+        internal RandomizedPcaTrainer(IHostEnvironment env,
             string features,
             string weights = null,
-            int rank = 20,
-            int oversampling = 20,
-            bool center = true,
+            int rank = Options.Defaults.NumComponents,
+            int oversampling = Options.Defaults.OversamplingParameters,
+            bool center = Options.Defaults.IsCenteredZeroMean,
             int? seed = null)
             : this(env, null, features, weights, rank, oversampling, center, seed)
         {
 
         }
 
-        internal RandomizedPcaTrainer(IHostEnvironment env, Arguments args)
-            :this(env, args, args.FeatureColumn, args.WeightColumn)
+        internal RandomizedPcaTrainer(IHostEnvironment env, Options options)
+            :this(env, options, options.FeatureColumn, options.WeightColumn)
         {
 
         }
 
-        private RandomizedPcaTrainer(IHostEnvironment env, Arguments args, string featureColumn, string weightColumn,
+        private RandomizedPcaTrainer(IHostEnvironment env, Options options, string featureColumn, string weightColumn,
             int rank = 20, int oversampling = 20, bool center = true, int? seed = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn), default, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             // if the args are not null, we got here from maml, and the internal ctor.
-            if (args != null)
+            if (options != null)
             {
-                _rank = args.Rank;
-                _center = args.Center;
-                _oversampling = args.Oversampling;
-                _seed = args.Seed ?? Host.Rand.Next();
+                _rank = options.Rank;
+                _center = options.Center;
+                _oversampling = options.Oversampling;
+                _seed = options.Seed ?? Host.Rand.Next();
             }
             else
             {
@@ -152,12 +157,12 @@ namespace Microsoft.ML.Trainers.PCA
         {
             if (weightColumn == null)
                 return default;
-            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
         }
 
         private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
         {
-            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
         }
 
         //Note: the notations used here are the same as in https://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf (pg. 9)
@@ -322,41 +327,39 @@ namespace Microsoft.ML.Trainers.PCA
             }
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
              return new[]
             {
                 new SchemaShape.Column(DefaultColumnNames.Score,
                         SchemaShape.Column.VectorKind.Scalar,
-                        NumberType.R4,
+                        NumberDataViewType.Single,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
 
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel,
                         SchemaShape.Column.VectorKind.Scalar,
-                        BoolType.Instance,
+                        BooleanDataViewType.Instance,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
-        protected override AnomalyPredictionTransformer<PcaModelParameters> MakeTransformer(PcaModelParameters model, Schema trainSchema)
+        private protected override AnomalyPredictionTransformer<PcaModelParameters> MakeTransformer(PcaModelParameters model, DataViewSchema trainSchema)
             => new AnomalyPredictionTransformer<PcaModelParameters>(Host, model, trainSchema, _featureColumn);
 
         [TlcModule.EntryPoint(Name = "Trainers.PcaAnomalyDetector",
             Desc = "Train an PCA Anomaly model.",
             UserName = UserNameValue,
-            ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/member[@name=""PCA""]/*' />",
-                                 @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/example[@name=""PcaAnomalyDetector""]/*' />" })]
-        internal static CommonOutputs.AnomalyDetectionOutput TrainPcaAnomaly(IHostEnvironment env, Arguments input)
+            ShortName = ShortName)]
+        internal static CommonOutputs.AnomalyDetectionOutput TrainPcaAnomaly(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainPCAAnomaly");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.AnomalyDetectionOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.AnomalyDetectionOutput>(host, input,
                 () => new RandomizedPcaTrainer(host, input),
                 getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
@@ -396,12 +399,9 @@ namespace Microsoft.ML.Trainers.PCA
         private readonly VBuffer<float> _mean; // used to compute (x-mu)^2
         private readonly float _norm2Mean;
 
-        private readonly ColumnType _inputType;
+        private readonly DataViewType _inputType;
 
-        public override PredictionKind PredictionKind
-        {
-            get { return PredictionKind.AnomalyDetection; }
-        }
+        private protected override PredictionKind PredictionKind => PredictionKind.AnomalyDetection;
 
         /// <summary>
         /// Instantiate new model parameters from trained model.
@@ -410,7 +410,7 @@ namespace Microsoft.ML.Trainers.PCA
         /// <param name="rank">The rank of the PCA approximation of the covariance matrix. This is the number of eigenvectors in the model.</param>
         /// <param name="eigenVectors">Array of eigenvectors.</param>
         /// <param name="mean">The mean vector of the training data.</param>
-        public PcaModelParameters(IHostEnvironment env, int rank, float[][] eigenVectors, in VBuffer<float> mean)
+        internal PcaModelParameters(IHostEnvironment env, int rank, float[][] eigenVectors, in VBuffer<float> mean)
             : base(env, RegistrationName)
         {
             _dimension = eigenVectors[0].Length;
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Trainers.PCA
             _mean = mean;
             _norm2Mean = VectorUtils.NormSquared(mean);
 
-            _inputType = new VectorType(NumberType.Float, _dimension);
+            _inputType = new VectorType(NumberDataViewType.Single, _dimension);
         }
 
         private PcaModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -471,7 +471,7 @@ namespace Microsoft.ML.Trainers.PCA
             }
             WarnOnOldNormalizer(ctx, GetType(), Host);
 
-            _inputType = new VectorType(NumberType.Float, _dimension);
+            _inputType = new VectorType(NumberDataViewType.Single, _dimension);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)
@@ -557,19 +557,19 @@ namespace Microsoft.ML.Trainers.PCA
             cols[_rank] = _mean;
 
             bldr.AddColumn("VectorName", names);
-            bldr.AddColumn("VectorData", NumberType.R4, cols);
+            bldr.AddColumn("VectorData", NumberDataViewType.Single, cols);
 
             return bldr.GetDataView();
         }
 
-        ColumnType IValueMapper.InputType
+        DataViewType IValueMapper.InputType
         {
             get { return _inputType; }
         }
 
-        ColumnType IValueMapper.OutputType
+        DataViewType IValueMapper.OutputType
         {
-            get { return NumberType.Float; }
+            get { return NumberDataViewType.Single; }
         }
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()

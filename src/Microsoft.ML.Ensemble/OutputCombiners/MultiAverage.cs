@@ -5,18 +5,18 @@
 using System;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.Ensemble;
 
-[assembly: LoadableClass(typeof(MultiAverage), typeof(MultiAverage.Arguments), typeof(SignatureCombiner),
+[assembly: LoadableClass(typeof(MultiAverage), typeof(MultiAverage.Options), typeof(SignatureCombiner),
     Average.UserName, MultiAverage.LoadName)]
 [assembly: LoadableClass(typeof(MultiAverage), null, typeof(SignatureLoadModel), Average.UserName,
     MultiAverage.LoadName, MultiAverage.LoaderSignature)]
 
-namespace Microsoft.ML.Ensemble.OutputCombiners
+namespace Microsoft.ML.Trainers.Ensemble
 {
-    public sealed class MultiAverage : BaseMultiAverager, ICanSaveModel
+    internal sealed class MultiAverage : BaseMultiAverager
     {
         public const string LoadName = "MultiAverage";
         public const string LoaderSignature = "MultiAverageCombiner";
@@ -33,13 +33,13 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
         }
 
         [TlcModule.Component(Name = LoadName, FriendlyName = Average.UserName)]
-        public sealed class Arguments : ArgumentsBase, ISupportMulticlassOutputCombinerFactory
+        public sealed class Options : OptionsBase, ISupportMulticlassOutputCombinerFactory
         {
             public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiAverage(env, this);
         }
 
-        public MultiAverage(IHostEnvironment env, Arguments args)
-            : base(env, LoaderSignature, args)
+        public MultiAverage(IHostEnvironment env, Options options)
+            : base(env, LoaderSignature, options)
         {
         }
 

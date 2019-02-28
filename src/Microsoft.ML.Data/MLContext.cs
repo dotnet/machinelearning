@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML
@@ -41,6 +39,11 @@ namespace Microsoft.ML
         public RankingCatalog Ranking { get; }
 
         /// <summary>
+        /// Trainers and tasks specific to anomaly detection problems.
+        /// </summary>
+        public AnomalyDetectionCatalog AnomalyDetection { get; }
+
+        /// <summary>
         /// Data processing operations.
         /// </summary>
         public TransformsCatalog Transforms { get; }
@@ -64,9 +67,9 @@ namespace Microsoft.ML
         public event EventHandler<LoggingEventArgs> Log;
 
         /// <summary>
-        /// This is a MEF composition container catalog to be used for model loading.
+        /// This is a catalog of components that will be used for model loading.
         /// </summary>
-        public CompositionContainer CompositionContainer { get; set; }
+        public ComponentCatalog ComponentCatalog => _env.ComponentCatalog;
 
         /// <summary>
         /// Create the ML context.
@@ -75,7 +78,7 @@ namespace Microsoft.ML
         /// <param name="conc">Concurrency level. Set to 1 to run single-threaded. Set to 0 to pick automatically.</param>
         public MLContext(int? seed = null, int conc = 0)
         {
-            _env = new LocalEnvironment(seed, conc, MakeCompositionContainer);
+            _env = new LocalEnvironment(seed, conc);
             _env.AddListener(ProcessMessage);
 
             BinaryClassification = new BinaryClassificationCatalog(_env);
@@ -83,21 +86,10 @@ namespace Microsoft.ML
             Regression = new RegressionCatalog(_env);
             Clustering = new ClusteringCatalog(_env);
             Ranking = new RankingCatalog(_env);
+            AnomalyDetection = new AnomalyDetectionCatalog(_env);
             Transforms = new TransformsCatalog(_env);
             Model = new ModelOperationsCatalog(_env);
             Data = new DataOperationsCatalog(_env);
-        }
-
-        private CompositionContainer MakeCompositionContainer()
-        {
-            if (CompositionContainer == null)
-                return null;
-
-            var mlContext = CompositionContainer.GetExportedValueOrDefault<MLContext>();
-            if (mlContext == null)
-                CompositionContainer.ComposeExportedValue<MLContext>(this);
-
-            return CompositionContainer;
         }
 
         private void ProcessMessage(IMessageSource source, ChannelMessage message)
@@ -114,16 +106,11 @@ namespace Microsoft.ML
 
         int IHostEnvironment.ConcurrencyFactor => _env.ConcurrencyFactor;
         bool IHostEnvironment.IsCancelled => _env.IsCancelled;
-        ComponentCatalog IHostEnvironment.ComponentCatalog => _env.ComponentCatalog;
         string IExceptionContext.ContextDescription => _env.ContextDescription;
-        IFileHandle IHostEnvironment.CreateOutputFile(string path) => _env.CreateOutputFile(path);
-        IFileHandle IHostEnvironment.CreateTempFile(string suffix, string prefix) => _env.CreateTempFile(suffix, prefix);
-        IFileHandle IHostEnvironment.OpenInputFile(string path) => _env.OpenInputFile(path);
         TException IExceptionContext.Process<TException>(TException ex) => _env.Process(ex);
         IHost IHostEnvironment.Register(string name, int? seed, bool? verbose, int? conc) => _env.Register(name, seed, verbose, conc);
         IChannel IChannelProvider.Start(string name) => _env.Start(name);
         IPipe<TMessage> IChannelProvider.StartPipe<TMessage>(string name) => _env.StartPipe<TMessage>(name);
         IProgressChannel IProgressChannelProvider.StartProgressChannel(string name) => _env.StartProgressChannel(name);
-        CompositionContainer IHostEnvironment.GetCompositionContainer() => _env.GetCompositionContainer();
     }
 }

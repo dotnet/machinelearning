@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
@@ -16,7 +15,6 @@ using Microsoft.ML.Recommender;
 using Microsoft.ML.Recommender.Internal;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Recommender;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(MatrixFactorizationTrainer.Summary, typeof(MatrixFactorizationTrainer), typeof(MatrixFactorizationTrainer.Options),
     new Type[] { typeof(SignatureTrainer), typeof(SignatureMatrixRecommendingTrainer) },
@@ -83,15 +81,37 @@ namespace Microsoft.ML.Trainers
     /// <example>
     /// <format type="text/markdown">
     /// <![CDATA[
-    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MatrixFactorization.cs)]
+    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Recommendation/MatrixFactorization.cs)]
     /// ]]>
     /// </format>
     /// </example>
-    public sealed class MatrixFactorizationTrainer : TrainerBase<MatrixFactorizationPredictor>,
+    public sealed class MatrixFactorizationTrainer : ITrainer<MatrixFactorizationModelParameters>,
         IEstimator<MatrixFactorizationPredictionTransformer>
     {
-        public enum LossFunctionType { SquareLossRegression = 0, SquareLossOneClass = 12 };
+        /// <summary>
+        /// Type of loss function.
+        /// </summary>
+        public enum LossFunctionType
+        {
+            /// <summary>
+            /// Used in traditional collaborative filtering problem with squared loss.
+            /// </summary>
+            /// <remarks>
+            /// See <a href="https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/mf_adaptive_pakdd.pdf">Equation</a> (1).
+            /// </remarks>
+            SquareLossRegression = 0,
+            /// <summary>
+            /// Used in implicit-feedback recommendation problem.
+            /// </summary>
+            /// <remarks>
+            /// See <a href="http://yifanhu.net/PUB/cf.pdf">Equation</a> (3).
+            /// </remarks>
+            SquareLossOneClass = 12
+        };
 
+        /// <summary>
+        /// Advanced options for the <see cref="MatrixFactorizationTrainer"/>.
+        /// </summary>
         public sealed class Options
         {
             /// <summary>
@@ -110,40 +130,69 @@ namespace Microsoft.ML.Trainers
             public string LabelColumnName;
 
             /// <summary>
-            /// Loss function minimized for finding factor matrices.  Two values are allowed, 0 or 12. The values 0 means traditional collaborative filtering
-            /// problem with squared loss. The value 12 triggers one-class matrix factorization for implicit-feedback recommendation problem.
+            /// Loss function minimized for finding factor matrices.
             /// </summary>
+            /// <remarks>
+            /// Two values are allowed, <see cref="LossFunctionType.SquareLossRegression"/> or <see cref="LossFunctionType.SquareLossOneClass"/>.
+            /// The <see cref="LossFunctionType.SquareLossRegression"/> means traditional collaborative filtering problem with squared loss.
+            /// The <see cref="LossFunctionType.SquareLossOneClass"/> triggers one-class matrix factorization for implicit-feedback recommendation problem.
+            /// </remarks>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Loss function minimized for finding factor matrices.")]
             [TGUI(SuggestedSweeps = "0,12")]
             [TlcModule.SweepableDiscreteParam("LossFunction", new object[] { LossFunctionType.SquareLossRegression, LossFunctionType.SquareLossOneClass })]
-            public LossFunctionType LossFunction = LossFunctionType.SquareLossRegression;
+            public LossFunctionType LossFunction = Defaults.LossFunction;
 
+            /// <summary>
+            /// Regularization parameter.
+            /// </summary>
+            /// <remarks>
+            /// It's the weight of factor matrices Frobenius norms in the objective function minimized by matrix factorization's algorithm. A small value could cause over-fitting.
+            /// </remarks>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularization parameter. " +
-                "It's the weight of factor matrices' norms in the objective function minimized by matrix factorization's algorithm. " +
+                "It's the weight of factor matrices Frobenius norms in the objective function minimized by matrix factorization's algorithm. " +
                 "A small value could cause over-fitting.")]
             [TGUI(SuggestedSweeps = "0.01,0.05,0.1,0.5,1")]
             [TlcModule.SweepableDiscreteParam("Lambda", new object[] { 0.01f, 0.05f, 0.1f, 0.5f, 1f })]
-            public double Lambda = 0.1;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Latent space dimension (denoted by k). If the factorized matrix is m-by-n, " +
-                "two factor matrices found by matrix factorization are m-by-k and k-by-n, respectively. " +
-                "This value is also known as the rank of matrix factorization because k is generally much smaller than m and n.")]
-            [TGUI(SuggestedSweeps = "8,16,64,128")]
-            [TlcModule.SweepableDiscreteParam("K", new object[] { 8, 16, 64, 128 })]
-            public int K = 8;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Training iterations; that is, the times that the training algorithm iterates through the whole training data once.", ShortName = "iter")]
-            [TGUI(SuggestedSweeps = "10,20,40")]
-            [TlcModule.SweepableDiscreteParam("NumIterations", new object[] { 10, 20, 40 })]
-            public int NumIterations = 20;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate. It specifies the speed of the training algorithm. " +
-                "Small value may increase the number of iterations needed to achieve a reasonable result. Large value may lead to numerical difficulty such as a infinity value.")]
-            [TGUI(SuggestedSweeps = "0.001,0.01,0.1")]
-            [TlcModule.SweepableDiscreteParam("Eta", new object[] { 0.001f, 0.01f, 0.1f })]
-            public double Eta = 0.1;
+            public double Lambda = Defaults.Lambda;
 
             /// <summary>
+            /// Rank of approximation matrixes.
+            /// </summary>
+            /// <remarks>
+            /// If input data has size of m-by-n we would build two approximation matrixes m-by-k and k-by-n where k is approximation rank.
+            /// </remarks>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Latent space dimension (denoted by k). If the factorized matrix is m-by-n, " +
+                "two factor matrices found by matrix factorization are m-by-k and k-by-n, respectively. " +
+                "This value is also known as the rank of matrix factorization because k is generally much smaller than m and n.", ShortName = "K")]
+            [TGUI(SuggestedSweeps = "8,16,64,128")]
+            [TlcModule.SweepableDiscreteParam("K", new object[] { 8, 16, 64, 128 })]
+            public int ApproximationRank = Defaults.ApproximationRank;
+
+            /// <summary>
+            /// Number of training iterations.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Training iterations; that is, the times that the training algorithm iterates through the whole training data once.", ShortName = "iter,numiterations")]
+            [TGUI(SuggestedSweeps = "10,20,40")]
+            [TlcModule.SweepableDiscreteParam("NumIterations", new object[] { 10, 20, 40 })]
+            public int NumberOfIterations = Defaults.NumIterations;
+
+            ///<summary>
+            /// Initial learning rate. It specifies the speed of the training algorithm.
+            ///</summary>
+            ///<remarks>
+            /// Small value may increase the number of iterations needed to achieve a reasonable result.
+            /// Large value may lead to numerical difficulty such as a infinity value.
+            ///</remarks>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate. It specifies the speed of the training algorithm. " +
+                "Small value may increase the number of iterations needed to achieve a reasonable result. Large value may lead to numerical difficulty such as a infinity value.", ShortName = "Eta")]
+            [TGUI(SuggestedSweeps = "0.001,0.01,0.1")]
+            [TlcModule.SweepableDiscreteParam("Eta", new object[] { 0.001f, 0.01f, 0.1f })]
+            public double LearningRate = Defaults.LearningRate;
+
+            /// <summary>
+            /// Importance of unobserved entries' loss in one-class matrix factorization. Applicable if <see cref="LossFunction"/> set to <see cref="LossFunctionType.SquareLossOneClass"/>
+            /// </summary>
+            /// <remarks>
             /// Importance of unobserved (i.e., negative) entries' loss in one-class matrix factorization.
             /// In general, only a few of matrix entries (e.g., less than 1%) in the training are observed (i.e., positive).
             /// To balance the contributions from unobserved and obverved in the overall loss function, this parameter is
@@ -154,35 +203,62 @@ namespace Microsoft.ML.Trainers
             /// Alpha = (# of observed entries) / (# of unobserved entries) can make observed and unobserved entries equally important
             /// in the minimized loss function. However, the best setting in machine learning is alwasy data-depedent so user still needs to
             /// try multiple values.
-            /// </summary>
+            /// </remarks>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Importance of unobserved entries' loss in one-class matrix factorization.")]
             [TGUI(SuggestedSweeps = "1,0.01,0.0001,0.000001")]
             [TlcModule.SweepableDiscreteParam("Alpha", new object[] { 1f, 0.01f, 0.0001f, 0.000001f })]
-            public double Alpha = 0.0001;
+            public double Alpha = Defaults.Alpha;
 
             /// <summary>
-            /// Desired negative entries value in one-class matrix factorization. In one-class matrix factorization, all matrix values observed are one
-            /// (which can be viewed as positive cases in binary classification) while unobserved values (which can be viewed as negative cases in binary
-            /// classification) need to be specified manually using this option.
+            /// Desired negative entries value in one-class matrix factorization. Applicable if <see cref="LossFunction"/> set to <see cref="LossFunctionType.SquareLossOneClass"/>
             /// </summary>
+            /// <remarks>
+            /// In one-class matrix factorization, all matrix values observed are one (which can be viewed as positive cases in binary classification)
+            /// while unobserved values (which can be viewed as negative cases in binary classification) need to be specified manually using this option.
+            /// </remarks>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Desired negative entries' value in one-class matrix factorization")]
             [TGUI(SuggestedSweeps = "0.000001,0,0001,0.01")]
             [TlcModule.SweepableDiscreteParam("C", new object[] { 0.000001f, 0.0001f, 0.01f })]
-            public double C = 0.000001f;
+            public double C = Defaults.C;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of threads can be used in the training procedure.", ShortName = "t")]
-            public int? NumThreads;
+            /// <summary>
+            /// Number of threads will be used during training. If unspecified all aviable threads will be use.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of threads can be used in the training procedure.", ShortName = "t,numthreads")]
+            public int? NumberOfThreads;
 
+            /// <summary>
+            /// Suppress writing additional information to output.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Suppress writing additional information to output.")]
-            public bool Quiet;
+            public bool Quiet = Defaults.Quiet;
 
+            /// <summary>
+            /// Force the factor matrices to be non-negative.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Force the factor matrices to be non-negative.", ShortName = "nn")]
-            public bool NonNegative;
+            public bool NonNegative = Defaults.NonNegative;
         };
+
+        [BestFriend]
+        internal static class Defaults
+        {
+            public const bool Quiet = false;
+            public const bool NonNegative = false;
+            public const double C = 0.000001f;
+            public const double Alpha = 0.0001f;
+            public const double LearningRate = 0.1;
+            public const int NumIterations = 20;
+            public const int ApproximationRank = 8;
+            public const double Lambda = 0.1;
+            public const LossFunctionType LossFunction = LossFunctionType.SquareLossRegression;
+        }
 
         internal const string Summary = "From pairs of row/column indices and a value of a matrix, this trains a predictor capable of filling in unknown entries of the matrix, "
             + "using a low-rank matrix factorization. This technique is often used in recommender system, where the row and column indices indicate users and items, "
             + "and the values of the matrix are ratings. ";
+
+        private readonly IHost _host;
 
         // LIBMF's parameter
         private readonly int _fun;
@@ -196,8 +272,9 @@ namespace Microsoft.ML.Trainers
         private readonly bool _quiet;
         private readonly bool _doNmf;
 
-        public override PredictionKind PredictionKind => PredictionKind.Recommendation;
-        public const string LoadNameValue = "MatrixFactorization";
+        PredictionKind ITrainer.PredictionKind => PredictionKind.Recommendation;
+
+        internal const string LoadNameValue = "MatrixFactorization";
 
         /// <summary>
         /// The row index, column index, and label columns needed to specify the training matrix. This trainer uses tuples of (row index, column index, label value) to specify a matrix.
@@ -226,7 +303,9 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// The <see cref="TrainerInfo"/> contains general parameters for this trainer.
         /// </summary>
-        public override TrainerInfo Info { get; }
+        TrainerInfo ITrainer.Info => _info;
+
+        private readonly TrainerInfo _info;
 
         /// <summary>
         /// Initializes a new instance of <see cref="MatrixFactorizationTrainer"/> through the <see cref="Options"/> class.
@@ -234,29 +313,32 @@ namespace Microsoft.ML.Trainers
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="options">An instance of <see cref="Options"/> to apply advanced parameters to the algorithm.</param>
         [BestFriend]
-        internal MatrixFactorizationTrainer(IHostEnvironment env, Options options) : base(env, LoadNameValue)
+        internal MatrixFactorizationTrainer(IHostEnvironment env, Options options)
         {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(LoadNameValue);
+
             const string posError = "Parameter must be positive";
-            Host.CheckValue(options, nameof(options));
-            Host.CheckUserArg(options.K > 0, nameof(options.K), posError);
-            Host.CheckUserArg(!options.NumThreads.HasValue || options.NumThreads > 0, nameof(options.NumThreads), posError);
-            Host.CheckUserArg(options.NumIterations > 0, nameof(options.NumIterations), posError);
-            Host.CheckUserArg(options.Lambda > 0, nameof(options.Lambda), posError);
-            Host.CheckUserArg(options.Eta > 0, nameof(options.Eta), posError);
-            Host.CheckUserArg(options.Alpha > 0, nameof(options.Alpha), posError);
+            _host.CheckValue(options, nameof(options));
+            _host.CheckUserArg(options.ApproximationRank > 0, nameof(options.ApproximationRank), posError);
+            _host.CheckUserArg(!options.NumberOfThreads.HasValue || options.NumberOfThreads > 0, nameof(options.NumberOfThreads), posError);
+            _host.CheckUserArg(options.NumberOfIterations > 0, nameof(options.NumberOfIterations), posError);
+            _host.CheckUserArg(options.Lambda > 0, nameof(options.Lambda), posError);
+            _host.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), posError);
+            _host.CheckUserArg(options.Alpha > 0, nameof(options.Alpha), posError);
 
             _fun = (int)options.LossFunction;
             _lambda = options.Lambda;
-            _k = options.K;
-            _iter = options.NumIterations;
-            _eta = options.Eta;
+            _k = options.ApproximationRank;
+            _iter = options.NumberOfIterations;
+            _eta = options.LearningRate;
             _alpha = options.Alpha;
             _c = options.C;
-            _threads = options.NumThreads ?? Environment.ProcessorCount;
+            _threads = options.NumberOfThreads ?? Environment.ProcessorCount;
             _quiet = options.Quiet;
             _doNmf = options.NonNegative;
 
-            Info = new TrainerInfo(normalization: false, caching: false);
+            _info = new TrainerInfo(normalization: false, caching: false);
 
             LabelName = options.LabelColumnName;
             MatrixColumnIndexName = options.MatrixColumnIndexColumnName;
@@ -267,32 +349,40 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="MatrixFactorizationTrainer"/>.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
         /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="approximationRank">Rank of approximation matrixes.</param>
+        /// <param name="learningRate">Initial learning rate. It specifies the speed of the training algorithm.</param>
+        /// <param name="numIterations">Number of training iterations.</param>
         [BestFriend]
         internal MatrixFactorizationTrainer(IHostEnvironment env,
+            string labelColumnName,
             string matrixColumnIndexColumnName,
             string matrixRowIndexColumnName,
-            string labelColumn = DefaultColumnNames.Label)
-            : base(env, LoadNameValue)
+            int approximationRank = Defaults.ApproximationRank,
+            double learningRate = Defaults.LearningRate,
+            int numIterations = Defaults.NumIterations)
         {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(LoadNameValue);
+
             var args = new Options();
 
             _fun = (int)args.LossFunction;
-            _lambda = args.Lambda;
-            _k = args.K;
-            _iter = args.NumIterations;
-            _eta = args.Eta;
+            _k = approximationRank;
+            _iter = numIterations;
+            _eta = learningRate;
             _alpha = args.Alpha;
+            _lambda = args.Lambda;
             _c = args.C;
-            _threads = args.NumThreads ?? Environment.ProcessorCount;
+            _threads = args.NumberOfThreads ?? Environment.ProcessorCount;
             _quiet = args.Quiet;
             _doNmf = args.NonNegative;
 
-            Info = new TrainerInfo(normalization: false, caching: false);
+            _info = new TrainerInfo(normalization: false, caching: false);
 
-            LabelName = labelColumn;
+            LabelName = labelColumnName;
             MatrixColumnIndexName = matrixColumnIndexColumnName;
             MatrixRowIndexName = matrixRowIndexColumnName;
         }
@@ -301,34 +391,37 @@ namespace Microsoft.ML.Trainers
         /// Train a matrix factorization model based on training data, validation data, and so on in the given context.
         /// </summary>
         /// <param name="context">The information collection needed for training. <see cref="TrainContext"/> for details.</param>
-        private protected override MatrixFactorizationPredictor Train(TrainContext context)
+        private MatrixFactorizationModelParameters Train(TrainContext context)
         {
-            Host.CheckValue(context, nameof(context));
-            using (var ch = Host.Start("Training"))
+            _host.CheckValue(context, nameof(context));
+            using (var ch = _host.Start("Training"))
             {
                 return TrainCore(ch, context.TrainingSet, context.ValidationSet);
             }
         }
 
-        private MatrixFactorizationPredictor TrainCore(IChannel ch, RoleMappedData data, RoleMappedData validData = null)
+        IPredictor ITrainer.Train(TrainContext context) => Train(context);
+        MatrixFactorizationModelParameters ITrainer<MatrixFactorizationModelParameters>.Train(TrainContext context) => Train(context);
+
+        private MatrixFactorizationModelParameters TrainCore(IChannel ch, RoleMappedData data, RoleMappedData validData = null)
         {
-            Host.AssertValue(ch);
+            _host.AssertValue(ch);
             ch.AssertValue(data);
             ch.AssertValueOrNull(validData);
 
             ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "Input data did not have a unique label");
             RecommenderUtils.CheckAndGetMatrixIndexColumns(data, out var matrixColumnIndexColInfo, out var matrixRowIndexColInfo, isDecode: false);
             var labelCol = data.Schema.Label.Value;
-            if (labelCol.Type != NumberType.R4 && labelCol.Type != NumberType.R8)
+            if (labelCol.Type != NumberDataViewType.Single && labelCol.Type != NumberDataViewType.Double)
                 throw ch.Except("Column '{0}' for label should be floating point, but is instead {1}", labelCol.Name, labelCol.Type);
-            MatrixFactorizationPredictor predictor;
+            MatrixFactorizationModelParameters predictor;
             if (validData != null)
             {
                 ch.CheckValue(validData, nameof(validData));
                 ch.CheckParam(validData.Schema.Label.HasValue, nameof(validData), "Input validation data did not have a unique label");
                 RecommenderUtils.CheckAndGetMatrixIndexColumns(validData, out var validMatrixColumnIndexColInfo, out var validMatrixRowIndexColInfo, isDecode: false);
                 var validLabelCol = validData.Schema.Label.Value;
-                if (validLabelCol.Type != NumberType.R4 && validLabelCol.Type != NumberType.R8)
+                if (validLabelCol.Type != NumberDataViewType.Single && validLabelCol.Type != NumberDataViewType.Double)
                     throw ch.Except("Column '{0}' for validation label should be floating point, but is instead {1}", validLabelCol.Name, validLabelCol.Type);
 
                 if (!matrixColumnIndexColInfo.Type.Equals(validMatrixColumnIndexColInfo.Type))
@@ -343,8 +436,8 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            int colCount = matrixColumnIndexColInfo.Type.GetKeyCountAsInt32(Host);
-            int rowCount = matrixRowIndexColInfo.Type.GetKeyCountAsInt32(Host);
+            int colCount = matrixColumnIndexColInfo.Type.GetKeyCountAsInt32(_host);
+            int rowCount = matrixRowIndexColInfo.Type.GetKeyCountAsInt32(_host);
             ch.Assert(rowCount > 0);
             ch.Assert(colCount > 0);
 
@@ -352,9 +445,9 @@ namespace Microsoft.ML.Trainers
             using (var cursor = data.Data.GetRowCursor(matrixColumnIndexColInfo, matrixRowIndexColInfo, data.Schema.Label.Value))
             {
                 // LibMF works only over single precision floats, but we want to be able to consume either.
-                var labGetter = RowCursorUtils.GetGetterAs<float>(NumberType.R4, cursor, data.Schema.Label.Value.Index);
-                var matrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, cursor, matrixColumnIndexColInfo.Index);
-                var matrixRowIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, cursor, matrixRowIndexColInfo.Index);
+                var labGetter = RowCursorUtils.GetGetterAs<float>(NumberDataViewType.Single, cursor, data.Schema.Label.Value.Index);
+                var matrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, cursor, matrixColumnIndexColInfo.Index);
+                var matrixRowIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, cursor, matrixRowIndexColInfo.Index);
 
                 if (validData == null)
                 {
@@ -362,7 +455,7 @@ namespace Microsoft.ML.Trainers
                     using (var buffer = PrepareBuffer())
                     {
                         buffer.Train(ch, rowCount, colCount, cursor, labGetter, matrixRowIndexGetter, matrixColumnIndexGetter);
-                        predictor = new MatrixFactorizationPredictor(Host, buffer, (KeyType)matrixColumnIndexColInfo.Type, (KeyType)matrixRowIndexColInfo.Type);
+                        predictor = new MatrixFactorizationModelParameters(_host, buffer, (KeyType)matrixColumnIndexColInfo.Type, (KeyType)matrixRowIndexColInfo.Type);
                     }
                 }
                 else
@@ -370,9 +463,9 @@ namespace Microsoft.ML.Trainers
                     RecommenderUtils.CheckAndGetMatrixIndexColumns(validData, out var validMatrixColumnIndexColInfo, out var validMatrixRowIndexColInfo, isDecode: false);
                     using (var validCursor = validData.Data.GetRowCursor(matrixColumnIndexColInfo, matrixRowIndexColInfo, data.Schema.Label.Value))
                     {
-                        ValueGetter<float> validLabelGetter = RowCursorUtils.GetGetterAs<float>(NumberType.R4, validCursor, validData.Schema.Label.Value.Index);
-                        var validMatrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, validCursor, validMatrixColumnIndexColInfo.Index);
-                        var validMatrixRowIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, validCursor, validMatrixRowIndexColInfo.Index);
+                        ValueGetter<float> validLabelGetter = RowCursorUtils.GetGetterAs<float>(NumberDataViewType.Single, validCursor, validData.Schema.Label.Value.Index);
+                        var validMatrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, validCursor, validMatrixColumnIndexColInfo.Index);
+                        var validMatrixRowIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, validCursor, validMatrixRowIndexColInfo.Index);
 
                         // Have the trainer do its work.
                         using (var buffer = PrepareBuffer())
@@ -380,7 +473,7 @@ namespace Microsoft.ML.Trainers
                             buffer.TrainWithValidation(ch, rowCount, colCount,
                                 cursor, labGetter, matrixRowIndexGetter, matrixColumnIndexGetter,
                                 validCursor, validLabelGetter, validMatrixRowIndexGetter, validMatrixColumnIndexGetter);
-                            predictor = new MatrixFactorizationPredictor(Host, buffer, (KeyType)matrixColumnIndexColInfo.Type, (KeyType)matrixRowIndexColInfo.Type);
+                            predictor = new MatrixFactorizationModelParameters(_host, buffer, (KeyType)matrixColumnIndexColInfo.Type, (KeyType)matrixRowIndexColInfo.Type);
                         }
                     }
                 }
@@ -391,19 +484,18 @@ namespace Microsoft.ML.Trainers
 
         private SafeTrainingAndModelBuffer PrepareBuffer()
         {
-            return new SafeTrainingAndModelBuffer(Host, _fun, _k, _threads, Math.Max(20, 2 * _threads),
+            return new SafeTrainingAndModelBuffer(_host, _fun, _k, _threads, Math.Max(20, 2 * _threads),
                 _iter, _lambda, _eta, _alpha, _c, _doNmf, _quiet, copyData: false);
         }
 
         /// <summary>
-        /// Train a matrix factorization model based on the input <see cref="IDataView"/>
-        /// using the roles specified by <see cref="RecommenderUtils.MatrixColumnIndexKind"/> and <see cref="RecommenderUtils.MatrixRowIndexKind"/> in <see cref="MatrixFactorizationTrainer"/>.
+        /// Trains a <see cref="MatrixFactorizationTrainer"/> using both training and validation data, returns a <see cref="MatrixFactorizationPredictionTransformer"/>.
         /// </summary>
         /// <param name="trainData">The training data set.</param>
         /// <param name="validationData">The validation data set.</param>
-        public MatrixFactorizationPredictionTransformer Train(IDataView trainData, IDataView validationData = null)
+        public MatrixFactorizationPredictionTransformer Fit(IDataView trainData, IDataView validationData)
         {
-            MatrixFactorizationPredictor model = null;
+            MatrixFactorizationModelParameters model = null;
 
             var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
             roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, LabelName));
@@ -412,42 +504,45 @@ namespace Microsoft.ML.Trainers
 
             var trainingData = new RoleMappedData(trainData, roles);
             var validData = validationData == null ? null : new RoleMappedData(validationData, roles);
-            using (var ch = Host.Start("Training"))
+            using (var ch = _host.Start("Training"))
             {
                 model = TrainCore(ch, trainingData, validData);
             }
 
-            return new MatrixFactorizationPredictionTransformer(Host, model, trainData.Schema, MatrixColumnIndexName, MatrixRowIndexName);
+            return new MatrixFactorizationPredictionTransformer(_host, model, trainData.Schema, MatrixColumnIndexName, MatrixRowIndexName);
         }
 
         /// <summary>
-        /// Train a matrix factorization model based on the input <see cref="IDataView"/>
-        /// using the roles specified by <see cref="RecommenderUtils.MatrixColumnIndexKind"/> and <see cref="RecommenderUtils.MatrixRowIndexKind"/> in <see cref="MatrixFactorizationTrainer"/>.
+        /// <summary> Trains and returns a <see cref="MatrixFactorizationPredictionTransformer"/>.</summary>
         /// </summary>
         /// <param name="input">The training data set.</param>
-        public MatrixFactorizationPredictionTransformer Fit(IDataView input) => Train(input);
+        public MatrixFactorizationPredictionTransformer Fit(IDataView input) => Fit(input, null);
 
+        /// <summary>
+        /// Schema propagation for transformers. Returns the output schema of the data, if
+        /// the input schema is like the one provided.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
+            _host.CheckValue(inputSchema, nameof(inputSchema));
 
             void CheckColumnsCompatible(SchemaShape.Column cachedColumn, string columnRole)
             {
                 if (!inputSchema.TryFindColumn(cachedColumn.Name, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(col), columnRole, cachedColumn.Name);
+                    throw _host.ExceptSchemaMismatch(nameof(col), columnRole, cachedColumn.Name);
 
                 if (!cachedColumn.IsCompatibleWith(col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), columnRole, cachedColumn.Name,
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), columnRole, cachedColumn.Name,
                         cachedColumn.GetTypeString(), col.GetTypeString());
             }
 
             // Check if label column is good.
-            var labelColumn = new SchemaShape.Column(LabelName, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+            var labelColumn = new SchemaShape.Column(LabelName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
             CheckColumnsCompatible(labelColumn, "label");
 
             // Check if columns of matrix's row and column indexes are good. Note that column of IDataView and column of matrix are two different things.
-            var matrixColumnIndexColumn = new SchemaShape.Column(MatrixColumnIndexName, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
-            var matrixRowIndexColumn = new SchemaShape.Column(MatrixRowIndexName, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
+            var matrixColumnIndexColumn = new SchemaShape.Column(MatrixColumnIndexName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true);
+            var matrixRowIndexColumn = new SchemaShape.Column(MatrixRowIndexName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true);
             CheckColumnsCompatible(matrixColumnIndexColumn, "matrixColumnIndex");
             CheckColumnsCompatible(matrixRowIndexColumn, "matrixRowIndex");
 
@@ -468,7 +563,7 @@ namespace Microsoft.ML.Trainers
 
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
             };
         }
     }

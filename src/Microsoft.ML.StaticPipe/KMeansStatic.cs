@@ -3,9 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Trainers.KMeans;
 
 namespace Microsoft.ML.StaticPipe
@@ -45,7 +42,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     FeatureColumn = featuresName,
                     ClustersCount = clustersCount,
-                    WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight)
+                    WeightColumn = weightsName
                 };
 
                 var trainer = new KMeansPlusPlusTrainer(env, options);
@@ -84,7 +81,7 @@ namespace Microsoft.ML.StaticPipe
             (env, featuresName, weightsName) =>
             {
                 options.FeatureColumn = featuresName;
-                options.WeightColumn = weightsName != null ? Optional<string>.Explicit(DefaultColumnNames.Weight): Optional<string>.Implicit(DefaultColumnNames.Weight);
+                options.WeightColumn = weightsName;
 
                 var trainer = new KMeansPlusPlusTrainer(env, options);
 

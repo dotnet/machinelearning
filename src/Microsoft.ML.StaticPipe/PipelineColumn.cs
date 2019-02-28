@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.StaticPipe.Runtime;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -32,7 +30,7 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// For representing a non-key, non-vector <see cref="ColumnType"/>.
+    /// For representing a non-key, non-vector <see cref="DataViewType"/>.
     /// </summary>
     /// <typeparam name="T">The scalar item type.</typeparam>
     public abstract class Scalar<T> : PipelineColumn
@@ -60,7 +58,7 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// For representing a <see cref="VectorType"/> that is normalized, that is, its <see cref="MetadataUtils.Kinds.IsNormalized"/>
+    /// For representing a <see cref="VectorType"/> that is normalized, that is, its <see cref="AnnotationUtils.Kinds.IsNormalized"/>
     /// value is set with the value <c>true</c>.
     /// </summary>
     /// <typeparam name="T">The vector item type.</typeparam>
@@ -109,7 +107,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// For representing a key-type of known cardinality that has key values over a particular type. This is used to
     /// represent a <see cref="KeyType"/> where it is known that it will have <see
-    /// cref="MetadataUtils.Kinds.KeyValues"/> of a particular type <typeparamref name="TVal"/>.
+    /// cref="AnnotationUtils.Kinds.KeyValues"/> of a particular type <typeparamref name="TVal"/>.
     /// </summary>
     /// <typeparam name="T">The physical type representing the key, which should always be one of <see cref="byte"/>,
     /// <see cref="ushort"/>, <see cref="uint"/>, or <see cref="ulong"/></typeparam>
@@ -144,7 +142,7 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// For representing a custom <see cref="ColumnType"/>.
+    /// For representing a custom <see cref="DataViewType"/>.
     /// </summary>
     /// <typeparam name="T">The custom item type.</typeparam>
     public abstract class Custom<T>: PipelineColumn

@@ -14,7 +14,7 @@ namespace Microsoft.ML.EntryPoints
     internal static class SchemaManipulation
     {
         [TlcModule.EntryPoint(Name = "Transforms.ColumnConcatenator", Desc = ColumnConcatenatingTransformer.Summary, UserName = ColumnConcatenatingTransformer.UserName, ShortName = ColumnConcatenatingTransformer.LoadName)]
-        public static CommonOutputs.TransformOutput ConcatColumns(IHostEnvironment env, ColumnConcatenatingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput ConcatColumns(IHostEnvironment env, ColumnConcatenatingTransformer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("ConcatColumns");
@@ -26,7 +26,7 @@ namespace Microsoft.ML.EntryPoints
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.ColumnSelector", Desc = "Selects a set of columns, dropping all others", UserName = "Select Columns")]
-        public static CommonOutputs.TransformOutput SelectColumns(IHostEnvironment env, ColumnSelectingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput SelectColumns(IHostEnvironment env, ColumnSelectingTransformer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("SelectColumns");
@@ -38,7 +38,7 @@ namespace Microsoft.ML.EntryPoints
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.ColumnCopier", Desc = "Duplicates columns from the dataset", UserName = ColumnCopyingTransformer.UserName, ShortName = ColumnCopyingTransformer.ShortName)]
-        public static CommonOutputs.TransformOutput CopyColumns(IHostEnvironment env, ColumnCopyingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput CopyColumns(IHostEnvironment env, ColumnCopyingTransformer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("CopyColumns");

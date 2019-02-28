@@ -25,13 +25,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         void MultithreadedPrediction()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
+            var data = ml.Data.LoadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
 
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(ml)
-                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                    new SdcaBinaryTrainer.Options { NumThreads = 1 }));
+                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+                    new SdcaNonCalibratedBinaryTrainer.Options { NumThreads = 1 }));
 
             // Train.
             var model = pipeline.Fit(data);
@@ -40,8 +40,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var engine = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(ml);
 
             // Take a couple examples out of the test data and run predictions on top.
-            var testData = ml.CreateEnumerable<SentimentData>(
-                ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.testFilename), hasHeader: true), false);
+            var testData = ml.Data.CreateEnumerable<SentimentData>(
+                ml.Data.LoadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.testFilename), hasHeader: true), false);
 
             Parallel.ForEach(testData, (input) =>
             {

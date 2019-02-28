@@ -9,20 +9,19 @@ using System.Threading.Tasks;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.Ensemble;
 
 // These are for deserialization from a model repository.
 [assembly: LoadableClass(typeof(EnsembleDistributionModelParameters), null, typeof(SignatureLoadModel),
     EnsembleDistributionModelParameters.UserName, EnsembleDistributionModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.Ensemble
+namespace Microsoft.ML.Trainers.Ensemble
 {
     using TDistPredictor = IDistPredictorProducing<Single, Single>;
 
-    public sealed class EnsembleDistributionModelParameters : EnsembleModelParametersBase<TDistPredictor, Single>,
+    internal sealed class EnsembleDistributionModelParameters : EnsembleModelParametersBase<Single>,
          TDistPredictor, IValueMapperDist
     {
         internal const string UserName = "Ensemble Distribution Executor";
@@ -48,11 +47,11 @@ namespace Microsoft.ML.Ensemble
 
         private readonly VectorType _inputType;
 
-        ColumnType IValueMapper.InputType => _inputType;
-        ColumnType IValueMapper.OutputType => NumberType.Float;
-        ColumnType IValueMapperDist.DistType => NumberType.Float;
+        DataViewType IValueMapper.InputType => _inputType;
+        DataViewType IValueMapper.OutputType => NumberDataViewType.Single;
+        DataViewType IValueMapperDist.DistType => NumberDataViewType.Single;
 
-        public override PredictionKind PredictionKind { get; }
+        private protected override PredictionKind PredictionKind { get; }
 
         /// <summary>
         /// Instantiate new ensemble model from existing sub-models.
@@ -62,8 +61,8 @@ namespace Microsoft.ML.Ensemble
         /// <param name="models">Array of sub-models that you want to ensemble together.</param>
         /// <param name="combiner">The combiner class to use to ensemble the models.</param>
         /// <param name="weights">The weights assigned to each model to be ensembled.</param>
-        public EnsembleDistributionModelParameters(IHostEnvironment env, PredictionKind kind,
-            FeatureSubsetModel<TDistPredictor>[] models, IOutputCombiner<Single> combiner, Single[] weights = null)
+        internal EnsembleDistributionModelParameters(IHostEnvironment env, PredictionKind kind,
+            FeatureSubsetModel<float>[] models, IOutputCombiner<Single> combiner, Single[] weights = null)
             : base(env, RegistrationName, models, combiner, weights)
         {
             PredictionKind = kind;
@@ -101,15 +100,15 @@ namespace Microsoft.ML.Ensemble
                 }
                 mappers[i] = vmd;
             }
-            return inputType ?? new VectorType(NumberType.Float);
+            return inputType ?? new VectorType(NumberDataViewType.Single);
         }
 
         private bool IsValid(IValueMapperDist mapper, out VectorType inputType)
         {
             if (mapper != null
-                && mapper.InputType is VectorType inVectorType && inVectorType.ItemType == NumberType.Float
-                && mapper.OutputType == NumberType.Float
-                && mapper.DistType == NumberType.Float)
+                && mapper.InputType is VectorType inVectorType && inVectorType.ItemType == NumberDataViewType.Single
+                && mapper.OutputType == NumberDataViewType.Single
+                && mapper.DistType == NumberDataViewType.Single)
             {
                 inputType = inVectorType;
                 return true;

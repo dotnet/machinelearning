@@ -7,7 +7,7 @@ using System.Collections;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Ensemble
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal static class EnsembleUtils
     {

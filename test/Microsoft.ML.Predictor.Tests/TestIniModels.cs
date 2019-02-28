@@ -2,19 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
-using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Tools;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML.Model;
 
 namespace Microsoft.ML.RunTests
 {
@@ -522,15 +517,15 @@ namespace Microsoft.ML.RunTests
         {
             var mlContext = new MLContext(seed: 0);
             var idv = mlContext.Data.CreateTextLoader(
-                    new TextLoader.Arguments()
+                    new TextLoader.Options()
                     {
                         HasHeader = false,
-                        Column = new[]
+                        Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("Features", DataKind.R4, 1, 9)
+                            new TextLoader.Column("Label", DataKind.Single, 0),
+                            new TextLoader.Column("Features", DataKind.Single, 1, 9)
                         }
-                    }).Read(GetDataPath("breast-cancer.txt"));
+                    }).Load(GetDataPath("breast-cancer.txt"));
 
             var pipeline = mlContext.Transforms.ReplaceMissingValues("Features")
                 .Append(mlContext.Regression.Trainers.GeneralizedAdditiveModels());
@@ -561,15 +556,15 @@ namespace Microsoft.ML.RunTests
         {
             var mlContext = new MLContext(seed: 0);
             var idv = mlContext.Data.CreateTextLoader(
-                    new TextLoader.Arguments()
+                    new TextLoader.Options()
                     {
                         HasHeader = false,
-                        Column = new[]
+                        Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.BL, 0),
-                            new TextLoader.Column("Features", DataKind.R4, 1, 9)
+                            new TextLoader.Column("Label", DataKind.Boolean, 0),
+                            new TextLoader.Column("Features", DataKind.Single, 1, 9)
                         }
-                    }).Read(GetDataPath("breast-cancer.txt"));
+                    }).Load(GetDataPath("breast-cancer.txt"));
 
             var pipeline = mlContext.Transforms.ReplaceMissingValues("Features")
                 .Append(mlContext.BinaryClassification.Trainers.GeneralizedAdditiveModels());
@@ -580,8 +575,8 @@ namespace Microsoft.ML.RunTests
                 new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, "Features"),
                 new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, "Label"));
 
-            var calibratedPredictor = model.LastTransformer.Model as CalibratedPredictor;
-            var predictor = calibratedPredictor.SubPredictor as ICanSaveInIniFormat;
+            var calibratedPredictor = model.LastTransformer.Model;
+            var predictor = calibratedPredictor.SubModel as ICanSaveInIniFormat;
             string modelIniPath = GetOutputPath(FullTestName + "-model.ini");
 
             using (Stream iniStream = File.Create(modelIniPath))

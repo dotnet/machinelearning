@@ -9,18 +9,15 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
 using Microsoft.ML.Model;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Training;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(typeof(MulticlassLogisticRegression), typeof(MulticlassLogisticRegression.Options),
@@ -35,18 +32,18 @@ using Newtonsoft.Json.Linq;
     "Multiclass LR Executor",
     MulticlassLogisticRegressionModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.Learners
+namespace Microsoft.ML.Trainers
 {
     /// <include file = 'doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file = 'doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
     public sealed class MulticlassLogisticRegression : LbfgsTrainerBase<MulticlassLogisticRegression.Options,
         MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
     {
-        public const string LoadNameValue = "MultiClassLogisticRegression";
+        internal const string LoadNameValue = "MultiClassLogisticRegression";
         internal const string UserNameValue = "Multi-class Logistic Regression";
         internal const string ShortName = "mlr";
 
-        public sealed class Options : ArgumentsBase
+        public sealed class Options : OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat", SortOrder = 50)]
             public bool ShowTrainingStats = false;
@@ -69,7 +66,7 @@ namespace Microsoft.ML.Learners
 
         private LinearModelStatistics _stats;
 
-        protected override int ClassCount => _numClasses;
+        private protected override int ClassCount => _numClasses;
 
         /// <summary>
         /// Initializes a new instance of <see cref="MulticlassLogisticRegression"/>
@@ -97,7 +94,7 @@ namespace Microsoft.ML.Learners
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
-            ShowTrainingStats = Args.ShowTrainingStats;
+            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStats;
         }
 
         /// <summary>
@@ -106,10 +103,10 @@ namespace Microsoft.ML.Learners
         internal MulticlassLogisticRegression(IHostEnvironment env, Options options)
             : base(env, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumn))
         {
-            ShowTrainingStats = Args.ShowTrainingStats;
+            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStats;
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         private protected override void CheckLabel(RoleMappedData data)
         {
@@ -124,8 +121,8 @@ namespace Microsoft.ML.Learners
 
             // Try to get the label key values metedata.
             var labelCol = data.Schema.Label.Value;
-            var labelMetadataType = labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-            if (!(labelMetadataType is VectorType vecType && vecType.ItemType == TextType.Instance && vecType.Size == _numClasses))
+            var labelMetadataType = labelCol.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type;
+            if (!(labelMetadataType is VectorType vecType && vecType.ItemType == TextDataViewType.Instance && vecType.Size == _numClasses))
             {
                 _labelNames = null;
                 return;
@@ -186,7 +183,7 @@ namespace Microsoft.ML.Learners
             return opt;
         }
 
-        protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
+        private protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
             in VBuffer<float> x, ref VBuffer<float> grad, ref float[] scores)
         {
             if (Utils.Size(scores) < _numClasses)
@@ -222,19 +219,20 @@ namespace Microsoft.ML.Learners
             return weight * datumLoss;
         }
 
-        protected override VBuffer<float> InitializeWeightsFromPredictor(MulticlassLogisticRegressionModelParameters srcPredictor)
+        private protected override VBuffer<float> InitializeWeightsFromPredictor(IPredictor srcPredictor)
         {
-            Contracts.AssertValue(srcPredictor);
-            Contracts.Assert(srcPredictor.InputType.GetVectorSize() > 0);
+            var pred = srcPredictor as MulticlassLogisticRegressionModelParameters;
+            Contracts.AssertValue(pred);
+            Contracts.Assert(pred.InputType.GetVectorSize() > 0);
 
             // REVIEW: Support initializing the weights of a superset of features.
-            if (srcPredictor.InputType.GetVectorSize() != NumFeatures)
+            if (pred.InputType.GetVectorSize() != NumFeatures)
                 throw Contracts.Except("The input training data must have the same features used to train the input predictor.");
 
-            return InitializeWeights(srcPredictor.DenseWeightsEnumerable(), srcPredictor.GetBiases());
+            return InitializeWeights(pred.DenseWeightsEnumerable(), pred.GetBiases());
         }
 
-        protected override MulticlassLogisticRegressionModelParameters CreatePredictor()
+        private protected override MulticlassLogisticRegressionModelParameters CreatePredictor()
         {
             if (_numClasses < 1)
                 throw Contracts.Except("Cannot create a multiclass predictor with {0} classes", _numClasses);
@@ -303,32 +301,36 @@ namespace Microsoft.ML.Learners
             _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
         }
 
-        protected override void ProcessPriorDistribution(float label, float weight)
+        private protected override void ProcessPriorDistribution(float label, float weight)
         {
             int iLabel = (int)label;
             Contracts.Assert(0 <= iLabel && iLabel < _numClasses);
             _prior[iLabel] += weight;
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
             Contracts.Assert(success);
 
-            var metadata = new SchemaShape(labelCol.Metadata.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
-                .Concat(MetadataUtils.GetTrainerOutputMetadata()));
+            var metadata = new SchemaShape(labelCol.Annotations.Where(x => x.Name == AnnotationUtils.Kinds.KeyValues)
+                .Concat(AnnotationUtils.GetTrainerOutputAnnotation()));
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, metadata)
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.AnnotationsForMulticlassScoreColumn(labelCol))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, metadata)
             };
         }
 
-        protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(MulticlassLogisticRegressionModelParameters model, Schema trainSchema)
+        private protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(MulticlassLogisticRegressionModelParameters model, DataViewSchema trainSchema)
             => new MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
-        public MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)
-            => TrainTransformer(trainData, initPredictor: initialPredictor);
+        /// <summary>
+        /// Continues the training of a <see cref="MulticlassLogisticRegression"/> using an already trained <paramref name="modelParameters"/> and returns
+        /// a <see cref="MulticlassPredictionTransformer{MulticlassLogisticRegressionModelParameters}"/>.
+        /// </summary>
+        public MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> Fit(IDataView trainData, MulticlassLogisticRegressionModelParameters modelParameters)
+            => TrainTransformer(trainData, initPredictor: modelParameters);
     }
 
     public sealed class MulticlassLogisticRegressionModelParameters :
@@ -379,11 +381,11 @@ namespace Microsoft.ML.Learners
         // at which point it is initialized.
         private volatile VBuffer<float>[] _weightsDense;
 
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
-        internal readonly ColumnType InputType;
-        internal readonly ColumnType OutputType;
-        ColumnType IValueMapper.InputType => InputType;
-        ColumnType IValueMapper.OutputType => OutputType;
+        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        internal readonly DataViewType InputType;
+        internal readonly DataViewType OutputType;
+        DataViewType IValueMapper.InputType => InputType;
+        DataViewType IValueMapper.OutputType => OutputType;
 
         bool ICanSavePfa.CanSavePfa => true;
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
@@ -410,8 +412,8 @@ namespace Microsoft.ML.Learners
             if (_weights.All(v => v.IsDense))
                 _weightsDense = _weights;
 
-            InputType = new VectorType(NumberType.R4, _numFeatures);
-            OutputType = new VectorType(NumberType.R4, _numClasses);
+            InputType = new VectorType(NumberDataViewType.Single, _numFeatures);
+            OutputType = new VectorType(NumberDataViewType.Single, _numClasses);
 
             Contracts.Assert(labelNames == null || labelNames.Length == numClasses);
             _labelNames = labelNames;
@@ -431,7 +433,7 @@ namespace Microsoft.ML.Learners
         /// <param name="numFeatures">The length of the feature vector.</param>
         /// <param name="labelNames">The optional label names. If specified not null, it should have the same length as <paramref name="numClasses"/>.</param>
         /// <param name="stats">The model statistics.</param>
-        public MulticlassLogisticRegressionModelParameters(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal MulticlassLogisticRegressionModelParameters(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, RegistrationName)
         {
             Contracts.CheckValue(weights, nameof(weights));
@@ -454,8 +456,8 @@ namespace Microsoft.ML.Learners
             if (_weights.All(v => v.IsDense))
                 _weightsDense = _weights;
 
-            InputType = new VectorType(NumberType.R4, _numFeatures);
-            OutputType = new VectorType(NumberType.R4, _numClasses);
+            InputType = new VectorType(NumberDataViewType.Single, _numFeatures);
+            OutputType = new VectorType(NumberDataViewType.Single, _numClasses);
 
             Contracts.Assert(labelNames == null || labelNames.Length == numClasses);
             _labelNames = labelNames;
@@ -536,8 +538,8 @@ namespace Microsoft.ML.Learners
                 }
             }
             WarnOnOldNormalizer(ctx, GetType(), Host);
-            InputType = new VectorType(NumberType.R4, _numFeatures);
-            OutputType = new VectorType(NumberType.R4, _numClasses);
+            InputType = new VectorType(NumberDataViewType.Single, _numFeatures);
+            OutputType = new VectorType(NumberDataViewType.Single, _numClasses);
 
             // REVIEW: Should not save the label names duplicately with the predictor again.
             // Get it from the label column schema metadata instead.
@@ -792,7 +794,7 @@ namespace Microsoft.ML.Learners
             List<KeyValuePair<string, object>> results = new List<KeyValuePair<string, object>>();
 
             var names = default(VBuffer<ReadOnlyMemory<char>>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numFeatures, ref names);
+            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numFeatures, ref names);
             for (int classNumber = 0; classNumber < _biases.Length; classNumber++)
             {
                 results.Add(new KeyValuePair<string, object>(
@@ -969,28 +971,28 @@ namespace Microsoft.ML.Learners
 
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames =
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
-                    MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numFeatures, ref dst);
+                    AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numFeatures, ref dst);
 
             // Add the bias and the weight columns.
-            bldr.AddColumn("Bias", NumberType.R4, _biases);
-            bldr.AddColumn("Weights", getSlotNames, NumberType.R4, _weights);
+            bldr.AddColumn("Bias", NumberDataViewType.Single, _biases);
+            bldr.AddColumn("Weights", getSlotNames, NumberDataViewType.Single, _weights);
             bldr.AddColumn("ClassNames", Enumerable.Range(0, _numClasses).Select(i => GetLabelName(i)).ToArray());
             return bldr.GetDataView();
         }
 
-        Row ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema)
+        DataViewRow ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             return null;
         }
 
-        Row ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema)
+        DataViewRow ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             if (_stats == null)
                 return null;
 
             VBuffer<ReadOnlyMemory<char>> names = default;
             var meta = _stats.MakeStatisticsMetadata(null, schema, in names);
-            return MetadataUtils.MetadataAsRow(meta);
+            return AnnotationUtils.AnnotationsAsRow(meta);
         }
     }
 
@@ -1002,9 +1004,7 @@ namespace Microsoft.ML.Learners
         [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionClassifier",
             Desc = Summary,
             UserName = MulticlassLogisticRegression.UserNameValue,
-            ShortName = MulticlassLogisticRegression.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/member[@name=""LBFGS""]/*' />",
-                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/example[@name=""LogisticRegressionClassifier""]/*' />" })]
+            ShortName = MulticlassLogisticRegression.ShortName)]
         internal static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, MulticlassLogisticRegression.Options input)
         {
             Contracts.CheckValue(env, nameof(env));

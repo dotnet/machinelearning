@@ -47,7 +47,7 @@ only when needed to satisfy a local request for information.
 The IDataView design fulfills the following design requirements:
 
 * **General schema**: Each view carries schema information, which specifies
-  the names and types of the view's columns, together with metadata associated
+  the names and types of the view's columns, together with annotations associated
   with the columns. The system is optimized for a reasonably small number of
   columns (hundreds). See [here](#basics).
 
@@ -112,14 +112,14 @@ The IDataView system design does *not* include the following:
 * **Multi-view schema information**: There is no direct support for specifying
   cross-view schema information, for example, that certain columns are primary
   keys, and that there are foreign key relationships among tables. However,
-  the column metadata support, together with conventions, may be used to
+  the column annotation support, together with conventions, may be used to
   represent such information.
 
 * **Standard ML schema**: The IDataView system does not define, nor prescribe,
   standard ML schema representation. For example, it does not dictate
   representation of nor distinction between different semantic interpretations
   of columns, such as label, feature, score, weight, etc. However, the column
-  metadata support, together with conventions, may be used to represent such
+  annotation support, together with conventions, may be used to represent such
   interpretations.
 
 * **Row count**: A view is not required to provide its row count. The
@@ -149,7 +149,7 @@ The IDataView system design does *not* include the following:
 
 IDataView has general schema support, in that a view can have an arbitrary
 number of columns, each having an associated name, index, data type, and
-optional metadata.
+optional annotation.
 
 Column names are case sensitive. Multiple columns can share the same name, in
 which case, one of the columns hides the others, in the sense that the name
@@ -177,7 +177,7 @@ The set of standard types will likely be expanded over time.
 The IDataView type system is specified in a separate document, *IDataView Type
 System Specification*.
 
-IDataView provides a general mechanism for associating semantic metadata with
+IDataView provides a general mechanism for associating semantic annotations with
 columns, such as designating sets of score columns, names associated with the
 individual slots of a vector-valued column, values associated with a key type
 column, whether a column's data is normalized, etc.

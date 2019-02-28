@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
 
@@ -107,15 +107,15 @@ namespace Microsoft.ML.EntryPoints
             predictor = Predictor;
         }
 
-        internal override string[] GetLabelInfo(IHostEnvironment env, out ColumnType labelType)
+        internal override string[] GetLabelInfo(IHostEnvironment env, out DataViewType labelType)
         {
             Contracts.CheckValue(env, nameof(env));
             var predictor = Predictor;
-            var calibrated = predictor as CalibratedPredictorBase;
+            var calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
             while (calibrated != null)
             {
-                predictor = calibrated.SubPredictor;
-                calibrated = predictor as CalibratedPredictorBase;
+                predictor = calibrated.WeeklyTypedSubModel;
+                calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
             }
             var canGetTrainingLabelNames = predictor as ICanGetTrainingLabelNames;
             if (canGetTrainingLabelNames != null)
@@ -126,7 +126,7 @@ namespace Microsoft.ML.EntryPoints
             if (trainRms.Label != null)
             {
                 labelType = trainRms.Label.Value.Type;
-                if (trainRms.Label.Value.HasKeyValues(labelType))
+                if (trainRms.Label.Value.HasKeyValues())
                 {
                     VBuffer<ReadOnlyMemory<char>> keyValues = default;
                     trainRms.Label.Value.GetKeyValues(ref keyValues);

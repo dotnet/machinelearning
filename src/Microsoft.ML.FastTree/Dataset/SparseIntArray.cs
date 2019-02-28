@@ -7,7 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
 #if USE_SINGLE_PRECISION
     using FloatType = System.Single;
@@ -250,11 +250,6 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         }
 
         public override IntArrayType Type { get { return IntArrayType.Sparse; } }
-
-        public override MD5Hash MD5Hash
-        {
-            get { return MD5Hasher.Hash(_deltas) ^ _values.MD5Hash; }
-        }
 
         public override IntArray Clone(IntArrayBits bitsPerItem, IntArrayType type)
         {

@@ -15,7 +15,7 @@ namespace Microsoft.ML.Sweeper.Tests
 
             var env = new MLContext(42);
             var sweeper = new UniformRandomSweeper(env,
-                    new SweeperBase.ArgumentsBase(),
+                    new SweeperBase.OptionsBase(),
                     new[] { valueGenerator });
 
             var results = sweeper.ProposeSweeps(3);
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Sweeper.Tests
 
             var env = new MLContext(42);
             var sweeper = new RandomGridSweeper(env,
-                new RandomGridSweeper.Arguments(),
+                new RandomGridSweeper.Options(),
                 new[] { valueGenerator });
 
             var results = sweeper.ProposeSweeps(3);
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Sweeper.Tests
 
         private static DiscreteValueGenerator CreateDiscreteValueGenerator()
         {
-            var args = new DiscreteParamArguments()
+            var args = new DiscreteParamOptions()
             {
                 Name = "TestParam",
                 Values = new string[] { "one", "two" }

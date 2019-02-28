@@ -24,20 +24,8 @@ namespace Microsoft.ML.RunTests
     {
         public const int DigitsOfPrecision = 7;
 
-        public static bool NotFullFramework { get; set;} = true;
-
-        public static bool LessThanNetCore30OrNotNetCore { get; } = AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null ? true : false;
-
-        public static bool LessThanNetCore30AndNotFullFramework { get; set; } = LessThanNetCore30OrNotNetCore;
-
-        public static bool LessThanNetCore30OrNotNetCoreAnd64BitProcess { get; } = LessThanNetCore30OrNotNetCore && Environment.Is64BitProcess;
-
         protected BaseTestBaseline(ITestOutputHelper output) : base(output)
         {
-#if NETFRAMEWORK
-            NotFullFramework = false;
-            LessThanNetCore30AndNotFullFramework = false;
-#endif
         }
 
         internal const string RawSuffix = ".raw";
@@ -120,7 +108,6 @@ namespace Microsoft.ML.RunTests
         // It is called as a first step in test clean up.
         protected override void Cleanup()
         {
-            _env?.Dispose();
             _env = null;
 
             Contracts.Assert(IsActive);
@@ -777,9 +764,6 @@ namespace Microsoft.ML.RunTests
                 }
             });
             t.IsBackground = true;
-#if !CORECLR // CoreCLR does not support apartment state settings for threads.
-            t.SetApartmentState(ApartmentState.MTA);
-#endif
             t.Start();
             t.Join();
             if (inner != null)
@@ -802,11 +786,8 @@ namespace Microsoft.ML.RunTests
         protected static StreamWriter OpenWriter(string path, bool append = false, Encoding encoding = null, int bufferSize = 1024)
         {
             Contracts.CheckNonWhiteSpace(path, nameof(path));
-#if CORECLR
+
             return Utils.OpenWriter(File.Open(path, append ? FileMode.Append : FileMode.OpenOrCreate), encoding, bufferSize, false);
-#else
-            return new StreamWriter(path, append);
-#endif
         }
 
         /// <summary>
@@ -817,11 +798,8 @@ namespace Microsoft.ML.RunTests
         protected static StreamReader OpenReader(string path)
         {
             Contracts.CheckNonWhiteSpace(path, nameof(path));
-#if CORECLR
+
             return new StreamReader(File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read));
-#else
-            return new StreamReader(path);
-#endif
         }
 
         /// <summary>

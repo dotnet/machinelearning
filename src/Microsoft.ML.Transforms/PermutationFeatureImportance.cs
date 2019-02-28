@@ -11,15 +11,16 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Transforms
 {
-    internal static class PermutationFeatureImportance<TMetric, TResult> where TResult : MetricsStatisticsBase<TMetric>, new()
+    internal static class PermutationFeatureImportance<TModel, TMetric, TResult> where TResult : MetricsStatisticsBase<TMetric>, new()
     {
         public static ImmutableArray<TResult>
             GetImportanceMetricsMatrix(
                 IHostEnvironment env,
-                IPredictionTransformer<IPredictor> model,
+                IPredictionTransformer<TModel> model,
                 IDataView data,
                 Func<IDataView, TMetric> evaluationFunc,
                 Func<TMetric, TMetric, TMetric> deltaFunc,
@@ -29,7 +30,7 @@ namespace Microsoft.ML.Transforms
                 int? topExamples = null)
         {
             Contracts.CheckValue(env, nameof(env));
-            var host = env.Register(nameof(PermutationFeatureImportance<TMetric, TResult>));
+            var host = env.Register(nameof(PermutationFeatureImportance<TModel, TMetric, TResult>));
             host.CheckValue(model, nameof(model));
             host.CheckValue(data, nameof(data));
             host.CheckNonEmpty(features, nameof(features));
@@ -52,7 +53,7 @@ namespace Microsoft.ML.Transforms
 
                 ch.Info("Number of slots: " + numSlots);
                 if (data.Schema[featuresColumnIndex].HasSlotNames(numSlots))
-                    data.Schema[featuresColumnIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNames);
+                    data.Schema[featuresColumnIndex].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref slotNames);
 
                 if (slotNames.Length != numSlots)
                     slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(numSlots);
@@ -219,7 +220,7 @@ namespace Microsoft.ML.Transforms
                             IDataView viewPermuted = LambdaTransform.CreateMap(
                                 host, data, permuter, null, input, output);
                             if (valuesRowCount == topExamples)
-                                viewPermuted = SkipTakeFilter.Create(host, new SkipTakeFilter.TakeArguments() { Count = valuesRowCount }, viewPermuted);
+                                viewPermuted = SkipTakeFilter.Create(host, new SkipTakeFilter.TakeOptions() { Count = valuesRowCount }, viewPermuted);
 
                             var metrics = evaluationFunc(model.Transform(viewPermuted));
 

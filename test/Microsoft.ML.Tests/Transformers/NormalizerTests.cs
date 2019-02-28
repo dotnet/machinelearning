@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.Data.DataView;
@@ -10,6 +11,7 @@ using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Normalizers;
@@ -30,42 +32,42 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
 
-            var loader = new TextLoader(Env, new TextLoader.Arguments
+            var loader = new TextLoader(Env, new TextLoader.Options
             {
-                Column = new[] {
-                    new TextLoader.Column("float1", DataKind.R4, 1),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
-                    new TextLoader.Column("double1", DataKind.R8, 1),
-                    new TextLoader.Column("double4", DataKind.R8, new[]{new TextLoader.Range(1, 4) }),
-                    new TextLoader.Column("int1", DataKind.I4, 0),
-                    new TextLoader.Column("float0", DataKind.R4, new[]{ new TextLoader.Range { Min = 1, VariableEnd = true } }),
+                Columns = new[] {
+                    new TextLoader.Column("float1", DataKind.Single, 1),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("double1", DataKind.Double, 1),
+                    new TextLoader.Column("double4", DataKind.Double, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("int1", DataKind.Int32, 0),
+                    new TextLoader.Column("float0", DataKind.Single, new[]{ new TextLoader.Range { Min = 1, VariableEnd = true } }),
                 },
                 HasHeader = true
             }, new MultiFileSource(dataPath));
 
             var est = new NormalizingEstimator(Env,
-                new NormalizingEstimator.MinMaxColumn("float1"),
-                new NormalizingEstimator.MinMaxColumn("float4"),
-                new NormalizingEstimator.MinMaxColumn("double1"),
-                new NormalizingEstimator.MinMaxColumn("double4"),
-                new NormalizingEstimator.BinningColumn("float1bin", "float1"),
-                new NormalizingEstimator.BinningColumn("float4bin", "float4"),
-                new NormalizingEstimator.BinningColumn("double1bin", "double1"),
-                new NormalizingEstimator.BinningColumn("double4bin", "double4"),
-                new NormalizingEstimator.SupervisedBinningColumn("float1supervisedbin", "float1", labelColumn: "int1"),
-                new NormalizingEstimator.SupervisedBinningColumn("float4supervisedbin", "float4", labelColumn: "int1"),
-                new NormalizingEstimator.SupervisedBinningColumn("double1supervisedbin", "double1", labelColumn: "int1"),
-                new NormalizingEstimator.SupervisedBinningColumn("double4supervisedbin", "double4", labelColumn: "int1"),
-                new NormalizingEstimator.MeanVarColumn("float1mv", "float1"),
-                new NormalizingEstimator.MeanVarColumn("float4mv", "float4"),
-                new NormalizingEstimator.MeanVarColumn("double1mv", "double1"),
-                new NormalizingEstimator.MeanVarColumn("double4mv", "double4"),
-                new NormalizingEstimator.LogMeanVarColumn("float1lmv", "float1"),
-                new NormalizingEstimator.LogMeanVarColumn("float4lmv", "float4"),
-                new NormalizingEstimator.LogMeanVarColumn("double1lmv", "double1"),
-                new NormalizingEstimator.LogMeanVarColumn("double4lmv", "double4"));
+                new NormalizingEstimator.MinMaxColumnOptions("float1"),
+                new NormalizingEstimator.MinMaxColumnOptions("float4"),
+                new NormalizingEstimator.MinMaxColumnOptions("double1"),
+                new NormalizingEstimator.MinMaxColumnOptions("double4"),
+                new NormalizingEstimator.BinningColumnOptions("float1bin", "float1"),
+                new NormalizingEstimator.BinningColumnOptions("float4bin", "float4"),
+                new NormalizingEstimator.BinningColumnOptions("double1bin", "double1"),
+                new NormalizingEstimator.BinningColumnOptions("double4bin", "double4"),
+                new NormalizingEstimator.SupervisedBinningColumOptions("float1supervisedbin", "float1", labelColumn: "int1"),
+                new NormalizingEstimator.SupervisedBinningColumOptions("float4supervisedbin", "float4", labelColumn: "int1"),
+                new NormalizingEstimator.SupervisedBinningColumOptions("double1supervisedbin", "double1", labelColumn: "int1"),
+                new NormalizingEstimator.SupervisedBinningColumOptions("double4supervisedbin", "double4", labelColumn: "int1"),
+                new NormalizingEstimator.MeanVarColumnOptions("float1mv", "float1"),
+                new NormalizingEstimator.MeanVarColumnOptions("float4mv", "float4"),
+                new NormalizingEstimator.MeanVarColumnOptions("double1mv", "double1"),
+                new NormalizingEstimator.MeanVarColumnOptions("double4mv", "double4"),
+                new NormalizingEstimator.LogMeanVarColumnOptions("float1lmv", "float1"),
+                new NormalizingEstimator.LogMeanVarColumnOptions("float4lmv", "float4"),
+                new NormalizingEstimator.LogMeanVarColumnOptions("double1lmv", "double1"),
+                new NormalizingEstimator.LogMeanVarColumnOptions("double4lmv", "double4"));
 
-            var data = loader.Read(dataPath);
+            var data = loader.Load(dataPath);
 
             var badData1 = new ColumnCopyingTransformer(Env, ("float1", "int1")).Transform(data);
             var badData2 = new ColumnCopyingTransformer(Env, ("float4", "float0")).Transform(data);
@@ -79,7 +81,8 @@ namespace Microsoft.ML.Tests.Transformers
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 using (var fs = File.Create(outputPath))
                 {
-                    var dataView = ColumnSelectingTransformer.CreateDrop(Env, est.Fit(data).Transform(data), "float0");
+                    var transformedData = est.Fit(data).Transform(data);
+                    var dataView = ML.Transforms.DropColumns(new[] { "float0" }).Fit(transformedData).Transform(transformedData);
                     DataSaverUtils.SaveDataView(ch, saver, dataView, fs, keepHidden: true);
                 }
             }
@@ -94,38 +97,38 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dataPath = GetDataPath("iris.txt");
 
-            var loader = new TextLoader(Env, new TextLoader.Arguments
+            var loader = new TextLoader(Env, new TextLoader.Options
             {
-                Column = new[] {
-                    new TextLoader.Column("float1", DataKind.R4, 1),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
-                    new TextLoader.Column("double1", DataKind.R8, 1),
-                    new TextLoader.Column("double4", DataKind.R8, new[]{new TextLoader.Range(1, 4) }),
-                    new TextLoader.Column("int1", DataKind.I4, 0),
-                    new TextLoader.Column("float0", DataKind.R4, new[]{ new TextLoader.Range { Min = 1, VariableEnd = true } })
+                Columns = new[] {
+                    new TextLoader.Column("float1", DataKind.Single, 1),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("double1", DataKind.Double, 1),
+                    new TextLoader.Column("double4", DataKind.Double, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("int1", DataKind.Int32, 0),
+                    new TextLoader.Column("float0", DataKind.Single, new[]{ new TextLoader.Range { Min = 1, VariableEnd = true } })
                 },
                 HasHeader = true
             }, new MultiFileSource(dataPath));
 
             var est = new NormalizingEstimator(Env,
-                new NormalizingEstimator.MinMaxColumn("float1"),
-                new NormalizingEstimator.MinMaxColumn("float4"),
-                new NormalizingEstimator.MinMaxColumn("double1"),
-                new NormalizingEstimator.MinMaxColumn("double4"),
-                new NormalizingEstimator.BinningColumn("float1bin", "float1"),
-                new NormalizingEstimator.BinningColumn("float4bin", "float4"),
-                new NormalizingEstimator.BinningColumn("double1bin", "double1"),
-                new NormalizingEstimator.BinningColumn("double4bin", "double4"),
-                new NormalizingEstimator.MeanVarColumn("float1mv", "float1"),
-                new NormalizingEstimator.MeanVarColumn("float4mv", "float4"),
-                new NormalizingEstimator.MeanVarColumn("double1mv", "double1"),
-                new NormalizingEstimator.MeanVarColumn("double4mv", "double4"),
-                new NormalizingEstimator.LogMeanVarColumn("float1lmv", "float1"),
-                new NormalizingEstimator.LogMeanVarColumn("float4lmv", "float4"),
-                new NormalizingEstimator.LogMeanVarColumn("double1lmv", "double1"),
-                new NormalizingEstimator.LogMeanVarColumn("double4lmv", "double4"));
+                new NormalizingEstimator.MinMaxColumnOptions("float1"),
+                new NormalizingEstimator.MinMaxColumnOptions("float4"),
+                new NormalizingEstimator.MinMaxColumnOptions("double1"),
+                new NormalizingEstimator.MinMaxColumnOptions("double4"),
+                new NormalizingEstimator.BinningColumnOptions("float1bin", "float1"),
+                new NormalizingEstimator.BinningColumnOptions("float4bin", "float4"),
+                new NormalizingEstimator.BinningColumnOptions("double1bin", "double1"),
+                new NormalizingEstimator.BinningColumnOptions("double4bin", "double4"),
+                new NormalizingEstimator.MeanVarColumnOptions("float1mv", "float1"),
+                new NormalizingEstimator.MeanVarColumnOptions("float4mv", "float4"),
+                new NormalizingEstimator.MeanVarColumnOptions("double1mv", "double1"),
+                new NormalizingEstimator.MeanVarColumnOptions("double4mv", "double4"),
+                new NormalizingEstimator.LogMeanVarColumnOptions("float1lmv", "float1"),
+                new NormalizingEstimator.LogMeanVarColumnOptions("float4lmv", "float4"),
+                new NormalizingEstimator.LogMeanVarColumnOptions("double1lmv", "double1"),
+                new NormalizingEstimator.LogMeanVarColumnOptions("double4lmv", "double4"));
 
-            var data = loader.Read(dataPath);
+            var data = loader.Load(dataPath);
 
             var transformer = est.Fit(data);
 
@@ -211,19 +214,19 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
 
-            var loader = new TextLoader(Env, new TextLoader.Arguments
+            var loader = new TextLoader(Env, new TextLoader.Options
             {
-                Column = new[] {
-                    new TextLoader.Column("Label", DataKind.R4, 0),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
+                Columns = new[] {
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(1, 4) }),
                 }
             });
 
-            var data = loader.Read(dataPath);
+            var data = loader.Load(dataPath);
 
             var est1 = new NormalizingEstimator(Env, "float4");
             var est2 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizerMode.MinMax, ("float4", "float4"));
-            var est3 = new NormalizingEstimator(Env, new NormalizingEstimator.MinMaxColumn("float4"));
+            var est3 = new NormalizingEstimator(Env, new NormalizingEstimator.MinMaxColumnOptions("float4"));
             var est4 = ML.Transforms.Normalize(NormalizingEstimator.NormalizerMode.MinMax, ("float4", "float4"));
             var est5 = ML.Transforms.Normalize("float4");
 
@@ -244,7 +247,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Tests for SupervisedBinning
             var est6 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizerMode.SupervisedBinning, ("float4", "float4"));
-            var est7 = new NormalizingEstimator(Env, new NormalizingEstimator.SupervisedBinningColumn("float4"));
+            var est7 = new NormalizingEstimator(Env, new NormalizingEstimator.SupervisedBinningColumOptions("float4"));
             var est8 = ML.Transforms.Normalize(NormalizingEstimator.NormalizerMode.SupervisedBinning, ("float4", "float4"));
 
             var data6 = est6.Fit(data).Transform(data);
@@ -262,18 +265,18 @@ namespace Microsoft.ML.Tests.Transformers
         public void LpGcNormAndWhiteningWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var data = TextLoaderStatic.CreateReader(ML,
+            var data = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource);
+                .Load(dataSource);
 
-            var invalidData = TextLoaderStatic.CreateReader(ML,
+            var invalidData = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource);
+                .Load(dataSource);
 
-            var est = new LpNormalizingEstimator(ML, "lpnorm", "features")
-                .Append(new GlobalContrastNormalizingEstimator(ML, "gcnorm", "features"))
+            var est = ML.Transforms.Projection.LpNormalize("lpnorm", "features")
+                .Append(ML.Transforms.Projection.GlobalContrastNormalize("gcnorm", "features"))
                 .Append(new VectorWhiteningEstimator(ML, "whitened", "features"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
@@ -281,8 +284,8 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(ML, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "lpnorm", "gcnorm", "whitened" });
+                var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                savedData = ML.Transforms.SelectColumns("lpnorm", "gcnorm", "whitened").Fit(savedData).Transform(savedData);
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -296,15 +299,15 @@ namespace Microsoft.ML.Tests.Transformers
         public void WhiteningWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var data = TextLoaderStatic.CreateReader(ML,
+            var data = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource);
+                .Load(dataSource);
 
-            var invalidData = TextLoaderStatic.CreateReader(ML,
+            var invalidData = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource);
+                .Load(dataSource);
 
             var est = new VectorWhiteningEstimator(ML, "whitened1", "features")
                 .Append(new VectorWhiteningEstimator(ML, "whitened2", "features", kind: WhiteningKind.Pca, pcaNum: 5));
@@ -313,9 +316,9 @@ namespace Microsoft.ML.Tests.Transformers
             var outputPath = GetOutputPath("NormalizerEstimator", "whitened.tsv");
             using (var ch = Env.Start("save"))
             {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "whitened1", "whitened2" });
+                var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
+                var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                savedData = ML.Transforms.SelectColumns("whitened1", "whitened2").Fit(savedData).Transform(savedData);
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -325,9 +328,11 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NotFullFramework))] // Tracked by https://github.com/dotnet/machinelearning/issues/2104
+        [Fact]
         public void TestWhiteningCommandLine()
         {
+            // typeof helps to load the VectorWhiteningTransformer type.
+            Type type = typeof(VectorWhiteningTransformer);
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=whitening{col=B:A} in=f:\2.txt" }), (int)0);
         }
 
@@ -335,10 +340,10 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestWhiteningOldSavingAndLoading()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var dataView = TextLoaderStatic.CreateReader(ML,
+            var dataView = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource).AsDynamic;
+                .Load(dataSource).AsDynamic;
             var pipe = new VectorWhiteningEstimator(ML, "whitened", "features");
 
             var result = pipe.Fit(dataView).Transform(dataView);
@@ -356,26 +361,26 @@ namespace Microsoft.ML.Tests.Transformers
         public void LpNormWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var data = TextLoaderStatic.CreateReader(ML,
+            var data = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource);
+                .Load(dataSource);
 
-            var invalidData = TextLoaderStatic.CreateReader(ML,
+            var invalidData = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource);
+                .Load(dataSource);
 
-            var est = new LpNormalizingEstimator(ML, "lpNorm1", "features")
-                .Append(new LpNormalizingEstimator(ML, "lpNorm2", "features", normKind: LpNormalizingEstimatorBase.NormalizerKind.L1Norm, substractMean: true));
+            var est = ML.Transforms.Projection.LpNormalize("lpNorm1", "features")
+                .Append(ML.Transforms.Projection.LpNormalize("lpNorm2", "features", normKind: LpNormalizingEstimatorBase.NormalizerKind.L1Norm, subMean: true));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "lpNorm.tsv");
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(ML, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "lpNorm1", "lpNorm2" });
+                var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                savedData = ML.Transforms.SelectColumns("lpNorm1", "lpNorm2").Fit(savedData).Transform(savedData);
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -395,11 +400,11 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestLpNormOldSavingAndLoading()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var dataView = TextLoaderStatic.CreateReader(ML,
+            var dataView = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource).AsDynamic;
-            var pipe = new LpNormalizingEstimator(ML, "whitened", "features");
+                .Load(dataSource).AsDynamic;
+            var pipe = ML.Transforms.Projection.LpNormalize("whitened", "features");
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -411,30 +416,30 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         public void GcnWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var data = TextLoaderStatic.CreateReader(ML,
+            var data = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource);
+                .Load(dataSource);
 
-            var invalidData = TextLoaderStatic.CreateReader(ML,
+            var invalidData = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource);
+                .Load(dataSource);
 
-            var est = new GlobalContrastNormalizingEstimator(ML, "gcnNorm1", "features")
-                .Append(new GlobalContrastNormalizingEstimator(ML, "gcnNorm2", "features", substractMean: false, useStdDev: true, scale: 3));
+            var est = ML.Transforms.Projection.GlobalContrastNormalize("gcnNorm1", "features")
+                .Append(ML.Transforms.Projection.GlobalContrastNormalize("gcnNorm2", "features", substractMean: false, useStdDev: true, scale: 3));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "gcnNorm.tsv");
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(ML, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "gcnNorm1", "gcnNorm2" });
+                var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                savedData = ML.Transforms.SelectColumns("gcnNorm1", "gcnNorm2").Fit(savedData).Transform(savedData);
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -454,11 +459,11 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestGcnNormOldSavingAndLoading()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var dataView = TextLoaderStatic.CreateReader(ML,
+            var dataView = TextLoaderStatic.CreateLoader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(dataSource).AsDynamic;
-            var pipe = new GlobalContrastNormalizingEstimator(ML, "whitened", "features");
+                .Load(dataSource).AsDynamic;
+            var pipe = ML.Transforms.Projection.GlobalContrastNormalize("whitened", "features");
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -474,7 +479,7 @@ namespace Microsoft.ML.Tests.Transformers
         void TestNormalizeBackCompatibility()
         {
             var dataFile = GetDataPath("breast-cancer.txt");
-            var dataView = TextLoader.Create(ML, new TextLoader.Arguments(), new MultiFileSource(dataFile));
+            var dataView = TextLoader.Create(ML, new TextLoader.Options(), new MultiFileSource(dataFile));
             string chooseModelPath = GetDataPath("backcompat/ap_with_norm.zip");
             using (FileStream fs = File.OpenRead(chooseModelPath))
             {

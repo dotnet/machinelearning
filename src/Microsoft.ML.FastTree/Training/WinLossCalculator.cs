@@ -8,9 +8,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
-    public sealed class WinLossCalculator
+    internal sealed class WinLossCalculator
     {
         private readonly int[] _oneTwoThree;
 

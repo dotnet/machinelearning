@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 
@@ -15,22 +13,22 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Trainers and tasks specific to ranking problems.
+        /// Trainers and tasks specific to recommendation problems.
         /// </summary>
         public static RecommendationCatalog Recommendation(this MLContext ctx) => new RecommendationCatalog(ctx);
     }
 
     /// <summary>
-    /// The central catalog for recommendation trainers.
+    /// The central catalog for recommendation trainers and tasks.
     /// </summary>
     public sealed class RecommendationCatalog : TrainCatalogBase
     {
         /// <summary>
-        /// For trainers for performing recommendation.
+        /// The list of trainers for performing recommendation.
         /// </summary>
         public RecommendationTrainers Trainers { get; }
 
-        public RecommendationCatalog(IHostEnvironment env)
+        internal RecommendationCatalog(IHostEnvironment env)
             : base(env, nameof(RecommendationCatalog))
         {
             Trainers = new RecommendationTrainers(this);
@@ -52,14 +50,27 @@ namespace Microsoft.ML
             /// and the value at the location specified by the two indexes.
             /// </para>
             /// </remarks>
+            /// <param name="labelColumn">The name of the label column.</param>
             /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
             /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
-            /// <param name="labelColumn">The name of the label column.</param>
+            /// <param name="approximationRank">Rank of approximation matrixes.</param>
+            /// <param name="learningRate">Initial learning rate. It specifies the speed of the training algorithm.</param>
+            /// <param name="numberOfIterations">Number of training iterations.</param>
+            /// <example>
+            /// <format type="text/markdown">
+            /// <![CDATA[
+            ///  [!code-csharp[MatrixFactorization](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Recommendation/MatrixFactorization.cs)]
+            /// ]]></format>
+            /// </example>
             public MatrixFactorizationTrainer MatrixFactorization(
+                string labelColumn,
                 string matrixColumnIndexColumnName,
                 string matrixRowIndexColumnName,
-                string labelColumn = DefaultColumnNames.Label)
-                    => new MatrixFactorizationTrainer(Owner.Environment, matrixColumnIndexColumnName, matrixRowIndexColumnName, labelColumn);
+                int approximationRank = MatrixFactorizationTrainer.Defaults.ApproximationRank,
+                double learningRate = MatrixFactorizationTrainer.Defaults.LearningRate,
+                int numberOfIterations = MatrixFactorizationTrainer.Defaults.NumIterations)
+                    => new MatrixFactorizationTrainer(Owner.Environment, labelColumn, matrixColumnIndexColumnName, matrixRowIndexColumnName,
+                        approximationRank, learningRate, numberOfIterations);
 
             /// <summary>
             /// Train a matrix factorization model. It factorizes the training matrix into the product of two low-rank matrices.
@@ -74,7 +85,7 @@ namespace Microsoft.ML
             /// <example>
             /// <format type="text/markdown">
             /// <![CDATA[
-            ///  [!code-csharp[MatrixFactorization](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MatrixFactorization.cs)]
+            ///  [!code-csharp[MatrixFactorization](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Recommendation/MatrixFactorizationWithOptions.cs)]
             /// ]]></format>
             /// </example>
             public MatrixFactorizationTrainer MatrixFactorization(
@@ -91,11 +102,11 @@ namespace Microsoft.ML
         /// <returns>The evaluation results for these calibrated outputs.</returns>
         public RegressionMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score)
         {
-            Host.CheckValue(data, nameof(data));
-            Host.CheckNonEmpty(label, nameof(label));
-            Host.CheckNonEmpty(score, nameof(score));
+            Environment.CheckValue(data, nameof(data));
+            Environment.CheckNonEmpty(label, nameof(label));
+            Environment.CheckNonEmpty(score, nameof(score));
 
-            var eval = new RegressionEvaluator(Host, new RegressionEvaluator.Arguments() { });
+            var eval = new RegressionEvaluator(Environment, new RegressionEvaluator.Arguments() { });
             return eval.Evaluate(data, label, score);
         }
 
@@ -115,13 +126,13 @@ namespace Microsoft.ML
         /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (RegressionMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+        public CrossValidationResult<RegressionMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
             string stratificationColumn = null, uint? seed = null)
         {
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            Environment.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
-            return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
+            return result.Select(x => new CrossValidationResult<RegressionMetrics>(x.Model, Evaluate(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
         }
     }
 }

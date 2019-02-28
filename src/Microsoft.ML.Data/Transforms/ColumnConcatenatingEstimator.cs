@@ -6,12 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms
 {
-    public sealed class ColumnConcatenatingEstimator : IEstimator<ITransformer>
+    /// <summary>
+    /// Concatenates columns in an <see cref="IDataView"/> into one single column. Estimator for the <see cref="ColumnConcatenatingTransformer"/>.
+    /// </summary>
+    public sealed class ColumnConcatenatingEstimator : IEstimator<ColumnConcatenatingTransformer>
     {
         private readonly IHost _host;
         private readonly string _name;
@@ -22,8 +24,8 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The local instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="outputColumnName">The name of the resulting column.</param>
-        /// <param name="inputColumnNames">The columns to concatenate together.</param>
-        public ColumnConcatenatingEstimator(IHostEnvironment env, string outputColumnName, params string[] inputColumnNames)
+        /// <param name="inputColumnNames">The columns to concatenate into one single column.</param>
+        internal ColumnConcatenatingEstimator(IHostEnvironment env, string outputColumnName, params string[] inputColumnNames)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register("ColumnConcatenatingEstimator ");
@@ -37,7 +39,10 @@ namespace Microsoft.ML.Transforms
             _source = inputColumnNames;
         }
 
-        public ITransformer Fit(IDataView input)
+        /// <summary>
+        /// Trains and returns a <see cref="ColumnConcatenatingTransformer"/>.
+        /// </summary>
+        public ColumnConcatenatingTransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
             return new ColumnConcatenatingTransformer(_host, _name, _source);
@@ -46,12 +51,12 @@ namespace Microsoft.ML.Transforms
         private bool HasCategoricals(SchemaShape.Column col)
         {
             _host.Assert(col.IsValid);
-            if (!col.Metadata.TryFindColumn(MetadataUtils.Kinds.CategoricalSlotRanges, out var mcol))
+            if (!col.Annotations.TryFindColumn(AnnotationUtils.Kinds.CategoricalSlotRanges, out var mcol))
                 return false;
             // The indices must be ints and of a definite size vector type. (Definite becuase
             // metadata has only one value anyway.)
             return mcol.Kind == SchemaShape.Column.VectorKind.Vector
-                && mcol.ItemType == NumberType.I4;
+                && mcol.ItemType == NumberDataViewType.Int32;
         }
 
         private SchemaShape.Column CheckInputsAndMakeColumn(
@@ -70,7 +75,7 @@ namespace Microsoft.ML.Transforms
             bool hasSlotNames = false;
 
             // We will get the item type from the first column.
-            ColumnType itemType = null;
+            DataViewType itemType = null;
 
             for (int i = 0; i < sources.Length; ++i)
             {
@@ -100,15 +105,19 @@ namespace Microsoft.ML.Transforms
 
             List<SchemaShape.Column> meta = new List<SchemaShape.Column>();
             if (isNormalized)
-                meta.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+                meta.Add(new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
             if (hasCategoricals)
-                meta.Add(new SchemaShape.Column(MetadataUtils.Kinds.CategoricalSlotRanges, SchemaShape.Column.VectorKind.Vector, NumberType.I4, false));
+                meta.Add(new SchemaShape.Column(AnnotationUtils.Kinds.CategoricalSlotRanges, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Int32, false));
             if (hasSlotNames)
-                meta.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
+                meta.Add(new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
 
             return new SchemaShape.Column(name, vecKind, itemType, false, new SchemaShape(meta));
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));

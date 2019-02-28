@@ -63,7 +63,7 @@ components. At a high level, it is analogous to the .Net interface
 While `IEnumerable<T>` is a sequence of objects of type `T`, `IDataView` is a
 sequence of rows. An `IDataView` object has an associated `ISchema` object
 that defines the `IDataView`'s columns, including their names, types, indices,
-and associated metadata. Each row of the `IDataView` has a value for each
+and associated annotations. Each row of the `IDataView` has a value for each
 column defined by the schema.
 
 Just as `IEnumerable<T>` has an associated enumerator interface, namely
@@ -224,29 +224,29 @@ to a dense representation having the suppressed entries filled in with the
 entries are emphatically *not* the missing/`NA` value of the item type, unless
 the missing and default values are identical, as they are for key types.
 
-### Metadata
+### Annotations
 
-A column in an `ISchema` can have additional column-wide information, known as
-metadata. For each string value, known as a metadata kind, a column may have a
-value associated with that metadata kind. The value also has an associated
+A column in an `DataViewSchema` can have additional column-wide information, known as
+annotations. For each string value, known as an annotation kind, a column may have a
+value associated with that annotation kind. The value also has an associated
 type, which is a compatible column type.
 
 For example:
 
 * A column may indicate that it is normalized, by providing a `BL` valued
-  piece of metadata named `IsNormalized`.
+  annotation named `IsNormalized`.
 
 * A column whose type is `V<R4,17>`, meaning a vector of length 17 whose items
-  are single-precision floating-point values, might have `SlotNames` metadata
+  are single-precision floating-point values, might have `SlotNames` annotation
   of type `V<TX,17>`, meaning a vector of length 17 whose items are text.
 
 * A column produced by a scorer may have several pieces of associated
-  metadata, indicating the "scoring column group id" that it belongs to, what
+  annotations, indicating the "scoring column group id" that it belongs to, what
   kind of scorer produced the column (for example, binary classification), and the
   precise semantics of the column (for example, predicted label, raw score,
   probability).
 
-The `ISchema` interface, including the metadata API, is fully specified in
+The `DataViewSchema` class, including the annotations API, is fully specified in
 another document.
 
 ## Text Type

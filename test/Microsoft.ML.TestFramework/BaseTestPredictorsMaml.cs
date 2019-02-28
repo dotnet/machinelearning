@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.RunTests
 {
-    using ResultProcessor = Microsoft.ML.Internal.Internallearn.ResultProcessor.ResultProcessor;
+    using ResultProcessor = ResultProcessor.ResultProcessor;
 
     /// <summary>
     /// This is a base test class designed to support running trainings and related
@@ -233,6 +233,7 @@ namespace Microsoft.ML.RunTests
                 removeArgs.Add("xf=");
                 removeArgs.Add("cache-");
                 removeArgs.Add("sf=");
+                removeArgs.Add("loader=");
 
                 for (int i = 0; i < args.Count; ++i)
                 {

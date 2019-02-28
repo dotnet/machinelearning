@@ -18,7 +18,7 @@ Along with these ML capabilities, this first release of ML.NET also brings the f
 
 ML.NET runs on Windows, Linux, and macOS using [.NET Core](https://github.com/dotnet/core), or Windows using .NET Framework. 64 bit is supported on all platforms. 32 bit is supported on Windows, except for TensorFlow, LightGBM, and ONNX related functionality.
 
-The current release is 0.9. Check out the [release notes](docs/release-notes/0.9/release-0.9.md) to see what's new.
+The current release is 0.10. Check out the [release notes](docs/release-notes/0.10/release-0.10.md) to see what's new.
 
 First, ensure you have installed [.NET Core 2.1](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework 4.6.1 or later, but 4.7.2 or later is recommended.
 
@@ -69,7 +69,7 @@ Here's an example of code to train a model to predict sentiment from text sample
 
 ```C#
 var mlContext = new MLContext();
-var reader = mlContext.Data.TextReader(new TextLoader.Arguments
+var reader = mlContext.Data.CreateTextLoader(new TextLoader.Arguments
         {
         Column = new[] {
             new TextLoader.Column("SentimentText", DataKind.Text, 1),
@@ -79,7 +79,7 @@ var reader = mlContext.Data.TextReader(new TextLoader.Arguments
         Separator = ","
 });
 var data = reader.Read(dataPath);
-var learningPipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
+var learningPipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
         .Append(mlContext.BinaryClassification.Trainers.FastTree());
 var model = learningPipeline.Fit(data);
 

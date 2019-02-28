@@ -24,7 +24,8 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class RegressionEvaluator :
+    [BestFriend]
+    internal sealed class RegressionEvaluator :
         RegressionEvaluatorBase<RegressionEvaluator.Aggregator, Float, Double>
     {
         public sealed class Arguments : ArgumentsBase
@@ -54,13 +55,13 @@ namespace Microsoft.ML.Data
 
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
-            var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             var t = score.Type;
-            if (t != NumberType.Float)
+            if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "float", t.ToString());
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
             t = schema.Label.Value.Type;
-            if (t != NumberType.R4)
+            if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float", t.ToString());
         }
 
@@ -72,7 +73,7 @@ namespace Microsoft.ML.Data
         private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             Contracts.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
-            var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var scoreInfo = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
             return new RegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.Value.Name);
         }
@@ -152,7 +153,7 @@ namespace Microsoft.ML.Data
             public override void AddColumn(ArrayDataViewBuilder dvBldr, string metricName, params double[] metric)
             {
                 Host.AssertValue(dvBldr);
-                dvBldr.AddColumn(metricName, NumberType.R8, metric);
+                dvBldr.AddColumn(metricName, NumberDataViewType.Double, metric);
             }
         }
 
@@ -170,7 +171,7 @@ namespace Microsoft.ML.Data
             Host.CheckNonEmpty(score, nameof(score));
             var roles = new RoleMappedData(data, opt: false,
                 RoleMappedSchema.ColumnRole.Label.Bind(label),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score));
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, score));
 
             var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
@@ -189,7 +190,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class RegressionPerInstanceEvaluator : PerInstanceEvaluatorBase
+    internal sealed class RegressionPerInstanceEvaluator : PerInstanceEvaluatorBase
     {
         public const string LoaderSignature = "RegressionPerInstance";
         private static VersionInfo GetVersionInfo()
@@ -209,13 +210,13 @@ namespace Microsoft.ML.Data
         public const string L1 = "L1-loss";
         public const string L2 = "L2-loss";
 
-        public RegressionPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol, string labelCol)
+        public RegressionPerInstanceEvaluator(IHostEnvironment env, DataViewSchema schema, string scoreCol, string labelCol)
             : base(env, schema, scoreCol, labelCol)
         {
             CheckInputColumnTypes(schema);
         }
 
-        private RegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
+        private RegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema schema)
             : base(env, ctx, schema)
         {
             CheckInputColumnTypes(schema);
@@ -224,7 +225,7 @@ namespace Microsoft.ML.Data
             // base
         }
 
-        public static RegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
+        public static RegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -233,7 +234,7 @@ namespace Microsoft.ML.Data
             return new RegressionPerInstanceEvaluator(env, ctx, schema);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -241,7 +242,7 @@ namespace Microsoft.ML.Data
 
             // *** Binary format **
             // base
-            base.Save(ctx);
+            base.SaveModel(ctx);
         }
 
         private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
@@ -250,15 +251,15 @@ namespace Microsoft.ML.Data
                 col => (activeOutput(L1Col) || activeOutput(L2Col)) && (col == ScoreIndex || col == LabelIndex);
         }
 
-        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+        private protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
         {
-            var infos = new Schema.DetachedColumn[2];
-            infos[L1Col] = new Schema.DetachedColumn(L1, NumberType.R8, null);
-            infos[L2Col] = new Schema.DetachedColumn(L2, NumberType.R8, null);
+            var infos = new DataViewSchema.DetachedColumn[2];
+            infos[L1Col] = new DataViewSchema.DetachedColumn(L1, NumberDataViewType.Double, null);
+            infos[L2Col] = new DataViewSchema.DetachedColumn(L2, NumberDataViewType.Double, null);
             return infos;
         }
 
-        private protected override Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer)
+        private protected override Delegate[] CreateGettersCore(DataViewRow input, Func<int, bool> activeCols, out Action disposer)
         {
             Host.Assert(LabelIndex >= 0);
             Host.Assert(ScoreIndex >= 0);
@@ -312,22 +313,23 @@ namespace Microsoft.ML.Data
             return getters;
         }
 
-        private void CheckInputColumnTypes(Schema schema)
+        private void CheckInputColumnTypes(DataViewSchema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
 
             var t = schema[(int) LabelIndex].Type;
-            if (t != NumberType.R4)
+            if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "float", t.ToString());
 
             t = schema[ScoreIndex].Type;
-            if (t != NumberType.Float)
+            if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "float", t.ToString());
         }
     }
 
-    public sealed class RegressionMamlEvaluator : MamlEvaluatorBase
+    [BestFriend]
+    internal sealed class RegressionMamlEvaluator : MamlEvaluatorBase
     {
         public sealed class Arguments : ArgumentsBase
         {
@@ -340,7 +342,7 @@ namespace Microsoft.ML.Data
         private protected override IEvaluator Evaluator => _evaluator;
 
         public RegressionMamlEvaluator(IHostEnvironment env, Arguments args)
-            : base(args, env, MetadataUtils.Const.ScoreColumnKind.Regression, "RegressionMamlEvaluator")
+            : base(args, env, AnnotationUtils.Const.ScoreColumnKind.Regression, "RegressionMamlEvaluator")
         {
             Host.CheckUserArg(args.LossFunction != null, nameof(args.LossFunction), "Loss function must be specified.");
 
@@ -357,7 +359,7 @@ namespace Microsoft.ML.Data
             // The regression evaluator outputs the label and score columns.
             yield return schema.Label.Value.Name;
             var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
-                MetadataUtils.Const.ScoreColumnKind.Regression);
+                AnnotationUtils.Const.ScoreColumnKind.Regression);
             yield return scoreCol.Name;
 
             // Return the output columns.

@@ -12,16 +12,17 @@ namespace Microsoft.ML.Data
     /// A convenience class for concatenating several schemas together.
     /// This would be necessary when combining IDataViews through any type of combining operation, for example, zip.
     /// </summary>
+    [BestFriend]
     internal sealed class ZipBinding
     {
-        private readonly Schema[] _sources;
+        private readonly DataViewSchema[] _sources;
 
-        public Schema OutputSchema { get; }
+        public DataViewSchema OutputSchema { get; }
 
         // Zero followed by cumulative column counts. Zero being used for the empty case.
         private readonly int[] _cumulativeColCounts;
 
-        public ZipBinding(Schema[] sources)
+        public ZipBinding(DataViewSchema[] sources)
         {
             Contracts.AssertNonEmpty(sources);
             _sources = sources;
@@ -34,10 +35,10 @@ namespace Microsoft.ML.Data
                 _cumulativeColCounts[i + 1] = _cumulativeColCounts[i] + schema.Count;
             }
 
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
             foreach (var sourceSchema in sources)
                 schemaBuilder.AddColumns(sourceSchema);
-            OutputSchema = schemaBuilder.GetSchema();
+            OutputSchema = schemaBuilder.ToSchema();
         }
 
         public int ColumnCount => _cumulativeColCounts[_cumulativeColCounts.Length - 1];

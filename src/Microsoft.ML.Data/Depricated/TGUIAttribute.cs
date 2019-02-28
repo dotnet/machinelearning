@@ -10,7 +10,7 @@ namespace Microsoft.ML.Internal.Internallearn
     // REVIEW: Get rid of this. Everything should be in the ArgumentAttribute (or a class
     // derived from ArgumentAttribute).
     [AttributeUsage(AttributeTargets.Field)]
-    public class TGUIAttribute : Attribute
+    internal sealed class TGUIAttribute : Attribute
 #pragma warning restore MSML_GeneralName
     {
         // Display parameters

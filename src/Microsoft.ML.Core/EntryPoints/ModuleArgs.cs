@@ -525,11 +525,6 @@ namespace Microsoft.ML.EntryPoints
             /// Short name of the Entry Point
             /// </summary>
             public string ShortName { get; set; }
-
-            /// <summary>
-            /// The path to the XML documentation on the CSharpAPI component
-            /// </summary>
-            public string[] XmlInclude { get; set; }
         }
 
         /// <summary>
@@ -655,7 +650,8 @@ namespace Microsoft.ML.EntryPoints
     /// <summary>
     /// The untyped base class for 'maybe'.
     /// </summary>
-    public abstract class Optional
+    [BestFriend]
+    internal abstract class Optional
     {
         /// <summary>
         /// Whether the value was set 'explicitly', or 'implicitly'.
@@ -679,7 +675,8 @@ namespace Microsoft.ML.EntryPoints
     /// the weight column to be 'Weight', we need to actually enforce the presence of the column.
     /// </summary>
     /// <typeparam name="T">The type of the value</typeparam>
-    public sealed class Optional<T> : Optional
+    [BestFriend]
+    internal sealed class Optional<T> : Optional
     {
         public readonly T Value;
 

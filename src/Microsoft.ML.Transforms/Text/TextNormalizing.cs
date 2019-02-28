@@ -10,13 +10,12 @@ using System.Threading;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms.Text;
 
-[assembly: LoadableClass(TextNormalizingTransformer.Summary, typeof(IDataTransform), typeof(TextNormalizingTransformer), typeof(TextNormalizingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(TextNormalizingTransformer.Summary, typeof(IDataTransform), typeof(TextNormalizingTransformer), typeof(TextNormalizingTransformer.Options), typeof(SignatureDataTransform),
     "Text Normalizer Transform", "TextNormalizerTransform", "TextNormalizer", "TextNorm")]
 
 [assembly: LoadableClass(TextNormalizingTransformer.Summary, typeof(IDataTransform), typeof(TextNormalizingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -36,7 +35,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class TextNormalizingTransformer : OneToOneTransformerBase
     {
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             internal static Column Parse(string str)
             {
@@ -53,10 +52,10 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public sealed class Arguments
+        internal sealed class Options
         {
-            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Casing text using the rules of the invariant culture.", ShortName = "case", SortOrder = 1)]
             public TextNormalizingEstimator.CaseNormalizationMode TextCase = TextNormalizingEstimator.Defaults.TextCase;
@@ -89,6 +88,10 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         private const string RegistrationName = "TextNormalizer";
+
+        /// <summary>
+        /// The names of the output and input column pairs on which the transformation is applied.
+        /// </summary>
         public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private readonly TextNormalizingEstimator.CaseNormalizationMode _textCase;
@@ -96,7 +99,7 @@ namespace Microsoft.ML.Transforms.Text
         private readonly bool _keepPunctuations;
         private readonly bool _keepNumbers;
 
-        public TextNormalizingTransformer(IHostEnvironment env,
+        internal TextNormalizingTransformer(IHostEnvironment env,
             TextNormalizingEstimator.CaseNormalizationMode textCase = TextNormalizingEstimator.Defaults.TextCase,
             bool keepDiacritics = TextNormalizingEstimator.Defaults.KeepDiacritics,
             bool keepPunctuations = TextNormalizingEstimator.Defaults.KeepPunctuations,
@@ -111,14 +114,14 @@ namespace Microsoft.ML.Transforms.Text
 
         }
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             if (!TextNormalizingEstimator.IsColumnTypeValid(type))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, TextNormalizingEstimator.ExpectedColumnType, type.ToString());
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -167,20 +170,20 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureDataTransform.
-        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new (string outputColumnName, string inputColumnName)[args.Column.Length];
+            env.CheckValue(options.Columns, nameof(options.Columns));
+            var cols = new (string outputColumnName, string inputColumnName)[options.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
-                var item = args.Column[i];
+                var item = options.Columns[i];
                 cols[i] = (item.Name, item.Source ?? item.Name);
             }
-            return new TextNormalizingTransformer(env, args.TextCase, args.KeepDiacritics, args.KeepPunctuations, args.KeepNumbers, cols).MakeDataTransform(input);
+            return new TextNormalizingTransformer(env, options.TextCase, options.KeepDiacritics, options.KeepPunctuations, options.KeepNumbers, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -188,37 +191,37 @@ namespace Microsoft.ML.Transforms.Text
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
-            private readonly ColumnType[] _types;
+            private readonly DataViewType[] _types;
             private readonly TextNormalizingTransformer _parent;
 
-            public Mapper(TextNormalizingTransformer parent, Schema inputSchema)
+            public Mapper(TextNormalizingTransformer parent, DataViewSchema inputSchema)
               : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _types = new ColumnType[_parent.ColumnPairs.Length];
+                _types = new DataViewType[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _types.Length; i++)
                 {
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int srcCol);
                     var srcType = inputSchema[srcCol].Type;
-                    _types[i] = srcType is VectorType ? new VectorType(TextType.Instance) : srcType;
+                    _types[i] = srcType is VectorType ? new VectorType(TextDataViewType.Instance) : srcType;
                 }
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], null);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], null);
                 }
                 return result;
             }
@@ -280,14 +283,14 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
 
                 var srcType = input.Schema[_parent.ColumnPairs[iinfo].inputColumnName].Type;
-                Host.Assert(srcType.GetItemType() is TextType);
+                Host.Assert(srcType.GetItemType() is TextDataViewType);
 
                 if (srcType is VectorType vectorType)
                 {
@@ -298,7 +301,7 @@ namespace Microsoft.ML.Transforms.Text
                 return MakeGetterOne(input, iinfo);
             }
 
-            private ValueGetter<ReadOnlyMemory<char>> MakeGetterOne(Row input, int iinfo)
+            private ValueGetter<ReadOnlyMemory<char>> MakeGetterOne(DataViewRow input, int iinfo)
             {
                 var getSrc = input.GetGetter<ReadOnlyMemory<char>>(ColMapNewToOld[iinfo]);
                 Host.AssertValue(getSrc);
@@ -312,7 +315,7 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            private ValueGetter<VBuffer<ReadOnlyMemory<char>>> MakeGetterVec(Row input, int iinfo)
+            private ValueGetter<VBuffer<ReadOnlyMemory<char>>> MakeGetterVec(DataViewRow input, int iinfo)
             {
                 var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);
                 Host.AssertValue(getSrc);
@@ -450,7 +453,7 @@ namespace Microsoft.ML.Transforms.Text
 
         }
 
-        public static bool IsColumnTypeValid(ColumnType type) => (type.GetItemType() is TextType);
+        internal static bool IsColumnTypeValid(DataViewType type) => (type.GetItemType() is TextDataViewType);
 
         internal const string ExpectedColumnType = "Text or vector of text.";
 
@@ -465,7 +468,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
         /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
-        public TextNormalizingEstimator(IHostEnvironment env,
+        internal TextNormalizingEstimator(IHostEnvironment env,
             string outputColumnName,
             string inputColumnName = null,
             CaseNormalizationMode textCase = Defaults.TextCase,
@@ -486,7 +489,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
         /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
         /// <param name="columns">Pairs of columns to run the text normalization on.</param>
-        public TextNormalizingEstimator(IHostEnvironment env,
+        internal TextNormalizingEstimator(IHostEnvironment env,
             CaseNormalizationMode textCase = Defaults.TextCase,
             bool keepDiacritics = Defaults.KeepDiacritics,
             bool keepPunctuations = Defaults.KeepPunctuations,
@@ -497,6 +500,10 @@ namespace Microsoft.ML.Transforms.Text
         {
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));

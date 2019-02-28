@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Ensemble.EntryPoints;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: EntryPointModule(typeof(AverageFactory))]
 [assembly: EntryPointModule(typeof(MedianFactory))]
@@ -18,10 +17,10 @@ using Microsoft.ML.EntryPoints;
 [assembly: EntryPointModule(typeof(VotingFactory))]
 [assembly: EntryPointModule(typeof(WeightedAverage))]
 
-namespace Microsoft.ML.Ensemble.EntryPoints
+namespace Microsoft.ML.Trainers.Ensemble
 {
     [TlcModule.Component(Name = Average.LoadName, FriendlyName = Average.UserName)]
-    public sealed class AverageFactory : ISupportBinaryOutputCombinerFactory, ISupportRegressionOutputCombinerFactory
+    internal sealed class AverageFactory : ISupportBinaryOutputCombinerFactory, ISupportRegressionOutputCombinerFactory
     {
         public IRegressionOutputCombiner CreateComponent(IHostEnvironment env) => new Average(env);
 
@@ -29,7 +28,7 @@ namespace Microsoft.ML.Ensemble.EntryPoints
     }
 
     [TlcModule.Component(Name = Median.LoadName, FriendlyName = Median.UserName)]
-    public sealed class MedianFactory : ISupportBinaryOutputCombinerFactory, ISupportRegressionOutputCombinerFactory
+    internal sealed class MedianFactory : ISupportBinaryOutputCombinerFactory, ISupportRegressionOutputCombinerFactory
     {
         public IRegressionOutputCombiner CreateComponent(IHostEnvironment env) => new Median(env);
 
@@ -37,13 +36,13 @@ namespace Microsoft.ML.Ensemble.EntryPoints
     }
 
     [TlcModule.Component(Name = Voting.LoadName, FriendlyName = Voting.UserName)]
-    public sealed class VotingFactory : ISupportBinaryOutputCombinerFactory
+    internal sealed class VotingFactory : ISupportBinaryOutputCombinerFactory
     {
         IBinaryOutputCombiner IComponentFactory<IBinaryOutputCombiner>.CreateComponent(IHostEnvironment env) => new Voting(env);
     }
 
     [TlcModule.Component(Name = MultiVoting.LoadName, FriendlyName = Voting.UserName)]
-    public sealed class MultiVotingFactory : ISupportMulticlassOutputCombinerFactory
+    internal sealed class MultiVotingFactory : ISupportMulticlassOutputCombinerFactory
     {
         public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiVoting(env);
     }

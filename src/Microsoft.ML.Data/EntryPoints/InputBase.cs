@@ -5,11 +5,10 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.Internal.Calibration;
 
 namespace Microsoft.ML.EntryPoints
 {
@@ -33,7 +32,6 @@ namespace Microsoft.ML.EntryPoints
     {
         Auto,
         Memory,
-        Disk,
         None
     }
 
@@ -45,7 +43,7 @@ namespace Microsoft.ML.EntryPoints
     {
         /// <summary>
         /// The data to be used for training. Used only in entry-points, since in the API the expected mechanism is
-        /// that the user iwll use the <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> or some other train
+        /// that the user will use the <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> or some other train
         /// method.
         /// </summary>
         [BestFriend]
@@ -96,10 +94,10 @@ namespace Microsoft.ML.EntryPoints
     public abstract class LearnerInputBaseWithWeight : LearnerInputBaseWithLabel
     {
         /// <summary>
-        /// Column to use for example weight.
+        /// The name of the example weight column.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
+        public string WeightColumn = null;
     }
 
     /// <summary>
@@ -112,7 +110,7 @@ namespace Microsoft.ML.EntryPoints
         /// Column to use for example weight.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
+        public string WeightColumn = null;
     }
 
     /// <summary>
@@ -134,14 +132,14 @@ namespace Microsoft.ML.EntryPoints
         /// <summary>
         /// Column to use for example groupId.
         /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example groupId", ShortName = "groupId", SortOrder = 5, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public Optional<string> GroupIdColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
+        [Argument(ArgumentType.AtMostOnce, Name = "GroupIdColumn", HelpText = "Column to use for example groupId", ShortName = "groupId", SortOrder = 5, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+        public string GroupIdColumn = null;
     }
 
     [BestFriend]
     internal static class LearnerEntryPointsUtils
     {
-        public static string FindColumn(IExceptionContext ectx, Schema schema, Optional<string> value)
+        public static string FindColumn(IExceptionContext ectx, DataViewSchema schema, Optional<string> value)
         {
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(schema, nameof(schema));
@@ -189,17 +187,18 @@ namespace Microsoft.ML.EntryPoints
                 var roleMappedData = new RoleMappedData(view, label, feature, group, weight, name, custom);
 
                 RoleMappedData cachedRoleMappedData = roleMappedData;
-                Cache.CachingType? cachingType = null;
+                IFileHandle fileHandle = null;
+
+                const string registrationName = "CreateCache";
+                var createCacheHost = host.Register(registrationName);
+
+                IDataView outputData = null;
+
                 switch (input.Caching)
                 {
                     case CachingOptions.Memory:
                         {
-                            cachingType = Cache.CachingType.Memory;
-                            break;
-                        }
-                    case CachingOptions.Disk:
-                        {
-                            cachingType = Cache.CachingType.Disk;
+                            outputData = new CacheDataView(host, roleMappedData.Data, null);
                             break;
                         }
                     case CachingOptions.Auto:
@@ -207,7 +206,7 @@ namespace Microsoft.ML.EntryPoints
                             // REVIEW: we should switch to hybrid caching in future.
                             if (!(input.TrainingData is BinaryLoader) && trainer.Info.WantCaching)
                                 // default to Memory so mml is on par with maml
-                                cachingType = Cache.CachingType.Memory;
+                                outputData = new CacheDataView(host, roleMappedData.Data, null);
                             break;
                         }
                     case CachingOptions.None:
@@ -216,17 +215,13 @@ namespace Microsoft.ML.EntryPoints
                         throw ch.ExceptParam(nameof(input.Caching), "Unknown option for caching: '{0}'", input.Caching);
                 }
 
-                if (cachingType.HasValue)
+                if (outputData != null)
                 {
-                    var cacheView = Cache.CacheData(host, new Cache.CacheInput()
-                    {
-                        Data = roleMappedData.Data,
-                        Caching = cachingType.Value
-                    }).OutputData;
-                    cachedRoleMappedData = new RoleMappedData(cacheView, roleMappedData.Schema.GetColumnRoleNames());
+                    cachedRoleMappedData = new RoleMappedData(outputData, roleMappedData.Schema.GetColumnRoleNames());
                 }
 
                 var predictor = TrainUtils.Train(host, ch, cachedRoleMappedData, trainer, calibrator, maxCalibrationExamples);
+                fileHandle?.Dispose();
                 return new TOut() { PredictorModel = new PredictorModelImpl(host, roleMappedData, input.TrainingData, predictor) };
             }
         }
@@ -276,7 +271,7 @@ namespace Microsoft.ML.EntryPoints
         /// </summary>
         public interface IUnsupervisedTrainerWithWeight : ITrainerInput
         {
-            Optional<string> WeightColumn { get; }
+            string WeightColumn { get; }
         }
 
         /// <summary>
@@ -284,7 +279,7 @@ namespace Microsoft.ML.EntryPoints
         /// </summary>
         public interface ITrainerInputWithWeight : ITrainerInputWithLabel
         {
-            Optional<string> WeightColumn { get; }
+            string WeightColumn { get; }
         }
 
         /// <summary>
@@ -292,7 +287,7 @@ namespace Microsoft.ML.EntryPoints
         /// </summary>
         public interface ITrainerInputWithGroupId : ITrainerInputWithWeight
         {
-            Optional<string> GroupIdColumn { get; }
+            string GroupIdColumn { get; }
         }
 
         /// <summary>

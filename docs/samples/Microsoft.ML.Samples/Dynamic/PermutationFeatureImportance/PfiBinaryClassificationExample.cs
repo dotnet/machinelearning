@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.ML.Learners;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
 {
-    public class PfiBinaryClassificationExample
+    public static class PfiBinaryClassification
     {
-        public static void RunExample()
+        public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
@@ -23,14 +23,14 @@ namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
             var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
                     .Append(mlContext.Transforms.Normalize("Features"))
                     .Append(mlContext.BinaryClassification.Trainers.LogisticRegression(
-                        labelColumn: labelName, featureColumn: "Features"));
+                        labelColumnName: labelName, featureColumnName: "Features"));
             var model = pipeline.Fit(data);
 
             // Extract the model from the pipeline
             var linearPredictor = model.LastTransformer;
             // Linear models for binary classification are wrapped by a calibrator as a generic predictor
             //  To access it directly, we must extract it out and cast it to the proper class
-            var weights = PfiHelper.GetLinearModelWeights(linearPredictor.Model.SubPredictor as LinearBinaryModelParameters);
+            var weights = PfiHelper.GetLinearModelWeights(linearPredictor.Model.SubModel as LinearBinaryModelParameters);
 
             // Compute the permutation metrics using the properly normalized data.
             var transformedData = model.Transform(data);

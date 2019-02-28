@@ -6,17 +6,13 @@ using System;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
-using Microsoft.ML.Calibrator;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(FastForestClassification.Summary, typeof(FastForestClassification), typeof(FastForestClassification.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -34,12 +30,12 @@ using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public abstract class FastForestArgumentsBase : TreeArgs
+    public abstract class FastForestOptionsBase : TreeOptions
     {
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of labels to be sampled from each leaf to make the distribtuion", ShortName = "qsc")]
         public int QuantileSampleCount = 100;
 
-        public FastForestArgumentsBase()
+        public FastForestOptionsBase()
         {
             FeatureFraction = 0.7;
             BaggingSize = 1;
@@ -48,7 +44,7 @@ namespace Microsoft.ML.Trainers.FastTree
     }
 
     public sealed class FastForestClassificationModelParameters :
-        TreeEnsembleModelParameters
+        TreeEnsembleModelParametersBasedOnQuantileRegressionTree
     {
         internal const string LoaderSignature = "FastForestBinaryExec";
         internal const string RegistrationName = "FastForestClassificationPredictor";
@@ -69,18 +65,18 @@ namespace Microsoft.ML.Trainers.FastTree
                 loaderAssemblyName: typeof(FastForestClassificationModelParameters).Assembly.FullName);
         }
 
-        protected override uint VerNumFeaturesSerialized => 0x00010003;
+        private protected override uint VerNumFeaturesSerialized => 0x00010003;
 
-        protected override uint VerDefaultValueSerialized => 0x00010005;
+        private protected override uint VerDefaultValueSerialized => 0x00010005;
 
-        protected override uint VerCategoricalSplitSerialized => 0x00010006;
+        private protected override uint VerCategoricalSplitSerialized => 0x00010006;
 
         /// <summary>
         /// The type of prediction for this trainer.
         /// </summary>
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public FastForestClassificationModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        internal FastForestClassificationModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         { }
 
@@ -105,24 +101,24 @@ namespace Microsoft.ML.Trainers.FastTree
             ctx.LoadModelOrNull<ICalibrator, SignatureLoadModel>(env, out calibrator, @"Calibrator");
             if (calibrator == null)
                 return predictor;
-            return new SchemaBindableCalibratedPredictor(env, predictor, calibrator);
+            return new SchemaBindableCalibratedModelParameters<FastForestClassificationModelParameters, ICalibrator>(env, predictor, calibrator);
         }
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="FastForest"]/*' />
     public sealed partial class FastForestClassification :
-        RandomForestTrainerBase<FastForestClassification.Options, BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>, IPredictorWithFeatureWeights<float>>
+        RandomForestTrainerBase<FastForestClassification.Options, BinaryPredictionTransformer<FastForestClassificationModelParameters>, FastForestClassificationModelParameters>
     {
-        public sealed class Options : FastForestArgumentsBase
+        public sealed class Options : FastForestOptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo")]
             public Double MaxTreeOutput = 100;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
+            internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public int MaxCalibrationExamples = 1000000;
+            internal int MaxCalibrationExamples = 1000000;
         }
 
         internal const string LoadNameValue = "FastForestClassification";
@@ -132,7 +128,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private bool[] _trainSetLabels;
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         private protected override bool NeedCalibration => true;
 
         /// <summary>
@@ -145,16 +141,14 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="numLeaves">The max number of leaves in each regression tree.</param>
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="minDatapointsInLeaves">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
-        /// <param name="learningRate">The learning rate.</param>
         internal FastForestClassification(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
-            : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, learningRate)
+            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves)
+            : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -170,7 +164,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
-        private protected override IPredictorWithFeatureWeights<float> TrainModelCore(TrainContext context)
+        private protected override FastForestClassificationModelParameters TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
@@ -193,38 +187,42 @@ namespace Microsoft.ML.Trainers.FastTree
             // calibrator, transform the scores using that.
 
             // REVIEW: Need a way to signal the outside world that we prefer simple sigmoid?
-            return new FastForestClassificationModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs);
+            return new FastForestClassificationModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
         }
 
-        protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
+        private protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
-            return new ObjectiveFunctionImpl(TrainSet, _trainSetLabels, Args);
+            return new ObjectiveFunctionImpl(TrainSet, _trainSetLabels, FastTreeTrainerOptions);
         }
 
-        protected override void PrepareLabels(IChannel ch)
+        private protected override void PrepareLabels(IChannel ch)
         {
             // REVIEW: Historically FastTree has this test as >= 1. TLC however
             // generally uses > 0. Consider changing FastTree to be consistent.
             _trainSetLabels = TrainSet.Ratings.Select(x => x >= 1).ToArray(TrainSet.NumDocs);
         }
 
-        protected override Test ConstructTestForTrainingData()
+        private protected override Test ConstructTestForTrainingData()
         {
             return new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, 1);
         }
 
-        protected override BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> MakeTransformer(IPredictorWithFeatureWeights<float> model, Schema trainSchema)
-         => new BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>(Host, model, trainSchema, FeatureColumn.Name);
+        private protected override BinaryPredictionTransformer<FastForestClassificationModelParameters> MakeTransformer(FastForestClassificationModelParameters model, DataViewSchema trainSchema)
+         => new BinaryPredictionTransformer<FastForestClassificationModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="FastForestClassification"/> using both training and validation data, returns
+        /// a <see cref="BinaryPredictionTransformer{FastForestClassificationModelParameters}"/>.
+        /// </summary>
+        public BinaryPredictionTransformer<FastForestClassificationModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
@@ -253,9 +251,7 @@ namespace Microsoft.ML.Trainers.FastTree
         [TlcModule.EntryPoint(Name = "Trainers.FastForestBinaryClassifier",
             Desc = FastForestClassification.Summary,
             UserName = FastForestClassification.UserNameValue,
-            ShortName = FastForestClassification.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastForest""]/*' />",
-                                 @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastForestBinaryClassifier""]/*' />"})]
+            ShortName = FastForestClassification.ShortName)]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastForestClassification.Options input)
         {
             Contracts.CheckValue(env, nameof(env));

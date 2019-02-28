@@ -6,12 +6,12 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    class OnnxTransformExample
+    public static class OnnxTransformExample
     {
         /// <summary>
         /// Example use of OnnxEstimator in an ML.NET pipeline
         /// </summary>
-        public static void OnnxTransformSample()
+        public static void Example()
         {
             // Download the squeeznet image model from ONNX model zoo, version 1.2
             // https://github.com/onnx/models/tree/master/squeezenet
@@ -34,14 +34,14 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create ML pipeline to score the data using OnnxScoringEstimator
             var mlContext = new MLContext();
             var data = GetTensorData();
-            var idv = mlContext.Data.ReadFromEnumerable(data);
-            var pipeline = new OnnxScoringEstimator(mlContext, new[] { outputInfo.Key }, new[] { inputInfo.Key }, modelPath);
+            var idv = mlContext.Data.LoadFromEnumerable(data);
+            var pipeline = mlContext.Transforms.ApplyOnnxModel(modelPath, new[] { outputInfo.Key }, new[] { inputInfo.Key });
 
             // Run the pipeline and get the transformed values
             var transformedValues = pipeline.Fit(idv).Transform(idv);
 
             // Retrieve model scores into Prediction class
-            var predictions = mlContext.CreateEnumerable<Prediction>(transformedValues, reuseRowObject: false);
+            var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedValues, reuseRowObject: false);
 
             // Iterate rows
             foreach (var prediction in predictions)
