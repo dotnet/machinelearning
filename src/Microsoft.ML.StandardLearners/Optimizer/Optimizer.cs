@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Float = System.Single;
 
 namespace Microsoft.ML.Numeric
 {
@@ -90,7 +89,7 @@ namespace Microsoft.ML.Numeric
             }
         }
 
-        internal virtual OptimizerState MakeState(IChannel ch, IProgressChannelProvider progress, DifferentiableFunction function, ref VBuffer<Float> initial)
+        internal virtual OptimizerState MakeState(IChannel ch, IProgressChannelProvider progress, DifferentiableFunction function, ref VBuffer<float> initial)
         {
             return new FunctionOptimizerState(ch, progress, function, in initial, M, TotalMemoryLimit, KeepDense, EnforceNonNegativity);
         }
@@ -99,7 +98,7 @@ namespace Microsoft.ML.Numeric
         {
             public override DifferentiableFunction Function { get; }
 
-            internal FunctionOptimizerState(IChannel ch, IProgressChannelProvider progress, DifferentiableFunction function, in VBuffer<Float> initial, int m,
+            internal FunctionOptimizerState(IChannel ch, IProgressChannelProvider progress, DifferentiableFunction function, in VBuffer<float> initial, int m,
                 long totalMemLimit, bool keepDense, bool enforceNonNegativity)
                 : base(ch, progress, in initial, m, totalMemLimit, keepDense, enforceNonNegativity)
             {
@@ -107,7 +106,7 @@ namespace Microsoft.ML.Numeric
                 Init();
             }
 
-            public override Float Eval(in VBuffer<Float> input, ref VBuffer<Float> gradient)
+            public override float Eval(in VBuffer<float> input, ref VBuffer<float> gradient)
             {
                 return Function(in input, ref gradient, ProgressProvider);
             }
@@ -119,12 +118,12 @@ namespace Microsoft.ML.Numeric
         public abstract class OptimizerState
         {
 #pragma warning disable MSML_GeneralName // Too annoying in this case. Consider fixing later.
-            protected internal VBuffer<Float> _x;
-            protected internal VBuffer<Float> _grad;
-            protected internal VBuffer<Float> _newX;
-            protected internal VBuffer<Float> _newGrad;
-            protected internal VBuffer<Float> _dir;
-            protected internal VBuffer<Float> _steepestDescDir;
+            protected internal VBuffer<float> _x;
+            protected internal VBuffer<float> _grad;
+            protected internal VBuffer<float> _newX;
+            protected internal VBuffer<float> _newGrad;
+            protected internal VBuffer<float> _dir;
+            protected internal VBuffer<float> _steepestDescDir;
 #pragma warning restore MSML_GeneralName
 
             /// <summary>
@@ -140,32 +139,32 @@ namespace Microsoft.ML.Numeric
             /// The function being optimized
             /// </summary>
             public abstract DifferentiableFunction Function { get; }
-            public abstract Float Eval(in VBuffer<Float> input, ref VBuffer<Float> gradient);
+            public abstract float Eval(in VBuffer<float> input, ref VBuffer<float> gradient);
 
             /// <summary>
             /// The current point being explored
             /// </summary>
-            public VBuffer<Float> X { get { return _newX; } }
+            public VBuffer<float> X { get { return _newX; } }
 
             /// <summary>
             /// The gradient at the current point
             /// </summary>
-            public VBuffer<Float> Grad { get { return _newGrad; } }
+            public VBuffer<float> Grad { get { return _newGrad; } }
 
             /// <summary>
             /// The direction of search that led to the current point
             /// </summary>
-            public VBuffer<Float> LastDir { get { return _dir; } }
+            public VBuffer<float> LastDir { get { return _dir; } }
 
             /// <summary>
             /// The current function value
             /// </summary>
-            public Float Value { get; protected internal set; }
+            public float Value { get; protected internal set; }
 
             /// <summary>
             /// The function value at the last point
             /// </summary>
-            public Float LastValue { get; protected internal set; }
+            public float LastValue { get; protected internal set; }
 
             /// <summary>
             /// The number of iterations so far
@@ -186,14 +185,14 @@ namespace Microsoft.ML.Numeric
             /// </summary>
             private readonly bool _keepDense;
 
-            private readonly VBuffer<Float>[] _sList;
-            private readonly VBuffer<Float>[] _yList;
-            private readonly List<Float> _roList;
+            private readonly VBuffer<float>[] _sList;
+            private readonly VBuffer<float>[] _yList;
+            private readonly List<float> _roList;
 
             private int _m;
             private readonly long _totalMemLimit;
 
-            protected internal OptimizerState(IChannel ch, IProgressChannelProvider progress, in VBuffer<Float> initial,
+            protected internal OptimizerState(IChannel ch, IProgressChannelProvider progress, in VBuffer<float> initial,
                 int m, long totalMemLimit, bool keepDense, bool enforceNonNegativity)
             {
                 Contracts.AssertValue(ch);
@@ -217,9 +216,9 @@ namespace Microsoft.ML.Numeric
                 _newGrad = CreateWorkingVector();
                 _steepestDescDir = CreateWorkingVector();
 
-                _sList = new VBuffer<Float>[_m];
-                _yList = new VBuffer<Float>[_m];
-                _roList = new List<Float>();
+                _sList = new VBuffer<float>[_m];
+                _yList = new VBuffer<float>[_m];
+                _roList = new List<float>();
 
                 EnforceNonNegativity = enforceNonNegativity;
             }
@@ -228,11 +227,11 @@ namespace Microsoft.ML.Numeric
             /// Convenience function to construct a working vector of length <c>Dim</c>.
             /// </summary>
             /// <returns></returns>
-            protected VBuffer<Float> CreateWorkingVector()
+            protected VBuffer<float> CreateWorkingVector()
             {
                 // Owing to the way the operations are structured, if the "x", "newX", and "dir" vectors
                 // start out (or somehow naturally become) dense, they will remain dense.
-                return _keepDense ? VBufferUtils.CreateDense<Float>(Dim) : VBufferUtils.CreateEmpty<Float>(Dim);
+                return _keepDense ? VBufferUtils.CreateDense<float>(Dim) : VBufferUtils.CreateEmpty<float>(Dim);
             }
 
             // Leaf constructors must call this once they are fully initialized.
@@ -250,7 +249,7 @@ namespace Microsoft.ML.Numeric
 
                 if (count != 0)
                 {
-                    Float[] alphas = new Float[count];
+                    float[] alphas = new float[count];
 
                     int lastGoodRo = -1;
 
@@ -269,14 +268,14 @@ namespace Microsoft.ML.Numeric
                     if (lastGoodRo == -1)
                         return;
 
-                    Float yDotY = VectorUtils.DotProduct(in _yList[lastGoodRo], in _yList[lastGoodRo]);
+                    float yDotY = VectorUtils.DotProduct(in _yList[lastGoodRo], in _yList[lastGoodRo]);
                     VectorUtils.ScaleBy(ref _dir, _roList[lastGoodRo] / yDotY);
 
                     for (int i = 0; i <= lastGoodRo; i++)
                     {
                         if (_roList[i] > 0)
                         {
-                            Float beta = VectorUtils.DotProduct(in _yList[i], in _dir) / _roList[i];
+                            float beta = VectorUtils.DotProduct(in _yList[i], in _dir) / _roList[i];
                             VectorUtils.AddMult(in _sList[i], -alphas[i] - beta, ref _dir);
                         }
                     }
@@ -293,7 +292,7 @@ namespace Microsoft.ML.Numeric
             protected void FixDirZeros()
             {
                 VBufferUtils.ApplyWithEitherDefined(in _steepestDescDir, ref _dir,
-                    (int i, Float sdVal, ref Float dirVal) =>
+                    (int i, float sdVal, ref float dirVal) =>
                     {
                         if (sdVal == 0)
                             dirVal = 0;
@@ -335,8 +334,8 @@ namespace Microsoft.ML.Numeric
                     }
                 }
 
-                VBuffer<Float> nextS;
-                VBuffer<Float> nextY;
+                VBuffer<float> nextS;
+                VBuffer<float> nextY;
 
                 if (_roList.Count == _m)
                 {
@@ -356,7 +355,7 @@ namespace Microsoft.ML.Numeric
 
                 VectorUtils.AddMultInto(in _newX, -1, in _x, ref nextS);
                 VectorUtils.AddMultInto(in _newGrad, -1, in _grad, ref nextY);
-                Float ro = VectorUtils.DotProduct(in nextS, in nextY);
+                float ro = VectorUtils.DotProduct(in nextS, in nextY);
                 if (ro == 0)
                     throw Ch.Process(new PrematureConvergenceException(this, "ro equals zero. Is your function linear?"));
 
@@ -380,7 +379,7 @@ namespace Microsoft.ML.Numeric
             internal virtual bool LineSearch(IChannel ch, bool force)
             {
                 Contracts.AssertValue(ch);
-                Float dirDeriv = VectorUtils.DotProduct(in _dir, in _grad);
+                float dirDeriv = VectorUtils.DotProduct(in _dir, in _grad);
 
                 if (dirDeriv == 0)
                     throw ch.Process(new PrematureConvergenceException(this, "Directional derivative is zero. You may be sitting on the optimum."));
@@ -389,10 +388,10 @@ namespace Microsoft.ML.Numeric
                 // The most likely reasons for this is a bug in your function's gradient computation,
                 ch.Check(dirDeriv < 0, "L-BFGS chose a non-descent direction.");
 
-                Float c1 = (Float)1e-4 * dirDeriv;
-                Float c2 = (Float)0.9 * dirDeriv;
+                float c1 = (float)1e-4 * dirDeriv;
+                float c2 = (float)0.9 * dirDeriv;
 
-                Float alpha = (Iter == 1 ? (1 / VectorUtils.Norm(_dir)) : 1);
+                float alpha = (Iter == 1 ? (1 / VectorUtils.Norm(_dir)) : 1);
 
                 PointValueDeriv last = new PointValueDeriv(0, LastValue, dirDeriv);
                 PointValueDeriv aLo = new PointValueDeriv();
@@ -404,7 +403,7 @@ namespace Microsoft.ML.Numeric
                     VectorUtils.AddMultInto(in _x, alpha, in _dir, ref _newX);
                     if (EnforceNonNegativity)
                     {
-                        VBufferUtils.Apply(ref _newX, delegate(int ind, ref Float newXval)
+                        VBufferUtils.Apply(ref _newX, delegate(int ind, ref float newXval)
                         {
                             if (newXval < 0.0)
                                 newXval = 0;
@@ -413,7 +412,7 @@ namespace Microsoft.ML.Numeric
 
                     Value = Eval(in _newX, ref _newGrad);
                     GradientCalculations++;
-                    if (Float.IsPositiveInfinity(Value))
+                    if (float.IsPositiveInfinity(Value))
                     {
                         alpha /= 2;
                         continue;
@@ -444,12 +443,12 @@ namespace Microsoft.ML.Numeric
 
                     last = curr;
                     if (alpha == 0)
-                        alpha = Float.Epsilon; // Robust to divisional underflow.
+                        alpha = float.Epsilon; // Robust to divisional underflow.
                     else
                         alpha *= 2;
                 }
 
-                Float minChange = (Float)0.01;
+                float minChange = (float)0.01;
                 int maxSteps = 10;
 
                 // this loop is the "zoom" procedure described in Nocedal & Wright
@@ -469,23 +468,23 @@ namespace Microsoft.ML.Numeric
                     else
                     {
                         alpha = CubicInterp(aLo, aHi);
-                        if (Float.IsNaN(alpha) || Float.IsInfinity(alpha))
+                        if (float.IsNaN(alpha) || float.IsInfinity(alpha))
                             alpha = (aLo.A + aHi.A) / 2;
                     }
 
                     // this is to ensure that the new point is within bounds
                     // and that the change is reasonably sized
-                    Float ub = (minChange * left.A + (1 - minChange) * right.A);
+                    float ub = (minChange * left.A + (1 - minChange) * right.A);
                     if (alpha > ub)
                         alpha = ub;
-                    Float lb = (minChange * right.A + (1 - minChange) * left.A);
+                    float lb = (minChange * right.A + (1 - minChange) * left.A);
                     if (alpha < lb)
                         alpha = lb;
 
                     VectorUtils.AddMultInto(in _x, alpha, in _dir, ref _newX);
                     if (EnforceNonNegativity)
                     {
-                        VBufferUtils.Apply(ref _newX, delegate(int ind, ref Float newXval)
+                        VBufferUtils.Apply(ref _newX, delegate(int ind, ref float newXval)
                         {
                             if (newXval < 0.0)
                                 newXval = 0;
@@ -537,22 +536,22 @@ namespace Microsoft.ML.Numeric
             /// <param name="p0">first point, with value and derivative</param>
             /// <param name="p1">second point, with value and derivative</param>
             /// <returns>local minimum of interpolating cubic polynomial</returns>
-            private static Float CubicInterp(PointValueDeriv p0, PointValueDeriv p1)
+            private static float CubicInterp(PointValueDeriv p0, PointValueDeriv p1)
             {
                 double t1 = p0.D + p1.D - 3 * (p0.V - p1.V) / (p0.A - p1.A);
                 double t2 = Math.Sign(p1.A - p0.A) * Math.Sqrt(t1 * t1 - p0.D * p1.D);
                 double num = p1.D + t2 - t1;
                 double denom = p1.D - p0.D + 2 * t2;
-                return (Float)(p1.A - (p1.A - p0.A) * num / denom);
+                return (float)(p1.A - (p1.A - p0.A) * num / denom);
             }
 
             private readonly struct PointValueDeriv
             {
-                public readonly Float A;
-                public readonly Float V;
-                public readonly Float D;
+                public readonly float A;
+                public readonly float V;
+                public readonly float D;
 
-                public PointValueDeriv(Float a, Float value, Float deriv)
+                public PointValueDeriv(float a, float value, float deriv)
                 {
                     A = a;
                     V = value;
@@ -570,7 +569,7 @@ namespace Microsoft.ML.Numeric
         /// <param name="result">The point at the optimum</param>
         /// <param name="optimum">The optimum function value</param>
         /// <exception cref="PrematureConvergenceException">Thrown if successive points are within numeric precision of each other, but termination condition is still unsatisfied.</exception>
-        public void Minimize(DifferentiableFunction function, ref VBuffer<Float> initial, Float tolerance, ref VBuffer<Float> result, out Float optimum)
+        public void Minimize(DifferentiableFunction function, ref VBuffer<float> initial, float tolerance, ref VBuffer<float> result, out float optimum)
         {
             ITerminationCriterion term = new MeanRelativeImprovementCriterion(tolerance);
             Minimize(function, ref initial, term, ref result, out optimum);
@@ -584,7 +583,7 @@ namespace Microsoft.ML.Numeric
         /// <param name="result">The point at the optimum</param>
         /// <param name="optimum">The optimum function value</param>
         /// <exception cref="PrematureConvergenceException">Thrown if successive points are within numeric precision of each other, but termination condition is still unsatisfied.</exception>
-        public void Minimize(DifferentiableFunction function, ref VBuffer<Float> initial, ref VBuffer<Float> result, out Float optimum)
+        public void Minimize(DifferentiableFunction function, ref VBuffer<float> initial, ref VBuffer<float> result, out float optimum)
         {
             Minimize(function, ref initial, _staticTerm, ref result, out optimum);
         }
@@ -598,7 +597,7 @@ namespace Microsoft.ML.Numeric
         /// <param name="result">The point at the optimum</param>
         /// <param name="optimum">The optimum function value</param>
         /// <exception cref="PrematureConvergenceException">Thrown if successive points are within numeric precision of each other, but termination condition is still unsatisfied.</exception>
-        public void Minimize(DifferentiableFunction function, ref VBuffer<Float> initial, ITerminationCriterion term, ref VBuffer<Float> result, out Float optimum)
+        public void Minimize(DifferentiableFunction function, ref VBuffer<float> initial, ITerminationCriterion term, ref VBuffer<float> result, out float optimum)
         {
             const string computationName = "LBFGS Optimizer";
             using (var pch = Env.StartProgressChannel(computationName))

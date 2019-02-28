@@ -15,7 +15,6 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers;
-using Float = System.Single;
 
 [assembly: LoadableClass(SdcaMultiClassTrainer.Summary, typeof(SdcaMultiClassTrainer), typeof(SdcaMultiClassTrainer.Options),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -117,8 +116,8 @@ namespace Microsoft.ML.Trainers
 
         /// <inheritdoc/>
         private protected override void TrainWithoutLock(IProgressChannelProvider progress, FloatLabelCursor.Factory cursorFactory, Random rand,
-            IdToIdxLookup idToIdx, int numThreads, DualsTableBase duals, Float[] biasReg, Float[] invariants, Float lambdaNInv,
-            VBuffer<Float>[] weights, Float[] biasUnreg, VBuffer<Float>[] l1IntermediateWeights, Float[] l1IntermediateBias, Float[] featureNormSquared)
+            IdToIdxLookup idToIdx, int numThreads, DualsTableBase duals, float[] biasReg, float[] invariants, float lambdaNInv,
+            VBuffer<float>[] weights, float[] biasUnreg, VBuffer<float>[] l1IntermediateWeights, float[] l1IntermediateBias, float[] featureNormSquared)
         {
             Contracts.AssertValueOrNull(progress);
             Contracts.Assert(SdcaTrainerOptions.L1Threshold.HasValue);
@@ -149,8 +148,8 @@ namespace Microsoft.ML.Trainers
                     long dualIndexInitPos = idx * numClasses;
                     var features = cursor.Features;
                     var label = (int)cursor.Label;
-                    Float invariant;
-                    Float normSquared;
+                    float invariant;
+                    float normSquared;
                     if (invariants != null)
                     {
                         invariant = invariants[idx];
@@ -171,13 +170,13 @@ namespace Microsoft.ML.Trainers
                     var instanceWeight = GetInstanceWeight(cursor);
 
                     // This will be the new dual variable corresponding to the label class.
-                    Float labelDual = 0;
+                    float labelDual = 0;
 
                     // This will be used to update the weights and regularized bias corresponding to the label class.
-                    Float labelPrimalUpdate = 0;
+                    float labelPrimalUpdate = 0;
 
                     // This will be used to update the unregularized bias corresponding to the label class.
-                    Float labelAdjustment = 0;
+                    float labelAdjustment = 0;
 
                     // Iterates through all classes.
                     for (int iClass = 0; iClass < numClasses; iClass++)
@@ -206,7 +205,7 @@ namespace Microsoft.ML.Trainers
                             var adjustment = l1ThresholdZero ? lr * biasReg[iClass] : lr * l1IntermediateBias[iClass];
                             dualUpdate -= adjustment;
                             bool success = false;
-                            duals.ApplyAt(dualIndex, (long index, ref Float value) =>
+                            duals.ApplyAt(dualIndex, (long index, ref float value) =>
                                 success = Interlocked.CompareExchange(ref value, dual + dualUpdate, dual) == dual);
 
                             if (success)
@@ -287,12 +286,12 @@ namespace Microsoft.ML.Trainers
             FloatLabelCursor.Factory cursorFactory,
             DualsTableBase duals,
             IdToIdxLookup idToIdx,
-            VBuffer<Float>[] weights,
-            VBuffer<Float>[] bestWeights,
-            Float[] biasUnreg,
-            Float[] bestBiasUnreg,
-            Float[] biasReg,
-            Float[] bestBiasReg,
+            VBuffer<float>[] weights,
+            VBuffer<float>[] bestWeights,
+            float[] biasUnreg,
+            float[] bestBiasUnreg,
+            float[] biasReg,
+            float[] bestBiasReg,
             long count,
             Double[] metrics,
             ref Double bestPrimalLoss,
@@ -407,7 +406,7 @@ namespace Microsoft.ML.Trainers
             return converged;
         }
 
-        private protected override MulticlassLogisticRegressionModelParameters CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
+        private protected override MulticlassLogisticRegressionModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckValue(weights, nameof(weights));
             Host.CheckValue(bias, nameof(bias));
@@ -422,13 +421,13 @@ namespace Microsoft.ML.Trainers
             examples.CheckMultiClassLabel(out weightSetCount);
         }
 
-        private protected override Float[] InitializeFeatureNormSquared(int length)
+        private protected override float[] InitializeFeatureNormSquared(int length)
         {
             Contracts.Assert(0 < length & length <= Utils.ArrayMaxSize);
-            return new Float[length];
+            return new float[length];
         }
 
-        private protected override Float GetInstanceWeight(FloatLabelCursor cursor)
+        private protected override float GetInstanceWeight(FloatLabelCursor cursor)
         {
             return cursor.Weight;
         }

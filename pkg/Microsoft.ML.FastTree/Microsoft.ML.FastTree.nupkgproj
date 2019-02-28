@@ -2,13 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageDescription>ML.NET component for LightGBM</PackageDescription>
+    <PackageDescription>ML.NET component for FastTree</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
-    <ProjectReference Include="../Microsoft.ML.FastTree/Microsoft.ML.FastTree.nupkgproj" />
-    <PackageReference Include="LightGBM" Version="$(LightGBMPackageVersion)" />
   </ItemGroup>
 
 </Project>
