@@ -7,22 +7,6 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.AnomalyDetection
 {
     public static class RandomizedPcaSampleWithOptions
     {
-        // Example with 3 feature values. A training data set is a collection of such examples.
-        private class DataPoint
-        {
-            [VectorType(3)]
-            public float[] Features { get; set; }
-        }
-
-        // Class used to capture prediction of DataPoint.
-        private class Result
-        {
-            // Outlier gets false while inlier has true.
-            public bool PredictedLabel { get; set; }
-            // Outlier gets smaller score.
-            public float Score { get; set; }
-        }
-
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -30,14 +14,15 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.AnomalyDetection
             // Setting the seed to a fixed number in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
+            // Training data.
             var samples = new List<DataPoint>()
             {
-                new DataPoint(){ Features= new float[3] {1, 0, 0} },
-                new DataPoint(){ Features= new float[3] {0, 2, 1} },
-                new DataPoint(){ Features= new float[3] {1, 2, 3} },
-                new DataPoint(){ Features= new float[3] {0, 1, 0} },
-                new DataPoint(){ Features= new float[3] {0, 2, 1} },
-                new DataPoint(){ Features= new float[3] {-100, 50, -100} }
+                new DataPoint(){ Features = new float[3] {1, 0, 0} },
+                new DataPoint(){ Features = new float[3] {0, 2, 1} },
+                new DataPoint(){ Features = new float[3] {1, 2, 3} },
+                new DataPoint(){ Features = new float[3] {0, 1, 0} },
+                new DataPoint(){ Features = new float[3] {0, 2, 1} },
+                new DataPoint(){ Features = new float[3] {-100, 50, -100} }
             };
 
             // Convert the List<DataPoint> to IDataView, a consumble format to ML.NET functions.
@@ -63,13 +48,6 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.AnomalyDetection
             var results = mlContext.Data.CreateEnumerable<Result>(transformed, reuseRowObject: false).ToList();
 
             // Let's go through all predictions.
-            // Lines printed out should be
-            //   The 0 - th example with features[1, 0, 0] is an inlier with a score of being inlier 0.7453707
-            //   The 1 - th example with features[0, 2, 1] is an inlier with a score of being inlier 0.9999999
-            //   The 2 - th example with features[1, 2, 3] is an inlier with a score of being inlier 0.8450122
-            //   The 3 - th example with features[0, 1, 0] is an inlier with a score of being inlier 0.9428905
-            //   The 4 - th example with features[0, 2, 1] is an inlier with a score of being inlier 0.9999999
-            //   The 5 - th example with features[-100, 50, -100] is an outlier with a score of being inlier 0
             for (int i = 0; i < samples.Count; ++i)
             {
                 // The i-th example's prediction result.
@@ -87,6 +65,29 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.AnomalyDetection
                     Console.WriteLine("The {0}-th example with features [{1}] is an outlier with a score of being inlier {2}",
                         i, featuresInText, result.Score);
             }
+            // Lines printed out should be
+            //   The 0 - th example with features[1, 0, 0] is an inlier with a score of being inlier 0.7453707
+            //   The 1 - th example with features[0, 2, 1] is an inlier with a score of being inlier 0.9999999
+            //   The 2 - th example with features[1, 2, 3] is an inlier with a score of being inlier 0.8450122
+            //   The 3 - th example with features[0, 1, 0] is an inlier with a score of being inlier 0.9428905
+            //   The 4 - th example with features[0, 2, 1] is an inlier with a score of being inlier 0.9999999
+            //   The 5 - th example with features[-100, 50, -100] is an outlier with a score of being inlier 0
+        }
+
+        // Example with 3 feature values. A training data set is a collection of such examples.
+        private class DataPoint
+        {
+            [VectorType(3)]
+            public float[] Features { get; set; }
+        }
+
+        // Class used to capture prediction of DataPoint.
+        private class Result
+        {
+            // Outlier gets false while inlier has true.
+            public bool PredictedLabel { get; set; }
+            // Outlier gets smaller score.
+            public float Score { get; set; }
         }
     }
 }
