@@ -44,7 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.AnomalyDetection
                 new DataPoint(){ Features= new float[3] {1, 2, 3} },
                 new DataPoint(){ Features= new float[3] {0, 1, 0} },
                 new DataPoint(){ Features= new float[3] {0, 2, 1} },
-                new DataPoint(){ Features= new float[3] {-100, -50, -100} }
+                new DataPoint(){ Features= new float[3] {-100, 50, -100} }
             };
 
             // Convert native C# class to IDataView, a consumble format to ML.NET functions.
