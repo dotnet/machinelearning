@@ -387,7 +387,7 @@ namespace Microsoft.ML.Trainers.Recommender
                 return getters;
             }
 
-            public DataViewRow GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 var activeArray = Utils.BuildArray(OutputSchema.Count, activeColumns);
                 var getters = CreateGetter(input, activeArray);

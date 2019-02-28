@@ -244,7 +244,7 @@ namespace Microsoft.ML.EntryPoints
 
             public DataViewSchema InputSchema => _rootSchema;
 
-            public DataViewRow GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
+            DataViewRow IRowToRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 _ectx.Assert(IsCompositeRowToRowMapper(_chain));
                 _ectx.AssertValue(input);

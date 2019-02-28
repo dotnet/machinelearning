@@ -360,7 +360,7 @@ namespace Microsoft.ML.Data
                 return Enumerable.Repeat(FeatureColumn, 1);
             }
 
-            public DataViewRow GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(activeColumns);

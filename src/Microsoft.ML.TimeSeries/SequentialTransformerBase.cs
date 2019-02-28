@@ -488,7 +488,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return InputSchema;
             }
 
-            public DataViewRow GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
+            DataViewRow IRowToRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 var active = RowCursorUtils.FromColumnsToPredicate(activeColumns, OutputSchema);
                 var getters = _mapper.CreateGetters(input, active, out Action disposer);

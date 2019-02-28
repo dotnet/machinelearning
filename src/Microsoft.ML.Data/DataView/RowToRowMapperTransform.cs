@@ -246,7 +246,7 @@ namespace Microsoft.ML.Data
 
         public DataViewSchema InputSchema => Source.Schema;
 
-        public DataViewRow GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
+        DataViewRow IRowToRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
         {
             Host.CheckValue(input, nameof(input));
             Host.CheckValue(activeColumns, nameof(activeColumns));

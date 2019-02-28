@@ -49,7 +49,7 @@ namespace Microsoft.ML.Data
             return columnsNeeded;
         }
 
-        public DataViewRow GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
+        DataViewRow IRowToRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValue(activeColumns, nameof(activeColumns));
