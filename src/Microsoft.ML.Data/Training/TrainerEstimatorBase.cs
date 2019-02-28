@@ -124,18 +124,10 @@ namespace Microsoft.ML.Trainers
             {
                 if (!inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "label", LabelColumn.Name);
-                CheckLabelCompatible(labelCol);
+                if (!LabelColumn.IsCompatibleWith(labelCol))
+                    throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", WeightColumn.Name,
+                        LabelColumn.GetTypeString(), labelCol.GetTypeString());
             }
-        }
-
-        private protected virtual void CheckLabelCompatible(SchemaShape.Column labelCol)
-        {
-            Contracts.CheckParam(labelCol.IsValid, nameof(labelCol), "not initialized properly");
-            Host.Assert(LabelColumn.IsValid);
-
-            if (!LabelColumn.IsCompatibleWith(labelCol))
-                throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", WeightColumn.Name,
-                    LabelColumn.GetTypeString(), labelCol.GetTypeString());
         }
 
         [BestFriend]
@@ -143,7 +135,14 @@ namespace Microsoft.ML.Trainers
             IDataView validationSet = null, IPredictor initPredictor = null)
         {
             var trainRoleMapped = MakeRoles(trainSet);
-            var validRoleMapped = validationSet == null ? null : MakeRoles(validationSet);
+            CheckInputSchema(SchemaShape.Create(trainSet.Schema));
+            RoleMappedData validRoleMapped = null;
+
+            if (validationSet != null)
+            {
+                CheckInputSchema(SchemaShape.Create(validationSet.Schema));
+                validRoleMapped = MakeRoles(validationSet);
+            }
 
             var pred = TrainModelCore(new TrainContext(trainRoleMapped, validRoleMapped, null, initPredictor));
             return MakeTransformer(pred, trainSet.Schema);
@@ -179,7 +178,7 @@ namespace Microsoft.ML.Trainers
                 SchemaShape.Column label,
                 SchemaShape.Column weight = default,
                 SchemaShape.Column groupId = default)
-            :base(host, feature, label, weight)
+            : base(host, feature, label, weight)
         {
             GroupIdColumn = groupId;
         }
