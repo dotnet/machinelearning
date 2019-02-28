@@ -91,12 +91,10 @@ namespace Microsoft.ML.Trainers
             [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0.0f, 1.0f, numSteps: 5)]
             public float InitialWeightsDiameter = 0;
 
-            /// <summary>
-            /// Whether or not to use threads. Default is true.
-            /// </summary>
+            // Deprecated
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether or not to use threads. Default is true",
                 ShortName = "t", Hide = true)]
-            public bool UseThreads = true;
+            internal bool UseThreads = true;
 
             /// <summary>
             /// Number of threads. Null means use the number of processors.
