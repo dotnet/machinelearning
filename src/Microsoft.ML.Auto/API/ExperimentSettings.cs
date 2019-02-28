@@ -8,7 +8,7 @@ namespace Microsoft.ML.Auto
 {
     public class ExperimentSettings
     {
-        public uint MaxInferenceTimeInSeconds = 24 * 60 * 60;
+        public uint MaxExperimentTimeInSeconds = 24 * 60 * 60;
         public CancellationToken CancellationToken;
 
         internal bool EnableCaching;

@@ -6,9 +6,9 @@ namespace Microsoft.ML.Auto
 {
     public static class MLContextExtension
     {
-        public static AutoInferenceCatalog AutoInference(this MLContext mlContext)
+        public static AutoMLCatalog Auto(this MLContext mlContext)
         {
-            return new AutoInferenceCatalog(mlContext);
+            return new AutoMLCatalog(mlContext);
         }
     }
 }

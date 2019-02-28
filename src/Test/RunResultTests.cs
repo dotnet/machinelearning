@@ -28,7 +28,7 @@ namespace Microsoft.ML.Auto.Test
 
             var metricsAgent = new RegressionMetricsAgent(RegressionMetric.RSquared);
             var bestResult = RunResultUtil.GetBestRunResult(runResults, metricsAgent);
-            Assert.AreEqual(0.3, bestResult.Metrics.RSquared);
+            Assert.AreEqual(0.3, bestResult.ValidationMetrics.RSquared);
         }
 
         [TestMethod]

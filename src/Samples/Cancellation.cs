@@ -26,12 +26,12 @@ namespace Samples
             MLContext mlContext = new MLContext();
 
             // STEP 1: Infer columns
-            var columnInference = mlContext.AutoInference().InferColumns(TrainDataPath, LabelColumn, ',');
+            var columnInference = mlContext.Auto().InferColumns(TrainDataPath, LabelColumn, ',');
 
             // STEP 2: Load data
-            TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderArgs);
-            IDataView trainDataView = textLoader.Read(TrainDataPath);
-            IDataView testDataView = textLoader.Read(TestDataPath);
+            var textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderArgs);
+            var trainDataView = textLoader.Read(TrainDataPath);
+            var testDataView = textLoader.Read(TestDataPath);
 
             int cancelAfterInSeconds = 20;
             CancellationTokenSource cts = new CancellationTokenSource();
@@ -40,11 +40,11 @@ namespace Samples
             Stopwatch watch = Stopwatch.StartNew();
 
             // STEP 3: Auto inference with a cancellation token
-            Console.WriteLine($"Invoking new AutoML regression experiment...");
-            var runResults = mlContext.AutoInference()
+            Console.WriteLine($"Invoking an experiment that will be cancelled after {cancelAfterInSeconds} seconds");
+            var runResults = mlContext.Auto()
                 .CreateRegressionExperiment(new RegressionExperimentSettings()
                 {
-                    MaxInferenceTimeInSeconds = 60,
+                    MaxExperimentTimeInSeconds = 60,
                     CancellationToken = cts.Token
                 })
                 .Execute(trainDataView, LabelColumn);
@@ -52,7 +52,7 @@ namespace Samples
             Console.WriteLine($"{runResults.Count()} models were returned after {cancelAfterInSeconds} seconds");
 
             Console.WriteLine("Press any key to continue...");
-            Console.ReadLine();
+            Console.ReadKey();
         }
     }
 }

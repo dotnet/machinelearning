@@ -23,17 +23,18 @@ namespace Samples
             MLContext mlContext = new MLContext();
 
             // STEP 1: Infer columns
-            var columnInference = mlContext.AutoInference().InferColumns(TrainDataPath, LabelColumn, ',');
+            var columnInference = mlContext.Auto().InferColumns(TrainDataPath, LabelColumn, ',');
 
             // STEP 2: Load data
-            TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderArgs);
-            IDataView trainDataView = textLoader.Read(TrainDataPath);
-            IDataView testDataView = textLoader.Read(TestDataPath);
+            var textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderArgs);
+            var trainDataView = textLoader.Read(TrainDataPath);
+            var testDataView = textLoader.Read(TestDataPath);
 
-            // STEP 3: Auto inference with a callback configured
-            var autoExperiment = mlContext.AutoInference().CreateRegressionExperiment(new RegressionExperimentSettings()
+            // STEP 3: Using a different optimizing metric instead of default R2 and whitelisting only LightGbm
+            Console.WriteLine($"Starting an experiment with L2 optimizing metric and whitelisting LightGbm trainer");
+            var autoExperiment = mlContext.Auto().CreateRegressionExperiment(new RegressionExperimentSettings()
             {
-                MaxInferenceTimeInSeconds = 20,
+                MaxExperimentTimeInSeconds = 20,
                 OptimizingMetric = RegressionMetric.L2,
                 WhitelistedTrainers = new[] { RegressionTrainer.LightGbm },
                 ProgressHandler = new ProgressHandler()
@@ -41,7 +42,7 @@ namespace Samples
             autoExperiment.Execute(trainDataView, LabelColumn);
 
             Console.WriteLine("Press any key to continue...");
-            Console.ReadLine();
+            Console.ReadKey();
         }
     }
 }

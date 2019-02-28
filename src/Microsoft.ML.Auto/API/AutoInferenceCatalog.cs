@@ -6,20 +6,20 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
-    public sealed class AutoInferenceCatalog
+    public sealed class AutoMLCatalog
     {
         private readonly MLContext _context;
 
-        internal AutoInferenceCatalog(MLContext context)
+        internal AutoMLCatalog(MLContext context)
         {
             _context = context;
         }
 
-        public RegressionExperiment CreateRegressionExperiment(uint maxInferenceTimeInSeconds)
+        public RegressionExperiment CreateRegressionExperiment(uint maxExperimentTimeInSeconds)
         {
             return new RegressionExperiment(_context, new RegressionExperimentSettings()
             {
-                MaxInferenceTimeInSeconds = maxInferenceTimeInSeconds
+                MaxExperimentTimeInSeconds = maxExperimentTimeInSeconds
             });
         }
 
@@ -28,11 +28,11 @@ namespace Microsoft.ML.Auto
             return new RegressionExperiment(_context, experimentSettings);
         }
 
-        public BinaryClassificationExperiment CreateBinaryClassificationExperiment(uint maxInferenceTimeInSeconds)
+        public BinaryClassificationExperiment CreateBinaryClassificationExperiment(uint maxExperimentTimeInSeconds)
         {
             return new BinaryClassificationExperiment(_context, new BinaryExperimentSettings()
             {
-                MaxInferenceTimeInSeconds = maxInferenceTimeInSeconds
+                MaxExperimentTimeInSeconds = maxExperimentTimeInSeconds
             });
         }
 
@@ -41,11 +41,11 @@ namespace Microsoft.ML.Auto
             return new BinaryClassificationExperiment(_context, experimentSettings);
         }
 
-        public MulticlassClassificationExperiment CreateMulticlassClassificationExperiment(uint maxInferenceTimeInSeconds)
+        public MulticlassClassificationExperiment CreateMulticlassClassificationExperiment(uint maxExperimentTimeInSeconds)
         {
             return new MulticlassClassificationExperiment(_context, new MulticlassExperimentSettings()
             {
-                MaxInferenceTimeInSeconds = maxInferenceTimeInSeconds
+                MaxExperimentTimeInSeconds = maxExperimentTimeInSeconds
             });
         }
 

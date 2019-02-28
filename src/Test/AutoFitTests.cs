@@ -15,32 +15,32 @@ namespace Microsoft.ML.Auto.Test
         {
             var context = new MLContext();
             var dataPath = DatasetUtil.DownloadUciAdultDataset();
-            var columnInference = context.AutoInference().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
+            var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
             var trainData = textLoader.Read(dataPath);
             var validationData = context.Data.TakeRows(trainData, 100);
             trainData = context.Data.SkipRows(trainData, 100);
-            var result = context.AutoInference()
+            var result = context.Auto()
                 .CreateBinaryClassificationExperiment(0)
                 .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = DatasetUtil.UciAdultLabel });
 
-            Assert.IsTrue(result.Max(i => i.Metrics.Accuracy) > 0.80);
+            Assert.IsTrue(result.Max(i => i.ValidationMetrics.Accuracy) > 0.80);
         }
 
         [TestMethod]
         public void AutoFitMultiTest()
         {
             var context = new MLContext();
-            var columnInference = context.AutoInference().InferColumns(DatasetUtil.TrivialMulticlassDatasetPath, DatasetUtil.TrivialMulticlassDatasetLabel);
+            var columnInference = context.Auto().InferColumns(DatasetUtil.TrivialMulticlassDatasetPath, DatasetUtil.TrivialMulticlassDatasetLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
             var trainData = textLoader.Read(DatasetUtil.TrivialMulticlassDatasetPath);
             var validationData = context.Data.TakeRows(trainData, 20);
             trainData = context.Data.SkipRows(trainData, 20);
-            var result = context.AutoInference()
+            var result = context.Auto()
                 .CreateMulticlassClassificationExperiment(0)
                 .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = DatasetUtil.TrivialMulticlassDatasetLabel });
 
-            Assert.IsTrue(result.Max(i => i.Metrics.AccuracyMacro) > 0.80);
+            Assert.IsTrue(result.Max(i => i.ValidationMetrics.AccuracyMacro) > 0.80);
         }
 
         [TestMethod]
@@ -48,17 +48,17 @@ namespace Microsoft.ML.Auto.Test
         {
             var context = new MLContext();
             var dataPath = DatasetUtil.DownloadMlNetGeneratedRegressionDataset();
-            var columnInference = context.AutoInference().InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
+            var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
             var trainData = textLoader.Read(dataPath);
             var validationData = context.Data.TakeRows(trainData, 20);
             trainData = context.Data.SkipRows(trainData, 20);
-            var results = context.AutoInference()
+            var results = context.Auto()
                 .CreateRegressionExperiment(0)
                 .Execute(trainData, validationData,
                     new ColumnInformation() { LabelColumn = DatasetUtil.MlNetGeneratedRegressionLabel });
 
-            Assert.IsTrue(results.Max(i => i.Metrics.RSquared > 0.9));
+            Assert.IsTrue(results.Max(i => i.ValidationMetrics.RSquared > 0.9));
         }
     }
 }

@@ -12,10 +12,10 @@ namespace Microsoft.ML.Auto
         public static RunResult<T> GetBestRunResult<T>(IEnumerable<RunResult<T>> results,
             IMetricsAgent<T> metricsAgent)
         {
-            results = results.Where(r => r.Metrics != null);
+            results = results.Where(r => r.ValidationMetrics != null);
             if (!results.Any()) { return null; }
-            double maxScore = results.Select(r => metricsAgent.GetScore(r.Metrics)).Max();
-            return results.First(r => metricsAgent.GetScore(r.Metrics) == maxScore);
+            double maxScore = results.Select(r => metricsAgent.GetScore(r.ValidationMetrics)).Max();
+            return results.First(r => metricsAgent.GetScore(r.ValidationMetrics) == maxScore);
         }
     }
 }

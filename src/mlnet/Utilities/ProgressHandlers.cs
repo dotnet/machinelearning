@@ -21,7 +21,7 @@ namespace Microsoft.ML.CLI.Utilities
             public void Report(RunResult<RegressionMetrics> iterationResult)
             {
                 iterationIndex++;
-                ConsolePrinter.PrintRegressionMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.Metrics);
+                ConsolePrinter.PrintRegressionMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics);
             }
         }
 
@@ -36,7 +36,7 @@ namespace Microsoft.ML.CLI.Utilities
             public void Report(RunResult<BinaryClassificationMetrics> iterationResult)
             {
                 iterationIndex++;
-                ConsolePrinter.PrintBinaryClassificationMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.Metrics);
+                ConsolePrinter.PrintBinaryClassificationMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics);
             }
         }
     }

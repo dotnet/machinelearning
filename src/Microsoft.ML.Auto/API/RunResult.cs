@@ -9,7 +9,7 @@ namespace Microsoft.ML.Auto
 {
     public sealed class RunResult<T>
     {
-        public readonly T Metrics;
+        public readonly T ValidationMetrics;
         public readonly ITransformer Model;
         public readonly Exception Exception;
         public readonly string TrainerName;
@@ -27,7 +27,7 @@ namespace Microsoft.ML.Auto
             int pipelineInferenceTimeInSeconds)
         {
             Model = model;
-            Metrics = metrics;
+            ValidationMetrics = metrics;
             Pipeline = pipeline;
             Exception = exception;
             RuntimeInSeconds = runtimeInSeconds;

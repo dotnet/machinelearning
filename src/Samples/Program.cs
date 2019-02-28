@@ -34,7 +34,7 @@ namespace Samples
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine($"Exception {ex.ToString()}");
             }
 
             Console.ReadLine();

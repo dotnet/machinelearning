@@ -116,14 +116,14 @@ namespace Microsoft.ML.Auto
                 iterationResults.Add(iterationResult);
 
                 // if model is perfect, break
-                if (_metricsAgent.IsModelPerfect(iterationResult.Metrics))
+                if (_metricsAgent.IsModelPerfect(iterationResult.ValidationMetrics))
                 {
                     break;
                 }
 
             } while (_history.Count < _experimentSettings.MaxModels &&
                     !_experimentSettings.CancellationToken.IsCancellationRequested &&
-                    stopwatch.Elapsed.TotalSeconds < _experimentSettings.MaxInferenceTimeInSeconds);
+                    stopwatch.Elapsed.TotalSeconds < _experimentSettings.MaxExperimentTimeInSeconds);
 
             return iterationResults;
         }

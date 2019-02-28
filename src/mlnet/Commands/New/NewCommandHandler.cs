@@ -89,11 +89,11 @@ namespace Microsoft.ML.CLI.Commands.New
             var dataset = settings.Dataset.FullName;
             if (settings.LabelColumnName != null)
             {
-                columnInference = context.AutoInference().InferColumns(dataset, settings.LabelColumnName, groupColumns: false);
+                columnInference = context.Auto().InferColumns(dataset, settings.LabelColumnName, groupColumns: false);
             }
             else
             {
-                columnInference = context.AutoInference().InferColumns(dataset, settings.LabelColumnIndex, hasHeader: settings.HasHeader, groupColumns: false);
+                columnInference = context.Auto().InferColumns(dataset, settings.LabelColumnIndex, hasHeader: settings.HasHeader, groupColumns: false);
             }
 
             return columnInference;
@@ -127,10 +127,10 @@ namespace Microsoft.ML.CLI.Commands.New
             if (taskKind == TaskKind.BinaryClassification)
             {
                 var progressReporter = new ProgressHandlers.BinaryClassificationHandler();
-                var result = context.AutoInference()
+                var result = context.Auto()
                     .CreateBinaryClassificationExperiment(new BinaryExperimentSettings()
                     {
-                        MaxInferenceTimeInSeconds = settings.MaxExplorationTime,
+                        MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
                         ProgressHandler = progressReporter
                     })
                     .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = labelName });
@@ -143,10 +143,10 @@ namespace Microsoft.ML.CLI.Commands.New
             if (taskKind == TaskKind.Regression)
             {
                 var progressReporter = new ProgressHandlers.RegressionHandler();
-                var result = context.AutoInference()
+                var result = context.Auto()
                     .CreateRegressionExperiment(new RegressionExperimentSettings()
                     {
-                        MaxInferenceTimeInSeconds = settings.MaxExplorationTime,
+                        MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
                         ProgressHandler = progressReporter
                     }).Execute(trainData, validationData, new ColumnInformation() { LabelColumn = labelName });
                 logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);

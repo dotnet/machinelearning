@@ -13,13 +13,13 @@ namespace Microsoft.ML.Auto.Test
         {
             var dataPath = DatasetUtil.DownloadUciAdultDataset();
             var context = new MLContext();
-            var columnInferenceWithoutGrouping = context.AutoInference().InferColumns(dataPath, DatasetUtil.UciAdultLabel, groupColumns: false);
+            var columnInferenceWithoutGrouping = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel, groupColumns: false);
             foreach (var col in columnInferenceWithoutGrouping.TextLoaderArgs.Columns)
             {
                 Assert.IsFalse(col.Source.Length > 1 || col.Source[0].Min != col.Source[0].Max);
             }
 
-            var columnInferenceWithGrouping = context.AutoInference().InferColumns(dataPath, DatasetUtil.UciAdultLabel, groupColumns: true);
+            var columnInferenceWithGrouping = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel, groupColumns: true);
             Assert.IsTrue(columnInferenceWithGrouping.TextLoaderArgs.Columns.Count() < columnInferenceWithoutGrouping.TextLoaderArgs.Columns.Count());
         }
 
@@ -28,20 +28,20 @@ namespace Microsoft.ML.Auto.Test
         {
             var dataPath = DatasetUtil.DownloadUciAdultDataset();
             var context = new MLContext();
-            Assert.ThrowsException<ArgumentException>(new System.Action(() => context.AutoInference().InferColumns(dataPath, "Junk", groupColumns: false)));
+            Assert.ThrowsException<ArgumentException>(new System.Action(() => context.Auto().InferColumns(dataPath, "Junk", groupColumns: false)));
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void LabelIndexOutOfBoundsThrows()
         {
-            new MLContext().AutoInference().InferColumns(DatasetUtil.DownloadUciAdultDataset(), 100);
+            new MLContext().Auto().InferColumns(DatasetUtil.DownloadUciAdultDataset(), 100);
         }
 
         [TestMethod]
         public void IdentifyLabelColumnThroughIndexWithHeader()
         {
-            var result = new MLContext().AutoInference().InferColumns(DatasetUtil.DownloadUciAdultDataset(), 14, hasHeader: true);
+            var result = new MLContext().Auto().InferColumns(DatasetUtil.DownloadUciAdultDataset(), 14, hasHeader: true);
             Assert.AreEqual(true, result.TextLoaderArgs.HasHeader);
             var labelCol = result.TextLoaderArgs.Columns.First(c => c.Source[0].Min == 14 && c.Source[0].Max == 14);
             Assert.AreEqual("hours-per-week", labelCol.Name);
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void IdentifyLabelColumnThroughIndexWithoutHeader()
         {
-            var result = new MLContext().AutoInference().InferColumns(DatasetUtil.DownloadIrisDataset(), DatasetUtil.IrisDatasetLabelColIndex);
+            var result = new MLContext().Auto().InferColumns(DatasetUtil.DownloadIrisDataset(), DatasetUtil.IrisDatasetLabelColIndex);
             Assert.AreEqual(false, result.TextLoaderArgs.HasHeader);
             var labelCol = result.TextLoaderArgs.Columns.First(c => c.Source[0].Min == DatasetUtil.IrisDatasetLabelColIndex &&
                 c.Source[0].Max == DatasetUtil.IrisDatasetLabelColIndex);
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void DatasetWithEmptyColumn()
         {
-            var result = new MLContext().AutoInference().InferColumns(@".\TestData\DatasetWithEmptyColumn.txt", DefaultColumnNames.Label);
+            var result = new MLContext().Auto().InferColumns(@".\TestData\DatasetWithEmptyColumn.txt", DefaultColumnNames.Label);
             var emptyColumn = result.TextLoaderArgs.Columns.First(c => c.Name == "Empty");
             Assert.AreEqual(DataKind.TX, emptyColumn.Type);
         }
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void DatasetWithBoolColumn()
         {
-            var result = new MLContext().AutoInference().InferColumns(@".\TestData\BinaryDatasetWithBoolColumn.txt", DefaultColumnNames.Label);
+            var result = new MLContext().Auto().InferColumns(@".\TestData\BinaryDatasetWithBoolColumn.txt", DefaultColumnNames.Label);
             Assert.AreEqual(2, result.TextLoaderArgs.Columns.Count());
 
             var boolColumn = result.TextLoaderArgs.Columns.First(c => c.Name == "Bool");
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void WhereNameColumnIsOnlyFeature()
         {
-            var result = new MLContext().AutoInference().InferColumns(@".\TestData\NameColumnIsOnlyFeatureDataset.txt", DefaultColumnNames.Label);
+            var result = new MLContext().Auto().InferColumns(@".\TestData\NameColumnIsOnlyFeatureDataset.txt", DefaultColumnNames.Label);
             Assert.AreEqual(2, result.TextLoaderArgs.Columns.Count());
 
             var nameColumn = result.TextLoaderArgs.Columns.First(c => c.Name == "Username");
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void DefaultColumnNamesInferredCorrectly()
         {
-            var result = new MLContext().AutoInference().InferColumns(@".\TestData\DatasetWithDefaultColumnNames.txt",
+            var result = new MLContext().Auto().InferColumns(@".\TestData\DatasetWithDefaultColumnNames.txt",
                 new ColumnInformation()
                 {
                     LabelColumn = DefaultColumnNames.Label,
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void DefaultColumnNamesNoGrouping()
         {
-            var result = new MLContext().AutoInference().InferColumns(@".\TestData\DatasetWithDefaultColumnNames.txt",
+            var result = new MLContext().Auto().InferColumns(@".\TestData\DatasetWithDefaultColumnNames.txt",
                 new ColumnInformation()
                 {
                     LabelColumn = DefaultColumnNames.Label,
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Auto.Test
         public void InferColumnsColumnInfoParam()
         {
             var columnInfo = new ColumnInformation() { LabelColumn = DatasetUtil.MlNetGeneratedRegressionLabel };
-            var result = new MLContext().AutoInference().InferColumns(DatasetUtil.DownloadMlNetGeneratedRegressionDataset(), 
+            var result = new MLContext().Auto().InferColumns(DatasetUtil.DownloadMlNetGeneratedRegressionDataset(), 
                 columnInfo);
             var labelCol = result.TextLoaderArgs.Columns.First(c => c.Name == DatasetUtil.MlNetGeneratedRegressionLabel);
             Assert.AreEqual(DataKind.R4, labelCol.Type);
