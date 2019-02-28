@@ -223,7 +223,7 @@ namespace Microsoft.ML.Trainers.HalLearners
              => new BinaryPredictionTransformer<TPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Continues the training of a <see cref="SymbolicStochasticGradientDescentClassificationTrainer"/> using an already trained <paramref name="modelParameters"/>
+        /// Continues the training of <see cref="SymbolicStochasticGradientDescentClassificationTrainer"/> using an already trained <paramref name="modelParameters"/>
         /// a <see cref="BinaryPredictionTransformer"/>.
         /// </summary>
         public BinaryPredictionTransformer<TPredictor> Fit(IDataView trainData, LinearModelParameters modelParameters)
