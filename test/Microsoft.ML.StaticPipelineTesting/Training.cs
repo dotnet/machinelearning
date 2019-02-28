@@ -60,11 +60,11 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var metrics = catalog.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
             // Run a sanity check against a few of the metrics.
-            Assert.InRange(metrics.L1, 0, double.PositiveInfinity);
-            Assert.InRange(metrics.L2, 0, double.PositiveInfinity);
-            Assert.InRange(metrics.Rms, 0, double.PositiveInfinity);
-            Assert.Equal(metrics.Rms * metrics.Rms, metrics.L2, 5);
-            Assert.InRange(metrics.LossFn, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.MeanAbsoluteError, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.MeanSquaredError, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.RootMeanSquaredError, 0, double.PositiveInfinity);
+            Assert.Equal(metrics.RootMeanSquaredError * metrics.RootMeanSquaredError, metrics.MeanSquaredError, 5);
+            Assert.InRange(metrics.LossFunction, 0, double.PositiveInfinity);
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;
@@ -134,8 +134,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.Auc, 0, 1);
-            Assert.InRange(metrics.Auprc, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
             Assert.InRange(metrics.LogLoss, 0, double.PositiveInfinity);
             Assert.InRange(metrics.Entropy, 0, double.PositiveInfinity);
 
@@ -174,8 +174,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0.9, 1);
-            Assert.InRange(metrics.Auc, 0.9, 1);
-            Assert.InRange(metrics.Auprc, 0.9, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.9, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.9, 1);
             Assert.InRange(metrics.LogLoss, 0, 0.2);
             Assert.InRange(metrics.Entropy, 0.9, double.PositiveInfinity);
         }
@@ -214,8 +214,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.Auc, 0, 1);
-            Assert.InRange(metrics.Auprc, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;
@@ -255,8 +255,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0.95, 1);
-            Assert.InRange(metrics.Auc, 0.95, 1);
-            Assert.InRange(metrics.Auprc, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.95, 1);
         }
 
 
@@ -292,8 +292,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.Auc, 0, 1);
-            Assert.InRange(metrics.Auprc, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
         }
 
         [Fact]
@@ -328,8 +328,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.Auc, 0, 1);
-            Assert.InRange(metrics.Auprc, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
         }
 
         [Fact]
@@ -360,8 +360,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.Auc, 0, 1);
-            Assert.InRange(metrics.Auprc, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
         }
 
         [Fact]
@@ -473,8 +473,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.Auc, 0, 1);
-            Assert.InRange(metrics.Auprc, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
         }
 
         [Fact]
@@ -512,11 +512,11 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var metrics = catalog.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
             // Run a sanity check against a few of the metrics.
-            Assert.InRange(metrics.L1, 0, double.PositiveInfinity);
-            Assert.InRange(metrics.L2, 0, double.PositiveInfinity);
-            Assert.InRange(metrics.Rms, 0, double.PositiveInfinity);
-            Assert.Equal(metrics.Rms * metrics.Rms, metrics.L2, 5);
-            Assert.InRange(metrics.LossFn, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.MeanAbsoluteError, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.MeanSquaredError, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.RootMeanSquaredError, 0, double.PositiveInfinity);
+            Assert.Equal(metrics.RootMeanSquaredError * metrics.RootMeanSquaredError, metrics.MeanSquaredError, 5);
+            Assert.InRange(metrics.LossFunction, 0, double.PositiveInfinity);
         }
 
         [LightGBMFact]
@@ -555,8 +555,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.Auc, 0, 1);
-            Assert.InRange(metrics.Auprc, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
         }
 
         [LightGBMFact]
@@ -594,11 +594,11 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var metrics = catalog.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
             // Run a sanity check against a few of the metrics.
-            Assert.InRange(metrics.L1, 0, double.PositiveInfinity);
-            Assert.InRange(metrics.L2, 0, double.PositiveInfinity);
-            Assert.InRange(metrics.Rms, 0, double.PositiveInfinity);
-            Assert.Equal(metrics.Rms * metrics.Rms, metrics.L2, 5);
-            Assert.InRange(metrics.LossFn, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.MeanAbsoluteError, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.MeanSquaredError, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.RootMeanSquaredError, 0, double.PositiveInfinity);
+            Assert.Equal(metrics.RootMeanSquaredError * metrics.RootMeanSquaredError, metrics.MeanSquaredError, 5);
+            Assert.InRange(metrics.LossFunction, 0, double.PositiveInfinity);
         }
 
         [Fact]
@@ -635,11 +635,11 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var metrics = catalog.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
             // Run a sanity check against a few of the metrics.
-            Assert.InRange(metrics.L1, 0, double.PositiveInfinity);
-            Assert.InRange(metrics.L2, 0, double.PositiveInfinity);
-            Assert.InRange(metrics.Rms, 0, double.PositiveInfinity);
-            Assert.Equal(metrics.Rms * metrics.Rms, metrics.L2, 5);
-            Assert.InRange(metrics.LossFn, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.MeanAbsoluteError, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.MeanSquaredError, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.RootMeanSquaredError, 0, double.PositiveInfinity);
+            Assert.Equal(metrics.RootMeanSquaredError * metrics.RootMeanSquaredError, metrics.MeanSquaredError, 5);
+            Assert.InRange(metrics.LossFunction, 0, double.PositiveInfinity);
         }
 
         [Fact]
@@ -673,8 +673,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.Auc, 0, 1);
-            Assert.InRange(metrics.Auprc, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
         }
 
         [Fact]
@@ -759,11 +759,11 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var metrics = catalog.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
             // Run a sanity check against a few of the metrics.
-            Assert.InRange(metrics.L1, 0, double.PositiveInfinity);
-            Assert.InRange(metrics.L2, 0, double.PositiveInfinity);
-            Assert.InRange(metrics.Rms, 0, double.PositiveInfinity);
-            Assert.Equal(metrics.Rms * metrics.Rms, metrics.L2, 5);
-            Assert.InRange(metrics.LossFn, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.MeanAbsoluteError, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.MeanSquaredError, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.RootMeanSquaredError, 0, double.PositiveInfinity);
+            Assert.Equal(metrics.RootMeanSquaredError * metrics.RootMeanSquaredError, metrics.MeanSquaredError, 5);
+            Assert.InRange(metrics.LossFunction, 0, double.PositiveInfinity);
         }
 
         [Fact]
@@ -813,24 +813,24 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = env.Clustering.Evaluate(data, r => r.preds.score, r => r.label, r => r.features);
             Assert.NotNull(metrics);
 
-            Assert.InRange(metrics.AvgMinScore, 0.5262, 0.5264);
-            Assert.InRange(metrics.Nmi, 0.73, 0.77);
-            Assert.InRange(metrics.Dbi, 0.662, 0.667);
+            Assert.InRange(metrics.AverageDistance, 0.5262, 0.5264);
+            Assert.InRange(metrics.NormalizedMutualInformation, 0.73, 0.77);
+            Assert.InRange(metrics.DaviesBouldinIndex, 0.662, 0.667);
 
             metrics = env.Clustering.Evaluate(data, r => r.preds.score, label: r => r.label);
             Assert.NotNull(metrics);
 
-            Assert.InRange(metrics.AvgMinScore, 0.5262, 0.5264);
-            Assert.True(metrics.Dbi == 0.0);
+            Assert.InRange(metrics.AverageDistance, 0.5262, 0.5264);
+            Assert.True(metrics.DaviesBouldinIndex == 0.0);
 
             metrics = env.Clustering.Evaluate(data, r => r.preds.score, features: r => r.features);
-            Assert.True(double.IsNaN(metrics.Nmi));
+            Assert.True(double.IsNaN(metrics.NormalizedMutualInformation));
 
             metrics = env.Clustering.Evaluate(data, r => r.preds.score);
             Assert.NotNull(metrics);
-            Assert.InRange(metrics.AvgMinScore, 0.5262, 0.5264);
-            Assert.True(double.IsNaN(metrics.Nmi));
-            Assert.True(metrics.Dbi == 0.0);
+            Assert.InRange(metrics.AverageDistance, 0.5262, 0.5264);
+            Assert.True(double.IsNaN(metrics.NormalizedMutualInformation));
+            Assert.True(metrics.DaviesBouldinIndex == 0.0);
 
         }
 
@@ -864,15 +864,15 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.groupId, r => r.score);
             Assert.NotNull(metrics);
 
-            Assert.True(metrics.Ndcg.Length == metrics.Dcg.Length && metrics.Dcg.Length == 3);
+            Assert.True(metrics.NormalizedDiscountedCumulativeGains.Length == metrics.DiscountedCumulativeGains.Length && metrics.DiscountedCumulativeGains.Length == 3);
 
-            Assert.InRange(metrics.Dcg[0], 1.4, 1.6);
-            Assert.InRange(metrics.Dcg[1], 1.4, 1.8);
-            Assert.InRange(metrics.Dcg[2], 1.4, 1.8);
+            Assert.InRange(metrics.DiscountedCumulativeGains[0], 1.4, 1.6);
+            Assert.InRange(metrics.DiscountedCumulativeGains[1], 1.4, 1.8);
+            Assert.InRange(metrics.DiscountedCumulativeGains[2], 1.4, 1.8);
 
-            Assert.InRange(metrics.Ndcg[0], 36.5, 37);
-            Assert.InRange(metrics.Ndcg[1], 36.5, 37);
-            Assert.InRange(metrics.Ndcg[2], 36.5, 37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 36.5, 37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 36.5, 37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 36.5, 37);
         }
 
         [LightGBMFact]
@@ -905,15 +905,15 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.groupId, r => r.score);
             Assert.NotNull(metrics);
 
-            Assert.True(metrics.Ndcg.Length == metrics.Dcg.Length && metrics.Dcg.Length == 3);
+            Assert.True(metrics.NormalizedDiscountedCumulativeGains.Length == metrics.DiscountedCumulativeGains.Length && metrics.DiscountedCumulativeGains.Length == 3);
 
-            Assert.InRange(metrics.Dcg[0], 1.4, 1.6);
-            Assert.InRange(metrics.Dcg[1], 1.4, 1.8);
-            Assert.InRange(metrics.Dcg[2], 1.4, 1.8);
+            Assert.InRange(metrics.DiscountedCumulativeGains[0], 1.4, 1.6);
+            Assert.InRange(metrics.DiscountedCumulativeGains[1], 1.4, 1.8);
+            Assert.InRange(metrics.DiscountedCumulativeGains[2], 1.4, 1.8);
 
-            Assert.InRange(metrics.Ndcg[0], 36.5, 37);
-            Assert.InRange(metrics.Ndcg[1], 36.5, 37);
-            Assert.InRange(metrics.Ndcg[2], 36.5, 37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 36.5, 37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 36.5, 37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 36.5, 37);
         }
 
         [LightGBMFact]
@@ -1031,8 +1031,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0.9, 1);
-            Assert.InRange(metrics.Auc, 0.95, 1);
-            Assert.InRange(metrics.Auprc, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.95, 1);
             Assert.InRange(metrics.LogLoss, 0, 0.2);
         }
 
@@ -1067,8 +1067,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0.9, 1);
-            Assert.InRange(metrics.Auc, 0.95, 1);
-            Assert.InRange(metrics.Auprc, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.95, 1);
             Assert.InRange(metrics.LogLoss, 0, 0.2);
         }
 
@@ -1104,8 +1104,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0.9, 1);
-            Assert.InRange(metrics.Auc, 0.95, 1);
-            Assert.InRange(metrics.Auprc, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.95, 1);
         }
 
         [Fact]
@@ -1138,8 +1138,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0.9, 1);
-            Assert.InRange(metrics.Auc, 0.95, 1);
-            Assert.InRange(metrics.Auprc, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.95, 1);
         }
 
         [LessThanNetCore30OrNotNetCoreAndX64Fact("netcoreapp3.0 and x86 output differs from Baseline. Being tracked as part of https://github.com/dotnet/machinelearning/issues/1441")]
@@ -1190,7 +1190,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = mlContext.Regression.Evaluate(estimatedData, r => r.label, r => r.score);
 
             // Naive test. Just make sure the pipeline runs.
-            Assert.InRange(metrics.L2, 0, 0.5);
+            Assert.InRange(metrics.MeanSquaredError, 0, 0.5);
         }
 
         [LightGBMFact]
@@ -1249,8 +1249,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = mlContext.MulticlassClassification.Evaluate(prediction, r => r.LabelIndex, r => r.Predictions);
 
             // Check if metrics are resonable.
-            Assert.Equal(0.86545065082827088, metrics.AccuracyMacro, 6);
-            Assert.Equal(0.86507936507936511, metrics.AccuracyMicro, 6);
+            Assert.Equal(0.86545065082827088, metrics.MacroAccuracy, 6);
+            Assert.Equal(0.86507936507936511, metrics.MicroAccuracy, 6);
 
             // Convert prediction in ML.NET format to native C# class.
             var nativePredictions = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.MulticlassClassificationExample>(prediction.AsDynamic, false).ToList();

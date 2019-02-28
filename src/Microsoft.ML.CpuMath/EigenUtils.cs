@@ -4,7 +4,6 @@
 
 using System;
 using Microsoft.ML.Internal.CpuMath.Core;
-using Float = System.Single;
 
 namespace Microsoft.ML.Internal.CpuMath
 {
@@ -14,21 +13,21 @@ namespace Microsoft.ML.Internal.CpuMath
     {
         //Compute the Eigen-decomposition of a symmetric matrix
         // REVIEW: use matrix/vector operations, not Array Math
-        public static void EigenDecomposition(Float[] a, out Float[] eigenvalues, out Float[] eigenvectors)
+        public static void EigenDecomposition(float[] a, out float[] eigenvalues, out float[] eigenvectors)
         {
             var count = a.Length;
             var n = (int)Math.Sqrt(count);
             Contracts.Assert(n * n == count);
 
-            eigenvectors = new Float[count];
-            eigenvalues = new Float[n];
+            eigenvectors = new float[count];
+            eigenvalues = new float[n];
 
             //Reduce A to tridiagonal form
             // REVIEW: it's not ideal to keep using the same variable name for different purposes
             // - After the operation, "eigenvalues" means the diagonal elements of the reduced matrix
             //and "eigenvectors" means the orthogonal similarity transformation matrix
             // - Consider aliasing variables
-            var w = new Float[n];
+            var w = new float[n];
             Tred(a, eigenvalues, w, eigenvectors, n);
 
             //Eigen-decomposition of the tridiagonal matrix
@@ -36,10 +35,10 @@ namespace Microsoft.ML.Internal.CpuMath
             Imtql(eigenvalues, w, eigenvectors, n);
 
             for (int i = 0; i < n; i++)
-                eigenvalues[i] = eigenvalues[i] <= 0 ? (Float)(0.0) : (Float)Math.Sqrt(eigenvalues[i]);
+                eigenvalues[i] = eigenvalues[i] <= 0 ? (float)(0.0) : (float)Math.Sqrt(eigenvalues[i]);
         }
 
-        private static Float Hypot(Float x, Float y)
+        private static float Hypot(float x, float y)
         {
             x = Math.Abs(x);
             y = Math.Abs(y);
@@ -49,23 +48,23 @@ namespace Microsoft.ML.Internal.CpuMath
 
             if (x < y)
             {
-                Float t = x / y;
-                return y * (Float)Math.Sqrt(1 + t * t);
+                float t = x / y;
+                return y * (float)Math.Sqrt(1 + t * t);
             }
             else
             {
-                Float t = y / x;
-                return x * (Float)Math.Sqrt(1 + t * t);
+                float t = y / x;
+                return x * (float)Math.Sqrt(1 + t * t);
             }
         }
 
-        private static Float CopySign(Float x, Float y)
+        private static float CopySign(float x, float y)
         {
-            Float xx = Math.Abs(x);
+            float xx = Math.Abs(x);
             return y < 0 ? -xx : xx;
         }
 
-        private static void Tred(Float[] a, Float[] d, Float[] e, Float[] z, int n)
+        private static void Tred(float[] a, float[] d, float[] e, float[] z, int n)
         {
             Double g;
             Double h;
@@ -74,7 +73,7 @@ namespace Microsoft.ML.Internal.CpuMath
             int k;
             int l;
 
-            /*     this subroutine reduces a Float symmetric matrix to a */
+            /*     this subroutine reduces a float symmetric matrix to a */
             /*     symmetric tridiagonal matrix using and accumulating */
             /*     orthogonal similarity transformations. */
 
@@ -82,7 +81,7 @@ namespace Microsoft.ML.Internal.CpuMath
 
             /*	  n is the order of the matrix. */
 
-            /*	  a contains the Float symmetric input matrix. only the */
+            /*	  a contains the float symmetric input matrix. only the */
             /*	    lower triangle of the matrix need be supplied. */
 
             /*     on output */
@@ -126,7 +125,7 @@ namespace Microsoft.ML.Internal.CpuMath
                     d[0] = z[0];
                     z[1] = 0;
                     z[n] = 0;
-                    d[1] = (Float)h;
+                    d[1] = (float)h;
                     continue;
                 }
                 //     .......... scale row ..........
@@ -145,21 +144,21 @@ namespace Microsoft.ML.Internal.CpuMath
                         z[i + j * n] = 0;
                         z[j + i * n] = 0;
                     }
-                    d[i] = (Float)h;
+                    d[i] = (float)h;
                     continue;
 
                 }
                 for (k = 0; k < i; ++k)
                 {
-                    d[k] = (Float) (d[k]/scale);
+                    d[k] = (float) (d[k]/scale);
                     h += d[k] * d[k];
                 }
 
                 Double f = d[l];
-                g = CopySign((Float)Math.Sqrt(h), (Float)f);
-                e[i] = (Float)(scale * g);
+                g = CopySign((float)Math.Sqrt(h), (float)f);
+                e[i] = (float)(scale * g);
                 h -= f * g;
-                d[l] = (Float)(f - g);
+                d[l] = (float)(f - g);
                 //     .......... form a*u ..........
                 for (j = 0; j < i; ++j)
                 {
@@ -169,28 +168,28 @@ namespace Microsoft.ML.Internal.CpuMath
                 for (j = 0; j < i; ++j)
                 {
                     f = d[j];
-                    z[j + i * n] = (Float)f;
+                    z[j + i * n] = (float)f;
                     g = e[j] + z[j + j * n] * f;
                     if (j + 1 == i)
                     {
-                        e[j] = (Float)g;
+                        e[j] = (float)g;
                         continue;
                     }
 
                     for (k = j + 1; k < i; ++k)
                     {
                         g += z[k + j * n] * d[k];
-                        e[k] = (Float)(e[k] + z[k + j * n] * f);
+                        e[k] = (float)(e[k] + z[k + j * n] * f);
                     }
 
-                    e[j] = (Float)g;
+                    e[j] = (float)g;
                 }
                 //     .......... form p ..........
                 f = 0;
 
                 for (j = 0; j < i; ++j)
                 {
-                    e[j] = (Float)(e[j] / h);
+                    e[j] = (float)(e[j] / h);
                     f += e[j] * d[j];
                 }
 
@@ -198,7 +197,7 @@ namespace Microsoft.ML.Internal.CpuMath
                 //     .......... form q ..........
                 for (j = 0; j < i; ++j)
                 {
-                    e[j] = (Float)(e[j] - hh * d[j]);
+                    e[j] = (float)(e[j] - hh * d[j]);
                 }
                 //     .......... form reduced a ..........
                 for (j = 0; j < i; ++j)
@@ -208,14 +207,14 @@ namespace Microsoft.ML.Internal.CpuMath
 
                     for (k = j; k < i; ++k)
                     {
-                        z[k + j * n] = (Float)(z[k + j * n] - f * e[k] - g * d[k]);
+                        z[k + j * n] = (float)(z[k + j * n] - f * e[k] - g * d[k]);
                     }
 
                     d[j] = z[l + j * n];
                     z[i + j * n] = 0;
                 }
 
-                d[i] = (Float)h;
+                d[i] = (float)h;
             }
 
             //     .......... accumulation of transformation matrices ..........
@@ -230,7 +229,7 @@ namespace Microsoft.ML.Internal.CpuMath
                 {
                     for (k = 0; k < i; ++k)
                     {
-                        d[k] = (Float)(z[k + i * n] / h);
+                        d[k] = (float)(z[k + i * n] / h);
                     }
 
                     for (j = 0; j < i; ++j)
@@ -244,7 +243,7 @@ namespace Microsoft.ML.Internal.CpuMath
 
                         for (k = 0; k < i; ++k)
                         {
-                            z[k + j * n] = (Float)(z[k + j * n] - g * d[k]);
+                            z[k + j * n] = (float)(z[k + j * n] - g * d[k]);
                         }
                     }
                 }
@@ -265,23 +264,23 @@ namespace Microsoft.ML.Internal.CpuMath
         } /* Tred */
 
         /* Subroutine */
-        private static int Imtql(Float[] d, Float[] e, Float[] z, int n)
+        private static int Imtql(float[] d, float[] e, float[] z, int n)
         {
             /* Local variables */
-            Float b;
-            Float c;
-            Float f;
-            Float g;
+            float b;
+            float c;
+            float f;
+            float g;
             int i;
             int j;
             int k;
             int l;
             int m;
-            Float p;
-            Float r;
-            Float s;
-            Float tst1;
-            Float tst2;
+            float p;
+            float r;
+            float s;
+            float tst1;
+            float tst2;
 
             /*     this subroutine is a translation of the algol procedure imtql2, */
             /*     num. math. 12, 377-383(1968) by martin and wilkinson, */
@@ -346,7 +345,7 @@ namespace Microsoft.ML.Internal.CpuMath
             {
                 e[i - 1] = e[i];
             }
-            e[n - 1] = (Float)(0.0);
+            e[n - 1] = (float)(0.0);
 
             for (l = 0; l < n; ++l)
             {
@@ -369,12 +368,12 @@ namespace Microsoft.ML.Internal.CpuMath
                             return l;
                         }
                         /*     .......... form shift .......... */
-                        g = (d[l + 1] - p) / (e[l] * (Float)(2.0));
-                        r = Hypot(g, (Float)(1.0));
+                        g = (d[l + 1] - p) / (e[l] * (float)(2.0));
+                        r = Hypot(g, (float)(1.0));
                         g = d[m] - p + e[l] / (g + CopySign(r, g));
-                        s = (Float)(1.0);
-                        c = (Float)(1.0);
-                        p = (Float)(0.0);
+                        s = (float)(1.0);
+                        c = (float)(1.0);
+                        p = (float)(0.0);
                         /*     .......... for i=m-1 step -1 until l do -- .......... */
                         for (i = m - 1; i >= l; i--)
                         {
@@ -382,7 +381,7 @@ namespace Microsoft.ML.Internal.CpuMath
                             b = c * e[i];
                             r = Hypot(f, g);
                             e[i + 1] = r;
-                            if (r == (Float)(0.0))
+                            if (r == (float)(0.0))
                             {
                                 /*     .......... recover from underflow .......... */
                                 d[i + 1] -= p;
@@ -392,7 +391,7 @@ namespace Microsoft.ML.Internal.CpuMath
                             s = f / r;
                             c = g / r;
                             g = d[i + 1] - p;
-                            r = (d[i] - g) * s + c * (Float)(2.0) * b;
+                            r = (d[i] - g) * s + c * (float)(2.0) * b;
                             p = s * r;
                             d[i + 1] = g + p;
                             g = c * r - b;
@@ -404,11 +403,11 @@ namespace Microsoft.ML.Internal.CpuMath
                                 z[k + i * n] = c * z[k + i * n] - s * f;
                             }
                         }
-                        if (r == (Float)(0.0) && i >= l)
+                        if (r == (float)(0.0) && i >= l)
                             continue;
                         d[l] -= p;
                         e[l] = g;
-                        e[m] = (Float)(0.0);
+                        e[m] = (float)(0.0);
                     }
                 } while (m != l);
             }

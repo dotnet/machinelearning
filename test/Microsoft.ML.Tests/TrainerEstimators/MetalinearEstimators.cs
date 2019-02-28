@@ -84,8 +84,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
                 new SdcaNonCalibratedBinaryTrainer.Options {
-                    LabelColumn = "Label",
-                    FeatureColumn = "Vars",
+                    LabelColumnName = "Label",
+                    FeatureColumnName = "Vars",
                     MaxIterations = 100,
                     Shuffle = true,
                     NumThreads = 1, });

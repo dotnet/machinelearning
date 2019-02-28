@@ -89,8 +89,8 @@ namespace Microsoft.ML.Scenarios
             var predicted = trainedModel.Transform(testData);
             var metrics = mlContext.MulticlassClassification.Evaluate(predicted, topK: 3);
 
-            Assert.Equal(.98, metrics.AccuracyMacro);
-            Assert.Equal(.98, metrics.AccuracyMicro, 2);
+            Assert.Equal(.98, metrics.MacroAccuracy);
+            Assert.Equal(.98, metrics.MicroAccuracy, 2);
             Assert.Equal(.06, metrics.LogLoss, 2);
             Assert.InRange(metrics.LogLossReduction, 94, 96);
             Assert.Equal(1, metrics.TopKAccuracy);

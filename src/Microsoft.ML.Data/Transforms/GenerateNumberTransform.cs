@@ -13,7 +13,6 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
-using Float = System.Single;
 
 [assembly: LoadableClass(GenerateNumberTransform.Summary, typeof(GenerateNumberTransform), typeof(GenerateNumberTransform.Options), typeof(SignatureDataTransform),
     GenerateNumberTransform.UserName, GenerateNumberTransform.LoadName, "GenerateNumber", GenerateNumberTransform.ShortName)]
@@ -292,10 +291,10 @@ namespace Microsoft.ML.Transforms
             Host.AssertValue(ctx);
 
             // *** Binary format ***
-            // int: sizeof(Float)
+            // int: sizeof(float)
             // bindings
             int cbFloat = ctx.Reader.ReadInt32();
-            Host.CheckDecode(cbFloat == sizeof(Float));
+            Host.CheckDecode(cbFloat == sizeof(float));
             _bindings = Bindings.Create(ctx, Source.Schema);
         }
 
@@ -316,9 +315,9 @@ namespace Microsoft.ML.Transforms
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // int: sizeof(Float)
+            // int: sizeof(float)
             // bindings
-            ctx.Writer.Write(sizeof(Float));
+            ctx.Writer.Write(sizeof(float));
             _bindings.Save(ctx);
         }
 
@@ -385,7 +384,7 @@ namespace Microsoft.ML.Transforms
             private readonly Bindings _bindings;
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
-            private readonly Float[] _values;
+            private readonly float[] _values;
             private readonly TauswortheHybrid[] _rngs;
             private readonly long[] _lastCounters;
 
@@ -400,7 +399,7 @@ namespace Microsoft.ML.Transforms
                 _active = active;
                 var length = _bindings.InfoCount;
                 _getters = new Delegate[length];
-                _values = new Float[length];
+                _values = new float[length];
                 _rngs = new TauswortheHybrid[length];
                 _lastCounters = new long[length];
                 for (int iinfo = 0; iinfo < length; iinfo++)
@@ -447,7 +446,7 @@ namespace Microsoft.ML.Transforms
                 };
             }
 
-            private void EnsureValue(ref long lastCounter, ref Float value, TauswortheHybrid rng)
+            private void EnsureValue(ref long lastCounter, ref float value, TauswortheHybrid rng)
             {
                 Ch.Assert(lastCounter <= Input.Position);
                 while (lastCounter < Input.Position)
@@ -457,9 +456,9 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private ValueGetter<Float> MakeGetter(int iinfo)
+            private ValueGetter<float> MakeGetter(int iinfo)
             {
-                return (ref Float value) =>
+                return (ref float value) =>
                 {
                     Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                     Ch.Assert(!_bindings.UseCounter[iinfo]);
