@@ -12,10 +12,10 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             // Setting the seed to a fixed number in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
-            // Create in-memory examples as C# native class.
+            // Create a list of data examples.
             var examples = DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);
 
-            // Convert native C# class to IDataView, a consumable format for ML.NET functions.
+            // Convert the examples list to an IDataView object, which is consumable by ML.NET API.
             var dataView = mlContext.Data.LoadFromEnumerable(examples);
 
             //////////////////// Data Preview ////////////////////

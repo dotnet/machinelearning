@@ -14,10 +14,10 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Create in-memory examples as C# native class.
+            // Create a list of data examples.
             var examples = DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);
 
-            // Convert native C# class to IDataView, a consumable format to ML.NET functions.
+            // Convert the examples list to an IDataView object, which is consumable by ML.NET API.
             var dataView = mlContext.Data.LoadFromEnumerable(examples);
 
             //////////////////// Data Preview ////////////////////
