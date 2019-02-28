@@ -374,6 +374,9 @@ namespace Microsoft.ML
         /// </summary>
         public CalibratorsCatalog Calibrators { get; }
 
+        /// <summary>
+        /// Catalog which contains different methods to produce calibrators.
+        /// </summary>
         public sealed class CalibratorsCatalog : CatalogInstantiatorBase
         {
             internal CalibratorsCatalog(BinaryClassificationCatalog catalog)
@@ -381,7 +384,7 @@ namespace Microsoft.ML
             {
             }
             /// <summary>
-            /// Adds probability column by training naive binning-based calbirator.
+            /// Adds probability column by training naive binning-based calibrator.
             /// </summary>
             /// <param name="labelColumnName">The name of the label column.</param>
             /// <param name="scoreColumnName">The name of the score column.</param>
@@ -399,7 +402,7 @@ namespace Microsoft.ML
                 return new NaiveCalibratorEstimator(Owner.Environment, labelColumnName, scoreColumnName);
             }
             /// <summary>
-            /// Adds probability column by training platt calbirator.
+            /// Adds probability column by training <a href="https://en.wikipedia.org/wiki/Platt_scaling">platt calibrator</a>.
             /// </summary>
             /// <param name="labelColumnName">The name of the label column.</param>
             /// <param name="scoreColumnName">The name of the score column.</param>
@@ -420,7 +423,7 @@ namespace Microsoft.ML
             }
 
             /// <summary>
-            /// Adds probability column by specifying platt calbirator.
+            /// Adds probability column by specifying <a href="https://en.wikipedia.org/wiki/Platt_scaling">platt calibrator</a>.
             /// </summary>
             /// <param name="slope">The slope in the function of the exponent of the sigmoid.</param>
             /// <param name="offset">The offset in the function of the exponent of the sigmoid.</param>
@@ -441,8 +444,12 @@ namespace Microsoft.ML
             }
 
             /// <summary>
-            /// Adds probability column by training pair adjacent violators calbirator.
+            /// Adds probability column by training pair adjacent violators calibrator.
             /// </summary>
+            /// <remarks>
+            ///  The calibrator finds a stepwise constant function (using the Pool Adjacent Violators Algorithm aka PAV) that minimizes the squared error.
+            ///  Also know as <a href="https://en.wikipedia.org/wiki/Isotonic_regression">Isotonic regression</a>
+            /// </remarks>
             /// <param name="labelColumnName">The name of the label column.</param>
             /// <param name="scoreColumnName">The name of the score column.</param>
             /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
@@ -453,12 +460,12 @@ namespace Microsoft.ML
             /// ]]>
             /// </format>
             /// </example>
-            public PairAdjacentViolatorsCalibratorEstimator PairAdjacentViolators(
+            public PoolAdjacentViolatorsCalibratorEstimator PoolAdjacentViolators(
                 string labelColumnName = DefaultColumnNames.Label,
                 string scoreColumnName = DefaultColumnNames.Score,
                 string exampleWeightColumnName = null)
             {
-                return new PairAdjacentViolatorsCalibratorEstimator(Owner.Environment, labelColumnName, scoreColumnName, exampleWeightColumnName);
+                return new PoolAdjacentViolatorsCalibratorEstimator(Owner.Environment, labelColumnName, scoreColumnName, exampleWeightColumnName);
             }
         }
     }

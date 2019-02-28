@@ -398,10 +398,10 @@ namespace Microsoft.ML.Calibrators
     /// <remarks>
     /// For the usage pattern see the example in <see cref="CalibratorEstimatorBase{TICalibrator}"/>.
     /// </remarks>
-    public sealed class PairAdjacentViolatorsCalibratorEstimator : CalibratorEstimatorBase<PavCalibrator>
+    public sealed class PoolAdjacentViolatorsCalibratorEstimator : CalibratorEstimatorBase<PavCalibrator>
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="PairAdjacentViolatorsCalibratorEstimator"/>
+        /// Initializes a new instance of <see cref="PoolAdjacentViolatorsCalibratorEstimator"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The label column name. This is consumed when this estimator is fit,
@@ -410,7 +410,7 @@ namespace Microsoft.ML.Calibrators
         /// is fit and when the estimator is consumed.</param>
         /// <param name="weightColumn">The optional weight column name. Note that if specified this is
         /// consumed when this estimator is fit, but not consumed by the resulting transformer.</param>
-        internal PairAdjacentViolatorsCalibratorEstimator(IHostEnvironment env,
+        internal PoolAdjacentViolatorsCalibratorEstimator(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string scoreColumn = DefaultColumnNames.Score,
             string weightColumn = null) : base(env, new PavCalibratorTrainer(env), labelColumn, scoreColumn, weightColumn)
@@ -424,7 +424,7 @@ namespace Microsoft.ML.Calibrators
     }
 
     /// <summary>
-    /// The <see cref="ITransformer"/> implementation obtained by training a <see cref="PairAdjacentViolatorsCalibratorEstimator"/>
+    /// The <see cref="ITransformer"/> implementation obtained by training a <see cref="PoolAdjacentViolatorsCalibratorEstimator"/>
     /// </summary>
     public sealed class PairAdjacentViolatorsCalibratorTransformer : CalibratorTransformer<PavCalibrator>
     {
