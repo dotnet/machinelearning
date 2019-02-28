@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -10,6 +11,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Data;
+using Samples.Helpers;
 
 namespace Samples
 {
@@ -26,12 +28,13 @@ namespace Samples
             MLContext mlContext = new MLContext();
 
             // STEP 1: Infer columns
-            var columnInference = mlContext.Auto().InferColumns(TrainDataPath, LabelColumn, ',');
+            ColumnInferenceResults columnInference = mlContext.Auto().InferColumns(TrainDataPath, LabelColumn, ',');
+            ConsoleHelper.Print(columnInference);
 
             // STEP 2: Load data
-            var textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderArgs);
-            var trainDataView = textLoader.Read(TrainDataPath);
-            var testDataView = textLoader.Read(TestDataPath);
+            TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderArgs);
+            IDataView trainDataView = textLoader.Read(TrainDataPath);
+            IDataView testDataView = textLoader.Read(TestDataPath);
 
             int cancelAfterInSeconds = 20;
             CancellationTokenSource cts = new CancellationTokenSource();
@@ -41,7 +44,7 @@ namespace Samples
 
             // STEP 3: Auto inference with a cancellation token
             Console.WriteLine($"Invoking an experiment that will be cancelled after {cancelAfterInSeconds} seconds");
-            var runResults = mlContext.Auto()
+            IEnumerable<RunResult<RegressionMetrics>> runResults = mlContext.Auto()
                 .CreateRegressionExperiment(new RegressionExperimentSettings()
                 {
                     MaxExperimentTimeInSeconds = 60,

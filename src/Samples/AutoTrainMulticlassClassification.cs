@@ -3,21 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Data;
+using Samples.Helpers;
 
 namespace Samples
 {
     public class AutoTrainMulticlassClassification
     {
         private static string BaseDatasetsLocation = @"../../../../src/Samples/Data";
-        private static string TrainDataPath = $"{BaseDatasetsLocation}/iris-train.txt";
-        private static string TestDataPath = $"{BaseDatasetsLocation}/iris-test.txt";
-        private static string ModelPath = $"{BaseDatasetsLocation}/IrisClassificationModel.zip";
+        private static string TrainDataPath = $"{BaseDatasetsLocation}/optdigits-train.csv";
+        private static string TestDataPath = $"{BaseDatasetsLocation}/optdigits-test.csv";
+        private static string ModelPath = $"{BaseDatasetsLocation}/OptDigits.zip";
         private static uint ExperimentTime = 60;
 
         public static void Run()
@@ -25,32 +27,33 @@ namespace Samples
             MLContext mlContext = new MLContext();
 
             // STEP 1: Infer columns
-            var columnInference = mlContext.Auto().InferColumns(TrainDataPath);
+            ColumnInferenceResults columnInference = mlContext.Auto().InferColumns(TrainDataPath);
+            ConsoleHelper.Print(columnInference);
 
             // STEP 2: Load data
-            var textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderArgs);
-            var trainDataView = textLoader.Read(TrainDataPath);
-            var testDataView = textLoader.Read(TestDataPath);
+            TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderArgs);
+            IDataView trainDataView = textLoader.Read(TrainDataPath);
+            IDataView testDataView = textLoader.Read(TestDataPath);
 
             // STEP 3: Auto featurize, auto train and auto hyperparameter tune
             Console.WriteLine($"Running AutoML multiclass classification experiment for {ExperimentTime} seconds...");
-            var runResults = mlContext.Auto()
-                .CreateMulticlassClassificationExperiment(60)
-                .Execute(trainDataView);
+            IEnumerable<RunResult<MultiClassClassifierMetrics>> runResults = mlContext.Auto()
+                                                                             .CreateMulticlassClassificationExperiment(60)
+                                                                             .Execute(trainDataView);
 
             // STEP 4: Print metric from the best model
-            var best = runResults.Best();
+            RunResult<MultiClassClassifierMetrics> best = runResults.Best();
             Console.WriteLine($"Total models produced: {runResults.Count()}");
             Console.WriteLine($"Best model's trainer: {best.TrainerName}");
             Console.WriteLine($"AccuracyMacro of best model from validation data: {best.ValidationMetrics.AccuracyMacro}");
 
             // STEP 5: Evaluate test data
-            var testDataViewWithBestScore = best.Model.Transform(testDataView);
-            var testMetrics = mlContext.MulticlassClassification.Evaluate(testDataViewWithBestScore);
+            IDataView testDataViewWithBestScore = best.Model.Transform(testDataView);
+            MultiClassClassifierMetrics testMetrics = mlContext.MulticlassClassification.Evaluate(testDataViewWithBestScore);
             Console.WriteLine($"AccuracyMacro of best model on test data: {testMetrics.AccuracyMacro}");
 
             // STEP 6: Save the best model for later deployment and inferencing
-            using (var fs = File.Create(ModelPath))
+            using (FileStream fs = File.Create(ModelPath))
                 best.Model.SaveTo(mlContext, fs);
 
             Console.WriteLine("Press any key to continue...");

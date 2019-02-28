@@ -16,15 +16,11 @@ The datasets are provided under the original terms that Microsoft received such 
 >
 >Original readme: https://meta.wikimedia.org/wiki/Research:Detox
 
-### UCI Iris Flower Dataset
+### MNIST
 
->Redistributing the datasets "iris-test.txt" and "iris-train.txt" with attribution:
+> MNIST data originally from [NIST](https://www.nist.gov) and modified by Chris Burges, Corinna Cortes, and Yann LeCun. http://yann.lecun.com/exdb/mnist/
 >
->Dua, D. and Karra Taniskidou, E. (2017). UCI Machine Learning Repository [https://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science.
->
->With modifications to "iris.txt" by changing the separator character, order of columns, and numerical encoding of labels.
->
->https://archive.ics.uci.edu/ml/datasets/iris
+> More information: https://en.wikipedia.org/wiki/MNIST_database
 
 ### NYC Taxi Fare
 

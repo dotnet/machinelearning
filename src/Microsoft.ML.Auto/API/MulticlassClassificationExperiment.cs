@@ -62,7 +62,13 @@ namespace Microsoft.ML.Auto
             return Execute(_context, trainData, columnInformation, null, preFeaturizers);
         }
 
-        public IEnumerable<RunResult<MultiClassClassifierMetrics>> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizers = null)
+        public IEnumerable<RunResult<MultiClassClassifierMetrics>> Execute(IDataView trainData, IDataView validationData, string labelColumn = DefaultColumnNames.Label, IEstimator<ITransformer> preFeaturizers = null)
+        {
+            var columnInformation = new ColumnInformation() { LabelColumn = labelColumn };
+            return Execute(_context, trainData, columnInformation, validationData, preFeaturizers);
+        }
+
+        public IEnumerable<RunResult<MultiClassClassifierMetrics>> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizers = null)
         {
             return Execute(_context, trainData, columnInformation, validationData, preFeaturizers);
         }
