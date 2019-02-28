@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 
@@ -267,7 +268,7 @@ namespace Microsoft.ML
         internal BinaryClassificationCatalog(IHostEnvironment env)
             : base(env, nameof(BinaryClassificationCatalog))
         {
-            Calibrators = new CalibratorsSubCatalog(this);
+            Calibrators = new CalibratorsCatalog(this);
             Trainers = new BinaryClassificationTrainers(this);
         }
 
@@ -371,16 +372,95 @@ namespace Microsoft.ML
         /// <summary>
         /// The list of trainers for performing binary classification.
         /// </summary>
-        public CalibratorsSubCatalog Calibrators { get; }
+        public CalibratorsCatalog Calibrators { get; }
 
-        public sealed class CalibratorsSubCatalog : CatalogInstantiatorBase
+        public sealed class CalibratorsCatalog : CatalogInstantiatorBase
         {
-            internal CalibratorsSubCatalog(BinaryClassificationCatalog catalog)
+            internal CalibratorsCatalog(BinaryClassificationCatalog catalog)
                 : base(catalog)
             {
             }
-        }
+            /// <summary>
+            /// Adds probability column by training naive binning-based calbirator.
+            /// </summary>
+            /// <param name="labelColumnName">The name of the label column.</param>
+            /// <param name="scoreColumnName">The name of the score column.</param>
+            /// <example>
+            /// <format type="text/markdown">
+            /// <![CDATA[
+            /// [!code-csharp[NaiveCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/Naive.cs)]
+            /// ]]>
+            /// </format>
+            /// </example>
+            public NaiveCalibratorEstimator Naive(
+                  string labelColumnName = DefaultColumnNames.Label,
+                  string scoreColumnName = DefaultColumnNames.Score)
+            {
+                return new NaiveCalibratorEstimator(Owner.Environment, labelColumnName, scoreColumnName);
+            }
+            /// <summary>
+            /// Adds probability column by training platt calbirator.
+            /// </summary>
+            /// <param name="labelColumnName">The name of the label column.</param>
+            /// <param name="scoreColumnName">The name of the score column.</param>
+            /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+            /// <example>
+            /// <format type="text/markdown">
+            /// <![CDATA[
+            /// [!code-csharp[PlattCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/Platt.cs)]
+            /// ]]>
+            /// </format>
+            /// </example>
+            public PlattCalibratorEstimator Platt(
+                  string labelColumnName = DefaultColumnNames.Label,
+                  string scoreColumnName = DefaultColumnNames.Score,
+                  string exampleWeightColumnName = null)
+            {
+                return new PlattCalibratorEstimator(Owner.Environment, labelColumnName, scoreColumnName, exampleWeightColumnName);
+            }
 
+            /// <summary>
+            /// Adds probability column by specifying platt calbirator.
+            /// </summary>
+            /// <param name="slope">The slope in the function of the exponent of the sigmoid.</param>
+            /// <param name="offset">The offset in the function of the exponent of the sigmoid.</param>
+            /// <param name="scoreColumnName">The name of the score column.</param>
+            /// <example>
+            /// <format type="text/markdown">
+            /// <![CDATA[
+            /// [!code-csharp[FixedPlattCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/FixedPlatt.cs)]
+            /// ]]>
+            /// </format>
+            /// </example>
+            public FixedPlattCalibratorEstimator Platt(
+                double slope,
+                double offset,
+                string scoreColumnName = DefaultColumnNames.Score)
+            {
+                return new FixedPlattCalibratorEstimator(Owner.Environment, slope, offset, scoreColumnName);
+            }
+
+            /// <summary>
+            /// Adds probability column by training pair adjacent violators calbirator.
+            /// </summary>
+            /// <param name="labelColumnName">The name of the label column.</param>
+            /// <param name="scoreColumnName">The name of the score column.</param>
+            /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+            /// <example>
+            /// <format type="text/markdown">
+            /// <![CDATA[
+            /// [!code-csharp[PairAdjacentViolators](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/PairAdjacentViolators.cs)]
+            /// ]]>
+            /// </format>
+            /// </example>
+            public PairAdjacentViolatorsCalibratorEstimator PairAdjacentViolators(
+                string labelColumnName = DefaultColumnNames.Label,
+                string scoreColumnName = DefaultColumnNames.Score,
+                string exampleWeightColumnName = null)
+            {
+                return new PairAdjacentViolatorsCalibratorEstimator(Owner.Environment, labelColumnName, scoreColumnName, exampleWeightColumnName);
+            }
+        }
     }
 
     /// <summary>
