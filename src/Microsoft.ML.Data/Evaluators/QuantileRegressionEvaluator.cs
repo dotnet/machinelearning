@@ -11,7 +11,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Float = System.Single;
 
 [assembly: LoadableClass(typeof(QuantileRegressionEvaluator), typeof(QuantileRegressionEvaluator), typeof(QuantileRegressionEvaluator.Arguments), typeof(SignatureEvaluator),
     "Quantile Regression Evaluator", QuantileRegressionEvaluator.LoadName, "QuantileRegression")]
@@ -27,7 +26,7 @@ namespace Microsoft.ML.Data
 {
     [BestFriend]
     internal sealed class QuantileRegressionEvaluator :
-        RegressionEvaluatorBase<QuantileRegressionEvaluator.Aggregator, VBuffer<Float>, VBuffer<Double>>
+        RegressionEvaluatorBase<QuantileRegressionEvaluator.Aggregator, VBuffer<float>, VBuffer<Double>>
     {
         public sealed class Arguments : ArgumentsBase
         {
@@ -130,13 +129,13 @@ namespace Microsoft.ML.Data
                     TotalLoss = VBufferUtils.CreateDense<Double>(size);
                 }
 
-                protected override void UpdateCore(Float label, in VBuffer<Float> score, in VBuffer<Double> loss, Float weight)
+                protected override void UpdateCore(float label, in VBuffer<float> score, in VBuffer<Double> loss, float weight)
                 {
                     AddL1AndL2Loss(label, in score, weight);
                     AddCustomLoss(weight, in loss);
                 }
 
-                private void AddL1AndL2Loss(Float label, in VBuffer<Float> score, Float weight)
+                private void AddL1AndL2Loss(float label, in VBuffer<float> score, float weight)
                 {
                     Contracts.Check(score.Length == TotalL1Loss.Length, "Vectors must have the same dimensionality.");
 
@@ -168,7 +167,7 @@ namespace Microsoft.ML.Data
                     }
                 }
 
-                private void AddCustomLoss(Float weight, in VBuffer<Double> loss)
+                private void AddCustomLoss(float weight, in VBuffer<Double> loss)
                 {
                     Contracts.Check(loss.Length == TotalL1Loss.Length, "Vectors must have the same dimensionality.");
 
@@ -233,12 +232,12 @@ namespace Microsoft.ML.Data
 
             protected override void ApplyLossFunction(in VBuffer<float> score, float label, ref VBuffer<Double> loss)
             {
-                VBufferUtils.PairManipulator<Float, Double> lossFn =
-                    (int slot, Float src, ref Double dst) => dst = LossFunction.Loss(src, label);
+                VBufferUtils.PairManipulator<float, Double> lossFn =
+                    (int slot, float src, ref Double dst) => dst = LossFunction.Loss(src, label);
                 VBufferUtils.ApplyWith(in score, ref loss, lossFn);
             }
 
-            protected override bool IsNaN(in VBuffer<Float> score)
+            protected override bool IsNaN(in VBuffer<float> score)
             {
                 return VBufferUtils.HasNaNs(in score);
             }
@@ -386,17 +385,17 @@ namespace Microsoft.ML.Data
             disposer = null;
 
             long cachedPosition = -1;
-            Float label = 0;
-            var score = default(VBuffer<Float>);
+            float label = 0;
+            var score = default(VBuffer<float>);
             var l1 = VBufferUtils.CreateDense<Double>(_scoreSize);
 
-            ValueGetter<Float> nanGetter = (ref Float value) => value = Single.NaN;
+            ValueGetter<float> nanGetter = (ref float value) => value = Single.NaN;
             var labelGetter = activeCols(L1Col) || activeCols(L2Col) ? RowCursorUtils.GetLabelGetter(input, LabelIndex) : nanGetter;
-            ValueGetter<VBuffer<Float>> scoreGetter;
+            ValueGetter<VBuffer<float>> scoreGetter;
             if (activeCols(L1Col) || activeCols(L2Col))
-                scoreGetter = input.GetGetter<VBuffer<Float>>(ScoreIndex);
+                scoreGetter = input.GetGetter<VBuffer<float>>(ScoreIndex);
             else
-                scoreGetter = (ref VBuffer<Float> dst) => dst = default(VBuffer<Float>);
+                scoreGetter = (ref VBuffer<float> dst) => dst = default(VBuffer<float>);
             Action updateCacheIfNeeded =
                 () =>
                 {

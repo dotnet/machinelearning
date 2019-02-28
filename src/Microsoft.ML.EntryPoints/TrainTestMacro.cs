@@ -209,7 +209,7 @@ namespace Microsoft.ML.EntryPoints
             subGraphNodes.Add(scoreNode);
             var evalDataVarName = scoreNodeOutputScoredData.VarName;
 
-            // REVIEW: add similar support for FeatureColumn.
+            // REVIEW: add similar support for FeatureColumnName.
             var settings = new MacroUtils.EvaluatorSettings
             {
                 LabelColumn = input.LabelColumn,

@@ -6,32 +6,11 @@ using Microsoft.Data.DataView;
 
 namespace Microsoft.ML.Data
 {
+    /// <summary>
+    /// Evaluation results for multi-class classifiers.
+    /// </summary>
     public sealed class MultiClassClassifierMetrics
     {
-        /// <summary>
-        /// Gets the micro-average accuracy of the model.
-        /// </summary>
-        /// <remarks>
-        /// The micro-average is the fraction of instances predicted correctly.
-        ///
-        /// The micro-average metric weighs each class according to the number of instances that belong
-        /// to it in the dataset.
-        /// </remarks>
-        public double AccuracyMicro { get; }
-
-        /// <summary>
-        /// Gets the macro-average accuracy of the model.
-        /// </summary>
-        /// <remarks>
-        /// The macro-average is computed by taking the average over all the classes of the fraction
-        /// of correct predictions in this class (the number of correctly predicted instances in the class,
-        /// divided by the total number of instances in the class).
-        ///
-        /// The macro-average metric gives the same weight to each class, no matter how many instances from
-        /// that class the dataset contains.
-        /// </remarks>
-        public double AccuracyMacro { get; }
-
         /// <summary>
         /// Gets the average log-loss of the classifier.
         /// </summary>
@@ -58,15 +37,36 @@ namespace Microsoft.ML.Data
         public double LogLossReduction { get; private set; }
 
         /// <summary>
-        /// If positive, this is the top-K for which the <see cref="TopKAccuracy"/> is calculated.
+        /// Gets the macro-average accuracy of the model.
         /// </summary>
-        public int TopK { get; }
+        /// <remarks>
+        /// The macro-average is the average accuracy at the class level. The accuracy for each class is computed
+        /// and the macro-accuracy is the average of these accuracies.
+        ///
+        /// The macro-average metric gives the same weight to each class, no matter how many instances from
+        /// that class the dataset contains.
+        /// </remarks>
+        public double MacroAccuracy { get; }
+
+        /// <summary>
+        /// Gets the micro-average accuracy of the model.
+        /// </summary>
+        /// <remarks>
+        /// The micro-average is the fraction of instances predicted correctly.
+        /// The micro-average does not take class membership into account.
+        /// </remarks>
+        public double MicroAccuracy { get; }
 
         /// <summary>
         /// If <see cref="TopK"/> is positive, this is the relative number of examples where
-        /// the true label is one of the top k predicted labels by the predictor.
+        /// the true label is one of the top-k predicted labels by the predictor.
         /// </summary>
         public double TopKAccuracy { get; }
+
+        /// <summary>
+        /// If positive, this is the top-K for which the <see cref="TopKAccuracy"/> is calculated.
+        /// </summary>
+        public int TopK { get; }
 
         /// <summary>
         /// Gets the log-loss of the classifier for each class.
@@ -83,8 +83,8 @@ namespace Microsoft.ML.Data
         internal MultiClassClassifierMetrics(IExceptionContext ectx, DataViewRow overallResult, int topK)
         {
             double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
-            AccuracyMicro = FetchDouble(MultiClassClassifierEvaluator.AccuracyMicro);
-            AccuracyMacro = FetchDouble(MultiClassClassifierEvaluator.AccuracyMacro);
+            MicroAccuracy = FetchDouble(MultiClassClassifierEvaluator.AccuracyMicro);
+            MacroAccuracy = FetchDouble(MultiClassClassifierEvaluator.AccuracyMacro);
             LogLoss = FetchDouble(MultiClassClassifierEvaluator.LogLoss);
             LogLossReduction = FetchDouble(MultiClassClassifierEvaluator.LogLossReduction);
             TopK = topK;
@@ -99,8 +99,8 @@ namespace Microsoft.ML.Data
         internal MultiClassClassifierMetrics(double accuracyMicro, double accuracyMacro, double logLoss, double logLossReduction,
             int topK, double topKAccuracy, double[] perClassLogLoss)
         {
-            AccuracyMicro = accuracyMicro;
-            AccuracyMacro = accuracyMacro;
+            MicroAccuracy = accuracyMicro;
+            MacroAccuracy = accuracyMacro;
             LogLoss = logLoss;
             LogLossReduction = logLossReduction;
             TopK = topK;

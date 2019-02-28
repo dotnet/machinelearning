@@ -50,7 +50,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Initializes a new instance of <see cref="BinaryClassificationGamTrainer"/>
         /// </summary>
         internal BinaryClassificationGamTrainer(IHostEnvironment env, Options options)
-             : base(env, options, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
+             : base(env, options, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             _sigmoidParameter = 1;
         }

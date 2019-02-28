@@ -12,9 +12,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
-using Float = System.Single;
 
 [assembly: LoadableClass(RangeFilter.Summary, typeof(RangeFilter), typeof(RangeFilter.Options), typeof(SignatureDataTransform),
     RangeFilter.UserName, "RangeFilter")]
@@ -147,7 +145,7 @@ namespace Microsoft.ML.Transforms
             // double: max
             // byte: complement
             int cbFloat = ctx.Reader.ReadInt32();
-            Host.CheckDecode(cbFloat == sizeof(Float));
+            Host.CheckDecode(cbFloat == sizeof(float));
 
             var column = ctx.LoadNonEmptyString();
             var schema = Source.Schema;
@@ -191,7 +189,7 @@ namespace Microsoft.ML.Transforms
             // byte: complement
             // byte: includeMin
             // byte: includeMax
-            ctx.Writer.Write(sizeof(Float));
+            ctx.Writer.Write(sizeof(float));
             ctx.SaveNonEmptyString(Source.Schema[_index].Name);
             Host.Assert(_min < _max);
             ctx.Writer.Write(_min);

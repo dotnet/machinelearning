@@ -11,7 +11,6 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Numeric;
 using Newtonsoft.Json.Linq;
-using Float = System.Single;
 
 [assembly: LoadableClass(typeof(ClusteringScorer), typeof(ClusteringScorer.Arguments), typeof(SignatureDataScorer),
     "Clustering Scorer", "ClusteringScorer", AnnotationUtils.Const.ScoreColumnKind.Clustering)]
@@ -98,10 +97,10 @@ namespace Microsoft.ML.Data
             Contracts.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
             Contracts.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
 
-            ValueGetter<VBuffer<Float>> mapperScoreGetter = output.GetGetter<VBuffer<Float>>(Bindings.ScoreColumnIndex);
+            ValueGetter<VBuffer<float>> mapperScoreGetter = output.GetGetter<VBuffer<float>>(Bindings.ScoreColumnIndex);
 
             long cachedPosition = -1;
-            VBuffer<Float> score = default(VBuffer<Float>);
+            VBuffer<float> score = default(VBuffer<float>);
             int keyCount = Bindings.PredColType is KeyType key ? key.GetCountAsInt32(Host) : 0;
             int scoreLength = keyCount;
 
@@ -116,8 +115,8 @@ namespace Microsoft.ML.Data
                     else
                         dst = (uint)index + 1;
                 };
-            ValueGetter<VBuffer<Float>> scoreFn =
-                (ref VBuffer<Float> dst) =>
+            ValueGetter<VBuffer<float>> scoreFn =
+                (ref VBuffer<float> dst) =>
                 {
                     EnsureCachedPosition(ref cachedPosition, ref score, output, mapperScoreGetter);
                     Contracts.Check(score.Length == scoreLength);

@@ -49,7 +49,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             var metrics = mlContext.MulticlassClassification.Evaluate(dataWithPredictions, label: "LabelIndex");
 
             // Check if metrics are reasonable.
-            Console.WriteLine($"Macro accuracy: {metrics.AccuracyMacro:F4}, Micro accuracy: {metrics.AccuracyMicro:F4}.");
+            Console.WriteLine($"Macro accuracy: {metrics.MacroAccuracy:F4}, Micro accuracy: {metrics.MicroAccuracy:F4}.");
             // Console output:
             //   Macro accuracy: 0.8655, Micro accuracy: 0.8651.
 

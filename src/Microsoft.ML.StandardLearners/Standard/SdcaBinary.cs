@@ -160,7 +160,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Options for the SDCA-based trainers.
         /// </summary>
-        public abstract class OptionsBase : LearnerInputBaseWithLabel
+        public abstract class OptionsBase : TrainerInputBaseWithLabel
         {
             /// <summary>
             /// The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.
@@ -290,8 +290,8 @@ namespace Microsoft.ML.Trainers
         {
             var args = new TOptions();
 
-            args.FeatureColumn = featureColumnName;
-            args.LabelColumn = labelColumn.Name;
+            args.FeatureColumnName = featureColumnName;
+            args.LabelColumnName = labelColumn.Name;
             return args;
         }
 
@@ -304,7 +304,7 @@ namespace Microsoft.ML.Trainers
 
         internal SdcaTrainerBase(IHostEnvironment env, TOptions options, SchemaShape.Column label, SchemaShape.Column weight = default,
             float? l2Const = null, float? l1Threshold = null, int? maxIterations = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, weight)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), label, weight)
         {
             SdcaTrainerOptions = options;
             SdcaTrainerOptions.L2Const = l2Const ?? options.L2Const;
@@ -1512,7 +1512,7 @@ namespace Microsoft.ML.Trainers
         }
 
         private protected SdcaBinaryTrainerBase(IHostEnvironment env, BinaryOptionsBase options, ISupportSdcaClassificationLoss loss = null, bool doCalibration = false)
-            : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
+            : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             _loss = loss ?? new LogLossFactory().CreateComponent(env);
             Loss = _loss;
@@ -1786,7 +1786,7 @@ namespace Microsoft.ML.Trainers
         LinearTrainerBase<BinaryPredictionTransformer<TModel>, TModel>
         where TModel : class
     {
-        public class OptionsBase : LearnerInputBaseWithWeight
+        public class OptionsBase : TrainerInputBaseWithWeight
         {
             /// <summary>
             /// The L2 weight for <a href='tmpurl_regularization'>regularization</a>.
@@ -1931,9 +1931,9 @@ namespace Microsoft.ML.Trainers
             _options.InitLearningRate = initLearningRate;
             _options.L2Weight = l2Weight;
 
-            _options.FeatureColumn = featureColumn;
-            _options.LabelColumn = labelColumn;
-            _options.WeightColumn = weightColumn;
+            _options.FeatureColumnName = featureColumn;
+            _options.LabelColumnName = labelColumn;
+            _options.ExampleWeightColumnName = weightColumn;
             Loss = loss ?? new LogLoss();
             Info = new TrainerInfo(calibration: false, supportIncrementalTrain: true);
         }
@@ -1946,7 +1946,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="loss">Loss function would be minimized.</param>
         /// <param name="doCalibration">Set to true if a calibration step should be happen after training. Use false otherwise.</param>
         internal SgdBinaryTrainerBase(IHostEnvironment env, OptionsBase options, IClassificationLoss loss = null, bool doCalibration = false)
-            : base(env, options.FeatureColumn, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn), options.WeightColumn)
+            : base(env, options.FeatureColumnName, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName), options.ExampleWeightColumnName)
         {
             options.Check(env);
             Loss = loss;
@@ -2373,10 +2373,10 @@ namespace Microsoft.ML.Trainers
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new LegacySgdBinaryTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }
     }
@@ -2397,9 +2397,9 @@ namespace Microsoft.ML.Trainers
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<LegacySdcaBinaryTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<LegacySdcaBinaryTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new LegacySdcaBinaryTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }
     }

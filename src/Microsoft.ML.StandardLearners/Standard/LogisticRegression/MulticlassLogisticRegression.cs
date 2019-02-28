@@ -101,7 +101,7 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="MulticlassLogisticRegression"/>
         /// </summary>
         internal MulticlassLogisticRegression(IHostEnvironment env, Options options)
-            : base(env, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumn))
+            : base(env, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
         {
             ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStats;
         }
@@ -1012,10 +1012,10 @@ namespace Microsoft.ML.Trainers
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<MulticlassLogisticRegression.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<MulticlassLogisticRegression.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
                 () => new MulticlassLogisticRegression(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
     }
 }

@@ -73,7 +73,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var metrics = ml.BinaryClassification.Evaluate(dataWithPredictions);
 
             Console.WriteLine($"Accuracy: {metrics.Accuracy}"); // 0.80
-            Console.WriteLine($"AUC: {metrics.Auc}"); // 0.64
+            Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve}"); // 0.64
             Console.WriteLine($"F1 Score: {metrics.F1Score}"); // 0.39
 
             Console.WriteLine($"Negative Precision: {metrics.NegativePrecision}"); // 0.81

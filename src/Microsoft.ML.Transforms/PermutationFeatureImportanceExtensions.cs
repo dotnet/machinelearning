@@ -81,10 +81,10 @@ namespace Microsoft.ML
             RegressionMetrics a, RegressionMetrics b)
         {
             return new RegressionMetrics(
-                l1: a.L1 - b.L1,
-                l2: a.L2 - b.L2,
-                rms: a.Rms - b.Rms,
-                lossFunction: a.LossFn - b.LossFn,
+                l1: a.MeanAbsoluteError - b.MeanAbsoluteError,
+                l2: a.MeanSquaredError - b.MeanSquaredError,
+                rms: a.RootMeanSquaredError - b.RootMeanSquaredError,
+                lossFunction: a.LossFunction - b.LossFunction,
                 rSquared: a.RSquared - b.RSquared);
         }
         #endregion
@@ -158,14 +158,14 @@ namespace Microsoft.ML
             BinaryClassificationMetrics a, BinaryClassificationMetrics b)
         {
             return new BinaryClassificationMetrics(
-                auc: a.Auc - b.Auc,
+                auc: a.AreaUnderRocCurve - b.AreaUnderRocCurve,
                 accuracy: a.Accuracy - b.Accuracy,
                 positivePrecision: a.PositivePrecision - b.PositivePrecision,
                 positiveRecall: a.PositiveRecall - b.PositiveRecall,
                 negativePrecision: a.NegativePrecision - b.NegativePrecision,
                 negativeRecall: a.NegativeRecall - b.NegativeRecall,
                 f1Score: a.F1Score - b.F1Score,
-                auprc: a.Auprc - b.Auprc);
+                auprc: a.AreaUnderPrecisionRecallCurve - b.AreaUnderPrecisionRecallCurve);
         }
 
         #endregion Binary Classification
@@ -237,8 +237,8 @@ namespace Microsoft.ML
             var perClassLogLoss = ComputeArrayDeltas(a.PerClassLogLoss, b.PerClassLogLoss);
 
             return new MultiClassClassifierMetrics(
-                accuracyMicro: a.AccuracyMicro - b.AccuracyMicro,
-                accuracyMacro: a.AccuracyMacro - b.AccuracyMacro,
+                accuracyMicro: a.MicroAccuracy - b.MicroAccuracy,
+                accuracyMacro: a.MacroAccuracy - b.MacroAccuracy,
                 logLoss: a.LogLoss - b.LogLoss,
                 logLossReduction: a.LogLossReduction - b.LogLossReduction,
                 topK: a.TopK,
@@ -312,8 +312,8 @@ namespace Microsoft.ML
         private static RankingMetrics RankingDelta(
             RankingMetrics a, RankingMetrics b)
         {
-            var dcg = ComputeArrayDeltas(a.Dcg, b.Dcg);
-            var ndcg = ComputeArrayDeltas(a.Ndcg, b.Ndcg);
+            var dcg = ComputeArrayDeltas(a.DiscountedCumulativeGains, b.DiscountedCumulativeGains);
+            var ndcg = ComputeArrayDeltas(a.NormalizedDiscountedCumulativeGains, b.NormalizedDiscountedCumulativeGains);
 
             return new RankingMetrics(dcg: dcg, ndcg: ndcg);
         }
@@ -456,10 +456,10 @@ namespace Microsoft.ML
         /// <param name="metrics">The observed regression evaluation metric</param>
         public override void Add(RegressionMetrics metrics)
         {
-            L1.Add(metrics.L1);
-            L2.Add(metrics.L2);
-            Rms.Add(metrics.Rms);
-            LossFn.Add(metrics.LossFn);
+            L1.Add(metrics.MeanAbsoluteError);
+            L2.Add(metrics.MeanSquaredError);
+            Rms.Add(metrics.RootMeanSquaredError);
+            LossFn.Add(metrics.LossFunction);
             RSquared.Add(metrics.RSquared);
         }
     }
@@ -528,14 +528,14 @@ namespace Microsoft.ML
         /// <param name="metrics">The observed binary classification evaluation metric</param>
         public override void Add(BinaryClassificationMetrics metrics)
         {
-            Auc.Add(metrics.Auc);
+            Auc.Add(metrics.AreaUnderRocCurve);
             Accuracy.Add(metrics.Accuracy);
             PositivePrecision.Add(metrics.PositivePrecision);
             PositiveRecall.Add(metrics.PositiveRecall);
             NegativePrecision.Add(metrics.NegativePrecision);
             NegativeRecall.Add(metrics.NegativeRecall);
             F1Score.Add(metrics.F1Score);
-            Auprc.Add(metrics.Auprc);
+            Auprc.Add(metrics.AreaUnderPrecisionRecallCurve);
         }
     }
 
@@ -590,8 +590,8 @@ namespace Microsoft.ML
         /// <param name="metrics">The observed binary classification evaluation metric</param>
         public override void Add(MultiClassClassifierMetrics metrics)
         {
-            AccuracyMacro.Add(metrics.AccuracyMacro);
-            AccuracyMicro.Add(metrics.AccuracyMicro);
+            AccuracyMacro.Add(metrics.MacroAccuracy);
+            AccuracyMicro.Add(metrics.MicroAccuracy);
             LogLoss.Add(metrics.LogLoss);
             LogLossReduction.Add(metrics.LogLossReduction);
             TopKAccuracy.Add(metrics.TopKAccuracy);
@@ -625,13 +625,13 @@ namespace Microsoft.ML
         public override void Add(RankingMetrics metrics)
         {
             if (Dcg == null)
-                Dcg = InitializeArray(metrics.Dcg.Length);
+                Dcg = InitializeArray(metrics.DiscountedCumulativeGains.Length);
 
             if (Ndcg == null)
-                Ndcg = InitializeArray(metrics.Ndcg.Length);
+                Ndcg = InitializeArray(metrics.NormalizedDiscountedCumulativeGains.Length);
 
-            AddArray(metrics.Dcg, Dcg);
-            AddArray(metrics.Ndcg, Ndcg);
+            AddArray(metrics.DiscountedCumulativeGains, Dcg);
+            AddArray(metrics.NormalizedDiscountedCumulativeGains, Ndcg);
         }
     }
 

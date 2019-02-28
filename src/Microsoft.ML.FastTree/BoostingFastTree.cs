@@ -4,8 +4,6 @@
 
 using System;
 using System.Linq;
-using Microsoft.ML.Internal.Internallearn;
-using Float = System.Single;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
@@ -138,8 +136,8 @@ namespace Microsoft.ML.Trainers.FastTree
             }
 
             bool isBestCandidate;
-            bool shouldStop = earlyStoppingRule.CheckScore((Float)validationResult.FinalValue,
-                (Float)trainingResult.FinalValue, out isBestCandidate);
+            bool shouldStop = earlyStoppingRule.CheckScore((float)validationResult.FinalValue,
+                (float)trainingResult.FinalValue, out isBestCandidate);
 
             if (isBestCandidate)
                 bestIteration = Ensemble.NumTrees;
