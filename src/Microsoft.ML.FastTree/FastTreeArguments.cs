@@ -150,7 +150,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public const double LearningRates = 0.2;
     }
 
-    public abstract class TreeOptions : LearnerInputBaseWithGroupId
+    public abstract class TreeOptions : TrainerInputBaseWithGroupId
     {
         /// <summary>
         /// Allows to choose Parallel FastTree Learning Algorithm.

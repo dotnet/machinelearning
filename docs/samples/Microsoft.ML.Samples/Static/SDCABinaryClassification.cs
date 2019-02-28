@@ -92,7 +92,7 @@ namespace Microsoft.ML.Samples.Static
             var metrics = mlContext.BinaryClassification.Evaluate(dataWithPredictions, row => row.Label, row => row.Score);
 
             Console.WriteLine($"Accuracy: {metrics.Accuracy}"); // 0.83
-            Console.WriteLine($"AUC: {metrics.Auc}"); // 0.88
+            Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve}"); // 0.88
             Console.WriteLine($"F1 Score: {metrics.F1Score}"); // 0.59
 
             Console.WriteLine($"Negative Precision: {metrics.NegativePrecision}"); // 0.87

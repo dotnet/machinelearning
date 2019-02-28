@@ -35,8 +35,8 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label")
                         .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new Options
                         {
-                            LabelColumn = "LabelIndex",
-                            FeatureColumn = "Features",
+                            LabelColumnName = "LabelIndex",
+                            FeatureColumnName = "Features",
                             Booster = new DartBooster.Options
                             {
                                 DropRate = 0.15,
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             var metrics = mlContext.MulticlassClassification.Evaluate(dataWithPredictions, label: "LabelIndex");
 
             // Check if metrics are reasonable.
-            Console.WriteLine($"Macro accuracy: {metrics.AccuracyMacro:F4}, Micro accuracy: {metrics.AccuracyMicro:F4}.");
+            Console.WriteLine($"Macro accuracy: {metrics.MacroAccuracy:F4}, Micro accuracy: {metrics.MicroAccuracy:F4}.");
             // Console output:
             //   Macro accuracy: 0.8619, Micro accuracy: 0.8611.
 

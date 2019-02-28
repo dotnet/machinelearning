@@ -5,7 +5,6 @@
 using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Float = System.Single;
 
 namespace Microsoft.ML.Numeric
 {
@@ -14,7 +13,7 @@ namespace Microsoft.ML.Numeric
     /// </summary>
     /// <param name="x">Current iterate</param>
     /// <returns>True if search should terminate</returns>
-    internal delegate bool DTerminate(in VBuffer<Float> x);
+    internal delegate bool DTerminate(in VBuffer<float> x);
 
     /// <summary>
     /// Stochastic gradient descent with variations (minibatch, momentum, averaging).
@@ -34,12 +33,12 @@ namespace Microsoft.ML.Numeric
             }
         }
 
-        private Float _momentum;
+        private float _momentum;
 
         /// <summary>
         /// Momentum parameter
         /// </summary>
-        public Float Momentum {
+        public float Momentum {
             get { return _momentum; }
             set {
                 Contracts.Check(0 <= value && value < 1);
@@ -47,12 +46,12 @@ namespace Microsoft.ML.Numeric
             }
         }
 
-        private Float _t0;
+        private float _t0;
 
         /// <summary>
         /// Base of step size schedule s_t = 1 / (t0 + f(t))
         /// </summary>
-        public Float T0 {
+        public float T0 {
             get { return _t0; }
             set {
                 Contracts.Check(value >= 0);
@@ -129,7 +128,7 @@ namespace Microsoft.ML.Numeric
         /// <param name="batchSize">Average this number of stochastic gradients for each update</param>
         /// <param name="momentum">Momentum parameter</param>
         /// <param name="maxSteps">Maximum number of updates (0 for no max)</param>
-        public SgdOptimizer(DTerminate terminate, RateScheduleType rateSchedule = RateScheduleType.Sqrt, bool averaging = false, Float t0 = 1, int batchSize = 1, Float momentum = 0, int maxSteps = 0)
+        public SgdOptimizer(DTerminate terminate, RateScheduleType rateSchedule = RateScheduleType.Sqrt, bool averaging = false, float t0 = 1, int batchSize = 1, float momentum = 0, int maxSteps = 0)
         {
             _terminate = terminate;
             _rateSchedule = rateSchedule;
@@ -145,7 +144,7 @@ namespace Microsoft.ML.Numeric
         /// </summary>
         /// <param name="x">Point at which to evaluate</param>
         /// <param name="grad">Vector to be filled in with gradient</param>
-        public delegate void DStochasticGradient(in VBuffer<Float> x, ref VBuffer<Float> grad);
+        public delegate void DStochasticGradient(in VBuffer<float> x, ref VBuffer<float> grad);
 
         /// <summary>
         /// Minimize the function represented by <paramref name="f"/>.
@@ -153,17 +152,17 @@ namespace Microsoft.ML.Numeric
         /// <param name="f">Stochastic gradients of function to minimize</param>
         /// <param name="initial">Initial point</param>
         /// <param name="result">Approximate minimum of <paramref name="f"/></param>
-        public void Minimize(DStochasticGradient f, ref VBuffer<Float> initial, ref VBuffer<Float> result)
+        public void Minimize(DStochasticGradient f, ref VBuffer<float> initial, ref VBuffer<float> result)
         {
             Contracts.Check(FloatUtils.IsFinite(initial.GetValues()), "The initial vector contains NaNs or infinite values.");
             int dim = initial.Length;
 
-            VBuffer<Float> grad = VBufferUtils.CreateEmpty<Float>(dim);
-            VBuffer<Float> step = VBufferUtils.CreateEmpty<Float>(dim);
-            VBuffer<Float> x = default(VBuffer<Float>);
+            VBuffer<float> grad = VBufferUtils.CreateEmpty<float>(dim);
+            VBuffer<float> step = VBufferUtils.CreateEmpty<float>(dim);
+            VBuffer<float> x = default(VBuffer<float>);
             initial.CopyTo(ref x);
-            VBuffer<Float> prev = default(VBuffer<Float>);
-            VBuffer<Float> avg = VBufferUtils.CreateEmpty<Float>(dim);
+            VBuffer<float> prev = default(VBuffer<float>);
+            VBuffer<float> avg = VBufferUtils.CreateEmpty<float>(dim);
 
             for (int n = 0; _maxSteps == 0 || n < _maxSteps; ++n)
             {
@@ -172,7 +171,7 @@ namespace Microsoft.ML.Numeric
                 else
                     VectorUtils.ScaleBy(ref step, _momentum);
 
-                Float stepSize;
+                float stepSize;
                 switch (_rateSchedule)
                 {
                     case RateScheduleType.Constant:
@@ -188,7 +187,7 @@ namespace Microsoft.ML.Numeric
                         throw Contracts.Except();
                 }
 
-                Float scale = (1 - _momentum) / _batchSize;
+                float scale = (1 - _momentum) / _batchSize;
                 for (int i = 0; i < _batchSize; ++i)
                 {
                     f(in x, ref grad);
@@ -198,9 +197,9 @@ namespace Microsoft.ML.Numeric
                 if (_averaging)
                 {
                     Utils.Swap(ref avg, ref prev);
-                    VectorUtils.ScaleBy(prev, ref avg, (Float)n / (n + 1));
+                    VectorUtils.ScaleBy(prev, ref avg, (float)n / (n + 1));
                     VectorUtils.AddMult(in step, -stepSize, ref x);
-                    VectorUtils.AddMult(in x, (Float)1 / (n + 1), ref avg);
+                    VectorUtils.AddMult(in x, (float)1 / (n + 1), ref avg);
 
                     if ((n > 0 && TerminateTester.ShouldTerminate(in avg, in prev)) || _terminate(in avg))
                     {
@@ -270,7 +269,7 @@ namespace Microsoft.ML.Numeric
             if (LineSearch == null)
             {
                 if (useCG)
-                    LineSearch = new CubicInterpLineSearch((Float)0.01);
+                    LineSearch = new CubicInterpLineSearch((float)0.01);
                 else
                     LineSearch = new BacktrackingLineSearch();
             }
@@ -284,24 +283,24 @@ namespace Microsoft.ML.Numeric
         {
             private bool _useCG;
 
-            private VBuffer<Float> _point;
-            private VBuffer<Float> _newPoint;
-            private VBuffer<Float> _grad;
-            private VBuffer<Float> _newGrad;
-            private VBuffer<Float> _dir;
+            private VBuffer<float> _point;
+            private VBuffer<float> _newPoint;
+            private VBuffer<float> _grad;
+            private VBuffer<float> _newGrad;
+            private VBuffer<float> _dir;
 
-            public VBuffer<Float> NewPoint => _newPoint;
+            public VBuffer<float> NewPoint => _newPoint;
 
-            private Float _value;
-            private Float _newValue;
+            private float _value;
+            private float _newValue;
 
-            public Float Value => _value;
+            public float Value => _value;
 
             private DifferentiableFunction _func;
 
-            public Float Deriv => VectorUtils.DotProduct(in _dir, in _grad);
+            public float Deriv => VectorUtils.DotProduct(in _dir, in _grad);
 
-            public LineFunc(DifferentiableFunction function, in VBuffer<Float> initial, bool useCG = false)
+            public LineFunc(DifferentiableFunction function, in VBuffer<float> initial, bool useCG = false)
             {
                 int dim = initial.Length;
 
@@ -314,7 +313,7 @@ namespace Microsoft.ML.Numeric
                 _useCG = useCG;
             }
 
-            public Float Eval(Float step, out Float deriv)
+            public float Eval(float step, out float deriv)
             {
                 VectorUtils.AddMultInto(in _point, step, in _dir, ref _newPoint);
                 _newValue = _func(in _newPoint, ref _newGrad, null);
@@ -326,11 +325,11 @@ namespace Microsoft.ML.Numeric
             {
                 if (_useCG)
                 {
-                    Float newByNew = VectorUtils.NormSquared(_newGrad);
-                    Float newByOld = VectorUtils.DotProduct(in _newGrad, in _grad);
-                    Float oldByOld = VectorUtils.NormSquared(_grad);
-                    Float betaPR = (newByNew - newByOld) / oldByOld;
-                    Float beta = Math.Max(0, betaPR);
+                    float newByNew = VectorUtils.NormSquared(_newGrad);
+                    float newByOld = VectorUtils.DotProduct(in _newGrad, in _grad);
+                    float oldByOld = VectorUtils.NormSquared(_grad);
+                    float betaPR = (newByNew - newByOld) / oldByOld;
+                    float beta = Math.Max(0, betaPR);
                     VectorUtils.ScaleBy(ref _dir, beta);
                     VectorUtils.AddMult(in _newGrad, -1, ref _dir);
                 }
@@ -348,16 +347,16 @@ namespace Microsoft.ML.Numeric
         /// <param name="function">Function to minimize</param>
         /// <param name="initial">Initial point</param>
         /// <param name="result">Approximate minimum</param>
-        public void Minimize(DifferentiableFunction function, in VBuffer<Float> initial, ref VBuffer<Float> result)
+        public void Minimize(DifferentiableFunction function, in VBuffer<float> initial, ref VBuffer<float> result)
         {
             Contracts.Check(FloatUtils.IsFinite(initial.GetValues()), "The initial vector contains NaNs or infinite values.");
             LineFunc lineFunc = new LineFunc(function, in initial, UseCG);
-            VBuffer<Float> prev = default(VBuffer<Float>);
+            VBuffer<float> prev = default(VBuffer<float>);
             initial.CopyTo(ref prev);
 
             for (int n = 0; _maxSteps == 0 || n < _maxSteps; ++n)
             {
-                Float step = LineSearch.Minimize(lineFunc.Eval, lineFunc.Value, lineFunc.Deriv);
+                float step = LineSearch.Minimize(lineFunc.Eval, lineFunc.Value, lineFunc.Deriv);
                 var newPoint = lineFunc.NewPoint;
                 bool terminateNow = n > 0 && TerminateTester.ShouldTerminate(in newPoint, in prev);
                 if (terminateNow || Terminate(in newPoint))
@@ -381,7 +380,7 @@ namespace Microsoft.ML.Numeric
         /// <param name="x">The current value.</param>
         /// <param name="xprev">The value from the previous iteration.</param>
         /// <returns>True if the optimization routine should terminate at this iteration.</returns>
-        internal static bool ShouldTerminate(in VBuffer<Float> x, in VBuffer<Float> xprev)
+        internal static bool ShouldTerminate(in VBuffer<float> x, in VBuffer<float> xprev)
         {
             Contracts.Assert(x.Length == xprev.Length, "Vectors must have the same dimensionality.");
             Contracts.Assert(FloatUtils.IsFinite(xprev.GetValues()));

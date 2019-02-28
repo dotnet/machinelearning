@@ -11,13 +11,12 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
 using Xunit;
-using Float = System.Single;
 
 namespace Microsoft.ML.RunTests
 {
     public sealed partial class TestDataPipe : TestDataPipeBase
     {
-        private static Float[] dataFloat = new Float[] { -0.0f, 0,  1, -1,  2, -2, Single.NaN, Single.MinValue,
+        private static float[] dataFloat = new float[] { -0.0f, 0,  1, -1,  2, -2, Single.NaN, Single.MinValue,
                 Single.MaxValue, Single.Epsilon, Single.NegativeInfinity, Single.PositiveInfinity };
         private static uint[] resultsFloat = new uint[] { 21, 21, 16, 16, 31, 17, 0, 23, 24, 15, 10, 7 };
 
@@ -213,18 +212,18 @@ namespace Microsoft.ML.RunTests
                     using (var c = pipe.GetRowCursorForAllColumns())
                     {
                         var cols = new[] { "MarVec", "MarVecU8", "CombBagVec", "CombBagVecU1", "CombIndVec", "CombIndVecU1" };
-                        var getters = new ValueGetter<VBuffer<Float>>[cols.Length];
+                        var getters = new ValueGetter<VBuffer<float>>[cols.Length];
                         for (int i = 0; i < cols.Length; i++)
                         {
                             int col;
                             if (!Check(c.Schema.TryGetColumnIndex(cols[i], out col), "{0} not found!", cols[i]))
                                 return;
-                            getters[i] = c.GetGetter<VBuffer<Float>>(col);
+                            getters[i] = c.GetGetter<VBuffer<float>>(col);
                         }
 
-                        Func<Float, Float, bool> fn = (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y);
-                        var v1 = default(VBuffer<Float>);
-                        var v2 = default(VBuffer<Float>);
+                        Func<float, float, bool> fn = (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y);
+                        var v1 = default(VBuffer<float>);
+                        var v2 = default(VBuffer<float>);
                         while (c.MoveNext())
                         {
                             for (int i = 0; i < cols.Length; i += 2)
@@ -581,10 +580,10 @@ namespace Microsoft.ML.RunTests
                         if (!Check(tmp2, "Column F23 not found!"))
                             return;
 
-                        var get1 = c.GetGetter<VBuffer<Float>>(col1);
-                        var get2 = c.GetGetter<VBuffer<Float>>(col2);
-                        VBuffer<Float> bag1 = default;
-                        VBuffer<Float> bag2 = default;
+                        var get1 = c.GetGetter<VBuffer<float>>(col1);
+                        var get2 = c.GetGetter<VBuffer<float>>(col2);
+                        VBuffer<float> bag1 = default;
+                        VBuffer<float> bag2 = default;
                         while (c.MoveNext())
                         {
                             get1(ref bag1);
@@ -625,10 +624,10 @@ namespace Microsoft.ML.RunTests
                         if (!Check(tmp2, "Column F2 not found!"))
                             return;
 
-                        var get1 = c.GetGetter<VBuffer<Float>>(col1);
-                        var get2 = c.GetGetter<VBuffer<Float>>(col2);
-                        VBuffer<Float> bag1 = default;
-                        VBuffer<Float> bag2 = default;
+                        var get1 = c.GetGetter<VBuffer<float>>(col1);
+                        var get2 = c.GetGetter<VBuffer<float>>(col2);
+                        VBuffer<float> bag1 = default;
+                        VBuffer<float> bag2 = default;
                         while (c.MoveNext())
                         {
                             get1(ref bag1);
@@ -770,16 +769,16 @@ namespace Microsoft.ML.RunTests
                     // Verify that WB2 = 2 * WB1
                     using (var c = pipe.GetRowCursorForAllColumns())
                     {
-                        var b1 = default(VBuffer<Float>);
-                        var b2 = default(VBuffer<Float>);
+                        var b1 = default(VBuffer<float>);
+                        var b2 = default(VBuffer<float>);
                         int col1, col2;
                         if (!c.Schema.TryGetColumnIndex("WB1", out col1) || !c.Schema.TryGetColumnIndex("WB2", out col2))
                         {
                             Fail("Did not find expected columns");
                             return;
                         }
-                        var get1 = c.GetGetter<VBuffer<Float>>(col1);
-                        var get2 = c.GetGetter<VBuffer<Float>>(col2);
+                        var get1 = c.GetGetter<VBuffer<float>>(col1);
+                        var get2 = c.GetGetter<VBuffer<float>>(col2);
                         while (c.MoveNext())
                         {
                             get1(ref b1);
@@ -1156,9 +1155,9 @@ namespace Microsoft.ML.RunTests
             ArrayDataViewBuilder builder = new ArrayDataViewBuilder(Env);
             const int rows = 100;
             Random rgen = new Random(0);
-            Float[] values = new Float[rows];
+            float[] values = new float[rows];
             for (int i = 0; i < values.Length; ++i)
-                values[i] = (Float)(2 * rgen.NextDouble() - 1);
+                values[i] = (float)(2 * rgen.NextDouble() - 1);
             builder.AddColumn("Foo", NumberDataViewType.Single, values);
 
             int[][] barValues = new int[rows][];
@@ -1196,10 +1195,10 @@ namespace Microsoft.ML.RunTests
 
             using (DataViewRowCursor cursor = view.GetRowCursorForAllColumns())
             {
-                var del = cursor.GetGetter<Float>(0);
+                var del = cursor.GetGetter<float>(0);
                 var del2 = cursor.GetGetter<VBuffer<int>>(1);
                 var del3 = cursor.GetGetter<bool>(2);
-                Float value = 0;
+                float value = 0;
                 VBuffer<int> value2 = default(VBuffer<int>);
                 bool value3 = default(bool);
                 int row = 0;
@@ -1314,9 +1313,9 @@ namespace Microsoft.ML.RunTests
             var builder = new ArrayDataViewBuilder(Env);
             var data = new[]
             {
-                new[] {  (Float)1.0,  (Float)0.0,  (Float)0.0 },
-                new[] {  (Float)0.0,  (Float)1.0,  (Float)0.0 },
-                new[] {  (Float)0.0,  (Float)0.0,  (Float)1.0 },
+                new[] {  (float)1.0,  (float)0.0,  (float)0.0 },
+                new[] {  (float)0.0,  (float)1.0,  (float)0.0 },
+                new[] {  (float)0.0,  (float)0.0,  (float)1.0 },
             };
 
             builder.AddColumn("F1V", NumberDataViewType.Single, data);
@@ -1328,10 +1327,10 @@ namespace Microsoft.ML.RunTests
 
             using (var cursor = transformedData.GetRowCursorForAllColumns())
             {
-                var resultGetter = cursor.GetGetter<VBuffer<Float>>(1);
-                VBuffer<Float> resultFirstRow = new VBuffer<Float>();
-                VBuffer<Float> resultSecondRow = new VBuffer<Float>();
-                VBuffer<Float> resultThirdRow = new VBuffer<Float>();
+                var resultGetter = cursor.GetGetter<VBuffer<float>>(1);
+                VBuffer<float> resultFirstRow = new VBuffer<float>();
+                VBuffer<float> resultSecondRow = new VBuffer<float>();
+                VBuffer<float> resultThirdRow = new VBuffer<float>();
 
                 Assert.True(cursor.MoveNext());
                 resultGetter(ref resultFirstRow);
@@ -1363,9 +1362,9 @@ namespace Microsoft.ML.RunTests
             string colName = "Zeros";
             var data = new[]
             {
-                new[] {  (Float)0.0,  (Float)0.0,  (Float)0.0 },
-                new[] {  (Float)0.0,  (Float)0.0,  (Float)0.0 },
-                new[] {  (Float)0.0,  (Float)0.0,  (Float)0.0 },
+                new[] {  (float)0.0,  (float)0.0,  (float)0.0 },
+                new[] {  (float)0.0,  (float)0.0,  (float)0.0 },
+                new[] {  (float)0.0,  (float)0.0,  (float)0.0 },
             };
 
             builder.AddColumn(colName, NumberDataViewType.Single, data);

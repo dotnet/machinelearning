@@ -299,7 +299,7 @@ namespace Microsoft.ML.Trainers
             var names = default(VBuffer<ReadOnlyMemory<char>>);
 
             featureColumn.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref names);
-            _env.Assert(names.Length > 0, "FeatureColumn has no metadata.");
+            _env.Assert(names.Length > 0, "FeatureColumnName has no metadata.");
 
             ReadOnlySpan<float> stdErrorValues = _coeffStdError.Value.GetValues();
             const Double sqrt2 = 1.41421356237; // Math.Sqrt(2);

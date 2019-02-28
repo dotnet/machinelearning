@@ -6,6 +6,7 @@ namespace Microsoft.ML.Samples.Static
 {
     public class FastTreeBinaryClassificationExample
     {
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
         public static void FastTreeBinaryClassification()
         {
             // Downloading a classification dataset from github.com/dotnet/machinelearning.
@@ -95,7 +96,7 @@ namespace Microsoft.ML.Samples.Static
             var metrics = mlContext.BinaryClassification.Evaluate(dataWithPredictions, row => row.Label, row => row.Score);
 
             Console.WriteLine($"Accuracy: {metrics.Accuracy}"); // 0.84
-            Console.WriteLine($"AUC: {metrics.Auc}"); // 0.89
+            Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve}"); // 0.89
             Console.WriteLine($"F1 Score: {metrics.F1Score}"); // 0.64
 
             Console.WriteLine($"Negative Precision: {metrics.NegativePrecision}"); // 0.88
