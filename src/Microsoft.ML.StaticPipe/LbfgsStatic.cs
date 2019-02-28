@@ -90,9 +90,9 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.LabelColumn = labelName;
-                    options.FeatureColumn = featuresName;
-                    options.WeightColumn = weightsName;
+                    options.LabelColumnName = labelName;
+                    options.FeatureColumnName = featuresName;
+                    options.ExampleWeightColumnName = weightsName;
 
                     var trainer = new LogisticRegression(env, options);
 
@@ -186,9 +186,9 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.LabelColumn = labelName;
-                    options.FeatureColumn = featuresName;
-                    options.WeightColumn = weightsName;
+                    options.LabelColumnName = labelName;
+                    options.FeatureColumnName = featuresName;
+                    options.ExampleWeightColumnName = weightsName;
 
                     var trainer = new PoissonRegression(env, options);
 
@@ -283,9 +283,9 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.LabelColumn = labelName;
-                    options.FeatureColumn = featuresName;
-                    options.WeightColumn = weightsName;
+                    options.LabelColumnName = labelName;
+                    options.FeatureColumnName = featuresName;
+                    options.ExampleWeightColumnName = weightsName;
 
                     var trainer = new MulticlassLogisticRegression(env, options);
 

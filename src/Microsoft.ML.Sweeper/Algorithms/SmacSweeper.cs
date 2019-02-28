@@ -139,8 +139,8 @@ namespace Microsoft.ML.Sweeper
                         FeatureFraction = _args.SplitRatio,
                         NumTrees = _args.NumOfTrees,
                         MinDocumentsInLeafs = _args.NMinForSplit,
-                        LabelColumn = DefaultColumnNames.Label,
-                        FeatureColumn = DefaultColumnNames.Features,
+                        LabelColumnName = DefaultColumnNames.Label,
+                        FeatureColumnName = DefaultColumnNames.Features,
                     });
                 var predictor = trainer.Fit(view);
 

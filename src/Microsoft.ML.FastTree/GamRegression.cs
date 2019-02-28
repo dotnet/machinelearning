@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         internal RegressionGamTrainer(IHostEnvironment env, Options options)
-             : base(env, options, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(options.LabelColumn)) { }
+             : base(env, options, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName)) { }
 
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeBinaryClassificationTrainer"/>

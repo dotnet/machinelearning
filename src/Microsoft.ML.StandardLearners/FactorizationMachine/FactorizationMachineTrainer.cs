@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers
         internal const string LoadName = "FieldAwareFactorizationMachine";
         internal const string ShortName = "ffm";
 
-        public sealed class Options : LearnerInputBaseWithWeight
+        public sealed class Options : TrainerInputBaseWithWeight
         {
             /// <summary>
             /// Initial learning rate.
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Trainers
             public bool Normalize = true;
 
             /// <summary>
-            /// Extra feature column names. The column named <see cref="LearnerInputBase.FeatureColumn"/> stores features from the first field.
+            /// Extra feature column names. The column named <see cref="TrainerInputBase.FeatureColumnName"/> stores features from the first field.
             /// The i-th string in <see cref="ExtraFeatureColumns"/> stores the name of the (i+1)-th field's feature column.
             /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "Extra columns to use for feature vectors. The i-th specified string denotes the column containing features form the (i+1)-th field." +
@@ -162,18 +162,18 @@ namespace Microsoft.ML.Trainers
 
             Initialize(env, options);
             var extraColumnLength = (options.ExtraFeatureColumns != null ? options.ExtraFeatureColumns.Length : 0);
-            // There can be multiple feature columns in FFM, jointly specified by args.FeatureColumn and args.ExtraFeatureColumns.
+            // There can be multiple feature columns in FFM, jointly specified by args.FeatureColumnName and args.ExtraFeatureColumns.
             FeatureColumns = new SchemaShape.Column[1 + extraColumnLength];
 
             // Treat the default feature column as the 1st field.
-            FeatureColumns[0] = new SchemaShape.Column(options.FeatureColumn, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
+            FeatureColumns[0] = new SchemaShape.Column(options.FeatureColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
             // Add 2nd, 3rd, and other fields from a FFM-specific argument, args.ExtraFeatureColumns.
             for (int i = 0; i < extraColumnLength; i++)
                 FeatureColumns[i + 1] = new SchemaShape.Column(options.ExtraFeatureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
-            LabelColumn = new SchemaShape.Column(options.LabelColumn, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false);
-            WeightColumn = options.WeightColumn != null ? new SchemaShape.Column(options.WeightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false) : default;
+            LabelColumn = new SchemaShape.Column(options.LabelColumnName, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false);
+            WeightColumn = options.ExampleWeightColumnName != null ? new SchemaShape.Column(options.ExampleWeightColumnName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false) : default;
         }
 
         /// <summary>
@@ -513,8 +513,8 @@ namespace Microsoft.ML.Trainers
             var host = env.Register("Train a field-aware factorization machine");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input, () => new FieldAwareFactorizationMachineBinaryClassificationTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input, () => new FieldAwareFactorizationMachineBinaryClassificationTrainer(host, input),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName));
         }
 
         /// <summary>

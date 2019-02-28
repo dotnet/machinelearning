@@ -36,9 +36,9 @@ namespace Microsoft.ML
             var env = CatalogUtils.GetEnvironment(catalog);
             var options = new OlsLinearRegressionTrainer.Options
             {
-                LabelColumn = labelColumnName,
-                FeatureColumn = featureColumnName,
-                WeightColumn = exampleWeightColumnName
+                LabelColumnName = labelColumnName,
+                FeatureColumnName = featureColumnName,
+                ExampleWeightColumnName = exampleWeightColumnName
             };
 
             return new OlsLinearRegressionTrainer(env, options);
@@ -91,8 +91,8 @@ namespace Microsoft.ML
 
             var options = new SymSgdClassificationTrainer.Options
             {
-                LabelColumn = labelColumnName,
-                FeatureColumn = featureColumnName,
+                LabelColumnName = labelColumnName,
+                FeatureColumnName = featureColumnName,
             };
 
             return new SymSgdClassificationTrainer(env, options);

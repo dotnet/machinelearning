@@ -682,8 +682,8 @@ namespace Microsoft.ML.Scenarios
                     .AppendCacheCheckpoint(mlContext)
                     .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new LightGBM.Options()
                     {
-                        LabelColumn = "Label",
-                        FeatureColumn = "Features",
+                        LabelColumnName = "Label",
+                        FeatureColumnName = "Features",
                         Seed = 1,
                         NThread = 1,
                         NumBoostRound = 1
