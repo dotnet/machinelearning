@@ -85,21 +85,19 @@ namespace Microsoft.ML.Tests
         private class DataPoint
         {
             [VectorType(3)]
-            public float[] Features;
+            public float[] Features { get; set; }
         }
 
         /// <summary>
         /// Class used to capture prediction of <see cref="DataPoint"/> in <see cref="ExecutePipelineWithGivenRandomizedPcaTrainer"/>.
         /// </summary>
-#pragma warning disable 649
         private class Result
         {
             // Outlier gets false while inlier has true.
-            public bool PredictedLabel;
+            public bool PredictedLabel { get; set; }
             // Outlier gets smaller score.
-            public float Score;
+            public float Score { get; set; }
         }
-#pragma warning restore 649
 
         /// <summary>
         /// Help function used to execute trainers defined in <see cref="RandomizedPcaInMemory"/>.

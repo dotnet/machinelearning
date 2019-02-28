@@ -11,18 +11,16 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.AnomalyDetection
         private class DataPoint
         {
             [VectorType(3)]
-            public float[] Features;
+            public float[] Features { get; set; }
         }
 
         // Class used to capture prediction of DataPoint.
-        // Please disable warning 649 if complier says those fields are never assigned. They will
-        // be assigned in runtime.
         private class Result
         {
             // Outlier gets false while inlier has true.
-            public bool PredictedLabel;
+            public bool PredictedLabel { get; set; }
             // Outlier gets smaller score.
-            public float Score;
+            public float Score { get; set; }
         }
 
         public static void Example()
