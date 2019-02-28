@@ -298,7 +298,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public Double SoftmaxTemperature;
 
         /// <summary>
-        /// Print execution time breakdown to stdout.
+        /// Print execution time breakdown to ML.NET channel.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Print execution time breakdown to stdout", ShortName = "et,ExecutionTimes")]
         public bool ExecutionTime;
@@ -397,17 +397,19 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Print metrics graph for the first test set.
         /// </summary>
+        [BestFriend]
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Print metrics graph for the first test set", ShortName = "graph", Hide = true)]
         [TGUI(NotGui = true)]
-        public bool PrintTestGraph;
+        internal bool PrintTestGraph;
 
         /// <summary>
         /// Print Train and Validation metrics in graph.
         /// </summary>
         //It is only enabled if printTestGraph is also set
+        [BestFriend]
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Print Train and Validation metrics in graph", ShortName = "graphtv", Hide = true)]
         [TGUI(NotGui = true)]
-        public bool PrintTrainValidGraph;
+        internal bool PrintTrainValidGraph;
 
         /// <summary>
         /// Calculate metric values for train/valid/test every k rounds.

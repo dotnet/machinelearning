@@ -5094,11 +5094,12 @@
       "ShortName": "ff",
       "Inputs": [
         {
-          "Name": "NumTrees",
+          "Name": "NumberOfTrees",
           "Type": "Int",
           "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
-            "iter"
+            "iter",
+            "NumTrees"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -5125,11 +5126,12 @@
           "IsNullable": false
         },
         {
-          "Name": "NumLeaves",
+          "Name": "NumberOfLeaves",
           "Type": "Int",
           "Desc": "The max number of leaves in each regression tree",
           "Aliases": [
-            "nl"
+            "nl",
+            "NumLeaves"
           ],
           "Required": false,
           "SortOrder": 2.0,
@@ -5156,11 +5158,12 @@
           "Default": "Features"
         },
         {
-          "Name": "MinDocumentsInLeafs",
+          "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
           "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
-            "mil"
+            "mil",
+            "MinDocumentsInLeafs"
           ],
           "Required": false,
           "SortOrder": 3.0,
@@ -5251,11 +5254,12 @@
           "Default": "Auto"
         },
         {
-          "Name": "MaxTreeOutput",
+          "Name": "MaximumOutputMagnitudePerTree",
           "Type": "Float",
           "Desc": "Upper bound on absolute value of single tree output",
           "Aliases": [
-            "mo"
+            "mo",
+            "MaxTreeOutput"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5286,11 +5290,12 @@
           "Default": 1000000
         },
         {
-          "Name": "QuantileSampleCount",
+          "Name": "NumberOfQuantileSamples",
           "Type": "Int",
           "Desc": "Number of labels to be sampled from each leaf to make the distribtuion",
           "Aliases": [
-            "qsc"
+            "qsc",
+            "QuantileSampleCount"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5315,11 +5320,12 @@
           }
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "The number of threads to use",
           "Aliases": [
-            "t"
+            "t",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5327,11 +5333,12 @@
           "Default": null
         },
         {
-          "Name": "RngSeed",
+          "Name": "Seed",
           "Type": "Int",
           "Desc": "The seed of the random number generator",
           "Aliases": [
-            "r1"
+            "r1",
+            "RngSeed"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5339,11 +5346,12 @@
           "Default": 123
         },
         {
-          "Name": "FeatureSelectSeed",
+          "Name": "FeatureSelectionSeed",
           "Type": "Int",
           "Desc": "The seed of the active feature selection",
           "Aliases": [
-            "r3"
+            "r3",
+            "FeatureSelectSeed"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5411,11 +5419,12 @@
           "Default": false
         },
         {
-          "Name": "MaxCategoricalGroupsPerNode",
+          "Name": "MaximumCategoricalGroupsPerNode",
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
-            "mcg"
+            "mcg",
+            "MaxCategoricalGroupsPerNode"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5423,11 +5432,12 @@
           "Default": 64
         },
         {
-          "Name": "MaxCategoricalSplitPoints",
+          "Name": "MaximumCategoricalSplitPoints",
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
-            "maxcat"
+            "maxcat",
+            "MaxCategoricalSplitPoints"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5435,11 +5445,12 @@
           "Default": 64
         },
         {
-          "Name": "MinDocsPercentageForCategoricalSplit",
+          "Name": "MinimumExampleFractionForCategoricalSplit",
           "Type": "Float",
           "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
           "Aliases": [
-            "mdop"
+            "mdop",
+            "MinDocsPercentageForCategoricalSplit"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5447,11 +5458,12 @@
           "Default": 0.001
         },
         {
-          "Name": "MinDocsForCategoricalSplit",
+          "Name": "MinimumExamplesForCategoricalSplit",
           "Type": "Int",
           "Desc": "Minimum categorical doc count in a bin to consider for a split.",
           "Aliases": [
-            "mdo"
+            "mdo",
+            "MinDocsForCategoricalSplit"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5490,11 +5502,12 @@
           "Default": "None"
         },
         {
-          "Name": "MaxBins",
+          "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of distinct values (bins) per feature",
           "Aliases": [
-            "mb"
+            "mb",
+            "MaxBins"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5562,11 +5575,12 @@
           "Default": 0.0
         },
         {
-          "Name": "ExecutionTimes",
+          "Name": "ExecutionTime",
           "Type": "Bool",
           "Desc": "Print execution time breakdown to stdout",
           "Aliases": [
-            "et"
+            "et",
+            "ExecutionTimes"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5598,11 +5612,12 @@
           "Default": 1
         },
         {
-          "Name": "BaggingTrainFraction",
+          "Name": "BaggingExampleFraction",
           "Type": "Float",
           "Desc": "Percentage of training examples used in each bag",
           "Aliases": [
-            "bagfrac"
+            "bagfrac",
+            "BaggingTrainFraction"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5610,11 +5625,12 @@
           "Default": 0.7
         },
         {
-          "Name": "SplitFraction",
+          "Name": "FeatureFractionPerSplit",
           "Type": "Float",
           "Desc": "The fraction of features (chosen randomly) to use on each split",
           "Aliases": [
-            "sf"
+            "sf",
+            "SplitFraction"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5671,11 +5687,12 @@
           "Default": false
         },
         {
-          "Name": "MaxTreesAfterCompression",
+          "Name": "MaximumTreeCountAfterCompression",
           "Type": "Int",
           "Desc": "Maximum Number of trees after compression",
           "Aliases": [
-            "cmpmax"
+            "cmpmax",
+            "MaxTreesAfterCompression"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5744,11 +5761,12 @@
       "ShortName": "ffr",
       "Inputs": [
         {
-          "Name": "NumTrees",
+          "Name": "NumberOfTrees",
           "Type": "Int",
           "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
-            "iter"
+            "iter",
+            "NumTrees"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -5775,11 +5793,12 @@
           "IsNullable": false
         },
         {
-          "Name": "NumLeaves",
+          "Name": "NumberOfLeaves",
           "Type": "Int",
           "Desc": "The max number of leaves in each regression tree",
           "Aliases": [
-            "nl"
+            "nl",
+            "NumLeaves"
           ],
           "Required": false,
           "SortOrder": 2.0,
@@ -5806,11 +5825,12 @@
           "Default": "Features"
         },
         {
-          "Name": "MinDocumentsInLeafs",
+          "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
           "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
-            "mil"
+            "mil",
+            "MinDocumentsInLeafs"
           ],
           "Required": false,
           "SortOrder": 3.0,
@@ -5910,11 +5930,12 @@
           "Default": false
         },
         {
-          "Name": "QuantileSampleCount",
+          "Name": "NumberOfQuantileSamples",
           "Type": "Int",
           "Desc": "Number of labels to be sampled from each leaf to make the distribtuion",
           "Aliases": [
-            "qsc"
+            "qsc",
+            "QuantileSampleCount"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5939,11 +5960,12 @@
           }
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "The number of threads to use",
           "Aliases": [
-            "t"
+            "t",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5951,11 +5973,12 @@
           "Default": null
         },
         {
-          "Name": "RngSeed",
+          "Name": "Seed",
           "Type": "Int",
           "Desc": "The seed of the random number generator",
           "Aliases": [
-            "r1"
+            "r1",
+            "RngSeed"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5963,11 +5986,12 @@
           "Default": 123
         },
         {
-          "Name": "FeatureSelectSeed",
+          "Name": "FeatureSelectionSeed",
           "Type": "Int",
           "Desc": "The seed of the active feature selection",
           "Aliases": [
-            "r3"
+            "r3",
+            "FeatureSelectSeed"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6035,11 +6059,12 @@
           "Default": false
         },
         {
-          "Name": "MaxCategoricalGroupsPerNode",
+          "Name": "MaximumCategoricalGroupsPerNode",
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
-            "mcg"
+            "mcg",
+            "MaxCategoricalGroupsPerNode"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6047,11 +6072,12 @@
           "Default": 64
         },
         {
-          "Name": "MaxCategoricalSplitPoints",
+          "Name": "MaximumCategoricalSplitPoints",
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
-            "maxcat"
+            "maxcat",
+            "MaxCategoricalSplitPoints"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6059,11 +6085,12 @@
           "Default": 64
         },
         {
-          "Name": "MinDocsPercentageForCategoricalSplit",
+          "Name": "MinimumExampleFractionForCategoricalSplit",
           "Type": "Float",
           "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
           "Aliases": [
-            "mdop"
+            "mdop",
+            "MinDocsPercentageForCategoricalSplit"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6071,11 +6098,12 @@
           "Default": 0.001
         },
         {
-          "Name": "MinDocsForCategoricalSplit",
+          "Name": "MinimumExamplesForCategoricalSplit",
           "Type": "Int",
           "Desc": "Minimum categorical doc count in a bin to consider for a split.",
           "Aliases": [
-            "mdo"
+            "mdo",
+            "MinDocsForCategoricalSplit"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6114,11 +6142,12 @@
           "Default": "None"
         },
         {
-          "Name": "MaxBins",
+          "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of distinct values (bins) per feature",
           "Aliases": [
-            "mb"
+            "mb",
+            "MaxBins"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6186,11 +6215,12 @@
           "Default": 0.0
         },
         {
-          "Name": "ExecutionTimes",
+          "Name": "ExecutionTime",
           "Type": "Bool",
           "Desc": "Print execution time breakdown to stdout",
           "Aliases": [
-            "et"
+            "et",
+            "ExecutionTimes"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6222,11 +6252,12 @@
           "Default": 1
         },
         {
-          "Name": "BaggingTrainFraction",
+          "Name": "BaggingExampleFraction",
           "Type": "Float",
           "Desc": "Percentage of training examples used in each bag",
           "Aliases": [
-            "bagfrac"
+            "bagfrac",
+            "BaggingTrainFraction"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6234,11 +6265,12 @@
           "Default": 0.7
         },
         {
-          "Name": "SplitFraction",
+          "Name": "FeatureFractionPerSplit",
           "Type": "Float",
           "Desc": "The fraction of features (chosen randomly) to use on each split",
           "Aliases": [
-            "sf"
+            "sf",
+            "SplitFraction"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6295,11 +6327,12 @@
           "Default": false
         },
         {
-          "Name": "MaxTreesAfterCompression",
+          "Name": "MaximumTreeCountAfterCompression",
           "Type": "Int",
           "Desc": "Maximum Number of trees after compression",
           "Aliases": [
-            "cmpmax"
+            "cmpmax",
+            "MaxTreesAfterCompression"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6368,11 +6401,12 @@
       "ShortName": "ftc",
       "Inputs": [
         {
-          "Name": "NumTrees",
+          "Name": "NumberOfTrees",
           "Type": "Int",
           "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
-            "iter"
+            "iter",
+            "NumTrees"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -6399,11 +6433,12 @@
           "IsNullable": false
         },
         {
-          "Name": "NumLeaves",
+          "Name": "NumberOfLeaves",
           "Type": "Int",
           "Desc": "The max number of leaves in each regression tree",
           "Aliases": [
-            "nl"
+            "nl",
+            "NumLeaves"
           ],
           "Required": false,
           "SortOrder": 2.0,
@@ -6430,11 +6465,12 @@
           "Default": "Features"
         },
         {
-          "Name": "MinDocumentsInLeafs",
+          "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
           "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
-            "mil"
+            "mil",
+            "MinDocumentsInLeafs"
           ],
           "Required": false,
           "SortOrder": 3.0,
@@ -6462,11 +6498,12 @@
           "Default": "Label"
         },
         {
-          "Name": "LearningRates",
+          "Name": "LearningRate",
           "Type": "Float",
           "Desc": "The learning rate",
           "Aliases": [
-            "lr"
+            "lr",
+            "LearningRates"
           ],
           "Required": false,
           "SortOrder": 4.0,
@@ -6579,11 +6616,12 @@
           "Default": false
         },
         {
-          "Name": "NumPostBracketSteps",
+          "Name": "MaximumNumberOfLineSearchSteps",
           "Type": "Int",
           "Desc": "Number of post-bracket line search steps",
           "Aliases": [
-            "lssteps"
+            "lssteps",
+            "NumPostBracketSteps"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6591,11 +6629,12 @@
           "Default": 0
         },
         {
-          "Name": "MinStepSize",
+          "Name": "MinimumStepSize",
           "Type": "Float",
           "Desc": "Minimum line search step size",
           "Aliases": [
-            "minstep"
+            "minstep",
+            "MinStepSize"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6761,11 +6800,12 @@
           "Default": false
         },
         {
-          "Name": "MaxTreeOutput",
+          "Name": "MaximumTreeOutput",
           "Type": "Float",
           "Desc": "Upper bound on absolute value of single tree output",
           "Aliases": [
-            "mo"
+            "mo",
+            "MaxTreeOutput"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6850,11 +6890,12 @@
           }
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "The number of threads to use",
           "Aliases": [
-            "t"
+            "t",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6862,11 +6903,12 @@
           "Default": null
         },
         {
-          "Name": "RngSeed",
+          "Name": "Seed",
           "Type": "Int",
           "Desc": "The seed of the random number generator",
           "Aliases": [
-            "r1"
+            "r1",
+            "RngSeed"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6874,11 +6916,12 @@
           "Default": 123
         },
         {
-          "Name": "FeatureSelectSeed",
+          "Name": "FeatureSelectionSeed",
           "Type": "Int",
           "Desc": "The seed of the active feature selection",
           "Aliases": [
-            "r3"
+            "r3",
+            "FeatureSelectSeed"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6946,11 +6989,12 @@
           "Default": false
         },
         {
-          "Name": "MaxCategoricalGroupsPerNode",
+          "Name": "MaximumCategoricalGroupsPerNode",
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
-            "mcg"
+            "mcg",
+            "MaxCategoricalGroupsPerNode"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6958,11 +7002,12 @@
           "Default": 64
         },
         {
-          "Name": "MaxCategoricalSplitPoints",
+          "Name": "MaximumCategoricalSplitPoints",
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
-            "maxcat"
+            "maxcat",
+            "MaxCategoricalSplitPoints"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6970,11 +7015,12 @@
           "Default": 64
         },
         {
-          "Name": "MinDocsPercentageForCategoricalSplit",
+          "Name": "MinimumExampleFractionForCategoricalSplit",
           "Type": "Float",
           "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
           "Aliases": [
-            "mdop"
+            "mdop",
+            "MinDocsPercentageForCategoricalSplit"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6982,11 +7028,12 @@
           "Default": 0.001
         },
         {
-          "Name": "MinDocsForCategoricalSplit",
+          "Name": "MinimumExamplesForCategoricalSplit",
           "Type": "Int",
           "Desc": "Minimum categorical doc count in a bin to consider for a split.",
           "Aliases": [
-            "mdo"
+            "mdo",
+            "MinDocsForCategoricalSplit"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7025,11 +7072,12 @@
           "Default": "None"
         },
         {
-          "Name": "MaxBins",
+          "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of distinct values (bins) per feature",
           "Aliases": [
-            "mb"
+            "mb",
+            "MaxBins"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7097,11 +7145,12 @@
           "Default": 0.0
         },
         {
-          "Name": "ExecutionTimes",
+          "Name": "ExecutionTime",
           "Type": "Bool",
           "Desc": "Print execution time breakdown to stdout",
           "Aliases": [
-            "et"
+            "et",
+            "ExecutionTimes"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7133,11 +7182,12 @@
           "Default": 0
         },
         {
-          "Name": "BaggingTrainFraction",
+          "Name": "BaggingExampleFraction",
           "Type": "Float",
           "Desc": "Percentage of training examples used in each bag",
           "Aliases": [
-            "bagfrac"
+            "bagfrac",
+            "BaggingTrainFraction"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7145,11 +7195,12 @@
           "Default": 0.7
         },
         {
-          "Name": "SplitFraction",
+          "Name": "FeatureFractionPerSplit",
           "Type": "Float",
           "Desc": "The fraction of features (chosen randomly) to use on each split",
           "Aliases": [
-            "sf"
+            "sf",
+            "SplitFraction"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7206,11 +7257,12 @@
           "Default": false
         },
         {
-          "Name": "MaxTreesAfterCompression",
+          "Name": "MaximumTreeCountAfterCompression",
           "Type": "Int",
           "Desc": "Maximum Number of trees after compression",
           "Aliases": [
-            "cmpmax"
+            "cmpmax",
+            "MaxTreesAfterCompression"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7279,11 +7331,12 @@
       "ShortName": "ftrank",
       "Inputs": [
         {
-          "Name": "NumTrees",
+          "Name": "NumberOfTrees",
           "Type": "Int",
           "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
-            "iter"
+            "iter",
+            "NumTrees"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -7310,11 +7363,12 @@
           "IsNullable": false
         },
         {
-          "Name": "NumLeaves",
+          "Name": "NumberOfLeaves",
           "Type": "Int",
           "Desc": "The max number of leaves in each regression tree",
           "Aliases": [
-            "nl"
+            "nl",
+            "NumLeaves"
           ],
           "Required": false,
           "SortOrder": 2.0,
@@ -7341,11 +7395,12 @@
           "Default": "Features"
         },
         {
-          "Name": "MinDocumentsInLeafs",
+          "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
           "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
-            "mil"
+            "mil",
+            "MinDocumentsInLeafs"
           ],
           "Required": false,
           "SortOrder": 3.0,
@@ -7373,11 +7428,12 @@
           "Default": "Label"
         },
         {
-          "Name": "LearningRates",
+          "Name": "LearningRate",
           "Type": "Float",
           "Desc": "The learning rate",
           "Aliases": [
-            "lr"
+            "lr",
+            "LearningRates"
           ],
           "Required": false,
           "SortOrder": 4.0,
@@ -7571,11 +7627,12 @@
           "Default": false
         },
         {
-          "Name": "NumPostBracketSteps",
+          "Name": "MaximumNumberOfLineSearchSteps",
           "Type": "Int",
           "Desc": "Number of post-bracket line search steps",
           "Aliases": [
-            "lssteps"
+            "lssteps",
+            "NumPostBracketSteps"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7583,11 +7640,12 @@
           "Default": 0
         },
         {
-          "Name": "MinStepSize",
+          "Name": "MinimumStepSize",
           "Type": "Float",
           "Desc": "Minimum line search step size",
           "Aliases": [
-            "minstep"
+            "minstep",
+            "MinStepSize"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7753,11 +7811,12 @@
           "Default": false
         },
         {
-          "Name": "MaxTreeOutput",
+          "Name": "MaximumTreeOutput",
           "Type": "Float",
           "Desc": "Upper bound on absolute value of single tree output",
           "Aliases": [
-            "mo"
+            "mo",
+            "MaxTreeOutput"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7842,11 +7901,12 @@
           }
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "The number of threads to use",
           "Aliases": [
-            "t"
+            "t",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7854,11 +7914,12 @@
           "Default": null
         },
         {
-          "Name": "RngSeed",
+          "Name": "Seed",
           "Type": "Int",
           "Desc": "The seed of the random number generator",
           "Aliases": [
-            "r1"
+            "r1",
+            "RngSeed"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7866,11 +7927,12 @@
           "Default": 123
         },
         {
-          "Name": "FeatureSelectSeed",
+          "Name": "FeatureSelectionSeed",
           "Type": "Int",
           "Desc": "The seed of the active feature selection",
           "Aliases": [
-            "r3"
+            "r3",
+            "FeatureSelectSeed"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7938,11 +8000,12 @@
           "Default": false
         },
         {
-          "Name": "MaxCategoricalGroupsPerNode",
+          "Name": "MaximumCategoricalGroupsPerNode",
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
-            "mcg"
+            "mcg",
+            "MaxCategoricalGroupsPerNode"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7950,11 +8013,12 @@
           "Default": 64
         },
         {
-          "Name": "MaxCategoricalSplitPoints",
+          "Name": "MaximumCategoricalSplitPoints",
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
-            "maxcat"
+            "maxcat",
+            "MaxCategoricalSplitPoints"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7962,11 +8026,12 @@
           "Default": 64
         },
         {
-          "Name": "MinDocsPercentageForCategoricalSplit",
+          "Name": "MinimumExampleFractionForCategoricalSplit",
           "Type": "Float",
           "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
           "Aliases": [
-            "mdop"
+            "mdop",
+            "MinDocsPercentageForCategoricalSplit"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7974,11 +8039,12 @@
           "Default": 0.001
         },
         {
-          "Name": "MinDocsForCategoricalSplit",
+          "Name": "MinimumExamplesForCategoricalSplit",
           "Type": "Int",
           "Desc": "Minimum categorical doc count in a bin to consider for a split.",
           "Aliases": [
-            "mdo"
+            "mdo",
+            "MinDocsForCategoricalSplit"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8017,11 +8083,12 @@
           "Default": "None"
         },
         {
-          "Name": "MaxBins",
+          "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of distinct values (bins) per feature",
           "Aliases": [
-            "mb"
+            "mb",
+            "MaxBins"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8089,11 +8156,12 @@
           "Default": 0.0
         },
         {
-          "Name": "ExecutionTimes",
+          "Name": "ExecutionTime",
           "Type": "Bool",
           "Desc": "Print execution time breakdown to stdout",
           "Aliases": [
-            "et"
+            "et",
+            "ExecutionTimes"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8125,11 +8193,12 @@
           "Default": 0
         },
         {
-          "Name": "BaggingTrainFraction",
+          "Name": "BaggingExampleFraction",
           "Type": "Float",
           "Desc": "Percentage of training examples used in each bag",
           "Aliases": [
-            "bagfrac"
+            "bagfrac",
+            "BaggingTrainFraction"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8137,11 +8206,12 @@
           "Default": 0.7
         },
         {
-          "Name": "SplitFraction",
+          "Name": "FeatureFractionPerSplit",
           "Type": "Float",
           "Desc": "The fraction of features (chosen randomly) to use on each split",
           "Aliases": [
-            "sf"
+            "sf",
+            "SplitFraction"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8198,11 +8268,12 @@
           "Default": false
         },
         {
-          "Name": "MaxTreesAfterCompression",
+          "Name": "MaximumTreeCountAfterCompression",
           "Type": "Int",
           "Desc": "Maximum Number of trees after compression",
           "Aliases": [
-            "cmpmax"
+            "cmpmax",
+            "MaxTreesAfterCompression"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8271,11 +8342,12 @@
       "ShortName": "ftr",
       "Inputs": [
         {
-          "Name": "NumTrees",
+          "Name": "NumberOfTrees",
           "Type": "Int",
           "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
-            "iter"
+            "iter",
+            "NumTrees"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -8302,11 +8374,12 @@
           "IsNullable": false
         },
         {
-          "Name": "NumLeaves",
+          "Name": "NumberOfLeaves",
           "Type": "Int",
           "Desc": "The max number of leaves in each regression tree",
           "Aliases": [
-            "nl"
+            "nl",
+            "NumLeaves"
           ],
           "Required": false,
           "SortOrder": 2.0,
@@ -8333,11 +8406,12 @@
           "Default": "Features"
         },
         {
-          "Name": "MinDocumentsInLeafs",
+          "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
           "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
-            "mil"
+            "mil",
+            "MinDocumentsInLeafs"
           ],
           "Required": false,
           "SortOrder": 3.0,
@@ -8365,11 +8439,12 @@
           "Default": "Label"
         },
         {
-          "Name": "LearningRates",
+          "Name": "LearningRate",
           "Type": "Float",
           "Desc": "The learning rate",
           "Aliases": [
-            "lr"
+            "lr",
+            "LearningRates"
           ],
           "Required": false,
           "SortOrder": 4.0,
@@ -8470,11 +8545,12 @@
           "Default": false
         },
         {
-          "Name": "NumPostBracketSteps",
+          "Name": "MaximumNumberOfLineSearchSteps",
           "Type": "Int",
           "Desc": "Number of post-bracket line search steps",
           "Aliases": [
-            "lssteps"
+            "lssteps",
+            "NumPostBracketSteps"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8482,11 +8558,12 @@
           "Default": 0
         },
         {
-          "Name": "MinStepSize",
+          "Name": "MinimumStepSize",
           "Type": "Float",
           "Desc": "Minimum line search step size",
           "Aliases": [
-            "minstep"
+            "minstep",
+            "MinStepSize"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8652,11 +8729,12 @@
           "Default": false
         },
         {
-          "Name": "MaxTreeOutput",
+          "Name": "MaximumTreeOutput",
           "Type": "Float",
           "Desc": "Upper bound on absolute value of single tree output",
           "Aliases": [
-            "mo"
+            "mo",
+            "MaxTreeOutput"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8741,11 +8819,12 @@
           }
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "The number of threads to use",
           "Aliases": [
-            "t"
+            "t",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8753,11 +8832,12 @@
           "Default": null
         },
         {
-          "Name": "RngSeed",
+          "Name": "Seed",
           "Type": "Int",
           "Desc": "The seed of the random number generator",
           "Aliases": [
-            "r1"
+            "r1",
+            "RngSeed"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8765,11 +8845,12 @@
           "Default": 123
         },
         {
-          "Name": "FeatureSelectSeed",
+          "Name": "FeatureSelectionSeed",
           "Type": "Int",
           "Desc": "The seed of the active feature selection",
           "Aliases": [
-            "r3"
+            "r3",
+            "FeatureSelectSeed"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8837,11 +8918,12 @@
           "Default": false
         },
         {
-          "Name": "MaxCategoricalGroupsPerNode",
+          "Name": "MaximumCategoricalGroupsPerNode",
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
-            "mcg"
+            "mcg",
+            "MaxCategoricalGroupsPerNode"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8849,11 +8931,12 @@
           "Default": 64
         },
         {
-          "Name": "MaxCategoricalSplitPoints",
+          "Name": "MaximumCategoricalSplitPoints",
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
-            "maxcat"
+            "maxcat",
+            "MaxCategoricalSplitPoints"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8861,11 +8944,12 @@
           "Default": 64
         },
         {
-          "Name": "MinDocsPercentageForCategoricalSplit",
+          "Name": "MinimumExampleFractionForCategoricalSplit",
           "Type": "Float",
           "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
           "Aliases": [
-            "mdop"
+            "mdop",
+            "MinDocsPercentageForCategoricalSplit"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8873,11 +8957,12 @@
           "Default": 0.001
         },
         {
-          "Name": "MinDocsForCategoricalSplit",
+          "Name": "MinimumExamplesForCategoricalSplit",
           "Type": "Int",
           "Desc": "Minimum categorical doc count in a bin to consider for a split.",
           "Aliases": [
-            "mdo"
+            "mdo",
+            "MinDocsForCategoricalSplit"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8916,11 +9001,12 @@
           "Default": "None"
         },
         {
-          "Name": "MaxBins",
+          "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of distinct values (bins) per feature",
           "Aliases": [
-            "mb"
+            "mb",
+            "MaxBins"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8988,11 +9074,12 @@
           "Default": 0.0
         },
         {
-          "Name": "ExecutionTimes",
+          "Name": "ExecutionTime",
           "Type": "Bool",
           "Desc": "Print execution time breakdown to stdout",
           "Aliases": [
-            "et"
+            "et",
+            "ExecutionTimes"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9024,11 +9111,12 @@
           "Default": 0
         },
         {
-          "Name": "BaggingTrainFraction",
+          "Name": "BaggingExampleFraction",
           "Type": "Float",
           "Desc": "Percentage of training examples used in each bag",
           "Aliases": [
-            "bagfrac"
+            "bagfrac",
+            "BaggingTrainFraction"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9036,11 +9124,12 @@
           "Default": 0.7
         },
         {
-          "Name": "SplitFraction",
+          "Name": "FeatureFractionPerSplit",
           "Type": "Float",
           "Desc": "The fraction of features (chosen randomly) to use on each split",
           "Aliases": [
-            "sf"
+            "sf",
+            "SplitFraction"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9097,11 +9186,12 @@
           "Default": false
         },
         {
-          "Name": "MaxTreesAfterCompression",
+          "Name": "MaximumTreeCountAfterCompression",
           "Type": "Int",
           "Desc": "Maximum Number of trees after compression",
           "Aliases": [
-            "cmpmax"
+            "cmpmax",
+            "MaxTreesAfterCompression"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9170,11 +9260,12 @@
       "ShortName": "fttweedie",
       "Inputs": [
         {
-          "Name": "NumTrees",
+          "Name": "NumberOfTrees",
           "Type": "Int",
           "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
-            "iter"
+            "iter",
+            "NumTrees"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -9201,11 +9292,12 @@
           "IsNullable": false
         },
         {
-          "Name": "NumLeaves",
+          "Name": "NumberOfLeaves",
           "Type": "Int",
           "Desc": "The max number of leaves in each regression tree",
           "Aliases": [
-            "nl"
+            "nl",
+            "NumLeaves"
           ],
           "Required": false,
           "SortOrder": 2.0,
@@ -9232,11 +9324,12 @@
           "Default": "Features"
         },
         {
-          "Name": "MinDocumentsInLeafs",
+          "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
           "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
-            "mil"
+            "mil",
+            "MinDocumentsInLeafs"
           ],
           "Required": false,
           "SortOrder": 3.0,
@@ -9264,11 +9357,12 @@
           "Default": "Label"
         },
         {
-          "Name": "LearningRates",
+          "Name": "LearningRate",
           "Type": "Float",
           "Desc": "The learning rate",
           "Aliases": [
-            "lr"
+            "lr",
+            "LearningRates"
           ],
           "Required": false,
           "SortOrder": 4.0,
@@ -9378,11 +9472,12 @@
           "Default": false
         },
         {
-          "Name": "NumPostBracketSteps",
+          "Name": "MaximumNumberOfLineSearchSteps",
           "Type": "Int",
           "Desc": "Number of post-bracket line search steps",
           "Aliases": [
-            "lssteps"
+            "lssteps",
+            "NumPostBracketSteps"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9390,11 +9485,12 @@
           "Default": 0
         },
         {
-          "Name": "MinStepSize",
+          "Name": "MinimumStepSize",
           "Type": "Float",
           "Desc": "Minimum line search step size",
           "Aliases": [
-            "minstep"
+            "minstep",
+            "MinStepSize"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9560,11 +9656,12 @@
           "Default": false
         },
         {
-          "Name": "MaxTreeOutput",
+          "Name": "MaximumTreeOutput",
           "Type": "Float",
           "Desc": "Upper bound on absolute value of single tree output",
           "Aliases": [
-            "mo"
+            "mo",
+            "MaxTreeOutput"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9649,11 +9746,12 @@
           }
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "The number of threads to use",
           "Aliases": [
-            "t"
+            "t",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9661,11 +9759,12 @@
           "Default": null
         },
         {
-          "Name": "RngSeed",
+          "Name": "Seed",
           "Type": "Int",
           "Desc": "The seed of the random number generator",
           "Aliases": [
-            "r1"
+            "r1",
+            "RngSeed"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9673,11 +9772,12 @@
           "Default": 123
         },
         {
-          "Name": "FeatureSelectSeed",
+          "Name": "FeatureSelectionSeed",
           "Type": "Int",
           "Desc": "The seed of the active feature selection",
           "Aliases": [
-            "r3"
+            "r3",
+            "FeatureSelectSeed"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9745,11 +9845,12 @@
           "Default": false
         },
         {
-          "Name": "MaxCategoricalGroupsPerNode",
+          "Name": "MaximumCategoricalGroupsPerNode",
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
-            "mcg"
+            "mcg",
+            "MaxCategoricalGroupsPerNode"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9757,11 +9858,12 @@
           "Default": 64
         },
         {
-          "Name": "MaxCategoricalSplitPoints",
+          "Name": "MaximumCategoricalSplitPoints",
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
-            "maxcat"
+            "maxcat",
+            "MaxCategoricalSplitPoints"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9769,11 +9871,12 @@
           "Default": 64
         },
         {
-          "Name": "MinDocsPercentageForCategoricalSplit",
+          "Name": "MinimumExampleFractionForCategoricalSplit",
           "Type": "Float",
           "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
           "Aliases": [
-            "mdop"
+            "mdop",
+            "MinDocsPercentageForCategoricalSplit"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9781,11 +9884,12 @@
           "Default": 0.001
         },
         {
-          "Name": "MinDocsForCategoricalSplit",
+          "Name": "MinimumExamplesForCategoricalSplit",
           "Type": "Int",
           "Desc": "Minimum categorical doc count in a bin to consider for a split.",
           "Aliases": [
-            "mdo"
+            "mdo",
+            "MinDocsForCategoricalSplit"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9824,11 +9928,12 @@
           "Default": "None"
         },
         {
-          "Name": "MaxBins",
+          "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of distinct values (bins) per feature",
           "Aliases": [
-            "mb"
+            "mb",
+            "MaxBins"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9896,11 +10001,12 @@
           "Default": 0.0
         },
         {
-          "Name": "ExecutionTimes",
+          "Name": "ExecutionTime",
           "Type": "Bool",
           "Desc": "Print execution time breakdown to stdout",
           "Aliases": [
-            "et"
+            "et",
+            "ExecutionTimes"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9932,11 +10038,12 @@
           "Default": 0
         },
         {
-          "Name": "BaggingTrainFraction",
+          "Name": "BaggingExampleFraction",
           "Type": "Float",
           "Desc": "Percentage of training examples used in each bag",
           "Aliases": [
-            "bagfrac"
+            "bagfrac",
+            "BaggingTrainFraction"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9944,11 +10051,12 @@
           "Default": 0.7
         },
         {
-          "Name": "SplitFraction",
+          "Name": "FeatureFractionPerSplit",
           "Type": "Float",
           "Desc": "The fraction of features (chosen randomly) to use on each split",
           "Aliases": [
-            "sf"
+            "sf",
+            "SplitFraction"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10005,11 +10113,12 @@
           "Default": false
         },
         {
-          "Name": "MaxTreesAfterCompression",
+          "Name": "MaximumTreeCountAfterCompression",
           "Type": "Int",
           "Desc": "Maximum Number of trees after compression",
           "Aliases": [
-            "cmpmax"
+            "cmpmax",
+            "MaxTreesAfterCompression"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10345,11 +10454,12 @@
       "ShortName": "gam",
       "Inputs": [
         {
-          "Name": "NumIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Total number of iterations over all features",
           "Aliases": [
-            "iter"
+            "iter",
+            "NumIterations"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -10388,11 +10498,12 @@
           "Default": "Features"
         },
         {
-          "Name": "MinDocuments",
+          "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
           "Desc": "Minimum number of training instances required to form a partition",
           "Aliases": [
-            "mi"
+            "mi",
+            "MinDocuments"
           ],
           "Required": false,
           "SortOrder": 3.0,
@@ -10420,11 +10531,12 @@
           "Default": "Label"
         },
         {
-          "Name": "LearningRates",
+          "Name": "LearningRate",
           "Type": "Float",
           "Desc": "The learning rate",
           "Aliases": [
-            "lr"
+            "lr",
+            "LearningRates"
           ],
           "Required": false,
           "SortOrder": 4.0,
@@ -10525,11 +10637,12 @@
           "Default": 0
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "The number of threads to use",
           "Aliases": [
-            "t"
+            "t",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10549,11 +10662,12 @@
           "Default": null
         },
         {
-          "Name": "MaxBins",
+          "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of distinct values (bins) per feature",
           "Aliases": [
-            "mb"
+            "mb",
+            "MaxBins"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10561,11 +10675,12 @@
           "Default": 255
         },
         {
-          "Name": "MaxOutput",
+          "Name": "MaximumTreeOutput",
           "Type": "Float",
           "Desc": "Upper bound on absolute value of single output",
           "Aliases": [
-            "mo"
+            "mo",
+            "MaxOutput"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10585,11 +10700,12 @@
           "Default": 1
         },
         {
-          "Name": "RngSeed",
+          "Name": "Seed",
           "Type": "Int",
           "Desc": "The seed of the random number generator",
           "Aliases": [
-            "r1"
+            "r1",
+            "RngSeed"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10645,11 +10761,12 @@
       "ShortName": "gamr",
       "Inputs": [
         {
-          "Name": "NumIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Total number of iterations over all features",
           "Aliases": [
-            "iter"
+            "iter",
+            "NumIterations"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -10688,11 +10805,12 @@
           "Default": "Features"
         },
         {
-          "Name": "MinDocuments",
+          "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
           "Desc": "Minimum number of training instances required to form a partition",
           "Aliases": [
-            "mi"
+            "mi",
+            "MinDocuments"
           ],
           "Required": false,
           "SortOrder": 3.0,
@@ -10720,11 +10838,12 @@
           "Default": "Label"
         },
         {
-          "Name": "LearningRates",
+          "Name": "LearningRate",
           "Type": "Float",
           "Desc": "The learning rate",
           "Aliases": [
-            "lr"
+            "lr",
+            "LearningRates"
           ],
           "Required": false,
           "SortOrder": 4.0,
@@ -10825,11 +10944,12 @@
           "Default": 0
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "The number of threads to use",
           "Aliases": [
-            "t"
+            "t",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10849,11 +10969,12 @@
           "Default": null
         },
         {
-          "Name": "MaxBins",
+          "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of distinct values (bins) per feature",
           "Aliases": [
-            "mb"
+            "mb",
+            "MaxBins"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10861,11 +10982,12 @@
           "Default": 255
         },
         {
-          "Name": "MaxOutput",
+          "Name": "MaximumTreeOutput",
           "Type": "Float",
           "Desc": "Upper bound on absolute value of single output",
           "Aliases": [
-            "mo"
+            "mo",
+            "MaxOutput"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10885,11 +11007,12 @@
           "Default": 1
         },
         {
-          "Name": "RngSeed",
+          "Name": "Seed",
           "Type": "Int",
           "Desc": "The seed of the random number generator",
           "Aliases": [
-            "r1"
+            "r1",
+            "RngSeed"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -25101,11 +25224,12 @@
           "FriendlyName": "FastTree (Boosted Trees) Classification",
           "Settings": [
             {
-              "Name": "NumTrees",
+              "Name": "NumberOfTrees",
               "Type": "Int",
               "Desc": "Total number of decision trees to create in the ensemble",
               "Aliases": [
-                "iter"
+                "iter",
+                "NumTrees"
               ],
               "Required": false,
               "SortOrder": 1.0,
@@ -25132,11 +25256,12 @@
               "IsNullable": false
             },
             {
-              "Name": "NumLeaves",
+              "Name": "NumberOfLeaves",
               "Type": "Int",
               "Desc": "The max number of leaves in each regression tree",
               "Aliases": [
-                "nl"
+                "nl",
+                "NumLeaves"
               ],
               "Required": false,
               "SortOrder": 2.0,
@@ -25163,11 +25288,12 @@
               "Default": "Features"
             },
             {
-              "Name": "MinDocumentsInLeafs",
+              "Name": "MinimumExampleCountPerLeaf",
               "Type": "Int",
               "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
               "Aliases": [
-                "mil"
+                "mil",
+                "MinDocumentsInLeafs"
               ],
               "Required": false,
               "SortOrder": 3.0,
@@ -25195,11 +25321,12 @@
               "Default": "Label"
             },
             {
-              "Name": "LearningRates",
+              "Name": "LearningRate",
               "Type": "Float",
               "Desc": "The learning rate",
               "Aliases": [
-                "lr"
+                "lr",
+                "LearningRates"
               ],
               "Required": false,
               "SortOrder": 4.0,
@@ -25312,11 +25439,12 @@
               "Default": false
             },
             {
-              "Name": "NumPostBracketSteps",
+              "Name": "MaximumNumberOfLineSearchSteps",
               "Type": "Int",
               "Desc": "Number of post-bracket line search steps",
               "Aliases": [
-                "lssteps"
+                "lssteps",
+                "NumPostBracketSteps"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25324,11 +25452,12 @@
               "Default": 0
             },
             {
-              "Name": "MinStepSize",
+              "Name": "MinimumStepSize",
               "Type": "Float",
               "Desc": "Minimum line search step size",
               "Aliases": [
-                "minstep"
+                "minstep",
+                "MinStepSize"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25494,11 +25623,12 @@
               "Default": false
             },
             {
-              "Name": "MaxTreeOutput",
+              "Name": "MaximumTreeOutput",
               "Type": "Float",
               "Desc": "Upper bound on absolute value of single tree output",
               "Aliases": [
-                "mo"
+                "mo",
+                "MaxTreeOutput"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25583,11 +25713,12 @@
               }
             },
             {
-              "Name": "NumThreads",
+              "Name": "NumberOfThreads",
               "Type": "Int",
               "Desc": "The number of threads to use",
               "Aliases": [
-                "t"
+                "t",
+                "NumThreads"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25595,11 +25726,12 @@
               "Default": null
             },
             {
-              "Name": "RngSeed",
+              "Name": "Seed",
               "Type": "Int",
               "Desc": "The seed of the random number generator",
               "Aliases": [
-                "r1"
+                "r1",
+                "RngSeed"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25607,11 +25739,12 @@
               "Default": 123
             },
             {
-              "Name": "FeatureSelectSeed",
+              "Name": "FeatureSelectionSeed",
               "Type": "Int",
               "Desc": "The seed of the active feature selection",
               "Aliases": [
-                "r3"
+                "r3",
+                "FeatureSelectSeed"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25679,11 +25812,12 @@
               "Default": false
             },
             {
-              "Name": "MaxCategoricalGroupsPerNode",
+              "Name": "MaximumCategoricalGroupsPerNode",
               "Type": "Int",
               "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
               "Aliases": [
-                "mcg"
+                "mcg",
+                "MaxCategoricalGroupsPerNode"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25691,11 +25825,12 @@
               "Default": 64
             },
             {
-              "Name": "MaxCategoricalSplitPoints",
+              "Name": "MaximumCategoricalSplitPoints",
               "Type": "Int",
               "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
               "Aliases": [
-                "maxcat"
+                "maxcat",
+                "MaxCategoricalSplitPoints"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25703,11 +25838,12 @@
               "Default": 64
             },
             {
-              "Name": "MinDocsPercentageForCategoricalSplit",
+              "Name": "MinimumExampleFractionForCategoricalSplit",
               "Type": "Float",
               "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
               "Aliases": [
-                "mdop"
+                "mdop",
+                "MinDocsPercentageForCategoricalSplit"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25715,11 +25851,12 @@
               "Default": 0.001
             },
             {
-              "Name": "MinDocsForCategoricalSplit",
+              "Name": "MinimumExamplesForCategoricalSplit",
               "Type": "Int",
               "Desc": "Minimum categorical doc count in a bin to consider for a split.",
               "Aliases": [
-                "mdo"
+                "mdo",
+                "MinDocsForCategoricalSplit"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25758,11 +25895,12 @@
               "Default": "None"
             },
             {
-              "Name": "MaxBins",
+              "Name": "MaximumBinCountPerFeature",
               "Type": "Int",
               "Desc": "Maximum number of distinct values (bins) per feature",
               "Aliases": [
-                "mb"
+                "mb",
+                "MaxBins"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25830,11 +25968,12 @@
               "Default": 0.0
             },
             {
-              "Name": "ExecutionTimes",
+              "Name": "ExecutionTime",
               "Type": "Bool",
               "Desc": "Print execution time breakdown to stdout",
               "Aliases": [
-                "et"
+                "et",
+                "ExecutionTimes"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25866,11 +26005,12 @@
               "Default": 0
             },
             {
-              "Name": "BaggingTrainFraction",
+              "Name": "BaggingExampleFraction",
               "Type": "Float",
               "Desc": "Percentage of training examples used in each bag",
               "Aliases": [
-                "bagfrac"
+                "bagfrac",
+                "BaggingTrainFraction"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25878,11 +26018,12 @@
               "Default": 0.7
             },
             {
-              "Name": "SplitFraction",
+              "Name": "FeatureFractionPerSplit",
               "Type": "Float",
               "Desc": "The fraction of features (chosen randomly) to use on each split",
               "Aliases": [
-                "sf"
+                "sf",
+                "SplitFraction"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25939,11 +26080,12 @@
               "Default": false
             },
             {
-              "Name": "MaxTreesAfterCompression",
+              "Name": "MaximumTreeCountAfterCompression",
               "Type": "Int",
               "Desc": "Maximum Number of trees after compression",
               "Aliases": [
-                "cmpmax"
+                "cmpmax",
+                "MaxTreesAfterCompression"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25994,11 +26136,12 @@
           "FriendlyName": "FastTree (Boosted Trees) Ranking",
           "Settings": [
             {
-              "Name": "NumTrees",
+              "Name": "NumberOfTrees",
               "Type": "Int",
               "Desc": "Total number of decision trees to create in the ensemble",
               "Aliases": [
-                "iter"
+                "iter",
+                "NumTrees"
               ],
               "Required": false,
               "SortOrder": 1.0,
@@ -26025,11 +26168,12 @@
               "IsNullable": false
             },
             {
-              "Name": "NumLeaves",
+              "Name": "NumberOfLeaves",
               "Type": "Int",
               "Desc": "The max number of leaves in each regression tree",
               "Aliases": [
-                "nl"
+                "nl",
+                "NumLeaves"
               ],
               "Required": false,
               "SortOrder": 2.0,
@@ -26056,11 +26200,12 @@
               "Default": "Features"
             },
             {
-              "Name": "MinDocumentsInLeafs",
+              "Name": "MinimumExampleCountPerLeaf",
               "Type": "Int",
               "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
               "Aliases": [
-                "mil"
+                "mil",
+                "MinDocumentsInLeafs"
               ],
               "Required": false,
               "SortOrder": 3.0,
@@ -26088,11 +26233,12 @@
               "Default": "Label"
             },
             {
-              "Name": "LearningRates",
+              "Name": "LearningRate",
               "Type": "Float",
               "Desc": "The learning rate",
               "Aliases": [
-                "lr"
+                "lr",
+                "LearningRates"
               ],
               "Required": false,
               "SortOrder": 4.0,
@@ -26286,11 +26432,12 @@
               "Default": false
             },
             {
-              "Name": "NumPostBracketSteps",
+              "Name": "MaximumNumberOfLineSearchSteps",
               "Type": "Int",
               "Desc": "Number of post-bracket line search steps",
               "Aliases": [
-                "lssteps"
+                "lssteps",
+                "NumPostBracketSteps"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26298,11 +26445,12 @@
               "Default": 0
             },
             {
-              "Name": "MinStepSize",
+              "Name": "MinimumStepSize",
               "Type": "Float",
               "Desc": "Minimum line search step size",
               "Aliases": [
-                "minstep"
+                "minstep",
+                "MinStepSize"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26468,11 +26616,12 @@
               "Default": false
             },
             {
-              "Name": "MaxTreeOutput",
+              "Name": "MaximumTreeOutput",
               "Type": "Float",
               "Desc": "Upper bound on absolute value of single tree output",
               "Aliases": [
-                "mo"
+                "mo",
+                "MaxTreeOutput"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26557,11 +26706,12 @@
               }
             },
             {
-              "Name": "NumThreads",
+              "Name": "NumberOfThreads",
               "Type": "Int",
               "Desc": "The number of threads to use",
               "Aliases": [
-                "t"
+                "t",
+                "NumThreads"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26569,11 +26719,12 @@
               "Default": null
             },
             {
-              "Name": "RngSeed",
+              "Name": "Seed",
               "Type": "Int",
               "Desc": "The seed of the random number generator",
               "Aliases": [
-                "r1"
+                "r1",
+                "RngSeed"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26581,11 +26732,12 @@
               "Default": 123
             },
             {
-              "Name": "FeatureSelectSeed",
+              "Name": "FeatureSelectionSeed",
               "Type": "Int",
               "Desc": "The seed of the active feature selection",
               "Aliases": [
-                "r3"
+                "r3",
+                "FeatureSelectSeed"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26653,11 +26805,12 @@
               "Default": false
             },
             {
-              "Name": "MaxCategoricalGroupsPerNode",
+              "Name": "MaximumCategoricalGroupsPerNode",
               "Type": "Int",
               "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
               "Aliases": [
-                "mcg"
+                "mcg",
+                "MaxCategoricalGroupsPerNode"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26665,11 +26818,12 @@
               "Default": 64
             },
             {
-              "Name": "MaxCategoricalSplitPoints",
+              "Name": "MaximumCategoricalSplitPoints",
               "Type": "Int",
               "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
               "Aliases": [
-                "maxcat"
+                "maxcat",
+                "MaxCategoricalSplitPoints"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26677,11 +26831,12 @@
               "Default": 64
             },
             {
-              "Name": "MinDocsPercentageForCategoricalSplit",
+              "Name": "MinimumExampleFractionForCategoricalSplit",
               "Type": "Float",
               "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
               "Aliases": [
-                "mdop"
+                "mdop",
+                "MinDocsPercentageForCategoricalSplit"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26689,11 +26844,12 @@
               "Default": 0.001
             },
             {
-              "Name": "MinDocsForCategoricalSplit",
+              "Name": "MinimumExamplesForCategoricalSplit",
               "Type": "Int",
               "Desc": "Minimum categorical doc count in a bin to consider for a split.",
               "Aliases": [
-                "mdo"
+                "mdo",
+                "MinDocsForCategoricalSplit"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26732,11 +26888,12 @@
               "Default": "None"
             },
             {
-              "Name": "MaxBins",
+              "Name": "MaximumBinCountPerFeature",
               "Type": "Int",
               "Desc": "Maximum number of distinct values (bins) per feature",
               "Aliases": [
-                "mb"
+                "mb",
+                "MaxBins"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26804,11 +26961,12 @@
               "Default": 0.0
             },
             {
-              "Name": "ExecutionTimes",
+              "Name": "ExecutionTime",
               "Type": "Bool",
               "Desc": "Print execution time breakdown to stdout",
               "Aliases": [
-                "et"
+                "et",
+                "ExecutionTimes"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26840,11 +26998,12 @@
               "Default": 0
             },
             {
-              "Name": "BaggingTrainFraction",
+              "Name": "BaggingExampleFraction",
               "Type": "Float",
               "Desc": "Percentage of training examples used in each bag",
               "Aliases": [
-                "bagfrac"
+                "bagfrac",
+                "BaggingTrainFraction"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26852,11 +27011,12 @@
               "Default": 0.7
             },
             {
-              "Name": "SplitFraction",
+              "Name": "FeatureFractionPerSplit",
               "Type": "Float",
               "Desc": "The fraction of features (chosen randomly) to use on each split",
               "Aliases": [
-                "sf"
+                "sf",
+                "SplitFraction"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26913,11 +27073,12 @@
               "Default": false
             },
             {
-              "Name": "MaxTreesAfterCompression",
+              "Name": "MaximumTreeCountAfterCompression",
               "Type": "Int",
               "Desc": "Maximum Number of trees after compression",
               "Aliases": [
-                "cmpmax"
+                "cmpmax",
+                "MaxTreesAfterCompression"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26968,11 +27129,12 @@
           "FriendlyName": "FastTree (Boosted Trees) Regression",
           "Settings": [
             {
-              "Name": "NumTrees",
+              "Name": "NumberOfTrees",
               "Type": "Int",
               "Desc": "Total number of decision trees to create in the ensemble",
               "Aliases": [
-                "iter"
+                "iter",
+                "NumTrees"
               ],
               "Required": false,
               "SortOrder": 1.0,
@@ -26999,11 +27161,12 @@
               "IsNullable": false
             },
             {
-              "Name": "NumLeaves",
+              "Name": "NumberOfLeaves",
               "Type": "Int",
               "Desc": "The max number of leaves in each regression tree",
               "Aliases": [
-                "nl"
+                "nl",
+                "NumLeaves"
               ],
               "Required": false,
               "SortOrder": 2.0,
@@ -27030,11 +27193,12 @@
               "Default": "Features"
             },
             {
-              "Name": "MinDocumentsInLeafs",
+              "Name": "MinimumExampleCountPerLeaf",
               "Type": "Int",
               "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
               "Aliases": [
-                "mil"
+                "mil",
+                "MinDocumentsInLeafs"
               ],
               "Required": false,
               "SortOrder": 3.0,
@@ -27062,11 +27226,12 @@
               "Default": "Label"
             },
             {
-              "Name": "LearningRates",
+              "Name": "LearningRate",
               "Type": "Float",
               "Desc": "The learning rate",
               "Aliases": [
-                "lr"
+                "lr",
+                "LearningRates"
               ],
               "Required": false,
               "SortOrder": 4.0,
@@ -27167,11 +27332,12 @@
               "Default": false
             },
             {
-              "Name": "NumPostBracketSteps",
+              "Name": "MaximumNumberOfLineSearchSteps",
               "Type": "Int",
               "Desc": "Number of post-bracket line search steps",
               "Aliases": [
-                "lssteps"
+                "lssteps",
+                "NumPostBracketSteps"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27179,11 +27345,12 @@
               "Default": 0
             },
             {
-              "Name": "MinStepSize",
+              "Name": "MinimumStepSize",
               "Type": "Float",
               "Desc": "Minimum line search step size",
               "Aliases": [
-                "minstep"
+                "minstep",
+                "MinStepSize"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27349,11 +27516,12 @@
               "Default": false
             },
             {
-              "Name": "MaxTreeOutput",
+              "Name": "MaximumTreeOutput",
               "Type": "Float",
               "Desc": "Upper bound on absolute value of single tree output",
               "Aliases": [
-                "mo"
+                "mo",
+                "MaxTreeOutput"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27438,11 +27606,12 @@
               }
             },
             {
-              "Name": "NumThreads",
+              "Name": "NumberOfThreads",
               "Type": "Int",
               "Desc": "The number of threads to use",
               "Aliases": [
-                "t"
+                "t",
+                "NumThreads"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27450,11 +27619,12 @@
               "Default": null
             },
             {
-              "Name": "RngSeed",
+              "Name": "Seed",
               "Type": "Int",
               "Desc": "The seed of the random number generator",
               "Aliases": [
-                "r1"
+                "r1",
+                "RngSeed"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27462,11 +27632,12 @@
               "Default": 123
             },
             {
-              "Name": "FeatureSelectSeed",
+              "Name": "FeatureSelectionSeed",
               "Type": "Int",
               "Desc": "The seed of the active feature selection",
               "Aliases": [
-                "r3"
+                "r3",
+                "FeatureSelectSeed"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27534,11 +27705,12 @@
               "Default": false
             },
             {
-              "Name": "MaxCategoricalGroupsPerNode",
+              "Name": "MaximumCategoricalGroupsPerNode",
               "Type": "Int",
               "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
               "Aliases": [
-                "mcg"
+                "mcg",
+                "MaxCategoricalGroupsPerNode"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27546,11 +27718,12 @@
               "Default": 64
             },
             {
-              "Name": "MaxCategoricalSplitPoints",
+              "Name": "MaximumCategoricalSplitPoints",
               "Type": "Int",
               "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
               "Aliases": [
-                "maxcat"
+                "maxcat",
+                "MaxCategoricalSplitPoints"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27558,11 +27731,12 @@
               "Default": 64
             },
             {
-              "Name": "MinDocsPercentageForCategoricalSplit",
+              "Name": "MinimumExampleFractionForCategoricalSplit",
               "Type": "Float",
               "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
               "Aliases": [
-                "mdop"
+                "mdop",
+                "MinDocsPercentageForCategoricalSplit"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27570,11 +27744,12 @@
               "Default": 0.001
             },
             {
-              "Name": "MinDocsForCategoricalSplit",
+              "Name": "MinimumExamplesForCategoricalSplit",
               "Type": "Int",
               "Desc": "Minimum categorical doc count in a bin to consider for a split.",
               "Aliases": [
-                "mdo"
+                "mdo",
+                "MinDocsForCategoricalSplit"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27613,11 +27788,12 @@
               "Default": "None"
             },
             {
-              "Name": "MaxBins",
+              "Name": "MaximumBinCountPerFeature",
               "Type": "Int",
               "Desc": "Maximum number of distinct values (bins) per feature",
               "Aliases": [
-                "mb"
+                "mb",
+                "MaxBins"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27685,11 +27861,12 @@
               "Default": 0.0
             },
             {
-              "Name": "ExecutionTimes",
+              "Name": "ExecutionTime",
               "Type": "Bool",
               "Desc": "Print execution time breakdown to stdout",
               "Aliases": [
-                "et"
+                "et",
+                "ExecutionTimes"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27721,11 +27898,12 @@
               "Default": 0
             },
             {
-              "Name": "BaggingTrainFraction",
+              "Name": "BaggingExampleFraction",
               "Type": "Float",
               "Desc": "Percentage of training examples used in each bag",
               "Aliases": [
-                "bagfrac"
+                "bagfrac",
+                "BaggingTrainFraction"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27733,11 +27911,12 @@
               "Default": 0.7
             },
             {
-              "Name": "SplitFraction",
+              "Name": "FeatureFractionPerSplit",
               "Type": "Float",
               "Desc": "The fraction of features (chosen randomly) to use on each split",
               "Aliases": [
-                "sf"
+                "sf",
+                "SplitFraction"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27794,11 +27973,12 @@
               "Default": false
             },
             {
-              "Name": "MaxTreesAfterCompression",
+              "Name": "MaximumTreeCountAfterCompression",
               "Type": "Int",
               "Desc": "Maximum Number of trees after compression",
               "Aliases": [
-                "cmpmax"
+                "cmpmax",
+                "MaxTreesAfterCompression"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27849,11 +28029,12 @@
           "FriendlyName": "FastTree (Boosted Trees) Tweedie Regression",
           "Settings": [
             {
-              "Name": "NumTrees",
+              "Name": "NumberOfTrees",
               "Type": "Int",
               "Desc": "Total number of decision trees to create in the ensemble",
               "Aliases": [
-                "iter"
+                "iter",
+                "NumTrees"
               ],
               "Required": false,
               "SortOrder": 1.0,
@@ -27880,11 +28061,12 @@
               "IsNullable": false
             },
             {
-              "Name": "NumLeaves",
+              "Name": "NumberOfLeaves",
               "Type": "Int",
               "Desc": "The max number of leaves in each regression tree",
               "Aliases": [
-                "nl"
+                "nl",
+                "NumLeaves"
               ],
               "Required": false,
               "SortOrder": 2.0,
@@ -27911,11 +28093,12 @@
               "Default": "Features"
             },
             {
-              "Name": "MinDocumentsInLeafs",
+              "Name": "MinimumExampleCountPerLeaf",
               "Type": "Int",
               "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
               "Aliases": [
-                "mil"
+                "mil",
+                "MinDocumentsInLeafs"
               ],
               "Required": false,
               "SortOrder": 3.0,
@@ -27943,11 +28126,12 @@
               "Default": "Label"
             },
             {
-              "Name": "LearningRates",
+              "Name": "LearningRate",
               "Type": "Float",
               "Desc": "The learning rate",
               "Aliases": [
-                "lr"
+                "lr",
+                "LearningRates"
               ],
               "Required": false,
               "SortOrder": 4.0,
@@ -28057,11 +28241,12 @@
               "Default": false
             },
             {
-              "Name": "NumPostBracketSteps",
+              "Name": "MaximumNumberOfLineSearchSteps",
               "Type": "Int",
               "Desc": "Number of post-bracket line search steps",
               "Aliases": [
-                "lssteps"
+                "lssteps",
+                "NumPostBracketSteps"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28069,11 +28254,12 @@
               "Default": 0
             },
             {
-              "Name": "MinStepSize",
+              "Name": "MinimumStepSize",
               "Type": "Float",
               "Desc": "Minimum line search step size",
               "Aliases": [
-                "minstep"
+                "minstep",
+                "MinStepSize"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28239,11 +28425,12 @@
               "Default": false
             },
             {
-              "Name": "MaxTreeOutput",
+              "Name": "MaximumTreeOutput",
               "Type": "Float",
               "Desc": "Upper bound on absolute value of single tree output",
               "Aliases": [
-                "mo"
+                "mo",
+                "MaxTreeOutput"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28328,11 +28515,12 @@
               }
             },
             {
-              "Name": "NumThreads",
+              "Name": "NumberOfThreads",
               "Type": "Int",
               "Desc": "The number of threads to use",
               "Aliases": [
-                "t"
+                "t",
+                "NumThreads"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28340,11 +28528,12 @@
               "Default": null
             },
             {
-              "Name": "RngSeed",
+              "Name": "Seed",
               "Type": "Int",
               "Desc": "The seed of the random number generator",
               "Aliases": [
-                "r1"
+                "r1",
+                "RngSeed"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28352,11 +28541,12 @@
               "Default": 123
             },
             {
-              "Name": "FeatureSelectSeed",
+              "Name": "FeatureSelectionSeed",
               "Type": "Int",
               "Desc": "The seed of the active feature selection",
               "Aliases": [
-                "r3"
+                "r3",
+                "FeatureSelectSeed"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28424,11 +28614,12 @@
               "Default": false
             },
             {
-              "Name": "MaxCategoricalGroupsPerNode",
+              "Name": "MaximumCategoricalGroupsPerNode",
               "Type": "Int",
               "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
               "Aliases": [
-                "mcg"
+                "mcg",
+                "MaxCategoricalGroupsPerNode"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28436,11 +28627,12 @@
               "Default": 64
             },
             {
-              "Name": "MaxCategoricalSplitPoints",
+              "Name": "MaximumCategoricalSplitPoints",
               "Type": "Int",
               "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
               "Aliases": [
-                "maxcat"
+                "maxcat",
+                "MaxCategoricalSplitPoints"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28448,11 +28640,12 @@
               "Default": 64
             },
             {
-              "Name": "MinDocsPercentageForCategoricalSplit",
+              "Name": "MinimumExampleFractionForCategoricalSplit",
               "Type": "Float",
               "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
               "Aliases": [
-                "mdop"
+                "mdop",
+                "MinDocsPercentageForCategoricalSplit"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28460,11 +28653,12 @@
               "Default": 0.001
             },
             {
-              "Name": "MinDocsForCategoricalSplit",
+              "Name": "MinimumExamplesForCategoricalSplit",
               "Type": "Int",
               "Desc": "Minimum categorical doc count in a bin to consider for a split.",
               "Aliases": [
-                "mdo"
+                "mdo",
+                "MinDocsForCategoricalSplit"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28503,11 +28697,12 @@
               "Default": "None"
             },
             {
-              "Name": "MaxBins",
+              "Name": "MaximumBinCountPerFeature",
               "Type": "Int",
               "Desc": "Maximum number of distinct values (bins) per feature",
               "Aliases": [
-                "mb"
+                "mb",
+                "MaxBins"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28575,11 +28770,12 @@
               "Default": 0.0
             },
             {
-              "Name": "ExecutionTimes",
+              "Name": "ExecutionTime",
               "Type": "Bool",
               "Desc": "Print execution time breakdown to stdout",
               "Aliases": [
-                "et"
+                "et",
+                "ExecutionTimes"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28611,11 +28807,12 @@
               "Default": 0
             },
             {
-              "Name": "BaggingTrainFraction",
+              "Name": "BaggingExampleFraction",
               "Type": "Float",
               "Desc": "Percentage of training examples used in each bag",
               "Aliases": [
-                "bagfrac"
+                "bagfrac",
+                "BaggingTrainFraction"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28623,11 +28820,12 @@
               "Default": 0.7
             },
             {
-              "Name": "SplitFraction",
+              "Name": "FeatureFractionPerSplit",
               "Type": "Float",
               "Desc": "The fraction of features (chosen randomly) to use on each split",
               "Aliases": [
-                "sf"
+                "sf",
+                "SplitFraction"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28684,11 +28882,12 @@
               "Default": false
             },
             {
-              "Name": "MaxTreesAfterCompression",
+              "Name": "MaximumTreeCountAfterCompression",
               "Type": "Int",
               "Desc": "Maximum Number of trees after compression",
               "Aliases": [
-                "cmpmax"
+                "cmpmax",
+                "MaxTreesAfterCompression"
               ],
               "Required": false,
               "SortOrder": 150.0,

@@ -237,7 +237,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 using (Timer.Time(TimerEvent.TotalTrain))
                     Train(ch);
                 if (FastTreeTrainerOptions.ExecutionTime)
-                    PrintExecutionTimes(ch);
+                    PrintExecutionTime(ch);
                 TrainedEnsemble = Ensemble;
                 if (FeatureMap != null)
                     TrainedEnsemble.RemapFeatures(FeatureMap);
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ThreadTaskManager.Initialize(numThreads);
         }
 
-        private protected virtual void PrintExecutionTimes(IChannel ch)
+        private protected virtual void PrintExecutionTime(IChannel ch)
         {
             ch.Info("Execution time breakdown:\n{0}", Timer.GetString());
         }
