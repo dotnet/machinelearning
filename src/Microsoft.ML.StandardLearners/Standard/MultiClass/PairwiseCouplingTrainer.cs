@@ -166,7 +166,7 @@ namespace Microsoft.ML.Trainers
                 return MapLabelsCore(NumberDataViewType.Double, (in double val) => val == key1 || val == key2, data);
             }
 
-            throw Host.ExceptNotSupp($"Label column type is not supported by PairwiseCouplingTrainer: {lab.Type.RawType}");
+            throw Host.ExceptNotSupp($"Label column type is not supported by nameof(PairwiseCouplingTrainer): {lab.Type.RawType}");
         }
 
         /// <summary>
