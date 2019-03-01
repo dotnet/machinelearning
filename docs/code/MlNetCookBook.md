@@ -303,8 +303,8 @@ var someRows = mlContext
 // This will give the entire dataset: make sure to only take several row
 // in case the dataset is huge. The is similar to the static API, except
 // you have to specify the column name and type.
-var featureColumns = transformedData.GetColumn<string[]>(mlContext, "AllFeatures")
-    .Take(20).ToArray();
+var featureColumns = transformedData.GetColumn<string[]>(transformedData.Schema["AllFeatures"])
+
 ```
 ## How do I train a regression model?
 
@@ -637,7 +637,7 @@ var pipeline =
 var normalizedData = pipeline.Fit(trainData).Transform(trainData);
 
 // Inspect one column of the resulting dataset.
-var meanVarValues = normalizedData.GetColumn<float[]>(mlContext, "MeanVarNormalized").ToArray();
+var meanVarValues = normalizedData.GetColumn<float[]>(normalizedData.Schema["MeanVarNormalized"]).ToArray();
 ```
 
 ## How do I train my model on categorical data?
@@ -682,8 +682,8 @@ var loader = mlContext.Data.CreateTextLoader(new[]
 // Load the data.
 var data = loader.Load(dataPath);
 
-// Inspect the first 10 records of the categorical columns to check that they are correctly load.
-var catColumns = data.GetColumn<string[]>(mlContext, "CategoricalFeatures").Take(10).ToArray();
+// Inspect the first 10 records of the categorical columns to check that they are correctly read.
+var catColumns = data.GetColumn<string[]>(data.Schema["CategoricalFeatures"]).Take(10).ToArray();
 
 // Build several alternative featurization pipelines.
 var pipeline =
@@ -699,8 +699,8 @@ var pipeline =
 var transformedData = pipeline.Fit(data).Transform(data);
 
 // Inspect some columns of the resulting dataset.
-var categoricalBags = transformedData.GetColumn<float[]>(mlContext, "CategoricalBag").Take(10).ToArray();
-var workclasses = transformedData.GetColumn<float[]>(mlContext, "WorkclassOneHotTrimmed").Take(10).ToArray();
+var categoricalBags = transformedData.GetColumn<float[]>(transformedData.Schema["CategoricalBag"]).Take(10).ToArray();
+var workclasses = transformedData.GetColumn<float[]>(transformedData.Schema["WorkclassOneHotTrimmed"]).Take(10).ToArray();
 
 // Of course, if we want to train the model, we will need to compose a single float vector of all the features.
 // Here's how we could do this:
@@ -756,8 +756,8 @@ var loader = mlContext.Data.CreateTextLoader(new[]
 // Load the data.
 var data = loader.Load(dataPath);
 
-// Inspect the message texts that are load from the file.
-var messageTexts = data.GetColumn<string>(mlContext, "Message").Take(20).ToArray();
+// Inspect the message texts that are read from the file.
+var messageTexts = data.GetColumn<string>(data.Schema["Message"]).Take(20).ToArray();
 
 // Apply various kinds of text operations supported by ML.NET.
 var pipeline =

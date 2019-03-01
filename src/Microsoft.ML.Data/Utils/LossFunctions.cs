@@ -7,7 +7,6 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Float = System.Single;
 
 [assembly: LoadableClass(LogLoss.Summary, typeof(LogLoss), null, typeof(SignatureClassificationLoss),
     "Log Loss", "LogLoss", "Logistic", "CrossEntropy")]
@@ -52,7 +51,7 @@ namespace Microsoft.ML
         //  - lambda is the L2 const
         //  - n is the number of instances
         //    Note that if we are going to implement Online-DCA then n = t and varies.
-        Float ComputeDualUpdateInvariant(Float scaledFeaturesNormSquared);
+        float ComputeDualUpdateInvariant(float scaledFeaturesNormSquared);
 
         /// <summary>
         /// Compute the dual update (\Delta\alpha_i) in SDCA
@@ -60,7 +59,7 @@ namespace Microsoft.ML
         /// - lambdaN: L2 const x number of instances
         /// - cached invariant, hinted by the method above
         /// </summary>
-        Float DualUpdate(Float output, Float label, Float dual, Float invariant, int maxNumThreads);
+        float DualUpdate(float output, float label, float dual, float invariant, int maxNumThreads);
 
         /// <summary>
         /// The dual loss function for a training example.
@@ -70,7 +69,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="label">The label of the example.</param>
         /// <param name="dual">The dual variable of the example.</param>
-        Double DualLoss(Float label, Double dual);
+        Double DualLoss(float label, Double dual);
     }
 
     public interface ISupportSdcaClassificationLoss : ISupportSdcaLoss, IClassificationLoss
@@ -104,30 +103,30 @@ namespace Microsoft.ML
     public sealed class LogLoss : ISupportSdcaClassificationLoss
     {
         internal const string Summary = "The log loss function for classification. Supported by SDCA.";
-        private const Float Threshold = 0.5f;
+        private const float Threshold = 0.5f;
 
-        public Double Loss(Float output, Float label)
+        public Double Loss(float output, float label)
         {
-            Float prediction = MathUtils.Sigmoid(output);
+            float prediction = MathUtils.Sigmoid(output);
             return label > 0 ? -Log(prediction) : -Log(1 - prediction);
         }
 
-        public Float Derivative(Float output, Float label)
+        public float Derivative(float output, float label)
         {
-            Float prediction = MathUtils.Sigmoid(output);
+            float prediction = MathUtils.Sigmoid(output);
             return label > 0 ? prediction - 1 : prediction;
         }
 
-        public Float ComputeDualUpdateInvariant(Float scaledFeaturesNormSquared)
+        public float ComputeDualUpdateInvariant(float scaledFeaturesNormSquared)
         {
-            return 1 / Math.Max(1, (Float)0.25 + scaledFeaturesNormSquared);
+            return 1 / Math.Max(1, (float)0.25 + scaledFeaturesNormSquared);
         }
 
         // REVIEW: this dual update uses a different log loss formulation,
         //although the two are equivalents if the labels are restricted to 0 and 1
         //Need to update so that it can handle probability label and true to the
         //definition, which is a smooth loss function
-        public Float DualUpdate(Float output, Float label, Float dual, Float invariant, int maxNumThreads)
+        public float DualUpdate(float output, float label, float dual, float invariant, int maxNumThreads)
         {
             label = label > 0 ? 1 : -1;
 
@@ -137,7 +136,7 @@ namespace Microsoft.ML
             return maxNumThreads >= 2 && Math.Abs(fullUpdate) > Threshold ? fullUpdate / maxNumThreads : fullUpdate;
         }
 
-        public Double DualLoss(Float label, Double dual)
+        public Double DualLoss(float label, Double dual)
         {
             // Normalize the dual with label.
             if (label <= 0)
@@ -165,7 +164,7 @@ namespace Microsoft.ML
         public sealed class Options : ISupportSdcaClassificationLossFactory, ISupportClassificationLossFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Margin value", ShortName = "marg")]
-            public Float Margin = Defaults.Margin;
+            public float Margin = Defaults.Margin;
 
             public ISupportSdcaClassificationLoss CreateComponent(IHostEnvironment env) => new HingeLoss(this);
 
@@ -173,8 +172,8 @@ namespace Microsoft.ML
         }
 
         internal const string Summary = "The Hinge loss function for classification. Supported by SDCA.";
-        private const Float Threshold = 0.5f;
-        private readonly Float _margin;
+        private const float Threshold = 0.5f;
+        private readonly float _margin;
 
         internal HingeLoss(Options options)
         {
@@ -191,33 +190,33 @@ namespace Microsoft.ML
         {
         }
 
-        public Double Loss(Float output, Float label)
+        public Double Loss(float output, float label)
         {
-            Float truth = label > 0 ? 1 : -1;
-            Float loss = _margin - truth * output;
+            float truth = label > 0 ? 1 : -1;
+            float loss = _margin - truth * output;
             return loss > 0 ? loss : 0;
         }
 
-        public Float Derivative(Float output, Float label)
+        public float Derivative(float output, float label)
         {
-            Float truth = label > 0 ? 1 : -1;
+            float truth = label > 0 ? 1 : -1;
             return _margin > truth * output ? -truth : 0;
         }
 
-        public Float ComputeDualUpdateInvariant(Float scaledFeaturesNormSquared)
+        public float ComputeDualUpdateInvariant(float scaledFeaturesNormSquared)
         {
             return 1 / scaledFeaturesNormSquared;
         }
 
-        public Float DualUpdate(Float output, Float label, Float alpha, Float invariant, int maxNumThreads)
+        public float DualUpdate(float output, float label, float alpha, float invariant, int maxNumThreads)
         {
-            Float truth = label > 0 ? 1 : -1;
+            float truth = label > 0 ? 1 : -1;
             var tmp = (_margin - output * truth) * invariant + alpha * truth;
             var fullUpdate = truth * Math.Max(0, Math.Min(1, tmp)) - alpha;
             return maxNumThreads >= 2 && Math.Abs(fullUpdate) > Threshold ? fullUpdate / maxNumThreads : fullUpdate;
         }
 
-        public Double DualLoss(Float label, Double dual)
+        public Double DualLoss(float label, Double dual)
         {
             if (label <= 0)
                 dual = -dual;
@@ -237,7 +236,7 @@ namespace Microsoft.ML
         public sealed class Options : ISupportSdcaClassificationLossFactory, ISupportClassificationLossFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Smoothing constant", ShortName = "smooth")]
-            public Float SmoothingConst = Defaults.SmoothingConst;
+            public float SmoothingConst = Defaults.SmoothingConst;
 
             public ISupportSdcaClassificationLoss CreateComponent(IHostEnvironment env) => new SmoothedHingeLoss(env, this);
 
@@ -245,9 +244,9 @@ namespace Microsoft.ML
         }
 
         internal const string Summary = "The smooth Hinge loss function for classification. Supported by SDCA.";
-        private const Float Threshold = 0.5f;
+        private const float Threshold = 0.5f;
         // The smoothed Hinge loss is 1/(_SmoothParam) smooth (its definition can be found in http://jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf (page 568 Definition 1)
-        private readonly Float _smoothConst;
+        private readonly float _smoothConst;
         private readonly Double _halfSmoothConst;
         private readonly Double _doubleSmoothConst;
 
@@ -273,10 +272,10 @@ namespace Microsoft.ML
         {
         }
 
-        public Double Loss(Float output, Float label)
+        public Double Loss(float output, float label)
         {
-            Float truth = label > 0 ? 1 : -1;
-            Float u = 1 - truth * output;
+            float truth = label > 0 ? 1 : -1;
+            float u = 1 - truth * output;
 
             if (u < 0)
                 return 0;
@@ -287,10 +286,10 @@ namespace Microsoft.ML
             return u - _halfSmoothConst;
         }
 
-        public Float Derivative(Float output, Float label)
+        public float Derivative(float output, float label)
         {
-            Float truth = label > 0 ? 1 : -1;
-            Float u = 1 - truth * output;
+            float truth = label > 0 ? 1 : -1;
+            float u = 1 - truth * output;
 
             if (u < 0)
                 return 0;
@@ -301,20 +300,20 @@ namespace Microsoft.ML
             return -truth;
         }
 
-        public Float ComputeDualUpdateInvariant(Float scaledFeaturesNormSquared)
+        public float ComputeDualUpdateInvariant(float scaledFeaturesNormSquared)
         {
             return 1 / (scaledFeaturesNormSquared + _smoothConst);
         }
 
-        public Float DualUpdate(Float output, Float label, Float alpha, Float invariant, int maxNumThreads)
+        public float DualUpdate(float output, float label, float alpha, float invariant, int maxNumThreads)
         {
-            Float truth = label > 0 ? 1 : -1;
+            float truth = label > 0 ? 1 : -1;
             var tmp = (1 - output * truth - _smoothConst * alpha * truth) * invariant + alpha * truth;
             var fullUpdate = truth * Math.Max(0, Math.Min(1, tmp)) - alpha;
             return maxNumThreads >= 2 && Math.Abs(fullUpdate) > Threshold ? fullUpdate / maxNumThreads : fullUpdate;
         }
 
-        public Double DualLoss(Float label, Double dual)
+        public Double DualLoss(float label, Double dual)
         {
             if (label <= 0)
                 dual = -dual;
@@ -336,30 +335,30 @@ namespace Microsoft.ML
         public sealed class Options : ISupportClassificationLossFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Beta (dilation)", ShortName = "beta")]
-            public Float Beta = 1;
+            public float Beta = 1;
 
             public IClassificationLoss CreateComponent(IHostEnvironment env) => new ExpLoss(this);
         }
 
         internal const string Summary = "The exponential loss function for classification.";
 
-        private readonly Float _beta;
+        private readonly float _beta;
 
         public ExpLoss(Options options)
         {
             _beta = options.Beta;
         }
 
-        public Double Loss(Float output, Float label)
+        public Double Loss(float output, float label)
         {
-            Float truth = label > 0 ? 1 : -1;
+            float truth = label > 0 ? 1 : -1;
             return MathUtils.ExpSlow(-_beta * truth * output);
         }
 
-        public Float Derivative(Float output, Float label)
+        public float Derivative(float output, float label)
         {
-            Float truth = label > 0 ? 1 : -1;
-            Float factor = -_beta * truth;
+            float truth = label > 0 ? 1 : -1;
+            float factor = -_beta * truth;
             return factor * MathUtils.ExpSlow(factor * output);
         }
     }
@@ -376,30 +375,30 @@ namespace Microsoft.ML
     {
         internal const string Summary = "The squared loss function for regression.";
 
-        public Double Loss(Float output, Float label)
+        public Double Loss(float output, float label)
         {
-            Float diff = output - label;
+            float diff = output - label;
             return diff * diff;
         }
 
-        public Float Derivative(Float output, Float label)
+        public float Derivative(float output, float label)
         {
-            Float diff = output - label;
+            float diff = output - label;
             return 2 * diff;
         }
 
-        public Float ComputeDualUpdateInvariant(Float scaledFeaturesNormSquared)
+        public float ComputeDualUpdateInvariant(float scaledFeaturesNormSquared)
         {
-            return 1 / ((Float)0.5 + scaledFeaturesNormSquared);
+            return 1 / ((float)0.5 + scaledFeaturesNormSquared);
         }
 
-        public Float DualUpdate(Float output, Float label, Float dual, Float invariant, int maxNumThreads)
+        public float DualUpdate(float output, float label, float dual, float invariant, int maxNumThreads)
         {
-            var fullUpdate = (label - output - (Float)0.5 * dual) * invariant;
+            var fullUpdate = (label - output - (float)0.5 * dual) * invariant;
             return maxNumThreads >= 2 ? fullUpdate / maxNumThreads : fullUpdate;
         }
 
-        public Double DualLoss(Float label, Double dual)
+        public Double DualLoss(float label, Double dual)
         {
             return -dual * (dual / 4 - label);
         }
@@ -418,7 +417,7 @@ namespace Microsoft.ML
     {
         internal const string Summary = "The Poisson loss function for regression.";
 
-        public Double Loss(Float output, Float label)
+        public Double Loss(float output, float label)
         {
             // REVIEW: This is stupid and leads to error whenever this loss is used in an evaluator.
             // The output is in the log-space, while the label is in the original space, while the evaluator
@@ -426,9 +425,9 @@ namespace Microsoft.ML
             return Math.Exp(output) - label * output;
         }
 
-        public Float Derivative(Float output, Float label)
+        public float Derivative(float output, float label)
         {
-            return (Float)Math.Exp(output) - label;
+            return (float)Math.Exp(output) - label;
         }
     }
 
@@ -475,14 +474,14 @@ namespace Microsoft.ML
             _index2 = 2 - _index;
         }
 
-        private static void Clamp(ref Float val)
+        private static void Clamp(ref float val)
         {
-            const Float eps = (Float)1e-7;
+            const float eps = (float)1e-7;
             if (val < eps) // I tawt I taw a negwawive wowue.
                 val = eps; // I did! I did taw a negwawive wowue!!
         }
 
-        public Double Loss(Float output, Float label)
+        public Double Loss(float output, float label)
         {
             Clamp(ref output);
             Clamp(ref label);
@@ -502,14 +501,14 @@ namespace Microsoft.ML
                 - (Math.Pow(label, _index2) / _index2 - label * Math.Pow(label, _index1) / _index1);
         }
 
-        public Float Derivative(Float output, Float label)
+        public float Derivative(float output, float label)
         {
             Clamp(ref output);
             Clamp(ref label);
 
             if (_index1 == 0)
                 return output - label;
-            return (Float)(Math.Pow(output, _index2) - label * Math.Pow(output, _index1));
+            return (float)(Math.Pow(output, _index2) - label * Math.Pow(output, _index1));
         }
     }
 }

@@ -31,7 +31,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             var wordsDataview = wordsPipeline.Fit(trainData).Transform(trainData);
             // Preview of the CleanWords column obtained after processing SentimentText.
-            var cleanWords = wordsDataview.GetColumn<ReadOnlyMemory<char>[]>(ml, "CleanWords");
+            var cleanWords = wordsDataview.GetColumn<ReadOnlyMemory<char>[]>(wordsDataview.Schema["CleanWords"]);
             Console.WriteLine($" CleanWords column obtained post-transformation.");
             foreach (var featureRow in cleanWords)
             {
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // And do all required transformations.
             var embeddingDataview = pipeline.Fit(wordsDataview).Transform(wordsDataview);
 
-            var customEmbeddings = embeddingDataview.GetColumn<float[]>(ml, "CustomEmbeddings");
+            var customEmbeddings = embeddingDataview.GetColumn<float[]>(embeddingDataview.Schema["CustomEmbeddings"]);
             printEmbeddings("GloveEmbeddings", customEmbeddings);
 
             // -1  -2   -3  -0.5   -1  8.5  0   0   20
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Second set of 3 floats in output represent average (for each dimension) for extracted values.
             // Third set of 3 floats in output represent maximum values (for each dimension) for extracted values.
             // Preview of GloveEmbeddings.
-            var gloveEmbeddings = embeddingDataview.GetColumn<float[]>(ml, "GloveEmbeddings");
+            var gloveEmbeddings = embeddingDataview.GetColumn<float[]>(embeddingDataview.Schema["GloveEmbeddings"]);
             printEmbeddings("GloveEmbeddings", gloveEmbeddings);
             // 0.23166 0.048825 0.26878 -1.3945 -0.86072 -0.026778 0.84075 -0.81987 -1.6681 -1.0658 -0.30596 0.50974 ...
             //-0.094905 0.61109 0.52546 - 0.2516 0.054786 0.022661 1.1801 0.33329 - 0.85388 0.15471 - 0.5984 0.4364  ...

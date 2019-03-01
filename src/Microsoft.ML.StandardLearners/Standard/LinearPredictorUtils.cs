@@ -11,7 +11,6 @@ using System.Text.RegularExpressions;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Float = System.Single;
 
 namespace Microsoft.ML.Trainers
 {
@@ -23,12 +22,12 @@ namespace Microsoft.ML.Trainers
         // Epsilon for 0-comparisons.
         // REVIEW: Why is this doing any thresholding? Shouldn't it faithfully
         // represent what is in the binary model?
-        private const Float Epsilon = (Float)1e-15;
+        private const float Epsilon = (float)1e-15;
 
         /// <summary>
         /// print the linear model as code
         /// </summary>
-        public static void SaveAsCode(TextWriter writer, in VBuffer<Float> weights, Float bias,
+        public static void SaveAsCode(TextWriter writer, in VBuffer<float> weights, float bias,
             RoleMappedSchema schema, string codeVariable = "output")
         {
             Contracts.CheckValue(writer, nameof(writer));
@@ -93,7 +92,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Build a Bing TreeEnsemble .ini representation of the given predictor
         /// </summary>
-        public static string LinearModelAsIni(in VBuffer<Float> weights, Float bias, IPredictor predictor = null,
+        public static string LinearModelAsIni(in VBuffer<float> weights, float bias, IPredictor predictor = null,
             RoleMappedSchema schema = null, PlattCalibrator calibrator = null)
         {
             // TODO: Might need to consider a max line length for the Weights list, requiring us to split it up into
@@ -175,7 +174,7 @@ namespace Microsoft.ML.Trainers
         /// Output the weights of a linear model to a given writer
         /// </summary>
         public static string LinearModelAsText(
-            string userName, string loadName, string settings, in VBuffer<Float> weights, Float bias,
+            string userName, string loadName, string settings, in VBuffer<float> weights, float bias,
             RoleMappedSchema schema = null, PlattCalibrator calibrator = null)
         {
             // Review: added a text description for each calibrator (not only Platt), would be nice to add to this method.
@@ -197,8 +196,8 @@ namespace Microsoft.ML.Trainers
             SaveLinearModelWeightsInKeyValuePairs(in weights, bias, schema, weightValues);
             foreach (var weightValue in weightValues)
             {
-                Contracts.Assert(weightValue.Value is Float);
-                b.AppendLine().AppendFormat("{0}\t{1}", weightValue.Key, (Float)weightValue.Value);
+                Contracts.Assert(weightValue.Value is float);
+                b.AppendLine().AppendFormat("{0}\t{1}", weightValue.Key, (float)weightValue.Value);
             }
 
             return b.ToString();
@@ -226,7 +225,7 @@ namespace Microsoft.ML.Trainers
         /// Output the weights of a linear model to key value pairs.
         /// </summary>
         public static void SaveLinearModelWeightsInKeyValuePairs(
-            in VBuffer<Float> weights, Float bias, RoleMappedSchema schema, List<KeyValuePair<string, object>> results)
+            in VBuffer<float> weights, float bias, RoleMappedSchema schema, List<KeyValuePair<string, object>> results)
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, weights.Length, ref names);

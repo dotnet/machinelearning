@@ -44,7 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedData = transformer.Transform(trainData);
 
             // Getting the data of the newly created column, so we can preview it.
-            var normalizedColumn = transformedData.GetColumn<float>(ml, "Induced");
+            var normalizedColumn = transformedData.GetColumn<float>(transformedData.Schema["Induced"]);
 
             // A small printing utility.
             Action<string, IEnumerable<float>> printHelper = (colName, column) =>
@@ -72,8 +72,8 @@ namespace Microsoft.ML.Samples.Dynamic
             var multiColtransformedData = multiColtransformer.Transform(trainData);
 
             // Getting the newly created columns. 
-            var normalizedInduced = multiColtransformedData.GetColumn<float>(ml, "LogInduced");
-            var normalizedSpont = multiColtransformedData.GetColumn<float>(ml, "LogSpontaneous");
+            var normalizedInduced = multiColtransformedData.GetColumn<float>(multiColtransformedData.Schema["LogInduced"]);
+            var normalizedSpont = multiColtransformedData.GetColumn<float>(multiColtransformedData.Schema["LogSpontaneous"]);
 
             printHelper("LogInduced", normalizedInduced);
 

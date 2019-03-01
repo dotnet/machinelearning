@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using static Microsoft.ML.SamplesUtils.DatasetUtils;
 

@@ -646,7 +646,7 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(result.Schema[labelIdx].Type is KeyType);
                 Assert.Equal((ulong)5, result.Schema[labelIdx].Type.GetItemType().GetKeyCount());
 
-                var t = result.GetColumn<uint>(Env, "Label");
+                var t = result.GetColumn<uint>(result.Schema["Label"]);
                 uint s = t.First();
                 Assert.Equal((uint)3, s);
             }

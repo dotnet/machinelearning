@@ -41,7 +41,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // The transformed (projected) data.
             var transformedData = rffPipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.
-            var randomFourier = transformedData.GetColumn<VBuffer<float>>(ml, nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features));
+            var randomFourier = transformedData.GetColumn<VBuffer<float>>(transformedData.Schema[nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features)]);
 
             printHelper(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), randomFourier);
 
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // The transformed (projected) data.
             transformedData = lpNormalizePipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.
-            var lpNormalize= transformedData.GetColumn<VBuffer<float>>(ml, nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features));
+            var lpNormalize= transformedData.GetColumn<VBuffer<float>>(transformedData.Schema[nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features)]);
 
             printHelper(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), lpNormalize);
 
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // The transformed (projected) data.
             transformedData = gcNormalizePipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.
-            var gcNormalize = transformedData.GetColumn<VBuffer<float>>(ml, nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features));
+            var gcNormalize = transformedData.GetColumn<VBuffer<float>>(transformedData.Schema[nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features)]);
 
             printHelper(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), gcNormalize);
 

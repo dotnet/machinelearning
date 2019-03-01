@@ -78,9 +78,9 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.FeatureColumn = featuresName;
-                    options.LabelColumn = labelName;
-                    options.WeightColumn = weightsName;
+                    options.FeatureColumnName = featuresName;
+                    options.LabelColumnName = labelName;
+                    options.ExampleWeightColumnName = weightsName;
 
                     var trainer = new SgdBinaryTrainer(env, options);
 
@@ -161,9 +161,9 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.FeatureColumn = featuresName;
-                    options.LabelColumn = labelName;
-                    options.WeightColumn = weightsName;
+                    options.FeatureColumnName = featuresName;
+                    options.LabelColumnName = labelName;
+                    options.ExampleWeightColumnName = weightsName;
 
                     var trainer = new SgdNonCalibratedBinaryTrainer(env, options);
 

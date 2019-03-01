@@ -54,14 +54,14 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             // Preview the result of breaking string into array of words.
-            var originalText = transformedDataDefault.GetColumn<VBuffer<ReadOnlyMemory<char>>>(ml, originalTextColumnName);
+            var originalText = transformedDataDefault.GetColumn<VBuffer<ReadOnlyMemory<char>>>(transformedDataDefault.Schema[originalTextColumnName]);
             printHelper(originalTextColumnName, originalText);
             // Best|game|I've|ever|played.|
             // == RUDE ==| Dude,| 2 |
             // Until | the | next | game,| this |is| the | best | Xbox | game!|
 
             // Preview the result of cleaning with default stop word remover.
-            var defaultRemoverData = transformedDataDefault.GetColumn<VBuffer<ReadOnlyMemory<char>>>(ml, "DefaultRemover");
+            var defaultRemoverData = transformedDataDefault.GetColumn<VBuffer<ReadOnlyMemory<char>>>(transformedDataDefault.Schema["DefaultRemover"]);
             printHelper("DefaultRemover", defaultRemoverData);
             // Best|game|I've|played.|
             // == RUDE ==| Dude,| 2 |
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
 
             // Preview the result of cleaning with default customized stop word remover.
-            var customizeRemoverData = transformedDataCustomized.GetColumn<VBuffer<ReadOnlyMemory<char>>>(ml, "RemovedWords");
+            var customizeRemoverData = transformedDataCustomized.GetColumn<VBuffer<ReadOnlyMemory<char>>>(transformedDataCustomized.Schema["RemovedWords"]);
             printHelper("RemovedWords", customizeRemoverData);
 
             // Best|game|I've|ever|played.|
