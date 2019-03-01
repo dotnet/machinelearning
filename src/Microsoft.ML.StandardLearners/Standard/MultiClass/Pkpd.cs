@@ -50,7 +50,7 @@ namespace Microsoft.ML.Trainers
     /// logistic regression is a more principled way to solve a multiclass problem, it
     /// requires that the learner store a lot more intermediate state in the form of
     /// L-BFGS history for all classes *simultaneously*, rather than just one-by-one
-    /// as would be needed for OVA.
+    /// as would be needed for a one-versus-all classification model.
     /// </summary>
     public sealed class Pkpd : MetaMulticlassTrainer<MulticlassPredictionTransformer<PkpdModelParameters>, PkpdModelParameters>
     {
@@ -82,9 +82,9 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
-        /// <param name="calibrator">The calibrator. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
         /// <param name="labelColumn">The name of the label colum.</param>
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
+        /// <param name="calibrator">The calibrator to use for each model instance. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
         /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
         internal Pkpd(IHostEnvironment env,
             TScalarTrainer binaryEstimator,

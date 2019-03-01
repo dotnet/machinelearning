@@ -21,7 +21,7 @@ namespace Microsoft.ML.LightGBM
 {
 
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
-    public sealed class LightGbmMulticlassTrainer : LightGbmTrainerBase<VBuffer<float>, MulticlassPredictionTransformer<OvaModelParameters>, OvaModelParameters>
+    public sealed class LightGbmMulticlassTrainer : LightGbmTrainerBase<VBuffer<float>, MulticlassPredictionTransformer<OneVersusAllModelParameters>, OneVersusAllModelParameters>
     {
         internal const string Summary = "LightGBM Multi Class Classifier";
         internal const string LoadNameValue = "LightGBMMulticlass";
@@ -80,7 +80,7 @@ namespace Microsoft.ML.LightGBM
             return new LightGbmBinaryModelParameters(Host, GetBinaryEnsemble(classID), FeatureCount, innerArgs);
         }
 
-        private protected override OvaModelParameters CreatePredictor()
+        private protected override OneVersusAllModelParameters CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete.");
 
@@ -97,9 +97,9 @@ namespace Microsoft.ML.LightGBM
             }
             string obj = (string)GetGbmParameters()["objective"];
             if (obj == "multiclass")
-                return OvaModelParameters.Create(Host, OvaModelParameters.OutputFormula.Softmax, predictors);
+                return OneVersusAllModelParameters.Create(Host, OneVersusAllModelParameters.OutputFormula.Softmax, predictors);
             else
-                return OvaModelParameters.Create(Host, predictors);
+                return OneVersusAllModelParameters.Create(Host, predictors);
         }
 
         private protected override void CheckDataValid(IChannel ch, RoleMappedData data)
@@ -218,14 +218,14 @@ namespace Microsoft.ML.LightGBM
             };
         }
 
-        private protected override MulticlassPredictionTransformer<OvaModelParameters> MakeTransformer(OvaModelParameters model, DataViewSchema trainSchema)
-            => new MulticlassPredictionTransformer<OvaModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+        private protected override MulticlassPredictionTransformer<OneVersusAllModelParameters> MakeTransformer(OneVersusAllModelParameters model, DataViewSchema trainSchema)
+            => new MulticlassPredictionTransformer<OneVersusAllModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
         /// <summary>
         /// Trains a <see cref="LightGbmMulticlassTrainer"/> using both training and validation data, returns
-        /// a <see cref="MulticlassPredictionTransformer{OvaModelParameters}"/>.
+        /// a <see cref="MulticlassPredictionTransformer{OneVsAllModelParameters}"/>.
         /// </summary>
-        public MulticlassPredictionTransformer<OvaModelParameters> Fit(IDataView trainData, IDataView validationData)
+        public MulticlassPredictionTransformer<OneVersusAllModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
     }
 
