@@ -80,14 +80,54 @@ namespace Microsoft.ML.Transforms
             => new TensorFlowEstimator(_env, outputColumnNames, inputColumnNames, ModelPath);
 
         /// <summary>
-        /// Create the <see cref="TensorFlowEstimator"/> for scoring or retraining using the tensorflow model.
+        /// Retrain the TensorFlow model on new data.
         /// The model is not loaded again instead the information contained in <see cref="TensorFlowModel"/> class is reused
         /// (c.f. <see cref="TensorFlowModel.ModelPath"/> and <see cref="TensorFlowModel.Session"/>).
         /// </summary>
-        /// <param name="options">The <see cref="TensorFlowEstimator.Options"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
-        public TensorFlowEstimator CreateTensorFlowEstimator(TensorFlowEstimator.Options options)
+        /// <param name="inputColumnNames"> The names of the model inputs.</param>
+        /// <param name="outputColumnNames">The names of the requested model outputs.</param>
+        /// <param name="labelColumnName">Name of the label column.</param>
+        /// <param name="tensorFlowLabel">Name of the node in TensorFlow graph that is used as label during training in TensorFlow.
+        /// The value of <paramref name="labelColumnName"/> from <see cref="IDataView"/> is fed to this node.</param>
+        /// <param name="optimizationOperation">The name of the optimization operation in the TensorFlow graph.</param>
+        /// <param name="epoch">Number of training iterations.</param>
+        /// <param name="batchSize">Number of samples to use for mini-batch training.</param>
+        /// <param name="lossOperation">The name of the operation in the TensorFlow graph to compute training loss (Optional).</param>
+        /// <param name="metricOperation">The name of the operation in the TensorFlow graph to compute performance metric during training (Optional).</param>
+        /// <param name="learningRateOperation">The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).</param>
+        /// <param name="learningRate">Learning rate to use during optimization (Optional).</param>
+        /// <remarks>
+        /// The support for retraining is experimental.
+        /// </remarks>
+        public TensorFlowEstimator RetrainTensorFlowModel(
+            string[] outputColumnNames,
+            string[] inputColumnNames,
+            string labelColumnName,
+            string tensorFlowLabel,
+            string optimizationOperation,
+            int epoch = 10,
+            int batchSize = 20,
+            string lossOperation= null,
+            string metricOperation = null,
+            string learningRateOperation = null,
+            float learningRate = 0.01f)
         {
-            options.ModelLocation = ModelPath;
+            var options = new TensorFlowEstimator.Options()
+            {
+                ModelLocation = ModelPath,
+                InputColumns = inputColumnNames,
+                OutputColumns = outputColumnNames,
+                LabelColumn = labelColumnName,
+                TensorFlowLabel = tensorFlowLabel,
+                OptimizationOperation = optimizationOperation,
+                LossOperation = lossOperation,
+                MetricOperation = metricOperation,
+                Epoch = epoch,
+                LearningRateOperation = learningRateOperation,
+                LearningRate = learningRate,
+                BatchSize = batchSize,
+                ReTrain = true
+            };
             return new TensorFlowEstimator(_env, options, this);
         }
     }

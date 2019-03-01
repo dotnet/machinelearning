@@ -544,20 +544,17 @@ namespace Microsoft.ML.Scenarios
 
                 var pipe = mlContext.Transforms.Categorical.OneHotEncoding("OneHotLabel", "Label")
                     .Append(mlContext.Transforms.Normalize(new NormalizingEstimator.MinMaxColumnOptions("Features", "Placeholder")))
-                    .Append(mlContext.Model.LoadTensorFlowModel(model_location).CreateTensorFlowEstimator(new TensorFlowEstimator.Options()
-                    {
-                        InputColumns = new[] { "Features" },
-                        OutputColumns = new[] { "Prediction", "b" },
-                        LabelColumn = "OneHotLabel",
-                        TensorFlowLabel = "Label",
-                        OptimizationOperation = "SGDOptimizer",
-                        LossOperation = "Loss",
-                        Epoch = 10,
-                        LearningRateOperation = "SGDOptimizer/learning_rate",
-                        LearningRate = 0.001f,
-                        BatchSize = 20,
-                        ReTrain = true
-                    }))
+                    .Append(mlContext.Model.LoadTensorFlowModel(model_location).RetrainTensorFlowModel(
+                        inputColumnNames: new[] { "Features" },
+                        outputColumnNames: new[] { "Prediction", "b" },
+                        labelColumnName: "OneHotLabel",
+                        tensorFlowLabel: "Label",
+                        optimizationOperation: "SGDOptimizer",
+                        lossOperation: "Loss",
+                        epoch: 10,
+                        learningRateOperation: "SGDOptimizer/learning_rate",
+                        learningRate: 0.001f,
+                        batchSize: 20))
                     .Append(mlContext.Transforms.Concatenate("Features", "Prediction"))
                     .Append(mlContext.Transforms.Conversion.MapValueToKey("KeyLabel", "Label", maxNumKeys: 10))
                     .Append(mlContext.MulticlassClassification.Trainers.LightGbm("KeyLabel", "Features"));
@@ -661,21 +658,18 @@ namespace Microsoft.ML.Scenarios
                 }
 
                 var pipe = mlContext.Transforms.CopyColumns(("Features", "Placeholder"))
-                    .Append(mlContext.Model.LoadTensorFlowModel(modelLocation).CreateTensorFlowEstimator(new TensorFlowEstimator.Options()
-                    {
-                        InputColumns = new[] { "Features" },
-                        OutputColumns = new[] { "Prediction" },
-                        LabelColumn = "TfLabel",
-                        TensorFlowLabel = "Label",
-                        OptimizationOperation = "MomentumOp",
-                        LossOperation = "Loss",
-                        MetricOperation = "Accuracy",
-                        Epoch = 10,
-                        LearningRateOperation = "learning_rate",
-                        LearningRate = 0.01f,
-                        BatchSize = 20,
-                        ReTrain = true
-                    }))
+                    .Append(mlContext.Model.LoadTensorFlowModel(modelLocation).RetrainTensorFlowModel(
+                        inputColumnNames: new[] { "Features" },
+                        outputColumnNames: new[] { "Prediction" },
+                        labelColumnName: "TfLabel",
+                        tensorFlowLabel: "Label",
+                        optimizationOperation: "MomentumOp",
+                        lossOperation: "Loss",
+                        metricOperation: "Accuracy",
+                        epoch: 10,
+                        learningRateOperation: "learning_rate",
+                        learningRate: 0.01f,
+                        batchSize: 20))
                     .Append(mlContext.Transforms.Concatenate("Features", "Prediction"))
                     .AppendCacheCheckpoint(mlContext)
                     .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new LightGBM.Options()
