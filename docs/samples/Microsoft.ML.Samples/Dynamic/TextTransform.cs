@@ -31,7 +31,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Another pipeline, that customizes the advanced settings of the FeaturizeText transformer.
             string customizedColumnName = "CustomizedTextFeatures";
-            var customized_pipeline = ml.Transforms.Text.FeaturizeText(customizedColumnName, new List<string> { "SentimentText" }, 
+            var customized_pipeline = ml.Transforms.Text.FeaturizeText(customizedColumnName, new string[] { "SentimentText" }, 
                 new TextFeaturizingEstimator.Options { 
                     KeepPunctuations = false,
                     KeepNumbers = false,

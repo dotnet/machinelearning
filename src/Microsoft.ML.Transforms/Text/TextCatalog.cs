@@ -45,7 +45,7 @@ namespace Microsoft.ML
         /// </example>
         public static TextFeaturizingEstimator FeaturizeText(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
-            IEnumerable<string> inputColumnNames,
+            string[] inputColumnNames,
             TextFeaturizingEstimator.Options options)
             => new TextFeaturizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
                 outputColumnName, inputColumnNames, options);
