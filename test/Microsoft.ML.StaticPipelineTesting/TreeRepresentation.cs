@@ -51,7 +51,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(10, treeCollection.TreeWeights.Count);
 
             var trees = treeCollection.Trees;
-            Assert.Equal(4, trees[0].NumNodes);
+            Assert.Equal(4, trees[0].NumberOfNodes);
 
             // Numerical split. There is no categorical split so the follwoing vector contains 0-element.
             var categoricalSplitFeatures = trees[0].GetCategoricalSplitFeaturesAt(0);
@@ -62,12 +62,12 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(0, categoricalSplitFeatureRange.Count);
 
             var expectedGtChild = new int[] { 3, 2, -4, -5 };
-            Assert.Equal(4, trees[0].GtChild.Count);
-            Assert.Equal(expectedGtChild, trees[0].GtChild);
+            Assert.Equal(4, trees[0].GreaterThanThresholdChildren.Count);
+            Assert.Equal(expectedGtChild, trees[0].GreaterThanThresholdChildren);
 
             var expectedLteChild = new int[] { 1, -1, -3, -2 };
-            Assert.Equal(4, trees[0].LteChild.Count);
-            Assert.Equal(expectedLteChild, trees[0].LteChild);
+            Assert.Equal(4, trees[0].LessThanOrEqualToThresholdChildren.Count);
+            Assert.Equal(expectedLteChild, trees[0].LessThanOrEqualToThresholdChildren);
 
             var expectedCategoricalSplitFlags = new bool[] { false, false, false, false };
             Assert.Equal(4, trees[0].CategoricalSplitFlags.Count);
@@ -82,7 +82,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             for (int i = 0; i < trees[0].NumericalSplitThresholds.Count; ++i)
                 Assert.Equal(expectedNumericalSplitThresholds[i], trees[0].NumericalSplitThresholds[i], 6);
 
-            Assert.Equal(5, trees[0].NumLeaves);
+            Assert.Equal(5, trees[0].NumberOfLeaves);
 
             var expectedLeafValues = new double[] { 40.159015006449692, 80.434805844435061, 57.072130551545513, 82.898710076162757, 104.17547955322266 };
             Assert.Equal(5, trees[0].LeafValues.Count);
@@ -133,15 +133,15 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(3, treeCollection.TreeWeights.Count);
 
             var trees = treeCollection.Trees;
-            Assert.Equal(4, trees[0].NumNodes);
+            Assert.Equal(4, trees[0].NumberOfNodes);
 
             var expectedGtChild = new int[] { 3, -3, -4, -5 };
-            Assert.Equal(4, trees[0].GtChild.Count);
-            Assert.Equal(expectedGtChild, trees[0].GtChild);
+            Assert.Equal(4, trees[0].GreaterThanThresholdChildren.Count);
+            Assert.Equal(expectedGtChild, trees[0].GreaterThanThresholdChildren);
 
             var expectedLteChild = new int[] { 1, 2, -1, -2 };
-            Assert.Equal(4, trees[0].LteChild.Count);
-            Assert.Equal(expectedLteChild, trees[0].LteChild);
+            Assert.Equal(4, trees[0].LessThanOrEqualToThresholdChildren.Count);
+            Assert.Equal(expectedLteChild, trees[0].LessThanOrEqualToThresholdChildren);
 
             var expectedCategoricalSplitFlags = new bool[] { true, true, true, true };
             Assert.Equal(4, trees[0].CategoricalSplitFlags.Count);
@@ -171,7 +171,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             int[] expectedCounts = { 62, 52, 54, 22 };
             int[] expectedStarts = { 5315, 10, 2141, 533 };
             int[] expectedEnds = { 5782, 401, 2558, 874 };
-            for (int i = 0; i < trees[0].NumNodes; ++i)
+            for (int i = 0; i < trees[0].NumberOfNodes; ++i)
             {
                 // Retrieve i-th node's split features.
                 var actualCategoricalSplitFeatures = trees[0].GetCategoricalSplitFeaturesAt(i);
@@ -180,7 +180,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 Assert.Equal(expectedEnds[i], actualCategoricalSplitFeatures[expectedCounts[i] - 1]);
             }
 
-            Assert.Equal(5, trees[0].NumLeaves);
+            Assert.Equal(5, trees[0].NumberOfLeaves);
 
             var expectedLeafValues = new double[] { 48.456055413607892, 86.584156799316418, 87.017326642027, 76.381184971185391, 117.68872643673058 };
             Assert.Equal(5, trees[0].LeafValues.Count);

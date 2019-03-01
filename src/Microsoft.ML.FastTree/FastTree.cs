@@ -3234,6 +3234,8 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Copy the weights of all training features to <paramref name="weights"/>.
         /// </summary>
+        /// <param name="weights">a <see cref="VBuffer{T}"/> where feature weights would be assigned to.
+        /// The i-th element in <paramref name="weights"/> stores the weight of the i-th feature.</param>
         public void GetFeatureWeights(ref VBuffer<float> weights)
         {
             var numFeatures = Math.Max(NumFeatures, MaxSplitFeatIdx + 1);

@@ -78,9 +78,9 @@ namespace Microsoft.ML.Samples.Static
                         Score: mlContext.BinaryClassification.Trainers.FastTree(
                             row.Label,
                             row.Features,
-                            numTrees: 100, // try: (int) 20-2000
-                            numLeaves: 20, // try: (int) 2-128
-                            minDatapointsInLeaves: 10, // try: (int) 1-100
+                            numberOfTrees: 100, // try: (int) 20-2000
+                            numberOfLeaves: 20, // try: (int) 2-128
+                            minimumExampleCountPerLeaf: 10, // try: (int) 1-100
                             learningRate: 0.2))) // try: (float) 0.025-0.4
                 .Append(row => (
                     Label: row.Label,

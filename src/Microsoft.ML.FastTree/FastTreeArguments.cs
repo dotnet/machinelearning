@@ -165,7 +165,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public int? NumberOfThreads = null;
 
         // this random seed is used for:
-        // 1. doc sampling for feature binning
+        // 1. example sampling for feature binning
         // 2. init Randomize Score
         // 3. grad Sampling Rate in Objective Function
         // 4. tree learner
@@ -222,24 +222,24 @@ namespace Microsoft.ML.Trainers.FastTree
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum categorical split groups to consider when splitting on a categorical feature. " +
                                                              "Split groups are a collection of split points. This is used to reduce overfitting when " +
                                                              "there many categorical features.", ShortName = "mcg,MaxCategoricalGroupsPerNode")]
-        public int MaximumCategoricalGroupsPerNode = 64;
+        public int MaximumCategoricalGroupCountPerNode = 64;
 
         /// <summary>
         /// Maximum categorical split points to consider when splitting on a categorical feature.
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum categorical split points to consider when splitting on a categorical feature.", ShortName = "maxcat,MaxCategoricalSplitPoints")]
-        public int MaximumCategoricalSplitPoints = 64;
+        public int MaximumCategoricalSplitPointCount = 64;
 
         /// <summary>
         /// Minimum categorical example percentage in a bin to consider for a split. Default is 0.1% of all training examples.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum categorical docs percentage in a bin to consider for a split.", ShortName = "mdop,MinDocsPercentageForCategoricalSplit")]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum categorical example percentage in a bin to consider for a split.", ShortName = "mdop,MinDocsPercentageForCategoricalSplit")]
         public double MinimumExampleFractionForCategoricalSplit = 0.001;
 
         /// <summary>
         /// Minimum categorical example count in a bin to consider for a split.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum categorical doc count in a bin to consider for a split.", ShortName = "mdo,MinDocsForCategoricalSplit")]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum categorical example count in a bin to consider for a split.", ShortName = "mdo,MinDocsForCategoricalSplit")]
         public int MinimumExamplesForCategoricalSplit = 100;
 
         /// <summary>
@@ -313,11 +313,11 @@ namespace Microsoft.ML.Trainers.FastTree
         public int NumberOfLeaves = Defaults.NumberOfLeaves;
 
         /// <summary>
-        /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.
+        /// The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data.
         /// </summary>
         // REVIEW: Arrays not supported in GUI
         // REVIEW: Different shortname than FastRank module. Same as the TLC FRWrapper.
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data", ShortName = "mil,MinDocumentsInLeafs", SortOrder = 3)]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data", ShortName = "mil,MinDocumentsInLeafs", SortOrder = 3)]
         [TGUI(Description = "Minimum number of training instances required to form a leaf", SuggestedSweeps = "1,10,50")]
         [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
         public int MinimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf;
@@ -435,8 +435,8 @@ namespace Microsoft.ML.Trainers.FastTree
             ectx.CheckUserArg(0 <= BaggingExampleFraction && BaggingExampleFraction <= 1, nameof(BaggingExampleFraction), "Must be between 0 and 1.");
             ectx.CheckUserArg(0 <= FeatureFirstUsePenalty, nameof(FeatureFirstUsePenalty), "Must be non-negative.");
             ectx.CheckUserArg(0 <= FeatureReusePenalty, nameof(FeatureReusePenalty), "Must be non-negative.");
-            ectx.CheckUserArg(0 <= MaximumCategoricalGroupsPerNode, nameof(MaximumCategoricalGroupsPerNode), "Must be non-negative.");
-            ectx.CheckUserArg(0 <= MaximumCategoricalSplitPoints, nameof(MaximumCategoricalSplitPoints), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= MaximumCategoricalGroupCountPerNode, nameof(MaximumCategoricalGroupCountPerNode), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= MaximumCategoricalSplitPointCount, nameof(MaximumCategoricalSplitPointCount), "Must be non-negative.");
             ectx.CheckUserArg(0 <= MinimumExampleFractionForCategoricalSplit, nameof(MinimumExampleFractionForCategoricalSplit), "Must be non-negative.");
             ectx.CheckUserArg(0 <= MinimumExamplesForCategoricalSplit, nameof(MinimumExamplesForCategoricalSplit), "Must be non-negative.");
             ectx.CheckUserArg(Bundle.None <= Bundling && Bundling <= Bundle.Adjacent, nameof(Bundling), "Must be between 0 and 2.");
@@ -607,9 +607,9 @@ namespace Microsoft.ML.Trainers.FastTree
         public string BaselineAlphaRisk;
 
         /// <summary>
-        /// The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position).
+        /// The discount freeform which specifies the per position discounts of examples in a query (uses a single variable P for position where P=0 is first position).
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)",
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The discount freeform which specifies the per position discounts of examples in a query (uses a single variable P for position where P=0 is first position)",
             ShortName = "pdff", Hide = true)]
         [TGUI(NotGui = true)]
         public string PositionDiscountFreeform;

@@ -861,8 +861,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
 
             /// <summary>
-            /// Attempts to initialize required items, from the input model file. In the event that anything goes
-            /// wrong, this method will throw.
+            /// Attempts to initialize required items, from the input model file. It could throw if something goes wrong.
             /// </summary>
             /// <param name="ch">The channel</param>
             /// <returns>A structure containing essential information about the GAM dataset that enables

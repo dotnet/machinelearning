@@ -5160,7 +5160,7 @@
         {
           "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
-          "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
+          "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
             "mil",
             "MinDocumentsInLeafs"
@@ -5419,7 +5419,7 @@
           "Default": false
         },
         {
-          "Name": "MaximumCategoricalGroupsPerNode",
+          "Name": "MaximumCategoricalGroupCountPerNode",
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
@@ -5432,7 +5432,7 @@
           "Default": 64
         },
         {
-          "Name": "MaximumCategoricalSplitPoints",
+          "Name": "MaximumCategoricalSplitPointCount",
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
@@ -5447,7 +5447,7 @@
         {
           "Name": "MinimumExampleFractionForCategoricalSplit",
           "Type": "Float",
-          "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
+          "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
           "Aliases": [
             "mdop",
             "MinDocsPercentageForCategoricalSplit"
@@ -5460,7 +5460,7 @@
         {
           "Name": "MinimumExamplesForCategoricalSplit",
           "Type": "Int",
-          "Desc": "Minimum categorical doc count in a bin to consider for a split.",
+          "Desc": "Minimum categorical example count in a bin to consider for a split.",
           "Aliases": [
             "mdo",
             "MinDocsForCategoricalSplit"
@@ -5827,7 +5827,7 @@
         {
           "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
-          "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
+          "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
             "mil",
             "MinDocumentsInLeafs"
@@ -6059,7 +6059,7 @@
           "Default": false
         },
         {
-          "Name": "MaximumCategoricalGroupsPerNode",
+          "Name": "MaximumCategoricalGroupCountPerNode",
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
@@ -6072,7 +6072,7 @@
           "Default": 64
         },
         {
-          "Name": "MaximumCategoricalSplitPoints",
+          "Name": "MaximumCategoricalSplitPointCount",
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
@@ -6087,7 +6087,7 @@
         {
           "Name": "MinimumExampleFractionForCategoricalSplit",
           "Type": "Float",
-          "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
+          "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
           "Aliases": [
             "mdop",
             "MinDocsPercentageForCategoricalSplit"
@@ -6100,7 +6100,7 @@
         {
           "Name": "MinimumExamplesForCategoricalSplit",
           "Type": "Int",
-          "Desc": "Minimum categorical doc count in a bin to consider for a split.",
+          "Desc": "Minimum categorical example count in a bin to consider for a split.",
           "Aliases": [
             "mdo",
             "MinDocsForCategoricalSplit"
@@ -6467,7 +6467,7 @@
         {
           "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
-          "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
+          "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
             "mil",
             "MinDocumentsInLeafs"
@@ -6863,7 +6863,7 @@
         {
           "Name": "PositionDiscountFreeform",
           "Type": "String",
-          "Desc": "The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)",
+          "Desc": "The discount freeform which specifies the per position discounts of examples in a query (uses a single variable P for position where P=0 is first position)",
           "Aliases": [
             "pdff"
           ],
@@ -6989,7 +6989,7 @@
           "Default": false
         },
         {
-          "Name": "MaximumCategoricalGroupsPerNode",
+          "Name": "MaximumCategoricalGroupCountPerNode",
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
@@ -7002,7 +7002,7 @@
           "Default": 64
         },
         {
-          "Name": "MaximumCategoricalSplitPoints",
+          "Name": "MaximumCategoricalSplitPointCount",
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
@@ -7017,7 +7017,7 @@
         {
           "Name": "MinimumExampleFractionForCategoricalSplit",
           "Type": "Float",
-          "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
+          "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
           "Aliases": [
             "mdop",
             "MinDocsPercentageForCategoricalSplit"
@@ -7030,7 +7030,7 @@
         {
           "Name": "MinimumExamplesForCategoricalSplit",
           "Type": "Int",
-          "Desc": "Minimum categorical doc count in a bin to consider for a split.",
+          "Desc": "Minimum categorical example count in a bin to consider for a split.",
           "Aliases": [
             "mdo",
             "MinDocsForCategoricalSplit"
@@ -7397,7 +7397,7 @@
         {
           "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
-          "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
+          "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
             "mil",
             "MinDocumentsInLeafs"
@@ -7874,7 +7874,7 @@
         {
           "Name": "PositionDiscountFreeform",
           "Type": "String",
-          "Desc": "The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)",
+          "Desc": "The discount freeform which specifies the per position discounts of examples in a query (uses a single variable P for position where P=0 is first position)",
           "Aliases": [
             "pdff"
           ],
@@ -8000,7 +8000,7 @@
           "Default": false
         },
         {
-          "Name": "MaximumCategoricalGroupsPerNode",
+          "Name": "MaximumCategoricalGroupCountPerNode",
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
@@ -8013,7 +8013,7 @@
           "Default": 64
         },
         {
-          "Name": "MaximumCategoricalSplitPoints",
+          "Name": "MaximumCategoricalSplitPointCount",
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
@@ -8028,7 +8028,7 @@
         {
           "Name": "MinimumExampleFractionForCategoricalSplit",
           "Type": "Float",
-          "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
+          "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
           "Aliases": [
             "mdop",
             "MinDocsPercentageForCategoricalSplit"
@@ -8041,7 +8041,7 @@
         {
           "Name": "MinimumExamplesForCategoricalSplit",
           "Type": "Int",
-          "Desc": "Minimum categorical doc count in a bin to consider for a split.",
+          "Desc": "Minimum categorical example count in a bin to consider for a split.",
           "Aliases": [
             "mdo",
             "MinDocsForCategoricalSplit"
@@ -8408,7 +8408,7 @@
         {
           "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
-          "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
+          "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
             "mil",
             "MinDocumentsInLeafs"
@@ -8792,7 +8792,7 @@
         {
           "Name": "PositionDiscountFreeform",
           "Type": "String",
-          "Desc": "The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)",
+          "Desc": "The discount freeform which specifies the per position discounts of examples in a query (uses a single variable P for position where P=0 is first position)",
           "Aliases": [
             "pdff"
           ],
@@ -8918,7 +8918,7 @@
           "Default": false
         },
         {
-          "Name": "MaximumCategoricalGroupsPerNode",
+          "Name": "MaximumCategoricalGroupCountPerNode",
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
@@ -8931,7 +8931,7 @@
           "Default": 64
         },
         {
-          "Name": "MaximumCategoricalSplitPoints",
+          "Name": "MaximumCategoricalSplitPointCount",
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
@@ -8946,7 +8946,7 @@
         {
           "Name": "MinimumExampleFractionForCategoricalSplit",
           "Type": "Float",
-          "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
+          "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
           "Aliases": [
             "mdop",
             "MinDocsPercentageForCategoricalSplit"
@@ -8959,7 +8959,7 @@
         {
           "Name": "MinimumExamplesForCategoricalSplit",
           "Type": "Int",
-          "Desc": "Minimum categorical doc count in a bin to consider for a split.",
+          "Desc": "Minimum categorical example count in a bin to consider for a split.",
           "Aliases": [
             "mdo",
             "MinDocsForCategoricalSplit"
@@ -9326,7 +9326,7 @@
         {
           "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
-          "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
+          "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
             "mil",
             "MinDocumentsInLeafs"
@@ -9719,7 +9719,7 @@
         {
           "Name": "PositionDiscountFreeform",
           "Type": "String",
-          "Desc": "The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)",
+          "Desc": "The discount freeform which specifies the per position discounts of examples in a query (uses a single variable P for position where P=0 is first position)",
           "Aliases": [
             "pdff"
           ],
@@ -9845,7 +9845,7 @@
           "Default": false
         },
         {
-          "Name": "MaximumCategoricalGroupsPerNode",
+          "Name": "MaximumCategoricalGroupCountPerNode",
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
@@ -9858,7 +9858,7 @@
           "Default": 64
         },
         {
-          "Name": "MaximumCategoricalSplitPoints",
+          "Name": "MaximumCategoricalSplitPointCount",
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
@@ -9873,7 +9873,7 @@
         {
           "Name": "MinimumExampleFractionForCategoricalSplit",
           "Type": "Float",
-          "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
+          "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
           "Aliases": [
             "mdop",
             "MinDocsPercentageForCategoricalSplit"
@@ -9886,7 +9886,7 @@
         {
           "Name": "MinimumExamplesForCategoricalSplit",
           "Type": "Int",
-          "Desc": "Minimum categorical doc count in a bin to consider for a split.",
+          "Desc": "Minimum categorical example count in a bin to consider for a split.",
           "Aliases": [
             "mdo",
             "MinDocsForCategoricalSplit"
@@ -25290,7 +25290,7 @@
             {
               "Name": "MinimumExampleCountPerLeaf",
               "Type": "Int",
-              "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
+              "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
               "Aliases": [
                 "mil",
                 "MinDocumentsInLeafs"
@@ -25686,7 +25686,7 @@
             {
               "Name": "PositionDiscountFreeform",
               "Type": "String",
-              "Desc": "The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)",
+              "Desc": "The discount freeform which specifies the per position discounts of examples in a query (uses a single variable P for position where P=0 is first position)",
               "Aliases": [
                 "pdff"
               ],
@@ -25812,7 +25812,7 @@
               "Default": false
             },
             {
-              "Name": "MaximumCategoricalGroupsPerNode",
+              "Name": "MaximumCategoricalGroupCountPerNode",
               "Type": "Int",
               "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
               "Aliases": [
@@ -25825,7 +25825,7 @@
               "Default": 64
             },
             {
-              "Name": "MaximumCategoricalSplitPoints",
+              "Name": "MaximumCategoricalSplitPointCount",
               "Type": "Int",
               "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
               "Aliases": [
@@ -25840,7 +25840,7 @@
             {
               "Name": "MinimumExampleFractionForCategoricalSplit",
               "Type": "Float",
-              "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
+              "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
               "Aliases": [
                 "mdop",
                 "MinDocsPercentageForCategoricalSplit"
@@ -25853,7 +25853,7 @@
             {
               "Name": "MinimumExamplesForCategoricalSplit",
               "Type": "Int",
-              "Desc": "Minimum categorical doc count in a bin to consider for a split.",
+              "Desc": "Minimum categorical example count in a bin to consider for a split.",
               "Aliases": [
                 "mdo",
                 "MinDocsForCategoricalSplit"
@@ -26202,7 +26202,7 @@
             {
               "Name": "MinimumExampleCountPerLeaf",
               "Type": "Int",
-              "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
+              "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
               "Aliases": [
                 "mil",
                 "MinDocumentsInLeafs"
@@ -26679,7 +26679,7 @@
             {
               "Name": "PositionDiscountFreeform",
               "Type": "String",
-              "Desc": "The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)",
+              "Desc": "The discount freeform which specifies the per position discounts of examples in a query (uses a single variable P for position where P=0 is first position)",
               "Aliases": [
                 "pdff"
               ],
@@ -26805,7 +26805,7 @@
               "Default": false
             },
             {
-              "Name": "MaximumCategoricalGroupsPerNode",
+              "Name": "MaximumCategoricalGroupCountPerNode",
               "Type": "Int",
               "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
               "Aliases": [
@@ -26818,7 +26818,7 @@
               "Default": 64
             },
             {
-              "Name": "MaximumCategoricalSplitPoints",
+              "Name": "MaximumCategoricalSplitPointCount",
               "Type": "Int",
               "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
               "Aliases": [
@@ -26833,7 +26833,7 @@
             {
               "Name": "MinimumExampleFractionForCategoricalSplit",
               "Type": "Float",
-              "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
+              "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
               "Aliases": [
                 "mdop",
                 "MinDocsPercentageForCategoricalSplit"
@@ -26846,7 +26846,7 @@
             {
               "Name": "MinimumExamplesForCategoricalSplit",
               "Type": "Int",
-              "Desc": "Minimum categorical doc count in a bin to consider for a split.",
+              "Desc": "Minimum categorical example count in a bin to consider for a split.",
               "Aliases": [
                 "mdo",
                 "MinDocsForCategoricalSplit"
@@ -27195,7 +27195,7 @@
             {
               "Name": "MinimumExampleCountPerLeaf",
               "Type": "Int",
-              "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
+              "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
               "Aliases": [
                 "mil",
                 "MinDocumentsInLeafs"
@@ -27579,7 +27579,7 @@
             {
               "Name": "PositionDiscountFreeform",
               "Type": "String",
-              "Desc": "The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)",
+              "Desc": "The discount freeform which specifies the per position discounts of examples in a query (uses a single variable P for position where P=0 is first position)",
               "Aliases": [
                 "pdff"
               ],
@@ -27705,7 +27705,7 @@
               "Default": false
             },
             {
-              "Name": "MaximumCategoricalGroupsPerNode",
+              "Name": "MaximumCategoricalGroupCountPerNode",
               "Type": "Int",
               "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
               "Aliases": [
@@ -27718,7 +27718,7 @@
               "Default": 64
             },
             {
-              "Name": "MaximumCategoricalSplitPoints",
+              "Name": "MaximumCategoricalSplitPointCount",
               "Type": "Int",
               "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
               "Aliases": [
@@ -27733,7 +27733,7 @@
             {
               "Name": "MinimumExampleFractionForCategoricalSplit",
               "Type": "Float",
-              "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
+              "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
               "Aliases": [
                 "mdop",
                 "MinDocsPercentageForCategoricalSplit"
@@ -27746,7 +27746,7 @@
             {
               "Name": "MinimumExamplesForCategoricalSplit",
               "Type": "Int",
-              "Desc": "Minimum categorical doc count in a bin to consider for a split.",
+              "Desc": "Minimum categorical example count in a bin to consider for a split.",
               "Aliases": [
                 "mdo",
                 "MinDocsForCategoricalSplit"
@@ -28095,7 +28095,7 @@
             {
               "Name": "MinimumExampleCountPerLeaf",
               "Type": "Int",
-              "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
+              "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
               "Aliases": [
                 "mil",
                 "MinDocumentsInLeafs"
@@ -28488,7 +28488,7 @@
             {
               "Name": "PositionDiscountFreeform",
               "Type": "String",
-              "Desc": "The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)",
+              "Desc": "The discount freeform which specifies the per position discounts of examples in a query (uses a single variable P for position where P=0 is first position)",
               "Aliases": [
                 "pdff"
               ],
@@ -28614,7 +28614,7 @@
               "Default": false
             },
             {
-              "Name": "MaximumCategoricalGroupsPerNode",
+              "Name": "MaximumCategoricalGroupCountPerNode",
               "Type": "Int",
               "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
               "Aliases": [
@@ -28627,7 +28627,7 @@
               "Default": 64
             },
             {
-              "Name": "MaximumCategoricalSplitPoints",
+              "Name": "MaximumCategoricalSplitPointCount",
               "Type": "Int",
               "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
               "Aliases": [
@@ -28642,7 +28642,7 @@
             {
               "Name": "MinimumExampleFractionForCategoricalSplit",
               "Type": "Float",
-              "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
+              "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
               "Aliases": [
                 "mdop",
                 "MinDocsPercentageForCategoricalSplit"
@@ -28655,7 +28655,7 @@
             {
               "Name": "MinimumExamplesForCategoricalSplit",
               "Type": "Int",
-              "Desc": "Minimum categorical doc count in a bin to consider for a split.",
+              "Desc": "Minimum categorical example count in a bin to consider for a split.",
               "Aliases": [
                 "mdo",
                 "MinDocsForCategoricalSplit"

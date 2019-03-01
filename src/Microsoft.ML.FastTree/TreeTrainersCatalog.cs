@@ -102,7 +102,7 @@ namespace Microsoft.ML
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
-        /// <param name="minimumExampleCountPerLeaf">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         public static FastTreeRankingTrainer FastTree(this RankingCatalog.RankingTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
