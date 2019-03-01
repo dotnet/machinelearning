@@ -438,7 +438,7 @@ namespace Microsoft.ML.Trainers
             builder.AddPrimitiveValue("BiasPValue", NumberDataViewType.Single, biasPValue);
 
             var weights = default(VBuffer<float>);
-            parent.GetFeatureWeights(ref weights);
+            ((IHaveFeatureWeights)parent).GetFeatureWeights(ref weights);
             var estimate = default(VBuffer<float>);
             var stdErr = default(VBuffer<float>);
             var zScore = default(VBuffer<float>);

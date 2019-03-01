@@ -1937,7 +1937,7 @@ namespace Microsoft.ML.Trainers
             float bias = 0.0f;
             if (predictor != null)
             {
-                predictor.GetFeatureWeights(ref weights);
+                ((IHaveFeatureWeights)predictor).GetFeatureWeights(ref weights);
                 VBufferUtils.Densify(ref weights);
                 bias = predictor.Bias;
             }
