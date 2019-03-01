@@ -375,9 +375,10 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The level of feature compression to use.
         /// </summary>
+        [BestFriend]
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The level of feature compression to use", ShortName = "fcomp", Hide = true)]
         [TGUI(NotGui = true)]
-        public int FeatureCompressionLevel = 1;
+        internal int FeatureCompressionLevel = 1;
 
         /// <summary>
         /// Compress the tree Ensemble.

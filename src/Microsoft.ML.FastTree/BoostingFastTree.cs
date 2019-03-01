@@ -18,14 +18,14 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private protected BoostingFastTreeTrainerBase(IHostEnvironment env,
             SchemaShape.Column label,
-            string featureColumn,
-            string weightColumn,
-            string groupIdColumn,
-            int numLeaves,
-            int numTrees,
-            int minDatapointsInLeaves,
+            string featureColumnName,
+            string exampleWeightColumnName,
+            string rowGroupColumnName,
+            int numberOfLeaves,
+            int numberOfTrees,
+            int minimumExampleCountPerLeaf,
             double learningRate)
-            : base(env, label, featureColumn, weightColumn, groupIdColumn, numLeaves, numTrees, minDatapointsInLeaves)
+            : base(env, label, featureColumnName, exampleWeightColumnName, rowGroupColumnName, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf)
         {
             FastTreeTrainerOptions.LearningRate = learningRate;
         }

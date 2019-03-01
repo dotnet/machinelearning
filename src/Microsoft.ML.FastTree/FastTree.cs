@@ -101,26 +101,26 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         private protected FastTreeTrainerBase(IHostEnvironment env,
             SchemaShape.Column label,
-            string featureColumn,
-            string weightColumn,
-            string groupIdColumn,
-            int numLeaves,
-            int numTrees,
-            int minDatapointsInLeaves)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
+            string featureColumnName,
+            string exampleWeightColumnName,
+            string rowGroupColumnName,
+            int numberOfLeaves,
+            int numberOfTrees,
+            int minimumExampleCountPerLeaf)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumnName), label, TrainerUtils.MakeR4ScalarWeightColumn(exampleWeightColumnName), TrainerUtils.MakeU4ScalarColumn(rowGroupColumnName))
         {
             FastTreeTrainerOptions = new TOptions();
 
             // set up the directly provided values
             // override with the directly provided values.
-            FastTreeTrainerOptions.NumberOfLeaves = numLeaves;
-            FastTreeTrainerOptions.NumberOfTrees = numTrees;
-            FastTreeTrainerOptions.MinimumExampleCountPerLeaf = minDatapointsInLeaves;
+            FastTreeTrainerOptions.NumberOfLeaves = numberOfLeaves;
+            FastTreeTrainerOptions.NumberOfTrees = numberOfTrees;
+            FastTreeTrainerOptions.MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf;
 
             FastTreeTrainerOptions.LabelColumnName = label.Name;
-            FastTreeTrainerOptions.FeatureColumnName = featureColumn;
-            FastTreeTrainerOptions.ExampleWeightColumnName = weightColumn;
-            FastTreeTrainerOptions.RowGroupColumnName = groupIdColumn;
+            FastTreeTrainerOptions.FeatureColumnName = featureColumnName;
+            FastTreeTrainerOptions.ExampleWeightColumnName = exampleWeightColumnName;
+            FastTreeTrainerOptions.RowGroupColumnName = rowGroupColumnName;
 
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.

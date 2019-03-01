@@ -148,23 +148,23 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected GamTrainerBase(IHostEnvironment env,
             string name,
             SchemaShape.Column label,
-            string featureColumn,
-            string weightColumn,
-            int numIterations,
+            string featureColumnName,
+            string weightCrowGroupColumnName,
+            int numberOfIterations,
             double learningRate,
-            int maxBins)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+            int maximumBinCountPerFeature)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumnName), label, TrainerUtils.MakeR4ScalarWeightColumn(weightCrowGroupColumnName))
         {
             GamTrainerOptions = new TOptions();
-            GamTrainerOptions.NumberOfIterations = numIterations;
+            GamTrainerOptions.NumberOfIterations = numberOfIterations;
             GamTrainerOptions.LearningRate = learningRate;
-            GamTrainerOptions.MaximumBinCountPerFeature = maxBins;
+            GamTrainerOptions.MaximumBinCountPerFeature = maximumBinCountPerFeature;
 
             GamTrainerOptions.LabelColumnName = label.Name;
-            GamTrainerOptions.FeatureColumnName = featureColumn;
+            GamTrainerOptions.FeatureColumnName = featureColumnName;
 
-            if (weightColumn != null)
-                GamTrainerOptions.ExampleWeightColumnName = weightColumn;
+            if (weightCrowGroupColumnName != null)
+                GamTrainerOptions.ExampleWeightColumnName = weightCrowGroupColumnName;
 
             Info = new TrainerInfo(normalization: false, calibration: NeedCalibration, caching: false, supportValid: true);
             _gainConfidenceInSquaredStandardDeviations = Math.Pow(ProbabilityFunctions.Probit(1 - (1 - GamTrainerOptions.GainConfidenceLevel) * 0.5), 2);

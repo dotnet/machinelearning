@@ -25,14 +25,14 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         private protected RandomForestTrainerBase(IHostEnvironment env,
             SchemaShape.Column label,
-            string featureColumn,
-            string weightColumn,
-            string groupIdColumn,
-            int numLeaves,
-            int numTrees,
-            int minDatapointsInLeaves,
+            string featureColumnName,
+            string exampleWeightColumnName,
+            string rowGroupColumnName,
+            int numberOfLeaves,
+            int numberOfTrees,
+            int minimumExampleCountPerLeaf,
             bool quantileEnabled = false)
-            : base(env, label, featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves)
+            : base(env, label, featureColumnName, exampleWeightColumnName, null, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf)
         {
             _quantileEnabled = quantileEnabled;
         }
