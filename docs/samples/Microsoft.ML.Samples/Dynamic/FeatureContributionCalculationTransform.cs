@@ -44,8 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var outData = featureContributionCalculator.Fit(scoredData).Transform(scoredData);
 
             // Let's extract the weights from the linear model to use as a comparison
-            var weights = new VBuffer<float>();
-            model.Model.GetFeatureWeights(ref weights);
+            var weights = model.Model.Weights;
 
             // Let's now walk through the first ten records and see which feature drove the values the most
             // Get prediction scores and contributions
@@ -63,7 +62,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 var value = row.Features[featureOfInterest];
                 var contribution = row.FeatureContributions[featureOfInterest];
                 var name = data.Schema[featureOfInterest + 1].Name;
-                var weight = weights.GetValues()[featureOfInterest];
+                var weight = weights[featureOfInterest];
 
                 Console.WriteLine("{0:0.00}\t{1:0.00}\t{2}\t{3:0.00}\t{4:0.00}\t{5:0.00}",
                     row.MedianHomeValue,

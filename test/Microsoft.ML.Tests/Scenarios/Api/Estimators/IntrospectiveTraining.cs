@@ -42,8 +42,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var model = pipeline.Fit(data);
 
             // Get feature weights.
-            VBuffer<float> weights = default;
-            model.LastTransformer.Model.GetFeatureWeights(ref weights);
+            var weights = model.LastTransformer.Model.Weights;
         }
 
         [Fact]

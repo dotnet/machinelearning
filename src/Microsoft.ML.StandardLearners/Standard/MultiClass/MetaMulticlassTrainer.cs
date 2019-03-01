@@ -20,7 +20,7 @@ namespace Microsoft.ML.Trainers
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
     {
-        public abstract class OptionsBase
+        internal abstract class OptionsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor", ShortName = "p", SortOrder = 4, SignatureType = typeof(SignatureBinaryClassifierTrainer))]
             [TGUI(Label = "Predictor Type", Description = "Type of underlying binary predictor")]
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// The label column that the trainer expects.
         /// </summary>
-        public readonly SchemaShape.Column LabelColumn;
+        private protected readonly SchemaShape.Column LabelColumn;
 
         private protected readonly OptionsBase Args;
         private protected readonly IHost Host;

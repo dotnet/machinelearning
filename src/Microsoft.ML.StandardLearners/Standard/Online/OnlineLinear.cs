@@ -10,6 +10,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 
 namespace Microsoft.ML.Trainers
@@ -130,7 +131,7 @@ namespace Microsoft.ML.Trainers
                 // unless we have a lot of features.
                 if (predictor != null)
                 {
-                    predictor.GetFeatureWeights(ref Weights);
+                    ((IHaveFeatureWeights)predictor).GetFeatureWeights(ref Weights);
                     VBufferUtils.Densify(ref Weights);
                     Bias = predictor.Bias;
                 }
