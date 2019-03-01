@@ -109,7 +109,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 TestPath = settings.TestDataset?.FullName,
                 TaskType = settings.MlTask.ToString(),
                 Namespace = namespaceValue,
-                LabelName = settings.LabelName
+                LabelName = settings.LabelName,
+                ModelPath = settings.ModelPath.FullName
             };
 
             return trainingAndScoringCodeGen.TransformText();

@@ -35,7 +35,8 @@ namespace mlnet.Test
                 OutputName = "MyNamespace",
                 TrainDataset = new FileInfo("x:\\dummypath\\dummy_train.csv"),
                 TestDataset = new FileInfo("x:\\dummypath\\dummy_test.csv"),
-                LabelName = "Label"
+                LabelName = "Label",
+                ModelPath = new FileInfo("x:\\models\\model.zip")
             });
 
             (string trainCode, string projectCode, string helperCode) = consoleCodeGen.GenerateCode();
@@ -58,7 +59,8 @@ namespace mlnet.Test
                 OutputName = "MyNamespace",
                 TrainDataset = new FileInfo("x:\\dummypath\\dummy_train.csv"),
                 TestDataset = new FileInfo("x:\\dummypath\\dummy_test.csv"),
-                LabelName = "Label"
+                LabelName = "Label",
+                ModelPath = new FileInfo("x:\\models\\model.zip")
             });
 
             (string trainCode, string projectCode, string helperCode) = consoleCodeGen.GenerateCode();
@@ -81,7 +83,8 @@ namespace mlnet.Test
                 OutputName = "MyNamespace",
                 TrainDataset = new FileInfo("x:\\dummypath\\dummy_train.csv"),
                 TestDataset = new FileInfo("x:\\dummypath\\dummy_test.csv"),
-                LabelName = "Label"
+                LabelName = "Label",
+                ModelPath = new FileInfo("x:\\models\\model.zip")
             });
 
             (string trainCode, string projectCode, string helperCode) = consoleCodeGen.GenerateCode();

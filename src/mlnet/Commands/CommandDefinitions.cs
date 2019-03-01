@@ -89,7 +89,7 @@ namespace Microsoft.ML.CLI.Commands
 
             Option Name() =>
               new Option(new List<string>() { "--name" }, "Name for the output project or solution to create. ",
-                         new Argument<string>(defaultValue: "Sample"));
+                         new Argument<string>());
 
             Option OutputPath() =>
               new Option(new List<string>() { "--output-path" }, "Location folder to place the generated output. The default is the current directory.",

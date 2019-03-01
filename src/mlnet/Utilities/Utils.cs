@@ -29,14 +29,15 @@ namespace Microsoft.ML.CLI.Utilities
         }
 
 
-        internal static void SaveModel(ITransformer model, string ModelPath, string modelName, MLContext mlContext)
+        internal static void SaveModel(ITransformer model, FileInfo modelPath, MLContext mlContext)
         {
-            if (!Directory.Exists(ModelPath))
+
+            if (!Directory.Exists(modelPath.Directory.FullName))
             {
-                Directory.CreateDirectory(ModelPath);
+                Directory.CreateDirectory(modelPath.Directory.FullName);
             }
-            ModelPath = Path.Combine(ModelPath, modelName);
-            using (var fs = File.Create(ModelPath))
+
+            using (var fs = File.Create(modelPath.FullName))
                 model.SaveTo(mlContext, fs);
         }
 

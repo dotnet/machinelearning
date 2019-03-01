@@ -24,7 +24,7 @@ namespace <#= Namespace #>
 <#if(!string.IsNullOrEmpty(TestPath)){ #>
         private static string TestDataPath = @"<#= TestPath #>";
 <# } #>
-        private static string ModelPath = @"..\..\..\model.zip";
+        private static string ModelPath = @"<#= ModelPath #>";
 
         // Set this flag to enable the training process.
         private static bool EnableTraining = false;
@@ -215,4 +215,5 @@ public bool TrimWhiteSpace {get;set;}
 public int Kfolds {get;set;} = 5;
 public string Namespace {get;set;}
 public string LabelName {get;set;}
+public string ModelPath {get;set;}
 #>

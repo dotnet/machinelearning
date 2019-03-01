@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Auto;
 using Microsoft.ML.CLI.CodeGenerator.CSharp;
@@ -75,10 +76,11 @@ namespace Microsoft.ML.CLI.Commands.New
 
             // Save the model
             logger.Log(LogLevel.Info, Strings.SavingBestModel);
-            Utils.SaveModel(model, settings.OutputPath.FullName, $"model.zip", context);
+            var modelPath = new FileInfo(Path.Combine(settings.OutputPath.FullName, $"model.zip"));
+            Utils.SaveModel(model, modelPath, context);
 
             // Generate the Project
-            GenerateProject(columnInference, pipeline, sanitized_Label_Name);
+            GenerateProject(columnInference, pipeline, sanitized_Label_Name, modelPath);
         }
 
         internal ColumnInferenceResults InferColumns(MLContext context)
@@ -99,7 +101,7 @@ namespace Microsoft.ML.CLI.Commands.New
             return columnInference;
         }
 
-        internal void GenerateProject(ColumnInferenceResults columnInference, Pipeline pipeline, string labelName)
+        internal void GenerateProject(ColumnInferenceResults columnInference, Pipeline pipeline, string labelName, FileInfo modelPath)
         {
             //Generate code
             logger.Log(LogLevel.Info, $"{Strings.GenerateProject} : {settings.OutputPath.FullName}");
@@ -113,7 +115,8 @@ namespace Microsoft.ML.CLI.Commands.New
                     TestDataset = settings.TestDataset,
                     OutputName = settings.Name,
                     OutputBaseDir = settings.OutputPath.FullName,
-                    LabelName = labelName
+                    LabelName = labelName,
+                    ModelPath = modelPath
                 });
             codeGenerator.GenerateOutput();
         }

@@ -41,27 +41,28 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write(this.ToStringHelper.ToStringWithCulture(TestPath));
             this.Write("\";\r\n");
  } 
-            this.Write("        private static string ModelPath = @\"..\\..\\..\\model.zip\";\r\n\r\n        // Se" +
-                    "t this flag to enable the training process.\r\n        private static bool EnableT" +
-                    "raining = false;\r\n\r\n        static void Main(string[] args)\r\n        {\r\n        " +
-                    "    // Create MLContext to be shared across the model creation workflow objects " +
-                    "\r\n            // Set a random seed for repeatable/deterministic results across m" +
-                    "ultiple trainings.\r\n            var mlContext = new MLContext(seed: 1);\r\n\r\n     " +
-                    "       if (EnableTraining)\r\n            {\r\n                // Create, Train, Eva" +
-                    "luate and Save a model\r\n                BuildTrainEvaluateAndSaveModel(mlContext" +
-                    ");\r\n                ConsoleHelper.ConsoleWriteHeader(\"=============== End of tra" +
-                    "ining process ===============\");\r\n            }\r\n            else\r\n            {" +
-                    "\r\n                ConsoleHelper.ConsoleWriteHeader(\"Skipping the training proces" +
-                    "s. Please set the flag : \'EnableTraining\' to \'true\' to enable the training proce" +
-                    "ss.\");\r\n            }\r\n\r\n            // Make a single test prediction loading th" +
-                    "e model from .ZIP file\r\n            TestSinglePrediction(mlContext);\r\n\r\n        " +
-                    "    ConsoleHelper.ConsoleWriteHeader(\"=============== End of process, hit any ke" +
-                    "y to finish ===============\");\r\n            Console.ReadKey();\r\n\r\n        }\r\n\r\n " +
-                    "       private static ITransformer BuildTrainEvaluateAndSaveModel(MLContext mlCo" +
-                    "ntext)\r\n        {\r\n            // Data loading\r\n            IDataView trainingDa" +
-                    "taView = mlContext.Data.ReadFromTextFile<SampleObservation>(\r\n                  " +
-                    "                          path: TrainDataPath,\r\n                                " +
-                    "            hasHeader : ");
+            this.Write("        private static string ModelPath = @\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(ModelPath));
+            this.Write("\";\r\n\r\n        // Set this flag to enable the training process.\r\n        private s" +
+                    "tatic bool EnableTraining = false;\r\n\r\n        static void Main(string[] args)\r\n " +
+                    "       {\r\n            // Create MLContext to be shared across the model creation" +
+                    " workflow objects \r\n            // Set a random seed for repeatable/deterministi" +
+                    "c results across multiple trainings.\r\n            var mlContext = new MLContext(" +
+                    "seed: 1);\r\n\r\n            if (EnableTraining)\r\n            {\r\n                // " +
+                    "Create, Train, Evaluate and Save a model\r\n                BuildTrainEvaluateAndS" +
+                    "aveModel(mlContext);\r\n                ConsoleHelper.ConsoleWriteHeader(\"========" +
+                    "======= End of training process ===============\");\r\n            }\r\n            e" +
+                    "lse\r\n            {\r\n                ConsoleHelper.ConsoleWriteHeader(\"Skipping t" +
+                    "he training process. Please set the flag : \'EnableTraining\' to \'true\' to enable " +
+                    "the training process.\");\r\n            }\r\n\r\n            // Make a single test pre" +
+                    "diction loading the model from .ZIP file\r\n            TestSinglePrediction(mlCon" +
+                    "text);\r\n\r\n            ConsoleHelper.ConsoleWriteHeader(\"=============== End of p" +
+                    "rocess, hit any key to finish ===============\");\r\n            Console.ReadKey();" +
+                    "\r\n\r\n        }\r\n\r\n        private static ITransformer BuildTrainEvaluateAndSaveMo" +
+                    "del(MLContext mlContext)\r\n        {\r\n            // Data loading\r\n            ID" +
+                    "ataView trainingDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(\r\n" +
+                    "                                            path: TrainDataPath,\r\n              " +
+                    "                              hasHeader : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
             this.Write(",\r\n                                            separatorChar : \'");
             this.Write(this.ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
@@ -260,6 +261,7 @@ public bool TrimWhiteSpace {get;set;}
 public int Kfolds {get;set;} = 5;
 public string Namespace {get;set;}
 public string LabelName {get;set;}
+public string ModelPath {get;set;}
 
     }
     #region Base class
