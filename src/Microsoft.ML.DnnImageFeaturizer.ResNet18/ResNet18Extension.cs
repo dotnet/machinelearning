@@ -21,7 +21,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public static EstimatorChain<ColumnCopyingTransformer> ResNet18(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string outputColumnName, string inputColumnName)
         {
-            return ResNet18(dnnModelContext, env, outputColumnName, inputColumnName, Path.Combine(AssemblyPathHelpers.GetExecutingAssemblyLocation(), "DnnImageModels"));
+            return ResNet18(dnnModelContext, env, outputColumnName, inputColumnName, Path.Combine(Directory.GetCurrentDirectory(), "DnnImageModels"));
         }
 
         /// <summary>

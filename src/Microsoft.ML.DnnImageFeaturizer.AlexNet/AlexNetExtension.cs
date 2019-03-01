@@ -21,7 +21,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public static EstimatorChain<ColumnCopyingTransformer> AlexNet(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string outputColumnName, string inputColumnName)
         {
-            return AlexNet(dnnModelContext, env, outputColumnName, inputColumnName, Path.Combine(AssemblyPathHelpers.GetExecutingAssemblyLocation(), "DnnImageModels"));
+            return AlexNet(dnnModelContext, env, outputColumnName, inputColumnName, Path.Combine(Directory.GetCurrentDirectory(), "DnnImageModels"));
         }
 
         /// <summary>
