@@ -100,7 +100,7 @@ namespace Microsoft.ML.SamplesUtils
             // Download the files
             var dataFiles = DownloadSentimentDataset();
 
-            // Define the columns to read
+            // Define the columns to load
             var reader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {

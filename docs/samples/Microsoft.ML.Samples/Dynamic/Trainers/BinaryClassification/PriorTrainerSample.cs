@@ -23,7 +23,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Step 1: Read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextLoader(
+            var loader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
                         new TextLoader.Column("Sentiment", DataKind.Single, 0),
@@ -32,22 +32,22 @@ namespace Microsoft.ML.Samples.Dynamic
                 hasHeader: true
             );
 
-            // Read the data
-            var trainData = reader.Load(trainFile);
+            // Load the data
+            var trainData = loader.Load(trainFile);
 
             // Step 2: Pipeline 
             // Featurize the text column through the FeaturizeText API. 
             // Then append a binary classifier, setting the "Label" column as the label of the dataset, and 
             // the "Features" column produced by FeaturizeText as the features column.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
-                    .AppendCacheCheckpoint(mlContext)
+                    .AppendCacheCheckpoint(mlContext) // Add a data-cache step within a pipeline.
                     .Append(mlContext.BinaryClassification.Trainers.Prior(labelColumnName: "Sentiment"));
 
             // Step 3: Train the pipeline
             var trainedPipeline = pipeline.Fit(trainData);
 
             // Step 4: Evaluate on the test set
-            var transformedData = trainedPipeline.Transform(reader.Load(testFile));
+            var transformedData = trainedPipeline.Transform(loader.Load(testFile));
             var evalMetrics = mlContext.BinaryClassification.Evaluate(transformedData, label: "Sentiment");
             SamplesUtils.ConsoleUtils.PrintMetrics(evalMetrics);
 
