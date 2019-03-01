@@ -124,10 +124,17 @@ namespace Microsoft.ML.Trainers
             {
                 if (!inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "label", LabelColumn.Name);
-                if (!LabelColumn.IsCompatibleWith(labelCol))
-                    throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", WeightColumn.Name,
-                        LabelColumn.GetTypeString(), labelCol.GetTypeString());
+                CheckLabelCompatible(labelCol);
             }
+        }
+        private protected virtual void CheckLabelCompatible(SchemaShape.Column labelCol)
+        {
+            Contracts.CheckParam(labelCol.IsValid, nameof(labelCol), "not initialized properly");
+            Host.Assert(LabelColumn.IsValid);
+
+            if (!LabelColumn.IsCompatibleWith(labelCol))
+                throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", WeightColumn.Name,
+                    LabelColumn.GetTypeString(), labelCol.GetTypeString());
         }
 
         [BestFriend]
