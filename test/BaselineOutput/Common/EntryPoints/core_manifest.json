@@ -11037,7 +11037,7 @@
           }
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.",
           "Aliases": [
@@ -11051,7 +11051,7 @@
           "Default": null
         },
         {
-          "Name": "InitAlgorithm",
+          "Name": "InitializationAlgorithm",
           "Type": {
             "Kind": "Enum",
             "Values": [
@@ -11082,7 +11082,7 @@
           "Default": 1E-07
         },
         {
-          "Name": "MaxIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations.",
           "Aliases": [

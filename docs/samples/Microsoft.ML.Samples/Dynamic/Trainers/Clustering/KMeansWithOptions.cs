@@ -1,15 +1,16 @@
 ﻿using System;
 using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class KMeans
+    public class KMeansWithOptions
     {
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
-            var ml = new MLContext();
+            var ml = new MLContext(seed: 1, conc: 1);
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             var data = SamplesUtils.DatasetUtils.GetInfertData();
@@ -27,7 +28,15 @@ namespace Microsoft.ML.Samples.Dynamic
             // A pipeline for concatenating the age, parity and induced columns together in the Features column and training a KMeans model on them.
             string outputColumnName = "Features";
             var pipeline = ml.Transforms.Concatenate(outputColumnName, new[] { "Age", "Parity", "Induced" })
-                .Append(ml.Clustering.Trainers.KMeans(outputColumnName, clustersCount: 2));
+                .Append(ml.Clustering.Trainers.KMeans(
+                    new KMeansPlusPlusTrainer.Options
+                    {
+                        FeatureColumnName = outputColumnName,
+                        ClustersCount = 2,
+                        NumberOfIterations = 100,
+                        OptimizationTolerance = 1e-6f
+                    }
+                 ));
 
             var model = pipeline.Fit(trainData);
 
@@ -40,6 +49,9 @@ namespace Microsoft.ML.Samples.Dynamic
 
             var centroid = centroids[0].GetValues();
             Console.WriteLine("The coordinates of centroid 0 are: " + string.Join(", ", centroid.ToArray()));
+
+            //  Expected Output:
+            //      The coordinates of centroid 0 are: (26, 6, 1)
         }
     }
 }

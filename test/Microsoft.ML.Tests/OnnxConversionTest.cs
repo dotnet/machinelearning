@@ -136,10 +136,10 @@ namespace Microsoft.ML.Tests
                 Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeansPlusPlusTrainer.Options
                 {
                     FeatureColumnName = DefaultColumnNames.Features,
-                    MaxIterations = 1,
+                    NumberOfIterations = 1,
                     ClustersCount = 4,
-                    NumThreads = 1,
-                    InitAlgorithm = Trainers.KMeansPlusPlusTrainer.InitAlgorithm.Random
+                    NumberOfThreads = 1,
+                    InitializationAlgorithm = Trainers.KMeansPlusPlusTrainer.InitializationAlgorithm.Random
                 }));
 
             var model = pipeline.Fit(data);

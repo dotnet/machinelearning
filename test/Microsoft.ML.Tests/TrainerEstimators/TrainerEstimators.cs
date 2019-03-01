@@ -75,7 +75,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 FeatureColumnName = featureColumn,
                 ExampleWeightColumnName = weights,
-                InitAlgorithm = KMeansPlusPlusTrainer.InitAlgorithm.KMeansParallel,
+                InitializationAlgorithm = KMeansPlusPlusTrainer.InitializationAlgorithm.KMeansParallel,
             });
 
             TestEstimatorCore(pipeline, data);
