@@ -310,7 +310,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             int? minimumDataPerLeaf = null,
             double? learningRate = null,
             int numberOfIterations = Options.Defaults.NumberOfIterations,
-            Action<OvaModelParameters> onFit = null)
+            Action<OneVersusAllModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, numberOfLeaves, minimumDataPerLeaf, learningRate, numberOfIterations, onFit);
 
@@ -348,7 +348,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             Vector<float> features,
             Scalar<float> weights,
             Options options,
-            Action<OvaModelParameters> onFit = null)
+            Action<OneVersusAllModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, options, onFit);
 
