@@ -999,7 +999,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// The options for the <see cref="TensorFlowTransformer"/>.
         /// </summary>
-        public sealed class Options : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
             /// <summary>
             /// Location of the TensorFlow model.
