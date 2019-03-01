@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms.Normalizers;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -31,7 +30,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Load the Iris dataset
-            var data = mlContext.Data.ReadFromTextFile<Iris>(
+            var data = mlContext.Data.LoadFromTextFile<Iris>(
                 GetDataPath(TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
@@ -58,7 +57,7 @@ namespace Microsoft.ML.Functional.Tests
             var transformedData = pipeline.Fit(data).Transform(data);
 
             // Verify that the column has the correct data.
-            var transformedRows = mlContext.CreateEnumerable<IrisWithOneExtraColumn>(transformedData, reuseRowObject: true);
+            var transformedRows = mlContext.Data.CreateEnumerable<IrisWithOneExtraColumn>(transformedData, reuseRowObject: true);
             foreach (var row in transformedRows)
             {
                 var randomNumber = GetRandomNumber(row.Label + row.PetalLength + row.PetalWidth + row.SepalLength + row.SepalWidth);
@@ -76,7 +75,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Load the Iris dataset
-            var data = mlContext.Data.ReadFromTextFile<Iris>(
+            var data = mlContext.Data.LoadFromTextFile<Iris>(
                 GetDataPath(TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
@@ -104,7 +103,7 @@ namespace Microsoft.ML.Functional.Tests
             var transformedData = pipeline.Fit(data).Transform(data);
 
             // Verify that the column has the correct data.
-            var transformedRows = mlContext.CreateEnumerable<IrisWithTwoExtraColumns>(transformedData, reuseRowObject: true);
+            var transformedRows = mlContext.Data.CreateEnumerable<IrisWithTwoExtraColumns>(transformedData, reuseRowObject: true);
             foreach (var row in transformedRows)
             {
                 var randomNumber1 = GetRandomNumber(1 + row.Label + row.PetalLength + row.PetalWidth + row.SepalLength + row.SepalWidth);
@@ -124,7 +123,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Load the Iris dataset
-            var data = mlContext.Data.ReadFromTextFile<Iris>(
+            var data = mlContext.Data.LoadFromTextFile<Iris>(
                 GetDataPath(TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
@@ -159,7 +158,7 @@ namespace Microsoft.ML.Functional.Tests
             var transformedData = pipeline.Fit(data).Transform(data);
 
             // Verify that the column has the correct data.
-            var transformedRows = mlContext.CreateEnumerable<IrisWithOneExtraColumn>(transformedData, reuseRowObject: true);
+            var transformedRows = mlContext.Data.CreateEnumerable<IrisWithOneExtraColumn>(transformedData, reuseRowObject: true);
             foreach (var row in transformedRows)
             {
                 var cosineDistance = angiospermCosine(row.PetalLength, row.PetalWidth, row.SepalLength, row.SepalWidth);
@@ -176,7 +175,7 @@ namespace Microsoft.ML.Functional.Tests
             // Concurrency must be 1 to assure that the mapping is done sequentially.
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            var data = mlContext.Data.ReadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
+            var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 separatorChar: TestDatasets.Sentiment.fileSeparator);
 
@@ -214,7 +213,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Load the Iris dataset.
-            var data = mlContext.Data.ReadFromTextFile<Iris>(
+            var data = mlContext.Data.LoadFromTextFile<Iris>(
                 GetDataPath(TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
                 separatorChar: TestDatasets.iris.fileSeparator);
@@ -227,7 +226,7 @@ namespace Microsoft.ML.Functional.Tests
             var transformedData = pipeline.Fit(data).Transform(data);
 
             // Validate that the data was normalized to between -1 and 1.
-            var dataEnumerator = mlContext.CreateEnumerable<FeatureColumn>(transformedData, true);
+            var dataEnumerator = mlContext.Data.CreateEnumerable<FeatureColumn>(transformedData, true);
             foreach (var row in dataEnumerator)
                 // Verify per-slot normalization.
                 for (int i = 0; i < row.Features.Length; i++)
