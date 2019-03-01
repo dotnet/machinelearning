@@ -127,6 +127,7 @@ namespace Microsoft.ML.Trainers
                 CheckLabelCompatible(labelCol);
             }
         }
+
         private protected virtual void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
             Contracts.CheckParam(labelCol.IsValid, nameof(labelCol), "not initialized properly");

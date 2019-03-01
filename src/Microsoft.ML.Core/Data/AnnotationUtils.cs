@@ -311,7 +311,7 @@ namespace Microsoft.ML.Data
         {
             return col.Annotations.TryFindColumn(Kinds.KeyValues, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Vector
-                 && metaCol.ItemType is TextDataViewType; ;
+                && metaCol.ItemType is TextDataViewType; ;
         }
 
         /// <summary>

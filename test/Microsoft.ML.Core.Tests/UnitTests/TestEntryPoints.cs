@@ -2382,7 +2382,7 @@ namespace Microsoft.ML.RunTests
                       'OutputData': '$data{3}'
                     }}";
             var transforms = "";
-            
+
             for (int i = 0; i < Utils.Size(xfNames); i++)
             {
                 transforms =
@@ -2390,7 +2390,7 @@ namespace Microsoft.ML.RunTests
                        {{
                          {string.Format(xfTemplate, xfNames[i], i + 1, xfArgs[i], i + 2)}
                        }},";
-            
+
             }
             string inputGraph = string.Format(@"
                 {{
@@ -2427,7 +2427,7 @@ namespace Microsoft.ML.RunTests
             string.IsNullOrWhiteSpace(loader) ? "" : string.Format(",'CustomSchema': 'sparse+ {0}'", loader),
             string.IsNullOrWhiteSpace(trainerArgs) ? "" : trainerArgs,
             transforms,
-            xfNames?.Length + 1
+            xfNames != null ? xfNames.Length + 1 : 1
             );
 
             var jsonPath = DeleteOutputPath("graph.json");
