@@ -90,8 +90,7 @@ namespace Microsoft.ML
              => new KeyToValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columns));
 
         /// <summary>
-        /// Maps key types (or key values) into a floating point vector suitable for learning (variously, one-hot-encoding,
-        /// or bag-of-words vector, depending on the type of input data and other applications)
+        /// Maps key types or key values into a floating point vector.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="columns">The input column to map back to vectors.</param>
@@ -100,8 +99,7 @@ namespace Microsoft.ML
             => new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
-        /// Maps key types (or key values) into a floating point vector suitable for learning (variously, one-hot-encoding,
-        /// or bag-of-words vector, depending on the type of input data and other applications)
+        /// Maps key types or key values into a floating point vector.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
