@@ -41,6 +41,7 @@ Please feel free to search this page and use any code that suits your needs.
 - [How do I train using cross-validation?](#how-do-i-train-using-cross-validation)
 - [Can I mix and match static and dynamic pipelines?](#can-i-mix-and-match-static-and-dynamic-pipelines)
 - [How can I define my own transformation of data?](#how-can-i-define-my-own-transformation-of-data)
+- [How can I read and write binary data?](#how-can-i-read-and-write-binary-data)
 
 ### General questions about the samples
 
@@ -1021,4 +1022,47 @@ newContext.ComponentCatalog.RegisterAssembly(typeof(CustomMappings).Assembly);
 ITransformer loadedModel;
 using (var fs = File.OpenRead(modelPath))
     loadedModel = newContext.Model.Load(fs);
+```
+
+## How can I read and write binary data?
+Other than using text files ML.NET will allow you to read and write binary data. 
+
+To write binary data you need some data to be able to save. Specifically you need an instance of an `IDavaView`. Below is a code snippet that uses the iris data as an example.
+
+```csharp
+// Data model for the iris data
+public class IrisData
+{
+    public float Label;
+    public float SepalLength;
+    public float SepalWidth;
+    public float PetalLength;
+    public float PetalWidth;
+}
+
+// An array of iris data points
+var dataArray = new[] {
+    new IrisData{Label=1, PetalLength=1, SepalLength=1, PetalWidth=1, SepalWidth=1},
+    new IrisData{Label=0, PetalLength=2, SepalLength=2, PetalWidth=2, SepalWidth=2}
+};
+
+// Create the ML.NET context.
+var context = new MLContext();
+
+// Create the data view.
+// This method will use the definition of IrisData to understand what columns there are in the 
+// data view.
+var data = context.CreateDataView(dataArray);
+
+// Use a FileStream to create a file. Use the stream and the data view in the "SaveAsBinary" method.
+using(var stream = new FileStream("./iris.idv", FileMode.Create))
+{
+    context.Data.SaveAsBinary(data, stream);
+}
+```
+
+To read a binary file, simply use the `context.Data.ReadFromBinary` method and pass in the path of the binary file to read in.
+
+```csharp
+var data = context.Data.ReadFromBinary("./iris.idv");
 ```
