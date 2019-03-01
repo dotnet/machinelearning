@@ -1,11 +1,11 @@
-maml.exe TrainTest test=%Data% tr=OVA{p=FastForest{ }} norm=No dout=%Output% data=%Data% out=%Output% seed=1 xf=Term{col=Label}
+maml.exe TrainTest test=D:\src\fork-machinelearning\test\data\iris.txt tr=OVA{p=FastForest{ }} norm=No dout=D:\src\fork-machinelearning\bin\AnyCPU.Debug\Microsoft.ML.Predictor.Tests\netcoreapp2.1\TestOutput\OVA\OVA-FastForest-TrainTest-iris.txt data=D:\src\fork-machinelearning\test\data\iris.txt out=D:\src\fork-machinelearning\bin\AnyCPU.Debug\Microsoft.ML.Predictor.Tests\netcoreapp2.1\TestOutput\OVA\OVA-FastForest-TrainTest-iris-model.zip seed=1 xf=Term{col=Label}
 Not adding a normalizer.
 Training learner 0
 Making per-feature arrays
 Changing data from row-wise to column-wise
 Processed 150 instances
 Binning and forming Feature objects
-Reserved memory for tree learner: %Number% bytes
+Reserved memory for tree learner: 20436 bytes
 Starting to train ...
 Warning: 2 of the boosting iterations failed to grow a tree. This is commonly because the minimum documents in leaf hyperparameter was set too high for this dataset.
 Training calibrator.
@@ -14,7 +14,7 @@ Making per-feature arrays
 Changing data from row-wise to column-wise
 Processed 150 instances
 Binning and forming Feature objects
-Reserved memory for tree learner: %Number% bytes
+Reserved memory for tree learner: 20436 bytes
 Starting to train ...
 Warning: 3 of the boosting iterations failed to grow a tree. This is commonly because the minimum documents in leaf hyperparameter was set too high for this dataset.
 Training calibrator.
@@ -23,7 +23,7 @@ Making per-feature arrays
 Changing data from row-wise to column-wise
 Processed 150 instances
 Binning and forming Feature objects
-Reserved memory for tree learner: %Number% bytes
+Reserved memory for tree learner: 20436 bytes
 Starting to train ...
 Warning: 1 of the boosting iterations failed to grow a tree. This is commonly because the minimum documents in leaf hyperparameter was set too high for this dataset.
 Training calibrator.
@@ -51,7 +51,7 @@ Log-loss:           0.088201 (0.0000)
 Log-loss reduction: 91.971614 (0.0000)
 
 ---------------------------------------
-Physical memory usage(MB): %Number%
-Virtual memory usage(MB): %Number%
-%DateTime%	 Time elapsed(s): %Number%
+Physical memory usage(MB): 82
+Virtual memory usage(MB): 2101979
+3/1/2019 1:31:42 AM	 Time elapsed(s): 0.602
 

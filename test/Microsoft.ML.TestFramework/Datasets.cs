@@ -454,7 +454,9 @@ namespace Microsoft.ML.RunTests
             trainFilename = @"iris.txt",
             testFilename = @"iris.txt",
             fileHasHeader = true,
-            fileSeparator = '\t'
+            fileSeparator = '\t',
+            mamlExtraSettings = new[] { "xf=Term{col=Label}" }
+
         };
 
         public static TestDataset irisMissing = new TestDataset()

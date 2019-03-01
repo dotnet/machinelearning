@@ -554,7 +554,7 @@ namespace Microsoft.ML.RunTests
                     return Failed();
 
                 ulong vsize = type1 is VectorType vectorType ? (ulong)vectorType.Size : 0;
-                if (!CheckMetadataNames(AnnotationUtils.Kinds.SlotNames, vsize, sch1, sch2, col, exactTypes, true))
+                if (!CheckMetadataNames(AnnotationUtils.Kinds.SlotNames, vsize, sch1, sch2, col, exactTypes, false))
                     return Failed();
 
                 if (!keyNames)

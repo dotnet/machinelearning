@@ -310,8 +310,7 @@ namespace Microsoft.ML.Data
         public static bool HasKeyValues(this SchemaShape.Column col)
         {
             return col.Annotations.TryFindColumn(Kinds.KeyValues, out var metaCol)
-                && metaCol.Kind == SchemaShape.Column.VectorKind.Vector
-                && metaCol.ItemType is TextDataViewType;
+                && metaCol.Kind == SchemaShape.Column.VectorKind.Vector;
         }
 
         /// <summary>

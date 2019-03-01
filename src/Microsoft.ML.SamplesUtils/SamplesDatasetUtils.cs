@@ -151,7 +151,7 @@ namespace Microsoft.ML.SamplesUtils
                         new TextLoader.Column("capital-loss", DataKind.Single, 11),
                         new TextLoader.Column("hours-per-week", DataKind.Single, 12),
                         new TextLoader.Column("native-country", DataKind.Single, 13),
-                        new TextLoader.Column("IsOver50K", DataKind.Single, 14),
+                        new TextLoader.Column("IsOver50K", DataKind.Boolean, 14),
                     },
                 separatorChar: ',',
                 hasHeader: true

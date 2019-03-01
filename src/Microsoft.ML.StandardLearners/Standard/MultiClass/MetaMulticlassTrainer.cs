@@ -8,9 +8,8 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Trainers
 {
@@ -32,7 +31,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of instances to train the calibrator", SortOrder = 150, ShortName = "numcali")]
             internal int MaxCalibrationExamples = 1000000000;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Whether to treat missing labels as having negative labels, instead of keeping them missing", SortOrder = 150, ShortName = "missNeg")]
+            [Argument(ArgumentType.Multiple, HelpText = "Whether to treat missing labels as having negative labels, or exclude their rows from dataview.", SortOrder = 150, ShortName = "missNeg")]
             public bool ImputeMissingLabelsAsNegative;
         }
 
@@ -99,19 +98,16 @@ namespace Microsoft.ML.Trainers
             Host.Assert(data.Schema.Label.HasValue);
 
             var lab = data.Schema.Label.Value;
-
-            InPredicate<T> isMissing;
-            if (!Args.ImputeMissingLabelsAsNegative && Conversions.Instance.TryGetIsNAPredicate(type, out isMissing))
+            IDataView dataView = data.Data;
+            if (!Args.ImputeMissingLabelsAsNegative)
             {
-                return LambdaColumnMapper.Create(Host, "Label mapper", data.Data,
-                    lab.Name, lab.Name, type, NumberDataViewType.Single,
-                    (in T src, ref float dst) =>
-                        dst = equalsTarget(in src) ? 1 : (isMissing(in src) ? float.NaN : default(float)));
+                dataView = new NAFilter(Host, data.Data, false, lab.Name);
             }
+
             return LambdaColumnMapper.Create(Host, "Label mapper", data.Data,
-                lab.Name, lab.Name, type, NumberDataViewType.Single,
-                (in T src, ref float dst) =>
-                    dst = equalsTarget(in src) ? 1 : default(float));
+                lab.Name, lab.Name, type, BooleanDataViewType.Instance,
+                (in T src, ref bool dst) =>
+                    dst = equalsTarget(in src) ? true : false);
         }
 
         private protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, int count);

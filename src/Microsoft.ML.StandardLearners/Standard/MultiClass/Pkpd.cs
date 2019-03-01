@@ -154,18 +154,6 @@ namespace Microsoft.ML.Trainers
                 uint key2 = (uint)(cls2 + 1);
                 return MapLabelsCore(NumberDataViewType.UInt32, (in uint val) => val == key1 || val == key2, data);
             }
-            if (lab.Type == NumberDataViewType.Single)
-            {
-                float key1 = cls1;
-                float key2 = cls2;
-                return MapLabelsCore(NumberDataViewType.Single, (in float val) => val == key1 || val == key2, data);
-            }
-            if (lab.Type == NumberDataViewType.Double)
-            {
-                double key1 = cls1;
-                double key2 = cls2;
-                return MapLabelsCore(NumberDataViewType.Double, (in double val) => val == key1 || val == key2, data);
-            }
 
             throw Host.ExceptNotSupp($"Label column type is not supported by PKPD: {lab.Type}");
         }

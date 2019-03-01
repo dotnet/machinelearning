@@ -157,16 +157,6 @@ namespace Microsoft.ML.Trainers
                 uint key = (uint)(cls + 1);
                 return MapLabelsCore(NumberDataViewType.UInt32, (in uint val) => key == val, data);
             }
-            if (lab.Type == NumberDataViewType.Single)
-            {
-                float key = cls;
-                return MapLabelsCore(NumberDataViewType.Single, (in float val) => key == val, data);
-            }
-            if (lab.Type == NumberDataViewType.Double)
-            {
-                double key = cls;
-                return MapLabelsCore(NumberDataViewType.Double, (in double val) => key == val, data);
-            }
 
             throw Host.ExceptNotSupp($"Label column type is not supported by OVA: {lab.Type}");
         }
@@ -249,7 +239,7 @@ namespace Microsoft.ML.Trainers
         bool ICanSavePfa.CanSavePfa => _impl.CanSavePfa;
 
         [BestFriend]
-        internal static OvaModelParameters Create(IHost host,  OutputFormula outputFormula, TScalarPredictor[] predictors)
+        internal static OvaModelParameters Create(IHost host, OutputFormula outputFormula, TScalarPredictor[] predictors)
         {
             ImplBase impl;
 
@@ -457,7 +447,7 @@ namespace Microsoft.ML.Trainers
                     return false;
                 if (mapper.OutputType != NumberDataViewType.Single)
                     return false;
-                if (!(mapper.InputType is VectorType mapperVectorType)|| mapperVectorType.ItemType != NumberDataViewType.Single)
+                if (!(mapper.InputType is VectorType mapperVectorType) || mapperVectorType.ItemType != NumberDataViewType.Single)
                     return false;
                 if (inputType == null)
                     inputType = mapperVectorType;
