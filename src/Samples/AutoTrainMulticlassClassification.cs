@@ -16,10 +16,10 @@ namespace Samples
 {
     public class AutoTrainMulticlassClassification
     {
-        private static string BaseDatasetsLocation = @"../../../../src/Samples/Data";
-        private static string TrainDataPath = $"{BaseDatasetsLocation}/optdigits-train.csv";
-        private static string TestDataPath = $"{BaseDatasetsLocation}/optdigits-test.csv";
-        private static string ModelPath = $"{BaseDatasetsLocation}/OptDigits.zip";
+        private static string BaseDatasetsLocation = Path.Combine("..", "..", "..", "..", "src", "Samples", "Data");
+        private static string TrainDataPath = Path.Combine(BaseDatasetsLocation, "optdigits-train.csv");
+        private static string TestDataPath = Path.Combine(BaseDatasetsLocation, "optdigits-test.csv");
+        private static string ModelPath = Path.Combine(BaseDatasetsLocation, "OptDigits.zip");
         private static uint ExperimentTime = 60;
 
         public static void Run()

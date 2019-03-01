@@ -17,7 +17,7 @@ namespace Microsoft.ML.Auto.Test
         public const string MlNetGeneratedRegressionLabel = "target";
         public const int IrisDatasetLabelColIndex = 0;
 
-        public const string TrivialMulticlassDatasetPath = @"TestData\TrivialMulticlassDataset.txt";
+        public static string TrivialMulticlassDatasetPath = Path.Combine("TestData", "TrivialMulticlassDataset.txt");
 
         private static IDataView _uciAdultDataView;
 

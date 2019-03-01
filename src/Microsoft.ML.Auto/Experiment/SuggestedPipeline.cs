@@ -95,19 +95,19 @@ namespace Microsoft.ML.Auto
         {
             IEstimator<ITransformer> pipeline = new EstimatorChain<ITransformer>();
 
-            // append each transformer to the pipeline
+            // Append each transformer to the pipeline
             foreach (var transform in Transforms)
             {
-                if(transform.Estimator != null)
+                if (transform.Estimator != null)
                 {
                     pipeline = pipeline.Append(transform.Estimator);
                 }
             }
 
-            // get learner
+            // Get learner
             var learner = Trainer.BuildTrainer();
 
-            // append learner to pipeline
+            // Append learner to pipeline
             pipeline = pipeline.Append(learner);
 
             return pipeline;

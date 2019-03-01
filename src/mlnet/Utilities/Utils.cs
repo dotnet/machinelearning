@@ -37,7 +37,7 @@ namespace Microsoft.ML.CLI.Utilities
                 Directory.CreateDirectory(modelPath.Directory.FullName);
             }
 
-            using (var fs = File.Create(modelPath.FullName))
+            using (var fs = System.IO.File.Create(modelPath.FullName))
                 model.SaveTo(mlContext, fs);
         }
 

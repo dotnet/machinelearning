@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.IO;
 using ApprovalTests;
 using ApprovalTests.Reporters;
 using Microsoft.ML;
@@ -11,6 +10,7 @@ using Microsoft.ML.Auto;
 using Microsoft.ML.CLI.CodeGenerator.CSharp;
 using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using mlnet.Test.Utilities;
 
 namespace mlnet.Test
 {
@@ -33,10 +33,10 @@ namespace mlnet.Test
                 MlTask = TaskKind.BinaryClassification,
                 OutputBaseDir = null,
                 OutputName = "MyNamespace",
-                TrainDataset = new FileInfo("x:\\dummypath\\dummy_train.csv"),
-                TestDataset = new FileInfo("x:\\dummypath\\dummy_test.csv"),
+                TrainDataset = new MockFileInfo("x:\\dummypath\\dummy_train.csv"),
+                TestDataset = new MockFileInfo("x:\\dummypath\\dummy_test.csv"),
                 LabelName = "Label",
-                ModelPath = new FileInfo("x:\\models\\model.zip")
+                ModelPath = new MockFileInfo("x:\\models\\model.zip")
             });
 
             (string trainCode, string projectCode, string helperCode) = consoleCodeGen.GenerateCode();
@@ -57,10 +57,10 @@ namespace mlnet.Test
                 MlTask = TaskKind.BinaryClassification,
                 OutputBaseDir = null,
                 OutputName = "MyNamespace",
-                TrainDataset = new FileInfo("x:\\dummypath\\dummy_train.csv"),
-                TestDataset = new FileInfo("x:\\dummypath\\dummy_test.csv"),
+                TrainDataset = new MockFileInfo("x:\\dummypath\\dummy_train.csv"),
+                TestDataset = new MockFileInfo("x:\\dummypath\\dummy_test.csv"),
                 LabelName = "Label",
-                ModelPath = new FileInfo("x:\\models\\model.zip")
+                ModelPath = new MockFileInfo("x:\\models\\model.zip")
             });
 
             (string trainCode, string projectCode, string helperCode) = consoleCodeGen.GenerateCode();
@@ -81,10 +81,10 @@ namespace mlnet.Test
                 MlTask = TaskKind.BinaryClassification,
                 OutputBaseDir = null,
                 OutputName = "MyNamespace",
-                TrainDataset = new FileInfo("x:\\dummypath\\dummy_train.csv"),
-                TestDataset = new FileInfo("x:\\dummypath\\dummy_test.csv"),
+                TrainDataset = new MockFileInfo("x:\\dummypath\\dummy_train.csv"),
+                TestDataset = new MockFileInfo("x:\\dummypath\\dummy_test.csv"),
                 LabelName = "Label",
-                ModelPath = new FileInfo("x:\\models\\model.zip")
+                ModelPath = new MockFileInfo("x:\\models\\model.zip")
             });
 
             (string trainCode, string projectCode, string helperCode) = consoleCodeGen.GenerateCode();

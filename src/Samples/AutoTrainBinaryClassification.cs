@@ -16,10 +16,10 @@ namespace Samples
 {
     public class AutoTrainBinaryClassification
     {
-        private static string BaseDatasetsLocation = @"../../../../src/Samples/Data";
-        private static string TrainDataPath = $"{BaseDatasetsLocation}/wikipedia-detox-250-line-data.tsv";
-        private static string TestDataPath = $"{BaseDatasetsLocation}/wikipedia-detox-250-line-test.tsv";
-        private static string ModelPath = $"{BaseDatasetsLocation}/SentimentModel.zip";
+        private static string BaseDatasetsLocation = Path.Combine("..", "..", "..", "..", "src", "Samples", "Data");
+        private static string TrainDataPath = Path.Combine(BaseDatasetsLocation, "wikipedia-detox-250-line-data.tsv");
+        private static string TestDataPath = Path.Combine(BaseDatasetsLocation, "wikipedia-detox-250-line-test.tsv");
+        private static string ModelPath = Path.Combine(BaseDatasetsLocation, "SentimentModel.zip");
         private static string LabelColumn = "Sentiment";
         private static uint ExperimentTime = 60;
 

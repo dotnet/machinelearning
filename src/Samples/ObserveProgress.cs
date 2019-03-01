@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
@@ -12,10 +13,10 @@ namespace Samples
 {
     static class ObserveProgress
     {
-        private static string BaseDatasetsLocation = @"../../../../src/Samples/Data";
-        private static string TrainDataPath = $"{BaseDatasetsLocation}/taxi-fare-train.csv";
-        private static string TestDataPath = $"{BaseDatasetsLocation}/taxi-fare-test.csv";
-        private static string ModelPath = $"{BaseDatasetsLocation}/TaxiFareModel.zip";
+        private static string BaseDatasetsLocation = Path.Combine("..", "..", "..", "..", "src", "Samples", "Data");
+        private static string TrainDataPath = Path.Combine(BaseDatasetsLocation, "taxi-fare-train.csv");
+        private static string TestDataPath = Path.Combine(BaseDatasetsLocation, "taxi-fare-test.csv");
+        private static string ModelPath = Path.Combine(BaseDatasetsLocation, "TaxiFareModel.zip");
         private static string LabelColumn = "fare_amount";
 
         public static void Run()

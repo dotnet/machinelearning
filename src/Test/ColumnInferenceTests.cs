@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -62,7 +63,7 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void DatasetWithEmptyColumn()
         {
-            var result = new MLContext().Auto().InferColumns(@".\TestData\DatasetWithEmptyColumn.txt", DefaultColumnNames.Label);
+            var result = new MLContext().Auto().InferColumns(Path.Combine("TestData", "DatasetWithEmptyColumn.txt"), DefaultColumnNames.Label);
             var emptyColumn = result.TextLoaderArgs.Columns.First(c => c.Name == "Empty");
             Assert.AreEqual(DataKind.TX, emptyColumn.Type);
         }
@@ -70,7 +71,7 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void DatasetWithBoolColumn()
         {
-            var result = new MLContext().Auto().InferColumns(@".\TestData\BinaryDatasetWithBoolColumn.txt", DefaultColumnNames.Label);
+            var result = new MLContext().Auto().InferColumns(Path.Combine("TestData", "BinaryDatasetWithBoolColumn.txt"), DefaultColumnNames.Label);
             Assert.AreEqual(2, result.TextLoaderArgs.Columns.Count());
 
             var boolColumn = result.TextLoaderArgs.Columns.First(c => c.Name == "Bool");
@@ -88,7 +89,7 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void WhereNameColumnIsOnlyFeature()
         {
-            var result = new MLContext().Auto().InferColumns(@".\TestData\NameColumnIsOnlyFeatureDataset.txt", DefaultColumnNames.Label);
+            var result = new MLContext().Auto().InferColumns(Path.Combine("TestData", "NameColumnIsOnlyFeatureDataset.txt"), DefaultColumnNames.Label);
             Assert.AreEqual(2, result.TextLoaderArgs.Columns.Count());
 
             var nameColumn = result.TextLoaderArgs.Columns.First(c => c.Name == "Username");
@@ -104,7 +105,7 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void DefaultColumnNamesInferredCorrectly()
         {
-            var result = new MLContext().Auto().InferColumns(@".\TestData\DatasetWithDefaultColumnNames.txt",
+            var result = new MLContext().Auto().InferColumns(Path.Combine("TestData", "DatasetWithDefaultColumnNames.txt"),
                 new ColumnInformation()
                 {
                     LabelColumn = DefaultColumnNames.Label,
@@ -120,7 +121,7 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void DefaultColumnNamesNoGrouping()
         {
-            var result = new MLContext().Auto().InferColumns(@".\TestData\DatasetWithDefaultColumnNames.txt",
+            var result = new MLContext().Auto().InferColumns(Path.Combine("TestData", "DatasetWithDefaultColumnNames.txt"),
                 new ColumnInformation()
                 {
                     LabelColumn = DefaultColumnNames.Label,

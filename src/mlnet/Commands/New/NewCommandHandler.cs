@@ -9,6 +9,7 @@ using Microsoft.ML.Auto;
 using Microsoft.ML.CLI.CodeGenerator.CSharp;
 using Microsoft.ML.CLI.Data;
 using Microsoft.ML.CLI.Utilities;
+using Microsoft.ML.CLI.Utilities.File;
 using Microsoft.ML.Data;
 using NLog;
 
@@ -76,7 +77,7 @@ namespace Microsoft.ML.CLI.Commands.New
 
             // Save the model
             logger.Log(LogLevel.Info, Strings.SavingBestModel);
-            var modelPath = new FileInfo(Path.Combine(settings.OutputPath.FullName, $"model.zip"));
+            var modelPath = new FileInfo(Path.Combine(settings.OutputPath.FullName, "model.zip"));
             Utils.SaveModel(model, modelPath, context);
 
             // Generate the Project
@@ -110,13 +111,13 @@ namespace Microsoft.ML.CLI.Commands.New
                 columnInference,
                 new CodeGeneratorSettings()
                 {
-                    TrainDataset = settings.Dataset,
+                    TrainDataset = new SystemFileInfo(settings.Dataset),
                     MlTask = taskKind,
-                    TestDataset = settings.TestDataset,
+                    TestDataset = new SystemFileInfo(settings.TestDataset),
                     OutputName = settings.Name,
                     OutputBaseDir = settings.OutputPath.FullName,
                     LabelName = labelName,
-                    ModelPath = modelPath
+                    ModelPath = new SystemFileInfo(modelPath)
                 });
             codeGenerator.GenerateOutput();
         }

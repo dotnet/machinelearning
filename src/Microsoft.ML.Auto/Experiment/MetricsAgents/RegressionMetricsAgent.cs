@@ -17,7 +17,7 @@ namespace Microsoft.ML.Auto
 
         public double GetScore(RegressionMetrics metrics)
         {
-            switch(_optimizingMetric)
+            switch (_optimizingMetric)
             {
                 case RegressionMetric.L1:
                     return metrics.L1;
