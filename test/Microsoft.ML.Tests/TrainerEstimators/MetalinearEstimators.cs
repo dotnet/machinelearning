@@ -52,10 +52,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// Pkpd trainer
+        /// Pairwise Coupling trainer
         /// </summary>
         [Fact]
-        public void Pkpd()
+        public void PairwiseCouplingTrainer()
         {
             var (pipeline, data) = GetMultiClassPipeline();
 

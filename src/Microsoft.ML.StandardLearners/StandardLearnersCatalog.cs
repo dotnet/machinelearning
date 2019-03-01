@@ -605,7 +605,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predicts a target using a linear multiclass classification model trained with the <see cref="Pkpd"/>.
+        /// Predicts a target using a linear multiclass classification model trained with the <see cref="PairwiseCouplingTrainer"/>.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -619,21 +619,22 @@ namespace Microsoft.ML
         /// <param name="calibrator">The calibrator. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
         /// <param name="labelColumnName">The name of the label colum.</param>
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
-        /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
+        /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
         /// <typeparam name="TModel">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
-        public static Pkpd PairwiseCoupling<TModel>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        public static PairwiseCouplingTrainer PairwiseCoupling<TModel>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             ITrainerEstimator<ISingleFeaturePredictionTransformer<TModel>, TModel> binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
             IEstimator<ISingleFeaturePredictionTransformer<ICalibrator>> calibrator = null,
-            int maxCalibrationExamples = 1_000_000_000)
+            int maximumCalibrationExampleCount = 1_000_000_000)
             where TModel : class
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
             if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
                 throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
-            return new Pkpd(env, est, labelColumnName, imputeMissingLabelsAsNegative, GetCalibratorTrainerOrThrow(env, calibrator), maxCalibrationExamples);
+            return new PairwiseCouplingTrainer(env, est, labelColumnName, imputeMissingLabelsAsNegative,
+                                                GetCalibratorTrainerOrThrow(env, calibrator), maximumCalibrationExampleCount);
         }
 
         /// <summary>
