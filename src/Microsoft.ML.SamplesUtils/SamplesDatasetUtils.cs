@@ -101,7 +101,7 @@ namespace Microsoft.ML.SamplesUtils
             var dataFiles = DownloadSentimentDataset();
 
             // Define the columns to load
-            var reader = mlContext.Data.CreateTextLoader(
+            var loader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
                         new TextLoader.Column("Sentiment", DataKind.Boolean, 0),
@@ -113,10 +113,10 @@ namespace Microsoft.ML.SamplesUtils
             // Create data featurizing pipeline
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText");
 
-            var data = reader.Load(dataFiles[0]);
+            var data = loader.Load(dataFiles[0]);
             var model = pipeline.Fit(data);
             var featurizedDataTrain = model.Transform(data);
-            var featurizedDataTest = model.Transform(reader.Load(dataFiles[1]));
+            var featurizedDataTest = model.Transform(loader.Load(dataFiles[1]));
             return new[] { featurizedDataTrain, featurizedDataTest };
         }
 
