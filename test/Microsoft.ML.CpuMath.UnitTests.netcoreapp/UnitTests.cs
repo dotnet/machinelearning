@@ -25,8 +25,8 @@ namespace Microsoft.ML.CpuMath.UnitTests
 #if NETCOREAPP3_0
         private static Dictionary<string, string> DisableAvxEnvironmentVariables;
         private static Dictionary<string, string> DisableAvxAndSseEnvironmentVariables;
-        private static readonly string disableAvx = "COMPlus_EnableAvx";
-        private static readonly string disableSse = "COMPlus_EnableSse";
+        private static readonly string disableAvx = "COMPlus_EnableAVX";
+        private static readonly string disableSse = "COMPlus_EnableSSE";
         private static readonly string disableAvxAndSse = "COMPlus_EnableHWIntrinsic";
 #endif
 
