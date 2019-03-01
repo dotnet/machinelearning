@@ -60,12 +60,12 @@ namespace Microsoft.ML.Data
         public ulong Count { get; }
 
         /// <summary>
-        /// Determine if a DataViewType object is equal to another KeyType instance.
-        /// Checks if the other item is the type of KeyType, if the RawType
+        /// Determine if this <see cref="KeyType"/> object is equal to another <see cref="DataViewType"/> instance.
+        /// Checks if the other item is the type of <see cref="KeyType"/>, if the RawType
         /// is the same, and if the Count is the same.
         /// </summary>
         /// <param name="other">The other object to compare against.</param>
-        /// <returns>A boolean if both objects are equal or not.</returns>
+        /// <returns><see langword="true" /> if both objects are equal, otherwise <see langword="false"/>.</returns>
         public override bool Equals(DataViewType other)
         {
             if (other == this)
@@ -81,12 +81,12 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Determine if a KeyType instance is equal to another KeyType instance.
-        /// Checks if any object is the type of KeyType, if the RawType
+        /// Determine if a <see cref="KeyType"/> instance is equal to another <see cref="KeyType"/> instance.
+        /// Checks if any object is the type of <see cref="KeyType"/>, if the RawType
         /// is the same, and if the Count is the same.
         /// </summary>
         /// <param name="other">The other object to compare against.</param>
-        /// <returns>A boolean if both objects are equal or not.</returns>
+        /// <returns><see langword="true" /> if both objects are equal, otherwise <see langword="false"/>.</returns>
         public override bool Equals(object other)
         {
             return other is DataViewType tmp && Equals(tmp);
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// The string representation of the KeyType.
+        /// The string representation of the <see cref="KeyType"/>.
         /// </summary>
         /// <returns>A formatted string.</returns>
         public override string ToString()
