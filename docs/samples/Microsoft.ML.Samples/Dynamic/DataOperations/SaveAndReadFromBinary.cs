@@ -5,7 +5,7 @@ using Microsoft.ML.SamplesUtils;
 
 namespace Microsoft.ML.Samples.Dynamic.DataOperations
 {
-    public class SaveAndReadFromBinary
+    public class SaveAndLoadFromBinary
     {
         public static void Example()
         {
