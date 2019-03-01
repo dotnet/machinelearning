@@ -14,7 +14,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorOlsLinearRegression()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = ML.Regression.Trainers.OrdinaryLeastSquares(new OlsLinearRegressionTrainer.Options());
+            var trainer = ML.Regression.Trainers.OrdinaryLeastSquares(new OrdinaryLeastSquaresRegressionTrainer.Options());
             TestEstimatorCore(trainer, dataView);
 
             var model = trainer.Fit(dataView);
@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.NotEmpty(model.Model.StandardErrors);
             Assert.NotEmpty(model.Model.PValues);
             Assert.NotEmpty(model.Model.TValues);
-            trainer = ML.Regression.Trainers.OrdinaryLeastSquares(new OlsLinearRegressionTrainer.Options() { PerParameterSignificance = false });
+            trainer = ML.Regression.Trainers.OrdinaryLeastSquares(new OrdinaryLeastSquaresRegressionTrainer.Options() { PerParameterSignificance = false });
             model = trainer.Fit(dataView);
             Assert.False(model.Model.HasStatistics);
             Done();

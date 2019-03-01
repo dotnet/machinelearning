@@ -9,12 +9,12 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// The trainer catalog extensions for the <see cref="OlsLinearRegressionTrainer"/> and <see cref="SymbolicStochasticGradientDescentClassificationTrainer"/>.
+    /// The trainer catalog extensions for the <see cref="OrdinaryLeastSquaresRegressionTrainer"/> and <see cref="SymbolicStochasticGradientDescentClassificationTrainer"/>.
     /// </summary>
     public static class HalLearnersCatalog
     {
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="OlsLinearRegressionTrainer"/>.
+        /// Predict a target using a linear regression model trained with the <see cref="OrdinaryLeastSquaresRegressionTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -27,28 +27,28 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static OlsLinearRegressionTrainer OrdinaryLeastSquares(this RegressionCatalog.RegressionTrainers catalog,
+        public static OrdinaryLeastSquaresRegressionTrainer OrdinaryLeastSquares(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            var options = new OlsLinearRegressionTrainer.Options
+            var options = new OrdinaryLeastSquaresRegressionTrainer.Options
             {
                 LabelColumnName = labelColumnName,
                 FeatureColumnName = featureColumnName,
                 ExampleWeightColumnName = exampleWeightColumnName
             };
 
-            return new OlsLinearRegressionTrainer(env, options);
+            return new OrdinaryLeastSquaresRegressionTrainer(env, options);
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="OlsLinearRegressionTrainer"/>.
+        /// Predict a target using a linear regression model trained with the <see cref="OrdinaryLeastSquaresRegressionTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="options">Algorithm advanced options. See <see cref="OlsLinearRegressionTrainer.Options"/>.</param>
+        /// <param name="options">Algorithm advanced options. See <see cref="OrdinaryLeastSquaresRegressionTrainer.Options"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -56,15 +56,15 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static OlsLinearRegressionTrainer OrdinaryLeastSquares(
+        public static OrdinaryLeastSquaresRegressionTrainer OrdinaryLeastSquares(
             this RegressionCatalog.RegressionTrainers catalog,
-            OlsLinearRegressionTrainer.Options options)
+            OrdinaryLeastSquaresRegressionTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new OlsLinearRegressionTrainer(env, options);
+            return new OrdinaryLeastSquaresRegressionTrainer(env, options);
         }
 
         /// <summary>

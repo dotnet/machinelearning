@@ -17,22 +17,22 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.HalLearners;
 
-[assembly: LoadableClass(OlsLinearRegressionTrainer.Summary, typeof(OlsLinearRegressionTrainer), typeof(OlsLinearRegressionTrainer.Options),
+[assembly: LoadableClass(OrdinaryLeastSquaresRegressionTrainer.Summary, typeof(OrdinaryLeastSquaresRegressionTrainer), typeof(OrdinaryLeastSquaresRegressionTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    OlsLinearRegressionTrainer.UserNameValue,
-    OlsLinearRegressionTrainer.LoadNameValue,
-    OlsLinearRegressionTrainer.ShortName)]
+    OrdinaryLeastSquaresRegressionTrainer.UserNameValue,
+    OrdinaryLeastSquaresRegressionTrainer.LoadNameValue,
+    OrdinaryLeastSquaresRegressionTrainer.ShortName)]
 
 [assembly: LoadableClass(typeof(OlsLinearRegressionModelParameters), null, typeof(SignatureLoadModel),
     "OLS Linear Regression Executor",
     OlsLinearRegressionModelParameters.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(void), typeof(OlsLinearRegressionTrainer), null, typeof(SignatureEntryPointModule), OlsLinearRegressionTrainer.LoadNameValue)]
+[assembly: LoadableClass(typeof(void), typeof(OrdinaryLeastSquaresRegressionTrainer), null, typeof(SignatureEntryPointModule), OrdinaryLeastSquaresRegressionTrainer.LoadNameValue)]
 
 namespace Microsoft.ML.Trainers.HalLearners
 {
     /// <include file='doc.xml' path='doc/members/member[@name="OLS"]/*' />
-    public sealed class OlsLinearRegressionTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OlsLinearRegressionModelParameters>, OlsLinearRegressionModelParameters>
+    public sealed class OrdinaryLeastSquaresRegressionTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OlsLinearRegressionModelParameters>, OlsLinearRegressionModelParameters>
     {
         ///<summary> Advanced options for trainer.</summary>
         public sealed class Options : TrainerInputBaseWithWeight
@@ -73,9 +73,9 @@ namespace Microsoft.ML.Trainers.HalLearners
         public override TrainerInfo Info => _info;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="OlsLinearRegressionTrainer"/>
+        /// Initializes a new instance of <see cref="OrdinaryLeastSquaresRegressionTrainer"/>
         /// </summary>
-        internal OlsLinearRegressionTrainer(IHostEnvironment env, Options options)
+        internal OrdinaryLeastSquaresRegressionTrainer(IHostEnvironment env, Options options)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName),
                   TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName), TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName))
         {
@@ -500,7 +500,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             EntryPointUtils.CheckInputArgs(host, options);
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, options,
-                () => new OlsLinearRegressionTrainer(host, options),
+                () => new OrdinaryLeastSquaresRegressionTrainer(host, options),
                 () => TrainerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.LabelColumnName),
                 () => TrainerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.ExampleWeightColumnName));
         }
@@ -545,7 +545,7 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// are all null. A model may not have per parameter statistics because either
         /// there were not more examples than parameters in the model, or because they
         /// were explicitly suppressed in training by setting
-        /// <see cref="OlsLinearRegressionTrainer.Options.PerParameterSignificance"/>
+        /// <see cref="OrdinaryLeastSquaresRegressionTrainer.Options.PerParameterSignificance"/>
         /// to false.
         /// </summary>
         public bool HasStatistics => StandardErrors != null;

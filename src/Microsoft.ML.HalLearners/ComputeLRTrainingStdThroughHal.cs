@@ -9,7 +9,7 @@ using Microsoft.ML.Trainers.HalLearners;
 
 namespace Microsoft.ML.Trainers
 {
-    using Mkl = OlsLinearRegressionTrainer.Mkl;
+    using Mkl = OrdinaryLeastSquaresRegressionTrainer.Mkl;
 
     public sealed class ComputeLRTrainingStdThroughHal : ComputeLRTrainingStd
     {
