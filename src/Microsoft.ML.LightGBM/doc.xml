@@ -16,10 +16,10 @@
         <code language="csharp">
           new LightGbmBinaryClassifier
           {
-            NumBoostRound = 200,
+            NumberOfIterations = 200,
             LearningRate = 0.5f,
-            NumLeaves = 32,
-            MinDataPerLeaf = 20
+            NumberOfLeaves = 32,
+            MinimumDataPerLeaf = 20
           }
         </code>
       </example>
@@ -29,10 +29,10 @@
         <code language="csharp">
           new LightGbmClassifier
           {
-            NumBoostRound = 200,
+            NumberOfIterations = 200,
             LearningRate = 0.5f,
-            NumLeaves = 32,
-            MinDataPerLeaf = 20
+            NumberOfLeaves = 32,
+            MinimumDataPerLeaf = 20
           }
         </code>
       </example>
@@ -42,10 +42,10 @@
         <code language="csharp">
           new LightGbmRegressor
           {
-            NumBoostRound = 100,
+            NumberOfIterations = 100,
             LearningRate = 0.5f,
-            NumLeaves = 32,
-            MinDataPerLeaf = 20,
+            NumberOfLeaves = 32,
+            MinimumDataPerLeaf = 20,
             Booster = new DartBoosterParameterFunction
             {
               XgboostDartMode = true,
@@ -60,10 +60,10 @@
         <code language="csharp">
           new LightGbmRanker
           {
-            NumBoostRound = 100,
+            NumberOfIterations = 100,
             LearningRate = 0.5f,
-            NumLeaves = 32,
-            MinDataPerLeaf = 20,
+            NumberOfLeaves = 32,
+            MinimumDataPerLeaf = 20,
             Booster = new GbdtBoosterParameterFunction
             {
               MinSplitGain = 3,

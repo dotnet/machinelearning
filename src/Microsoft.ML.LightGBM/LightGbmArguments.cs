@@ -66,14 +66,14 @@ namespace Microsoft.ML.LightGBM
                     if (attribute == null)
                         continue;
 
-                    res[GetArgName(field.Name)] = field.GetValue(BoosterParameterOptions);
+                    res[GetOptionName(field.Name)] = field.GetValue(BoosterParameterOptions);
                 }
             }
 
             void IBoosterParameter.UpdateParameters(Dictionary<string, object> res) => UpdateParameters(res);
         }
 
-        private static string GetArgName(string name)
+        private static string GetOptionName(string name)
         {
             StringBuilder strBuf = new StringBuilder();
             bool first = true;
@@ -96,7 +96,7 @@ namespace Microsoft.ML.LightGBM
         [BestFriend]
         internal static class Defaults
         {
-            public const int NumBoostRound = 100;
+            public const int NumberOfIterations = 100;
         }
 
         public sealed class TreeBooster : BoosterParameter<TreeBooster.Options>
@@ -107,7 +107,7 @@ namespace Microsoft.ML.LightGBM
             [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Traditional Gradient Boosting Decision Tree.")]
             public class Options : ISupportBoosterParameterFactory
             {
-                [Argument(ArgumentType.AtMostOnce, HelpText = "Use for binary classification when classes are not balanced.", ShortName = "us")]
+                [Argument(ArgumentType.AtMostOnce, HelpText = "Use for binary classification when training data is not balanced.", ShortName = "us")]
                 public bool UnbalancedSets = false;
 
                 [Argument(ArgumentType.AtMostOnce,
@@ -129,7 +129,7 @@ namespace Microsoft.ML.LightGBM
                 public double MinChildWeight = 0.1;
 
                 [Argument(ArgumentType.AtMostOnce,
-                    HelpText = "Subsample frequency. 0 means no subsample. "
+                    HelpText = "Subsample frequency for bagging. 0 means no subsample. "
                     + "If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.")]
                 [TlcModule.Range(Min = 0, Max = int.MaxValue)]
                 public int SubsampleFreq = 0;
@@ -179,7 +179,9 @@ namespace Microsoft.ML.LightGBM
                 Contracts.CheckUserArg(BoosterParameterOptions.MinChildWeight >= 0, nameof(BoosterParameterOptions.MinChildWeight), "must be >= 0.");
                 Contracts.CheckUserArg(BoosterParameterOptions.Subsample > 0 && BoosterParameterOptions.Subsample <= 1, nameof(BoosterParameterOptions.Subsample), "must be in (0,1].");
                 Contracts.CheckUserArg(BoosterParameterOptions.FeatureFraction > 0 && BoosterParameterOptions.FeatureFraction <= 1, nameof(BoosterParameterOptions.FeatureFraction), "must be in (0,1].");
-                Contracts.CheckUserArg(BoosterParameterOptions.ScalePosWeight > 0 && BoosterParameterOptions.ScalePosWeight <= 1, nameof(BoosterParameterOptions.ScalePosWeight), "must be in (0,1].");
+                Contracts.CheckUserArg(BoosterParameterOptions.RegLambda >= 0, nameof(BoosterParameterOptions.RegLambda), "must be >= 0.");
+                Contracts.CheckUserArg(BoosterParameterOptions.RegAlpha >= 0, nameof(BoosterParameterOptions.RegAlpha), "must be >= 0.");
+                Contracts.CheckUserArg(BoosterParameterOptions.ScalePosWeight > 0, nameof(BoosterParameterOptions.ScalePosWeight), "must be >= 0.");
             }
 
             internal override void UpdateParameters(Dictionary<string, object> res)
@@ -197,15 +199,15 @@ namespace Microsoft.ML.LightGBM
             [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Dropouts meet Multiple Additive Regresion Trees. See https://arxiv.org/abs/1505.01866")]
             public sealed class Options : TreeBooster.Options
             {
-                [Argument(ArgumentType.AtMostOnce, HelpText = "Drop ratio for trees. Range:(0,1).")]
+                [Argument(ArgumentType.AtMostOnce, HelpText = "The drop ratio for trees. Range:(0,1).")]
                 [TlcModule.Range(Inf = 0.0, Max = 1.0)]
                 public double DropRate = 0.1;
 
-                [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of dropped tree in a boosting round.")]
+                [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of dropped tree in a boosting round.")]
                 [TlcModule.Range(Inf = 0, Max = int.MaxValue)]
                 public int MaxDrop = 1;
 
-                [Argument(ArgumentType.AtMostOnce, HelpText = "Probability for not perform dropping in a boosting round.")]
+                [Argument(ArgumentType.AtMostOnce, HelpText = "Probability for not dropping in a boosting round.")]
                 [TlcModule.Range(Inf = 0.0, Max = 1.0)]
                 public double SkipDrop = 0.5;
 
@@ -222,7 +224,6 @@ namespace Microsoft.ML.LightGBM
                 : base(options)
             {
                 Contracts.CheckUserArg(BoosterParameterOptions.DropRate > 0 && BoosterParameterOptions.DropRate < 1, nameof(BoosterParameterOptions.DropRate), "must be in (0,1).");
-                Contracts.CheckUserArg(BoosterParameterOptions.MaxDrop > 0, nameof(BoosterParameterOptions.MaxDrop), "must be > 0.");
                 Contracts.CheckUserArg(BoosterParameterOptions.SkipDrop >= 0 && BoosterParameterOptions.SkipDrop < 1, nameof(BoosterParameterOptions.SkipDrop), "must be in [0,1).");
             }
 
@@ -241,14 +242,11 @@ namespace Microsoft.ML.LightGBM
             [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Gradient-based One-Side Sampling.")]
             public sealed class Options : TreeBooster.Options
             {
-                [Argument(ArgumentType.AtMostOnce,
-                    HelpText = "Retain ratio for large gradient instances.")]
+                [Argument(ArgumentType.AtMostOnce, HelpText = "Retain ratio for large gradient instances.")]
                 [TlcModule.Range(Inf = 0.0, Max = 1.0)]
                 public double TopRate = 0.2;
 
-                [Argument(ArgumentType.AtMostOnce,
-                    HelpText =
-                        "Retain ratio for small gradient instances.")]
+                [Argument(ArgumentType.AtMostOnce, HelpText = "Retain ratio for small gradient instances.")]
                 [TlcModule.Range(Inf = 0.0, Max = 1.0)]
                 public double OtherRate = 0.1;
 
@@ -287,7 +285,7 @@ namespace Microsoft.ML.LightGBM
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations.", SortOrder = 1, ShortName = "iter")]
         [TGUI(Label = "Number of boosting iterations", SuggestedSweeps = "10,20,50,100,150,200")]
         [TlcModule.SweepableDiscreteParam("NumBoostRound", new object[] { 10, 20, 50, 100, 150, 200 })]
-        public int NumBoostRound = Defaults.NumBoostRound;
+        public int NumberOfIterations = Defaults.NumberOfIterations;
 
         [Argument(ArgumentType.AtMostOnce,
             HelpText = "Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].",
@@ -300,37 +298,37 @@ namespace Microsoft.ML.LightGBM
             SortOrder = 2, ShortName = "nl", NullName = "<Auto>")]
         [TGUI(Description = "The maximum number of leaves per tree", SuggestedSweeps = "2-128;log;inc:4")]
         [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, isLogScale: true, stepSize: 4)]
-        public int? NumLeaves;
+        public int? NumberOfLeaves;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Minimum number of instances needed in a child.",
             SortOrder = 2, ShortName = "mil", NullName = "<Auto>")]
         [TGUI(Label = "Min Documents In Leaves", SuggestedSweeps = "1,10,20,50 ")]
         [TlcModule.SweepableDiscreteParamAttribute("MinDataPerLeaf", new object[] { 1, 10, 20, 50 })]
-        public int? MinDataPerLeaf;
+        public int? MinimumDataPerLeaf;
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of bucket bin for features.", ShortName = "mb")]
-        public int MaxBin = 255;
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of bucket bin for features.", ShortName = "mb")]
+        public int MaximumBin = 255;
 
         [Argument(ArgumentType.Multiple, HelpText = "Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.", SortOrder = 3)]
         public ISupportBoosterParameterFactory Booster = new TreeBooster.Options();
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Verbose", ShortName = "v")]
-        public bool VerboseEval = false;
+        public bool Verbose = false;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Printing running messages.")]
         public bool Silent = true;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of parallel threads used to run LightGBM.", ShortName = "nt")]
-        public int? NThread;
+        public int? NumberOfThreads;
 
         [Argument(ArgumentType.AtMostOnce,
             HelpText = "Evaluation metrics.",
             ShortName = "em")]
-        public EvalMetricType EvalMetric = EvalMetricType.DefaultMetric;
+        public EvalMetricType EvaluationMetric = EvalMetricType.DefaultMetric;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Use softmax loss for the multi classification.")]
         [TlcModule.SweepableDiscreteParam("UseSoftmax", new object[] { true, false })]
-        public bool? UseSoftmax;
+        public bool? UseSoftMaximum;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Rounds of early stopping, 0 will disable it.",
             ShortName = "es")]
@@ -350,31 +348,31 @@ namespace Microsoft.ML.LightGBM
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Enable categorical split or not.", ShortName = "cat")]
         [TlcModule.SweepableDiscreteParam("UseCat", new object[] { true, false })]
-        public bool? UseCat;
+        public bool? UseCategoricalSplit;
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Enable missing value auto infer or not.")]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Enable special handling of missing value or not.")]
         [TlcModule.SweepableDiscreteParam("UseMissing", new object[] { true, false })]
         public bool UseMissing = false;
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Min number of instances per categorical group.", ShortName = "mdpg")]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Minimum number of instances per categorical group.", ShortName = "mdpg")]
         [TlcModule.Range(Inf = 0, Max = int.MaxValue)]
         [TlcModule.SweepableDiscreteParam("MinDataPerGroup", new object[] { 10, 50, 100, 200 })]
-        public int MinDataPerGroup = 100;
+        public int MinimumDataPerGroup = 100;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of categorical thresholds.", ShortName = "maxcat")]
         [TlcModule.Range(Inf = 0, Max = int.MaxValue)]
         [TlcModule.SweepableDiscreteParam("MaxCatThreshold", new object[] { 8, 16, 32, 64 })]
-        public int MaxCatThreshold = 32;
+        public int MaximumCategoricalThreshold = 32;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.")]
         [TlcModule.Range(Min = 0.0)]
         [TlcModule.SweepableDiscreteParam("CatSmooth", new object[] { 1, 10, 20 })]
-        public double CatSmooth = 10;
+        public double CategoricalSmoothing = 10;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization for categorical split.")]
         [TlcModule.Range(Min = 0.0)]
         [TlcModule.SweepableDiscreteParam("CatL2", new object[] { 0.1, 0.5, 1, 5, 10 })]
-        public double CatL2 = 10;
+        public double L2Categorical = 10;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Sets the random seed for LightGBM to use.")]
         public int? Seed;
@@ -385,23 +383,23 @@ namespace Microsoft.ML.LightGBM
         internal Dictionary<string, object> ToDictionary(IHost host)
         {
             Contracts.CheckValue(host, nameof(host));
-            Contracts.CheckUserArg(MaxBin > 0, nameof(MaxBin), "must be > 0.");
+            Contracts.CheckUserArg(MaximumBin > 0, nameof(MaximumBin), "must be > 0.");
             Contracts.CheckUserArg(Sigmoid > 0, nameof(Sigmoid), "must be > 0.");
             Dictionary<string, object> res = new Dictionary<string, object>();
 
             var boosterParams = Booster.CreateComponent(host);
             boosterParams.UpdateParameters(res);
 
-            res[GetArgName(nameof(MaxBin))] = MaxBin;
+            res["max_bin"] = MaximumBin;
 
             res["verbose"] = Silent ? "-1" : "1";
-            if (NThread.HasValue)
-                res["nthread"] = NThread.Value;
+            if (NumberOfThreads.HasValue)
+                res["nthread"] = NumberOfThreads.Value;
 
             res["seed"] = (Seed.HasValue) ? Seed : host.Rand.Next();
 
             string metric = null;
-            switch (EvalMetric)
+            switch (EvaluationMetric)
             {
                 case EvalMetricType.DefaultMetric:
                     break;
@@ -424,18 +422,18 @@ namespace Microsoft.ML.LightGBM
                 case EvalMetricType.Auc:
                 case EvalMetricType.Ndcg:
                 case EvalMetricType.Map:
-                    metric = EvalMetric.ToString().ToLower();
+                    metric = EvaluationMetric.ToString().ToLower();
                     break;
             }
             if (!string.IsNullOrEmpty(metric))
                 res["metric"] = metric;
             res["sigmoid"] = Sigmoid;
             res["label_gain"] = CustomGains;
-            res[GetArgName(nameof(UseMissing))] = UseMissing;
-            res[GetArgName(nameof(MinDataPerGroup))] = MinDataPerGroup;
-            res[GetArgName(nameof(MaxCatThreshold))] = MaxCatThreshold;
-            res[GetArgName(nameof(CatSmooth))] = CatSmooth;
-            res[GetArgName(nameof(CatL2))] = CatL2;
+            res["use_missing"] = UseMissing;
+            res["min_data_per_group"] = MinimumDataPerGroup;
+            res["max_cat_threshold"]  = MaximumCategoricalThreshold;
+            res["cat_smooth"] = CategoricalSmoothing;
+            res["cat_l2"] = L2Categorical;
             return res;
         }
     }

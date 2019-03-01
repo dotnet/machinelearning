@@ -11129,7 +11129,7 @@
       "ShortName": "LightGBM",
       "Inputs": [
         {
-          "Name": "NumBoostRound",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Number of iterations.",
           "Aliases": [
@@ -11181,7 +11181,7 @@
           }
         },
         {
-          "Name": "NumLeaves",
+          "Name": "NumberOfLeaves",
           "Type": "Int",
           "Desc": "Maximum leaves for trees.",
           "Aliases": [
@@ -11200,7 +11200,7 @@
           }
         },
         {
-          "Name": "MinDataPerLeaf",
+          "Name": "MinimumDataPerLeaf",
           "Type": "Int",
           "Desc": "Minimum number of instances needed in a child.",
           "Aliases": [
@@ -11322,9 +11322,9 @@
           "Default": "Auto"
         },
         {
-          "Name": "MaxBin",
+          "Name": "MaximumBin",
           "Type": "Int",
-          "Desc": "Max number of bucket bin for features.",
+          "Desc": "Maximum number of bucket bin for features.",
           "Aliases": [
             "mb"
           ],
@@ -11334,7 +11334,7 @@
           "Default": 255
         },
         {
-          "Name": "VerboseEval",
+          "Name": "Verbose",
           "Type": "Bool",
           "Desc": "Verbose",
           "Aliases": [
@@ -11355,7 +11355,7 @@
           "Default": true
         },
         {
-          "Name": "NThread",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "Number of parallel threads used to run LightGBM.",
           "Aliases": [
@@ -11367,7 +11367,7 @@
           "Default": null
         },
         {
-          "Name": "EvalMetric",
+          "Name": "EvaluationMetric",
           "Type": {
             "Kind": "Enum",
             "Values": [
@@ -11393,7 +11393,7 @@
           "Default": "DefaultMetric"
         },
         {
-          "Name": "UseSoftmax",
+          "Name": "UseSoftMaximum",
           "Type": "Bool",
           "Desc": "Use softmax loss for the multi classification.",
           "Required": false,
@@ -11454,7 +11454,7 @@
           "Default": 1048576
         },
         {
-          "Name": "UseCat",
+          "Name": "UseCategoricalSplit",
           "Type": "Bool",
           "Desc": "Enable categorical split or not.",
           "Aliases": [
@@ -11475,7 +11475,7 @@
         {
           "Name": "UseMissing",
           "Type": "Bool",
-          "Desc": "Enable missing value auto infer or not.",
+          "Desc": "Enable special handling of missing value or not.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -11489,9 +11489,9 @@
           }
         },
         {
-          "Name": "MinDataPerGroup",
+          "Name": "MinimumDataPerGroup",
           "Type": "Int",
-          "Desc": "Min number of instances per categorical group.",
+          "Desc": "Minimum number of instances per categorical group.",
           "Aliases": [
             "mdpg"
           ],
@@ -11514,7 +11514,7 @@
           }
         },
         {
-          "Name": "MaxCatThreshold",
+          "Name": "MaximumCategoricalThreshold",
           "Type": "Int",
           "Desc": "Max number of categorical thresholds.",
           "Aliases": [
@@ -11539,7 +11539,7 @@
           }
         },
         {
-          "Name": "CatSmooth",
+          "Name": "CategoricalSmoothing",
           "Type": "Float",
           "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
           "Required": false,
@@ -11559,7 +11559,7 @@
           }
         },
         {
-          "Name": "CatL2",
+          "Name": "L2Categorical",
           "Type": "Float",
           "Desc": "L2 Regularization for categorical split.",
           "Required": false,
@@ -11632,7 +11632,7 @@
       "ShortName": "LightGBMMC",
       "Inputs": [
         {
-          "Name": "NumBoostRound",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Number of iterations.",
           "Aliases": [
@@ -11684,7 +11684,7 @@
           }
         },
         {
-          "Name": "NumLeaves",
+          "Name": "NumberOfLeaves",
           "Type": "Int",
           "Desc": "Maximum leaves for trees.",
           "Aliases": [
@@ -11703,7 +11703,7 @@
           }
         },
         {
-          "Name": "MinDataPerLeaf",
+          "Name": "MinimumDataPerLeaf",
           "Type": "Int",
           "Desc": "Minimum number of instances needed in a child.",
           "Aliases": [
@@ -11825,9 +11825,9 @@
           "Default": "Auto"
         },
         {
-          "Name": "MaxBin",
+          "Name": "MaximumBin",
           "Type": "Int",
-          "Desc": "Max number of bucket bin for features.",
+          "Desc": "Maximum number of bucket bin for features.",
           "Aliases": [
             "mb"
           ],
@@ -11837,7 +11837,7 @@
           "Default": 255
         },
         {
-          "Name": "VerboseEval",
+          "Name": "Verbose",
           "Type": "Bool",
           "Desc": "Verbose",
           "Aliases": [
@@ -11858,7 +11858,7 @@
           "Default": true
         },
         {
-          "Name": "NThread",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "Number of parallel threads used to run LightGBM.",
           "Aliases": [
@@ -11870,7 +11870,7 @@
           "Default": null
         },
         {
-          "Name": "EvalMetric",
+          "Name": "EvaluationMetric",
           "Type": {
             "Kind": "Enum",
             "Values": [
@@ -11896,7 +11896,7 @@
           "Default": "DefaultMetric"
         },
         {
-          "Name": "UseSoftmax",
+          "Name": "UseSoftMaximum",
           "Type": "Bool",
           "Desc": "Use softmax loss for the multi classification.",
           "Required": false,
@@ -11957,7 +11957,7 @@
           "Default": 1048576
         },
         {
-          "Name": "UseCat",
+          "Name": "UseCategoricalSplit",
           "Type": "Bool",
           "Desc": "Enable categorical split or not.",
           "Aliases": [
@@ -11978,7 +11978,7 @@
         {
           "Name": "UseMissing",
           "Type": "Bool",
-          "Desc": "Enable missing value auto infer or not.",
+          "Desc": "Enable special handling of missing value or not.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -11992,9 +11992,9 @@
           }
         },
         {
-          "Name": "MinDataPerGroup",
+          "Name": "MinimumDataPerGroup",
           "Type": "Int",
-          "Desc": "Min number of instances per categorical group.",
+          "Desc": "Minimum number of instances per categorical group.",
           "Aliases": [
             "mdpg"
           ],
@@ -12017,7 +12017,7 @@
           }
         },
         {
-          "Name": "MaxCatThreshold",
+          "Name": "MaximumCategoricalThreshold",
           "Type": "Int",
           "Desc": "Max number of categorical thresholds.",
           "Aliases": [
@@ -12042,7 +12042,7 @@
           }
         },
         {
-          "Name": "CatSmooth",
+          "Name": "CategoricalSmoothing",
           "Type": "Float",
           "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
           "Required": false,
@@ -12062,7 +12062,7 @@
           }
         },
         {
-          "Name": "CatL2",
+          "Name": "L2Categorical",
           "Type": "Float",
           "Desc": "L2 Regularization for categorical split.",
           "Required": false,
@@ -12135,7 +12135,7 @@
       "ShortName": "LightGBMRank",
       "Inputs": [
         {
-          "Name": "NumBoostRound",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Number of iterations.",
           "Aliases": [
@@ -12187,7 +12187,7 @@
           }
         },
         {
-          "Name": "NumLeaves",
+          "Name": "NumberOfLeaves",
           "Type": "Int",
           "Desc": "Maximum leaves for trees.",
           "Aliases": [
@@ -12206,7 +12206,7 @@
           }
         },
         {
-          "Name": "MinDataPerLeaf",
+          "Name": "MinimumDataPerLeaf",
           "Type": "Int",
           "Desc": "Minimum number of instances needed in a child.",
           "Aliases": [
@@ -12328,9 +12328,9 @@
           "Default": "Auto"
         },
         {
-          "Name": "MaxBin",
+          "Name": "MaximumBin",
           "Type": "Int",
-          "Desc": "Max number of bucket bin for features.",
+          "Desc": "Maximum number of bucket bin for features.",
           "Aliases": [
             "mb"
           ],
@@ -12340,7 +12340,7 @@
           "Default": 255
         },
         {
-          "Name": "VerboseEval",
+          "Name": "Verbose",
           "Type": "Bool",
           "Desc": "Verbose",
           "Aliases": [
@@ -12361,7 +12361,7 @@
           "Default": true
         },
         {
-          "Name": "NThread",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "Number of parallel threads used to run LightGBM.",
           "Aliases": [
@@ -12373,7 +12373,7 @@
           "Default": null
         },
         {
-          "Name": "EvalMetric",
+          "Name": "EvaluationMetric",
           "Type": {
             "Kind": "Enum",
             "Values": [
@@ -12399,7 +12399,7 @@
           "Default": "DefaultMetric"
         },
         {
-          "Name": "UseSoftmax",
+          "Name": "UseSoftMaximum",
           "Type": "Bool",
           "Desc": "Use softmax loss for the multi classification.",
           "Required": false,
@@ -12460,7 +12460,7 @@
           "Default": 1048576
         },
         {
-          "Name": "UseCat",
+          "Name": "UseCategoricalSplit",
           "Type": "Bool",
           "Desc": "Enable categorical split or not.",
           "Aliases": [
@@ -12481,7 +12481,7 @@
         {
           "Name": "UseMissing",
           "Type": "Bool",
-          "Desc": "Enable missing value auto infer or not.",
+          "Desc": "Enable special handling of missing value or not.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -12495,9 +12495,9 @@
           }
         },
         {
-          "Name": "MinDataPerGroup",
+          "Name": "MinimumDataPerGroup",
           "Type": "Int",
-          "Desc": "Min number of instances per categorical group.",
+          "Desc": "Minimum number of instances per categorical group.",
           "Aliases": [
             "mdpg"
           ],
@@ -12520,7 +12520,7 @@
           }
         },
         {
-          "Name": "MaxCatThreshold",
+          "Name": "MaximumCategoricalThreshold",
           "Type": "Int",
           "Desc": "Max number of categorical thresholds.",
           "Aliases": [
@@ -12545,7 +12545,7 @@
           }
         },
         {
-          "Name": "CatSmooth",
+          "Name": "CategoricalSmoothing",
           "Type": "Float",
           "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
           "Required": false,
@@ -12565,7 +12565,7 @@
           }
         },
         {
-          "Name": "CatL2",
+          "Name": "L2Categorical",
           "Type": "Float",
           "Desc": "L2 Regularization for categorical split.",
           "Required": false,
@@ -12638,7 +12638,7 @@
       "ShortName": "LightGBMR",
       "Inputs": [
         {
-          "Name": "NumBoostRound",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Number of iterations.",
           "Aliases": [
@@ -12690,7 +12690,7 @@
           }
         },
         {
-          "Name": "NumLeaves",
+          "Name": "NumberOfLeaves",
           "Type": "Int",
           "Desc": "Maximum leaves for trees.",
           "Aliases": [
@@ -12709,7 +12709,7 @@
           }
         },
         {
-          "Name": "MinDataPerLeaf",
+          "Name": "MinimumDataPerLeaf",
           "Type": "Int",
           "Desc": "Minimum number of instances needed in a child.",
           "Aliases": [
@@ -12831,9 +12831,9 @@
           "Default": "Auto"
         },
         {
-          "Name": "MaxBin",
+          "Name": "MaximumBin",
           "Type": "Int",
-          "Desc": "Max number of bucket bin for features.",
+          "Desc": "Maximum number of bucket bin for features.",
           "Aliases": [
             "mb"
           ],
@@ -12843,7 +12843,7 @@
           "Default": 255
         },
         {
-          "Name": "VerboseEval",
+          "Name": "Verbose",
           "Type": "Bool",
           "Desc": "Verbose",
           "Aliases": [
@@ -12864,7 +12864,7 @@
           "Default": true
         },
         {
-          "Name": "NThread",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "Number of parallel threads used to run LightGBM.",
           "Aliases": [
@@ -12876,7 +12876,7 @@
           "Default": null
         },
         {
-          "Name": "EvalMetric",
+          "Name": "EvaluationMetric",
           "Type": {
             "Kind": "Enum",
             "Values": [
@@ -12902,7 +12902,7 @@
           "Default": "DefaultMetric"
         },
         {
-          "Name": "UseSoftmax",
+          "Name": "UseSoftMaximum",
           "Type": "Bool",
           "Desc": "Use softmax loss for the multi classification.",
           "Required": false,
@@ -12963,7 +12963,7 @@
           "Default": 1048576
         },
         {
-          "Name": "UseCat",
+          "Name": "UseCategoricalSplit",
           "Type": "Bool",
           "Desc": "Enable categorical split or not.",
           "Aliases": [
@@ -12984,7 +12984,7 @@
         {
           "Name": "UseMissing",
           "Type": "Bool",
-          "Desc": "Enable missing value auto infer or not.",
+          "Desc": "Enable special handling of missing value or not.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -12998,9 +12998,9 @@
           }
         },
         {
-          "Name": "MinDataPerGroup",
+          "Name": "MinimumDataPerGroup",
           "Type": "Int",
-          "Desc": "Min number of instances per categorical group.",
+          "Desc": "Minimum number of instances per categorical group.",
           "Aliases": [
             "mdpg"
           ],
@@ -13023,7 +13023,7 @@
           }
         },
         {
-          "Name": "MaxCatThreshold",
+          "Name": "MaximumCategoricalThreshold",
           "Type": "Int",
           "Desc": "Max number of categorical thresholds.",
           "Aliases": [
@@ -13048,7 +13048,7 @@
           }
         },
         {
-          "Name": "CatSmooth",
+          "Name": "CategoricalSmoothing",
           "Type": "Float",
           "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
           "Required": false,
@@ -13068,7 +13068,7 @@
           }
         },
         {
-          "Name": "CatL2",
+          "Name": "L2Categorical",
           "Type": "Float",
           "Desc": "L2 Regularization for categorical split.",
           "Required": false,
@@ -23538,7 +23538,7 @@
             {
               "Name": "DropRate",
               "Type": "Float",
-              "Desc": "Drop ratio for trees. Range:(0,1).",
+              "Desc": "The drop ratio for trees. Range:(0,1).",
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23551,7 +23551,7 @@
             {
               "Name": "MaxDrop",
               "Type": "Int",
-              "Desc": "Max number of dropped tree in a boosting round.",
+              "Desc": "Maximum number of dropped tree in a boosting round.",
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23564,7 +23564,7 @@
             {
               "Name": "SkipDrop",
               "Type": "Float",
-              "Desc": "Probability for not perform dropping in a boosting round.",
+              "Desc": "Probability for not dropping in a boosting round.",
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23595,7 +23595,7 @@
             {
               "Name": "UnbalancedSets",
               "Type": "Bool",
-              "Desc": "Use for binary classification when classes are not balanced.",
+              "Desc": "Use for binary classification when training data is not balanced.",
               "Aliases": [
                 "us"
               ],
@@ -23644,7 +23644,7 @@
             {
               "Name": "SubsampleFreq",
               "Type": "Int",
-              "Desc": "Subsample frequency. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.",
+              "Desc": "Subsample frequency for bagging. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.",
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23748,7 +23748,7 @@
             {
               "Name": "UnbalancedSets",
               "Type": "Bool",
-              "Desc": "Use for binary classification when classes are not balanced.",
+              "Desc": "Use for binary classification when training data is not balanced.",
               "Aliases": [
                 "us"
               ],
@@ -23797,7 +23797,7 @@
             {
               "Name": "SubsampleFreq",
               "Type": "Int",
-              "Desc": "Subsample frequency. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.",
+              "Desc": "Subsample frequency for bagging. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.",
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23927,7 +23927,7 @@
             {
               "Name": "UnbalancedSets",
               "Type": "Bool",
-              "Desc": "Use for binary classification when classes are not balanced.",
+              "Desc": "Use for binary classification when training data is not balanced.",
               "Aliases": [
                 "us"
               ],
@@ -23976,7 +23976,7 @@
             {
               "Name": "SubsampleFreq",
               "Type": "Int",
-              "Desc": "Subsample frequency. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.",
+              "Desc": "Subsample frequency for bagging. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.",
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
