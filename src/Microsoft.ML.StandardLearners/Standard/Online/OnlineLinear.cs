@@ -131,7 +131,7 @@ namespace Microsoft.ML.Trainers
                 // unless we have a lot of features.
                 if (predictor != null)
                 {
-                    ((IHaveFeatureWeights)parent).GetFeatureWeights(ref Weights);
+                    ((IHaveFeatureWeights)predictor).GetFeatureWeights(ref Weights);
                     VBufferUtils.Densify(ref Weights);
                     Bias = predictor.Bias;
                 }
