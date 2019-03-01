@@ -146,7 +146,8 @@ namespace Microsoft.ML.Model
     /// <summary>
     /// Interface implemented by components that can assign weights to features.
     /// </summary>
-    public interface IHaveFeatureWeights
+    [BestFriend]
+    internal interface IHaveFeatureWeights
     {
         /// <summary>
         /// Returns the weights for the features.
