@@ -38,7 +38,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification.Calibrators
 
             // Let's train a calibrator estimator on this scored dataset. The trained calibrator estimator produces a transformer
             // that can transform the scored data by adding a new column names "Probability". 
-            var calibratorEstimator = mlContext.BinaryClassification.Calibrators.PairAdjacentViolators();
+            var calibratorEstimator = mlContext.BinaryClassification.Calibrators.PoolAdjacentViolators();
             var calibratorTransformer = calibratorEstimator.Fit(scoredData);
 
             // Transform the scored data with a calibrator transfomer by adding a new column names "Probability". 
