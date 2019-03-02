@@ -701,7 +701,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/RandomTrainerSample.cs)]
+        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/RandomTrainerSample.cs)]
         /// ]]></format>
         /// </example>
         public static RandomTrainer Random(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog)
@@ -723,7 +723,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/PriorTrainerSample.cs)]
+        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/PriorTrainerSample.cs)]
         /// ]]></format>
         /// </example>
         public static PriorTrainer Prior(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,

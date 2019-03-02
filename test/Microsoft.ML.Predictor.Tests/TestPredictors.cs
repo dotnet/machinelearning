@@ -41,7 +41,7 @@ namespace Microsoft.ML.RunTests
             base.InitializeEnvironment(environment);
 
             environment.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
-            environment.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
+            environment.ComponentCatalog.RegisterAssembly(typeof(SymbolicStochasticGradientDescentClassificationTrainer).Assembly);
         }
 
         /// <summary>
