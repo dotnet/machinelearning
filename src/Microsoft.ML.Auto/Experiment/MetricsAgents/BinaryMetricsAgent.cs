@@ -22,9 +22,9 @@ namespace Microsoft.ML.Auto
             {
                 case BinaryClassificationMetric.Accuracy:
                     return metrics.Accuracy;
-                case BinaryClassificationMetric.Auc:
+                case BinaryClassificationMetric.AreaUnderRocCurve:
                     return metrics.Auc;
-                case BinaryClassificationMetric.Auprc:
+                case BinaryClassificationMetric.AreaUnderPrecisionRecallCurve:
                     return metrics.Auprc;
                 case BinaryClassificationMetric.F1Score:
                     return metrics.F1Score;
@@ -52,9 +52,9 @@ namespace Microsoft.ML.Auto
             {
                 case BinaryClassificationMetric.Accuracy:
                     return metrics.Accuracy == 1;
-                case BinaryClassificationMetric.Auc:
+                case BinaryClassificationMetric.AreaUnderRocCurve:
                     return metrics.Auc == 1;
-                case BinaryClassificationMetric.Auprc:
+                case BinaryClassificationMetric.AreaUnderPrecisionRecallCurve:
                     return metrics.Auprc == 1;
                 case BinaryClassificationMetric.F1Score:
                     return metrics.F1Score == 1;

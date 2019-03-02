@@ -4,12 +4,11 @@
 
 using System.Collections.Generic;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Auto
 {
-    using ITrainerEstimator = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor>;
-    using ITrainerEstimatorProducingFloat = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
+    using ITrainerEstimator = ITrainerEstimator<ISingleFeaturePredictionTransformer<object>, object>;
+    using ITrainerEstimatorProducingFloat = ITrainerEstimator<ISingleFeaturePredictionTransformer<object>, object>;
 
     internal class AveragedPerceptronOvaExtension : ITrainerExtension
     {
@@ -24,7 +23,7 @@ namespace Microsoft.ML.Auto
             ColumnInformation columnInfo)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
-            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumn: columnInfo.LabelColumn);
+            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumnName: columnInfo.LabelColumn);
         }
 
         public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
@@ -46,7 +45,7 @@ namespace Microsoft.ML.Auto
             ColumnInformation columnInfo)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
-            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumn: columnInfo.LabelColumn);
+            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumnName: columnInfo.LabelColumn);
         }
 
         public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
@@ -89,7 +88,7 @@ namespace Microsoft.ML.Auto
             ColumnInformation columnInfo)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
-            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumn: columnInfo.LabelColumn);
+            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumnName: columnInfo.LabelColumn);
         }
 
         public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
@@ -132,7 +131,7 @@ namespace Microsoft.ML.Auto
             ColumnInformation columnInfo)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
-            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumn: columnInfo.LabelColumn);
+            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumnName: columnInfo.LabelColumn);
         }
 
         public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
@@ -154,7 +153,7 @@ namespace Microsoft.ML.Auto
             ColumnInformation columnInfo)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
-            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumn: columnInfo.LabelColumn);
+            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumnName: columnInfo.LabelColumn);
         }
 
         public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
@@ -176,7 +175,7 @@ namespace Microsoft.ML.Auto
             ColumnInformation columnInfo)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
-            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumn: columnInfo.LabelColumn);
+            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumnName: columnInfo.LabelColumn);
         }
 
         public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
@@ -198,7 +197,7 @@ namespace Microsoft.ML.Auto
             ColumnInformation columnInfo)
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams, columnInfo) as ITrainerEstimatorProducingFloat;
-            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumn: columnInfo.LabelColumn);
+            return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer, labelColumnName: columnInfo.LabelColumn);
         }
 
         public PipelineNode CreatePipelineNode(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)

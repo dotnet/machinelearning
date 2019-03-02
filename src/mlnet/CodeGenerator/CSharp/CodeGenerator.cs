@@ -97,11 +97,11 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             {
                 Columns = columns,
                 Transforms = transforms,
-                HasHeader = columnInferenceResult.TextLoaderArgs.HasHeader,
-                Separator = columnInferenceResult.TextLoaderArgs.Separators.FirstOrDefault(),
-                AllowQuoting = columnInferenceResult.TextLoaderArgs.AllowQuoting,
-                AllowSparse = columnInferenceResult.TextLoaderArgs.AllowSparse,
-                TrimWhiteSpace = columnInferenceResult.TextLoaderArgs.TrimWhitespace,
+                HasHeader = columnInferenceResult.TextLoaderOptions.HasHeader,
+                Separator = columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
+                AllowQuoting = columnInferenceResult.TextLoaderOptions.AllowQuoting,
+                AllowSparse = columnInferenceResult.TextLoaderOptions.AllowSparse,
+                TrimWhiteSpace = columnInferenceResult.TextLoaderOptions.TrimWhitespace,
                 Trainer = trainer,
                 ClassLabels = classLabels,
                 GeneratedUsings = usings,
@@ -168,41 +168,41 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         {
             IList<string> result = new List<string>();
             var label_column = Utils.Sanitize(columnInferenceResult.ColumnInformation.LabelColumn);
-            foreach (var column in columnInferenceResult.TextLoaderArgs.Columns)
+            foreach (var column in columnInferenceResult.TextLoaderOptions.Columns)
             {
                 StringBuilder sb = new StringBuilder();
                 int range = (column.Source[0].Max - column.Source[0].Min).Value;
                 bool isArray = range > 0;
                 sb.Append(Symbols.PublicSymbol);
                 sb.Append(Symbols.Space);
-                switch (column.Type)
+                switch (column.DataKind)
                 {
-                    case Microsoft.ML.Data.DataKind.TX:
+                    case Microsoft.ML.Data.DataKind.String:
                         sb.Append(Symbols.StringSymbol);
                         break;
-                    case Microsoft.ML.Data.DataKind.BL:
+                    case Microsoft.ML.Data.DataKind.Boolean:
                         sb.Append(Symbols.BoolSymbol);
                         break;
-                    case Microsoft.ML.Data.DataKind.R4:
+                    case Microsoft.ML.Data.DataKind.Single:
                         sb.Append(Symbols.FloatSymbol);
                         break;
-                    case Microsoft.ML.Data.DataKind.R8:
+                    case Microsoft.ML.Data.DataKind.Double:
                         sb.Append(Symbols.DoubleSymbol);
                         break;
-                    case Microsoft.ML.Data.DataKind.I4:
+                    case Microsoft.ML.Data.DataKind.Int32:
                         sb.Append(Symbols.IntSymbol);
                         break;
-                    case Microsoft.ML.Data.DataKind.U4:
+                    case Microsoft.ML.Data.DataKind.UInt32:
                         sb.Append(Symbols.UIntSymbol);
                         break;
-                    case Microsoft.ML.Data.DataKind.I8:
+                    case Microsoft.ML.Data.DataKind.Int64:
                         sb.Append(Symbols.LongSymbol);
                         break;
-                    case Microsoft.ML.Data.DataKind.U8:
+                    case Microsoft.ML.Data.DataKind.UInt64:
                         sb.Append(Symbols.UlongSymbol);
                         break;
                     default:
-                        throw new ArgumentException($"The data type '{column.Type}' is not handled currently.");
+                        throw new ArgumentException($"The data type '{column.DataKind}' is not handled currently.");
 
                 }
 
@@ -227,7 +227,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         internal IList<string> GenerateColumns()
         {
             var result = new List<string>();
-            foreach (var column in columnInferenceResult.TextLoaderArgs.Columns)
+            foreach (var column in columnInferenceResult.TextLoaderOptions.Columns)
             {
                 result.Add(ConstructColumnDefinition(column));
             }
@@ -268,7 +268,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 rangeBuilder.Append("}");
             }
 
-            var def = $"new Column(\"{column.Name}\",DataKind.{column.Type},{rangeBuilder.ToString()}),";
+            var def = $"new Column(\"{column.Name}\",DataKind.{column.DataKind},{rangeBuilder.ToString()}),";
             return def;
         }
     }

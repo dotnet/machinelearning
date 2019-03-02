@@ -12,9 +12,9 @@ namespace Microsoft.ML.Auto
 
         private static RegressionMetric[] _minimizingRegressionMetrics = new RegressionMetric[]
         {
-            RegressionMetric.L1,
-            RegressionMetric.L2,
-            RegressionMetric.Rms
+            RegressionMetric.MeanAbsoluteError,
+            RegressionMetric.MeanSquaredError,
+            RegressionMetric.RootMeanSquaredError
         };
 
         private static BinaryClassificationMetric[] _minimizingBinaryMetrics = new BinaryClassificationMetric[]

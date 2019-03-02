@@ -19,9 +19,9 @@ namespace Microsoft.ML.Auto
 
     public enum RegressionMetric
     {
-        L1,
-        L2,
-        Rms,
+        MeanAbsoluteError,
+        MeanSquaredError,
+        RootMeanSquaredError,
         RSquared
     }
 

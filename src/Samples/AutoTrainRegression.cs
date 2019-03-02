@@ -32,9 +32,9 @@ namespace Samples
             ConsoleHelper.Print(columnInference);
 
             // STEP 2: Load data
-            TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderArgs);
-            IDataView trainDataView = textLoader.Read(TrainDataPath);
-            IDataView testDataView = textLoader.Read(TestDataPath);
+            TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            IDataView trainDataView = textLoader.Load(TrainDataPath);
+            IDataView testDataView = textLoader.Load(TestDataPath);
 
             // STEP 3: Auto featurize, auto train and auto hyperparameter tune
             Console.WriteLine($"Running AutoML multiclass classification experiment for {ExperimentTime} seconds...");

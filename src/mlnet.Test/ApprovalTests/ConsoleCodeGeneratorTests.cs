@@ -109,15 +109,15 @@ namespace mlnet.Test
                 var inferredPipeline2 = new SuggestedPipeline(transforms2, trainer2, context);
 
                 this.pipeline = inferredPipeline1.ToPipeline();
-                var textLoaderArgs = new TextLoader.Arguments()
+                var textLoaderArgs = new TextLoader.Options()
                 {
                     Columns = new[] {
-                        new TextLoader.Column("Label", DataKind.BL, 0),
-                        new TextLoader.Column("col1", DataKind.R4, 1),
-                        new TextLoader.Column("col2", DataKind.R4, 0),
-                        new TextLoader.Column("col3", DataKind.Text, 0),
-                        new TextLoader.Column("col4", DataKind.I4, 0),
-                        new TextLoader.Column("col5", DataKind.U4, 0),
+                        new TextLoader.Column("Label", DataKind.Boolean, 0),
+                        new TextLoader.Column("col1", DataKind.Single, 1),
+                        new TextLoader.Column("col2", DataKind.Single, 0),
+                        new TextLoader.Column("col3", DataKind.String, 0),
+                        new TextLoader.Column("col4", DataKind.Int32, 0),
+                        new TextLoader.Column("col5", DataKind.UInt32, 0),
                     },
                     AllowQuoting = true,
                     AllowSparse = true,
@@ -127,7 +127,7 @@ namespace mlnet.Test
 
                 this.columnInference = new ColumnInferenceResults()
                 {
-                    TextLoaderArgs = textLoaderArgs,
+                    TextLoaderOptions = textLoaderArgs,
                     ColumnInformation = new ColumnInformation() { LabelColumn = "Label" }
                 };
             }

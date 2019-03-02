@@ -27,9 +27,9 @@ namespace Samples
             ColumnInferenceResults columnInference = mlContext.Auto().InferColumns(TrainDataPath, LabelColumn, ',');
 
             // STEP 2: Load data
-            TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderArgs);
-            IDataView trainDataView = textLoader.Read(TrainDataPath);
-            IDataView testDataView = textLoader.Read(TestDataPath);
+            TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            IDataView trainDataView = textLoader.Load(TrainDataPath);
+            IDataView testDataView = textLoader.Load(TestDataPath);
 
             // STEP 3: Auto inference with a callback configured
             RegressionExperiment autoExperiment = mlContext.Auto().CreateRegressionExperiment(new RegressionExperimentSettings()

@@ -29,16 +29,16 @@ namespace Samples
             ConsoleHelper.Print(columnInference);
 
             // STEP 2: Load data
-            TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderArgs);
-            IDataView trainDataView = textLoader.Read(TrainDataPath);
-            IDataView testDataView = textLoader.Read(TestDataPath);
+            TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            IDataView trainDataView = textLoader.Load(TrainDataPath);
+            IDataView testDataView = textLoader.Load(TestDataPath);
 
             // STEP 3: Using a different optimizing metric instead of default R2 and whitelisting only LightGbm
             Console.WriteLine($"Starting an experiment with L2 optimizing metric and whitelisting LightGbm trainer");
             RegressionExperiment autoExperiment = mlContext.Auto().CreateRegressionExperiment(new RegressionExperimentSettings()
             {
                 MaxExperimentTimeInSeconds = 20,
-                OptimizingMetric = RegressionMetric.L2,
+                OptimizingMetric = RegressionMetric.MeanSquaredError,
                 WhitelistedTrainers = new[] { RegressionTrainer.LightGbm },
                 ProgressHandler = new ProgressHandler()
             });

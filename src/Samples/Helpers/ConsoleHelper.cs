@@ -140,7 +140,7 @@ namespace Samples.Helpers
 
         private string GetColumnDataType(string columnName)
         {
-            return _results.TextLoaderArgs.Columns.First(c => c.Name == columnName).Type.ToString();
+            return _results.TextLoaderOptions.Columns.First(c => c.Name == columnName).DataKind.ToString();
         }
     }
 }

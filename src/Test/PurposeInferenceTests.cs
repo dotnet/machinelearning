@@ -14,10 +14,10 @@ namespace Microsoft.ML.Auto.Test
             var context = new MLContext();
 
             // build basic data view
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn(DefaultColumnNames.Label, BooleanDataViewType.Instance);
             schemaBuilder.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single);
-            var schema = schemaBuilder.GetSchema();
+            var schema = schemaBuilder.ToSchema();
             IDataView data = new EmptyDataView(context, schema);
 
             // normalize 'Features' column. this has the effect of creating 2 columns named

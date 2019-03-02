@@ -20,8 +20,8 @@ namespace Microsoft.ML.Auto
     public enum BinaryClassificationMetric
     {
         Accuracy,
-        Auc,
-        Auprc,
+        AreaUnderRocCurve,
+        AreaUnderPrecisionRecallCurve,
         F1Score,
         PositivePrecision,
         PositiveRecall,

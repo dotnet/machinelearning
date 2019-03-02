@@ -47,12 +47,12 @@ namespace Microsoft.ML.CLI.Commands.New
             }
 
             // Sanitize columns
-            Array.ForEach(columnInference.TextLoaderArgs.Columns, t => t.Name = Utils.Sanitize(t.Name));
+            Array.ForEach(columnInference.TextLoaderOptions.Columns, t => t.Name = Utils.Sanitize(t.Name));
 
             var sanitized_Label_Name = Utils.Sanitize(columnInference.ColumnInformation.LabelColumn);
 
             // Load data
-            (IDataView trainData, IDataView validationData) = LoadData(context, columnInference.TextLoaderArgs);
+            (IDataView trainData, IDataView validationData) = LoadData(context, columnInference.TextLoaderOptions);
 
             // Explore the models
             (Pipeline, ITransformer) result = default;
@@ -168,14 +168,14 @@ namespace Microsoft.ML.CLI.Commands.New
             return (pipeline, model);
         }
 
-        internal (IDataView, IDataView) LoadData(MLContext context, TextLoader.Arguments textLoaderArgs)
+        internal (IDataView, IDataView) LoadData(MLContext context, TextLoader.Options textLoaderOptions)
         {
             logger.Log(LogLevel.Info, Strings.CreateDataLoader);
-            var textLoader = context.Data.CreateTextLoader(textLoaderArgs);
+            var textLoader = context.Data.CreateTextLoader(textLoaderOptions);
 
             logger.Log(LogLevel.Info, Strings.LoadData);
-            var trainData = textLoader.Read(settings.Dataset.FullName);
-            var validationData = settings.ValidationDataset == null ? null : textLoader.Read(settings.ValidationDataset.FullName);
+            var trainData = textLoader.Load(settings.Dataset.FullName);
+            var validationData = settings.ValidationDataset == null ? null : textLoader.Load(settings.ValidationDataset.FullName);
 
             return (trainData, validationData);
         }

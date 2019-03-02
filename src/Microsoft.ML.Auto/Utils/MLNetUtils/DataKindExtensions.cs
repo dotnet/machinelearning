@@ -17,43 +17,43 @@ namespace Microsoft.ML.Auto
         {
             if (type == typeof(sbyte))
             {
-                kind = DataKind.I1;
+                kind = DataKind.SByte;
             }
             else if (type == typeof(byte))
             {
-                kind = DataKind.U1;
+                kind = DataKind.Byte;
             }
             else if (type == typeof(short))
             {
-                kind = DataKind.I2;
+                kind = DataKind.Int16;
             }
             else if (type == typeof(ushort))
             {
-                kind = DataKind.U2;
+                kind = DataKind.UInt16;
             }
             else if (type == typeof(int))
             {
-                kind = DataKind.I4;
+                kind = DataKind.Int32;
             }
             else if (type == typeof(uint))
             {
-                kind = DataKind.U4;
+                kind = DataKind.UInt32;
             }
             else if (type == typeof(long))
             {
-                kind = DataKind.I8;
+                kind = DataKind.Int64;
             }
             else if (type == typeof(ulong))
             {
-                kind = DataKind.U8;
+                kind = DataKind.UInt64;
             }
             else if (type == typeof(float))
             {
-                kind = DataKind.R4;
+                kind = DataKind.Single;
             }
             else if (type == typeof(double))
             {
-                kind = DataKind.R8;
+                kind = DataKind.Double;
             }
             else
             {
@@ -61,33 +61,33 @@ namespace Microsoft.ML.Auto
                 {
                     if (type == typeof(bool))
                     {
-                        kind = DataKind.BL;
+                        kind = DataKind.Boolean;
                         goto IL_01ad;
                     }
                     if (type == typeof(TimeSpan))
                     {
-                        kind = DataKind.TS;
+                        kind = DataKind.TimeSpan;
                         goto IL_01ad;
                     }
                     if (type == typeof(DateTime))
                     {
-                        kind = DataKind.DT;
+                        kind = DataKind.DateTime;
                         goto IL_01ad;
                     }
                     if (type == typeof(DateTimeOffset))
                     {
-                        kind = DataKind.DZ;
+                        kind = DataKind.DateTimeOffset;
                         goto IL_01ad;
                     }
                     if (type == typeof(DataViewRowId))
                     {
-                        kind = DataKind.UG;
+                        kind = DataKind.UInt16;
                         goto IL_01ad;
                     }
                     kind = (DataKind)0;
                     return false;
                 }
-                kind = DataKind.TX;
+                kind = DataKind.String;
             }
             goto IL_01ad;
         IL_01ad:

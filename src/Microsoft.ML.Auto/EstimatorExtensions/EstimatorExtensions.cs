@@ -68,7 +68,7 @@ namespace Microsoft.ML.Auto
 
         private static IEstimator<ITransformer> CreateInstance(MLContext context, string[] inColumns, string[] outColumns)
         {
-            var pairs = new (string, string)[inColumns.Length];
+            var pairs = new ColumnOptions[inColumns.Length];
             for (var i = 0; i < inColumns.Length; i++)
             {
                 var pair = (outColumns[i], inColumns[i]);
@@ -95,10 +95,10 @@ namespace Microsoft.ML.Auto
 
         private static IEstimator<ITransformer> CreateInstance(MLContext context, string[] inColumns, string[] outColumns)
         {
-            var pairs = new MissingValueReplacingEstimator.ColumnInfo[inColumns.Length];
+            var pairs = new MissingValueReplacingEstimator.ColumnOptions[inColumns.Length];
             for (var i = 0; i < inColumns.Length; i++)
             {
-                var pair = new MissingValueReplacingEstimator.ColumnInfo(outColumns[i], inColumns[i]);
+                var pair = new MissingValueReplacingEstimator.ColumnOptions(outColumns[i], inColumns[i]);
                 pairs[i] = pair;
             }
             return context.Transforms.ReplaceMissingValues(pairs);
@@ -143,10 +143,10 @@ namespace Microsoft.ML.Auto
 
         public static IEstimator<ITransformer> CreateInstance(MLContext context, string[] inColumns, string[] outColumns)
         {
-            var cols = new OneHotEncodingEstimator.ColumnInfo[inColumns.Length];
+            var cols = new OneHotEncodingEstimator.ColumnOptions[inColumns.Length];
             for (var i = 0; i < cols.Length; i++)
             {
-                cols[i] = new OneHotEncodingEstimator.ColumnInfo(outColumns[i], inColumns[i]);
+                cols[i] = new OneHotEncodingEstimator.ColumnOptions(outColumns[i], inColumns[i]);
             }
             return context.Transforms.Categorical.OneHotEncoding(cols);
         }
@@ -174,10 +174,10 @@ namespace Microsoft.ML.Auto
 
         private static IEstimator<ITransformer> CreateInstance(MLContext context, string[] inColumns, string[] outColumns)
         {
-            var cols = new OneHotHashEncodingEstimator.ColumnInfo[inColumns.Length];
+            var cols = new OneHotHashEncodingEstimator.ColumnOptions[inColumns.Length];
             for (var i = 0; i < cols.Length; i++)
             {
-                cols[i] = new OneHotHashEncodingEstimator.ColumnInfo(outColumns[i], inColumns[i]);
+                cols[i] = new OneHotHashEncodingEstimator.ColumnOptions(outColumns[i], inColumns[i]);
             }
             return context.Transforms.Categorical.OneHotHashEncoding(cols);
         }
@@ -221,10 +221,10 @@ namespace Microsoft.ML.Auto
 
         private static IEstimator<ITransformer> CreateInstance(MLContext context, string[] inColumns, string[] outColumns)
         {
-            var cols = new TypeConvertingEstimator.ColumnInfo[inColumns.Length];
+            var cols = new TypeConvertingEstimator.ColumnOptions[inColumns.Length];
             for (var i = 0; i < cols.Length; i++)
             {
-                cols[i] = new TypeConvertingEstimator.ColumnInfo(outColumns[i], DataKind.R4, inColumns[i]);
+                cols[i] = new TypeConvertingEstimator.ColumnOptions(outColumns[i], DataKind.Single, inColumns[i]);
             }
             return context.Transforms.Conversion.ConvertType(cols);
         }

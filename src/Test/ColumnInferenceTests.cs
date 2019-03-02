@@ -15,13 +15,13 @@ namespace Microsoft.ML.Auto.Test
             var dataPath = DatasetUtil.DownloadUciAdultDataset();
             var context = new MLContext();
             var columnInferenceWithoutGrouping = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel, groupColumns: false);
-            foreach (var col in columnInferenceWithoutGrouping.TextLoaderArgs.Columns)
+            foreach (var col in columnInferenceWithoutGrouping.TextLoaderOptions.Columns)
             {
                 Assert.IsFalse(col.Source.Length > 1 || col.Source[0].Min != col.Source[0].Max);
             }
 
             var columnInferenceWithGrouping = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel, groupColumns: true);
-            Assert.IsTrue(columnInferenceWithGrouping.TextLoaderArgs.Columns.Count() < columnInferenceWithoutGrouping.TextLoaderArgs.Columns.Count());
+            Assert.IsTrue(columnInferenceWithGrouping.TextLoaderOptions.Columns.Count() < columnInferenceWithoutGrouping.TextLoaderOptions.Columns.Count());
         }
 
         [TestMethod]
@@ -43,8 +43,8 @@ namespace Microsoft.ML.Auto.Test
         public void IdentifyLabelColumnThroughIndexWithHeader()
         {
             var result = new MLContext().Auto().InferColumns(DatasetUtil.DownloadUciAdultDataset(), 14, hasHeader: true);
-            Assert.AreEqual(true, result.TextLoaderArgs.HasHeader);
-            var labelCol = result.TextLoaderArgs.Columns.First(c => c.Source[0].Min == 14 && c.Source[0].Max == 14);
+            Assert.AreEqual(true, result.TextLoaderOptions.HasHeader);
+            var labelCol = result.TextLoaderOptions.Columns.First(c => c.Source[0].Min == 14 && c.Source[0].Max == 14);
             Assert.AreEqual("hours-per-week", labelCol.Name);
             Assert.AreEqual("hours-per-week", result.ColumnInformation.LabelColumn);
         }
@@ -53,8 +53,8 @@ namespace Microsoft.ML.Auto.Test
         public void IdentifyLabelColumnThroughIndexWithoutHeader()
         {
             var result = new MLContext().Auto().InferColumns(DatasetUtil.DownloadIrisDataset(), DatasetUtil.IrisDatasetLabelColIndex);
-            Assert.AreEqual(false, result.TextLoaderArgs.HasHeader);
-            var labelCol = result.TextLoaderArgs.Columns.First(c => c.Source[0].Min == DatasetUtil.IrisDatasetLabelColIndex &&
+            Assert.AreEqual(false, result.TextLoaderOptions.HasHeader);
+            var labelCol = result.TextLoaderOptions.Columns.First(c => c.Source[0].Min == DatasetUtil.IrisDatasetLabelColIndex &&
                 c.Source[0].Max == DatasetUtil.IrisDatasetLabelColIndex);
             Assert.AreEqual(DefaultColumnNames.Label, labelCol.Name);
             Assert.AreEqual(DefaultColumnNames.Label, result.ColumnInformation.LabelColumn);
@@ -64,21 +64,21 @@ namespace Microsoft.ML.Auto.Test
         public void DatasetWithEmptyColumn()
         {
             var result = new MLContext().Auto().InferColumns(Path.Combine("TestData", "DatasetWithEmptyColumn.txt"), DefaultColumnNames.Label);
-            var emptyColumn = result.TextLoaderArgs.Columns.First(c => c.Name == "Empty");
-            Assert.AreEqual(DataKind.TX, emptyColumn.Type);
+            var emptyColumn = result.TextLoaderOptions.Columns.First(c => c.Name == "Empty");
+            Assert.AreEqual(DataKind.String, emptyColumn.DataKind);
         }
 
         [TestMethod]
         public void DatasetWithBoolColumn()
         {
             var result = new MLContext().Auto().InferColumns(Path.Combine("TestData", "BinaryDatasetWithBoolColumn.txt"), DefaultColumnNames.Label);
-            Assert.AreEqual(2, result.TextLoaderArgs.Columns.Count());
+            Assert.AreEqual(2, result.TextLoaderOptions.Columns.Count());
 
-            var boolColumn = result.TextLoaderArgs.Columns.First(c => c.Name == "Bool");
-            var labelColumn = result.TextLoaderArgs.Columns.First(c => c.Name == DefaultColumnNames.Label);
+            var boolColumn = result.TextLoaderOptions.Columns.First(c => c.Name == "Bool");
+            var labelColumn = result.TextLoaderOptions.Columns.First(c => c.Name == DefaultColumnNames.Label);
             // ensure non-label Boolean column is detected as R4
-            Assert.AreEqual(DataKind.R4, boolColumn.Type);
-            Assert.AreEqual(DataKind.BL, labelColumn.Type);
+            Assert.AreEqual(DataKind.Single, boolColumn.DataKind);
+            Assert.AreEqual(DataKind.Boolean, labelColumn.DataKind);
 
             // ensure non-label Boolean column is detected as R4
             Assert.AreEqual(1, result.ColumnInformation.NumericColumns.Count());
@@ -90,12 +90,12 @@ namespace Microsoft.ML.Auto.Test
         public void WhereNameColumnIsOnlyFeature()
         {
             var result = new MLContext().Auto().InferColumns(Path.Combine("TestData", "NameColumnIsOnlyFeatureDataset.txt"), DefaultColumnNames.Label);
-            Assert.AreEqual(2, result.TextLoaderArgs.Columns.Count());
+            Assert.AreEqual(2, result.TextLoaderOptions.Columns.Count());
 
-            var nameColumn = result.TextLoaderArgs.Columns.First(c => c.Name == "Username");
-            var labelColumn = result.TextLoaderArgs.Columns.First(c => c.Name == DefaultColumnNames.Label);
-            Assert.AreEqual(DataKind.TX, nameColumn.Type);
-            Assert.AreEqual(DataKind.BL, labelColumn.Type);
+            var nameColumn = result.TextLoaderOptions.Columns.First(c => c.Name == "Username");
+            var labelColumn = result.TextLoaderOptions.Columns.First(c => c.Name == DefaultColumnNames.Label);
+            Assert.AreEqual(DataKind.String, nameColumn.DataKind);
+            Assert.AreEqual(DataKind.Boolean, labelColumn.DataKind);
             
             Assert.AreEqual(1, result.ColumnInformation.TextColumns.Count());
             Assert.AreEqual("Username", result.ColumnInformation.TextColumns.First());
@@ -140,8 +140,8 @@ namespace Microsoft.ML.Auto.Test
             var columnInfo = new ColumnInformation() { LabelColumn = DatasetUtil.MlNetGeneratedRegressionLabel };
             var result = new MLContext().Auto().InferColumns(DatasetUtil.DownloadMlNetGeneratedRegressionDataset(), 
                 columnInfo);
-            var labelCol = result.TextLoaderArgs.Columns.First(c => c.Name == DatasetUtil.MlNetGeneratedRegressionLabel);
-            Assert.AreEqual(DataKind.R4, labelCol.Type);
+            var labelCol = result.TextLoaderOptions.Columns.First(c => c.Name == DatasetUtil.MlNetGeneratedRegressionLabel);
+            Assert.AreEqual(DataKind.Single, labelCol.DataKind);
             Assert.AreEqual(DatasetUtil.MlNetGeneratedRegressionLabel, result.ColumnInformation.LabelColumn);
             Assert.AreEqual(1, result.ColumnInformation.NumericColumns.Count());
             Assert.AreEqual(DefaultColumnNames.Features, result.ColumnInformation.NumericColumns.First());

@@ -13,14 +13,14 @@ namespace Microsoft.ML.Auto
     public sealed class MulticlassExperimentSettings : ExperimentSettings
     {
         public IProgress<RunResult<MultiClassClassifierMetrics>> ProgressHandler;
-        public MulticlassClassificationMetric OptimizingMetric = MulticlassClassificationMetric.AccuracyMicro;
+        public MulticlassClassificationMetric OptimizingMetric = MulticlassClassificationMetric.MicroAccuracy;
         public MulticlassClassificationTrainer[] WhitelistedTrainers;
     }
 
     public enum MulticlassClassificationMetric
     {
-        AccuracyMicro,
-        AccuracyMacro,
+        MicroAccuracy,
+        MacroAccuracy,
         LogLoss,
         LogLossReduction,
         TopKAccuracy,
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Auto
 
     public static class MulticlassExperimentResultExtensions
     {
-        public static RunResult<MultiClassClassifierMetrics> Best(this IEnumerable<RunResult<MultiClassClassifierMetrics>> results, MulticlassClassificationMetric metric = MulticlassClassificationMetric.AccuracyMicro)
+        public static RunResult<MultiClassClassifierMetrics> Best(this IEnumerable<RunResult<MultiClassClassifierMetrics>> results, MulticlassClassificationMetric metric = MulticlassClassificationMetric.MicroAccuracy)
         {
             var metricsAgent = new MultiMetricsAgent(metric);
             return RunResultUtil.GetBestRunResult(results, metricsAgent);

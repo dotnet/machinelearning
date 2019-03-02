@@ -285,7 +285,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 sb.Append("(");
                 sb.Append(outputColumns[i]);
                 sb.Append(",");
-                sb.Append("DataKind.R4");
+                sb.Append("DataKind.Single");
                 sb.Append(",");
                 sb.Append(inputColumns[i]);
                 sb.Append(")");

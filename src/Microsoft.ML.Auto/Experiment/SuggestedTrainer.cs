@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Training;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Auto
 {
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Auto
             return new SuggestedTrainer(_mlContext, _trainerExtension, _columnInfo, HyperParamSet?.Clone());
         }
 
-        public ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor> BuildTrainer()
+        public ITrainerEstimator<ISingleFeaturePredictionTransformer<object>, object> BuildTrainer()
         {
             IEnumerable<SweepableParam> sweepParams = null;
             if (HyperParamSet != null)

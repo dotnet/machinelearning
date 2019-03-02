@@ -28,8 +28,8 @@ namespace mlnet.Test
                 var context = new MLContext();
                 var uciAdultDataFile = DownloadUciAdultDataset();
                 var columnInferenceResult = context.Auto().InferColumns(uciAdultDataFile, UciAdultLabel);
-                var textLoader = context.Data.CreateTextLoader(columnInferenceResult.TextLoaderArgs);
-                _uciAdultDataView = textLoader.Read(uciAdultDataFile);
+                var textLoader = context.Data.CreateTextLoader(columnInferenceResult.TextLoaderOptions);
+                _uciAdultDataView = textLoader.Load(uciAdultDataFile);
             }
             return _uciAdultDataView;
         }

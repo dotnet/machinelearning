@@ -107,7 +107,7 @@ namespace Microsoft.ML.Auto
             switch (purpose)
             {
                 case ColumnPurpose.NumericFeature:
-                    if (itemKind == DataKind.Bool)
+                    if (itemKind == DataKind.Boolean)
                     {
                         return "BooleanFeatures";
                     }

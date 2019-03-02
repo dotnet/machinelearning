@@ -138,7 +138,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
-            string expectedTransform = "Conversion.ConvertType(new []{new TypeConvertingTransformer.ColumnInfo(\"R4_column_1\",DataKind.R4,\"I4_column_1\")})";
+            string expectedTransform = "Conversion.ConvertType(new []{new TypeConvertingTransformer.ColumnInfo(\"R4_column_1\",DataKind.Single,\"I4_column_1\")})";
             string expectedUsings = "using Microsoft.ML.Transforms.Conversions;\r\n";
             Assert.AreEqual(expectedTransform, actual[0].Item1);
             Assert.AreEqual(expectedUsings, actual[0].Item2);

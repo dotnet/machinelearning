@@ -32,7 +32,7 @@ namespace Microsoft.ML.Auto
         public static bool IsKnownSizeVector(this DataViewType columnType)
         {
             var vector = columnType as VectorType;
-            if(vector == null)
+            if (vector == null)
             {
                 return false;
             }
@@ -49,10 +49,36 @@ namespace Microsoft.ML.Auto
             return vector.ItemType;
         }
 
+        /// <summary>
+        /// Zero return means either it's not a vector or the size is unknown.
+        /// </summary>
+        public static int GetVectorSize(this DataViewType columnType)
+        {
+            return (columnType as VectorType)?.Size ?? 0;
+        }
+
         public static DataKind GetRawKind(this DataViewType columnType)
         {
             columnType.RawType.TryGetDataKind(out var rawKind);
             return rawKind;
+        }
+
+        /// <summary>
+        /// Zero return means it's not a key type.
+        /// </summary>
+        public static ulong GetKeyCount(this DataViewType columnType)
+        {
+            return (columnType as KeyType)?.Count ?? 0;
+        }
+
+        /// <summary>
+        /// Sometimes it is necessary to cast the Count to an int. This performs overflow check.
+        /// Zero return means it's not a key type.
+        /// </summary>
+        public static int GetKeyCountAsInt32(this DataViewType columnType, IExceptionContext ectx = null)
+        {
+            ulong keyCount = columnType.GetKeyCount();
+            return (int)keyCount;
         }
     }
 }

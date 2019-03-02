@@ -57,11 +57,11 @@ namespace Microsoft.ML.Auto
                                     from _sep in separatorCandidates
                                     select new { _allowSparse, _allowQuote, _sep }))
             {
-                var args = new TextLoader.Arguments
+                var options = new TextLoader.Options
                 {
                     Columns = new[] { new TextLoader.Column() {
                         Name = "C",
-                        Type = DataKind.TX,
+                        DataKind = DataKind.String,
                         Source = new[] { new TextLoader.Range(0, null) }
                     } },
                     Separators = new[] { perm._sep },
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Auto
                     AllowSparse = perm._allowSparse
                 };
 
-                if (TryParseFile(context, args, source, out result))
+                if (TryParseFile(context, options, source, out result))
                 {
                     foundAny = true;
                     break;
@@ -78,16 +78,15 @@ namespace Microsoft.ML.Auto
             return foundAny ? result : new ColumnSplitResult(false, null, true, true, 0);
         }
 
-        private static bool TryParseFile(MLContext context, TextLoader.Arguments args, IMultiStreamSource source, 
+        private static bool TryParseFile(MLContext context, TextLoader.Options options, IMultiStreamSource source, 
             out ColumnSplitResult result)
         {
             result = null;
             // try to instantiate data view with swept arguments
             try
             {
-
-                var textLoader = new TextLoader(context, args, source);
-                var idv = context.Data.TakeRows(textLoader.Read(source), 1000);
+                var textLoader = context.Data.CreateTextLoader(options, source);
+                var idv = context.Data.TakeRows(textLoader.Load(source), 1000);
                 var columnCounts = new List<int>();
                 var column = idv.Schema["C"];
                 var columnIndex = column.Index;
@@ -113,7 +112,7 @@ namespace Microsoft.ML.Auto
                 // disallow single-column case
                 if (mostCommon.Key <= 1) { return false; }
 
-                result = new ColumnSplitResult(true, args.Separators.First(), args.AllowQuoting, args.AllowSparse, mostCommon.Key);
+                result = new ColumnSplitResult(true, options.Separators.First(), options.AllowQuoting, options.AllowSparse, mostCommon.Key);
                 return true;
             }
             // fail gracefully if unable to instantiate data view with swept arguments

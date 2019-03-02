@@ -16,8 +16,8 @@ namespace Microsoft.ML.Auto.Test
             var context = new MLContext();
             var dataPath = DatasetUtil.DownloadUciAdultDataset();
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
-            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
-            var trainData = textLoader.Read(dataPath);
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(dataPath);
             var validationData = context.Data.TakeRows(trainData, 100);
             trainData = context.Data.SkipRows(trainData, 100);
             var result = context.Auto()
@@ -32,8 +32,8 @@ namespace Microsoft.ML.Auto.Test
         {
             var context = new MLContext();
             var columnInference = context.Auto().InferColumns(DatasetUtil.TrivialMulticlassDatasetPath, DatasetUtil.TrivialMulticlassDatasetLabel);
-            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
-            var trainData = textLoader.Read(DatasetUtil.TrivialMulticlassDatasetPath);
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(DatasetUtil.TrivialMulticlassDatasetPath);
             var validationData = context.Data.TakeRows(trainData, 20);
             trainData = context.Data.SkipRows(trainData, 20);
             var result = context.Auto()
@@ -49,8 +49,8 @@ namespace Microsoft.ML.Auto.Test
             var context = new MLContext();
             var dataPath = DatasetUtil.DownloadMlNetGeneratedRegressionDataset();
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
-            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
-            var trainData = textLoader.Read(dataPath);
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            var trainData = textLoader.Load(dataPath);
             var validationData = context.Data.TakeRows(trainData, 20);
             trainData = context.Data.SkipRows(trainData, 20);
             var results = context.Auto()

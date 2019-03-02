@@ -8,11 +8,10 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.HalLearners;
 using Microsoft.ML.Trainers.Online;
-using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Auto
 {
-    using ITrainerEstimator = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor>;
+    using ITrainerEstimator = ITrainerEstimator<ISingleFeaturePredictionTransformer<object>, object>;
 
     internal class AveragedPerceptronBinaryExtension : ITrainerExtension
     {

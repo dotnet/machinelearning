@@ -50,7 +50,7 @@ namespace Microsoft.ML.Auto
             bool trimWhitespace, bool groupColumns)
         {
             var loaderColumns = ColumnTypeInference.GenerateLoaderColumns(typeInference.Columns);
-            var typedLoaderArgs = new TextLoader.Arguments
+            var typedLoaderOptions = new TextLoader.Options
             {
                 Columns = loaderColumns,
                 Separators = new[] { splitInference.Separator.Value },
@@ -59,8 +59,8 @@ namespace Microsoft.ML.Auto
                 HasHeader = hasHeader,
                 TrimWhitespace = trimWhitespace
             };
-            var textLoader = context.Data.CreateTextLoader(typedLoaderArgs);
-            var dataView = textLoader.Read(path);
+            var textLoader = context.Data.CreateTextLoader(typedLoaderOptions);
+            var dataView = textLoader.Load(path);
 
             var purposeInferenceResult = PurposeInference.InferPurposes(context, dataView, columnInfo);
 
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Auto
                 purposeResults = purposeInferenceResult.Select(p => (dataView.Schema[p.ColumnIndex].Name, p.Purpose));
             }
 
-            var textLoaderArgs = new TextLoader.Arguments()
+            var textLoaderOptions = new TextLoader.Options()
             {
                 Columns = columnResults.ToArray(),
                 AllowQuoting = splitInference.AllowQuote,
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Auto
 
             return new ColumnInferenceResults()
             {
-                TextLoaderArgs = textLoaderArgs,
+                TextLoaderOptions = textLoaderOptions,
                 ColumnInformation = ColumnInformationUtil.BuildColumnInfo(purposeResults)
             };
         }

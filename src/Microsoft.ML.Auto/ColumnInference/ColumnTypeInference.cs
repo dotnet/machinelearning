@@ -256,15 +256,15 @@ namespace Microsoft.ML.Auto
             }
 
             // read the file as the specified number of text columns
-            var textLoaderArgs = new TextLoader.Arguments
+            var textLoaderOptions = new TextLoader.Options
             {
-                Columns = new[] { new TextLoader.Column("C", DataKind.TX, 0, args.ColumnCount - 1) },
+                Columns = new[] { new TextLoader.Column("C", DataKind.String, 0, args.ColumnCount - 1) },
                 Separators = new[] { args.Separator },
                 AllowSparse = args.AllowSparse,
                 AllowQuoting = args.AllowQuote,
             };
-            var textLoader = new TextLoader(context, textLoaderArgs);
-            var idv = textLoader.Read(fileSource);
+            var textLoader = context.Data.CreateTextLoader(textLoaderOptions);
+            var idv = textLoader.Load(fileSource);
             idv = context.Data.TakeRows(idv, args.MaxRowsToRead);
 
             // read all the data into memory.

@@ -88,12 +88,12 @@ namespace mlnet.Test
         {
             var columns = new TextLoader.Column[]
             {
-                new TextLoader.Column(){ Name = DefaultColumnNames.Label, Source = new TextLoader.Range[]{new TextLoader.Range(0) }, Type = DataKind.Bool },
+                new TextLoader.Column(){ Name = DefaultColumnNames.Label, Source = new TextLoader.Range[]{new TextLoader.Range(0) }, DataKind = DataKind.Boolean },
             };
 
             var result = new ColumnInferenceResults()
             {
-                TextLoaderArgs = new TextLoader.Arguments()
+                TextLoaderOptions = new TextLoader.Options()
                 {
                     Columns = columns,
                     AllowQuoting = false,
@@ -119,13 +119,13 @@ namespace mlnet.Test
         {
             var columns = new TextLoader.Column[]
             {
-                new TextLoader.Column(){ Name = DefaultColumnNames.Label, Source = new TextLoader.Range[]{new TextLoader.Range(0) }, Type = DataKind.Bool },
-                new TextLoader.Column(){ Name = DefaultColumnNames.Features, Source = new TextLoader.Range[]{new TextLoader.Range(1) }, Type = DataKind.R4 },
+                new TextLoader.Column(){ Name = DefaultColumnNames.Label, Source = new TextLoader.Range[]{new TextLoader.Range(0) }, DataKind = DataKind.Boolean },
+                new TextLoader.Column(){ Name = DefaultColumnNames.Features, Source = new TextLoader.Range[]{new TextLoader.Range(1) }, DataKind = DataKind.Single },
             };
 
             var result = new ColumnInferenceResults()
             {
-                TextLoaderArgs = new TextLoader.Arguments()
+                TextLoaderOptions = new TextLoader.Options()
                 {
                     Columns = columns,
                     AllowQuoting = false,
@@ -144,8 +144,8 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, result, null);
             var actual = codeGenerator.GenerateColumns();
             Assert.AreEqual(actual.Count, 2);
-            string expectedColumn1 = "new Column(\"Label\",DataKind.BL,0),";
-            string expectedColumn2 = "new Column(\"Features\",DataKind.R4,1),";
+            string expectedColumn1 = "new Column(\"Label\",DataKind.Boolean,0),";
+            string expectedColumn2 = "new Column(\"Features\",DataKind.Single,1),";
             Assert.AreEqual(expectedColumn1, actual[0]);
             Assert.AreEqual(expectedColumn2, actual[1]);
         }

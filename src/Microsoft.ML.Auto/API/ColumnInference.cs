@@ -9,7 +9,7 @@ namespace Microsoft.ML.Auto
 {
     public sealed class ColumnInferenceResults
     {
-        public TextLoader.Arguments TextLoaderArgs { get; set; }
+        public TextLoader.Options TextLoaderOptions { get; set; }
         public ColumnInformation ColumnInformation { get; set; }
     }
 

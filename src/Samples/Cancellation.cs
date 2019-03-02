@@ -33,9 +33,9 @@ namespace Samples
             ConsoleHelper.Print(columnInference);
 
             // STEP 2: Load data
-            TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderArgs);
-            IDataView trainDataView = textLoader.Read(TrainDataPath);
-            IDataView testDataView = textLoader.Read(TestDataPath);
+            TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            IDataView trainDataView = textLoader.Load(TrainDataPath);
+            IDataView testDataView = textLoader.Load(TestDataPath);
 
             int cancelAfterInSeconds = 20;
             CancellationTokenSource cts = new CancellationTokenSource();

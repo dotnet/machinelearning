@@ -19,9 +19,9 @@ namespace Microsoft.ML.Auto
         {
             switch (_optimizingMetric)
             {
-                case MulticlassClassificationMetric.AccuracyMacro:
+                case MulticlassClassificationMetric.MacroAccuracy:
                     return metrics.AccuracyMacro;
-                case MulticlassClassificationMetric.AccuracyMicro:
+                case MulticlassClassificationMetric.MicroAccuracy:
                     return metrics.AccuracyMicro;
                 case MulticlassClassificationMetric.LogLoss:
                     return metrics.LogLoss;
@@ -43,9 +43,9 @@ namespace Microsoft.ML.Auto
 
             switch (_optimizingMetric)
             {
-                case MulticlassClassificationMetric.AccuracyMacro:
+                case MulticlassClassificationMetric.MacroAccuracy:
                     return metrics.AccuracyMacro == 1;
-                case MulticlassClassificationMetric.AccuracyMicro:
+                case MulticlassClassificationMetric.MicroAccuracy:
                     return metrics.AccuracyMicro == 1;
                 case MulticlassClassificationMetric.LogLoss:
                     return metrics.LogLoss == 0;
