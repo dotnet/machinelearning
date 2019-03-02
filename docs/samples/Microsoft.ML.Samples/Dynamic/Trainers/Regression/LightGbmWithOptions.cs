@@ -40,7 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
                            {
                                LabelColumnName = labelName,
                                NumberOfLeaves = 4,
-                               MinimumDataPerLeaf = 6,
+                               MinimumExampleCountPerLeaf = 6,
                                LearningRate = 0.001,
                                Booster = new GossBooster.Options
                                {

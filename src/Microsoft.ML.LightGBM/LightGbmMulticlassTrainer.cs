@@ -19,8 +19,6 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.LightGBM
 {
-
-    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmMulticlassTrainer : LightGbmTrainerBase<VBuffer<float>, MulticlassPredictionTransformer<OneVersusAllModelParameters>, OneVersusAllModelParameters>
     {
         internal const string Summary = "LightGBM Multi Class Classifier";
@@ -46,19 +44,19 @@ namespace Microsoft.ML.LightGBM
         /// <param name="labelColumnName">The name of The label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="weights">The name for the column containing the initial weight.</param>
-        /// <param name="numLeaves">The number of leaves to use.</param>
-        /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="numberOfLeaves">The number of leaves to use.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="numberOfIterations">The number of iterations to use.</param>
         internal LightGbmMulticlassTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string weights = null,
-            int? numLeaves = null,
-            int? minDataPerLeaf = null,
+            int? numberOfLeaves = null,
+            int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
             int numberOfIterations = LightGBM.Options.Defaults.NumberOfIterations)
-            : base(env, LoadNameValue, TrainerUtils.MakeU4ScalarColumn(labelColumnName), featureColumnName, weights, null, numLeaves, minDataPerLeaf, learningRate, numberOfIterations)
+            : base(env, LoadNameValue, TrainerUtils.MakeU4ScalarColumn(labelColumnName), featureColumnName, weights, null, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations)
         {
             _numClass = -1;
         }
@@ -162,17 +160,17 @@ namespace Microsoft.ML.LightGBM
         protected override void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
         {
             base.GetDefaultParameters(ch, numRow, hasCategorical, totalCats, true);
-            int numLeaves = (int)Options["num_leaves"];
-            int minDataPerLeaf = LightGbmTrainerOptions.MinimumDataPerLeaf ?? DefaultMinDataPerLeaf(numRow, numLeaves, _numClass);
-            Options["min_data_per_leaf"] = minDataPerLeaf;
+            int numberOfLeaves = (int)Options["num_leaves"];
+            int minimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow, numberOfLeaves, _numClass);
+            Options["min_data_per_leaf"] = minimumExampleCountPerLeaf;
             if (!hiddenMsg)
             {
                 if (!LightGbmTrainerOptions.LearningRate.HasValue)
                     ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.LearningRate) + " = " + Options["learning_rate"]);
                 if (!LightGbmTrainerOptions.NumberOfLeaves.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.NumberOfLeaves) + " = " + numLeaves);
-                if (!LightGbmTrainerOptions.MinimumDataPerLeaf.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.MinimumDataPerLeaf) + " = " + minDataPerLeaf);
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.NumberOfLeaves) + " = " + numberOfLeaves);
+                if (!LightGbmTrainerOptions.MinimumExampleCountPerLeaf.HasValue)
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.MinimumExampleCountPerLeaf) + " = " + minimumExampleCountPerLeaf);
             }
         }
 
@@ -184,14 +182,14 @@ namespace Microsoft.ML.LightGBM
             Options["num_class"] = _numClass;
             bool useSoftmax = false;
 
-            if (LightGbmTrainerOptions.UseSoftMaximum.HasValue)
-                useSoftmax = LightGbmTrainerOptions.UseSoftMaximum.Value;
+            if (LightGbmTrainerOptions.UseSoftMax.HasValue)
+                useSoftmax = LightGbmTrainerOptions.UseSoftMax.Value;
             else
             {
                 if (labels.Length >= _minDataToUseSoftmax)
                     useSoftmax = true;
 
-                ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.UseSoftMaximum) + " = " + useSoftmax);
+                ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.UseSoftMax) + " = " + useSoftmax);
             }
 
             if (useSoftmax)

@@ -39,7 +39,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
                             FeatureColumnName = "Features",
                             Booster = new DartBooster.Options
                             {
-                                DropRate = 0.15,
+                                TreeDropFraction = 0.15,
                                 XgboostDartMode = false
                             }
                         }))

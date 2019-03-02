@@ -21,7 +21,6 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.LightGBM
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmRegressionModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "LightGBMRegressionExec";
@@ -73,7 +72,6 @@ namespace Microsoft.ML.LightGBM
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmRegressorTrainer : LightGbmTrainerBase<float, RegressionPredictionTransformer<LightGbmRegressionModelParameters>, LightGbmRegressionModelParameters>
     {
         internal const string Summary = "LightGBM Regression";
@@ -91,7 +89,7 @@ namespace Microsoft.ML.LightGBM
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="weightsColumnName">The name for the column containing the initial weight.</param>
         /// <param name="numberOfLeaves">The number of leaves to use.</param>
-        /// <param name="minimumDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="numberOfIterations">Number of iterations.</param>
         internal LightGbmRegressorTrainer(IHostEnvironment env,
@@ -99,10 +97,10 @@ namespace Microsoft.ML.LightGBM
             string featureColumnName = DefaultColumnNames.Features,
             string weightsColumnName = null,
             int? numberOfLeaves = null,
-            int? minimumDataPerLeaf = null,
+            int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
             int numberOfIterations = LightGBM.Options.Defaults.NumberOfIterations)
-            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(labelColumnName), featureColumnName, weightsColumnName, null, numberOfLeaves, minimumDataPerLeaf, learningRate, numberOfIterations)
+            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(labelColumnName), featureColumnName, weightsColumnName, null, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations)
         {
         }
 

@@ -52,7 +52,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 NumberOfLeaves = 10,
                 NumberOfThreads = 1,
-                MinimumDataPerLeaf = 2,
+                MinimumExampleCountPerLeaf = 2,
             });
 
             var pipeWithTrainer = pipe.Append(trainer);
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 NumberOfThreads = 1,
                 NormalizeFeatures = NormalizeOption.Warn,
-                L2Categorical = 5,
+                L2CategoricalRegularization = 5,
             });
 
             TestEstimatorCore(trainer, dataView);
@@ -296,9 +296,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, new Options
             {
                 NumberOfIterations = numberOfTrainingIterations,
-                MinimumDataPerGroup = 1,
-                MinimumDataPerLeaf = 1,
-                UseSoftMaximum = useSoftmax
+                MinimumExampleCountPerGroup = 1,
+                MinimumExampleCountPerLeaf = 1,
+                UseSoftMax = useSoftmax
             });
 
             var gbm = gbmTrainer.Fit(dataView);

@@ -24,7 +24,6 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.LightGBM
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmBinaryModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "LightGBMBinaryExec";
@@ -81,7 +80,13 @@ namespace Microsoft.ML.LightGBM
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
+    ///<summary>
+    /// Trains a Light GBM Model.
+    ///</summary>
+    /// <remarks>
+    /// Light GBM is an open source implementation of boosted trees.
+    ///     <a href = 'https://github.com/Microsoft/LightGBM/wiki' > GitHub: LightGBM</a>
+    /// </remarks>
     public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<float,
         BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>
@@ -105,19 +110,19 @@ namespace Microsoft.ML.LightGBM
         /// <param name="labelColumnName">The name of The label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="weights">The name for the column containing the initial weight.</param>
-        /// <param name="leafCount">The number of leaves to use.</param>
-        /// <param name="minimumDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="numberOfLeaves">The number of leaves to use.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="numberOfIterations">Number of iterations.</param>
         internal LightGbmBinaryTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string weights = null,
-            int? leafCount = null,
-            int? minimumDataPerLeaf = null,
+            int? numberOfLeaves = null,
+            int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
             int numberOfIterations = LightGBM.Options.Defaults.NumberOfIterations)
-            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumnName), featureColumnName, weights, null, leafCount, minimumDataPerLeaf, learningRate, numberOfIterations)
+            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumnName), featureColumnName, weights, null, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations)
         {
         }
 

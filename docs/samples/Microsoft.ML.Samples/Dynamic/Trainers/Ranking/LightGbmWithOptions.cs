@@ -24,7 +24,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
                 new Options
                 {
                     NumberOfLeaves = 4,
-                    MinimumDataPerLeaf = 10,
+                    MinimumExampleCountPerGroup = 10,
                     LearningRate = 0.1,
                     NumberOfIterations = 2,
                     Booster = new TreeBooster.Options

@@ -11200,7 +11200,7 @@
           }
         },
         {
-          "Name": "MinimumDataPerLeaf",
+          "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
           "Desc": "Minimum number of instances needed in a child.",
           "Aliases": [
@@ -11322,7 +11322,7 @@
           "Default": "Auto"
         },
         {
-          "Name": "MaximumBin",
+          "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of bucket bin for features.",
           "Aliases": [
@@ -11393,7 +11393,7 @@
           "Default": "DefaultMetric"
         },
         {
-          "Name": "UseSoftMaximum",
+          "Name": "UseSoftMax",
           "Type": "Bool",
           "Desc": "Use softmax loss for the multi classification.",
           "Required": false,
@@ -11489,7 +11489,7 @@
           }
         },
         {
-          "Name": "MinimumDataPerGroup",
+          "Name": "MinimumExampleCountPerGroup",
           "Type": "Int",
           "Desc": "Minimum number of instances per categorical group.",
           "Aliases": [
@@ -11514,7 +11514,7 @@
           }
         },
         {
-          "Name": "MaximumCategoricalThreshold",
+          "Name": "MaximumCategoricalSplitPointCount",
           "Type": "Int",
           "Desc": "Max number of categorical thresholds.",
           "Aliases": [
@@ -11559,7 +11559,7 @@
           }
         },
         {
-          "Name": "L2Categorical",
+          "Name": "L2CategoricalRegularization",
           "Type": "Float",
           "Desc": "L2 Regularization for categorical split.",
           "Required": false,
@@ -11703,7 +11703,7 @@
           }
         },
         {
-          "Name": "MinimumDataPerLeaf",
+          "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
           "Desc": "Minimum number of instances needed in a child.",
           "Aliases": [
@@ -11825,7 +11825,7 @@
           "Default": "Auto"
         },
         {
-          "Name": "MaximumBin",
+          "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of bucket bin for features.",
           "Aliases": [
@@ -11896,7 +11896,7 @@
           "Default": "DefaultMetric"
         },
         {
-          "Name": "UseSoftMaximum",
+          "Name": "UseSoftMax",
           "Type": "Bool",
           "Desc": "Use softmax loss for the multi classification.",
           "Required": false,
@@ -11992,7 +11992,7 @@
           }
         },
         {
-          "Name": "MinimumDataPerGroup",
+          "Name": "MinimumExampleCountPerGroup",
           "Type": "Int",
           "Desc": "Minimum number of instances per categorical group.",
           "Aliases": [
@@ -12017,7 +12017,7 @@
           }
         },
         {
-          "Name": "MaximumCategoricalThreshold",
+          "Name": "MaximumCategoricalSplitPointCount",
           "Type": "Int",
           "Desc": "Max number of categorical thresholds.",
           "Aliases": [
@@ -12062,7 +12062,7 @@
           }
         },
         {
-          "Name": "L2Categorical",
+          "Name": "L2CategoricalRegularization",
           "Type": "Float",
           "Desc": "L2 Regularization for categorical split.",
           "Required": false,
@@ -12206,7 +12206,7 @@
           }
         },
         {
-          "Name": "MinimumDataPerLeaf",
+          "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
           "Desc": "Minimum number of instances needed in a child.",
           "Aliases": [
@@ -12328,7 +12328,7 @@
           "Default": "Auto"
         },
         {
-          "Name": "MaximumBin",
+          "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of bucket bin for features.",
           "Aliases": [
@@ -12399,7 +12399,7 @@
           "Default": "DefaultMetric"
         },
         {
-          "Name": "UseSoftMaximum",
+          "Name": "UseSoftMax",
           "Type": "Bool",
           "Desc": "Use softmax loss for the multi classification.",
           "Required": false,
@@ -12495,7 +12495,7 @@
           }
         },
         {
-          "Name": "MinimumDataPerGroup",
+          "Name": "MinimumExampleCountPerGroup",
           "Type": "Int",
           "Desc": "Minimum number of instances per categorical group.",
           "Aliases": [
@@ -12520,7 +12520,7 @@
           }
         },
         {
-          "Name": "MaximumCategoricalThreshold",
+          "Name": "MaximumCategoricalSplitPointCount",
           "Type": "Int",
           "Desc": "Max number of categorical thresholds.",
           "Aliases": [
@@ -12565,7 +12565,7 @@
           }
         },
         {
-          "Name": "L2Categorical",
+          "Name": "L2CategoricalRegularization",
           "Type": "Float",
           "Desc": "L2 Regularization for categorical split.",
           "Required": false,
@@ -12709,7 +12709,7 @@
           }
         },
         {
-          "Name": "MinimumDataPerLeaf",
+          "Name": "MinimumExampleCountPerLeaf",
           "Type": "Int",
           "Desc": "Minimum number of instances needed in a child.",
           "Aliases": [
@@ -12831,7 +12831,7 @@
           "Default": "Auto"
         },
         {
-          "Name": "MaximumBin",
+          "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of bucket bin for features.",
           "Aliases": [
@@ -12902,7 +12902,7 @@
           "Default": "DefaultMetric"
         },
         {
-          "Name": "UseSoftMaximum",
+          "Name": "UseSoftMax",
           "Type": "Bool",
           "Desc": "Use softmax loss for the multi classification.",
           "Required": false,
@@ -12998,7 +12998,7 @@
           }
         },
         {
-          "Name": "MinimumDataPerGroup",
+          "Name": "MinimumExampleCountPerGroup",
           "Type": "Int",
           "Desc": "Minimum number of instances per categorical group.",
           "Aliases": [
@@ -13023,7 +13023,7 @@
           }
         },
         {
-          "Name": "MaximumCategoricalThreshold",
+          "Name": "MaximumCategoricalSplitPointCount",
           "Type": "Int",
           "Desc": "Max number of categorical thresholds.",
           "Aliases": [
@@ -13068,7 +13068,7 @@
           }
         },
         {
-          "Name": "L2Categorical",
+          "Name": "L2CategoricalRegularization",
           "Type": "Float",
           "Desc": "L2 Regularization for categorical split.",
           "Required": false,
@@ -23536,7 +23536,7 @@
           "FriendlyName": "Tree Dropout Tree Booster",
           "Settings": [
             {
-              "Name": "DropRate",
+              "Name": "TreeDropFraction",
               "Type": "Float",
               "Desc": "The drop ratio for trees. Range:(0,1).",
               "Required": false,
@@ -23549,7 +23549,7 @@
               }
             },
             {
-              "Name": "MaxDrop",
+              "Name": "MaximumDroppedTreesPerRound",
               "Type": "Int",
               "Desc": "Maximum number of dropped tree in a boosting round.",
               "Required": false,
@@ -23562,7 +23562,7 @@
               }
             },
             {
-              "Name": "SkipDrop",
+              "Name": "SkipDropFraction",
               "Type": "Float",
               "Desc": "Probability for not dropping in a boosting round.",
               "Required": false,
@@ -23605,9 +23605,12 @@
               "Default": false
             },
             {
-              "Name": "MinSplitGain",
+              "Name": "MinimumSplitGain",
               "Type": "Float",
               "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
+              "Aliases": [
+                "MinSplitGain"
+              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23617,9 +23620,12 @@
               }
             },
             {
-              "Name": "MaxDepth",
+              "Name": "MaximumTreeDepth",
               "Type": "Int",
               "Desc": "Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.",
+              "Aliases": [
+                "MaxDepth"
+              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23630,9 +23636,12 @@
               }
             },
             {
-              "Name": "MinChildWeight",
+              "Name": "MinimumChildWeight",
               "Type": "Float",
               "Desc": "Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.",
+              "Aliases": [
+                "MinChildWeight"
+              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23642,9 +23651,12 @@
               }
             },
             {
-              "Name": "SubsampleFreq",
+              "Name": "SubsampleFrequency",
               "Type": "Int",
-              "Desc": "Subsample frequency for bagging. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.",
+              "Desc": "Subsample frequency for bagging. 0 means no subsample. If subsampleFreq > 0, it will use a subset to train and the subset will be updated on every Subsample iteration.",
+              "Aliases": [
+                "SubsampleFreq"
+              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23684,11 +23696,12 @@
               }
             },
             {
-              "Name": "RegLambda",
+              "Name": "L2Regularization",
               "Type": "Float",
               "Desc": "L2 regularization term on weights, increasing this value will make model more conservative.",
               "Aliases": [
-                "l2"
+                "l2",
+                "RegLambda"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -23707,11 +23720,12 @@
               }
             },
             {
-              "Name": "RegAlpha",
+              "Name": "L1Regularization",
               "Type": "Float",
               "Desc": "L1 regularization term on weights, increase this value will make model more conservative.",
               "Aliases": [
-                "l1"
+                "l1",
+                "RegAlpha"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -23730,9 +23744,12 @@
               }
             },
             {
-              "Name": "ScalePosWeight",
+              "Name": "WeightOfPositiveExamples",
               "Type": "Float",
               "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
+              "Aliases": [
+                "ScalePosWeight"
+              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23758,9 +23775,12 @@
               "Default": false
             },
             {
-              "Name": "MinSplitGain",
+              "Name": "MinimumSplitGain",
               "Type": "Float",
               "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
+              "Aliases": [
+                "MinSplitGain"
+              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23770,9 +23790,12 @@
               }
             },
             {
-              "Name": "MaxDepth",
+              "Name": "MaximumTreeDepth",
               "Type": "Int",
               "Desc": "Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.",
+              "Aliases": [
+                "MaxDepth"
+              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23783,9 +23806,12 @@
               }
             },
             {
-              "Name": "MinChildWeight",
+              "Name": "MinimumChildWeight",
               "Type": "Float",
               "Desc": "Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.",
+              "Aliases": [
+                "MinChildWeight"
+              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23795,9 +23821,12 @@
               }
             },
             {
-              "Name": "SubsampleFreq",
+              "Name": "SubsampleFrequency",
               "Type": "Int",
-              "Desc": "Subsample frequency for bagging. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.",
+              "Desc": "Subsample frequency for bagging. 0 means no subsample. If subsampleFreq > 0, it will use a subset to train and the subset will be updated on every Subsample iteration.",
+              "Aliases": [
+                "SubsampleFreq"
+              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23837,11 +23866,12 @@
               }
             },
             {
-              "Name": "RegLambda",
+              "Name": "L2Regularization",
               "Type": "Float",
               "Desc": "L2 regularization term on weights, increasing this value will make model more conservative.",
               "Aliases": [
-                "l2"
+                "l2",
+                "RegLambda"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -23860,11 +23890,12 @@
               }
             },
             {
-              "Name": "RegAlpha",
+              "Name": "L1Regularization",
               "Type": "Float",
               "Desc": "L1 regularization term on weights, increase this value will make model more conservative.",
               "Aliases": [
-                "l1"
+                "l1",
+                "RegAlpha"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -23883,9 +23914,12 @@
               }
             },
             {
-              "Name": "ScalePosWeight",
+              "Name": "WeightOfPositiveExamples",
               "Type": "Float",
               "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
+              "Aliases": [
+                "ScalePosWeight"
+              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23937,9 +23971,12 @@
               "Default": false
             },
             {
-              "Name": "MinSplitGain",
+              "Name": "MinimumSplitGain",
               "Type": "Float",
               "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
+              "Aliases": [
+                "MinSplitGain"
+              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23949,9 +23986,12 @@
               }
             },
             {
-              "Name": "MaxDepth",
+              "Name": "MaximumTreeDepth",
               "Type": "Int",
               "Desc": "Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.",
+              "Aliases": [
+                "MaxDepth"
+              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23962,9 +24002,12 @@
               }
             },
             {
-              "Name": "MinChildWeight",
+              "Name": "MinimumChildWeight",
               "Type": "Float",
               "Desc": "Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.",
+              "Aliases": [
+                "MinChildWeight"
+              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23974,9 +24017,12 @@
               }
             },
             {
-              "Name": "SubsampleFreq",
+              "Name": "SubsampleFrequency",
               "Type": "Int",
-              "Desc": "Subsample frequency for bagging. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.",
+              "Desc": "Subsample frequency for bagging. 0 means no subsample. If subsampleFreq > 0, it will use a subset to train and the subset will be updated on every Subsample iteration.",
+              "Aliases": [
+                "SubsampleFreq"
+              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -24016,11 +24062,12 @@
               }
             },
             {
-              "Name": "RegLambda",
+              "Name": "L2Regularization",
               "Type": "Float",
               "Desc": "L2 regularization term on weights, increasing this value will make model more conservative.",
               "Aliases": [
-                "l2"
+                "l2",
+                "RegLambda"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -24039,11 +24086,12 @@
               }
             },
             {
-              "Name": "RegAlpha",
+              "Name": "L1Regularization",
               "Type": "Float",
               "Desc": "L1 regularization term on weights, increase this value will make model more conservative.",
               "Aliases": [
-                "l1"
+                "l1",
+                "RegAlpha"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -24062,9 +24110,12 @@
               }
             },
             {
-              "Name": "ScalePosWeight",
+              "Name": "WeightOfPositiveExamples",
               "Type": "Float",
               "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
+              "Aliases": [
+                "ScalePosWeight"
+              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,

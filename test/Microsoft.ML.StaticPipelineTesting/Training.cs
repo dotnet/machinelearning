@@ -534,8 +534,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.LightGbm(r.label, r.features,
-                    numBoostRound: 10,
-                    numLeaves: 5,
+                    numberOfIterations: 10,
+                    numberOfLeaves: 5,
                     learningRate: 0.01,
                     onFit: (p) => { pred = p; })));
 
