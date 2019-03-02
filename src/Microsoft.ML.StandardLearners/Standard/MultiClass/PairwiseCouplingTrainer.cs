@@ -14,26 +14,26 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers;
 
-[assembly: LoadableClass(Pkpd.Summary, typeof(Pkpd), typeof(Pkpd.Options),
+[assembly: LoadableClass(PairwiseCouplingTrainer.Summary, typeof(PairwiseCouplingTrainer), typeof(PairwiseCouplingTrainer.Options),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
-    Pkpd.UserNameValue, Pkpd.LoadNameValue, DocName = "trainer/OvaPkpd.md")]
+    PairwiseCouplingTrainer.UserNameValue, PairwiseCouplingTrainer.LoadNameValue, DocName = "trainer/OvaPkpd.md")]
 
-[assembly: LoadableClass(typeof(PkpdModelParameters), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(PairwiseCouplingModelParameters), null, typeof(SignatureLoadModel),
     "PKPD Executor",
-    PkpdModelParameters.LoaderSignature)]
+    PairwiseCouplingModelParameters.LoaderSignature)]
 
 namespace Microsoft.ML.Trainers
 {
     using CR = RoleMappedSchema.ColumnRole;
     using TDistPredictor = IDistPredictorProducing<float, float>;
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
-    using TTransformer = MulticlassPredictionTransformer<PkpdModelParameters>;
+    using TTransformer = MulticlassPredictionTransformer<PairwiseCouplingModelParameters>;
 
     /// <summary>
     /// In this strategy, a binary classification algorithm is trained on each pair of classes.
     /// The pairs are unordered but created with replacement: so, if there were three classes, 0, 1,
     /// 2, we would train classifiers for the pairs (0,0), (0,1), (0,2), (1,1), (1,2),
-    /// and(2,2). For each binary classifier, an input data point is considered a
+    /// and (2,2). For each binary classifier, an input data point is considered a
     /// positive example if it is in either of the two classes in the pair, and a
     /// negative example otherwise. At prediction time, the probabilities for each
     /// pair of classes is considered as the probability of being in either class of
@@ -42,17 +42,17 @@ namespace Microsoft.ML.Trainers
     /// pair.
     ///
     /// These two can allow you to exploit trainers that do not naturally have a
-    /// multiclass option, for example, using the Runtime.FastTree.FastTreeBinaryClassificationTrainer
+    /// multiclass option, for example, using the FastTree Binary Classification
     /// to solve a multiclass problem.
     /// Alternately, it can allow ML.NET to solve a "simpler" problem even in the cases
     /// where the trainer has a multiclass option, but using it directly is not
-    /// practical due to, usually, memory constraints.For example, while a multiclass
+    /// practical due to, usually, memory constraints. For example, while a multiclass
     /// logistic regression is a more principled way to solve a multiclass problem, it
     /// requires that the learner store a lot more intermediate state in the form of
     /// L-BFGS history for all classes *simultaneously*, rather than just one-by-one
     /// as would be needed for a one-versus-all classification model.
     /// </summary>
-    public sealed class Pkpd : MetaMulticlassTrainer<MulticlassPredictionTransformer<PkpdModelParameters>, PkpdModelParameters>
+    public sealed class PairwiseCouplingTrainer : MetaMulticlassTrainer<MulticlassPredictionTransformer<PairwiseCouplingModelParameters>, PairwiseCouplingModelParameters>
     {
         internal const string LoadNameValue = "PKPD";
         internal const string UserNameValue = "Pairwise coupling (PKPD)";
@@ -61,49 +61,48 @@ namespace Microsoft.ML.Trainers
             + "classifiers predicted it. The prediction is the class with the highest score.";
 
         /// <summary>
-        /// Options passed to PKPD.
+        /// Options passed to <see cref="Microsoft.ML.Trainers.PairwiseCouplingTrainer"/>.
         /// </summary>
         internal sealed class Options : OptionsBase
         {
         }
+
         /// <summary>
-        /// Legacy constructor that builds the <see cref="Pkpd"/> trainer supplying the base trainer to use, for the classification task
+        /// Constructs a <see cref="PairwiseCouplingTrainer"/> trainer supplying the base trainer to use, for the classification task
         /// through the <see cref="Options"/>Options.
-        /// Developers should instantiate <see cref="Pkpd"/> by supplying the trainer argument directly to the <see cref="Pkpd"/> constructor
-        /// using the other public constructor.
         /// </summary>
-        internal Pkpd(IHostEnvironment env, Options options)
+        internal PairwiseCouplingTrainer(IHostEnvironment env, Options options)
             : base(env, options, LoadNameValue)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Pkpd"/>
+        /// Initializes a new instance of the <see cref="PairwiseCouplingTrainer"/>
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
-        /// <param name="labelColumn">The name of the label colum.</param>
+        /// <param name="labelColumnName">The name of the label colum.</param>
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="calibrator">The calibrator to use for each model instance. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
-        /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
-        internal Pkpd(IHostEnvironment env,
+        /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
+        internal PairwiseCouplingTrainer(IHostEnvironment env,
             TScalarTrainer binaryEstimator,
-            string labelColumn = DefaultColumnNames.Label,
+            string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
             ICalibratorTrainer calibrator = null,
-            int maxCalibrationExamples = 1000000000)
+            int maximumCalibrationExampleCount = 1000000000)
            : base(env,
                new Options
                {
                    ImputeMissingLabelsAsNegative = imputeMissingLabelsAsNegative,
-                   MaxCalibrationExamples = maxCalibrationExamples,
+                   MaxCalibrationExamples = maximumCalibrationExampleCount,
                },
-               LoadNameValue, labelColumn, binaryEstimator, calibrator)
+               LoadNameValue, labelColumnName, binaryEstimator, calibrator)
         {
-            Host.CheckValue(labelColumn, nameof(labelColumn), "Label column should not be null.");
+            Host.CheckValue(labelColumnName, nameof(labelColumnName), "Label column should not be null.");
         }
 
-        private protected override PkpdModelParameters TrainCore(IChannel ch, RoleMappedData data, int count)
+        private protected override PairwiseCouplingModelParameters TrainCore(IChannel ch, RoleMappedData data, int count)
         {
             // Train M * (M+1) / 2 models arranged as a lower triangular matrix.
             var predModels = new TDistPredictor[count][];
@@ -119,7 +118,7 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            return new PkpdModelParameters(Host, predModels);
+            return new PairwiseCouplingModelParameters(Host, predModels);
         }
 
         private ISingleFeaturePredictionTransformer<TDistPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls1, int cls2)
@@ -167,7 +166,7 @@ namespace Microsoft.ML.Trainers
                 return MapLabelsCore(NumberDataViewType.Double, (in double val) => val == key1 || val == key2, data);
             }
 
-            throw Host.ExceptNotSupp($"Label column type is not supported by PKPD: {lab.Type}");
+            throw Host.ExceptNotSupp($"Label column type is not supported by nameof(PairwiseCouplingTrainer): {lab.Type.RawType}");
         }
 
         /// <summary>
@@ -209,11 +208,14 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            return new MulticlassPredictionTransformer<PkpdModelParameters>(Host, new PkpdModelParameters(Host, predictors), input.Schema, featureColumn, LabelColumn.Name);
+            return new MulticlassPredictionTransformer<PairwiseCouplingModelParameters>(Host, new PairwiseCouplingModelParameters(Host, predictors), input.Schema, featureColumn, LabelColumn.Name);
         }
     }
 
-    public sealed class PkpdModelParameters :
+    /// <summary>
+    /// Contains the model parameters and prediction functions for the PairwiseCouplingTrainer.
+    /// </summary>
+    public sealed class PairwiseCouplingModelParameters :
         ModelParametersBase<VBuffer<float>>,
         IValueMapper
     {
@@ -228,7 +230,7 @@ namespace Microsoft.ML.Trainers
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(PkpdModelParameters).Assembly.FullName);
+                loaderAssemblyName: typeof(PairwiseCouplingModelParameters).Assembly.FullName);
         }
 
         private const string SubPredictorFmt = "SubPredictor_{0:000}";
@@ -248,7 +250,7 @@ namespace Microsoft.ML.Trainers
         DataViewType IValueMapper.InputType => _inputType;
         DataViewType IValueMapper.OutputType => _outputType;
 
-        internal PkpdModelParameters(IHostEnvironment env, TDistPredictor[][] predictors) :
+        internal PairwiseCouplingModelParameters(IHostEnvironment env, TDistPredictor[][] predictors) :
             base(env, RegistrationName)
         {
             Host.Assert(Utils.Size(predictors) > 0);
@@ -272,7 +274,7 @@ namespace Microsoft.ML.Trainers
             _outputType = new VectorType(NumberDataViewType.Single, _numClasses);
         }
 
-        private PkpdModelParameters(IHostEnvironment env, ModelLoadContext ctx)
+        private PairwiseCouplingModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
             // *** Binary format ***
@@ -331,12 +333,12 @@ namespace Microsoft.ML.Trainers
             return true;
         }
 
-        private static PkpdModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static PairwiseCouplingModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new PkpdModelParameters(env, ctx);
+            return new PairwiseCouplingModelParameters(env, ctx);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)

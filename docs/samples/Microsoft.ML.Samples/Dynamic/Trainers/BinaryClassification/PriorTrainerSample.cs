@@ -7,22 +7,22 @@ namespace Microsoft.ML.Samples.Dynamic
     {
         public static void Example()
         {
-            // Downloading the dataset from github.com/dotnet/machinelearning.
-            // This will create a sentiment.tsv file in the filesystem.
-            // You can open this file, if you want to see the data. 
-            string dataFile = SamplesUtils.DatasetUtils.DownloadSentimentDataset()[0];
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext();
+
+            // Download and featurize the dataset.
+            var dataFiles = SamplesUtils.DatasetUtils.DownloadSentimentDataset();
+            var trainFile = dataFiles[0];
+            var testFile = dataFiles[1];
 
             // A preview of the data. 
             // Sentiment	SentimentText
             //      0	    " :Erm, thank you. "
             //      1	    ==You're cool==
 
-            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-            // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext();
-
-            // Step 1: Load the data as an IDataView.
-            // First, we define the loader: specify the data columns and where to find them in the text file.
+            // Step 1: Read the data as an IDataView.
+            // First, we define the reader: specify the data columns and where to find them in the text file.
             var loader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
@@ -31,12 +31,9 @@ namespace Microsoft.ML.Samples.Dynamic
                     },
                 hasHeader: true
             );
-            
-            // Load the data
-            var data = loader.Load(dataFile);
 
-            // Split it between training and test data
-            var trainTestData = mlContext.BinaryClassification.TrainTestSplit(data);
+            // Load the data
+            var trainData = loader.Load(trainFile);
 
             // Step 2: Pipeline 
             // Featurize the text column through the FeaturizeText API. 
@@ -47,19 +44,27 @@ namespace Microsoft.ML.Samples.Dynamic
                     .Append(mlContext.BinaryClassification.Trainers.Prior(labelColumnName: "Sentiment"));
 
             // Step 3: Train the pipeline
-            var trainedPipeline = pipeline.Fit(trainTestData.TrainSet);
+            var trainedPipeline = pipeline.Fit(trainData);
 
             // Step 4: Evaluate on the test set
-            var transformedData = trainedPipeline.Transform(trainTestData.TestSet);
+            var transformedData = trainedPipeline.Transform(loader.Load(testFile));
             var evalMetrics = mlContext.BinaryClassification.Evaluate(transformedData, label: "Sentiment");
-
-            // Step 5: Inspect the output
-            Console.WriteLine("Accuracy: " + evalMetrics.Accuracy);
+            SamplesUtils.ConsoleUtils.PrintMetrics(evalMetrics);
 
             // The Prior trainer outputs the proportion of a label in the dataset as the probability of that label.
-            // In this case it means that there is a split of around 64%-36% of positive and negative labels in the dataset.
+            // In this case 'Accuracy: 0.50' means that there is a split of around 50%-50% of positive and negative labels in the test dataset.
             // Expected output:
-            // Accuracy: 0.647058823529412
+
+            //  Accuracy: 0.50
+            //  AUC: 0.50
+            //  F1 Score: 0.67
+            //  Negative Precision: 0.00
+            //  Negative Recall: 0.00
+            //  Positive Precision: 0.50
+            //  Positive Recall: 1.00
+            //  LogLoss: 1.05
+            //  LogLossReduction: -4.89
+            //  Entropy: 1.00
         }
     }
 }

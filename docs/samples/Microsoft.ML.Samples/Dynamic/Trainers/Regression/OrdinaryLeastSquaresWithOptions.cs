@@ -44,7 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 
             // Create the estimator, here we only need OrdinaryLeastSquares trainer 
             // as data is already processed in a form consumable by the trainer
-            var pipeline = mlContext.Regression.Trainers.OrdinaryLeastSquares(new OlsLinearRegressionTrainer.Options()
+            var pipeline = mlContext.Regression.Trainers.OrdinaryLeastSquares(new OrdinaryLeastSquaresRegressionTrainer.Options()
             {
                 L2Weight = 0.1f,
                 PerParameterSignificance = false
