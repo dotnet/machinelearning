@@ -79,6 +79,13 @@ namespace Microsoft.ML
         /// <param name="maxIterations">The maximum number of passes through the training dataset; set to 1 to simulate online learning.</param>
         /// <param name="initLearningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
         /// <param name="l2Weight">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[StochasticGradientDescentNonCalibrated](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/StochasticGradientDescentNonCalibrated.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static SgdNonCalibratedBinaryTrainer StochasticGradientDescentNonCalibrated(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
@@ -99,6 +106,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
+        /// /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[StochasticGradientDescentNonCalibratedWithOptions](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/StochasticGradientDescentNonCalibratedWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static SgdNonCalibratedBinaryTrainer StochasticGradientDescentNonCalibrated(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             SgdNonCalibratedBinaryTrainer.Options options)
         {
