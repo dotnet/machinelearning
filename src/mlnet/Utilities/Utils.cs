@@ -59,19 +59,21 @@ namespace Microsoft.ML.CLI.Utilities
             }
         }
 
-        internal static string Normalize(string inputColumn)
+        internal static string Normalize(string input)
         {
             //check if first character is int
-            if (!string.IsNullOrEmpty(inputColumn) && int.TryParse(inputColumn.Substring(0, 1), out int val))
+            if (!string.IsNullOrEmpty(input) && int.TryParse(input.Substring(0, 1), out int val))
             {
-                inputColumn = "Col" + inputColumn;
-                return inputColumn;
+                input = "Col" + input;
+                return input;
             }
-            switch (inputColumn)
+            switch (input)
             {
-                case null: throw new ArgumentNullException(nameof(inputColumn));
-                case "": throw new ArgumentException($"{nameof(inputColumn)} cannot be empty", nameof(inputColumn));
-                default: return inputColumn.First().ToString().ToUpper() + inputColumn.Substring(1);
+                case null: throw new ArgumentNullException(nameof(input));
+                case "": throw new ArgumentException($"{nameof(input)} cannot be empty", nameof(input));
+                default:
+                    var sanitizedInput = Sanitize(input);
+                    return sanitizedInput;
             }
         }
 

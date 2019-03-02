@@ -51,7 +51,7 @@ namespace Microsoft.ML.Auto
         {
             var options = Activator.CreateInstance<T>();
             options.LabelColumn = labelColumn;
-            if(sweepParams != null)
+            if (sweepParams != null)
             {
                 UpdateFields(options, sweepParams);
             }
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Auto
             var options = new LightGBM.Options();
             options.LabelColumn = columnInfo.LabelColumn;
             options.WeightColumn = columnInfo.WeightColumn;
-            if(sweepParams != null)
+            if (sweepParams != null)
             {
                 var treeBoosterParams = sweepParams.Where(p => _lightGbmTreeBoosterParamNames.Contains(p.Name));
                 var parentArgParams = sweepParams.Except(treeBoosterParams);
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Auto
             return options;
         }
 
-        public static PipelineNode BuildOvaPipelineNode(ITrainerExtension multiExtension, ITrainerExtension binaryExtension, 
+        public static PipelineNode BuildOvaPipelineNode(ITrainerExtension multiExtension, ITrainerExtension binaryExtension,
             IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
         {
             var ovaNode = binaryExtension.CreatePipelineNode(sweepParams, columnInfo);
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Auto
         {
             var properties = BuildBasePipelineNodeProps(sweepParams, labelColumn, weightColumn);
 
-            if(additionalProperties != null)
+            if (additionalProperties != null)
             {
                 foreach (var property in additionalProperties)
                 {
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Auto
             string labelColumn, string weightColumn)
         {
             Dictionary<string, object> props = null;
-            if(sweepParams == null)
+            if (sweepParams == null)
             {
                 props = new Dictionary<string, object>();
             }
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Auto
                 var parentArgParams = sweepParams.Except(treeBoosterParams);
 
                 var treeBoosterProps = treeBoosterParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
-                var treeBoosterCustomProp = new CustomProperty("Options.TreeBooster.Arguments", treeBoosterProps);
+                var treeBoosterCustomProp = new CustomProperty("Options.TreeBooster.Options", treeBoosterProps);
 
                 props = parentArgParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
                 props[LightGbmTreeBoosterPropName] = treeBoosterCustomProp;
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Auto
 
         public static TrainerName GetTrainerName(BinaryClassificationTrainer binaryTrainer)
         {
-            switch(binaryTrainer)
+            switch (binaryTrainer)
             {
                 case BinaryClassificationTrainer.AveragedPerceptron:
                     return TrainerName.AveragedPerceptronBinary;

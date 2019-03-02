@@ -37,9 +37,9 @@ namespace Microsoft.ML.CLI.Templates.Console
     <Compile Include=""ConsoleHelper.cs"" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include=""Microsoft.ML"" Version=""0.10.0"" />
-    <PackageReference Include=""Microsoft.ML.HalLearners"" Version=""0.10.0"" />
-    <PackageReference Include=""Microsoft.ML.LightGBM"" Version=""0.10.0"" /> 
+    <PackageReference Include=""Microsoft.ML"" Version=""0.11.0-preview-27428-4"" />
+    <PackageReference Include=""Microsoft.ML.HalLearners"" Version=""0.11.0-preview-27428-4"" />
+    <PackageReference Include=""Microsoft.ML.LightGBM"" Version=""0.11.0-preview-27428-4"" /> 
   </ItemGroup>
 </Project>
 ");

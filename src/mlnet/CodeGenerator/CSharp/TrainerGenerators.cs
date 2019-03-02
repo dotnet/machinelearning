@@ -26,11 +26,12 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     new Dictionary<string, string>()
                     {
                         {"NumLeaves","numLeaves" },
-                        {"LabelColumn","labelColumn" },
-                        {"FeatureColumn","featureColumn" },
+                        {"LabelColumn","labelColumnName" },
+                        {"FeatureColumn","featureColumnName" },
                         {"MinDataPerLeaf","minDataPerLeaf" },
                         {"LearningRate","learningRate" },
-                        {"NumBoostRound","numBoostRound" }
+                        {"NumBoostRound","numBoostRound" },
+                        {"WeightColumn","exampleWeightColumnName" }
                     };
                 }
             }
@@ -58,14 +59,13 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"Weights","weights" },
-                        {"LabelColumn","labelColumn" },
-                        {"FeatureColumn","featureColumn" },
+                        {"LabelColumn","labelColumnName" },
+                        {"FeatureColumn","featureColumnName" },
                         {"LossFunction","lossFunction" },
                         {"LearningRate","learningRate" },
                         {"DecreaseLearningRate","decreaseLearningRate" },
                         {"L2RegularizerWeight","l2RegularizerWeight" },
-                        {"NumIterations","numIterations" }
+                        {"NumberOfIterations","numIterations" }
                         };
                 }
             }
@@ -90,9 +90,9 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"Weights","weights" },
-                        {"LabelColumn","labelColumn" },
-                        {"FeatureColumn","featureColumn" },
+                        {"WeightColumn","exampleWeightColumnName" },
+                        {"LabelColumn","labelColumnName" },
+                        {"FeatureColumn","featureColumnName" },
                         {"LearningRate","learningRate" },
                         {"NumLeaves","numLeaves" },
                         {"NumTrees","numTrees" },
@@ -188,10 +188,10 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"InitialWeights","weightsColumn" },
-                        {"LabelColumn","labelColumn" },
-                        {"FeatureColumn","featureColumn" },
-                        {"NumIterations","numIterations" },
+                        {"WeightColumn", "exampleWeightColumnName" },
+                        {"LabelColumn","labelColumnName" },
+                        {"FeatureColumn","featureColumnName" },
+                        {"NumberOfIterations","numIterations" },
                     };
                 }
             }
@@ -219,19 +219,19 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"WeightColumn","weights" },
-                        {"LabelColumn","labelColumn" },
-                        {"FeatureColumn","featureColumn" },
+                        {"WeightColumn","exampleWeightColumnName" },
+                        {"LabelColumn","labelColumnName" },
+                        {"FeatureColumn","featureColumnName" },
                         {"L1Weight","l1Weight" },
                         {"L2Weight","l2Weight" },
                         {"OptTol","optimizationTolerance" },
                         {"MemorySize","memorySize" },
-                        {"EnforceNoNNegativity","enforceNoNegativity" },
+                        {"EnforceNonNegativity","enforceNoNegativity" },
                     };
                 }
             }
 
-            internal override string Usings => "using Microsoft.ML.Learners;\r\n";
+            internal override string Usings => "using Microsoft.ML.Trainers;\r\n";
 
             public LogisticRegressionBinary(PipelineNode node) : base(node)
             {
@@ -258,9 +258,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                         {"DecreaseLearningRate" , "decreaseLearningRate" },
                         {"L2RegularizerWeight" , "l2RegularizerWeight" },
                         {"NumIterations" , "numIterations" },
-                        {"LabelColumn" , "labelColumn" },
-                        {"FeatureColumn" , "featureColumn" },
-                        {"InitialWeights" ,"weightsColumn" },
+                        {"LabelColumn" , "labelColumnName" },
+                        {"FeatureColumn" , "featureColumnName" },
                         {"LossFunction" ,"lossFunction" },
 
                     };
@@ -290,9 +289,9 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"WeightColumn","weights" },
-                        {"LabelColumn","labelColumn" },
-                        {"FeatureColumn","featureColumn" },
+                        {"WeightColumn","exampleWeightColumnName" },
+                        {"LabelColumn","labelColumnName" },
+                        {"FeatureColumn","featureColumnName" },
                     };
                 }
             }
@@ -320,14 +319,14 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"WeightColumn","weights" },
-                        {"LabelColumn","labelColumn" },
-                        {"FeatureColumn","featureColumn" },
+                        {"WeightColumn","exampleWeightColumnName" },
+                        {"LabelColumn","labelColumnName" },
+                        {"FeatureColumn","featureColumnName" },
                         {"L1Weight","l1Weight" },
                         {"L2Weight","l2Weight" },
                         {"OptTol","optimizationTolerance" },
                         {"MemorySize","memorySize" },
-                        {"EnforceNoNNegativity","enforceNoNegativity" },
+                        {"EnforceNonNegativity","enforceNoNegativity" },
                     };
                 }
             }
@@ -353,9 +352,9 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"WeightColumn","weights" },
-                        {"LabelColumn","labelColumn" },
-                        {"FeatureColumn","featureColumn" },
+                        {"WeightColumn","exampleWeightColumnName" },
+                        {"LabelColumn","labelColumnName" },
+                        {"FeatureColumn","featureColumnName" },
                         {"Loss","loss" },
                         {"L2Const","l2Const" },
                         {"L1Threshold","l1Threshold" },
@@ -398,7 +397,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             internal override string MethodName => "StochasticGradientDescent";
 
             //ClassName of the options to trainer
-            internal override string OptionsName => "StochasticGradientDescentClassificationTrainer.Options";
+            internal override string OptionsName => "SgdBinaryTrainer.Options";
 
             //The named parameters to the trainer.
             internal override IDictionary<string, string> NamedParameters
@@ -408,9 +407,9 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"WeightColumn","weights" },
-                        {"LabelColumn","labelColumn" },
-                        {"FeatureColumn","featureColumn" },
+                        {"WeightColumn","exampleWeightColumnName" },
+                        {"LabelColumn","labelColumnName" },
+                        {"FeatureColumn","featureColumnName" },
                         {"NumIterations","numIterations" },
                         {"MaxIterations","maxIterations" },
                         {"InitLearningRate","initLearningRate" },
@@ -442,13 +441,14 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"LabelColumn","labelColumn" },
-                        {"FeatureColumn","featureColumn" },
+                        {"LabelColumn","labelColumnName" },
+                        {"FeatureColumn","featureColumnName" },
+                        {"NumberOfIterations","numberOfIterations" }
                     };
                 }
             }
 
-            internal override string Usings => "using Microsoft.ML.Trainers.SymSgd;\r\n";
+            internal override string Usings => "using Microsoft.ML.Trainers.HalLearners;\r\n";
 
             public SymbolicStochasticGradientDescent(PipelineNode node) : base(node)
             {

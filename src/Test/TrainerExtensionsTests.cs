@@ -23,7 +23,7 @@ namespace Microsoft.ML.Auto.Test
                 var extension = TrainerExtensionCatalog.GetTrainerExtension(trainerName);
                 var sweepParams = extension.GetHyperparamSweepRanges();
                 Assert.IsNotNull(sweepParams);
-                foreach(var sweepParam in sweepParams)
+                foreach (var sweepParam in sweepParams)
                 {
                     sweepParam.RawValue = 1;
                 }
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Auto.Test
     ""CatSmooth"": 10,
     ""CatL2"": 0.5,
     ""Booster"": {
-      ""Name"": ""Options.TreeBooster.Arguments"",
+      ""Name"": ""Options.TreeBooster.Options"",
       ""Properties"": {
         ""RegLambda"": 0.5,
         ""RegAlpha"": 0.5

@@ -5,13 +5,16 @@
 <#@ import namespace="System.Text.RegularExpressions" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="Microsoft.ML.CLI.Utilities" #>
-// This is an auto generated file by ML.NET CLI
+//*****************************************************************************************
+//*                                                                                       *
+//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
+//*                                                                                       *
+//*****************************************************************************************
 
 using System;
 using System.IO;
 using System.Linq;
 using Microsoft.ML;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.Data.DataView;
 <#= GeneratedUsings #>
@@ -57,21 +60,19 @@ namespace <#= Namespace #>
         private static ITransformer BuildTrainEvaluateAndSaveModel(MLContext mlContext)
         {
             // Data loading
-            IDataView trainingDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(
+            IDataView trainingDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
                                             path: TrainDataPath,
                                             hasHeader : <#= HasHeader.ToString().ToLowerInvariant() #>,
                                             separatorChar : '<#= Regex.Escape(Separator.ToString()) #>',
-                                            allowQuotedStrings : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
-                                            trimWhitespace : <#= TrimWhiteSpace.ToString().ToLowerInvariant() #> ,
-                                            supportSparse : <#= AllowSparse.ToString().ToLowerInvariant() #>);
+                                            allowQuoting : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
+                                            allowSparse: <#= AllowSparse.ToString().ToLowerInvariant() #>);
 <# if(!string.IsNullOrEmpty(TestPath)){ #>
-            IDataView testDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(
+            IDataView testDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
                                             path: TestDataPath,
                                             hasHeader : <#= HasHeader.ToString().ToLowerInvariant() #>,
                                             separatorChar : '<#= Regex.Escape(Separator.ToString()) #>',
-                                            allowQuotedStrings : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
-                                            trimWhitespace : <#= TrimWhiteSpace.ToString().ToLowerInvariant() #> ,
-                                            supportSparse : <#= AllowSparse.ToString().ToLowerInvariant() #>);
+                                            allowQuoting : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
+                                            allowSparse: <#= AllowSparse.ToString().ToLowerInvariant() #>);
 <# } #>
 
 <# if(Transforms.Count >0 ) {#>
@@ -141,15 +142,14 @@ else{#>
         private static void TestSinglePrediction(MLContext mlContext)
         {
             //Load data to test. Could be any test data. For demonstration purpose train data is used here.
-            IDataView trainingDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(
+            IDataView trainingDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
                                             path: TrainDataPath,
                                             hasHeader : <#= HasHeader.ToString().ToLowerInvariant() #>,
                                             separatorChar : '<#= Regex.Escape(Separator.ToString()) #>',
-                                            allowQuotedStrings : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
-                                            trimWhitespace : <#= TrimWhiteSpace.ToString().ToLowerInvariant() #> ,
-                                            supportSparse : <#= AllowSparse.ToString().ToLowerInvariant() #>);
+                                            allowQuoting : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
+                                            allowSparse: <#= AllowSparse.ToString().ToLowerInvariant() #>);
 
-            var sample = mlContext.CreateEnumerable<SampleObservation>(trainingDataView, false).First();
+            var sample = mlContext.Data.CreateEnumerable<SampleObservation>(trainingDataView, false).First();
 
             ITransformer trainedModel;
             using (var stream = new FileStream(ModelPath, FileMode.Open, FileAccess.Read, FileShare.Read))

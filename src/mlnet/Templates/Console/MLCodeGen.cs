@@ -27,9 +27,19 @@ namespace Microsoft.ML.CLI.Templates.Console
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("// This is an auto generated file by ML.NET CLI\r\n\r\nusing System;\r\nusing System.IO" +
-                    ";\r\nusing System.Linq;\r\nusing Microsoft.ML;\r\nusing Microsoft.ML.Core.Data;\r\nusing" +
-                    " Microsoft.ML.Data;\r\nusing Microsoft.Data.DataView;\r\n");
+            this.Write(@"//*****************************************************************************************
+//*                                                                                       *
+//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
+//*                                                                                       *
+//*****************************************************************************************
+
+using System;
+using System.IO;
+using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.Data.DataView;
+");
             this.Write(this.ToStringHelper.ToStringWithCulture(GeneratedUsings));
             this.Write("\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
@@ -60,31 +70,27 @@ if(!string.IsNullOrEmpty(TestPath)){
                     "rocess, hit any key to finish ===============\");\r\n            Console.ReadKey();" +
                     "\r\n\r\n        }\r\n\r\n        private static ITransformer BuildTrainEvaluateAndSaveMo" +
                     "del(MLContext mlContext)\r\n        {\r\n            // Data loading\r\n            ID" +
-                    "ataView trainingDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(\r\n" +
+                    "ataView trainingDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(\r\n" +
                     "                                            path: TrainDataPath,\r\n              " +
                     "                              hasHeader : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
             this.Write(",\r\n                                            separatorChar : \'");
             this.Write(this.ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
-            this.Write("\',\r\n                                            allowQuotedStrings : ");
+            this.Write("\',\r\n                                            allowQuoting : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowQuoting.ToString().ToLowerInvariant()));
-            this.Write(",\r\n                                            trimWhitespace : ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(TrimWhiteSpace.ToString().ToLowerInvariant()));
-            this.Write(" ,\r\n                                            supportSparse : ");
+            this.Write(",\r\n                                            allowSparse: ");
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
             this.Write(");\r\n");
  if(!string.IsNullOrEmpty(TestPath)){ 
-            this.Write("            IDataView testDataView = mlContext.Data.ReadFromTextFile<SampleObserv" +
+            this.Write("            IDataView testDataView = mlContext.Data.LoadFromTextFile<SampleObserv" +
                     "ation>(\r\n                                            path: TestDataPath,\r\n      " +
                     "                                      hasHeader : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
             this.Write(",\r\n                                            separatorChar : \'");
             this.Write(this.ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
-            this.Write("\',\r\n                                            allowQuotedStrings : ");
+            this.Write("\',\r\n                                            allowQuoting : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowQuoting.ToString().ToLowerInvariant()));
-            this.Write(",\r\n                                            trimWhitespace : ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(TrimWhiteSpace.ToString().ToLowerInvariant()));
-            this.Write(" ,\r\n                                            supportSparse : ");
+            this.Write(",\r\n                                            allowSparse: ");
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
             this.Write(");\r\n");
  } 
@@ -182,21 +188,19 @@ if("Regression".Equals(TaskType)){
         private static void TestSinglePrediction(MLContext mlContext)
         {
             //Load data to test. Could be any test data. For demonstration purpose train data is used here.
-            IDataView trainingDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(
+            IDataView trainingDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
                                             path: TrainDataPath,
                                             hasHeader : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
             this.Write(",\r\n                                            separatorChar : \'");
             this.Write(this.ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
-            this.Write("\',\r\n                                            allowQuotedStrings : ");
+            this.Write("\',\r\n                                            allowQuoting : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowQuoting.ToString().ToLowerInvariant()));
-            this.Write(",\r\n                                            trimWhitespace : ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(TrimWhiteSpace.ToString().ToLowerInvariant()));
-            this.Write(" ,\r\n                                            supportSparse : ");
+            this.Write(",\r\n                                            allowSparse: ");
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
             this.Write(@");
 
-            var sample = mlContext.CreateEnumerable<SampleObservation>(trainingDataView, false).First();
+            var sample = mlContext.Data.CreateEnumerable<SampleObservation>(trainingDataView, false).First();
 
             ITransformer trainedModel;
             using (var stream = new FileStream(ModelPath, FileMode.Open, FileAccess.Read, FileShare.Read))

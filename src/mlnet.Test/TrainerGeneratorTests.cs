@@ -27,7 +27,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "LightGbm(learningRate:0.1f,numLeaves:1,labelColumn:\"Label\",featureColumn:\"Features\")";
+            string expectedTrainerString = "LightGbm(learningRate:0.1f,numLeaves:1,labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
@@ -67,7 +67,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "SymbolicStochasticGradientDescent(labelColumn:\"Label\",featureColumn:\"Features\")";
+            string expectedTrainerString = "SymbolicStochasticGradientDescent(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
@@ -87,7 +87,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            var expectedUsings = "using Microsoft.ML.Trainers.SymSgd;\r\n";
+            var expectedUsings = "using Microsoft.ML.Trainers.HalLearners;\r\n";
             string expectedTrainerString = "SymbolicStochasticGradientDescent(new SymSgdClassificationTrainer.Options(){LearningRate=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2);
@@ -104,7 +104,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "StochasticGradientDescent(labelColumn:\"Label\",featureColumn:\"Features\")";
+            string expectedTrainerString = "StochasticGradientDescent(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
@@ -125,7 +125,7 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
-            string expectedTrainerString = "StochasticGradientDescent(new StochasticGradientDescentClassificationTrainer.Options(){Shuffle=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            string expectedTrainerString = "StochasticGradientDescent(new SgdBinaryTrainer.Options(){Shuffle=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2);
 
@@ -141,7 +141,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "StochasticDualCoordinateAscent(labelColumn:\"Label\",featureColumn:\"Features\")";
+            string expectedTrainerString = "StochasticDualCoordinateAscent(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
@@ -178,7 +178,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "StochasticDualCoordinateAscent(labelColumn:\"Label\",featureColumn:\"Features\")";
+            string expectedTrainerString = "StochasticDualCoordinateAscent(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
@@ -215,7 +215,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "PoissonRegression(labelColumn:\"Label\",featureColumn:\"Features\")";
+            string expectedTrainerString = "PoissonRegression(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
@@ -252,7 +252,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "OrdinaryLeastSquares(labelColumn:\"Label\",featureColumn:\"Features\")";
+            string expectedTrainerString = "OrdinaryLeastSquares(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
@@ -289,7 +289,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "OnlineGradientDescent(labelColumn:\"Label\",featureColumn:\"Features\")";
+            string expectedTrainerString = "OnlineGradientDescent(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
@@ -326,7 +326,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "LogisticRegression(labelColumn:\"Label\",featureColumn:\"Features\")";
+            string expectedTrainerString = "LogisticRegression(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
@@ -346,7 +346,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            var expectedUsings = "using Microsoft.ML.Learners;\r\n";
+            var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
             string expectedTrainerString = "LogisticRegression(new LogisticRegression.Options(){DenseOptimizer=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2);
@@ -363,7 +363,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "LinearSupportVectorMachines(labelColumn:\"Label\",featureColumn:\"Features\")";
+            string expectedTrainerString = "LinearSupportVectorMachines(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
@@ -401,7 +401,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "FastTreeTweedie(labelColumn:\"Label\",featureColumn:\"Features\")";
+            string expectedTrainerString = "FastTreeTweedie(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
@@ -439,7 +439,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "FastTree(labelColumn:\"Label\",featureColumn:\"Features\")";
+            string expectedTrainerString = "FastTree(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
@@ -477,7 +477,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "FastTree(labelColumn:\"Label\",featureColumn:\"Features\")";
+            string expectedTrainerString = "FastTree(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
@@ -515,7 +515,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "FastForest(labelColumn:\"Label\",featureColumn:\"Features\")";
+            string expectedTrainerString = "FastForest(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
@@ -552,7 +552,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "FastForest(labelColumn:\"Label\",featureColumn:\"Features\")";
+            string expectedTrainerString = "FastForest(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
@@ -590,7 +590,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "AveragedPerceptron(labelColumn:\"Label\",featureColumn:\"Features\")";
+            string expectedTrainerString = "AveragedPerceptron(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 

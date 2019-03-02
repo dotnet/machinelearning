@@ -44,7 +44,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string Usings => "using Microsoft.ML.Transforms.Categorical;\r\n";
 
-        private string ArgumentsName = "OneHotEncodingEstimator.ColumnInfo";
+        private string ArgumentsName = "OneHotEncodingEstimator.ColumnOptions";
 
         public override string GenerateTransformer()
         {
@@ -138,6 +138,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string Usings => null;
 
+        private string ArgumentsName = "ColumnOptions";
+
         public override string GenerateTransformer()
         {
             StringBuilder sb = new StringBuilder();
@@ -148,6 +150,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             sb.Append("new []{");
             for (int i = 0; i < inputColumns.Length; i++)
             {
+                sb.Append("new ");
+                sb.Append(ArgumentsName);
                 sb.Append("(");
                 sb.Append(outputColumns[i]);
                 sb.Append(",");
@@ -170,7 +174,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "ReplaceMissingValues";
 
-        private string ArgumentsName = "MissingValueReplacingTransformer.ColumnInfo";
+        private string ArgumentsName = "MissingValueReplacingEstimator.ColumnOptions";
         internal override string Usings => "using Microsoft.ML.Transforms;\r\n";
 
         public override string GenerateTransformer()
@@ -208,7 +212,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string Usings => "using Microsoft.ML.Transforms.Categorical;\r\n";
 
-        private string ArgumentsName = "OneHotHashEncodingEstimator.ColumnInfo";
+        private string ArgumentsName = "OneHotHashEncodingEstimator.ColumnOptions";
 
         public override string GenerateTransformer()
         {
@@ -270,7 +274,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string Usings => "using Microsoft.ML.Transforms.Conversions;\r\n";
 
-        private string ArgumentsName = "TypeConvertingTransformer.ColumnInfo";
+        private string ArgumentsName = "TypeConvertingEstimator.ColumnOptions";
 
         public override string GenerateTransformer()
         {

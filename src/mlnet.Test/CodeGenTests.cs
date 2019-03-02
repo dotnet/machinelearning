@@ -28,7 +28,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expected = "LightGbm(learningRate:0.1f,numLeaves:1,labelColumn:\"Label\",featureColumn:\"Features\")";
+            string expected = "LightGbm(learningRate:0.1f,numLeaves:1,labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expected, actual.Item1);
             Assert.IsNull(actual.Item2);
         }
@@ -77,7 +77,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
-            string expectedTransform = "Categorical.OneHotEncoding(new []{new OneHotEncodingEstimator.ColumnInfo(\"Label\",\"Label\")})";
+            string expectedTransform = "Categorical.OneHotEncoding(new []{new OneHotEncodingEstimator.ColumnOptions(\"Label\",\"Label\")})";
             var expectedUsings = "using Microsoft.ML.Transforms.Categorical;\r\n";
             Assert.AreEqual(expectedTransform, actual[0].Item1);
             Assert.AreEqual(expectedUsings, actual[0].Item2);
@@ -136,7 +136,7 @@ namespace mlnet.Test
                 },
                 ColumnInformation = new ColumnInformation() { NumericColumns = new[] { DefaultColumnNames.Features } }
             };
-            
+
             var context = new MLContext();
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("Normalizing", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
