@@ -125,7 +125,7 @@ namespace TestNamespace
                         VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(22, 39).WithArguments("CheckValue", "paramName", "\"noMatch\""),
                         VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(23, 53).WithArguments("CheckUserArg", "name", "\"chumble\""),
                         VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(24, 53).WithArguments("CheckUserArg", "name", "\"sp\""),
-                        new DiagnosticResult("CS1503", DiagnosticSeverity.Error).WithLocation("Test1.cs", 748, 91).WithMessage("Argument 2: cannot convert from 'Microsoft.ML.IHostEnvironment' to 'Microsoft.ML.IExceptionContext'"),
+                        new DiagnosticResult("CS1503", DiagnosticSeverity.Error).WithLocation("Test1.cs", 752, 91).WithMessage("Argument 2: cannot convert from 'Microsoft.ML.IHostEnvironment' to 'Microsoft.ML.IExceptionContext'"),
                     },
                     AdditionalReferences = { AdditionalMetadataReferences.RefFromType<Memory<int>>() },
                 },
@@ -144,7 +144,7 @@ namespace TestNamespace
                     {
                         VerifyCS.Diagnostic(ContractsCheckAnalyzer.ExceptionDiagnostic.Rule).WithLocation(8, 43).WithArguments("ExceptParam"),
                         VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(22, 39).WithArguments("CheckValue", "paramName", "\"noMatch\""),
-                        new DiagnosticResult("CS1503", DiagnosticSeverity.Error).WithLocation("Test1.cs", 748, 91).WithMessage("Argument 2: cannot convert from 'Microsoft.ML.IHostEnvironment' to 'Microsoft.ML.IExceptionContext'"),
+                        new DiagnosticResult("CS1503", DiagnosticSeverity.Error).WithLocation("Test1.cs", 752, 91).WithMessage("Argument 2: cannot convert from 'Microsoft.ML.IHostEnvironment' to 'Microsoft.ML.IExceptionContext'"),
                     },
                 },
             };
