@@ -161,7 +161,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The number of threads to use.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The number of threads to use", ShortName = "t,NumThreads", NullName = "<Auto>")]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The number of threads to use", ShortName = "t", NullName = "<Auto>")]
         public int? NumberOfThreads = null;
 
         // this random seed is used for:
@@ -174,14 +174,14 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The seed of the random number generator.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The seed of the random number generator", ShortName = "r1,RngSeed")]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The seed of the random number generator", ShortName = "r1")]
         public int Seed = 123;
 
         // this random seed is only for active feature selection
         /// <summary>
         /// The seed of the active feature selection.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The seed of the active feature selection", ShortName = "r3,FeatureSelectSeed", Hide = true)]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The seed of the active feature selection", ShortName = "r3", Hide = true)]
         [TGUI(NotGui = true)]
         public int FeatureSelectionSeed = 123;
 
@@ -221,25 +221,25 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum categorical split groups to consider when splitting on a categorical feature. " +
                                                              "Split groups are a collection of split points. This is used to reduce overfitting when " +
-                                                             "there many categorical features.", ShortName = "mcg,MaxCategoricalGroupsPerNode")]
+                                                             "there many categorical features.", ShortName = "mcg")]
         public int MaximumCategoricalGroupCountPerNode = 64;
 
         /// <summary>
         /// Maximum categorical split points to consider when splitting on a categorical feature.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum categorical split points to consider when splitting on a categorical feature.", ShortName = "maxcat,MaxCategoricalSplitPoints")]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum categorical split points to consider when splitting on a categorical feature.", ShortName = "maxcat")]
         public int MaximumCategoricalSplitPointCount = 64;
 
         /// <summary>
         /// Minimum categorical example percentage in a bin to consider for a split. Default is 0.1% of all training examples.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum categorical example percentage in a bin to consider for a split.", ShortName = "mdop,MinDocsPercentageForCategoricalSplit")]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum categorical example percentage in a bin to consider for a split.", ShortName = "mdop")]
         public double MinimumExampleFractionForCategoricalSplit = 0.001;
 
         /// <summary>
         /// Minimum categorical example count in a bin to consider for a split.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum categorical example count in a bin to consider for a split.", ShortName = "mdo,MinDocsForCategoricalSplit")]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum categorical example count in a bin to consider for a split.", ShortName = "mdo")]
         public int MinimumExamplesForCategoricalSplit = 100;
 
         /// <summary>
@@ -262,7 +262,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Maximum number of distinct values (bins) per feature.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum number of distinct values (bins) per feature", ShortName = "mb,MaxBins")]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum number of distinct values (bins) per feature", ShortName = "mb")]
         public int MaximumBinCountPerFeature = 255;  // save one for undefs
 
         /// <summary>
@@ -300,14 +300,14 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Print execution time breakdown to ML.NET channel.
         /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Print execution time breakdown to stdout", ShortName = "et,ExecutionTimes")]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Print execution time breakdown to stdout", ShortName = "et")]
         public bool ExecutionTime;
 
         // REVIEW: Different from original FastRank arguments (shortname l vs. nl). Different default from TLC FR Wrapper (20 vs. 20).
         /// <summary>
         /// The max number of leaves in each regression tree.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The max number of leaves in each regression tree", ShortName = "nl,NumLeaves", SortOrder = 2)]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The max number of leaves in each regression tree", ShortName = "nl", SortOrder = 2)]
         [TGUI(Description = "The maximum number of leaves per tree", SuggestedSweeps = "2-128;log;inc:4")]
         [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, isLogScale: true, stepSize: 4)]
         public int NumberOfLeaves = Defaults.NumberOfLeaves;
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         // REVIEW: Arrays not supported in GUI
         // REVIEW: Different shortname than FastRank module. Same as the TLC FRWrapper.
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data", ShortName = "mil,MinDocumentsInLeafs", SortOrder = 3)]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data", ShortName = "mil", SortOrder = 3)]
         [TGUI(Description = "Minimum number of training instances required to form a leaf", SuggestedSweeps = "1,10,50")]
         [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
         public int MinimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf;
@@ -326,7 +326,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Total number of decision trees to create in the ensemble.
         /// </summary>
         // REVIEW: Different shortname than FastRank module. Same as the TLC FRWrapper.
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Total number of decision trees to create in the ensemble", ShortName = "iter,NumTrees", SortOrder = 1)]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Total number of decision trees to create in the ensemble", ShortName = "iter", SortOrder = 1)]
         [TGUI(Description = "Total number of trees constructed", SuggestedSweeps = "20,100,500")]
         [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[] { 20, 100, 500 })]
         public int NumberOfTrees = Defaults.NumberOfTrees;
@@ -346,7 +346,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Percentage of training examples used in each bag. Default is 0.7 (70%).
         /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Percentage of training examples used in each bag", ShortName = "bagfrac,BaggingTrainFraction")]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Percentage of training examples used in each bag", ShortName = "bagfrac")]
         // REVIEW: sweeping bagfrac doesn't make sense unless 'baggingSize' is non-zero. The 'SuggestedSweeps' here
         // are used to denote 'sensible range', but the GUI will interpret this as 'you must sweep these values'. So, I'm keeping
         // the values there for the future, when we have an appropriate way to encode this information.
@@ -356,7 +356,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The fraction of features (chosen randomly) to use on each split. If it's value is 0.9, 90% of all features would be dropped in expectation.
         /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "The fraction of features (chosen randomly) to use on each split", ShortName = "sf,SplitFraction")]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "The fraction of features (chosen randomly) to use on each split", ShortName = "sf")]
         public Double FeatureFractionPerSplit = 1;
 
         /// <summary>
@@ -391,7 +391,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Maximum Number of trees after compression.
         /// </summary>
         // REVIEW: Not used.
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum Number of trees after compression", ShortName = "cmpmax,MaxTreesAfterCompression", Hide = true)]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum Number of trees after compression", ShortName = "cmpmax", Hide = true)]
         [TGUI(NotGui = true)]
         public int MaximumTreeCountAfterCompression = -1;
 
@@ -465,13 +465,13 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Number of post-bracket line search steps.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of post-bracket line search steps", ShortName = "lssteps,NumPostBracketSteps")]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of post-bracket line search steps", ShortName = "lssteps")]
         public int MaximumNumberOfLineSearchSteps;
 
         /// <summary>
         /// Minimum line search step size.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum line search step size", ShortName = "minstep,MinStepSize")]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum line search step size", ShortName = "minstep")]
         public Double MinimumStepSize;
 
         public enum OptimizationAlgorithmType { GradientDescent, AcceleratedGradientDescent, ConjugateGradientDescent };
@@ -525,7 +525,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The learning rate.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The learning rate", ShortName = "lr,LearningRates", SortOrder = 4)]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The learning rate", ShortName = "lr", SortOrder = 4)]
         [TGUI(Label = "Learning Rate", SuggestedSweeps = "0.025-0.4;log")]
         [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale: true)]
         public double LearningRate = Defaults.LearningRate;
@@ -561,7 +561,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Upper bound on absolute value of single tree output.
         /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo,MaxTreeOutput")]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo")]
         public Double MaximumTreeOutput = 100;
 
         /// <summary>

@@ -180,7 +180,7 @@ namespace Microsoft.ML.Tests
             string dataPath = GetDataPath("breast-cancer.txt");
             string modelPath = GetOutputPath("ModelWithLessIO.zip");
             var trainingPathArgs = $"data={dataPath} out={modelPath}";
-            var trainingArgs = " loader=text{col=Label:BL:0 col=F1:R4:1-8 col=F2:TX:9} xf=Cat{col=F2} xf=Concat{col=Features:F1,F2} tr=ft{numThreads=1 numLeaves=8 numTrees=3} seed=1";
+            var trainingArgs = " loader=text{col=Label:BL:0 col=F1:R4:1-8 col=F2:TX:9} xf=Cat{col=F2} xf=Concat{col=Features:F1,F2} tr=ft{numberOfThreads=1 numberOfLeaves=8 numberOfTrees=3} seed=1";
             Assert.Equal(0, Maml.Main(new[] { "train " + trainingPathArgs + trainingArgs}));
 
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");

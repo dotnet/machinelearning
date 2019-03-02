@@ -31,7 +31,7 @@ namespace Microsoft.ML.Trainers.FastTree
 {
     public abstract class FastForestOptionsBase : TreeOptions
     {
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Number of labels to be sampled from each leaf to make the distribtuion", ShortName = "qsc,QuantileSampleCount")]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Number of labels to be sampled from each leaf to make the distribtuion", ShortName = "qsc")]
         public int NumberOfQuantileSamples = 100;
 
         public FastForestOptionsBase()
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         public sealed class Options : FastForestOptionsBase
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo,MaxTreeOutput")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo")]
             public Double MaximumOutputMagnitudePerTree = 100;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]

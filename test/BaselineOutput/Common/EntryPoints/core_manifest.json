@@ -5098,8 +5098,7 @@
           "Type": "Int",
           "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
-            "iter",
-            "NumTrees"
+            "iter"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -5130,8 +5129,7 @@
           "Type": "Int",
           "Desc": "The max number of leaves in each regression tree",
           "Aliases": [
-            "nl",
-            "NumLeaves"
+            "nl"
           ],
           "Required": false,
           "SortOrder": 2.0,
@@ -5162,8 +5160,7 @@
           "Type": "Int",
           "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
-            "mil",
-            "MinDocumentsInLeafs"
+            "mil"
           ],
           "Required": false,
           "SortOrder": 3.0,
@@ -5258,8 +5255,7 @@
           "Type": "Float",
           "Desc": "Upper bound on absolute value of single tree output",
           "Aliases": [
-            "mo",
-            "MaxTreeOutput"
+            "mo"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5294,8 +5290,7 @@
           "Type": "Int",
           "Desc": "Number of labels to be sampled from each leaf to make the distribtuion",
           "Aliases": [
-            "qsc",
-            "QuantileSampleCount"
+            "qsc"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5324,8 +5319,7 @@
           "Type": "Int",
           "Desc": "The number of threads to use",
           "Aliases": [
-            "t",
-            "NumThreads"
+            "t"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5337,8 +5331,7 @@
           "Type": "Int",
           "Desc": "The seed of the random number generator",
           "Aliases": [
-            "r1",
-            "RngSeed"
+            "r1"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5350,8 +5343,7 @@
           "Type": "Int",
           "Desc": "The seed of the active feature selection",
           "Aliases": [
-            "r3",
-            "FeatureSelectSeed"
+            "r3"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5423,8 +5415,7 @@
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
-            "mcg",
-            "MaxCategoricalGroupsPerNode"
+            "mcg"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5436,8 +5427,7 @@
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
-            "maxcat",
-            "MaxCategoricalSplitPoints"
+            "maxcat"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5449,8 +5439,7 @@
           "Type": "Float",
           "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
           "Aliases": [
-            "mdop",
-            "MinDocsPercentageForCategoricalSplit"
+            "mdop"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5462,8 +5451,7 @@
           "Type": "Int",
           "Desc": "Minimum categorical example count in a bin to consider for a split.",
           "Aliases": [
-            "mdo",
-            "MinDocsForCategoricalSplit"
+            "mdo"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5506,8 +5494,7 @@
           "Type": "Int",
           "Desc": "Maximum number of distinct values (bins) per feature",
           "Aliases": [
-            "mb",
-            "MaxBins"
+            "mb"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5579,8 +5566,7 @@
           "Type": "Bool",
           "Desc": "Print execution time breakdown to stdout",
           "Aliases": [
-            "et",
-            "ExecutionTimes"
+            "et"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5616,8 +5602,7 @@
           "Type": "Float",
           "Desc": "Percentage of training examples used in each bag",
           "Aliases": [
-            "bagfrac",
-            "BaggingTrainFraction"
+            "bagfrac"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5629,8 +5614,7 @@
           "Type": "Float",
           "Desc": "The fraction of features (chosen randomly) to use on each split",
           "Aliases": [
-            "sf",
-            "SplitFraction"
+            "sf"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5691,8 +5675,7 @@
           "Type": "Int",
           "Desc": "Maximum Number of trees after compression",
           "Aliases": [
-            "cmpmax",
-            "MaxTreesAfterCompression"
+            "cmpmax"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5765,8 +5748,7 @@
           "Type": "Int",
           "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
-            "iter",
-            "NumTrees"
+            "iter"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -5797,8 +5779,7 @@
           "Type": "Int",
           "Desc": "The max number of leaves in each regression tree",
           "Aliases": [
-            "nl",
-            "NumLeaves"
+            "nl"
           ],
           "Required": false,
           "SortOrder": 2.0,
@@ -5829,8 +5810,7 @@
           "Type": "Int",
           "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
-            "mil",
-            "MinDocumentsInLeafs"
+            "mil"
           ],
           "Required": false,
           "SortOrder": 3.0,
@@ -5934,8 +5914,7 @@
           "Type": "Int",
           "Desc": "Number of labels to be sampled from each leaf to make the distribtuion",
           "Aliases": [
-            "qsc",
-            "QuantileSampleCount"
+            "qsc"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5964,8 +5943,7 @@
           "Type": "Int",
           "Desc": "The number of threads to use",
           "Aliases": [
-            "t",
-            "NumThreads"
+            "t"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5977,8 +5955,7 @@
           "Type": "Int",
           "Desc": "The seed of the random number generator",
           "Aliases": [
-            "r1",
-            "RngSeed"
+            "r1"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -5990,8 +5967,7 @@
           "Type": "Int",
           "Desc": "The seed of the active feature selection",
           "Aliases": [
-            "r3",
-            "FeatureSelectSeed"
+            "r3"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6063,8 +6039,7 @@
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
-            "mcg",
-            "MaxCategoricalGroupsPerNode"
+            "mcg"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6076,8 +6051,7 @@
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
-            "maxcat",
-            "MaxCategoricalSplitPoints"
+            "maxcat"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6089,8 +6063,7 @@
           "Type": "Float",
           "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
           "Aliases": [
-            "mdop",
-            "MinDocsPercentageForCategoricalSplit"
+            "mdop"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6102,8 +6075,7 @@
           "Type": "Int",
           "Desc": "Minimum categorical example count in a bin to consider for a split.",
           "Aliases": [
-            "mdo",
-            "MinDocsForCategoricalSplit"
+            "mdo"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6146,8 +6118,7 @@
           "Type": "Int",
           "Desc": "Maximum number of distinct values (bins) per feature",
           "Aliases": [
-            "mb",
-            "MaxBins"
+            "mb"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6219,8 +6190,7 @@
           "Type": "Bool",
           "Desc": "Print execution time breakdown to stdout",
           "Aliases": [
-            "et",
-            "ExecutionTimes"
+            "et"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6256,8 +6226,7 @@
           "Type": "Float",
           "Desc": "Percentage of training examples used in each bag",
           "Aliases": [
-            "bagfrac",
-            "BaggingTrainFraction"
+            "bagfrac"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6269,8 +6238,7 @@
           "Type": "Float",
           "Desc": "The fraction of features (chosen randomly) to use on each split",
           "Aliases": [
-            "sf",
-            "SplitFraction"
+            "sf"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6331,8 +6299,7 @@
           "Type": "Int",
           "Desc": "Maximum Number of trees after compression",
           "Aliases": [
-            "cmpmax",
-            "MaxTreesAfterCompression"
+            "cmpmax"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6405,8 +6372,7 @@
           "Type": "Int",
           "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
-            "iter",
-            "NumTrees"
+            "iter"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -6437,8 +6403,7 @@
           "Type": "Int",
           "Desc": "The max number of leaves in each regression tree",
           "Aliases": [
-            "nl",
-            "NumLeaves"
+            "nl"
           ],
           "Required": false,
           "SortOrder": 2.0,
@@ -6469,8 +6434,7 @@
           "Type": "Int",
           "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
-            "mil",
-            "MinDocumentsInLeafs"
+            "mil"
           ],
           "Required": false,
           "SortOrder": 3.0,
@@ -6502,8 +6466,7 @@
           "Type": "Float",
           "Desc": "The learning rate",
           "Aliases": [
-            "lr",
-            "LearningRates"
+            "lr"
           ],
           "Required": false,
           "SortOrder": 4.0,
@@ -6620,8 +6583,7 @@
           "Type": "Int",
           "Desc": "Number of post-bracket line search steps",
           "Aliases": [
-            "lssteps",
-            "NumPostBracketSteps"
+            "lssteps"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6633,8 +6595,7 @@
           "Type": "Float",
           "Desc": "Minimum line search step size",
           "Aliases": [
-            "minstep",
-            "MinStepSize"
+            "minstep"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6804,8 +6765,7 @@
           "Type": "Float",
           "Desc": "Upper bound on absolute value of single tree output",
           "Aliases": [
-            "mo",
-            "MaxTreeOutput"
+            "mo"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6894,8 +6854,7 @@
           "Type": "Int",
           "Desc": "The number of threads to use",
           "Aliases": [
-            "t",
-            "NumThreads"
+            "t"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6907,8 +6866,7 @@
           "Type": "Int",
           "Desc": "The seed of the random number generator",
           "Aliases": [
-            "r1",
-            "RngSeed"
+            "r1"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6920,8 +6878,7 @@
           "Type": "Int",
           "Desc": "The seed of the active feature selection",
           "Aliases": [
-            "r3",
-            "FeatureSelectSeed"
+            "r3"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -6993,8 +6950,7 @@
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
-            "mcg",
-            "MaxCategoricalGroupsPerNode"
+            "mcg"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7006,8 +6962,7 @@
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
-            "maxcat",
-            "MaxCategoricalSplitPoints"
+            "maxcat"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7019,8 +6974,7 @@
           "Type": "Float",
           "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
           "Aliases": [
-            "mdop",
-            "MinDocsPercentageForCategoricalSplit"
+            "mdop"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7032,8 +6986,7 @@
           "Type": "Int",
           "Desc": "Minimum categorical example count in a bin to consider for a split.",
           "Aliases": [
-            "mdo",
-            "MinDocsForCategoricalSplit"
+            "mdo"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7076,8 +7029,7 @@
           "Type": "Int",
           "Desc": "Maximum number of distinct values (bins) per feature",
           "Aliases": [
-            "mb",
-            "MaxBins"
+            "mb"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7149,8 +7101,7 @@
           "Type": "Bool",
           "Desc": "Print execution time breakdown to stdout",
           "Aliases": [
-            "et",
-            "ExecutionTimes"
+            "et"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7186,8 +7137,7 @@
           "Type": "Float",
           "Desc": "Percentage of training examples used in each bag",
           "Aliases": [
-            "bagfrac",
-            "BaggingTrainFraction"
+            "bagfrac"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7199,8 +7149,7 @@
           "Type": "Float",
           "Desc": "The fraction of features (chosen randomly) to use on each split",
           "Aliases": [
-            "sf",
-            "SplitFraction"
+            "sf"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7261,8 +7210,7 @@
           "Type": "Int",
           "Desc": "Maximum Number of trees after compression",
           "Aliases": [
-            "cmpmax",
-            "MaxTreesAfterCompression"
+            "cmpmax"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7335,8 +7283,7 @@
           "Type": "Int",
           "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
-            "iter",
-            "NumTrees"
+            "iter"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -7367,8 +7314,7 @@
           "Type": "Int",
           "Desc": "The max number of leaves in each regression tree",
           "Aliases": [
-            "nl",
-            "NumLeaves"
+            "nl"
           ],
           "Required": false,
           "SortOrder": 2.0,
@@ -7399,8 +7345,7 @@
           "Type": "Int",
           "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
-            "mil",
-            "MinDocumentsInLeafs"
+            "mil"
           ],
           "Required": false,
           "SortOrder": 3.0,
@@ -7432,8 +7377,7 @@
           "Type": "Float",
           "Desc": "The learning rate",
           "Aliases": [
-            "lr",
-            "LearningRates"
+            "lr"
           ],
           "Required": false,
           "SortOrder": 4.0,
@@ -7631,8 +7575,7 @@
           "Type": "Int",
           "Desc": "Number of post-bracket line search steps",
           "Aliases": [
-            "lssteps",
-            "NumPostBracketSteps"
+            "lssteps"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7644,8 +7587,7 @@
           "Type": "Float",
           "Desc": "Minimum line search step size",
           "Aliases": [
-            "minstep",
-            "MinStepSize"
+            "minstep"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7815,8 +7757,7 @@
           "Type": "Float",
           "Desc": "Upper bound on absolute value of single tree output",
           "Aliases": [
-            "mo",
-            "MaxTreeOutput"
+            "mo"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7905,8 +7846,7 @@
           "Type": "Int",
           "Desc": "The number of threads to use",
           "Aliases": [
-            "t",
-            "NumThreads"
+            "t"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7918,8 +7858,7 @@
           "Type": "Int",
           "Desc": "The seed of the random number generator",
           "Aliases": [
-            "r1",
-            "RngSeed"
+            "r1"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -7931,8 +7870,7 @@
           "Type": "Int",
           "Desc": "The seed of the active feature selection",
           "Aliases": [
-            "r3",
-            "FeatureSelectSeed"
+            "r3"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8004,8 +7942,7 @@
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
-            "mcg",
-            "MaxCategoricalGroupsPerNode"
+            "mcg"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8017,8 +7954,7 @@
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
-            "maxcat",
-            "MaxCategoricalSplitPoints"
+            "maxcat"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8030,8 +7966,7 @@
           "Type": "Float",
           "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
           "Aliases": [
-            "mdop",
-            "MinDocsPercentageForCategoricalSplit"
+            "mdop"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8043,8 +7978,7 @@
           "Type": "Int",
           "Desc": "Minimum categorical example count in a bin to consider for a split.",
           "Aliases": [
-            "mdo",
-            "MinDocsForCategoricalSplit"
+            "mdo"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8087,8 +8021,7 @@
           "Type": "Int",
           "Desc": "Maximum number of distinct values (bins) per feature",
           "Aliases": [
-            "mb",
-            "MaxBins"
+            "mb"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8160,8 +8093,7 @@
           "Type": "Bool",
           "Desc": "Print execution time breakdown to stdout",
           "Aliases": [
-            "et",
-            "ExecutionTimes"
+            "et"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8197,8 +8129,7 @@
           "Type": "Float",
           "Desc": "Percentage of training examples used in each bag",
           "Aliases": [
-            "bagfrac",
-            "BaggingTrainFraction"
+            "bagfrac"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8210,8 +8141,7 @@
           "Type": "Float",
           "Desc": "The fraction of features (chosen randomly) to use on each split",
           "Aliases": [
-            "sf",
-            "SplitFraction"
+            "sf"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8272,8 +8202,7 @@
           "Type": "Int",
           "Desc": "Maximum Number of trees after compression",
           "Aliases": [
-            "cmpmax",
-            "MaxTreesAfterCompression"
+            "cmpmax"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8346,8 +8275,7 @@
           "Type": "Int",
           "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
-            "iter",
-            "NumTrees"
+            "iter"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -8378,8 +8306,7 @@
           "Type": "Int",
           "Desc": "The max number of leaves in each regression tree",
           "Aliases": [
-            "nl",
-            "NumLeaves"
+            "nl"
           ],
           "Required": false,
           "SortOrder": 2.0,
@@ -8410,8 +8337,7 @@
           "Type": "Int",
           "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
-            "mil",
-            "MinDocumentsInLeafs"
+            "mil"
           ],
           "Required": false,
           "SortOrder": 3.0,
@@ -8443,8 +8369,7 @@
           "Type": "Float",
           "Desc": "The learning rate",
           "Aliases": [
-            "lr",
-            "LearningRates"
+            "lr"
           ],
           "Required": false,
           "SortOrder": 4.0,
@@ -8549,8 +8474,7 @@
           "Type": "Int",
           "Desc": "Number of post-bracket line search steps",
           "Aliases": [
-            "lssteps",
-            "NumPostBracketSteps"
+            "lssteps"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8562,8 +8486,7 @@
           "Type": "Float",
           "Desc": "Minimum line search step size",
           "Aliases": [
-            "minstep",
-            "MinStepSize"
+            "minstep"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8733,8 +8656,7 @@
           "Type": "Float",
           "Desc": "Upper bound on absolute value of single tree output",
           "Aliases": [
-            "mo",
-            "MaxTreeOutput"
+            "mo"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8823,8 +8745,7 @@
           "Type": "Int",
           "Desc": "The number of threads to use",
           "Aliases": [
-            "t",
-            "NumThreads"
+            "t"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8836,8 +8757,7 @@
           "Type": "Int",
           "Desc": "The seed of the random number generator",
           "Aliases": [
-            "r1",
-            "RngSeed"
+            "r1"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8849,8 +8769,7 @@
           "Type": "Int",
           "Desc": "The seed of the active feature selection",
           "Aliases": [
-            "r3",
-            "FeatureSelectSeed"
+            "r3"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8922,8 +8841,7 @@
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
-            "mcg",
-            "MaxCategoricalGroupsPerNode"
+            "mcg"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8935,8 +8853,7 @@
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
-            "maxcat",
-            "MaxCategoricalSplitPoints"
+            "maxcat"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8948,8 +8865,7 @@
           "Type": "Float",
           "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
           "Aliases": [
-            "mdop",
-            "MinDocsPercentageForCategoricalSplit"
+            "mdop"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -8961,8 +8877,7 @@
           "Type": "Int",
           "Desc": "Minimum categorical example count in a bin to consider for a split.",
           "Aliases": [
-            "mdo",
-            "MinDocsForCategoricalSplit"
+            "mdo"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9005,8 +8920,7 @@
           "Type": "Int",
           "Desc": "Maximum number of distinct values (bins) per feature",
           "Aliases": [
-            "mb",
-            "MaxBins"
+            "mb"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9078,8 +8992,7 @@
           "Type": "Bool",
           "Desc": "Print execution time breakdown to stdout",
           "Aliases": [
-            "et",
-            "ExecutionTimes"
+            "et"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9115,8 +9028,7 @@
           "Type": "Float",
           "Desc": "Percentage of training examples used in each bag",
           "Aliases": [
-            "bagfrac",
-            "BaggingTrainFraction"
+            "bagfrac"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9128,8 +9040,7 @@
           "Type": "Float",
           "Desc": "The fraction of features (chosen randomly) to use on each split",
           "Aliases": [
-            "sf",
-            "SplitFraction"
+            "sf"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9190,8 +9101,7 @@
           "Type": "Int",
           "Desc": "Maximum Number of trees after compression",
           "Aliases": [
-            "cmpmax",
-            "MaxTreesAfterCompression"
+            "cmpmax"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9264,8 +9174,7 @@
           "Type": "Int",
           "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
-            "iter",
-            "NumTrees"
+            "iter"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -9296,8 +9205,7 @@
           "Type": "Int",
           "Desc": "The max number of leaves in each regression tree",
           "Aliases": [
-            "nl",
-            "NumLeaves"
+            "nl"
           ],
           "Required": false,
           "SortOrder": 2.0,
@@ -9328,8 +9236,7 @@
           "Type": "Int",
           "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
           "Aliases": [
-            "mil",
-            "MinDocumentsInLeafs"
+            "mil"
           ],
           "Required": false,
           "SortOrder": 3.0,
@@ -9361,8 +9268,7 @@
           "Type": "Float",
           "Desc": "The learning rate",
           "Aliases": [
-            "lr",
-            "LearningRates"
+            "lr"
           ],
           "Required": false,
           "SortOrder": 4.0,
@@ -9476,8 +9382,7 @@
           "Type": "Int",
           "Desc": "Number of post-bracket line search steps",
           "Aliases": [
-            "lssteps",
-            "NumPostBracketSteps"
+            "lssteps"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9489,8 +9394,7 @@
           "Type": "Float",
           "Desc": "Minimum line search step size",
           "Aliases": [
-            "minstep",
-            "MinStepSize"
+            "minstep"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9660,8 +9564,7 @@
           "Type": "Float",
           "Desc": "Upper bound on absolute value of single tree output",
           "Aliases": [
-            "mo",
-            "MaxTreeOutput"
+            "mo"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9750,8 +9653,7 @@
           "Type": "Int",
           "Desc": "The number of threads to use",
           "Aliases": [
-            "t",
-            "NumThreads"
+            "t"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9763,8 +9665,7 @@
           "Type": "Int",
           "Desc": "The seed of the random number generator",
           "Aliases": [
-            "r1",
-            "RngSeed"
+            "r1"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9776,8 +9677,7 @@
           "Type": "Int",
           "Desc": "The seed of the active feature selection",
           "Aliases": [
-            "r3",
-            "FeatureSelectSeed"
+            "r3"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9849,8 +9749,7 @@
           "Type": "Int",
           "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
           "Aliases": [
-            "mcg",
-            "MaxCategoricalGroupsPerNode"
+            "mcg"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9862,8 +9761,7 @@
           "Type": "Int",
           "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
           "Aliases": [
-            "maxcat",
-            "MaxCategoricalSplitPoints"
+            "maxcat"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9875,8 +9773,7 @@
           "Type": "Float",
           "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
           "Aliases": [
-            "mdop",
-            "MinDocsPercentageForCategoricalSplit"
+            "mdop"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9888,8 +9785,7 @@
           "Type": "Int",
           "Desc": "Minimum categorical example count in a bin to consider for a split.",
           "Aliases": [
-            "mdo",
-            "MinDocsForCategoricalSplit"
+            "mdo"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -9932,8 +9828,7 @@
           "Type": "Int",
           "Desc": "Maximum number of distinct values (bins) per feature",
           "Aliases": [
-            "mb",
-            "MaxBins"
+            "mb"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10005,8 +9900,7 @@
           "Type": "Bool",
           "Desc": "Print execution time breakdown to stdout",
           "Aliases": [
-            "et",
-            "ExecutionTimes"
+            "et"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10042,8 +9936,7 @@
           "Type": "Float",
           "Desc": "Percentage of training examples used in each bag",
           "Aliases": [
-            "bagfrac",
-            "BaggingTrainFraction"
+            "bagfrac"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10055,8 +9948,7 @@
           "Type": "Float",
           "Desc": "The fraction of features (chosen randomly) to use on each split",
           "Aliases": [
-            "sf",
-            "SplitFraction"
+            "sf"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10117,8 +10009,7 @@
           "Type": "Int",
           "Desc": "Maximum Number of trees after compression",
           "Aliases": [
-            "cmpmax",
-            "MaxTreesAfterCompression"
+            "cmpmax"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10458,8 +10349,7 @@
           "Type": "Int",
           "Desc": "Total number of iterations over all features",
           "Aliases": [
-            "iter",
-            "NumIterations"
+            "iter"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -10502,8 +10392,7 @@
           "Type": "Int",
           "Desc": "Minimum number of training instances required to form a partition",
           "Aliases": [
-            "mi",
-            "MinDocuments"
+            "mi"
           ],
           "Required": false,
           "SortOrder": 3.0,
@@ -10535,8 +10424,7 @@
           "Type": "Float",
           "Desc": "The learning rate",
           "Aliases": [
-            "lr",
-            "LearningRates"
+            "lr"
           ],
           "Required": false,
           "SortOrder": 4.0,
@@ -10641,8 +10529,7 @@
           "Type": "Int",
           "Desc": "The number of threads to use",
           "Aliases": [
-            "t",
-            "NumThreads"
+            "t"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10666,8 +10553,7 @@
           "Type": "Int",
           "Desc": "Maximum number of distinct values (bins) per feature",
           "Aliases": [
-            "mb",
-            "MaxBins"
+            "mb"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10679,8 +10565,7 @@
           "Type": "Float",
           "Desc": "Upper bound on absolute value of single output",
           "Aliases": [
-            "mo",
-            "MaxOutput"
+            "mo"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10704,8 +10589,7 @@
           "Type": "Int",
           "Desc": "The seed of the random number generator",
           "Aliases": [
-            "r1",
-            "RngSeed"
+            "r1"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10765,8 +10649,7 @@
           "Type": "Int",
           "Desc": "Total number of iterations over all features",
           "Aliases": [
-            "iter",
-            "NumIterations"
+            "iter"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -10809,8 +10692,7 @@
           "Type": "Int",
           "Desc": "Minimum number of training instances required to form a partition",
           "Aliases": [
-            "mi",
-            "MinDocuments"
+            "mi"
           ],
           "Required": false,
           "SortOrder": 3.0,
@@ -10842,8 +10724,7 @@
           "Type": "Float",
           "Desc": "The learning rate",
           "Aliases": [
-            "lr",
-            "LearningRates"
+            "lr"
           ],
           "Required": false,
           "SortOrder": 4.0,
@@ -10948,8 +10829,7 @@
           "Type": "Int",
           "Desc": "The number of threads to use",
           "Aliases": [
-            "t",
-            "NumThreads"
+            "t"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10973,8 +10853,7 @@
           "Type": "Int",
           "Desc": "Maximum number of distinct values (bins) per feature",
           "Aliases": [
-            "mb",
-            "MaxBins"
+            "mb"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10986,8 +10865,7 @@
           "Type": "Float",
           "Desc": "Upper bound on absolute value of single output",
           "Aliases": [
-            "mo",
-            "MaxOutput"
+            "mo"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -11011,8 +10889,7 @@
           "Type": "Int",
           "Desc": "The seed of the random number generator",
           "Aliases": [
-            "r1",
-            "RngSeed"
+            "r1"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -25228,8 +25105,7 @@
               "Type": "Int",
               "Desc": "Total number of decision trees to create in the ensemble",
               "Aliases": [
-                "iter",
-                "NumTrees"
+                "iter"
               ],
               "Required": false,
               "SortOrder": 1.0,
@@ -25260,8 +25136,7 @@
               "Type": "Int",
               "Desc": "The max number of leaves in each regression tree",
               "Aliases": [
-                "nl",
-                "NumLeaves"
+                "nl"
               ],
               "Required": false,
               "SortOrder": 2.0,
@@ -25292,8 +25167,7 @@
               "Type": "Int",
               "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
               "Aliases": [
-                "mil",
-                "MinDocumentsInLeafs"
+                "mil"
               ],
               "Required": false,
               "SortOrder": 3.0,
@@ -25325,8 +25199,7 @@
               "Type": "Float",
               "Desc": "The learning rate",
               "Aliases": [
-                "lr",
-                "LearningRates"
+                "lr"
               ],
               "Required": false,
               "SortOrder": 4.0,
@@ -25443,8 +25316,7 @@
               "Type": "Int",
               "Desc": "Number of post-bracket line search steps",
               "Aliases": [
-                "lssteps",
-                "NumPostBracketSteps"
+                "lssteps"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25456,8 +25328,7 @@
               "Type": "Float",
               "Desc": "Minimum line search step size",
               "Aliases": [
-                "minstep",
-                "MinStepSize"
+                "minstep"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25627,8 +25498,7 @@
               "Type": "Float",
               "Desc": "Upper bound on absolute value of single tree output",
               "Aliases": [
-                "mo",
-                "MaxTreeOutput"
+                "mo"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25717,8 +25587,7 @@
               "Type": "Int",
               "Desc": "The number of threads to use",
               "Aliases": [
-                "t",
-                "NumThreads"
+                "t"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25730,8 +25599,7 @@
               "Type": "Int",
               "Desc": "The seed of the random number generator",
               "Aliases": [
-                "r1",
-                "RngSeed"
+                "r1"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25743,8 +25611,7 @@
               "Type": "Int",
               "Desc": "The seed of the active feature selection",
               "Aliases": [
-                "r3",
-                "FeatureSelectSeed"
+                "r3"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25816,8 +25683,7 @@
               "Type": "Int",
               "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
               "Aliases": [
-                "mcg",
-                "MaxCategoricalGroupsPerNode"
+                "mcg"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25829,8 +25695,7 @@
               "Type": "Int",
               "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
               "Aliases": [
-                "maxcat",
-                "MaxCategoricalSplitPoints"
+                "maxcat"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25842,8 +25707,7 @@
               "Type": "Float",
               "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
               "Aliases": [
-                "mdop",
-                "MinDocsPercentageForCategoricalSplit"
+                "mdop"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25855,8 +25719,7 @@
               "Type": "Int",
               "Desc": "Minimum categorical example count in a bin to consider for a split.",
               "Aliases": [
-                "mdo",
-                "MinDocsForCategoricalSplit"
+                "mdo"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25899,8 +25762,7 @@
               "Type": "Int",
               "Desc": "Maximum number of distinct values (bins) per feature",
               "Aliases": [
-                "mb",
-                "MaxBins"
+                "mb"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25972,8 +25834,7 @@
               "Type": "Bool",
               "Desc": "Print execution time breakdown to stdout",
               "Aliases": [
-                "et",
-                "ExecutionTimes"
+                "et"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26009,8 +25870,7 @@
               "Type": "Float",
               "Desc": "Percentage of training examples used in each bag",
               "Aliases": [
-                "bagfrac",
-                "BaggingTrainFraction"
+                "bagfrac"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26022,8 +25882,7 @@
               "Type": "Float",
               "Desc": "The fraction of features (chosen randomly) to use on each split",
               "Aliases": [
-                "sf",
-                "SplitFraction"
+                "sf"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26084,8 +25943,7 @@
               "Type": "Int",
               "Desc": "Maximum Number of trees after compression",
               "Aliases": [
-                "cmpmax",
-                "MaxTreesAfterCompression"
+                "cmpmax"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26140,8 +25998,7 @@
               "Type": "Int",
               "Desc": "Total number of decision trees to create in the ensemble",
               "Aliases": [
-                "iter",
-                "NumTrees"
+                "iter"
               ],
               "Required": false,
               "SortOrder": 1.0,
@@ -26172,8 +26029,7 @@
               "Type": "Int",
               "Desc": "The max number of leaves in each regression tree",
               "Aliases": [
-                "nl",
-                "NumLeaves"
+                "nl"
               ],
               "Required": false,
               "SortOrder": 2.0,
@@ -26204,8 +26060,7 @@
               "Type": "Int",
               "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
               "Aliases": [
-                "mil",
-                "MinDocumentsInLeafs"
+                "mil"
               ],
               "Required": false,
               "SortOrder": 3.0,
@@ -26237,8 +26092,7 @@
               "Type": "Float",
               "Desc": "The learning rate",
               "Aliases": [
-                "lr",
-                "LearningRates"
+                "lr"
               ],
               "Required": false,
               "SortOrder": 4.0,
@@ -26436,8 +26290,7 @@
               "Type": "Int",
               "Desc": "Number of post-bracket line search steps",
               "Aliases": [
-                "lssteps",
-                "NumPostBracketSteps"
+                "lssteps"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26449,8 +26302,7 @@
               "Type": "Float",
               "Desc": "Minimum line search step size",
               "Aliases": [
-                "minstep",
-                "MinStepSize"
+                "minstep"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26620,8 +26472,7 @@
               "Type": "Float",
               "Desc": "Upper bound on absolute value of single tree output",
               "Aliases": [
-                "mo",
-                "MaxTreeOutput"
+                "mo"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26710,8 +26561,7 @@
               "Type": "Int",
               "Desc": "The number of threads to use",
               "Aliases": [
-                "t",
-                "NumThreads"
+                "t"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26723,8 +26573,7 @@
               "Type": "Int",
               "Desc": "The seed of the random number generator",
               "Aliases": [
-                "r1",
-                "RngSeed"
+                "r1"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26736,8 +26585,7 @@
               "Type": "Int",
               "Desc": "The seed of the active feature selection",
               "Aliases": [
-                "r3",
-                "FeatureSelectSeed"
+                "r3"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26809,8 +26657,7 @@
               "Type": "Int",
               "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
               "Aliases": [
-                "mcg",
-                "MaxCategoricalGroupsPerNode"
+                "mcg"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26822,8 +26669,7 @@
               "Type": "Int",
               "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
               "Aliases": [
-                "maxcat",
-                "MaxCategoricalSplitPoints"
+                "maxcat"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26835,8 +26681,7 @@
               "Type": "Float",
               "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
               "Aliases": [
-                "mdop",
-                "MinDocsPercentageForCategoricalSplit"
+                "mdop"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26848,8 +26693,7 @@
               "Type": "Int",
               "Desc": "Minimum categorical example count in a bin to consider for a split.",
               "Aliases": [
-                "mdo",
-                "MinDocsForCategoricalSplit"
+                "mdo"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26892,8 +26736,7 @@
               "Type": "Int",
               "Desc": "Maximum number of distinct values (bins) per feature",
               "Aliases": [
-                "mb",
-                "MaxBins"
+                "mb"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -26965,8 +26808,7 @@
               "Type": "Bool",
               "Desc": "Print execution time breakdown to stdout",
               "Aliases": [
-                "et",
-                "ExecutionTimes"
+                "et"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27002,8 +26844,7 @@
               "Type": "Float",
               "Desc": "Percentage of training examples used in each bag",
               "Aliases": [
-                "bagfrac",
-                "BaggingTrainFraction"
+                "bagfrac"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27015,8 +26856,7 @@
               "Type": "Float",
               "Desc": "The fraction of features (chosen randomly) to use on each split",
               "Aliases": [
-                "sf",
-                "SplitFraction"
+                "sf"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27077,8 +26917,7 @@
               "Type": "Int",
               "Desc": "Maximum Number of trees after compression",
               "Aliases": [
-                "cmpmax",
-                "MaxTreesAfterCompression"
+                "cmpmax"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27133,8 +26972,7 @@
               "Type": "Int",
               "Desc": "Total number of decision trees to create in the ensemble",
               "Aliases": [
-                "iter",
-                "NumTrees"
+                "iter"
               ],
               "Required": false,
               "SortOrder": 1.0,
@@ -27165,8 +27003,7 @@
               "Type": "Int",
               "Desc": "The max number of leaves in each regression tree",
               "Aliases": [
-                "nl",
-                "NumLeaves"
+                "nl"
               ],
               "Required": false,
               "SortOrder": 2.0,
@@ -27197,8 +27034,7 @@
               "Type": "Int",
               "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
               "Aliases": [
-                "mil",
-                "MinDocumentsInLeafs"
+                "mil"
               ],
               "Required": false,
               "SortOrder": 3.0,
@@ -27230,8 +27066,7 @@
               "Type": "Float",
               "Desc": "The learning rate",
               "Aliases": [
-                "lr",
-                "LearningRates"
+                "lr"
               ],
               "Required": false,
               "SortOrder": 4.0,
@@ -27336,8 +27171,7 @@
               "Type": "Int",
               "Desc": "Number of post-bracket line search steps",
               "Aliases": [
-                "lssteps",
-                "NumPostBracketSteps"
+                "lssteps"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27349,8 +27183,7 @@
               "Type": "Float",
               "Desc": "Minimum line search step size",
               "Aliases": [
-                "minstep",
-                "MinStepSize"
+                "minstep"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27520,8 +27353,7 @@
               "Type": "Float",
               "Desc": "Upper bound on absolute value of single tree output",
               "Aliases": [
-                "mo",
-                "MaxTreeOutput"
+                "mo"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27610,8 +27442,7 @@
               "Type": "Int",
               "Desc": "The number of threads to use",
               "Aliases": [
-                "t",
-                "NumThreads"
+                "t"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27623,8 +27454,7 @@
               "Type": "Int",
               "Desc": "The seed of the random number generator",
               "Aliases": [
-                "r1",
-                "RngSeed"
+                "r1"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27636,8 +27466,7 @@
               "Type": "Int",
               "Desc": "The seed of the active feature selection",
               "Aliases": [
-                "r3",
-                "FeatureSelectSeed"
+                "r3"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27709,8 +27538,7 @@
               "Type": "Int",
               "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
               "Aliases": [
-                "mcg",
-                "MaxCategoricalGroupsPerNode"
+                "mcg"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27722,8 +27550,7 @@
               "Type": "Int",
               "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
               "Aliases": [
-                "maxcat",
-                "MaxCategoricalSplitPoints"
+                "maxcat"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27735,8 +27562,7 @@
               "Type": "Float",
               "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
               "Aliases": [
-                "mdop",
-                "MinDocsPercentageForCategoricalSplit"
+                "mdop"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27748,8 +27574,7 @@
               "Type": "Int",
               "Desc": "Minimum categorical example count in a bin to consider for a split.",
               "Aliases": [
-                "mdo",
-                "MinDocsForCategoricalSplit"
+                "mdo"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27792,8 +27617,7 @@
               "Type": "Int",
               "Desc": "Maximum number of distinct values (bins) per feature",
               "Aliases": [
-                "mb",
-                "MaxBins"
+                "mb"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27865,8 +27689,7 @@
               "Type": "Bool",
               "Desc": "Print execution time breakdown to stdout",
               "Aliases": [
-                "et",
-                "ExecutionTimes"
+                "et"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27902,8 +27725,7 @@
               "Type": "Float",
               "Desc": "Percentage of training examples used in each bag",
               "Aliases": [
-                "bagfrac",
-                "BaggingTrainFraction"
+                "bagfrac"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27915,8 +27737,7 @@
               "Type": "Float",
               "Desc": "The fraction of features (chosen randomly) to use on each split",
               "Aliases": [
-                "sf",
-                "SplitFraction"
+                "sf"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -27977,8 +27798,7 @@
               "Type": "Int",
               "Desc": "Maximum Number of trees after compression",
               "Aliases": [
-                "cmpmax",
-                "MaxTreesAfterCompression"
+                "cmpmax"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28033,8 +27853,7 @@
               "Type": "Int",
               "Desc": "Total number of decision trees to create in the ensemble",
               "Aliases": [
-                "iter",
-                "NumTrees"
+                "iter"
               ],
               "Required": false,
               "SortOrder": 1.0,
@@ -28065,8 +27884,7 @@
               "Type": "Int",
               "Desc": "The max number of leaves in each regression tree",
               "Aliases": [
-                "nl",
-                "NumLeaves"
+                "nl"
               ],
               "Required": false,
               "SortOrder": 2.0,
@@ -28097,8 +27915,7 @@
               "Type": "Int",
               "Desc": "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data",
               "Aliases": [
-                "mil",
-                "MinDocumentsInLeafs"
+                "mil"
               ],
               "Required": false,
               "SortOrder": 3.0,
@@ -28130,8 +27947,7 @@
               "Type": "Float",
               "Desc": "The learning rate",
               "Aliases": [
-                "lr",
-                "LearningRates"
+                "lr"
               ],
               "Required": false,
               "SortOrder": 4.0,
@@ -28245,8 +28061,7 @@
               "Type": "Int",
               "Desc": "Number of post-bracket line search steps",
               "Aliases": [
-                "lssteps",
-                "NumPostBracketSteps"
+                "lssteps"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28258,8 +28073,7 @@
               "Type": "Float",
               "Desc": "Minimum line search step size",
               "Aliases": [
-                "minstep",
-                "MinStepSize"
+                "minstep"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28429,8 +28243,7 @@
               "Type": "Float",
               "Desc": "Upper bound on absolute value of single tree output",
               "Aliases": [
-                "mo",
-                "MaxTreeOutput"
+                "mo"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28519,8 +28332,7 @@
               "Type": "Int",
               "Desc": "The number of threads to use",
               "Aliases": [
-                "t",
-                "NumThreads"
+                "t"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28532,8 +28344,7 @@
               "Type": "Int",
               "Desc": "The seed of the random number generator",
               "Aliases": [
-                "r1",
-                "RngSeed"
+                "r1"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28545,8 +28356,7 @@
               "Type": "Int",
               "Desc": "The seed of the active feature selection",
               "Aliases": [
-                "r3",
-                "FeatureSelectSeed"
+                "r3"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28618,8 +28428,7 @@
               "Type": "Int",
               "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
               "Aliases": [
-                "mcg",
-                "MaxCategoricalGroupsPerNode"
+                "mcg"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28631,8 +28440,7 @@
               "Type": "Int",
               "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
               "Aliases": [
-                "maxcat",
-                "MaxCategoricalSplitPoints"
+                "maxcat"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28644,8 +28452,7 @@
               "Type": "Float",
               "Desc": "Minimum categorical example percentage in a bin to consider for a split.",
               "Aliases": [
-                "mdop",
-                "MinDocsPercentageForCategoricalSplit"
+                "mdop"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28657,8 +28464,7 @@
               "Type": "Int",
               "Desc": "Minimum categorical example count in a bin to consider for a split.",
               "Aliases": [
-                "mdo",
-                "MinDocsForCategoricalSplit"
+                "mdo"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28701,8 +28507,7 @@
               "Type": "Int",
               "Desc": "Maximum number of distinct values (bins) per feature",
               "Aliases": [
-                "mb",
-                "MaxBins"
+                "mb"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28774,8 +28579,7 @@
               "Type": "Bool",
               "Desc": "Print execution time breakdown to stdout",
               "Aliases": [
-                "et",
-                "ExecutionTimes"
+                "et"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28811,8 +28615,7 @@
               "Type": "Float",
               "Desc": "Percentage of training examples used in each bag",
               "Aliases": [
-                "bagfrac",
-                "BaggingTrainFraction"
+                "bagfrac"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28824,8 +28627,7 @@
               "Type": "Float",
               "Desc": "The fraction of features (chosen randomly) to use on each split",
               "Aliases": [
-                "sf",
-                "SplitFraction"
+                "sf"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -28886,8 +28688,7 @@
               "Type": "Int",
               "Desc": "Maximum Number of trees after compression",
               "Aliases": [
-                "cmpmax",
-                "MaxTreesAfterCompression"
+                "cmpmax"
               ],
               "Required": false,
               "SortOrder": 150.0,

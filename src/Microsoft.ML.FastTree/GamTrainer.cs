@@ -63,15 +63,15 @@ namespace Microsoft.ML.Trainers.FastTree
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Tree fitting gain confidence requirement (should be in the range [0,1) ).", ShortName = "gainconf")]
             public int GainConfidenceLevel;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Total number of iterations over all features", ShortName = "iter,NumIterations", SortOrder = 1)]
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Total number of iterations over all features", ShortName = "iter", SortOrder = 1)]
             [TGUI(SuggestedSweeps = "200,1500,9500")]
             [TlcModule.SweepableDiscreteParamAttribute("NumIterations", new object[] { 200, 1500, 9500 })]
             public int NumberOfIterations = GamDefaults.NumberOfIterations;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The number of threads to use", ShortName = "t,NumThreads", NullName = "<Auto>")]
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The number of threads to use", ShortName = "t", NullName = "<Auto>")]
             public int? NumberOfThreads = null;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The learning rate", ShortName = "lr,LearningRates", SortOrder = 4)]
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The learning rate", ShortName = "lr", SortOrder = 4)]
             [TGUI(SuggestedSweeps = "0.001,0.1;log")]
             [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.001f, 0.1f, isLogScale: true)]
             public double LearningRate = GamDefaults.LearningRate;
@@ -79,19 +79,19 @@ namespace Microsoft.ML.Trainers.FastTree
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose", ShortName = "dt")]
             public bool? DiskTranspose;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum number of distinct values (bins) per feature", ShortName = "mb,MaxBins")]
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum number of distinct values (bins) per feature", ShortName = "mb")]
             public int MaximumBinCountPerFeature = GamDefaults.MaximumBinCountPerFeature;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single output", ShortName = "mo,MaxOutput")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single output", ShortName = "mo")]
             public double MaximumTreeOutput = double.PositiveInfinity;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Sample each query 1 in k times in the GetDerivatives function", ShortName = "sr")]
             public int GetDerivativesSampleRate = 1;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The seed of the random number generator", ShortName = "r1,RngSeed")]
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The seed of the random number generator", ShortName = "r1")]
             public int Seed = 123;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum number of training instances required to form a partition", ShortName = "mi,MinDocuments", SortOrder = 3)]
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum number of training instances required to form a partition", ShortName = "mi", SortOrder = 3)]
             [TGUI(SuggestedSweeps = "1,10,50")]
             [TlcModule.SweepableDiscreteParamAttribute("MinDocuments", new object[] { 1, 10, 50 })]
             public int MinimumExampleCountPerLeaf = 10;
