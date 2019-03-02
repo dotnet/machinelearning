@@ -97,9 +97,9 @@ namespace Microsoft.ML.LightGBM
             return strBuf.ToString();
         }
 
-        // Static name map that maps friendly names to lightGBM arguments.
-        // There is a conversion that will convert the field name to a lightGBM name
-        // (but lowercasing and adding an underscore between words). In
+        // Static override name map that maps friendly names to lightGBM arguments.
+        // If an argument is not here, then its name is identicaltto a lightGBM argument
+        // and does not require a mapping, for example, Subsample.
         private static Dictionary<string, string> _nameMapping = new Dictionary<string, string>()
         {
            {nameof(TreeBooster.Options.MinimumSplitGain),               "min_split_gain" },
@@ -110,7 +110,7 @@ namespace Microsoft.ML.LightGBM
            {nameof(TreeBooster.Options.L2Regularization),               "reg_lambda"},
            {nameof(TreeBooster.Options.WeightOfPositiveExamples),       "scale_pos_weight"},
            {nameof(DartBooster.Options.TreeDropFraction),               "drop_rate" },
-           {nameof(DartBooster.Options.MaximumDroppedTreesPerRound),    "max_drop" },
+           {nameof(DartBooster.Options.MaximumDroppedTreeCountPerRound),    "max_drop" },
            {nameof(DartBooster.Options.SkipDropFraction),               "skip_drop" },
            {nameof(MinimumExampleCountPerLeaf),                         "min_data_per_leaf"},
            {nameof(NumberOfLeaves),                                     "num_leaves"},
@@ -159,7 +159,8 @@ namespace Microsoft.ML.LightGBM
 
                 [Argument(ArgumentType.AtMostOnce,
                     HelpText = "Subsample frequency for bagging. 0 means no subsample. "
-                    + "If subsampleFreq > 0, it will use a subset to train and the subset will be updated on every Subsample iteration.")]
+                    + "Specifies the frequency at which the bagging occurs, where if this is set to N, the subsampling will happen at N iterations." +
+                    "This must be set with Subsample as this specifies the amount to subsample.")]
                 [TlcModule.Range(Min = 0, Max = int.MaxValue)]
                 public int SubsampleFrequency = 0;
 
@@ -177,7 +178,7 @@ namespace Microsoft.ML.LightGBM
 
                 [Argument(ArgumentType.AtMostOnce,
                     HelpText = "L2 regularization term on weights, increasing this value will make model more conservative.",
-                    ShortName = "l2,RegLambda")]
+                    ShortName = "l2")]
                 [TlcModule.Range(Min = 0.0)]
                 [TGUI(Label = "Lambda(L2)", SuggestedSweeps = "0,0.5,1")]
                 [TlcModule.SweepableDiscreteParam("RegLambda", new object[] { 0f, 0.5f, 1f })]
@@ -185,7 +186,7 @@ namespace Microsoft.ML.LightGBM
 
                 [Argument(ArgumentType.AtMostOnce,
                     HelpText = "L1 regularization term on weights, increase this value will make model more conservative.",
-                    ShortName = "l1,RegAlpha")]
+                    ShortName = "l1")]
                 [TlcModule.Range(Min = 0.0)]
                 [TGUI(Label = "Alpha(L1)", SuggestedSweeps = "0,0.5,1")]
                 [TlcModule.SweepableDiscreteParam("RegAlpha", new object[] { 0f, 0.5f, 1f })]
@@ -235,7 +236,7 @@ namespace Microsoft.ML.LightGBM
 
                 [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of dropped tree in a boosting round.")]
                 [TlcModule.Range(Inf = 0, Max = int.MaxValue)]
-                public int MaximumDroppedTreesPerRound = 1;
+                public int MaximumDroppedTreeCountPerRound = 1;
 
                 [Argument(ArgumentType.AtMostOnce, HelpText = "Probability for not dropping in a boosting round.")]
                 [TlcModule.Range(Inf = 0.0, Max = 1.0)]
@@ -358,7 +359,7 @@ namespace Microsoft.ML.LightGBM
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Use softmax loss for the multi classification.")]
         [TlcModule.SweepableDiscreteParam("UseSoftmax", new object[] { true, false })]
-        public bool? UseSoftMax;
+        public bool? UseSoftmax;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Rounds of early stopping, 0 will disable it.",
             ShortName = "es")]
@@ -382,7 +383,7 @@ namespace Microsoft.ML.LightGBM
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Enable special handling of missing value or not.")]
         [TlcModule.SweepableDiscreteParam("UseMissing", new object[] { true, false })]
-        public bool UseMissing = false;
+        public bool HandleMissingValue = false;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Minimum number of instances per categorical group.", ShortName = "mdpg")]
         [TlcModule.Range(Inf = 0, Max = int.MaxValue)]
@@ -459,7 +460,7 @@ namespace Microsoft.ML.LightGBM
                 res[GetOptionName(nameof(metric))] = metric;
             res[GetOptionName(nameof(Sigmoid))] = Sigmoid;
             res[GetOptionName(nameof(CustomGains))] = CustomGains;
-            res[GetOptionName(nameof(UseMissing))] = UseMissing;
+            res[GetOptionName(nameof(HandleMissingValue))] = HandleMissingValue;
             res[GetOptionName(nameof(MinimumExampleCountPerGroup))] = MinimumExampleCountPerGroup;
             res[GetOptionName(nameof(MaximumCategoricalSplitPointCount))] = MaximumCategoricalSplitPointCount;
             res[GetOptionName(nameof(CategoricalSmoothing))] = CategoricalSmoothing;

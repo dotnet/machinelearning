@@ -298,7 +298,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 NumberOfIterations = numberOfTrainingIterations,
                 MinimumExampleCountPerGroup = 1,
                 MinimumExampleCountPerLeaf = 1,
-                UseSoftMax = useSoftmax
+                UseSoftmax = useSoftmax
             });
 
             var gbm = gbmTrainer.Fit(dataView);

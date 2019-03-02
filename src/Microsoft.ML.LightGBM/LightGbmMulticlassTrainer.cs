@@ -43,7 +43,7 @@ namespace Microsoft.ML.LightGBM
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumnName">The name of The label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
-        /// <param name="weights">The name for the column containing the initial weight.</param>
+        /// <param name="exampleWeightColumnName">The name for the column containing the initial weight.</param>
         /// <param name="numberOfLeaves">The number of leaves to use.</param>
         /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
@@ -51,12 +51,12 @@ namespace Microsoft.ML.LightGBM
         internal LightGbmMulticlassTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
-            string weights = null,
+            string exampleWeightColumnName = null,
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
             int numberOfIterations = LightGBM.Options.Defaults.NumberOfIterations)
-            : base(env, LoadNameValue, TrainerUtils.MakeU4ScalarColumn(labelColumnName), featureColumnName, weights, null, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations)
+            : base(env, LoadNameValue, TrainerUtils.MakeU4ScalarColumn(labelColumnName), featureColumnName, exampleWeightColumnName, null, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations)
         {
             _numClass = -1;
         }
@@ -182,14 +182,14 @@ namespace Microsoft.ML.LightGBM
             Options["num_class"] = _numClass;
             bool useSoftmax = false;
 
-            if (LightGbmTrainerOptions.UseSoftMax.HasValue)
-                useSoftmax = LightGbmTrainerOptions.UseSoftMax.Value;
+            if (LightGbmTrainerOptions.UseSoftmax.HasValue)
+                useSoftmax = LightGbmTrainerOptions.UseSoftmax.Value;
             else
             {
                 if (labels.Length >= _minDataToUseSoftmax)
                     useSoftmax = true;
 
-                ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.UseSoftMax) + " = " + useSoftmax);
+                ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.UseSoftmax) + " = " + useSoftmax);
             }
 
             if (useSoftmax)

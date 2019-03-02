@@ -11393,7 +11393,7 @@
           "Default": "DefaultMetric"
         },
         {
-          "Name": "UseSoftMax",
+          "Name": "UseSoftmax",
           "Type": "Bool",
           "Desc": "Use softmax loss for the multi classification.",
           "Required": false,
@@ -11473,7 +11473,7 @@
           }
         },
         {
-          "Name": "UseMissing",
+          "Name": "HandleMissingValue",
           "Type": "Bool",
           "Desc": "Enable special handling of missing value or not.",
           "Required": false,
@@ -11896,7 +11896,7 @@
           "Default": "DefaultMetric"
         },
         {
-          "Name": "UseSoftMax",
+          "Name": "UseSoftmax",
           "Type": "Bool",
           "Desc": "Use softmax loss for the multi classification.",
           "Required": false,
@@ -11976,7 +11976,7 @@
           }
         },
         {
-          "Name": "UseMissing",
+          "Name": "HandleMissingValue",
           "Type": "Bool",
           "Desc": "Enable special handling of missing value or not.",
           "Required": false,
@@ -12399,7 +12399,7 @@
           "Default": "DefaultMetric"
         },
         {
-          "Name": "UseSoftMax",
+          "Name": "UseSoftmax",
           "Type": "Bool",
           "Desc": "Use softmax loss for the multi classification.",
           "Required": false,
@@ -12479,7 +12479,7 @@
           }
         },
         {
-          "Name": "UseMissing",
+          "Name": "HandleMissingValue",
           "Type": "Bool",
           "Desc": "Enable special handling of missing value or not.",
           "Required": false,
@@ -12902,7 +12902,7 @@
           "Default": "DefaultMetric"
         },
         {
-          "Name": "UseSoftMax",
+          "Name": "UseSoftmax",
           "Type": "Bool",
           "Desc": "Use softmax loss for the multi classification.",
           "Required": false,
@@ -12982,7 +12982,7 @@
           }
         },
         {
-          "Name": "UseMissing",
+          "Name": "HandleMissingValue",
           "Type": "Bool",
           "Desc": "Enable special handling of missing value or not.",
           "Required": false,
@@ -23608,9 +23608,6 @@
               "Name": "MinimumSplitGain",
               "Type": "Float",
               "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
-              "Aliases": [
-                "MinSplitGain"
-              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23623,9 +23620,6 @@
               "Name": "MaximumTreeDepth",
               "Type": "Int",
               "Desc": "Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.",
-              "Aliases": [
-                "MaxDepth"
-              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23639,9 +23633,6 @@
               "Name": "MinimumChildWeight",
               "Type": "Float",
               "Desc": "Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.",
-              "Aliases": [
-                "MinChildWeight"
-              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23654,9 +23645,6 @@
               "Name": "SubsampleFrequency",
               "Type": "Int",
               "Desc": "Subsample frequency for bagging. 0 means no subsample. If subsampleFreq > 0, it will use a subset to train and the subset will be updated on every Subsample iteration.",
-              "Aliases": [
-                "SubsampleFreq"
-              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23778,9 +23766,6 @@
               "Name": "MinimumSplitGain",
               "Type": "Float",
               "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
-              "Aliases": [
-                "MinSplitGain"
-              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23793,9 +23778,6 @@
               "Name": "MaximumTreeDepth",
               "Type": "Int",
               "Desc": "Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.",
-              "Aliases": [
-                "MaxDepth"
-              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23809,9 +23791,6 @@
               "Name": "MinimumChildWeight",
               "Type": "Float",
               "Desc": "Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.",
-              "Aliases": [
-                "MinChildWeight"
-              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23824,9 +23803,6 @@
               "Name": "SubsampleFrequency",
               "Type": "Int",
               "Desc": "Subsample frequency for bagging. 0 means no subsample. If subsampleFreq > 0, it will use a subset to train and the subset will be updated on every Subsample iteration.",
-              "Aliases": [
-                "SubsampleFreq"
-              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23974,9 +23950,6 @@
               "Name": "MinimumSplitGain",
               "Type": "Float",
               "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
-              "Aliases": [
-                "MinSplitGain"
-              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23989,9 +23962,6 @@
               "Name": "MaximumTreeDepth",
               "Type": "Int",
               "Desc": "Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.",
-              "Aliases": [
-                "MaxDepth"
-              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -24005,9 +23975,6 @@
               "Name": "MinimumChildWeight",
               "Type": "Float",
               "Desc": "Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.",
-              "Aliases": [
-                "MinChildWeight"
-              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -24020,9 +23987,6 @@
               "Name": "SubsampleFrequency",
               "Type": "Int",
               "Desc": "Subsample frequency for bagging. 0 means no subsample. If subsampleFreq > 0, it will use a subset to train and the subset will be updated on every Subsample iteration.",
-              "Aliases": [
-                "SubsampleFreq"
-              ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
