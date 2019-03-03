@@ -159,7 +159,7 @@ namespace Microsoft.ML.Tests
         public void TestSGDBinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticGradientDescent(
-                new SgdBinaryTrainer.Options { NumThreads = 1}),
+                new SgdBinaryTrainer.Options { NumberOfThreads = 1}),
                 GetSparseDataset(TaskType.BinaryClassification, 100), "SGDBinary");
         }
 

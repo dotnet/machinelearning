@@ -173,7 +173,7 @@ namespace Microsoft.ML.Calibrators
         where TSubModel : class
         where TCalibrator : class, ICalibrator
     {
-        protected readonly IHost Host;
+        private protected readonly IHost Host;
 
         // Strongly-typed members.
         /// <summary>

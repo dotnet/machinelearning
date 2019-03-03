@@ -34,9 +34,9 @@ namespace Microsoft.ML.StaticPipe
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            int maxIterations = SgdBinaryTrainer.Options.Defaults.MaxIterations,
-            double initLearningRate = SgdBinaryTrainer.Options.Defaults.InitLearningRate,
-            float l2Weight = SgdBinaryTrainer.Options.Defaults.L2Weight,
+            int maxIterations = SgdBinaryTrainer.Options.Defaults.NumberOfIterations,
+            double initLearningRate = SgdBinaryTrainer.Options.Defaults.InitialLearningRate,
+            float l2Weight = SgdBinaryTrainer.Options.Defaults.L2Regularization,
             Action<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
@@ -115,9 +115,9 @@ namespace Microsoft.ML.StaticPipe
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            int maxIterations = SgdNonCalibratedBinaryTrainer.Options.Defaults.MaxIterations,
-            double initLearningRate = SgdNonCalibratedBinaryTrainer.Options.Defaults.InitLearningRate,
-            float l2Weight = SgdNonCalibratedBinaryTrainer.Options.Defaults.L2Weight,
+            int maxIterations = SgdNonCalibratedBinaryTrainer.Options.Defaults.NumberOfIterations,
+            double initLearningRate = SgdNonCalibratedBinaryTrainer.Options.Defaults.InitialLearningRate,
+            float l2Weight = SgdNonCalibratedBinaryTrainer.Options.Defaults.L2Regularization,
             IClassificationLoss loss = null,
             Action<LinearBinaryModelParameters> onFit = null)
         {

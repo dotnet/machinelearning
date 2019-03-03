@@ -36,9 +36,9 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int maxIterations = SgdBinaryTrainer.Options.Defaults.MaxIterations,
-            double initLearningRate = SgdBinaryTrainer.Options.Defaults.InitLearningRate,
-            float l2Weight = SgdBinaryTrainer.Options.Defaults.L2Weight)
+            int maxIterations = SgdBinaryTrainer.Options.Defaults.NumberOfIterations,
+            double initLearningRate = SgdBinaryTrainer.Options.Defaults.InitialLearningRate,
+            float l2Weight = SgdBinaryTrainer.Options.Defaults.L2Regularization)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -91,9 +91,9 @@ namespace Microsoft.ML
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
             IClassificationLoss loss = null,
-            int maxIterations = SgdNonCalibratedBinaryTrainer.Options.Defaults.MaxIterations,
-            double initLearningRate = SgdNonCalibratedBinaryTrainer.Options.Defaults.InitLearningRate,
-            float l2Weight = SgdNonCalibratedBinaryTrainer.Options.Defaults.L2Weight)
+            int maxIterations = SgdNonCalibratedBinaryTrainer.Options.Defaults.NumberOfIterations,
+            double initLearningRate = SgdNonCalibratedBinaryTrainer.Options.Defaults.InitialLearningRate,
+            float l2Weight = SgdNonCalibratedBinaryTrainer.Options.Defaults.L2Regularization)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);

@@ -1010,7 +1010,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentClassificationTrainer(r.label, r.features, null,
-                    new SgdBinaryTrainer.Options { L2Weight = 0, NumThreads = 1 },
+                    new SgdBinaryTrainer.Options { L2Regularization = 0, NumberOfThreads = 1 },
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -1083,7 +1083,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, null,
-                    new SgdNonCalibratedBinaryTrainer.Options { L2Weight = 0, NumThreads = 1, Loss = new HingeLoss()},
+                    new SgdNonCalibratedBinaryTrainer.Options { L2Regularization = 0, NumberOfThreads = 1, Loss = new HingeLoss()},
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
