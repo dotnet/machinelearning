@@ -131,7 +131,7 @@ namespace Microsoft.ML.Auto
             string labelColumn, string weightColumn)
         {
             Dictionary<string, object> props = null;
-            if (sweepParams == null)
+            if (sweepParams == null || !sweepParams.Any())
             {
                 props = new Dictionary<string, object>();
             }
@@ -185,11 +185,19 @@ namespace Microsoft.ML.Auto
 
         private static ParameterSet BuildLightGbmParameterSet(IDictionary<string, object> props)
         {
-            var parentProps = props.Where(p => p.Key != LightGbmTreeBoosterPropName);
-            var treeProps = ((CustomProperty)props[LightGbmTreeBoosterPropName]).Properties;
-            var allProps = parentProps.Union(treeProps);
-            var paramVals = allProps.Select(p => new StringParameterValue(p.Key, p.Value.ToString()));
-            return new ParameterSet(paramVals);
+            IEnumerable<IParameterValue> parameters;
+            if (props == null || !props.Any())
+            {
+                parameters = new List<IParameterValue>();
+            }
+            else
+            {
+                var parentProps = props.Where(p => p.Key != LightGbmTreeBoosterPropName);
+                var treeProps = ((CustomProperty)props[LightGbmTreeBoosterPropName]).Properties;
+                var allProps = parentProps.Union(treeProps);
+                parameters = allProps.Select(p => new StringParameterValue(p.Key, p.Value.ToString()));
+            }
+            return new ParameterSet(parameters);
         }
 
         private static void SetValue(FieldInfo fi, IComparable value, object obj, Type propertyType)

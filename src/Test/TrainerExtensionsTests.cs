@@ -112,6 +112,28 @@ namespace Microsoft.ML.Auto.Test
         }
 
         [TestMethod]
+        public void BuildLightGbmPipelineNodeDefaultParams()
+        {
+            var pipelineNode = new LightGbmBinaryExtension().CreatePipelineNode(
+                new List<SweepableParam>(), 
+                new ColumnInformation());
+            var expectedJson = @"{
+  ""Name"": ""LightGbmBinary"",
+  ""NodeType"": ""Trainer"",
+  ""InColumns"": [
+    ""Features""
+  ],
+  ""OutColumns"": [
+    ""Score""
+  ],
+  ""Properties"": {
+    ""LabelColumn"": ""Label""
+  }
+}";
+            Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
+        }
+
+        [TestMethod]
         public void BuildPipelineNodeWithCustomColumns()
         {
             var columnInfo = new ColumnInformation()
