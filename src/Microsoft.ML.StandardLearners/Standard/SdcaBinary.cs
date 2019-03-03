@@ -159,38 +159,63 @@ namespace Microsoft.ML.Trainers
 
         public abstract class OptionsBase : TrainerInputBaseWithLabel
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l2", SortOrder = 1)]
+            /// <summary>
+            /// L2 regularization weight.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l2, L2Const", SortOrder = 1)]
             [TGUI(Label = "L2 Regularizer Constant", SuggestedSweeps = "<Auto>,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2")]
             [TlcModule.SweepableDiscreteParam("L2Const", new object[] { "<Auto>", 1e-7f, 1e-6f, 1e-5f, 1e-4f, 1e-3f, 1e-2f })]
-            public float? L2Const;
+            public float? L2Regularization;
 
+            /// <summary>
+            /// L1 Soft Threshold.
+            /// </summary>
             // REVIEW: make the default positive when we know how to consume a sparse model
             [Argument(ArgumentType.AtMostOnce, HelpText = "L1 soft threshold (L1/L2). Note that it is easier to control and sweep using the threshold parameter than the raw L1-regularizer constant. By default the l1 threshold is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l1", SortOrder = 2)]
             [TGUI(Label = "L1 Soft Threshold", SuggestedSweeps = "<Auto>,0,0.25,0.5,0.75,1")]
             [TlcModule.SweepableDiscreteParam("L1Threshold", new object[] { "<Auto>", 0f, 0.25f, 0.5f, 0.75f, 1f })]
             public float? L1Threshold;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.", NullName = "<Auto>", ShortName = "nt,t,threads", SortOrder = 50)]
+            /// <summary>
+            /// Number of threads.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.", NullName = "<Auto>", ShortName = "nt,t,threads, NumThreads", SortOrder = 50)]
             [TGUI(Label = "Number of threads", SuggestedSweeps = "<Auto>,1,2,4")]
-            public int? NumThreads;
+            public int? NumberOfThreads;
 
+            /// <summary>
+            /// The tolerance for the ratio between duality gap and primal loss for convergence checking.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The tolerance for the ratio between duality gap and primal loss for convergence checking.", ShortName = "tol")]
             [TGUI(SuggestedSweeps = "0.001, 0.01, 0.1, 0.2")]
             [TlcModule.SweepableDiscreteParam("ConvergenceTolerance", new object[] { 0.001f, 0.01f, 0.1f, 0.2f })]
             public float ConvergenceTolerance = 0.1f;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.", NullName = "<Auto>", ShortName = "iter")]
+            /// <summary>
+            /// Number of iterations.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.", NullName = "<Auto>", ShortName = "iter, MaxIterations")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "<Auto>,10,20,100")]
             [TlcModule.SweepableDiscreteParam("MaxIterations", new object[] { "<Auto>", 10, 20, 100 })]
-            public int? MaxIterations;
+            public int? NumberOfIterations;
 
+            /// <summary>
+            /// Whether to shuffle data at every epoch (default true).
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data every epoch?", ShortName = "shuf")]
             [TlcModule.SweepableDiscreteParam("Shuffle", null, isBool: true)]
             public bool Shuffle = true;
 
+            /// <summary>
+            /// Convergence check frequency (in terms of <see cref="NumberOfIterations"/>). Set as negative or zero for not checking at all.
+            /// If left blank, it defaults to check after every <see cref="NumberOfThreads"/> iterations.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Convergence check frequency (in terms of number of iterations). Set as negative or zero for not checking at all. If left blank, it defaults to check after every 'numThreads' iterations.", NullName = "<Auto>", ShortName = "checkFreq")]
             public int? CheckFrequency;
 
+            /// <summary>
+            /// The learning rate for adjusting bias from being regularized.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The learning rate for adjusting bias from being regularized.", ShortName = "blr")]
             [TGUI(SuggestedSweeps = "0, 0.01, 0.1, 1")]
             [TlcModule.SweepableDiscreteParam("BiasLearningRate", new object[] { 0.0f, 0.01f, 0.1f, 1f })]
@@ -199,19 +224,19 @@ namespace Microsoft.ML.Trainers
             internal virtual void Check(IHostEnvironment env)
             {
                 Contracts.AssertValue(env);
-                env.CheckUserArg(L2Const == null || L2Const >= 0, nameof(L2Const), "L2 constant must be non-negative.");
+                env.CheckUserArg(L2Regularization == null || L2Regularization >= 0, nameof(L2Regularization), "L2 constant must be non-negative.");
                 env.CheckUserArg(L1Threshold == null || L1Threshold >= 0, nameof(L1Threshold), "L1 threshold must be non-negative.");
-                env.CheckUserArg(MaxIterations == null || MaxIterations > 0, nameof(MaxIterations), "Max number of iterations must be positive.");
+                env.CheckUserArg(NumberOfIterations == null || NumberOfIterations > 0, nameof(NumberOfIterations), "Max number of iterations must be positive.");
                 env.CheckUserArg(ConvergenceTolerance > 0 && ConvergenceTolerance <= 1, nameof(ConvergenceTolerance), "Convergence tolerance must be positive and no larger than 1.");
 
-                if (L2Const < L2LowerBound)
+                if (L2Regularization < L2LowerBound)
                 {
                     using (var ch = env.Start("SDCA arguments checking"))
                     {
                         ch.Warning($"The L2 regularization constant must be at least {L2LowerBound}. In SDCA, the dual formulation " +
                             $"is only valid with a positive constant, and values below {L2LowerBound} cause very slow convergence. " +
-                            $"The original {nameof(L2Const)} = {L2Const}, was replaced with {nameof(L2Const)} = {L2LowerBound}.");
-                        L2Const = L2LowerBound;
+                            $"The original {nameof(L2Regularization)} = {L2Regularization}, was replaced with {nameof(L2Regularization)} = {L2LowerBound}.");
+                        L2Regularization = L2LowerBound;
                     }
                 }
             }
@@ -267,9 +292,9 @@ namespace Microsoft.ML.Trainers
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), label, weight)
         {
             SdcaTrainerOptions = options;
-            SdcaTrainerOptions.L2Const = l2Const ?? options.L2Const;
+            SdcaTrainerOptions.L2Regularization = l2Const ?? options.L2Regularization;
             SdcaTrainerOptions.L1Threshold = l1Threshold ?? options.L1Threshold;
-            SdcaTrainerOptions.MaxIterations = maxIterations ?? options.MaxIterations;
+            SdcaTrainerOptions.NumberOfIterations = maxIterations ?? options.NumberOfIterations;
             SdcaTrainerOptions.Check(env);
         }
 
@@ -292,10 +317,10 @@ namespace Microsoft.ML.Trainers
 
             var cursorFactory = new FloatLabelCursor.Factory(data, cursorOpt);
             int numThreads;
-            if (SdcaTrainerOptions.NumThreads.HasValue)
+            if (SdcaTrainerOptions.NumberOfThreads.HasValue)
             {
-                numThreads = SdcaTrainerOptions.NumThreads.Value;
-                Host.CheckUserArg(numThreads > 0, nameof(OptionsBase.NumThreads), "The number of threads must be either null or a positive integer.");
+                numThreads = SdcaTrainerOptions.NumberOfThreads.Value;
+                Host.CheckUserArg(numThreads > 0, nameof(OptionsBase.NumberOfThreads), "The number of threads must be either null or a positive integer.");
                 if (0 < Host.ConcurrencyFactor && Host.ConcurrencyFactor < numThreads)
                 {
                     numThreads = Host.ConcurrencyFactor;
@@ -414,14 +439,14 @@ namespace Microsoft.ML.Trainers
 
             ch.Check(count > 0, "Training set has 0 instances, aborting training.");
             // Tune the default hyperparameters based on dataset size.
-            if (SdcaTrainerOptions.MaxIterations == null)
-                SdcaTrainerOptions.MaxIterations = TuneDefaultMaxIterations(ch, count, numThreads);
+            if (SdcaTrainerOptions.NumberOfIterations == null)
+                SdcaTrainerOptions.NumberOfIterations = TuneDefaultMaxIterations(ch, count, numThreads);
 
-            Contracts.Assert(SdcaTrainerOptions.MaxIterations.HasValue);
-            if (SdcaTrainerOptions.L2Const == null)
-                SdcaTrainerOptions.L2Const = TuneDefaultL2(ch, SdcaTrainerOptions.MaxIterations.Value, count, numThreads);
+            Contracts.Assert(SdcaTrainerOptions.NumberOfIterations.HasValue);
+            if (SdcaTrainerOptions.L2Regularization == null)
+                SdcaTrainerOptions.L2Regularization = TuneDefaultL2(ch, SdcaTrainerOptions.NumberOfIterations.Value, count, numThreads);
 
-            Contracts.Assert(SdcaTrainerOptions.L2Const.HasValue);
+            Contracts.Assert(SdcaTrainerOptions.L2Regularization.HasValue);
             if (SdcaTrainerOptions.L1Threshold == null)
                 SdcaTrainerOptions.L1Threshold = TuneDefaultL1(ch, numFeatures);
 
@@ -455,8 +480,8 @@ namespace Microsoft.ML.Trainers
 
             int bestIter = 0;
             var bestPrimalLoss = double.PositiveInfinity;
-            ch.Assert(SdcaTrainerOptions.L2Const.HasValue);
-            var l2Const = SdcaTrainerOptions.L2Const.Value;
+            ch.Assert(SdcaTrainerOptions.L2Regularization.HasValue);
+            var l2Const = SdcaTrainerOptions.L2Regularization.Value;
             float lambdaNInv = 1 / (l2Const * count);
 
             DualsTableBase duals = null;
@@ -519,8 +544,8 @@ namespace Microsoft.ML.Trainers
             ch.AssertValue(metricNames);
             ch.AssertValue(metrics);
             ch.Assert(metricNames.Length == metrics.Length);
-            ch.Assert(SdcaTrainerOptions.MaxIterations.HasValue);
-            var maxIterations = SdcaTrainerOptions.MaxIterations.Value;
+            ch.Assert(SdcaTrainerOptions.NumberOfIterations.HasValue);
+            var maxIterations = SdcaTrainerOptions.NumberOfIterations.Value;
 
             var rands = new Random[maxIterations];
             for (int i = 0; i < maxIterations; i++)
@@ -762,7 +787,7 @@ namespace Microsoft.ML.Trainers
             int maxUpdateTrials = 2 * numThreads;
             var l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
             bool l1ThresholdZero = l1Threshold == 0;
-            var lr = SdcaTrainerOptions.BiasLearningRate * SdcaTrainerOptions.L2Const.Value;
+            var lr = SdcaTrainerOptions.BiasLearningRate * SdcaTrainerOptions.L2Regularization.Value;
             var pch = progress != null ? progress.StartProgressChannel("Dual update") : null;
             using (pch)
             using (var cursor = SdcaTrainerOptions.Shuffle ? cursorFactory.Create(rand) : cursorFactory.Create())
@@ -950,9 +975,9 @@ namespace Microsoft.ML.Trainers
                 Host.Assert(idToIdx == null || row == duals.Length);
             }
 
-            Contracts.Assert(SdcaTrainerOptions.L2Const.HasValue);
+            Contracts.Assert(SdcaTrainerOptions.L2Regularization.HasValue);
             Contracts.Assert(SdcaTrainerOptions.L1Threshold.HasValue);
-            Double l2Const = SdcaTrainerOptions.L2Const.Value;
+            Double l2Const = SdcaTrainerOptions.L2Regularization.Value;
             Double l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
             Double l1Regularizer = l1Threshold * l2Const * (VectorUtils.L1Norm(in weights[0]) + Math.Abs(biasReg[0]));
             var l2Regularizer = l2Const * (VectorUtils.NormSquared(weights[0]) + biasReg[0] * biasReg[0]) * 0.5;
@@ -1421,6 +1446,9 @@ namespace Microsoft.ML.Trainers
 
         public class BinaryOptionsBase : OptionsBase
         {
+            /// <summary>
+            /// Weight applied to the examples in the positive class.
+            /// </summary>>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
             public float PositiveInstanceWeight = 1;
 
@@ -1584,6 +1612,9 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         public sealed class Options : BinaryOptionsBase
         {
+            /// <summary>
+            /// The loss function to use. Default is <see cref="LogLoss"/>.
+            /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
         }

@@ -65,7 +65,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
                                         LabelColumnName = "Sentiment",
                                         FeatureColumnName = "Features",
                                         ConvergenceTolerance = 0.01f,  // The learning rate for adjusting bias from being regularized
-                                        NumThreads = 2, // Degree of lock-free parallelism 
+                                        NumberOfThreads = 2, // Degree of lock-free parallelism 
                                       }));
 
             // Run Cross-Validation on this second pipeline.

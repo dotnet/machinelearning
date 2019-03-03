@@ -15048,11 +15048,12 @@
       "ShortName": "SDCA",
       "Inputs": [
         {
-          "Name": "L2Const",
+          "Name": "L2Regularization",
           "Type": "Float",
           "Desc": "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.",
           "Aliases": [
-            "l2"
+            "l2",
+            "L2Const"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -15186,13 +15187,14 @@
           }
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.",
           "Aliases": [
             "nt",
             "t",
-            "threads"
+            "threads",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -15256,11 +15258,12 @@
           }
         },
         {
-          "Name": "MaxIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [
-            "iter"
+            "iter",
+            "MaxIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -15352,11 +15355,12 @@
       "ShortName": "sasdcamc",
       "Inputs": [
         {
-          "Name": "L2Const",
+          "Name": "L2Regularization",
           "Type": "Float",
           "Desc": "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.",
           "Aliases": [
-            "l2"
+            "l2",
+            "L2Const"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -15490,13 +15494,14 @@
           }
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.",
           "Aliases": [
             "nt",
             "t",
-            "threads"
+            "threads",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -15525,11 +15530,12 @@
           }
         },
         {
-          "Name": "MaxIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [
-            "iter"
+            "iter",
+            "MaxIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -15621,11 +15627,12 @@
       "ShortName": "sasdcar",
       "Inputs": [
         {
-          "Name": "L2Const",
+          "Name": "L2Regularization",
           "Type": "Float",
           "Desc": "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.",
           "Aliases": [
-            "l2"
+            "l2",
+            "L2Const"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -15759,13 +15766,14 @@
           }
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.",
           "Aliases": [
             "nt",
             "t",
-            "threads"
+            "threads",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -15794,11 +15802,12 @@
           }
         },
         {
-          "Name": "MaxIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [
-            "iter"
+            "iter",
+            "MaxIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
