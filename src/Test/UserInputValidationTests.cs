@@ -42,24 +42,29 @@ namespace Microsoft.ML.Auto.Test
         [ExpectedException(typeof(ArgumentException))]
         public void ValidateExperimentExecuteNumericColNotInTrain()
         {
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(Data,
-                new ColumnInformation() { NumericColumns = new[] { "N" } }, null);
+            var columnInfo = new ColumnInformation();
+            columnInfo.NumericColumns.Add("N");
+
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
         public void ValidateExperimentExecuteNullNumericCol()
         {
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(Data,
-                new ColumnInformation() { NumericColumns = new string[] { null } }, null);
+            var columnInfo = new ColumnInformation();
+            columnInfo.NumericColumns.Add(null);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
         public void ValidateExperimentExecuteDuplicateCol()
         {
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(Data,
-                new ColumnInformation() { NumericColumns = new[] { DefaultColumnNames.Label } }, null);
+            var columnInfo = new ColumnInformation();
+            columnInfo.NumericColumns.Add(DefaultColumnNames.Label);
+
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null);
         }
 
         [TestMethod]
@@ -173,9 +178,11 @@ namespace Microsoft.ML.Auto.Test
             schemaBuilder.AddColumn(TextPurposeColName, NumberDataViewType.Double);
             var schema = schemaBuilder.ToSchema();
             var dataView = new EmptyDataView(new MLContext(), schema);
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, 
-                new ColumnInformation() { TextColumns = new[] { TextPurposeColName } }, 
-                null);
+
+            var columnInfo = new ColumnInformation();
+            columnInfo.NumericColumns.Add(TextPurposeColName);
+
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, columnInfo, null);
         }
     }
 }

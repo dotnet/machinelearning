@@ -9,14 +9,14 @@ namespace Microsoft.ML.Auto
 {
     public sealed class RunResult<T>
     {
-        public readonly T ValidationMetrics;
-        public readonly ITransformer Model;
-        public readonly Exception Exception;
-        public readonly string TrainerName;
-        public readonly int RuntimeInSeconds;
+        public T ValidationMetrics { get; private set; }
+        public ITransformer Model { get; private set; }
+        public Exception Exception { get; private set; }
+        public string TrainerName { get; private set; }
+        public int RuntimeInSeconds { get; private set; }
 
-        internal readonly Pipeline Pipeline;
-        internal readonly int PipelineInferenceTimeInSeconds;
+        internal Pipeline Pipeline { get; private set; }
+        internal int PipelineInferenceTimeInSeconds { get; private set; }
 
         internal RunResult(
             ITransformer model,

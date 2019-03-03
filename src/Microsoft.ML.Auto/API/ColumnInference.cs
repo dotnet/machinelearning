@@ -3,23 +3,24 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
     public sealed class ColumnInferenceResults
     {
-        public TextLoader.Options TextLoaderOptions { get; set; }
-        public ColumnInformation ColumnInformation { get; set; }
+        public TextLoader.Options TextLoaderOptions { get; internal set; } = new TextLoader.Options();
+        public ColumnInformation ColumnInformation { get; internal set; } = new ColumnInformation();
     }
 
     public sealed class ColumnInformation
     {
-        public string LabelColumn = DefaultColumnNames.Label;
-        public string WeightColumn;
-        public IEnumerable<string> CategoricalColumns { get; set; }
-        public IEnumerable<string> NumericColumns { get; set; }
-        public IEnumerable<string> TextColumns { get; set; }
-        public IEnumerable<string> IgnoredColumns { get; set; }
+        public string LabelColumn { get; set; } = DefaultColumnNames.Label;
+        public string WeightColumn { get; set; }
+        public ICollection<string> CategoricalColumns { get; } = new Collection<string>();
+        public ICollection<string> NumericColumns { get; } = new Collection<string>();
+        public ICollection<string> TextColumns { get; } = new Collection<string>();
+        public ICollection<string> IgnoredColumns { get; } = new Collection<string>();
     }
 }

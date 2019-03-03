@@ -12,9 +12,10 @@ namespace Microsoft.ML.Auto
 {
     public sealed class RegressionExperimentSettings : ExperimentSettings
     {
-        public IProgress<RunResult<RegressionMetrics>> ProgressHandler;
-        public RegressionMetric OptimizingMetric = RegressionMetric.RSquared;
-        public RegressionTrainer[] WhitelistedTrainers;
+        public RegressionMetric OptimizingMetric { get; set; } = RegressionMetric.RSquared;
+        public ICollection<RegressionTrainer> Trainers { get; } =
+                     Enum.GetValues(typeof(RegressionTrainer)).OfType<RegressionTrainer>().ToList();
+        public IProgress<RunResult<RegressionMetrics>> ProgressHandler { get; set; }
     }
 
     public enum RegressionMetric
@@ -88,7 +89,7 @@ namespace Microsoft.ML.Auto
             var experiment = new Experiment<RegressionMetrics>(context, TaskKind.Regression, trainData, columnInfo, 
                 validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric), 
                 _settings.ProgressHandler, _settings, new RegressionMetricsAgent(_settings.OptimizingMetric),
-                TrainerExtensionUtil.GetTrainerNames(_settings.WhitelistedTrainers));
+                TrainerExtensionUtil.GetTrainerNames(_settings.Trainers));
 
             return experiment.Execute();
         }

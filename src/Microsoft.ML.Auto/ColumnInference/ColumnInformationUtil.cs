@@ -45,36 +45,27 @@ namespace Microsoft.ML.Auto
         {
             var columnInfo = new ColumnInformation();
 
-            var categoricalColumns = new List<string>();
-            var numericColumns = new List<string>();
-            var textColumns = new List<string>();
-            var ignoredColumns = new List<string>();
-            columnInfo.CategoricalColumns = categoricalColumns;
-            columnInfo.NumericColumns = numericColumns;
-            columnInfo.TextColumns = textColumns;
-            columnInfo.IgnoredColumns = ignoredColumns;
-
             foreach (var column in columnPurposes)
             {
                 switch (column.purpose)
                 {
-                    case ColumnPurpose.CategoricalFeature:
-                        categoricalColumns.Add(column.name);
-                        break;
-                    case ColumnPurpose.Ignore:
-                        ignoredColumns.Add(column.name);
-                        break;
                     case ColumnPurpose.Label:
                         columnInfo.LabelColumn = column.name;
                         break;
-                    case ColumnPurpose.NumericFeature:
-                        numericColumns.Add(column.name);
-                        break;
-                    case ColumnPurpose.TextFeature:
-                        textColumns.Add(column.name);
-                        break;
                     case ColumnPurpose.Weight:
                         columnInfo.WeightColumn = column.name;
+                        break;
+                    case ColumnPurpose.CategoricalFeature:
+                        columnInfo.CategoricalColumns.Add(column.name);
+                        break;
+                    case ColumnPurpose.Ignore:
+                        columnInfo.IgnoredColumns.Add(column.name);
+                        break;
+                    case ColumnPurpose.NumericFeature:
+                        columnInfo.NumericColumns.Add(column.name);
+                        break;
+                    case ColumnPurpose.TextFeature:
+                        columnInfo.TextColumns.Add(column.name);
                         break;
                 }
             }

@@ -123,19 +123,14 @@ namespace mlnet.Test
                 new TextLoader.Column(){ Name = DefaultColumnNames.Features, Source = new TextLoader.Range[]{new TextLoader.Range(1) }, DataKind = DataKind.Single },
             };
 
-            var result = new ColumnInferenceResults()
-            {
-                TextLoaderOptions = new TextLoader.Options()
-                {
-                    Columns = columns,
-                    AllowQuoting = false,
-                    AllowSparse = false,
-                    Separators = new[] { ',' },
-                    HasHeader = true,
-                    TrimWhitespace = true
-                },
-                ColumnInformation = new ColumnInformation() { NumericColumns = new[] { DefaultColumnNames.Features } }
-            };
+            var result = new ColumnInferenceResults();
+            result.TextLoaderOptions.Columns = columns;
+            result.TextLoaderOptions.AllowQuoting = false;
+            result.TextLoaderOptions.AllowSparse = false;
+            result.TextLoaderOptions.Separators = new[] { ',' };
+            result.TextLoaderOptions.HasHeader = true;
+            result.TextLoaderOptions.TrimWhitespace = true;
+            result.ColumnInformation.NumericColumns.Add(DefaultColumnNames.Features);
 
             var context = new MLContext();
             var elementProperties = new Dictionary<string, object>();

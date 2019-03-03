@@ -12,9 +12,10 @@ namespace Microsoft.ML.Auto
 {
     public sealed class BinaryExperimentSettings : ExperimentSettings
     {
-        public IProgress<RunResult<BinaryClassificationMetrics>> ProgressHandler;
-        public BinaryClassificationMetric OptimizingMetric = BinaryClassificationMetric.Accuracy;
-        public BinaryClassificationTrainer[] WhitelistedTrainers;
+        public BinaryClassificationMetric OptimizingMetric { get; set; } = BinaryClassificationMetric.Accuracy;
+        public ICollection<BinaryClassificationTrainer> Trainers { get; } =
+                    Enum.GetValues(typeof(BinaryClassificationTrainer)).OfType<BinaryClassificationTrainer>().ToList();
+        public IProgress<RunResult<BinaryClassificationMetrics>> ProgressHandler { get; set; }
     }
 
     public enum BinaryClassificationMetric
@@ -93,7 +94,7 @@ namespace Microsoft.ML.Auto
             var experiment = new Experiment<BinaryClassificationMetrics>(context, TaskKind.BinaryClassification, trainData, columnInfo, 
                 validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric), _settings.ProgressHandler, 
                 _settings, new BinaryMetricsAgent(_settings.OptimizingMetric), 
-                TrainerExtensionUtil.GetTrainerNames(_settings.WhitelistedTrainers));
+                TrainerExtensionUtil.GetTrainerNames(_settings.Trainers));
 
             return experiment.Execute();
         }

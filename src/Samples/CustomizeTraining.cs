@@ -33,16 +33,15 @@ namespace Samples
             IDataView trainDataView = textLoader.Load(TrainDataPath);
             IDataView testDataView = textLoader.Load(TestDataPath);
 
-            // STEP 3: Using a different optimizing metric instead of default R2 and whitelisting only LightGbm
-            Console.WriteLine($"Starting an experiment with L2 optimizing metric and whitelisting LightGbm trainer");
-            RegressionExperiment autoExperiment = mlContext.Auto().CreateRegressionExperiment(new RegressionExperimentSettings()
-            {
-                MaxExperimentTimeInSeconds = 20,
-                OptimizingMetric = RegressionMetric.MeanSquaredError,
-                WhitelistedTrainers = new[] { RegressionTrainer.LightGbm },
-                ProgressHandler = new ProgressHandler()
-            });
-            autoExperiment.Execute(trainDataView, LabelColumn);
+            var experimentSettings = new RegressionExperimentSettings();
+            experimentSettings.MaxExperimentTimeInSeconds = 20;
+            experimentSettings.ProgressHandler = new ProgressHandler();
+
+            // STEP 3: Using a different optimizing metric instead of RSquared and use only LightGbm
+            Console.WriteLine($"Starting an experiment with MeanSquaredError optimizing metric and using LightGbm trainer only");
+            experimentSettings.OptimizingMetric = RegressionMetric.MeanSquaredError;
+            experimentSettings.Trainers.Clear();
+            experimentSettings.Trainers.Add(RegressionTrainer.LightGbm);
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
