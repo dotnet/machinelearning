@@ -3,7 +3,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public static class ConvertTypeTransform
+    public static class ConvertType
     {
         private sealed class InputData
         {
@@ -41,8 +41,15 @@ namespace Microsoft.ML.Samples.Dynamic
             var convertedData = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, true);
             foreach (var item in convertedData)
             {
-                Console.WriteLine("A:{0}  Aconv:{1}", item.Survived, item.SurvivedInt32);
+                Console.WriteLine("A:{0,-10}  Aconv:{1}", item.Survived, item.SurvivedInt32);
             }
+
+            // Output
+            // A: True     Aconv:1
+            // A: False    Aconv:0
+            // A: True     Aconv:1
+            // A: False    Aconv:0
+            // A: False    Aconv:0
         }
     }
 }
