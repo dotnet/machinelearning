@@ -11,7 +11,7 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.HalLearners.StaticPipe;
+using Microsoft.ML.Mkl.Components.StaticPipe;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;

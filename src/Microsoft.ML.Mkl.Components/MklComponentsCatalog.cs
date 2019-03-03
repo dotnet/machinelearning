@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.HalLearners;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
@@ -11,7 +11,7 @@ namespace Microsoft.ML
     /// <summary>
     /// The trainer catalog extensions for the <see cref="OrdinaryLeastSquaresRegressionTrainer"/> and <see cref="SymbolicStochasticGradientDescentClassificationTrainer"/>.
     /// </summary>
-    public static class HalLearnersCatalog
+    public static class MklComponentsCatalog
     {
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="OrdinaryLeastSquaresRegressionTrainer"/>.

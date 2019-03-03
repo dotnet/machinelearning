@@ -77,7 +77,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 new LogisticRegression.Options
                 {
                     ShowTrainingStats = true,
-                    StdComputer = new ComputeLRTrainingStdThroughHal(),
+                    StdComputer = new ComputeLRTrainingStdThroughMkl(),
                 }));
 
             var transformer = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>>;
