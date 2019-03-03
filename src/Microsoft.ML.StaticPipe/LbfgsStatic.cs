@@ -40,7 +40,7 @@ namespace Microsoft.ML.StaticPipe
             float l1Weight = Options.Defaults.L1Regularization,
             float l2Weight = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int memorySize = Options.Defaults.NumberOfPreviousIterationsToRemember,
+            int memorySize = Options.Defaults.IterationsToRemember,
             bool enoforceNoNegativity = Options.Defaults.EnforceNonNegativity,
             Action<CalibratedModelParametersBase<LinearBinaryModelParameters,PlattCalibrator>> onFit = null)
         {
@@ -136,7 +136,7 @@ namespace Microsoft.ML.StaticPipe
             float l1Weight = Options.Defaults.L1Regularization,
             float l2Weight = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int memorySize = Options.Defaults.NumberOfPreviousIterationsToRemember,
+            int memorySize = Options.Defaults.IterationsToRemember,
             bool enoforceNoNegativity = Options.Defaults.EnforceNonNegativity,
             Action<PoissonRegressionModelParameters> onFit = null)
         {
@@ -233,7 +233,7 @@ namespace Microsoft.ML.StaticPipe
             float l1Weight = Options.Defaults.L1Regularization,
             float l2Weight = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int memorySize = Options.Defaults.NumberOfPreviousIterationsToRemember,
+            int memorySize = Options.Defaults.IterationsToRemember,
             bool enoforceNoNegativity = Options.Defaults.EnforceNonNegativity,
             Action<MulticlassLogisticRegressionModelParameters> onFit = null)
         {
@@ -306,7 +306,7 @@ namespace Microsoft.ML.StaticPipe
             float l1Weight = Options.Defaults.L1Regularization,
             float l2Weight = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int memorySize = Options.Defaults.NumberOfPreviousIterationsToRemember,
+            int memorySize = Options.Defaults.IterationsToRemember,
             bool enoforceNoNegativity = Options.Defaults.EnforceNonNegativity,
             Delegate onFit = null)
         {

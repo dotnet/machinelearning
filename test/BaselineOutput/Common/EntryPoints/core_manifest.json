@@ -13566,7 +13566,7 @@
           }
         },
         {
-          "Name": "NumberOfPreviousIterationsToRemember",
+          "Name": "IterationsToRemember",
           "Type": "Int",
           "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
@@ -13636,11 +13636,12 @@
           }
         },
         {
-          "Name": "SgdInitializationTolerance",
+          "Name": "StochasticGradientDescentInitilaizationTolerance",
           "Type": "Float",
           "Desc": "Run SGD to initialize LR weights, converging to this tolerance",
           "Aliases": [
-            "sgd"
+            "sgd",
+            "SgdInitializationTolerance"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -13885,7 +13886,7 @@
           }
         },
         {
-          "Name": "NumberOfPreviousIterationsToRemember",
+          "Name": "IterationsToRemember",
           "Type": "Int",
           "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
@@ -13955,11 +13956,12 @@
           }
         },
         {
-          "Name": "SgdInitializationTolerance",
+          "Name": "StochasticGradientDescentInitilaizationTolerance",
           "Type": "Float",
           "Desc": "Run SGD to initialize LR weights, converging to this tolerance",
           "Aliases": [
-            "sgd"
+            "sgd",
+            "SgdInitializationTolerance"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -14909,7 +14911,7 @@
           }
         },
         {
-          "Name": "NumberOfPreviousIterationsToRemember",
+          "Name": "IterationsToRemember",
           "Type": "Int",
           "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
@@ -14979,11 +14981,12 @@
           }
         },
         {
-          "Name": "SgdInitializationTolerance",
+          "Name": "StochasticGradientDescentInitilaizationTolerance",
           "Type": "Float",
           "Desc": "Run SGD to initialize LR weights, converging to this tolerance",
           "Aliases": [
-            "sgd"
+            "sgd",
+            "SgdInitializationTolerance"
           ],
           "Required": false,
           "SortOrder": 150.0,

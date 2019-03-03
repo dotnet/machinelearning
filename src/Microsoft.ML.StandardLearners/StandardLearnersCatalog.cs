@@ -444,7 +444,7 @@ namespace Microsoft.ML
             float l1Weight = LROptions.Defaults.L1Regularization,
             float l2Weight = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int memorySize = LROptions.Defaults.NumberOfPreviousIterationsToRemember,
+            int memorySize = LROptions.Defaults.IterationsToRemember,
             bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
@@ -485,7 +485,7 @@ namespace Microsoft.ML
             float l1Weight = LROptions.Defaults.L1Regularization,
             float l2Weight = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int memorySize = LROptions.Defaults.NumberOfPreviousIterationsToRemember,
+            int memorySize = LROptions.Defaults.IterationsToRemember,
             bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
@@ -526,7 +526,7 @@ namespace Microsoft.ML
             float l1Weight = LROptions.Defaults.L1Regularization,
             float l2Weight = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int memorySize = LROptions.Defaults.NumberOfPreviousIterationsToRemember,
+            int memorySize = LROptions.Defaults.IterationsToRemember,
             bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
