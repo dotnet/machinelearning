@@ -113,7 +113,7 @@ namespace Microsoft.ML.CLI.Commands.New
                 {
                     TrainDataset = new SystemFileInfo(settings.Dataset),
                     MlTask = taskKind,
-                    TestDataset = new SystemFileInfo(settings.TestDataset),
+                    TestDataset = settings.TestDataset == null ? null :  new SystemFileInfo(settings.TestDataset),
                     OutputName = settings.Name,
                     OutputBaseDir = settings.OutputPath.FullName,
                     LabelName = labelName,
