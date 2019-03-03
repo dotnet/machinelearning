@@ -37,7 +37,7 @@ namespace Microsoft.ML.Auto
         // If the fraction of lines having the same number of columns exceeds this, we consider the column count to be known.
         private const Double UniformColumnCountThreshold = 0.98;
 
-        public static char[] DefaultSeparators = new[] { '\t', ',', ';', ' ' };
+        public static readonly char[] DefaultSeparators = { '\t', ',', ' ', ';' };
 
         /// <summary>
         /// Attempt to detect text loader arguments.
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Auto
         /// </summary>
         public static ColumnSplitResult TrySplitColumns(MLContext context, IMultiStreamSource source, char[] separatorCandidates)
         {
-            var sparse = new[] { true, false };
+            var sparse = new[] { false, true };
             var quote = new[] { true, false };
             var foundAny = false;
             var result = default(ColumnSplitResult);
