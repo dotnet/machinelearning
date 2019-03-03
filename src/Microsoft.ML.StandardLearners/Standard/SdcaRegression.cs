@@ -31,6 +31,9 @@ namespace Microsoft.ML.Trainers
 
         public sealed class Options : OptionsBase
         {
+            /// <summary>
+            /// The loss function to use. Default is <see cref="SquaredLoss"/>.
+            /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaRegressionLossFactory LossFunction = new SquaredLossFactory();
 

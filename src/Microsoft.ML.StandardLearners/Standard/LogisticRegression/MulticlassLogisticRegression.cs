@@ -333,6 +333,9 @@ namespace Microsoft.ML.Trainers
             => TrainTransformer(trainData, initPredictor: modelParameters);
     }
 
+    /// <summary>
+    /// The model parameter class for multiclass logistic regression.
+    /// </summary>
     public sealed class MulticlassLogisticRegressionModelParameters :
         ModelParametersBase<VBuffer<float>>,
         IValueMapper,
