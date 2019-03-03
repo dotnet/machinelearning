@@ -79,7 +79,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Transform for scoring Tensorflow models. Input data column names/types must exactly match
         /// all model input names. Only the output columns specified will be generated.
-        /// If the model is already loaded please <see cref="TensorFlowTransformer(IHostEnvironment, TensorFlowModelInfo, string, string)"/> to avoid reloading of model.
+        /// If the model is already loaded please <see cref="TensorFlowTransformer(IHostEnvironment, TensorFlowModel, string, string)"/> to avoid reloading of model.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelFile">Model file path.</param>
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Transform for scoring Tensorflow models. Input data column names/types must exactly match
         /// all model input names. Only the output columns specified will be generated.
-        /// If the model is already loaded please <see cref="TensorFlowTransformer(IHostEnvironment, TensorFlowModelInfo, string[], string[])"/> to avoid reloading of model.
+        /// If the model is already loaded please <see cref="TensorFlowTransformer(IHostEnvironment, TensorFlowModel, string[], string[])"/> to avoid reloading of model.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelFile">Model file path.</param>
@@ -111,10 +111,10 @@ namespace Microsoft.ML.Transforms
         /// It is useful in a situation where user has already loaded TensorFlow model using <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/> for inspecting model schema.
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="tfModelInfo"> <see cref="TensorFlowModelInfo"/> object created with <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/>.</param>
+        /// <param name="tfModelInfo"> <see cref="TensorFlowModel"/> object created with <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/>.</param>
         /// <param name="outputColumnName">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
         /// <param name="inputColumnName">The name of the input data columns. Must match model's input names. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        internal TensorFlowTransformer(IHostEnvironment env, TensorFlowModelInfo tfModelInfo, string outputColumnName, string inputColumnName = null)
+        internal TensorFlowTransformer(IHostEnvironment env, TensorFlowModel tfModelInfo, string outputColumnName, string inputColumnName = null)
             : this(env, tfModelInfo.Session, new[] { outputColumnName }, new[] { inputColumnName ?? outputColumnName }, TensorFlowUtils.IsSavedModel(env, tfModelInfo.ModelPath) ? tfModelInfo.ModelPath : null, false)
         {
         }
@@ -126,10 +126,10 @@ namespace Microsoft.ML.Transforms
         /// It is useful in a situation where user has already loaded TensorFlow model using <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/> for inspecting model schema.
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="tfModelInfo"> <see cref="TensorFlowModelInfo"/> object created with <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/>.</param>
+        /// <param name="tfModelInfo"> <see cref="TensorFlowModel"/> object created with <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/>.</param>
         /// <param name="inputColumnNames">The name of the input data columns. Must match model's input names.</param>
         /// <param name="outputColumnNames">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
-        internal TensorFlowTransformer(IHostEnvironment env, TensorFlowModelInfo tfModelInfo, string[] outputColumnNames, string[] inputColumnNames)
+        internal TensorFlowTransformer(IHostEnvironment env, TensorFlowModel tfModelInfo, string[] outputColumnNames, string[] inputColumnNames)
             : this(env, tfModelInfo.Session, outputColumnNames, inputColumnNames, TensorFlowUtils.IsSavedModel(env, tfModelInfo.ModelPath) ? tfModelInfo.ModelPath : null, false)
         {
         }
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        internal TensorFlowTransformer(IHostEnvironment env, TensorFlowEstimator.Options options, TensorFlowModelInfo tensorFlowModel, IDataView input)
+        internal TensorFlowTransformer(IHostEnvironment env, TensorFlowEstimator.Options options, TensorFlowModel tensorFlowModel, IDataView input)
             : this(env, tensorFlowModel.Session, options.OutputColumns, options.InputColumns, TensorFlowUtils.IsSavedModel(env, options.ModelLocation) ? options.ModelLocation : null, false)
         {
 
@@ -999,7 +999,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// The options for the <see cref="TensorFlowTransformer"/>.
         /// </summary>
-        public sealed class Options : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
             /// <summary>
             /// Location of the TensorFlow model.
@@ -1102,7 +1102,7 @@ namespace Microsoft.ML.Transforms
 
         private readonly IHost _host;
         private readonly Options _options;
-        private readonly TensorFlowModelInfo _tensorFlowModel;
+        private readonly TensorFlowModel _tensorFlowModel;
         private readonly TFDataType[] _tfInputTypes;
         private readonly DataViewType[] _outputTypes;
         private TensorFlowTransformer _transformer;
@@ -1113,7 +1113,7 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        internal TensorFlowEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, TensorFlowModelInfo tensorFlowModel)
+        internal TensorFlowEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, TensorFlowModel tensorFlowModel)
             : this(env, CreateArguments(tensorFlowModel, outputColumnNames, inputColumnNames), tensorFlowModel)
         {
         }
@@ -1123,7 +1123,7 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        internal TensorFlowEstimator(IHostEnvironment env, Options options, TensorFlowModelInfo tensorFlowModel)
+        internal TensorFlowEstimator(IHostEnvironment env, Options options, TensorFlowModel tensorFlowModel)
         {
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(TensorFlowEstimator));
             _options = options;
@@ -1134,7 +1134,7 @@ namespace Microsoft.ML.Transforms
             _outputTypes = outputTuple.outputTypes;
         }
 
-        private static Options CreateArguments(TensorFlowModelInfo tensorFlowModel, string[] outputColumnNames, string[] inputColumnName)
+        private static Options CreateArguments(TensorFlowModel tensorFlowModel, string[] outputColumnNames, string[] inputColumnName)
         {
             var options = new Options();
             options.ModelLocation = tensorFlowModel.ModelPath;
