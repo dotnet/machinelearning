@@ -20,11 +20,12 @@ namespace Microsoft.ML.Auto.Test
             var trainData = textLoader.Load(dataPath);
             var validationData = context.Data.TakeRows(trainData, 100);
             trainData = context.Data.SkipRows(trainData, 100);
-            var result = context.Auto()
+            var results = context.Auto()
                 .CreateBinaryClassificationExperiment(0)
                 .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = DatasetUtil.UciAdultLabel });
-
-            Assert.IsTrue(result.Max(i => i.ValidationMetrics.Accuracy) > 0.80);
+            var best = results.Best();
+            Assert.IsTrue(best.ValidationMetrics.Accuracy > 0.80);
+            Assert.IsNotNull(best.Estimator);
         }
 
         [TestMethod]

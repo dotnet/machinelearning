@@ -14,6 +14,7 @@ namespace Microsoft.ML.Auto
         public Exception Exception { get; private set; }
         public string TrainerName { get; private set; }
         public int RuntimeInSeconds { get; private set; }
+        public IEstimator<ITransformer> Estimator { get; private set; }
 
         internal Pipeline Pipeline { get; private set; }
         internal int PipelineInferenceTimeInSeconds { get; private set; }
@@ -21,6 +22,7 @@ namespace Microsoft.ML.Auto
         internal RunResult(
             ITransformer model,
             T metrics,
+            IEstimator<ITransformer> estimator,
             Pipeline pipeline,
             Exception exception,
             int runtimeInSeconds,
@@ -29,6 +31,7 @@ namespace Microsoft.ML.Auto
             Model = model;
             ValidationMetrics = metrics;
             Pipeline = pipeline;
+            Estimator = estimator;
             Exception = exception;
             RuntimeInSeconds = runtimeInSeconds;
             PipelineInferenceTimeInSeconds = pipelineInferenceTimeInSeconds;

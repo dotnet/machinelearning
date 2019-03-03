@@ -97,8 +97,9 @@ namespace Microsoft.ML.Auto
                     // evaluate pipeline
                     runResult = ProcessPipeline(pipeline);
 
-                    if (preprocessorTransform != null)
+                    if (_preFeaturizers != null)
                     {
+                        runResult.Estimator = _preFeaturizers.Append(runResult.Estimator);
                         runResult.Model = preprocessorTransform.Append(runResult.Model);
                     }
 
@@ -108,7 +109,7 @@ namespace Microsoft.ML.Auto
                 catch (Exception ex)
                 {
                     WriteDebugLog(DebugStream.Exception, $"{pipeline?.Trainer} Crashed {ex}");
-                    runResult = new SuggestedPipelineResult<T>(null, null, pipeline, -1, ex);
+                    runResult = new SuggestedPipelineResult<T>(null, null, null, pipeline, -1, ex);
                 }
 
                 var iterationResult = runResult.ToIterationResult();
@@ -149,19 +150,22 @@ namespace Microsoft.ML.Auto
 
             WriteDebugLog(DebugStream.RunResult, $"Processing pipeline {commandLineStr}.");
 
+            var pipelineEstimator = pipeline.ToEstimator();
+
             SuggestedPipelineResult<T> runResult;
+
             try
             {
-                var pipelineModel = pipeline.Fit(_trainData);
+                var pipelineModel = pipelineEstimator.Fit(_trainData);
                 var scoredValidationData = pipelineModel.Transform(_validationData);
                 var metrics = GetEvaluatedMetrics(scoredValidationData);
                 var score = _metricsAgent.GetScore(metrics);
-                runResult = new SuggestedPipelineResult<T>(metrics, pipelineModel, pipeline, score, null);
+                runResult = new SuggestedPipelineResult<T>(metrics, pipelineEstimator, pipelineModel, pipeline, score, null);
             }
             catch(Exception ex)
             {
                 WriteDebugLog(DebugStream.Exception, $"{pipeline.Trainer} Crashed {ex}");
-                runResult = new SuggestedPipelineResult<T>(null, null, pipeline, 0, ex);
+                runResult = new SuggestedPipelineResult<T>(null, pipelineEstimator, null, pipeline, 0, ex);
             }
 
             // save pipeline run

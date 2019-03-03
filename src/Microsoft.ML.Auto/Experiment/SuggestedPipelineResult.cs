@@ -33,23 +33,26 @@ namespace Microsoft.ML.Auto
     internal class SuggestedPipelineResult<T> : SuggestedPipelineResult
     {
         public readonly T EvaluatedMetrics;
+        public IEstimator<ITransformer> Estimator { get; set; }
         public ITransformer Model { get; set; }
         public Exception Exception { get; set; }
 
         public int RuntimeInSeconds { get; set; }
         public int PipelineInferenceTimeInSeconds { get; set; }
 
-        public SuggestedPipelineResult(T evaluatedMetrics, ITransformer model, SuggestedPipeline pipeline, double score, Exception exception)
+        public SuggestedPipelineResult(T evaluatedMetrics, IEstimator<ITransformer> estimator, 
+            ITransformer model, SuggestedPipeline pipeline, double score, Exception exception)
             : base(pipeline, score, exception == null)
         {
             EvaluatedMetrics = evaluatedMetrics;
+            Estimator = estimator;
             Model = model;
             Exception = exception;
         }
 
         public RunResult<T> ToIterationResult()
         {
-            return new RunResult<T>(Model, EvaluatedMetrics, Pipeline.ToPipeline(), Exception, RuntimeInSeconds, PipelineInferenceTimeInSeconds);
+            return new RunResult<T>(Model, EvaluatedMetrics, Estimator, Pipeline.ToPipeline(), Exception, RuntimeInSeconds, PipelineInferenceTimeInSeconds);
         }
     }
 }

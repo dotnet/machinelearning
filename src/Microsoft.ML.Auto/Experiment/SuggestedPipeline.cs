@@ -113,12 +113,6 @@ namespace Microsoft.ML.Auto
             return pipeline;
         }
 
-        public ITransformer Fit(IDataView trainData)
-        {
-            var estimator = ToEstimator();
-            return estimator.Fit(trainData);
-        }
-
         private void AddNormalizationTransforms()
         {
             // get learner
