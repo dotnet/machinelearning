@@ -8,6 +8,7 @@ namespace Microsoft.ML.Samples.Static
 {
     public class FastTreeRegressionExample
     {
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
         public static void FastTreeRegression()
         {
             // Downloading a regression dataset from github.com/dotnet/machinelearning
@@ -47,10 +48,10 @@ namespace Microsoft.ML.Samples.Static
 
             var cvResults = mlContext.Regression.CrossValidate(data, learningPipeline, r => r.label, numFolds: 5);
             var averagedMetrics = (
-                L1: cvResults.Select(r => r.metrics.L1).Average(),
-                L2: cvResults.Select(r => r.metrics.L2).Average(),
-                LossFn: cvResults.Select(r => r.metrics.LossFn).Average(),
-                Rms: cvResults.Select(r => r.metrics.Rms).Average(),
+                L1: cvResults.Select(r => r.metrics.MeanAbsoluteError).Average(),
+                L2: cvResults.Select(r => r.metrics.MeanSquaredError).Average(),
+                LossFn: cvResults.Select(r => r.metrics.LossFunction).Average(),
+                Rms: cvResults.Select(r => r.metrics.RootMeanSquaredError).Average(),
                 RSquared: cvResults.Select(r => r.metrics.RSquared).Average()
             );
             Console.WriteLine($"L1 - {averagedMetrics.L1}");    // 3.091095

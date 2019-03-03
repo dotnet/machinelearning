@@ -8,7 +8,7 @@ using Microsoft.Data.DataView;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Evaluation results for anomaly detection.
+    /// Evaluation results for anomaly detection(unsupervised learning algorithm).
     /// </summary>
     public sealed class AnomalyDetectionMetrics
     {
@@ -20,7 +20,7 @@ namespace Microsoft.ML.Data
         /// a randomly chosen positive instance higher than a randomly chosen negative one
         /// (assuming 'positive' ranks higher than 'negative').
         /// </remarks>
-        public double Auc { get; }
+        public double AreaUnderRocCurve { get; }
 
         /// <summary>
         /// Detection rate at K false positives.
@@ -34,13 +34,13 @@ namespace Microsoft.ML.Data
         ///  Predicted Anomalies     :         TP                |           FP
         ///  Predicted Non-Anomalies :         FN                |           TN
         ///  </remarks>
-        public double DrAtK { get; }
+        public double DetectionRateAtKFalsePositives { get; }
 
         internal AnomalyDetectionMetrics(IExceptionContext ectx, DataViewRow overallResult)
         {
             double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
-            Auc = FetchDouble(BinaryClassifierEvaluator.Auc);
-            DrAtK = FetchDouble(AnomalyDetectionEvaluator.OverallMetrics.DrAtK);
+            AreaUnderRocCurve = FetchDouble(BinaryClassifierEvaluator.Auc);
+            DetectionRateAtKFalsePositives = FetchDouble(AnomalyDetectionEvaluator.OverallMetrics.DrAtK);
         }
     }
 }

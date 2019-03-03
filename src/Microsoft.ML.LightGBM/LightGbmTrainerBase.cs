@@ -75,17 +75,17 @@ namespace Microsoft.ML.LightGBM
             LightGbmTrainerOptions.LearningRate = learningRate;
             LightGbmTrainerOptions.NumBoostRound = numBoostRound;
 
-            LightGbmTrainerOptions.LabelColumn = label.Name;
-            LightGbmTrainerOptions.FeatureColumn = featureColumn;
-            LightGbmTrainerOptions.WeightColumn = weightColumn;
-            LightGbmTrainerOptions.GroupIdColumn = groupIdColumn;
+            LightGbmTrainerOptions.LabelColumnName = label.Name;
+            LightGbmTrainerOptions.FeatureColumnName = featureColumn;
+            LightGbmTrainerOptions.ExampleWeightColumnName = weightColumn;
+            LightGbmTrainerOptions.RowGroupColumnName = groupIdColumn;
 
             InitParallelTraining();
         }
 
         private protected LightGbmTrainerBase(IHostEnvironment env, string name, Options options, SchemaShape.Column label)
-           : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label,
-                 TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn), TrainerUtils.MakeU4ScalarColumn(options.GroupIdColumn))
+           : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), label,
+                 TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName), TrainerUtils.MakeU4ScalarColumn(options.RowGroupColumnName))
         {
             Host.CheckValue(options, nameof(options));
 

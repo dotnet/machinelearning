@@ -6,7 +6,7 @@ using System;
 using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Data
 {

@@ -11,13 +11,13 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
 // This is for deserialization from a model repository.
@@ -383,7 +383,7 @@ namespace Microsoft.ML.Trainers
 
         void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator) => SaveAsIni(writer, schema, calibrator);
 
-        public void GetFeatureWeights(ref VBuffer<float> weights)
+        void IHaveFeatureWeights.GetFeatureWeights(ref VBuffer<float> weights)
         {
             Weight.CopyTo(ref weights);
         }

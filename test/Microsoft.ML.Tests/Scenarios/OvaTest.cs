@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.Online;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Scenarios
 
             // Metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-            Assert.True(metrics.AccuracyMicro > 0.94);
+            Assert.True(metrics.MicroAccuracy > 0.94);
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Scenarios
 
             // Metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-            Assert.True(metrics.AccuracyMicro > 0.71);
+            Assert.True(metrics.MicroAccuracy > 0.71);
         }
 
         [Fact]
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Scenarios
 
             // Metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-            Assert.True(metrics.AccuracyMicro > 0.99);
+            Assert.True(metrics.MicroAccuracy > 0.99);
         }
 
         [Fact]
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Scenarios
 
             // Metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-            Assert.True(metrics.AccuracyMicro > 0.83);
+            Assert.True(metrics.MicroAccuracy > 0.83);
         }
     }
 }

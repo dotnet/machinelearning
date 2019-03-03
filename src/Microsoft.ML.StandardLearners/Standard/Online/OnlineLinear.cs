@@ -10,14 +10,15 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 
-namespace Microsoft.ML.Trainers.Online
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// Arguments class for online linear trainers.
     /// </summary>
-    public abstract class OnlineLinearOptions : LearnerInputBaseWithLabel
+    public abstract class OnlineLinearOptions : TrainerInputBaseWithLabel
     {
         /// <summary>
         /// Number of passes through the training dataset.
@@ -130,7 +131,7 @@ namespace Microsoft.ML.Trainers.Online
                 // unless we have a lot of features.
                 if (predictor != null)
                 {
-                    predictor.GetFeatureWeights(ref Weights);
+                    ((IHaveFeatureWeights)predictor).GetFeatureWeights(ref Weights);
                     VBufferUtils.Densify(ref Weights);
                     Bias = predictor.Bias;
                 }
@@ -252,7 +253,7 @@ namespace Microsoft.ML.Trainers.Online
         private protected virtual bool NeedCalibration => false;
 
         private protected OnlineLinearTrainer(OnlineLinearOptions options, IHostEnvironment env, string name, SchemaShape.Column label)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(options.InitialWeights))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), label, TrainerUtils.MakeR4ScalarWeightColumn(options.InitialWeights))
         {
             Contracts.CheckValue(options, nameof(options));
             Contracts.CheckUserArg(options.NumberOfIterations > 0, nameof(options.NumberOfIterations), UserErrorPositive);

@@ -124,7 +124,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 // Linux case
                 var expectedUnixL2Error = 0.616821448679879; // Linux baseline
-                Assert.InRange(metrices.L2, expectedUnixL2Error - tolerance, expectedUnixL2Error + tolerance);
+                Assert.InRange(metrices.MeanSquaredError, expectedUnixL2Error - tolerance, expectedUnixL2Error + tolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 // Windows case
                 var expectedWindowsL2Error = 0.61528733643754685; // Windows baseline
-                Assert.InRange(metrices.L2, expectedWindowsL2Error - tolerance, expectedWindowsL2Error + tolerance);
+                Assert.InRange(metrices.MeanSquaredError, expectedWindowsL2Error - tolerance, expectedWindowsL2Error + tolerance);
             }
 
             var modelWithValidation = pipeline.Fit(data, testData);
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 score: nameof(MatrixElementForScore.Score));
 
             // Native test. Just check the pipeline runs.
-            Assert.True(metrics.L2 < 0.1);
+            Assert.True(metrics.MeanSquaredError < 0.1);
 
             // Create two two entries for making prediction. Of course, the prediction value, Score, is unknown so it's default.
             var testMatrix = new List<MatrixElementForScore>() {
@@ -328,7 +328,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
 
             // Make sure the prediction error is not too large.
-            Assert.InRange(metrics.L2, 0, 0.1);
+            Assert.InRange(metrics.MeanSquaredError, 0, 0.1);
 
             foreach (var pred in mlContext.Data.CreateEnumerable<MatrixElementZeroBasedForScore>(prediction, false))
                 // Test data contains no out-of-range indexes (i.e., all indexes can be found in the training matrix),
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
 
             // Make sure the prediction error is not too large.
-            Assert.InRange(metrics.L2, 0, 0.0016);
+            Assert.InRange(metrics.MeanSquaredError, 0, 0.0016);
 
             // Create data for testing. Note that the 2nd element is not specified in the training data so it should
             // be close to the constant specified by s.C = 0.15. Comparing with the data structure used in training phase,
@@ -577,7 +577,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
 
             // Make sure the prediction error is not too large.
-            Assert.InRange(metrics.L2, 0, 0.0016);
+            Assert.InRange(metrics.MeanSquaredError, 0, 0.0016);
 
             // Create data for testing.
             var testDataMatrix = new List<OneClassMatrixElementZeroBasedForScore>();

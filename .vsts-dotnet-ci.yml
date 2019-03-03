@@ -31,6 +31,15 @@ phases:
   parameters:
     name: Centos
     buildScript: ./build.sh
+    customMatrixes:
+      Build_Debug_Intrinsics:
+        _configuration: Debug-Intrinsics
+        _config_short: DI
+        _includeBenchmarkData: false
+      Build_Release:
+        _configuration: Release
+        _config_short: R
+        _includeBenchmarkData: true
     queue:
       name: Hosted Ubuntu 1604
       container: CentosContainer
@@ -39,6 +48,15 @@ phases:
   parameters:
     name: Ubuntu
     buildScript: ./build.sh
+    customMatrixes:
+      Build_Debug:
+        _configuration: Debug
+        _config_short: D
+        _includeBenchmarkData: false
+      Build_Release_Intrinsics:
+        _configuration: Release-Intrinsics
+        _config_short: RI
+        _includeBenchmarkData: true
     queue:
       name: Hosted Ubuntu 1604
       container: UbuntuContainer

@@ -58,7 +58,7 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             // Preview of the DefaultTextFeatures column obtained after processing the input.
-            var defaultColumn = transformedData_default.GetColumn<VBuffer<float>>(ml, defaultColumnName);
+            var defaultColumn = transformedData_default.GetColumn<VBuffer<float>>(transformedData_default.Schema[defaultColumnName]);
             printHelper(defaultColumnName, defaultColumn);
 
             // DefaultTextFeatures column obtained post-transformation.
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // 0 0.1230915 0.1230915 0.1230915 0.1230915 0.246183 0.246183 0.246183 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1230915 0 0 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.3692745 0.246183 0.246183 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.246183 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.2886751 0 0 0 0 0 0 0 0.2886751 0.5773503 0.2886751 0.2886751 0.2886751 0.2886751 0.2886751 0.2886751
 
             // Preview of the CustomizedTextFeatures column obtained after processing the input.
-            var customizedColumn = transformedData_customized.GetColumn<VBuffer<float>>(ml, customizedColumnName);
+            var customizedColumn = transformedData_customized.GetColumn<VBuffer<float>>(transformedData_customized.Schema[customizedColumnName]);
             printHelper(customizedColumnName, customizedColumn);
 
             // CustomizedTextFeatures column obtained post-transformation.

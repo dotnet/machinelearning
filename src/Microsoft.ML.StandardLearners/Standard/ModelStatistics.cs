@@ -299,7 +299,7 @@ namespace Microsoft.ML.Trainers
             var names = default(VBuffer<ReadOnlyMemory<char>>);
 
             featureColumn.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref names);
-            _env.Assert(names.Length > 0, "FeatureColumn has no metadata.");
+            _env.Assert(names.Length > 0, "FeatureColumnName has no metadata.");
 
             ReadOnlySpan<float> stdErrorValues = _coeffStdError.Value.GetValues();
             const Double sqrt2 = 1.41421356237; // Math.Sqrt(2);
@@ -438,7 +438,7 @@ namespace Microsoft.ML.Trainers
             builder.AddPrimitiveValue("BiasPValue", NumberDataViewType.Single, biasPValue);
 
             var weights = default(VBuffer<float>);
-            parent.GetFeatureWeights(ref weights);
+            ((IHaveFeatureWeights)parent).GetFeatureWeights(ref weights);
             var estimate = default(VBuffer<float>);
             var stdErr = default(VBuffer<float>);
             var zScore = default(VBuffer<float>);

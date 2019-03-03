@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.FactorizationMachine;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -32,8 +32,8 @@ namespace Microsoft.ML.Samples.Dynamic
                     FieldAwareFactorizationMachine(
                         new FieldAwareFactorizationMachineBinaryClassificationTrainer.Options
                         {
-                            FeatureColumn = "Features",
-                            LabelColumn = "Sentiment",
+                            FeatureColumnName = "Features",
+                            LabelColumnName = "Sentiment",
                             LearningRate = 0.1f,
                             NumberOfIterations = 10
                         }));

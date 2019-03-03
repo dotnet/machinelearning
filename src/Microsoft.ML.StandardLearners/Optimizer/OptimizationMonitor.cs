@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Float = System.Single;
 
 namespace Microsoft.ML.Numeric
 {
@@ -43,8 +42,8 @@ namespace Microsoft.ML.Numeric
         private readonly ITerminationCriterion _termCrit;
         private readonly int _gradCheckInterval;
         // Reusable vectors utilized by the gradient tester.
-        private VBuffer<Float> _newGrad;
-        private VBuffer<Float> _newX;
+        private VBuffer<float> _newGrad;
+        private VBuffer<float> _newX;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GradientCheckingMonitor"/> class.
@@ -80,13 +79,13 @@ namespace Microsoft.ML.Numeric
             return terminate;
         }
 
-        private Float Check(Optimizer.OptimizerState state)
+        private float Check(Optimizer.OptimizerState state)
         {
             Console.Error.Write(_checkingMessage);
             Console.Error.Flush();
             VBuffer<float> x = state.X;
             var lastDir = state.LastDir;
-            Float checkResult = GradientTester.Test(state.Function, in x, ref lastDir, true, ref _newGrad, ref _newX);
+            float checkResult = GradientTester.Test(state.Function, in x, ref lastDir, true, ref _newGrad, ref _newX);
             for (int i = 0; i < _checkingMessage.Length; i++)
                 Console.Error.Write('\b');
             return checkResult;
@@ -129,10 +128,10 @@ namespace Microsoft.ML.Numeric
     /// </summary>
     internal sealed class MeanImprovementCriterion : ITerminationCriterion
     {
-        private readonly Float _tol;
-        private readonly Float _lambda;
+        private readonly float _tol;
+        private readonly float _lambda;
         private readonly int _maxIterations;
-        private Float _unnormMeanImprovement;
+        private float _unnormMeanImprovement;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MeanImprovementCriterion"/> class.
@@ -140,7 +139,7 @@ namespace Microsoft.ML.Numeric
         /// <param name="tol">The tolerance parameter</param>
         /// <param name="lambda">The geometric weighting factor. Higher means more heavily weighted toward older values.</param>
         /// <param name="maxIterations">Maximum amount of iteration</param>
-        public MeanImprovementCriterion(Float tol = (Float)1e-4, Float lambda = (Float)0.5, int maxIterations = int.MaxValue)
+        public MeanImprovementCriterion(float tol = (float)1e-4, float lambda = (float)0.5, int maxIterations = int.MaxValue)
         {
             _tol = tol;
             _lambda = lambda;
@@ -150,7 +149,7 @@ namespace Microsoft.ML.Numeric
         /// <summary>
         /// When criterion drops below this value, optimization is terminated
         /// </summary>
-        public Float Tolerance
+        public float Tolerance
         {
             get { return _tol; }
         }
@@ -169,7 +168,7 @@ namespace Microsoft.ML.Numeric
         {
             _unnormMeanImprovement = (state.LastValue - state.Value) + _lambda * _unnormMeanImprovement;
 
-            Float crit = _unnormMeanImprovement * (1 - _lambda) / (1 - MathUtils.Pow(_lambda, state.Iter));
+            float crit = _unnormMeanImprovement * (1 - _lambda) / (1 - MathUtils.Pow(_lambda, state.Iter));
             message = string.Format("{0:0.000e0}", crit);
             return (crit < _tol || state.Iter >= _maxIterations);
         }
@@ -193,14 +192,14 @@ namespace Microsoft.ML.Numeric
     internal sealed class MeanRelativeImprovementCriterion : ITerminationCriterion
     {
         private readonly int _n;
-        private readonly Float _tol;
+        private readonly float _tol;
         private readonly int _maxIterations;
-        private Queue<Float> _pastValues;
+        private Queue<float> _pastValues;
 
         /// <summary>
         /// When criterion drops below this value, optimization is terminated
         /// </summary>
-        public Float Tolerance
+        public float Tolerance
         {
             get { return _tol; }
         }
@@ -219,12 +218,12 @@ namespace Microsoft.ML.Numeric
         /// <param name="tol">tolerance level</param>
         /// <param name="n">number of past iterations to average over</param>
         /// <param name="maxIterations">Maximum amount of iteration</param>
-        public MeanRelativeImprovementCriterion(Float tol = (Float)1e-4, int n = 5, int maxIterations = int.MaxValue)
+        public MeanRelativeImprovementCriterion(float tol = (float)1e-4, int n = 5, int maxIterations = int.MaxValue)
         {
             _tol = tol;
             _n = n;
             _maxIterations = maxIterations;
-            _pastValues = new Queue<Float>(n);
+            _pastValues = new Queue<float>(n);
         }
 
         public string FriendlyName { get { return ToString(); } }
@@ -238,7 +237,7 @@ namespace Microsoft.ML.Numeric
         /// <returns>true if criterion is less than tolerance</returns>
         public bool Terminate(Optimizer.OptimizerState state, out string message)
         {
-            Float value = state.Value;
+            float value = state.Value;
 
             if (_pastValues.Count < _n)
             {
@@ -247,9 +246,9 @@ namespace Microsoft.ML.Numeric
                 return false;
             }
 
-            Float avgImprovement = (_pastValues.Dequeue() - value) / _n;
+            float avgImprovement = (_pastValues.Dequeue() - value) / _n;
             _pastValues.Enqueue(value);
-            Float val = avgImprovement / Math.Abs(value);
+            float val = avgImprovement / Math.Abs(value);
             message = string.Format("{0,0:0.0000e0}", val);
             return (val < _tol || state.Iter >= _maxIterations);
         }
@@ -282,14 +281,14 @@ namespace Microsoft.ML.Numeric
     /// </remarks>
     internal sealed class UpperBoundOnDistanceWithL2 : StaticTerminationCriterion
     {
-        private readonly Float _sigmaSq;
-        private readonly Float _tol;
-        private Float _bestBoundOnMin;
+        private readonly float _sigmaSq;
+        private readonly float _tol;
+        private float _bestBoundOnMin;
 
         /// <summary>
         /// When criterion drops below this value, optimization is terminated
         /// </summary>
-        public Float Tolerance
+        public float Tolerance
         {
             get { return _tol; }
         }
@@ -299,13 +298,13 @@ namespace Microsoft.ML.Numeric
         /// </summary>
         /// <param name="sigmaSq">value of sigmaSq in L2 regularizer</param>
         /// <param name="tol">tolerance level</param>
-        public UpperBoundOnDistanceWithL2(Float sigmaSq = 1, Float tol = (Float)1e-2)
+        public UpperBoundOnDistanceWithL2(float sigmaSq = 1, float tol = (float)1e-2)
         {
             _sigmaSq = sigmaSq;
             _tol = tol;
 
             // REVIEW: Why shouldn't this be "Reset"?
-            _bestBoundOnMin = Float.NegativeInfinity;
+            _bestBoundOnMin = float.NegativeInfinity;
         }
 
         public override string FriendlyName { get { return ToString(); } }
@@ -320,11 +319,11 @@ namespace Microsoft.ML.Numeric
         public override bool Terminate(Optimizer.OptimizerState state, out string message)
         {
             var gradient = state.Grad;
-            Float gradientNormSquared = VectorUtils.NormSquared(gradient);
-            Float value = state.Value;
-            Float newBoundOnMin = value - (Float)0.5 * _sigmaSq * gradientNormSquared;
+            float gradientNormSquared = VectorUtils.NormSquared(gradient);
+            float value = state.Value;
+            float newBoundOnMin = value - (float)0.5 * _sigmaSq * gradientNormSquared;
             _bestBoundOnMin = Math.Max(_bestBoundOnMin, newBoundOnMin);
-            Float val = (value - _bestBoundOnMin) / Math.Abs(value);
+            float val = (value - _bestBoundOnMin) / Math.Abs(value);
             message = string.Format("{0,0:0.0000e0}", val);
             return (val < _tol);
         }
@@ -347,12 +346,12 @@ namespace Microsoft.ML.Numeric
     /// </remarks>
     internal sealed class RelativeNormGradient : StaticTerminationCriterion
     {
-        private readonly Float _tol;
+        private readonly float _tol;
 
         /// <summary>
         /// When criterion drops below this value, optimization is terminated
         /// </summary>
-        public Float Tolerance
+        public float Tolerance
         {
             get { return _tol; }
         }
@@ -361,7 +360,7 @@ namespace Microsoft.ML.Numeric
         /// Create a RelativeNormGradient with the supplied tolerance
         /// </summary>
         /// <param name="tol">tolerance level</param>
-        public RelativeNormGradient(Float tol = (Float)1e-4)
+        public RelativeNormGradient(float tol = (float)1e-4)
         {
             _tol = tol;
         }
@@ -377,8 +376,8 @@ namespace Microsoft.ML.Numeric
         public override bool Terminate(Optimizer.OptimizerState state, out string message)
         {
             var grad = state.Grad;
-            Float norm = VectorUtils.Norm(grad);
-            Float val = norm / Math.Abs(state.Value);
+            float norm = VectorUtils.Norm(grad);
+            float val = norm / Math.Abs(state.Value);
             message = string.Format("{0,0:0.0000e0}", val);
             return val < _tol;
         }

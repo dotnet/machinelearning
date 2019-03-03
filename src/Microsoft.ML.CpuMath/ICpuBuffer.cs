@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Internal.CpuMath.Core;
-using Float = System.Single;
 
 namespace Microsoft.ML.Internal.CpuMath
 {
@@ -40,7 +39,7 @@ namespace Microsoft.ML.Internal.CpuMath
     /// A logical math vector.
     /// </summary>
     [BestFriend]
-    internal interface ICpuVector : ICpuBuffer<Float>
+    internal interface ICpuVector : ICpuBuffer<float>
     {
         /// <summary>
         /// The vector size
@@ -50,11 +49,11 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <summary>
         /// Get the i'th component of the vector.
         /// </summary>
-        Float GetValue(int i);
+        float GetValue(int i);
     }
 
     [BestFriend]
-    internal interface ICpuMatrix : ICpuBuffer<Float>
+    internal interface ICpuMatrix : ICpuBuffer<float>
     {
         /// <summary>
         /// The row count
@@ -76,7 +75,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <summary>
         /// Copy the values for the given row into dst, starting at slot ivDst.
         /// </summary>
-        void CopyTo(int row, Float[] dst, ref int ivDst);
+        void CopyTo(int row, float[] dst, ref int ivDst);
 
         /// <summary>
         /// Zero out the items with the given indices.

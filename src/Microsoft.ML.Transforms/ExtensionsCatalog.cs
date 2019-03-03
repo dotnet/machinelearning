@@ -21,7 +21,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Creates a new output column, or replaces the source with a new column
-        /// (depending on whether the <paramref name="outputColumnName"/> is given a value, or left to null)
+        /// (depending on whether the <paramref name="inputColumnName"/> is given a value, or left to null)
         /// of boolean type, with the same number of slots as the input column. The value in the output column
         /// is true if the value in the input column is missing.
         /// </summary>

@@ -4,7 +4,7 @@
 
 using Microsoft.ML;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators

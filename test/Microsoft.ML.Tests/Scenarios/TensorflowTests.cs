@@ -7,7 +7,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -36,7 +35,7 @@ namespace Microsoft.ML.Scenarios
             var pipeEstimator = new ImageLoadingEstimator(mlContext, imageFolder, ("ImageReal", "ImagePath"))
                     .Append(new ImageResizingEstimator(mlContext, "ImageCropped", imageHeight, imageWidth, "ImageReal"))
                     .Append(new ImagePixelExtractingEstimator(mlContext, "Input", "ImageCropped", interleave: true))
-                    .Append(mlContext.Transforms.ScoreTensorFlowModel(model_location, "Output", "Input"))
+                    .Append(mlContext.Model.LoadTensorFlowModel(model_location).ScoreTensorFlowModel("Output", "Input"))
                     .Append(new ColumnConcatenatingEstimator(mlContext, "Features", "Output"))
                     .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
                     .AppendCacheCheckpoint(mlContext)
@@ -47,7 +46,7 @@ namespace Microsoft.ML.Scenarios
             var predictions = transformer.Transform(data);
 
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-            Assert.Equal(1, metrics.AccuracyMicro, 2);
+            Assert.Equal(1, metrics.MicroAccuracy, 2);
 
             var predictFunction = transformer.CreatePredictionEngine<CifarData, CifarPrediction>(mlContext);
             var prediction = predictFunction.Predict(new CifarData()

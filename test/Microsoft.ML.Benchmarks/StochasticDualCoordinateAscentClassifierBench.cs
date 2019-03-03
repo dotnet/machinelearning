@@ -44,8 +44,8 @@ namespace Microsoft.ML.Benchmarks
         {
             if (_metrics != null)
                 yield return new Metric(
-                    nameof(MultiClassClassifierMetrics.AccuracyMacro),
-                    _metrics.AccuracyMacro.ToString("0.##", CultureInfo.InvariantCulture));
+                    nameof(MultiClassClassifierMetrics.MacroAccuracy),
+                    _metrics.MacroAccuracy.ToString("0.##", CultureInfo.InvariantCulture));
         }
 
         [Benchmark]
