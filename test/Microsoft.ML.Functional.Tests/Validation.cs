@@ -7,7 +7,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.Mkl;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Functional.Tests

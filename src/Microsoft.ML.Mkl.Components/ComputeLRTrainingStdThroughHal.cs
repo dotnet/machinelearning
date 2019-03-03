@@ -5,7 +5,7 @@
 using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Trainers.Mkl;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers
 {

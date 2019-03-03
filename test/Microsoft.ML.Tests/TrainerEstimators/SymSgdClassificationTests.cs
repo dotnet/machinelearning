@@ -4,7 +4,7 @@
 
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.Mkl;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
