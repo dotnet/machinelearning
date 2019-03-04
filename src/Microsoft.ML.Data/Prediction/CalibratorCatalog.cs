@@ -8,7 +8,6 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.Model;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(CalibratorTransformer<PlattCalibrator>), typeof(PlattCalibratorTransformer), null,
@@ -17,8 +16,8 @@ using Microsoft.ML.Trainers;
 [assembly: LoadableClass(typeof(CalibratorTransformer<NaiveCalibrator>), typeof(NaiveCalibratorTransformer), null,
     typeof(SignatureLoadModel), "", NaiveCalibratorTransformer.LoadName)]
 
-[assembly: LoadableClass(typeof(CalibratorTransformer<PavCalibrator>), typeof(PairAdjacentViolatorsCalibratorTransformer), null,
-    typeof(SignatureLoadModel), "", PairAdjacentViolatorsCalibratorTransformer.LoadName)]
+[assembly: LoadableClass(typeof(CalibratorTransformer<IsotonicCalibrator>), typeof(IsotonicCalibratorTransformer), null,
+    typeof(SignatureLoadModel), "", IsotonicCalibratorTransformer.LoadName)]
 
 namespace Microsoft.ML.Calibrators
 {
@@ -391,7 +390,7 @@ namespace Microsoft.ML.Calibrators
     /// <remarks>
     /// Calibrator finds a stepwise constant function (using the Pool Adjacent Violators Algorithm aka PAV) that minimizes the squared error.
     /// </remarks>
-    public sealed class IsotonicCalibratorEstimator : CalibratorEstimatorBase<PavCalibrator>
+    public sealed class IsotonicCalibratorEstimator : CalibratorEstimatorBase<IsotonicCalibrator>
     {
         /// <summary>
         /// Initializes a new instance of <see cref="IsotonicCalibratorEstimator"/>
@@ -411,25 +410,25 @@ namespace Microsoft.ML.Calibrators
         }
 
         [BestFriend]
-        private protected override CalibratorTransformer<PavCalibrator> Create(IHostEnvironment env, PavCalibrator calibrator)
-            => new PairAdjacentViolatorsCalibratorTransformer(env, calibrator);
+        private protected override CalibratorTransformer<IsotonicCalibrator> Create(IHostEnvironment env, IsotonicCalibrator calibrator)
+            => new IsotonicCalibratorTransformer(env, calibrator);
 
     }
 
     /// <summary>
     /// The <see cref="ITransformer"/> implementation obtained by training a <see cref="IsotonicCalibratorEstimator"/>
     /// </summary>
-    public sealed class PairAdjacentViolatorsCalibratorTransformer : CalibratorTransformer<PavCalibrator>
+    public sealed class IsotonicCalibratorTransformer : CalibratorTransformer<IsotonicCalibrator>
     {
         internal const string LoadName = "PavCalibratTransf";
 
-        internal PairAdjacentViolatorsCalibratorTransformer(IHostEnvironment env, PavCalibrator calibrator)
+        internal IsotonicCalibratorTransformer(IHostEnvironment env, IsotonicCalibrator calibrator)
           : base(env, calibrator, LoadName)
         {
         }
 
         // Factory method for SignatureLoadModel.
-        private PairAdjacentViolatorsCalibratorTransformer(IHostEnvironment env, ModelLoadContext ctx)
+        private IsotonicCalibratorTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, ctx, LoadName)
         {
         }
