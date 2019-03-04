@@ -15,7 +15,7 @@ namespace Microsoft.ML
     public static class KMeansClusteringExtensions
     {
         /// <summary>
-        /// Train a KMeans++ clustering algorithm.
+        /// Train a KMeans++ clustering algorithm using <see cref="KMeansPlusPlusTrainer"/>.
         /// </summary>
         /// <param name="catalog">The clustering catalog trainer object.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
@@ -45,7 +45,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Train a KMeans++ clustering algorithm.
+        /// Train a KMeans++ clustering algorithm using <see cref="KMeansPlusPlusTrainer"/>.
         /// </summary>
         /// <param name="catalog">The clustering catalog trainer object.</param>
         /// <param name="options">Algorithm advanced options.</param>
