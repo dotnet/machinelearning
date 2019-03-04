@@ -58,8 +58,9 @@ namespace Microsoft.ML.Benchmarks
             IDataView data = loader.Load(_irisDataPath);
 
             var pipeline = new ColumnConcatenatingEstimator(env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
+                .Append(env.Transforms.Conversion.MapValueToKey("Label"))
                 .Append(env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
-                    new SdcaMultiClassTrainer.Options {NumThreads = 1, ConvergenceTolerance = 1e-2f, }));
+                    new SdcaMultiClassTrainer.Options { NumThreads = 1, ConvergenceTolerance = 1e-2f, }));
 
             var model = pipeline.Fit(data);
 
@@ -94,7 +95,7 @@ namespace Microsoft.ML.Benchmarks
 
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                    new SdcaNonCalibratedBinaryTrainer.Options {NumThreads = 1, ConvergenceTolerance = 1e-2f, }));
+                    new SdcaNonCalibratedBinaryTrainer.Options { NumThreads = 1, ConvergenceTolerance = 1e-2f, }));
 
             var model = pipeline.Fit(data);
 

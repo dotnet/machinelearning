@@ -71,6 +71,7 @@ namespace Microsoft.ML.Benchmarks
             IDataView data = loader.Load(dataPath);
 
             var pipeline = new ColumnConcatenatingEstimator(mlContext, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
             return pipeline.Fit(data);
@@ -93,8 +94,9 @@ namespace Microsoft.ML.Benchmarks
             };
 
             var loader = mlContext.Data.LoadFromTextFile(_sentimentDataPath, arguments);
-            var text = mlContext.Transforms.Text.FeaturizeText("WordEmbeddings", new List<string> { "SentimentText" }, 
-                new TextFeaturizingEstimator.Options { 
+            var text = mlContext.Transforms.Text.FeaturizeText("WordEmbeddings", new List<string> { "SentimentText" },
+                new TextFeaturizingEstimator.Options
+                {
                     OutputTokens = true,
                     KeepPunctuations = false,
                     UseStopRemover = true,
@@ -103,8 +105,10 @@ namespace Microsoft.ML.Benchmarks
                     UseWordExtractor = false,
                 }).Fit(loader).Transform(loader);
 
-            var trans = mlContext.Transforms.Text.ExtractWordEmbeddings("Features", "WordEmbeddings_TransformedText", 
-                WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe).Fit(text).Transform(text);
+            var trans = mlContext.Transforms.Text.ExtractWordEmbeddings("Features", "WordEmbeddings_TransformedText",
+                WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe)
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
+                .Fit(text).Transform(text);
 
             // Train
             var trainer = mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent();
