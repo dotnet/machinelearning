@@ -30,8 +30,8 @@ namespace Microsoft.ML.CLI
                  string outputBaseDir = string.Empty;
                  if (options.Name == null)
                  {
-                     var datasetName = Path.GetFileNameWithoutExtension(options.Dataset.FullName);
-                     options.Name = Utils.Sanitize(datasetName) + "_" + Utils.GetTaskKind(options.MlTask).ToString();
+                     
+                     options.Name = "Sample" + Utils.GetTaskKind(options.MlTask).ToString();
                      outputBaseDir = Path.Combine(options.OutputPath.FullName, options.Name);
                  }
                  else
