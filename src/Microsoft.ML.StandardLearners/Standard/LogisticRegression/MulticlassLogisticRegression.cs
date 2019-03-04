@@ -46,7 +46,7 @@ namespace Microsoft.ML.Trainers
         public sealed class Options : OptionsBase
         {
             /// <summary>
-            /// If set to <value>true</value>training statistics will be generated at the end of training.
+            /// If set to <value>true</value> training statistics will be generated at the end of training.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat, ShowTrainingStats", SortOrder = 50)]
             public bool ShowTrainingStatistics = false;

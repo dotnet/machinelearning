@@ -216,7 +216,7 @@ namespace Microsoft.ML.Trainers
             options.LabelColumnName = LabelColumn.Name;
             options.ExampleWeightColumnName = WeightColumn.Name;
             Host.CheckUserArg(!LbfgsTrainerOptions.UseThreads || LbfgsTrainerOptions.NumberOfThreads > 0 || LbfgsTrainerOptions.NumberOfThreads == null,
-              nameof(LbfgsTrainerOptions.NumberOfThreads), "numThreads must be positive (or empty for default)");
+              nameof(LbfgsTrainerOptions.NumberOfThreads), "Must be positive (or empty for default)");
             Host.CheckUserArg(LbfgsTrainerOptions.L2Regularization >= 0, nameof(LbfgsTrainerOptions.L2Regularization), "Must be non-negative");
             Host.CheckUserArg(LbfgsTrainerOptions.L1Regularization >= 0, nameof(LbfgsTrainerOptions.L1Regularization), "Must be non-negative");
             Host.CheckUserArg(LbfgsTrainerOptions.OptmizationTolerance > 0, nameof(LbfgsTrainerOptions.OptmizationTolerance), "Must be positive");

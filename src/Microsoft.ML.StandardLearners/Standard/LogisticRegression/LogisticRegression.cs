@@ -42,7 +42,7 @@ namespace Microsoft.ML.Trainers
         public sealed class Options : OptionsBase
         {
             /// <summary>
-            /// If set to <value>true</value>training statistics will be generated at the end of training.
+            /// If set to <value>true</value> training statistics will be generated at the end of training.
             /// If you have a large number of learned training parameters(more than 500),
             /// generating the training statistics might take a few seconds.
             /// More than 1000 weights might take a few minutes. For those cases consider using the instance of <see cref="ComputeLogisticRegressionStandardDeviation"/>
