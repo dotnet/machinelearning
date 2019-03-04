@@ -13,9 +13,11 @@ namespace Microsoft.ML.Data
     /// </summary>
     public abstract class OneToOneTransformerBase : RowToRowTransformerBase
     {
-        protected readonly (string outputColumnName, string inputColumnName)[] ColumnPairs;
+        [BestFriend]
+        private protected readonly (string outputColumnName, string inputColumnName)[] ColumnPairs;
 
-        protected OneToOneTransformerBase(IHost host, params (string outputColumnName, string inputColumnName)[] columns) : base(host)
+        [BestFriend]
+        private protected OneToOneTransformerBase(IHost host, params (string outputColumnName, string inputColumnName)[] columns) : base(host)
         {
             host.CheckValue(columns, nameof(columns));
             var newNames = new HashSet<string>();
@@ -50,7 +52,8 @@ namespace Microsoft.ML.Data
             }
         }
 
-        protected void SaveColumns(ModelSaveContext ctx)
+        [BestFriend]
+        private protected void SaveColumns(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
 
@@ -84,7 +87,8 @@ namespace Microsoft.ML.Data
             // By default, there are no extra checks.
         }
 
-        protected abstract class OneToOneMapperBase : MapperBase
+        [BestFriend]
+        private protected abstract class OneToOneMapperBase : MapperBase
         {
             protected readonly Dictionary<int, int> ColMapNewToOld;
             private readonly OneToOneTransformerBase _parent;

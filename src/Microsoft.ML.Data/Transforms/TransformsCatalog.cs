@@ -53,7 +53,8 @@ namespace Microsoft.ML
         {
             internal IHostEnvironment Environment { get; }
 
-            protected SubCatalogBase(TransformsCatalog owner)
+            [BestFriend]
+            private protected SubCatalogBase(TransformsCatalog owner)
             {
                 Environment = owner.Environment;
             }

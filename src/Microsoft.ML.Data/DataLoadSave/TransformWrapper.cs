@@ -150,9 +150,11 @@ namespace Microsoft.ML.Data
     /// </summary>
     public abstract class TrainedWrapperEstimatorBase : IEstimator<TransformWrapper>
     {
-        protected readonly IHost Host;
+        [BestFriend]
+        private protected readonly IHost Host;
 
-        protected TrainedWrapperEstimatorBase(IHost host)
+        [BestFriend]
+        private protected TrainedWrapperEstimatorBase(IHost host)
         {
             Contracts.CheckValue(host, nameof(host));
             Host = host;
