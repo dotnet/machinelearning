@@ -156,6 +156,8 @@ Nice to have for v0.1:
 - Additional supported ML Tasks
     - Multi-class classification
 
+- Cache support
+
 - Use of model definition file `--model-settings-file` (.yaml file) for loading model's fine-grain settings. Also, generate the the .yaml file with the infered settings even if a .yaml file was not used, so the user can learn how to customize by using that model definition file and can re-run it, too.
 
 - Use of response file `[<RSP FILE NAME>]` to load the CLI arguments from a file. Also, when user run new, the RSP of current executed commands can be added to the generated project so that it can be re-ran by the user.
@@ -332,6 +334,7 @@ mlnet new
 [--ml-task <value>]
 [--model-settings-file <value>]
 [<RSP FILE NAME>]
+[--cache-enabled]
 [--best-models-count]
 [--list-ml-tasks]
 [--app-type <value>]
@@ -528,6 +531,21 @@ By default, the CLI tool should show some minimum feedback (minimal) when workin
 Prints out help for the command. It can be invoked for the `mlnet new` command itself or for any template, such as `mlnet new --help`.
 
 The --help output should include most common examples, since there can be many combinations of options here with no indication of which combinations are valid until you actually try it.
+
+----------------------------------------------------------
+
+`--cache-enabled`
+
+Specify if training will use cache for the training data.
+
+Possible values:
+
+- `true`
+- `false`
+
+This argument is optional. By default, if this argument is not specified, it will be `true`
+
+----------------------------------------------------------
 
 ----------------------------------------------------------
 
