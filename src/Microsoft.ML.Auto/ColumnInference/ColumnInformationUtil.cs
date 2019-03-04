@@ -23,19 +23,24 @@ namespace Microsoft.ML.Auto
                 return ColumnPurpose.Weight;
             }
 
-            if (columnInfo.CategoricalColumns?.Contains(columnName) == true)
+            if (columnInfo.CategoricalColumns.Contains(columnName))
             {
                 return ColumnPurpose.CategoricalFeature;
             }
 
-            if (columnInfo.NumericColumns?.Contains(columnName) == true)
+            if (columnInfo.NumericColumns.Contains(columnName))
             {
                 return ColumnPurpose.NumericFeature;
             }
 
-            if (columnInfo.TextColumns?.Contains(columnName) == true)
+            if (columnInfo.TextColumns.Contains(columnName))
             {
                 return ColumnPurpose.TextFeature;
+            }
+
+            if (columnInfo.IgnoredColumns.Contains(columnName))
+            {
+                return ColumnPurpose.Ignore;
             }
 
             return null;

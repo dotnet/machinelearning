@@ -21,13 +21,19 @@ namespace Samples
                 AutoTrainMulticlassClassification.Run();
                 Console.Clear();
 
-                CustomizeTraining.Run();
+                AdvancedExperimentSettings.Run();
                 Console.Clear();
 
                 ObserveProgress.Run();
                 Console.Clear();
 
                 Cancellation.Run();
+                Console.Clear();
+
+                AdvancedTrainingSettings.Run();
+                Console.Clear();
+
+                RefitBestModel.Run();
                 Console.Clear();
 
                 Console.WriteLine("Done");

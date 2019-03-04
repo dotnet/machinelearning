@@ -12,7 +12,7 @@ using Samples.Helpers;
 
 namespace Samples
 {
-    static class CustomizeTraining
+    static class AdvancedExperimentSettings
     {
         private static string BaseDatasetsLocation = Path.Combine("..", "..", "..", "..", "src", "Samples", "Data");
         private static string TrainDataPath = Path.Combine(BaseDatasetsLocation, "taxi-fare-train.csv");

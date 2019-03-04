@@ -38,7 +38,7 @@ namespace Samples
             // STEP 3: Auto featurize, auto train and auto hyperparameter tune
             Console.WriteLine($"Running AutoML multiclass classification experiment for {ExperimentTime} seconds...");
             IEnumerable<RunResult<MultiClassClassifierMetrics>> runResults = mlContext.Auto()
-                                                                             .CreateMulticlassClassificationExperiment(60)
+                                                                             .CreateMulticlassClassificationExperiment(ExperimentTime)
                                                                              .Execute(trainDataView);
 
             // STEP 4: Print metric from the best model

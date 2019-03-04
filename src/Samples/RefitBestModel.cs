@@ -14,7 +14,7 @@ using Samples.Helpers;
 
 namespace Samples
 {
-    static class AutoTrainRegression
+    static class RefitBestModel
     {
         private static string BaseDatasetsLocation = Path.Combine("..", "..", "..", "..", "src", "Samples", "Data");
         private static string TrainDataPath = Path.Combine(BaseDatasetsLocation, "taxi-fare-train.csv");
@@ -36,26 +36,27 @@ namespace Samples
             IDataView trainDataView = textLoader.Load(TrainDataPath);
             IDataView testDataView = textLoader.Load(TestDataPath);
 
-            // STEP 3: Auto featurize, auto train and auto hyperparameter tune
+            // STEP 3: Subsample training data, for faster AutoML experimentation time
+            IDataView smallTrainDataView = mlContext.Data.TakeRows(trainDataView, 50000);
+
+            // STEP 4: Auto-featurization, model selection, and hyperparameter tuning
             Console.WriteLine($"Running AutoML regression classification experiment for {ExperimentTime} seconds...");
             IEnumerable<RunResult<RegressionMetrics>> runResults = mlContext.Auto()
                                                                    .CreateRegressionExperiment(ExperimentTime)
-                                                                   .Execute(trainDataView, LabelColumn);
+                                                                   .Execute(smallTrainDataView, LabelColumn);
 
-            // STEP 4: Print metric from best model
+            // STEP 5: Refit best model on entire training data
             RunResult<RegressionMetrics> best = runResults.Best();
-            Console.WriteLine($"Total models produced: {runResults.Count()}");
-            Console.WriteLine($"Best model's trainer: {best.TrainerName}");
-            Console.WriteLine($"RSquared of best model from validation data: {best.ValidationMetrics.RSquared}");
+            var refitBestModel = best.Estimator.Fit(trainDataView);
 
-            // STEP 5: Evaluate test data
-            IDataView testDataViewWithBestScore = best.Model.Transform(testDataView);
+            // STEP 6: Evaluate test data
+            IDataView testDataViewWithBestScore = refitBestModel.Transform(testDataView);
             RegressionMetrics testMetrics = mlContext.Regression.Evaluate(testDataViewWithBestScore, label: LabelColumn);
-            Console.WriteLine($"RSquared of best model on test data: {testMetrics.RSquared}");
+            Console.WriteLine($"RSquared of the re-fit model on test data: {testMetrics.RSquared}");
 
-            // STEP 6: Save the best model for later deployment and inferencing
+            // STEP 7: Save the re-fit best model for later deployment and inferencing
             using (FileStream fs = File.Create(ModelPath))
-                best.Model.SaveTo(mlContext, fs);
+                refitBestModel.SaveTo(mlContext, fs);
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
