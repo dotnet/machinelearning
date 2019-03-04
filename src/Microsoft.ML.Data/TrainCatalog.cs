@@ -203,13 +203,13 @@ namespace Microsoft.ML
 
             if (samplingKeyColumn == null)
             {
-                samplingKeyColumn = data.Schema.GetTempColumnName("IdPreservationColumn");
+                samplingKeyColumn = data.Schema.GetTempColumnName("SamplingKeyColumn");
                 data = new GenerateNumberTransform(Environment, data, samplingKeyColumn, seed);
             }
             else
             {
                 if (!data.Schema.TryGetColumnIndex(samplingKeyColumn, out int stratCol))
-                    throw Environment.ExceptSchemaMismatch(nameof(samplingKeyColumn), "GroupPreservationColumn", samplingKeyColumn);
+                    throw Environment.ExceptSchemaMismatch(nameof(samplingKeyColumn), "SamplingKeyColumn", samplingKeyColumn);
 
                 var type = data.Schema[stratCol].Type;
                 if (!RangeFilter.IsValidRangeFilterColumnType(Environment, type))
