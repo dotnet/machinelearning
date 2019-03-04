@@ -51,11 +51,11 @@ namespace Microsoft.ML.Trainers.FastTree
                 var calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
                 double paramA = 1;
                 if (calibrated != null)
-                    _host.Check(calibrated.WeeklyTypedCalibrator is PlattCalibrator,
+                    _host.Check(calibrated.WeaklyTypedCalibrator is PlattCalibrator,
                         "Combining FastTree models can only be done when the models are calibrated with Platt calibrator");
 
-                predictor = calibrated.WeeklyTypedSubModel;
-                paramA = -((PlattCalibrator)calibrated.WeeklyTypedCalibrator).Slope;
+                predictor = calibrated.WeaklyTypedSubModel;
+                paramA = -((PlattCalibrator)calibrated.WeaklyTypedCalibrator).Slope;
 
                 var tree = predictor as TreeEnsembleModelParameters;
 
