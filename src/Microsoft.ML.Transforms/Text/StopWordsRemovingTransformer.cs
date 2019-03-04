@@ -408,8 +408,8 @@ namespace Microsoft.ML.Transforms.Text
 
                 StopWordsRemovingEstimator.Language stopWordslang = _parent._columns[iinfo].Language;
                 var lang = default(ReadOnlyMemory<char>);
-                var getLang = _languageColumns[iinfo] >= 0 ? input.GetGetter<ReadOnlyMemory<char>>(_languageColumns[iinfo]) : null;
-                var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(_colMapNewToOld[iinfo]);
+                var getLang = _languageColumns[iinfo] >= 0 ? input.GetGetter<ReadOnlyMemory<char>>(input.Schema[_languageColumns[iinfo]]) : null;
+                var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(input.Schema[_colMapNewToOld[iinfo]]);
                 var src = default(VBuffer<ReadOnlyMemory<char>>);
                 var buffer = new StringBuilder();
                 var list = new List<ReadOnlyMemory<char>>();
@@ -804,7 +804,7 @@ namespace Microsoft.ML.Transforms.Text
                 using (var cursor = loader.GetRowCursor(loader.Schema[srcCol]))
                 {
                     bool warnEmpty = true;
-                    var getter = cursor.GetGetter<ReadOnlyMemory<char>>(colSrcIndex);
+                    var getter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema[colSrcIndex]);
                     while (cursor.MoveNext())
                     {
                         getter(ref src);
@@ -1027,7 +1027,7 @@ namespace Microsoft.ML.Transforms.Text
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
 
-                var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(input.Schema[ColMapNewToOld[iinfo]]);
                 var src = default(VBuffer<ReadOnlyMemory<char>>);
                 var buffer = new StringBuilder();
                 var list = new List<ReadOnlyMemory<char>>();

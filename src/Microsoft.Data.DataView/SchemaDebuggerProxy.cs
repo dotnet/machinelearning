@@ -50,7 +50,7 @@ namespace Microsoft.Data.DataView
         private static object GetValue<T>(DataViewSchema.Annotations annotations, int columnIndex)
         {
             T value = default;
-            annotations.GetGetter<T>(columnIndex)(ref value);
+            annotations.GetGetter<T>(annotations.Schema[columnIndex])(ref value);
             return value;
         }
     }

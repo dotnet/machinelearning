@@ -641,7 +641,7 @@ namespace Microsoft.ML.Data
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= col && col < _schema.Count);
-                return CreateInPipeCore(col, input.GetGetter<T>(col));
+                return CreateInPipeCore(col, input.GetGetter<T>(_schema[col]));
             }
 
             /// <summary>
@@ -842,7 +842,7 @@ namespace Microsoft.ML.Data
 
             /// <summary>
             /// This helps a cursor present the results of a <see cref="BatchColumn"/>. Practically its role
-            /// really is to just provide a stable delegate for the <see cref="DataViewRow.GetGetter{T}(int)"/>.
+            /// really is to just provide a stable delegate for the <see cref="DataViewRow.GetGetter{T}(DataViewSchema.Column)"/>.
             /// There is one of these created per column, per output cursor, i.e., in splitting
             /// there are <c>n</c> of these created per column, and when consolidating only one of these
             /// is created per column.
@@ -1112,16 +1112,18 @@ namespace Microsoft.ML.Data
                 }
 
                 /// <summary>
-                /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+                /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
                 /// This throws if the column is not active in this row, or if the type
                 /// <typeparamref name="TValue"/> differs from this column's type.
                 /// </summary>
                 /// <typeparam name="TValue"> is the output column's content type.</typeparam>
-                /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-                public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
+                /// <param name="column"> is the output column whose getter should be returned.</param>
+                public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
-                    Ch.CheckParam(IsColumnActive(columnIndex), nameof(columnIndex), "requested column not active");
-                    var getter = _getters[_colToActive[columnIndex]] as ValueGetter<TValue>;
+                    Ch.CheckParam(IsColumnActive(column.Index), nameof(column), "requested column not active.");
+                    Ch.CheckParam(column.Index < _colToActive.Length, nameof(column), "requested column is not active or valid for the Schema.");
+
+                    var getter = _getters[_colToActive[column.Index]] as ValueGetter<TValue>;
                     if (getter == null)
                         throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
                     return getter;
@@ -1251,7 +1253,7 @@ namespace Microsoft.ML.Data
                     Ch.Assert(col < cursor.Schema.Count);
                     Ch.Assert(cursor.IsColumnActive(col));
                     Ch.Assert(type.Equals(cursor.Schema[col].Type));
-                    getters[i] = _cursors[i].GetGetter<T>(col);
+                    getters[i] = _cursors[i].GetGetter<T>(cursor.Schema[col]);
                 }
                 ValueGetter<T> mine =
                     (ref T value) =>
@@ -1301,16 +1303,18 @@ namespace Microsoft.ML.Data
             }
 
             /// <summary>
-            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
             /// This throws if the column is not active in this row, or if the type
             /// <typeparamref name="TValue"/> differs from this column's type.
             /// </summary>
             /// <typeparam name="TValue"> is the output column's content type.</typeparam>
-            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(IsColumnActive(columnIndex), nameof(columnIndex), "requested column not active");
-                var getter = _getters[_colToActive[columnIndex]] as ValueGetter<TValue>;
+                Ch.CheckParam(IsColumnActive(column.Index), nameof(column), "requested column not active");
+                Ch.CheckParam(column.Index < _colToActive.Length, nameof(column), "requested column not active or is invalid for the schema. ");
+
+                var getter = _getters[_colToActive[column.Index]] as ValueGetter<TValue>;
                 if (getter == null)
                     throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
                 return getter;
@@ -1347,7 +1351,7 @@ namespace Microsoft.ML.Data
 
         public static ValueGetter<ReadOnlyMemory<char>> GetSingleValueGetter<T>(DataViewRow cursor, int i, DataViewType colType)
         {
-            var floatGetter = cursor.GetGetter<T>(i);
+            var floatGetter = cursor.GetGetter<T>(cursor.Schema[i]);
             T v = default(T);
             ValueMapper<T, StringBuilder> conversion;
             if (!Conversions.Instance.TryGetStringConversion<T>(colType, out conversion))
@@ -1377,7 +1381,7 @@ namespace Microsoft.ML.Data
 
         public static ValueGetter<ReadOnlyMemory<char>> GetVectorFlatteningGetter<T>(DataViewRow cursor, int colIndex, DataViewType colType)
         {
-            var vecGetter = cursor.GetGetter<VBuffer<T>>(colIndex);
+            var vecGetter = cursor.GetGetter<VBuffer<T>>(cursor.Schema[colIndex]);
             var vbuf = default(VBuffer<T>);
             const int previewValues = 100;
             ValueMapper<T, StringBuilder> conversion;

@@ -267,7 +267,7 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckParam(schema.Schema == row.Schema, nameof(schema), "schemas don't match!");
             Contracts.CheckParam(schema.Feature.HasValue, nameof(schema), "Missing feature column");
 
-            return row.GetGetter<VBuffer<float>>(schema.Feature.Value.Index);
+            return row.GetGetter<VBuffer<float>>(schema.Feature.Value);
         }
 
         /// <summary>

@@ -510,13 +510,13 @@ namespace Microsoft.ML.Data
             public override DataViewSchema Schema => _internal.Schema;
 
             /// <summary>
-            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
             /// This throws if the column is not active in this row, or if the type
             /// <typeparamref name="TValue"/> differs from this column's type.
             /// </summary>
             /// <typeparam name="TValue"> is the output column's content type.</typeparam>
-            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex) => _internal.GetGetter<TValue>(columnIndex);
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column) => _internal.GetGetter<TValue>(column);
             public override ValueGetter<DataViewRowId> GetIdGetter() => _internal.GetIdGetter();
 
             /// <summary>
@@ -1191,11 +1191,12 @@ namespace Microsoft.ML.Data
                 _disposed = true;
             }
 
-            public sealed override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
+            public sealed override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                if (!IsColumnActive(columnIndex))
-                    throw Ch.Except("Column #{0} is requested but not active in the cursor", columnIndex);
-                var getter = _getters[_colToActivesIndex[columnIndex]] as ValueGetter<TValue>;
+                Ch.CheckParam(column.Index <= _colToActivesIndex.Length && IsColumnActive(column.Index), nameof(column), "requested column not active");
+                Ch.Check(_colToActivesIndex[column.Index] < _getters.Length);
+
+                var getter = _getters[_colToActivesIndex[column.Index]] as ValueGetter<TValue>;
                 if (getter == null)
                     throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
                 return getter;
@@ -1339,7 +1340,7 @@ namespace Microsoft.ML.Data
                     _uniformLength = type.GetVectorSize();
                     _indices = new BigArray<int>();
                     _values = new BigArray<T>();
-                    _getter = input.GetGetter<VBuffer<T>>(srcCol);
+                    _getter = input.GetGetter<VBuffer<T>>(input.Schema[srcCol]);
                 }
 
                 public override void CacheCurrent()
@@ -1417,7 +1418,7 @@ namespace Microsoft.ML.Data
                 public ImplOne(CacheDataView parent, DataViewRowCursor input, int srcCol, OrderedWaiter waiter)
                     : base(parent, input, srcCol, waiter)
                 {
-                    _getter = input.GetGetter<T>(srcCol);
+                    _getter = input.GetGetter<T>(input.Schema[srcCol]);
                     if (parent._rowCount >= 0)
                         _values = new T[(int)parent._rowCount];
                 }

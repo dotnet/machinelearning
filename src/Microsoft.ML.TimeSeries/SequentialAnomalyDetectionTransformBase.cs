@@ -365,7 +365,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 private Delegate MakeGetter(DataViewRow input, AnomalyDetectionStateBase state)
                 {
                     _host.AssertValue(input);
-                    var srcGetter = input.GetGetter<TInput>(_inputColumnIndex);
+                    var srcGetter = input.GetGetter<TInput>(input.Schema[_inputColumnIndex]);
                     ProcessData processData = _parent.WindowSize > 0 ?
                         (ProcessData)state.Process : state.ProcessWithoutBuffer;
 
@@ -391,7 +391,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 private Action<long> MakePinger(DataViewRow input, AnomalyDetectionStateBase state)
                 {
                     _host.AssertValue(input);
-                    var srcGetter = input.GetGetter<TInput>(_inputColumnIndex);
+                    var srcGetter = input.GetGetter<TInput>(input.Schema[_inputColumnIndex]);
                     Action<long> pinger = (long rowPosition) =>
                     {
                         TInput src = default;

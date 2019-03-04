@@ -224,7 +224,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(Predictor);
 
-                var featureGetter = input.GetGetter<TSrc>(colSrc);
+                var featureGetter = input.GetGetter<TSrc>(input.Schema[colSrc]);
                 var map = Predictor.GetFeatureContributionMapper<TSrc, VBuffer<float>>(_topContributionsCount, _bottomContributionsCount, _normalize);
 
                 var features = default(TSrc);
@@ -263,7 +263,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(Predictor);
 
-                var featureGetter = input.GetGetter<TSrc>(colSrc);
+                var featureGetter = input.GetGetter<TSrc>(input.Schema[colSrc]);
 
                 // REVIEW: Scorer can call Sparsification\Norm routine.
 
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Data
                 var totalColumnsCount = 1 + _outputGenericSchema.Count;
                 var getters = new Delegate[totalColumnsCount];
 
-                if (activeColumns.Select(c => c.Index).Contains(totalColumnsCount - 1))
+                if (activeColumns.Select(c => c.Index).Contains(_outputGenericSchema.Count))
                 {
                     getters[totalColumnsCount - 1] = _parent.Stringify
                         ? _parent.GetTextContributionGetter(input, FeatureColumn.Index, _slotNames)
@@ -383,9 +383,6 @@ namespace Microsoft.ML.Data
 
                 return new SimpleRow(OutputSchema, genericRow, getters);
             }
-
-            public Func<int, bool> GetGenericPredicate(Func<int, bool> predicate)
-                => col => predicate(col);
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {

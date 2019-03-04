@@ -117,7 +117,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             if (mapper is CompositeRowToRowMapper compositeMapper)
                 innerMappers = compositeMapper.InnerMappers;
 
-            var activeIndices = activeColumns.Select(c => c.Index);
+            var activeIndices = new HashSet<int>(activeColumns.Select(c => c.Index));
             if (innerMappers.Length == 0)
             {
                 bool differentActive = false;

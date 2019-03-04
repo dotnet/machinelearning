@@ -244,7 +244,7 @@ namespace Microsoft.ML.Trainers
             using (var cursor = data.Data.GetRowCursor(cols))
             {
                 var getLab = cursor.GetLabelFloatGetter(data);
-                var getWeight = colWeight >= 0 ? cursor.GetGetter<float>(colWeight) : null;
+                var getWeight = colWeight >= 0 ? cursor.GetGetter<float>(data.Schema.Weight.Value) : null;
                 float lab = default;
                 float weight = 1;
                 while (cursor.MoveNext())

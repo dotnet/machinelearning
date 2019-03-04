@@ -289,7 +289,7 @@ namespace Microsoft.ML.Transforms
                     Contracts.Assert(!(info.Type is VectorType));
                     Contracts.Assert(info.Type.RawType == typeof(T));
 
-                    var getSrc = cursor.Input.GetGetter<T>(info.Index);
+                    var getSrc = cursor.Input.GetGetter<T>(cursor.Input.Schema[info.Index]);
                     var hasBad = Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(info.Type);
                     return new ValueOne<T>(cursor, getSrc, hasBad);
                 }
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Transforms
                     Contracts.Assert(info.Type is VectorType);
                     Contracts.Assert(info.Type.RawType == typeof(VBuffer<T>));
 
-                    var getSrc = cursor.Input.GetGetter<VBuffer<T>>(info.Index);
+                    var getSrc = cursor.Input.GetGetter<VBuffer<T>>(cursor.Input.Schema[info.Index]);
                     var hasBad = Data.Conversion.Conversions.Instance.GetHasMissingPredicate<T>((VectorType)info.Type);
                     return new ValueVec<T>(cursor, getSrc, hasBad);
                 }
@@ -386,20 +386,20 @@ namespace Microsoft.ML.Transforms
             }
 
             /// <summary>
-            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
             /// This throws if the column is not active in this row, or if the type
             /// <typeparamref name="TValue"/> differs from this column's type.
             /// </summary>
             /// <typeparam name="TValue"> is the output column's content type.</typeparam>
-            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(columnIndex));
+                Ch.Check(IsColumnActive(column.Index));
 
                 ValueGetter<TValue> fn;
-                if (TryGetColumnValueGetter(columnIndex, out fn))
+                if (TryGetColumnValueGetter(column.Index, out fn))
                     return fn;
-                return Input.GetGetter<TValue>(columnIndex);
+                return Input.GetGetter<TValue>(column);
             }
 
             /// <summary>

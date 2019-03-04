@@ -422,8 +422,8 @@ namespace Microsoft.ML.Transforms
                 {
                     var sInfo = _schemaInfos[iinfo];
                     if (sInfo.WeightColumnIndex >= 0)
-                        weightGetters[iinfo] = cursor.GetGetter<float>(sInfo.WeightColumnIndex);
-                    columnGetters[iinfo] = cursor.GetGetter<VBuffer<float>>(sInfo.InputIndex);
+                        weightGetters[iinfo] = cursor.GetGetter<float>(cursor.Schema[sInfo.WeightColumnIndex]);
+                    columnGetters[iinfo] = cursor.GetGetter<VBuffer<float>>(cursor.Schema[sInfo.InputIndex]);
                 }
 
                 var features = default(VBuffer<float>);
@@ -572,7 +572,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(0 <= iinfo && iinfo < _numColumns);
                 disposer = null;
 
-                var srcGetter = input.GetGetter<VBuffer<float>>(ColMapNewToOld[iinfo]);
+                var srcGetter = input.GetGetter<VBuffer<float>>(input.Schema[ColMapNewToOld[iinfo]]);
                 var src = default(VBuffer<float>);
 
                 ValueGetter<VBuffer<float>> dstGetter = (ref VBuffer<float> dst) =>

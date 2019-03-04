@@ -184,11 +184,12 @@ namespace Microsoft.ML.Transforms
             ch.Assert(0 <= iinfo && iinfo < Infos.Length);
 
             var info = Infos[iinfo];
+            var column = input.Schema[info.Source];
             ch.Assert(TestIsMulticlassLabel(info.TypeSrc) == null);
 
             if (info.TypeSrc.GetKeyCount() > 0)
             {
-                var srcGetter = input.GetGetter<uint>(info.Source);
+                var srcGetter = input.GetGetter<uint>(column);
                 var src = default(uint);
                 uint cls = (uint)(_classIndex[iinfo] + 1);
 
@@ -201,7 +202,7 @@ namespace Microsoft.ML.Transforms
             }
             if (info.TypeSrc == NumberDataViewType.Single)
             {
-                var srcGetter = input.GetGetter<float>(info.Source);
+                var srcGetter = input.GetGetter<float>(column);
                 var src = default(float);
 
                 return
@@ -213,7 +214,7 @@ namespace Microsoft.ML.Transforms
             }
             if (info.TypeSrc == NumberDataViewType.Double)
             {
-                var srcGetter = input.GetGetter<double>(info.Source);
+                var srcGetter = input.GetGetter<double>(column);
                 var src = default(double);
 
                 return

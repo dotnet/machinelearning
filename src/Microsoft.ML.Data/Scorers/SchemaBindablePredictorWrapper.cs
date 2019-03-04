@@ -168,7 +168,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(input);
             Contracts.Assert(ValueMapper != null);
 
-            var featureGetter = input.GetGetter<TSrc>(colSrc);
+            var featureGetter = input.GetGetter<TSrc>(input.Schema[colSrc]);
             var map = ValueMapper.GetMapper<TSrc, TDst>();
             var features = default(TSrc);
             return
@@ -524,7 +524,7 @@ namespace Microsoft.ML.Data
                 if (active[0] || active[1])
                 {
                     // Put all captured locals at this scope.
-                    var featureGetter = InputRoleMappedSchema.Feature?.Index is int idx ? input.GetGetter<VBuffer<float>>(idx) : null;
+                    var featureGetter = InputRoleMappedSchema.Feature.HasValue ? input.GetGetter<VBuffer<float>>(InputRoleMappedSchema.Feature.Value) : null;
                     float prob = 0;
                     float score = 0;
                     long cachedPosition = -1;
@@ -665,13 +665,14 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(input);
             Contracts.Assert(0 <= colSrc && colSrc < input.Schema.Count);
 
-            var typeSrc = input.Schema[colSrc].Type as VectorType;
+            var column = input.Schema[colSrc];
+            var typeSrc = column.Type as VectorType;
             Contracts.Assert(typeSrc != null && typeSrc.ItemType == NumberDataViewType.Single);
             Contracts.Assert(ValueMapper == null ||
                 typeSrc.Size == ValueMapper.InputType.GetVectorSize() || ValueMapper.InputType.GetVectorSize() == 0);
             Contracts.Assert(Utils.Size(_quantiles) > 0);
 
-            var featureGetter = input.GetGetter<VBuffer<float>>(colSrc);
+            var featureGetter = input.GetGetter<VBuffer<float>>(column);
             var featureCount = ValueMapper != null ? ValueMapper.InputType.GetVectorSize() : 0;
 
             var quantiles = new float[_quantiles.Length];

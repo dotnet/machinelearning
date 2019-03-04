@@ -364,11 +364,11 @@ namespace Microsoft.ML.Transforms
                     // NA value.
 
                     Parent.Host.AssertValue(input);
-
+                    var column = input.Schema[Parent.ColMapNewToOld[InfoIndex]];
                     if (!(Parent._types[InfoIndex] is VectorType))
                     {
                         var src = default(TKey);
-                        ValueGetter<TKey> getSrc = input.GetGetter<TKey>(Parent.ColMapNewToOld[InfoIndex]);
+                        ValueGetter<TKey> getSrc = input.GetGetter<TKey>(column);
                         ValueGetter<TValue> retVal =
                             (ref TValue dst) =>
                             {
@@ -381,7 +381,7 @@ namespace Microsoft.ML.Transforms
                     {
                         var src = default(VBuffer<TKey>);
                         var dstItem = default(TValue);
-                        ValueGetter<VBuffer<TKey>> getSrc = input.GetGetter<VBuffer<TKey>>(Parent.ColMapNewToOld[InfoIndex]);
+                        ValueGetter<VBuffer<TKey>> getSrc = input.GetGetter<VBuffer<TKey>>(column);
                         ValueGetter<VBuffer<TValue>> retVal =
                             (ref VBuffer<TValue> dst) =>
                             {

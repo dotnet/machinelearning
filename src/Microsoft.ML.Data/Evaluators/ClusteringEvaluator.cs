@@ -494,11 +494,11 @@ namespace Microsoft.ML.Data
                 if (_calculateDbi)
                 {
                     Host.Assert(schema.Feature.HasValue);
-                    _featGetter = row.GetGetter<VBuffer<Single>>(schema.Feature.Value.Index);
+                    _featGetter = row.GetGetter<VBuffer<Single>>(schema.Feature.Value);
                 }
                 var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
                 Host.Assert(score.Type.GetVectorSize() == _scoresArr.Length);
-                _scoreGetter = row.GetGetter<VBuffer<Single>>(score.Index);
+                _scoreGetter = row.GetGetter<VBuffer<Single>>(score);
 
                 if (PassNum == 0)
                 {
@@ -507,7 +507,7 @@ namespace Microsoft.ML.Data
                     else
                         _labelGetter = (ref Single value) => value = Single.NaN;
                     if (schema.Weight.HasValue)
-                        _weightGetter = row.GetGetter<Single>(schema.Weight.Value.Index);
+                        _weightGetter = row.GetGetter<Single>(schema.Weight.Value);
                 }
                 else
                 {
@@ -660,7 +660,7 @@ namespace Microsoft.ML.Data
             var scoresArr = new Single[_numClusters];
             int[] sortedIndices = new int[_numClusters];
 
-            var scoreGetter = input.GetGetter<VBuffer<Single>>(ScoreIndex);
+            var scoreGetter = input.GetGetter<VBuffer<Single>>(input.Schema[ScoreIndex]);
             Action updateCacheIfNeeded =
                 () =>
                 {

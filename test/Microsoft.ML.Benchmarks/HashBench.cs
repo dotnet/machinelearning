@@ -43,10 +43,10 @@ namespace Microsoft.ML.Benchmarks
             /// <typeparamref name="TValue"/> differs from this column's type.
             /// </summary>
             /// <typeparam name="TValue"> is the output column's content type.</typeparam>
-            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
+            /// <param name="column"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                if (columnIndex != 0)
+                if (column.Index != 0)
                     throw new Exception();
                 if (_getter is ValueGetter<TValue> typedGetter)
                     return typedGetter;
@@ -89,9 +89,9 @@ namespace Microsoft.ML.Benchmarks
             var column = mapper.OutputSchema["Bar"];
             var outRow = mapper.GetRow(_inRow, column);
             if (type is VectorType)
-                _vecGetter = outRow.GetGetter<VBuffer<uint>>(column.Index);
+                _vecGetter = outRow.GetGetter<VBuffer<uint>>(column);
             else
-                _getter = outRow.GetGetter<uint>(column.Index);
+                _getter = outRow.GetGetter<uint>(column);
         }
 
         /// <summary>

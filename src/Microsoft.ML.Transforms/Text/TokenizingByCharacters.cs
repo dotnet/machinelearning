@@ -412,7 +412,7 @@ namespace Microsoft.ML.Transforms.Text
             private ValueGetter<VBuffer<ushort>> MakeGetterOne(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
-                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[ColMapNewToOld[iinfo]]);
                 var src = default(ReadOnlyMemory<char>);
                 return
                     (ref VBuffer<ushort> dst) =>
@@ -445,7 +445,7 @@ namespace Microsoft.ML.Transforms.Text
                 int cv = input.Schema[ColMapNewToOld[iinfo]].Type.GetVectorSize();
                 Contracts.Assert(cv >= 0);
 
-                var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(input.Schema[ColMapNewToOld[iinfo]]);
                 var src = default(VBuffer<ReadOnlyMemory<char>>);
 
                 ValueGetter<VBuffer<ushort>> getterWithStartEndSep = (ref VBuffer<ushort> dst) =>

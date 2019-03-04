@@ -900,7 +900,7 @@ namespace Microsoft.ML.Transforms
 
             public TensorValueGetter(DataViewRow input, int colIndex, TFShape tfShape)
             {
-                _srcgetter = input.GetGetter<T>(colIndex);
+                _srcgetter = input.GetGetter<T>(input.Schema[colIndex]);
                 _tfShape = tfShape;
                 long size = 0;
                 _position = 0;
@@ -946,7 +946,7 @@ namespace Microsoft.ML.Transforms
 
             public TensorValueGetterVec(DataViewRow input, int colIndex, TFShape tfShape)
             {
-                _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
+                _srcgetter = input.GetGetter<VBuffer<T>>(input.Schema[colIndex]);
                 _tfShape = tfShape;
                 _vBuffer = default;
                 _denseData = default;

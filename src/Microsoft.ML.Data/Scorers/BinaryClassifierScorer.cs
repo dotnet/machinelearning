@@ -222,7 +222,8 @@ namespace Microsoft.ML.Data
             Host.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
             Host.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
 
-            ValueGetter<float> mapperScoreGetter = output.GetGetter<float>(Bindings.ScoreColumnIndex);
+            var scoreColumn = output.Schema[Bindings.ScoreColumnIndex];
+            ValueGetter<float> mapperScoreGetter = output.GetGetter<float>(scoreColumn);
 
             long cachedPosition = -1;
             float score = 0;

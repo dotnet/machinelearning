@@ -838,7 +838,7 @@ namespace Microsoft.ML.Transforms
                 DataViewRow dataRow)
                 : base(host, lim, labelColId, dataRow)
             {
-                _colGetterSrc = dataRow.GetGetter<TFloat>(valueColId);
+                _colGetterSrc = dataRow.GetGetter<TFloat>(dataRow.Schema[valueColId]);
                 ColValues = new List<TFloat>();
             }
 
@@ -866,10 +866,11 @@ namespace Microsoft.ML.Transforms
             protected VecColumnSupervisedBinFunctionBuilderBase(IHost host, long lim, int valueColId, int labelColId, DataViewRow dataRow)
                 : base(host, lim, labelColId, dataRow)
             {
-                _colValueGetter = dataRow.GetGetter<VBuffer<TFloat>>(valueColId);
-                var valueColType = dataRow.Schema[valueColId].Type;
-                Host.Assert(valueColType.IsKnownSizeVector());
-                ColumnSlotCount = valueColType.GetValueCount();
+                var valueCol = dataRow.Schema[valueColId];
+                _colValueGetter = dataRow.GetGetter<VBuffer<TFloat>>(valueCol);
+
+                Host.Assert(valueCol.Type.IsKnownSizeVector());
+                ColumnSlotCount = valueCol.Type.GetValueCount();
 
                 ColValues = new List<TFloat>[ColumnSlotCount];
                 for (int i = 0; i < ColumnSlotCount; i++)
@@ -933,21 +934,22 @@ namespace Microsoft.ML.Transforms
             public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.MinMaxColumnOptions column, IHost host,
                 int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
             {
+                var srcColumn = cursor.Schema[srcIndex];
                 if (srcType is NumberDataViewType)
                 {
                     if (srcType == NumberDataViewType.Single)
-                        return Sng.MinMaxOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcIndex));
+                        return Sng.MinMaxOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcColumn));
                     if (srcType == NumberDataViewType.Double)
-                        return Dbl.MinMaxOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcIndex));
+                        return Dbl.MinMaxOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcColumn));
                 }
                 if (srcType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberDataViewType)
                 {
                     if (vectorType.ItemType == NumberDataViewType.Single)
-                        return Sng.MinMaxVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
+                        return Sng.MinMaxVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcColumn));
                     if (vectorType.ItemType == NumberDataViewType.Double)
-                        return Dbl.MinMaxVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
+                        return Dbl.MinMaxVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcColumn));
                 }
-                throw host.ExceptParam(nameof(srcType), "Wrong column type for input column. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {0}.", srcType.ToString());
+                throw host.ExceptParam(nameof(srcType), "Wrong column type for input column. Expected: float, double, Vec<float, n> or Vec<double, n>. Got: {0}.", srcType.ToString());
             }
         }
 
@@ -971,22 +973,22 @@ namespace Microsoft.ML.Transforms
                 int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
             {
                 Contracts.AssertValue(host);
-
+                var srcColumn = cursor.Schema[srcIndex];
                 if (srcType is NumberDataViewType)
                 {
                     if (srcType == NumberDataViewType.Single)
-                        return Sng.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcIndex));
+                        return Sng.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcColumn));
                     if (srcType == NumberDataViewType.Double)
-                        return Dbl.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcIndex));
+                        return Dbl.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcColumn));
                 }
                 if (srcType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberDataViewType)
                 {
                     if (vectorType.ItemType == NumberDataViewType.Single)
-                        return Sng.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
+                        return Sng.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcColumn));
                     if (vectorType.ItemType == NumberDataViewType.Double)
-                        return Dbl.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
+                        return Dbl.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcColumn));
                 }
-                throw host.ExceptParam(nameof(srcType), "Wrong column type for input column. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {0}.", srcType.ToString());
+                throw host.ExceptParam(nameof(srcType), "Wrong column type for input column. Expected: float, double, Vec<float, n> or Vec<double, n>. Got: {0}.", srcType.ToString());
             }
 
         }
@@ -1012,21 +1014,22 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(host);
                 host.AssertValue(column);
 
+                var srcColumn = cursor.Schema[srcIndex];
                 if (srcType is NumberDataViewType)
                 {
                     if (srcType == NumberDataViewType.Single)
-                        return Sng.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcIndex));
+                        return Sng.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcColumn));
                     if (srcType == NumberDataViewType.Double)
-                        return Dbl.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcIndex));
+                        return Dbl.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcColumn));
                 }
                 if (srcType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberDataViewType)
                 {
                     if (vectorType.ItemType == NumberDataViewType.Single)
-                        return Sng.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
+                        return Sng.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcColumn));
                     if (vectorType.ItemType == NumberDataViewType.Double)
-                        return Dbl.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
+                        return Dbl.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcColumn));
                 }
-                throw host.ExceptUserArg(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", column.InputColumnName, srcType.ToString());
+                throw host.ExceptUserArg(nameof(column), "Wrong column type for column {0}. Expected: float, double, Vec<float, n> or Vec<double, n>. Got: {1}.", column.InputColumnName, srcType.ToString());
             }
         }
 
@@ -1051,21 +1054,22 @@ namespace Microsoft.ML.Transforms
             {
                 Contracts.AssertValue(host);
 
+                var srcColumn = cursor.Schema[srcIndex];
                 if (srcType is NumberDataViewType)
                 {
                     if (srcType == NumberDataViewType.Single)
-                        return Sng.BinOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcIndex));
+                        return Sng.BinOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcColumn));
                     if (srcType == NumberDataViewType.Double)
-                        return Dbl.BinOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcIndex));
+                        return Dbl.BinOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcColumn));
                 }
                 if (srcType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberDataViewType)
                 {
                     if (vectorType.ItemType == NumberDataViewType.Single)
-                        return Sng.BinVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
+                        return Sng.BinVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcColumn));
                     if (vectorType.ItemType == NumberDataViewType.Double)
-                        return Dbl.BinVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
+                        return Dbl.BinVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcColumn));
                 }
-                throw host.ExceptParam(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", column.InputColumnName, srcType.ToString());
+                throw host.ExceptParam(nameof(column), "Wrong column type for column {0}. Expected: float, double, Vec<float, n> or Vec<double, n>. Got: {1}.", column.InputColumnName, srcType.ToString());
             }
         }
 

@@ -635,23 +635,25 @@ namespace Microsoft.ML.Calibrators
                 var predictorRow = _predictor.GetRow(input, activeColumns.Count() > 0 ? OutputSchema : Enumerable.Empty<DataViewSchema.Column>());
                 var getters = new Delegate[OutputSchema.Count];
 
+                bool hasProbabilityColumn = false;
                 foreach (var column in activeColumns)
                 {
                     if (column.Index == OutputSchema.Count - 1)
+                    {
+                        hasProbabilityColumn = true;
                         continue;
+                    }
                     var type = predictorRow.Schema[column.Index].Type;
                     getters[column.Index] = Utils.MarshalInvoke(GetPredictorGetter<int>, type.RawType, predictorRow, column.Index);
                 }
 
-                if (activeColumns.Select(c => c.Name).Contains(DefaultColumnNames.Probability))
+                if (hasProbabilityColumn)
                     getters[OutputSchema.Count - 1] = GetProbGetter(predictorRow);
                 return new SimpleRow(OutputSchema, predictorRow, getters);
             }
 
             private Delegate GetPredictorGetter<T>(DataViewRow input, int col)
-            {
-                return input.GetGetter<T>(col);
-            }
+                =>input.GetGetter<T>(input.Schema[col]);
 
             private Delegate GetProbGetter(DataViewRow input)
             {

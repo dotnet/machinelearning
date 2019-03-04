@@ -101,9 +101,10 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(data);
             Contracts.Assert(0 <= col && col < data.Schema.Count);
 
-            using (var cursor = data.GetRowCursor(data.Schema[col]))
+            var column = data.Schema[col];
+            using (var cursor = data.GetRowCursor(column))
             {
-                var getter = cursor.GetGetter<T>(col);
+                var getter = cursor.GetGetter<T>(column);
                 T curValue = default;
                 while (cursor.MoveNext())
                 {
@@ -118,9 +119,10 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(data);
             Contracts.Assert(0 <= col && col < data.Schema.Count);
 
-            using (var cursor = data.GetRowCursor(data.Schema[col]))
+            var column = data.Schema[col];
+            using (var cursor = data.GetRowCursor(column))
             {
-                var getter = cursor.GetGetter<TData>(col);
+                var getter = cursor.GetGetter<TData>(column);
                 TData curValue = default;
                 while (cursor.MoveNext())
                 {
@@ -135,9 +137,10 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(data);
             Contracts.Assert(0 <= col && col < data.Schema.Count);
 
-            using (var cursor = data.GetRowCursor(data.Schema[col]))
+            var column = data.Schema[col];
+            using (var cursor = data.GetRowCursor(column))
             {
-                var getter = cursor.GetGetter<VBuffer<T>>(col);
+                var getter = cursor.GetGetter<VBuffer<T>>(column);
                 VBuffer<T> curValue = default;
                 while (cursor.MoveNext())
                 {
@@ -156,9 +159,10 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(data);
             Contracts.Assert(0 <= col && col < data.Schema.Count);
 
-            using (var cursor = data.GetRowCursor(data.Schema[col]))
+            var column = data.Schema[col];
+            using (var cursor = data.GetRowCursor(column))
             {
-                var getter = cursor.GetGetter<VBuffer<TData>>(col);
+                var getter = cursor.GetGetter<VBuffer<TData>>(column);
                 VBuffer<TData> curValue = default;
                 while (cursor.MoveNext())
                 {

@@ -306,12 +306,12 @@ namespace Microsoft.ML.Data
                 var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
                 _labelGetter = RowCursorUtils.GetVecGetterAs<float>(NumberDataViewType.Single, row, schema.Label.Value.Index);
-                _scoreGetter = row.GetGetter<VBuffer<float>>(score.Index);
+                _scoreGetter = row.GetGetter<VBuffer<float>>(score);
                 Contracts.AssertValue(_labelGetter);
                 Contracts.AssertValue(_scoreGetter);
 
                 if (schema.Weight.HasValue)
-                    _weightGetter = row.GetGetter<float>(schema.Weight.Value.Index);
+                    _weightGetter = row.GetGetter<float>(schema.Weight.Value);
             }
 
             public override void ProcessRow()
@@ -472,7 +472,7 @@ namespace Microsoft.ML.Data
                 ? RowCursorUtils.GetVecGetterAs<float>(NumberDataViewType.Single, input, LabelIndex)
                 : nullGetter;
             var scoreGetter = activeCols(ScoreOutput) || activeCols(L1Output) || activeCols(L2Output) || activeCols(DistCol)
-                ? input.GetGetter<VBuffer<float>>(ScoreIndex)
+                ? input.GetGetter<VBuffer<float>>(input.Schema[ScoreIndex])
                 : nullGetter;
             Action updateCacheIfNeeded =
                 () =>
@@ -664,8 +664,7 @@ namespace Microsoft.ML.Data
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out fold))
                 throw ch.Except("No overall metrics found");
 
-            int isWeightedCol;
-            bool needWeighted = fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.IsWeighted, out isWeightedCol);
+            var isWeightedCol = fold.Schema.GetColumnOrNull(MetricKinds.ColumnNames.IsWeighted);
 
             int stratCol;
             bool hasStrats = fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratCol, out stratCol);
@@ -680,8 +679,8 @@ namespace Microsoft.ML.Data
             {
                 bool isWeighted = false;
                 ValueGetter<bool> isWeightedGetter;
-                if (needWeighted)
-                    isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol);
+                if (isWeightedCol.HasValue)
+                    isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol.Value);
                 else
                     isWeightedGetter = (ref bool dst) => dst = false;
 
@@ -697,7 +696,8 @@ namespace Microsoft.ML.Data
                 int labelCount = 0;
                 for (int i = 0; i < fold.Schema.Count; i++)
                 {
-                    if (fold.Schema[i].IsHidden || (needWeighted && i == isWeightedCol) ||
+                    var currentColumn = fold.Schema[i];
+                    if (currentColumn.IsHidden || (isWeightedCol.HasValue && i == isWeightedCol.Value.Index) ||
                         (hasStrats && (i == stratCol || i == stratVal)))
                     {
                         continue;
@@ -706,7 +706,7 @@ namespace Microsoft.ML.Data
                     var type = fold.Schema[i].Type as VectorType;
                     if (type != null && type.IsKnownSize && type.ItemType == NumberDataViewType.Double)
                     {
-                        vBufferGetters[i] = cursor.GetGetter<VBuffer<double>>(i);
+                        vBufferGetters[i] = cursor.GetGetter<VBuffer<double>>(currentColumn);
                         if (labelCount == 0)
                             labelCount = type.Size;
                         else
@@ -725,7 +725,7 @@ namespace Microsoft.ML.Data
                 sb.AppendLine();
 
                 VBuffer<Double> metricVals = default(VBuffer<Double>);
-                bool foundWeighted = !needWeighted;
+                bool foundWeighted = !isWeightedCol.HasValue;
                 bool foundUnweighted = false;
                 uint strat = 0;
                 while (cursor.MoveNext())

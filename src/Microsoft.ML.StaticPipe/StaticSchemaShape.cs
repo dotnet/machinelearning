@@ -247,13 +247,13 @@ namespace Microsoft.ML.StaticPipe
                     // Check to see if the column is normalized.
                     // Once we shift to metadata being a row globally we can also make this a bit more efficient:
                     var meta = col.Annotations;
-                    if (meta.Schema.TryGetColumnIndex(AnnotationUtils.Kinds.IsNormalized, out int normcol))
+                    var normalizedColumn = meta.Schema.GetColumnOrNull(AnnotationUtils.Kinds.IsNormalized);
+                    if (normalizedColumn.HasValue)
                     {
-                        var normtype = meta.Schema[normcol].Type;
-                        if (normtype == BooleanDataViewType.Instance)
+                        if (normalizedColumn.Value.Type == BooleanDataViewType.Instance)
                         {
                             bool val = default;
-                            meta.GetGetter<bool>(normcol)(ref val);
+                            meta.GetGetter<bool>(normalizedColumn.Value)(ref val);
                             if (val)
                                 vecType = typeof(NormVector<>);
                         }

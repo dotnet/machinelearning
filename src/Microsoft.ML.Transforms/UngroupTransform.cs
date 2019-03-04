@@ -579,7 +579,7 @@ namespace Microsoft.ML.Transforms
             {
                 Contracts.Assert(0 <= col && col < _ungroupBinding.InputColumnCount);
 
-                var srcGetter = GetGetter<T>(col);
+                var srcGetter = GetGetter<T>(Schema[col]);
                 var cur = default(T);
 
                 return
@@ -606,27 +606,27 @@ namespace Microsoft.ML.Transforms
             /// Returns the getter of an output column.
             /// </summary>
             /// <typeparam name="TValue"> is the output column's content type, for example, <see cref="VBuffer{T}"/>.</typeparam>
-            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
                 // Although the input argument, col, is a output index, we check its range as if it's an input column index.
                 // It makes sense because the i-th output column is produced by either expanding or copying the i-th input column.
-                Ch.CheckParam(0 <= columnIndex && columnIndex < _ungroupBinding.InputColumnCount, nameof(columnIndex));
+                Ch.CheckParam(column.Index < _ungroupBinding.InputColumnCount, nameof(column));
 
-                if (!_ungroupBinding.IsPivot(columnIndex))
-                    return Input.GetGetter<TValue>(columnIndex);
+                if (!_ungroupBinding.IsPivot(column.Index))
+                    return Input.GetGetter<TValue>(column);
 
-                if (_cachedGetters[columnIndex] == null)
-                    _cachedGetters[columnIndex] = MakeGetter<TValue>(columnIndex, _ungroupBinding.GetPivotColumnOptionsByCol(columnIndex).ItemType);
+                if (_cachedGetters[column.Index] == null)
+                    _cachedGetters[column.Index] = MakeGetter<TValue>(column.Index, _ungroupBinding.GetPivotColumnOptionsByCol(column.Index).ItemType);
 
-                var result = _cachedGetters[columnIndex] as ValueGetter<TValue>;
+                var result = _cachedGetters[column.Index] as ValueGetter<TValue>;
                 Ch.Check(result != null, "Unexpected getter type requested");
                 return result;
             }
 
             private ValueGetter<T> MakeGetter<T>(int col, PrimitiveDataViewType itemType)
             {
-                var srcGetter = Input.GetGetter<VBuffer<T>>(col);
+                var srcGetter = Input.GetGetter<VBuffer<T>>(Input.Schema[col]);
                 // The position of the source cursor. Used to extract the source row once.
                 long cachedPosition = -1;
                 // The position inside the sparse row. If the row is sparse, the invariant is

@@ -225,7 +225,7 @@ namespace Microsoft.ML.Data
                     _numLeaves = numLeaves;
 
                     _src = default(VBuffer<float>);
-                    _featureGetter = input.GetGetter<VBuffer<float>>(featureIndex);
+                    _featureGetter = input.GetGetter<VBuffer<float>>(input.Schema[featureIndex]);
 
                     _cachedPosition = -1;
                     _leafIds = new int[_numTrees];

@@ -333,7 +333,7 @@ namespace Microsoft.ML.Data
             // of affected types is pretty arbitrary (signed integers and bools, but not uints and floats).
             private Action<TRow> CreateConvertingVBufferSetter<TSrc, TDst>(DataViewRow input, int col, Delegate poke, Delegate peek, Func<TSrc, TDst> convert)
             {
-                var getter = input.GetGetter<VBuffer<TSrc>>(col);
+                var getter = input.GetGetter<VBuffer<TSrc>>(input.Schema[col]);
                 var typedPoke = poke as Poke<TRow, TDst[]>;
                 var typedPeek = peek as Peek<TRow, TDst[]>;
                 Contracts.AssertValue(typedPoke);
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Data
 
             private Action<TRow> CreateDirectVBufferSetter<TDst>(DataViewRow input, int col, Delegate poke, Delegate peek)
             {
-                var getter = input.GetGetter<VBuffer<TDst>>(col);
+                var getter = input.GetGetter<VBuffer<TDst>>(input.Schema[col]);
                 var typedPoke = poke as Poke<TRow, TDst[]>;
                 var typedPeek = peek as Peek<TRow, TDst[]>;
                 Contracts.AssertValue(typedPoke);
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Data
 
             private static Action<TRow> CreateConvertingActionSetter<TSrc, TDst>(DataViewRow input, int col, Delegate poke, Func<TSrc, TDst> convert)
             {
-                var getter = input.GetGetter<TSrc>(col);
+                var getter = input.GetGetter<TSrc>(input.Schema[col]);
                 var typedPoke = poke as Poke<TRow, TDst>;
                 Contracts.AssertValue(typedPoke);
                 TSrc value = default;
@@ -409,7 +409,7 @@ namespace Microsoft.ML.Data
             {
                 // Awkward to have a parameter that's always null, but slightly more convenient for generalizing the setter.
                 Contracts.Assert(peek == null);
-                var getter = input.GetGetter<TDst>(col);
+                var getter = input.GetGetter<TDst>(input.Schema[col]);
                 var typedPoke = poke as Poke<TRow, TDst>;
                 Contracts.AssertValue(typedPoke);
                 TDst value = default(TDst);
@@ -422,7 +422,7 @@ namespace Microsoft.ML.Data
 
             private Action<TRow> CreateVBufferToVBufferSetter<TDst>(DataViewRow input, int col, Delegate poke, Delegate peek)
             {
-                var getter = input.GetGetter<VBuffer<TDst>>(col);
+                var getter = input.GetGetter<VBuffer<TDst>>(input.Schema[col]);
                 var typedPoke = poke as Poke<TRow, VBuffer<TDst>>;
                 var typedPeek = peek as Peek<TRow, VBuffer<TDst>>;
                 Contracts.AssertValue(typedPoke);
@@ -451,15 +451,15 @@ namespace Microsoft.ML.Data
             }
 
             /// <summary>
-            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
             /// This throws if the column is not active in this row, or if the type
             /// <typeparamref name="TValue"/> differs from this column's type.
             /// </summary>
             /// <typeparam name="TValue"> is the output column's content type.</typeparam>
-            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                return Input.GetGetter<TValue>(columnIndex);
+                return Input.GetGetter<TValue>(column);
             }
         }
 
@@ -490,7 +490,9 @@ namespace Microsoft.ML.Data
             public long Batch => _row.Batch;
             public DataViewSchema Schema => _row.Schema;
             public void FillValues(TRow row) => _row.FillValues(row);
-            public ValueGetter<TValue> GetGetter<TValue>(int columnIndex) => _row.GetGetter<TValue>(columnIndex);
+            public ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
+                => _row.GetGetter<TValue>(column);
+
             public ValueGetter<DataViewRowId> GetIdGetter() => _row.GetIdGetter();
             public bool IsColumnActive(int col) => _row.IsColumnActive(col);
         }
@@ -517,15 +519,17 @@ namespace Microsoft.ML.Data
             }
 
             public override void FillValues(TRow row) => _cursor.FillValues(row);
-           
+
             /// <summary>
-            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
             /// This throws if the column is not active in this row, or if the type
             /// <typeparamref name="TValue"/> differs from this column's type.
             /// </summary>
             /// <typeparam name="TValue"> is the output column's content type.</typeparam>
-            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex) => _cursor.GetGetter<TValue>(columnIndex);
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
+                => _cursor.GetGetter<TValue>(column);
+
             public override ValueGetter<DataViewRowId> GetIdGetter() => _cursor.GetIdGetter();
 
             /// <summary>

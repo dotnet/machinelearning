@@ -362,13 +362,13 @@ namespace Microsoft.ML.Data
                     public override bool IsColumnActive(int columnIndex) => Input.IsColumnActive(columnIndex);
 
                     /// <summary>
-                    /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+                    /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
                     /// This throws if the column is not active in this row, or if the type
                     /// <typeparamref name="TValue"/> differs from this column's type.
                     /// </summary>
                     /// <typeparam name="TValue"> is the output column's content type.</typeparam>
-                    /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-                    public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex) => Input.GetGetter<TValue>(columnIndex);
+                    /// <param name="column"> is the output column whose getter should be returned.</param>
+                    public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column) => Input.GetGetter<TValue>(column);
                 }
             }
         }
@@ -511,7 +511,7 @@ namespace Microsoft.ML.Data
             Host.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
             Host.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
 
-            ValueGetter<VBuffer<float>> mapperScoreGetter = output.GetGetter<VBuffer<float>>(Bindings.ScoreColumnIndex);
+            ValueGetter<VBuffer<float>> mapperScoreGetter = output.GetGetter<VBuffer<float>>(Bindings.RowMapper.OutputSchema[Bindings.ScoreColumnIndex]);
 
             long cachedPosition = -1;
             VBuffer<float> score = default;

@@ -289,8 +289,8 @@ namespace Microsoft.ML.Model
 
                 using (var cursor = loader.GetRowCursorForAllColumns())
                 {
-                    var roleGetter = cursor.GetGetter<ReadOnlyMemory<char>>(0);
-                    var colGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
+                    var roleGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema[0]);
+                    var colGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema[1]);
                     var role = default(ReadOnlyMemory<char>);
                     var col = default(ReadOnlyMemory<char>);
                     while (cursor.MoveNext())

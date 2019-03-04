@@ -235,7 +235,7 @@ namespace Microsoft.ML.Calibrators
                 disposer = null;
 
                 Host.Assert(input.IsColumnActive(_scoreColIndex));
-                var getScore = input.GetGetter<float>(_scoreColIndex);
+                var getScore = input.GetGetter<float>(input.Schema[_scoreColIndex]);
 
                 float score = default;
 

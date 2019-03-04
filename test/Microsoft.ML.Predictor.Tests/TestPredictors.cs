@@ -637,21 +637,28 @@ namespace Microsoft.ML.RunTests
 
             var data = new RoleMappedData(idv, label: null, feature: "Features");
             var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModelImpl(Env, data, idv, fastTree) }).ScoredData;
-            Assert.True(scored.Schema.TryGetColumnIndex("Score", out int scoreCol));
-            Assert.True(scored.Schema.TryGetColumnIndex("Probability", out int probCol));
-            Assert.True(scored.Schema.TryGetColumnIndex("PredictedLabel", out int predCol));
+            var scoreColumn = scored.Schema.GetColumnOrNull("Score");
+            Assert.True(scoreColumn.HasValue);
+            var probabilityColumn = scored.Schema.GetColumnOrNull("Probability");
+            Assert.True(probabilityColumn.HasValue);
+            var predictedLabelColumn = scored.Schema.GetColumnOrNull("PredictedLabel");
+            Assert.True(predictedLabelColumn.HasValue);
 
             int predCount = Utils.Size(fastTrees);
             var scoredArray = new IDataView[predCount];
-            var scoreColArray = new int[predCount];
-            var probColArray = new int[predCount];
-            var predColArray = new int[predCount];
+            var scoreColArray = new DataViewSchema.Column?[predCount];
+            var probColArray = new DataViewSchema.Column?[predCount];
+            var predColArray = new DataViewSchema.Column?[predCount];
             for (int i = 0; i < predCount; i++)
             {
                 scoredArray[i] = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = fastTrees[i] }).ScoredData;
-                Assert.True(scoredArray[i].Schema.TryGetColumnIndex("Score", out scoreColArray[i]));
-                Assert.True(scoredArray[i].Schema.TryGetColumnIndex("Probability", out probColArray[i]));
-                Assert.True(scoredArray[i].Schema.TryGetColumnIndex("PredictedLabel", out predColArray[i]));
+
+                scoreColArray[i] = scoredArray[i].Schema.GetColumnOrNull("Score");
+                Assert.True(scoreColArray[i].HasValue);
+                probColArray[i] = scoredArray[i].Schema.GetColumnOrNull("Probability");
+                Assert.True(probColArray[i].HasValue);
+                predColArray[i] = scoredArray[i].Schema.GetColumnOrNull("PredictedLabel");
+                Assert.True(predColArray[i].HasValue);
             }
 
             var cursors = new DataViewRowCursor[predCount];
@@ -664,17 +671,17 @@ namespace Microsoft.ML.RunTests
             {
                 using (var curs = scored.GetRowCursor(cols))
                 {
-                    var scoreGetter = curs.GetGetter<float>(scoreCol);
-                    var probGetter = curs.GetGetter<float>(probCol);
-                    var predGetter = curs.GetGetter<bool>(predCol);
+                    var scoreGetter = curs.GetGetter<float>(scoreColumn.Value);
+                    var probGetter = curs.GetGetter<float>(probabilityColumn.Value);
+                    var predGetter = curs.GetGetter<bool>(predictedLabelColumn.Value);
                     var scoreGetters = new ValueGetter<float>[predCount];
                     var probGetters = new ValueGetter<float>[predCount];
                     var predGetters = new ValueGetter<bool>[predCount];
                     for (int i = 0; i < predCount; i++)
                     {
-                        scoreGetters[i] = cursors[i].GetGetter<float>(scoreColArray[i]);
-                        probGetters[i] = cursors[i].GetGetter<float>(probColArray[i]);
-                        predGetters[i] = cursors[i].GetGetter<bool>(predColArray[i]);
+                        scoreGetters[i] = cursors[i].GetGetter<float>(scoreColArray[i].Value);
+                        probGetters[i] = cursors[i].GetGetter<float>(probColArray[i].Value);
+                        predGetters[i] = cursors[i].GetGetter<bool>(predColArray[i].Value);
                     }
 
                     float score = 0;
@@ -802,33 +809,35 @@ namespace Microsoft.ML.RunTests
 
             var predCount = Utils.Size(predictors);
 
-            Assert.True(scored.Schema.TryGetColumnIndex("Score", out int scoreCol));
-            int probCol = -1;
-            int predCol = -1;
+            var scoreCol = scored.Schema["Score"];
+
+            DataViewSchema.Column? probCol = null;
+            DataViewSchema.Column? predCol = null;
             if (predictionKind == PredictionKind.BinaryClassification)
             {
-                Assert.True(scored.Schema.TryGetColumnIndex("Probability", out probCol));
-                Assert.True(scored.Schema.TryGetColumnIndex("PredictedLabel", out predCol));
+                probCol = scored.Schema["Probability"];
+                predCol = scored.Schema["PredictedLabel"];
             }
 
             var scoredArray = new IDataView[predCount];
-            int[] scoreColArray = new int[predCount];
-            int[] probColArray = new int[predCount];
-            int[] predColArray = new int[predCount];
+            var scoreColArray = new DataViewSchema.Column?[predCount];
+            var probColArray = new DataViewSchema.Column?[predCount];
+            var predColArray = new DataViewSchema.Column?[predCount];
 
             for (int i = 0; i < predCount; i++)
             {
                 scoredArray[i] = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = predictors[i] }).ScoredData;
-                Assert.True(scoredArray[i].Schema.TryGetColumnIndex("Score", out scoreColArray[i]));
+                scoreColArray[i] = scoredArray[i].Schema["Score"];
+
                 if (predictionKind == PredictionKind.BinaryClassification)
                 {
-                    Assert.True(scoredArray[i].Schema.TryGetColumnIndex("Probability", out probColArray[i]));
-                    Assert.True(scoredArray[i].Schema.TryGetColumnIndex("PredictedLabel", out predColArray[i]));
+                    probColArray[i] = scoredArray[i].Schema["Probability"];
+                    predColArray[i] = scoredArray[i].Schema["PredictedLabel"];
                 }
                 else
                 {
-                    probColArray[i] = -1;
-                    predColArray[i] = -1;
+                    probColArray[i] = null;
+                    predColArray[i] = null;
                 }
             }
 
@@ -849,10 +858,10 @@ namespace Microsoft.ML.RunTests
                         curs.GetGetter<VBuffer<float>>(scoreCol) :
                         (ref VBuffer<float> dst) => dst = default;
                     var probGetter = predictionKind == PredictionKind.BinaryClassification ?
-                        curs.GetGetter<float>(probCol) :
+                        curs.GetGetter<float>(probCol.Value) :
                         (ref float dst) => dst = 0;
                     var predGetter = predictionKind == PredictionKind.BinaryClassification ?
-                        curs.GetGetter<bool>(predCol) :
+                        curs.GetGetter<bool>(predCol.Value) :
                         (ref bool dst) => dst = false;
 
                     var scoreGetters = new ValueGetter<float>[predCount];
@@ -863,15 +872,15 @@ namespace Microsoft.ML.RunTests
                     {
                         scoreGetters[i] = predictionKind == PredictionKind.MultiClassClassification ?
                             (ref float dst) => dst = 0 :
-                            cursors[i].GetGetter<float>(scoreColArray[i]);
+                            cursors[i].GetGetter<float>(scoreColArray[i].Value);
                         vectorScoreGetters[i] = predictionKind == PredictionKind.MultiClassClassification ?
-                            cursors[i].GetGetter<VBuffer<float>>(scoreColArray[i]) :
+                            cursors[i].GetGetter<VBuffer<float>>(scoreColArray[i].Value) :
                             (ref VBuffer<float> dst) => dst = default;
                         probGetters[i] = predictionKind == PredictionKind.BinaryClassification ?
-                            cursors[i].GetGetter<float>(probColArray[i]) :
+                            cursors[i].GetGetter<float>(probColArray[i].Value) :
                             (ref float dst) => dst = 0;
                         predGetters[i] = predictionKind == PredictionKind.BinaryClassification ?
-                            cursors[i].GetGetter<bool>(predColArray[i]) :
+                            cursors[i].GetGetter<bool>(predColArray[i].Value) :
                             (ref bool dst) => dst = false;
                     }
 

@@ -336,7 +336,7 @@ namespace Microsoft.ML.Transforms
             {
                 var getters = new ValueGetter<VBuffer<float>>[columns.Length];
                 for (int i = 0; i < columns.Length; i++)
-                    getters[i] = cursor.GetGetter<VBuffer<float>>(cols[i]);
+                    getters[i] = cursor.GetGetter<VBuffer<float>>(cursor.Schema[cols[i]]);
                 var val = default(VBuffer<float>);
                 int irow = 0;
                 while (irow < maxActualRowCount && cursor.MoveNext())
@@ -625,7 +625,7 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 int src = _cols[iinfo];
                 Host.Assert(input.IsColumnActive(src));
-                return input.GetGetter<T>(src);
+                return input.GetGetter<T>(input.Schema[src]);
             }
 
             private static void FillValues(float[] model, ref VBuffer<float> src, ref VBuffer<float> dst, int cdst)

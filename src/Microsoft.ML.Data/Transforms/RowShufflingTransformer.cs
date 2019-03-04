@@ -706,17 +706,17 @@ namespace Microsoft.ML.Transforms
             }
 
             /// <summary>
-            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
             /// This throws if the column is not active in this row, or if the type
             /// <typeparamref name="TValue"/> differs from this column's type.
             /// </summary>
             /// <typeparam name="TValue"> is the output column's content type.</typeparam>
-            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(0 <= columnIndex && columnIndex < _colToActivesIndex.Length, nameof(columnIndex));
-                Ch.CheckParam(_colToActivesIndex[columnIndex] >= 0, nameof(columnIndex), "requested column not active");
-                ValueGetter<TValue> getter = _getters[_colToActivesIndex[columnIndex]] as ValueGetter<TValue>;
+                Ch.CheckParam(column.Index < _colToActivesIndex.Length, nameof(column));
+                Ch.CheckParam(_colToActivesIndex[column.Index] >= 0, nameof(column), "requested column not active");
+                ValueGetter<TValue> getter = _getters[_colToActivesIndex[column.Index]] as ValueGetter<TValue>;
                 if (getter == null)
                     throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
                 return getter;

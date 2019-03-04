@@ -365,11 +365,12 @@ namespace Microsoft.ML.Transforms
 
         protected override Delegate[] CreateGetters(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns, out Action disposer)
         {
+            var activeIndices = new HashSet<int>(activeColumns.Select(c => c.Index));
             Func<int, bool> activeInfos =
                 iinfo =>
                 {
                     int col = _bindings.MapIinfoToCol(iinfo);
-                    return activeColumns.Select(c => c.Index).Contains(col);
+                    return activeIndices.Contains(col);
                 };
 
             var getters = new Delegate[_bindings.InfoCount];
@@ -395,7 +396,7 @@ namespace Microsoft.ML.Transforms
 
         private ValueGetter<T> GetSrcGetter<T>(DataViewRow input, int iinfo)
         {
-            return input.GetGetter<T>(_bindings.SrcCols[iinfo]);
+            return input.GetGetter<T>(input.Schema[_bindings.SrcCols[iinfo]]);
         }
 
         private Delegate MakeGetter(int iinfo)
@@ -453,23 +454,23 @@ namespace Microsoft.ML.Transforms
             }
 
             /// <summary>
-            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
             /// This throws if the column is not active in this row, or if the type
             /// <typeparamref name="TValue"/> differs from this column's type.
             /// </summary>
             /// <typeparam name="TValue"> is the output column's content type.</typeparam>
-            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(columnIndex));
+                Ch.Check(IsColumnActive(column.Index));
 
                 bool isSrc;
-                int index = _bindings.MapColumnIndex(out isSrc, columnIndex);
+                int index = _bindings.MapColumnIndex(out isSrc, column.Index);
                 if (isSrc)
-                    return Input.GetGetter<TValue>(index);
+                    return Input.GetGetter<TValue>(Input.Schema[index]);
 
                 if (_getters[index] == null)
-                    return Input.GetGetter<TValue>(_bindings.SrcCols[index]);
+                    return Input.GetGetter<TValue>(_bindings.AsSchema[_bindings.SrcCols[index]]);
 
                 Ch.Assert(_getters[index] != null);
                 var fn = _getters[index] as ValueGetter<TValue>;

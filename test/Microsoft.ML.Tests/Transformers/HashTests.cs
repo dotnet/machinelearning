@@ -140,11 +140,11 @@ namespace Microsoft.ML.Tests.Transformers
                 var col = mapper.OutputSchema["Bar"];
                 var outRow = mapper.GetRow(inRow, col);
 
-                return outRow.GetGetter<TType>(col.Index);
+                return outRow.GetGetter<TType>(col);
             };
 
             // First do an unordered hash.
-            var info = new HashingEstimator.ColumnInfo("Bar", "Foo", hashBits: bits);
+            var info = new HashingEstimator.ColumnOptions("Bar", "Foo", hashBits: bits);
             var getter = hashGetter<uint>(info);
             uint result = 0;
             getter(ref result);

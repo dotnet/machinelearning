@@ -36,7 +36,7 @@ namespace Microsoft.ML.Data
 
         private static Delegate GetGetterAsDelegateCore<TValue>(DataViewRow row, int col)
         {
-            return row.GetGetter<TValue>(col);
+            return row.GetGetter<TValue>(row.Schema[col]);
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(typeof(TSrc) == typeSrc.RawType);
             Contracts.Assert(typeof(TDst) == typeDst.RawType);
 
-            var getter = row.GetGetter<TSrc>(col);
+            var getter = row.GetGetter<TSrc>(row.Schema[col]);
             bool identity;
             var conv = Conversions.Instance.GetStandardConversion<TSrc, TDst>(typeSrc, typeDst, out identity);
             if (identity)
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.Assert(typeof(TSrc) == typeSrc.RawType);
 
-            var getter = row.GetGetter<TSrc>(col);
+            var getter = row.GetGetter<TSrc>(row.Schema[col]);
             var conv = Conversions.Instance.GetStringConversion<TSrc>(typeSrc);
 
             var src = default(TSrc);
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Data
 
                 public override ValueGetter<TValue> GetGetter<TValue>()
                 {
-                    return _row.GetGetter<TValue>(_col);
+                    return _row.GetGetter<TValue>(_row.Schema[_col]);
                 }
             }
 
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Data
 
         private static Func<bool> GetIsNewGroupDelegateCore<T>(DataViewRow cursor, int col)
         {
-            var getter = cursor.GetGetter<T>(col);
+            var getter = cursor.GetGetter<T>(cursor.Schema[col]);
             bool first = true;
             T old = default(T);
             T val = default(T);
@@ -349,11 +349,11 @@ namespace Microsoft.ML.Data
             var type = cursor.Schema[labelIndex].Type;
 
             if (type == NumberDataViewType.Single)
-                return cursor.GetGetter<Single>(labelIndex);
+                return cursor.GetGetter<Single>(cursor.Schema[labelIndex]);
 
             if (type == NumberDataViewType.Double)
             {
-                var getSingleSrc = cursor.GetGetter<Double>(labelIndex);
+                var getSingleSrc = cursor.GetGetter<Double>(cursor.Schema[labelIndex]);
                 return
                     (ref Single dst) =>
                     {
@@ -375,7 +375,7 @@ namespace Microsoft.ML.Data
             // boolean type label mapping: True -> 1, False -> 0.
             if (type is BooleanDataViewType)
             {
-                var getBoolSrc = cursor.GetGetter<bool>(labelIndex);
+                var getBoolSrc = cursor.GetGetter<bool>(cursor.Schema[labelIndex]);
                 return
                     (ref Single dst) =>
                     {
@@ -450,7 +450,7 @@ namespace Microsoft.ML.Data
             if (!row.Schema.TryGetColumnIndex(name, out int col))
                 throw ectx.Except($"Could not find column '{name}'");
             T val = default;
-            row.GetGetter<T>(col)(ref val);
+            row.GetGetter<T>(row.Schema[col])(ref val);
             return val;
         }
 
@@ -556,17 +556,18 @@ namespace Microsoft.ML.Data
                 protected override bool MoveNextCore() => Position < 0;
 
                 /// <summary>
-                /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+                /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
                 /// This throws if the column is not active in this row, or if the type
                 /// <typeparamref name="TValue"/> differs from this column's type.
                 /// </summary>
                 /// <typeparam name="TValue"> is the output column's content type.</typeparam>
-                /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-                public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
+                /// <param name="column"> is the output column whose getter should be returned.</param>
+                public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
-                    Ch.CheckParam(0 <= columnIndex && columnIndex < Schema.Count, nameof(columnIndex));
-                    Ch.CheckParam(IsColumnActive(columnIndex), nameof(columnIndex), "Requested column is not active");
-                    var getter = _parent._row.GetGetter<TValue>(columnIndex);
+                    Ch.CheckParam(column.Index < Schema.Count, nameof(column));
+                    Ch.CheckParam(IsColumnActive(column.Index), nameof(column.Index), "Requested column is not active.");
+
+                    var getter = _parent._row.GetGetter<TValue>(column);
                     return
                         (ref TValue val) =>
                         {
@@ -601,7 +602,7 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// This is an error message meant to be used in the situation where a user calls a delegate as returned from
-        /// <see cref="DataViewRow.GetIdGetter"/> or <see cref="DataViewRow.GetGetter{TValue}(int)"/>.
+        /// <see cref="DataViewRow.GetIdGetter"/> or <see cref="DataViewRow.GetGetter{TValue}(DataViewSchema.Column)"/>.
         /// </summary>
         [BestFriend]
         internal const string FetchValueStateError = "Values cannot be fetched at this time. This method was called either before the first call to "

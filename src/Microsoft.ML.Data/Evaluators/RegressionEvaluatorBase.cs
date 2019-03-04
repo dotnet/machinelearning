@@ -204,12 +204,12 @@ namespace Microsoft.ML.Data
                 var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
                 _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
-                _scoreGetter = row.GetGetter<TScore>(score.Index);
+                _scoreGetter = row.GetGetter<TScore>(score);
                 Contracts.AssertValue(_labelGetter);
                 Contracts.AssertValue(_scoreGetter);
 
                 if (schema.Weight.HasValue)
-                    _weightGetter = row.GetGetter<float>(schema.Weight.Value.Index);
+                    _weightGetter = row.GetGetter<float>(schema.Weight.Value);
             }
 
             public override void ProcessRow()

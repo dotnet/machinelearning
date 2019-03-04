@@ -683,7 +683,7 @@ namespace Microsoft.ML.Data.IO
                 Ch.Assert(cursor.Schema[0].Type is VectorType);
                 _rowCursor = cursor;
 
-                _getter = _rowCursor.GetGetter<VBuffer<T>>(0);
+                _getter = _rowCursor.GetGetter<VBuffer<T>>(cursor.Schema[0]);
             }
 
             public override VectorType GetSlotType()
@@ -872,19 +872,18 @@ namespace Microsoft.ML.Data.IO
             }
 
             /// <summary>
-            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
             /// This throws if the column is not active in this row, or if the type
             /// <typeparamref name="TValue"/> differs from this column's type.
             /// </summary>
             /// <typeparam name="TValue"> is the output column's content type.</typeparam>
-            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(0 <= columnIndex && columnIndex <= _colToActivesIndex.Length, nameof(columnIndex));
-                Ch.CheckParam(IsColumnActive(columnIndex), nameof(columnIndex), "requested column not active");
+                Ch.CheckParam(column.Index <= _colToActivesIndex.Length && IsColumnActive(column.Index), nameof(column), "requested column not active");
+                Ch.AssertValue(_getters[_colToActivesIndex[column.Index]]);
 
-                Ch.AssertValue(_getters[_colToActivesIndex[columnIndex]]);
-                var getter = _getters[_colToActivesIndex[columnIndex]] as ValueGetter<TValue>;
+                var getter = _getters[_colToActivesIndex[column.Index]] as ValueGetter<TValue>;
                 if (getter == null)
                     throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
                 return getter;

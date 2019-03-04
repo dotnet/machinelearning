@@ -402,7 +402,7 @@ namespace Microsoft.ML.Data
                 // This is used to get the current stratification value in the Get() method.
                 private TStrat _value;
 
-                public override int Count { get { return _dict.Count; } }
+                public override int Count => _dict.Count;
 
                 public GenericAggregatorDictionary(RoleMappedSchema schema, string stratCol, DataViewType stratType, Func<string, TAgg> createAgg)
                     : base(schema, stratCol, createAgg)
@@ -414,10 +414,9 @@ namespace Microsoft.ML.Data
                 public override void Reset(DataViewRow row)
                 {
                     Row = row;
-                    int col;
-                    var found = row.Schema.TryGetColumnIndex(ColName, out col);
-                    Contracts.Assert(found);
-                    _stratGetter = row.GetGetter<TStrat>(col);
+                    var col = row.Schema.GetColumnOrNull(ColName);
+                    Contracts.Assert(col.HasValue);
+                    _stratGetter = row.GetGetter<TStrat>(col.Value);
                     Contracts.AssertValue(_stratGetter);
                 }
 

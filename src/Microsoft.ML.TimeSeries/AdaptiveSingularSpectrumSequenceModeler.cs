@@ -1236,7 +1236,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             int count = 0;
             using (var cursor = data.Data.GetRowCursor(featureCol))
             {
-                var getVal = cursor.GetGetter<Single>(featureCol.Index);
+                var getVal = cursor.GetGetter<Single>(featureCol);
                 Single val = default;
                 while (cursor.MoveNext() && count < _trainSize)
                 {

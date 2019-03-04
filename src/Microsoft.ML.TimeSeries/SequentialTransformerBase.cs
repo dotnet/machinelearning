@@ -537,11 +537,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public override ValueGetter<DataViewRowId> GetIdGetter()
                 => _input.GetIdGetter();
 
-            public override ValueGetter<T> GetGetter<T>(int col)
+            public override ValueGetter<T> GetGetter<T>(DataViewSchema.Column column)
             {
-                Contracts.CheckParam(0 <= col && col < _getters.Length, nameof(col), "Invalid col value in GetGetter");
-                Contracts.Check(IsColumnActive(col));
-                var fn = _getters[col] as ValueGetter<T>;
+                Contracts.CheckParam(column.Index < _getters.Length, nameof(column), "Invalid col value in GetGetter");
+                Contracts.Check(IsColumnActive(column.Index));
+                var fn = _getters[column.Index] as ValueGetter<T>;
                 if (fn == null)
                     throw Contracts.Except("Unexpected TValue in GetGetter");
                 return fn;
@@ -586,16 +586,16 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
 
             /// <summary>
-            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
             /// This throws if the column is not active in this row, or if the type
             /// <typeparamref name="TValue"/> differs from this column's type.
             /// </summary>
             /// <typeparam name="TValue"> is the output column's content type.</typeparam>
-            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(columnIndex), nameof(columnIndex));
-                return Input.GetGetter<TValue>(columnIndex);
+                Ch.Check(IsColumnActive(column.Index), nameof(column));
+                return Input.GetGetter<TValue>(column);
             }
         }
     }
@@ -849,18 +849,18 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
 
             /// <summary>
-            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
             /// This throws if the column is not active in this row, or if the type
             /// <typeparamref name="TValue"/> differs from this column's type.
             /// </summary>
             /// <typeparam name="TValue"> is the output column's content type.</typeparam>
-            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
                 bool isSrc;
-                int index = _parent._bindings.MapColumnIndex(out isSrc, columnIndex);
+                int index = _parent._bindings.MapColumnIndex(out isSrc, column.Index);
                 if (isSrc)
-                    return _input.GetGetter<TValue>(index);
+                    return _input.GetGetter<TValue>(column);
 
                 Contracts.Assert(_getters[index] != null);
                 var fn = _getters[index] as ValueGetter<TValue>;
@@ -916,20 +916,20 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
 
             /// <summary>
-            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
             /// This throws if the column is not active in this row, or if the type
             /// <typeparamref name="TValue"/> differs from this column's type.
             /// </summary>
             /// <typeparam name="TValue"> is the output column's content type.</typeparam>
-            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(columnIndex));
+                Ch.Check(IsColumnActive(column.Index));
 
                 bool isSrc;
-                int index = _bindings.MapColumnIndex(out isSrc, columnIndex);
+                int index = _bindings.MapColumnIndex(out isSrc, column.Index);
                 if (isSrc)
-                    return Input.GetGetter<TValue>(index);
+                    return Input.GetGetter<TValue>(column);
 
                 Ch.AssertValue(_getters);
                 var getter = _getters[index];

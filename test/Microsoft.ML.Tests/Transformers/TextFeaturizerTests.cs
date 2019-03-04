@@ -184,7 +184,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var cursor = xf.GetRowCursorForAllColumns())
             {
                 VBuffer<ReadOnlyMemory<char>> text = default;
-                var getter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(cursor.Schema["Text"].Index);
+                var getter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(cursor.Schema["Text"]);
                 while (cursor.MoveNext())
                     getter(ref text);
             }

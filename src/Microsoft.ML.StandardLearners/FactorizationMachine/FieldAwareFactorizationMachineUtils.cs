@@ -112,7 +112,7 @@ namespace Microsoft.ML.Trainers
             if (active0 || active1)
             {
                 for (int f = 0; f < _pred.FieldCount; f++)
-                    inputGetters[f] = input.GetGetter<VBuffer<float>>(_inputColumnIndexes[f]);
+                    inputGetters[f] = input.GetGetter<VBuffer<float>>(input.Schema[_inputColumnIndexes[f]]);
             }
 
             var getters = new Delegate[2];

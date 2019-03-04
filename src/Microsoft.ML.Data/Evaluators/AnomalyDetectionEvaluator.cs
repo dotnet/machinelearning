@@ -507,7 +507,7 @@ namespace Microsoft.ML.Data
                 var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
                 _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
-                _scoreGetter = row.GetGetter<float>(score.Index);
+                _scoreGetter = row.GetGetter<float>(score);
                 Host.AssertValue(_labelGetter);
                 Host.AssertValue(_scoreGetter);
 
@@ -520,7 +520,7 @@ namespace Microsoft.ML.Data
                         _nameGetter = (ref ReadOnlyMemory<char> dst) => dst = (rowCounter++).ToString().AsMemory();
                     }
                     else
-                        _nameGetter = row.GetGetter<ReadOnlyMemory<char>>(_nameIndex);
+                        _nameGetter = row.GetGetter<ReadOnlyMemory<char>>(row.Schema[_nameIndex]);
                 }
             }
 
@@ -669,16 +669,20 @@ namespace Microsoft.ML.Data
             var sb = new StringBuilder();
             using (var cursor = top.GetRowCursorForAllColumns())
             {
-                int index;
-                if (!top.Schema.TryGetColumnIndex(AnomalyDetectionEvaluator.TopKResultsColumns.Instance, out index))
+                DataViewSchema.Column? column = top.Schema.GetColumnOrNull(AnomalyDetectionEvaluator.TopKResultsColumns.Instance);
+                if (!column.HasValue)
                     throw Host.ExceptSchemaMismatch(nameof(top.Schema), "instance", AnomalyDetectionEvaluator.TopKResultsColumns.Instance);
-                var instanceGetter = cursor.GetGetter<ReadOnlyMemory<char>>(index);
-                if (!top.Schema.TryGetColumnIndex(AnomalyDetectionEvaluator.TopKResultsColumns.AnomalyScore, out index))
+                var instanceGetter = cursor.GetGetter<ReadOnlyMemory<char>>(column.Value);
+
+                column = top.Schema.GetColumnOrNull(AnomalyDetectionEvaluator.TopKResultsColumns.AnomalyScore);
+                if (!column.HasValue)
                     throw Host.ExceptSchemaMismatch(nameof(top.Schema), "anomaly score", AnomalyDetectionEvaluator.TopKResultsColumns.AnomalyScore);
-                var scoreGetter = cursor.GetGetter<Single>(index);
-                if (!top.Schema.TryGetColumnIndex(AnomalyDetectionEvaluator.TopKResultsColumns.Label, out index))
+                var scoreGetter = cursor.GetGetter<Single>(column.Value);
+
+                column = top.Schema.GetColumnOrNull(AnomalyDetectionEvaluator.TopKResultsColumns.Label);
+                if (!column.HasValue)
                     throw Host.ExceptSchemaMismatch(nameof(top.Schema), "label", AnomalyDetectionEvaluator.TopKResultsColumns.Label);
-                var labelGetter = cursor.GetGetter<Single>(index);
+                var labelGetter = cursor.GetGetter<Single>(column.Value);
 
                 bool hasRows = false;
                 while (cursor.MoveNext())
@@ -709,8 +713,8 @@ namespace Microsoft.ML.Data
                 throw Host.Except("No overall metrics found");
 
             // Find the number of anomalies, and the thresholds.
-            int numAnomIndex;
-            if (!overall.Schema.TryGetColumnIndex(AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies, out numAnomIndex))
+            DataViewSchema.Column? numAnom = overall.Schema.GetColumnOrNull(AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies);
+            if (numAnom == null || !numAnom.HasValue)
                 throw Host.ExceptSchemaMismatch(nameof(overall.Schema), "number of anomalies", AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies);
 
             int stratCol;
@@ -722,7 +726,7 @@ namespace Microsoft.ML.Data
             using (var cursor = overall.GetRowCursor(overall.Schema.Where(col => col.Name.Equals(AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies)||
                 (hasStrat && col.Name.Equals(MetricKinds.ColumnNames.StratCol)))))
             {
-                var numAnomGetter = cursor.GetGetter<long>(numAnomIndex);
+                var numAnomGetter = cursor.GetGetter<long>(numAnom.Value);
                 ValueGetter<uint> stratGetter = null;
                 if (hasStrat)
                 {

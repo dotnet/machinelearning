@@ -314,25 +314,26 @@ namespace Microsoft.ML.Data
                 }
 
                 /// <summary>
-                /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+                /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
                 /// This throws if the column is not active in this row, or if the type
                 /// <typeparamref name="TValue"/> differs from this column's type.
                 /// </summary>
                 /// <typeparam name="TValue"> is the output column's content type.</typeparam>
-                /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-                public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
+                /// <param name="column"> is the output column whose getter should be returned.</param>
+                public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
-                    Ch.Check(0 <= columnIndex & columnIndex < Schema.Count);
-                    Ch.Check(_active[columnIndex], "column is not active");
-                    var column = _view._columns[columnIndex] as Column<TValue>;
-                    if (column == null)
+                    Ch.Check(column.Index < Schema.Count);
+                    Ch.Check(column.Index < _active.Length && _active[column.Index], "the requested column is not active");
+
+                    var columnValue = _view._columns[column.Index] as Column<TValue>;
+                    if (columnValue == null)
                         throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
 
                     return
                         (ref TValue value) =>
                         {
                             Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
-                            column.CopyOut(MappedIndex(), ref value);
+                            columnValue.CopyOut(MappedIndex(), ref value);
                         };
                 }
 

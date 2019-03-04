@@ -313,9 +313,9 @@ namespace Microsoft.ML.Trainers
             using (var cursor = data.Data.GetRowCursor(columns))
             {
                 var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Value.Index);
-                var weightGetter = data.Schema.Weight?.Index is int weightIdx ? cursor.GetGetter<float>(weightIdx) : null;
+                var weightGetter = data.Schema.Weight.HasValue ? cursor.GetGetter<float>(data.Schema.Weight.Value) : null;
                 for (int f = 0; f < featureColumns.Count; f++)
-                    getters[f] = cursor.GetGetter<VBuffer<float>>(featureColumns[f].Index);
+                    getters[f] = cursor.GetGetter<VBuffer<float>>(featureColumns[f]);
                 while (cursor.MoveNext())
                 {
                     labelGetter(ref label);
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Trainers
                     var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Value.Index);
                     var weightGetter = data.Schema.Weight?.Index is int weightIdx ? RowCursorUtils.GetGetterAs<float>(NumberDataViewType.Single, cursor, weightIdx) : null;
                     for (int i = 0; i < fieldCount; i++)
-                        featureGetters[i] = cursor.GetGetter<VBuffer<float>>(fieldColumnIndexes[i]);
+                        featureGetters[i] = cursor.GetGetter<VBuffer<float>>(cursor.Schema[fieldColumnIndexes[i]]);
                     loss = 0;
                     exampleCount = 0;
                     badExampleCount = 0;

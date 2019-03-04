@@ -144,7 +144,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
                         // Next we get the output row from the predictors. We activate the score column as output predicate.
                         var predictorRow = Mappers[i].GetRow(pipelineRow, Enumerable.Repeat(Mappers[i].InputSchema[ScoreCols[i]], 1));
-                        getters[i] = predictorRow.GetGetter<T>(ScoreCols[i]);
+                        getters[i] = predictorRow.GetGetter<T>(predictorRow.Schema[ScoreCols[i]]);
                         disposer += predictorRow.Dispose;
                     }
 
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
                     var pipelineRow = BoundPipelines[i].GetRow(input, inputColumns);
                     disposer = pipelineRow.Dispose;
-                    return pipelineRow.GetGetter<float>(weightCol.Index);
+                    return pipelineRow.GetGetter<float>(weightCol);
 
                 }
             }

@@ -165,7 +165,8 @@ namespace Microsoft.ML.Data
             IEnumerable<DataViewSchema.Column> inputColumns;
             GetActive(bindings, activeColumns, out inputColumns, out IEnumerable<DataViewSchema.Column> activeMapperColumns);
             var output = bindings.RowMapper.GetRow(input, activeMapperColumns);
-            Func<int, bool> activeInfos = iinfo => activeColumns.Select(c => c.Index).Contains(bindings.MapIinfoToCol(iinfo));
+            var activeIndices = new HashSet<int>(activeColumns.Select(c => c.Index));
+            Func<int, bool> activeInfos = iinfo => activeIndices.Contains(bindings.MapIinfoToCol(iinfo));
             disp = output.Dispose;
             return GetGetters(output, activeInfos);
         }
@@ -214,7 +215,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(output);
             Contracts.Assert(0 <= col && col < output.Schema.Count);
             Contracts.Assert(output.IsColumnActive(col));
-            return output.GetGetter<T>(col);
+            return output.GetGetter<T>(output.Schema[col]);
         }
 
         protected override int MapColumnIndex(out bool isSrc, int col)
@@ -278,20 +279,20 @@ namespace Microsoft.ML.Data
             }
 
             /// <summary>
-            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
             /// This throws if the column is not active in this row, or if the type
             /// <typeparamref name="TValue"/> differs from this column's type.
             /// </summary>
             /// <typeparam name="TValue"> is the output column's content type.</typeparam>
-            /// <param name="columnIndex"> is the index of a output column whose getter should be returned.</param>
-            public override ValueGetter<TValue> GetGetter<TValue>(int columnIndex)
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(columnIndex));
+                Ch.Check(IsColumnActive(column.Index));
 
                 bool isSrc;
-                int index = _bindings.MapColumnIndex(out isSrc, columnIndex);
+                int index = _bindings.MapColumnIndex(out isSrc, column.Index);
                 if (isSrc)
-                    return Input.GetGetter<TValue>(index);
+                    return Input.GetGetter<TValue>(Input.Schema[index]);
 
                 Ch.AssertValue(_getters);
                 var getter = _getters[index];
