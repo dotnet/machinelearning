@@ -10,7 +10,6 @@ using Microsoft.ML.Auto;
 using Microsoft.ML.CLI.CodeGenerator.CSharp;
 using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using mlnet.Test.Utilities;
 
 namespace mlnet.Test
 {
@@ -33,10 +32,10 @@ namespace mlnet.Test
                 MlTask = TaskKind.BinaryClassification,
                 OutputBaseDir = null,
                 OutputName = "MyNamespace",
-                TrainDataset = new MockFileInfo("x:\\dummypath\\dummy_train.csv"),
-                TestDataset = new MockFileInfo("x:\\dummypath\\dummy_test.csv"),
+                TrainDataset = "x:\\dummypath\\dummy_train.csv",
+                TestDataset = "x:\\dummypath\\dummy_test.csv",
                 LabelName = "Label",
-                ModelPath = new MockFileInfo("x:\\models\\model.zip")
+                ModelPath = "x:\\models\\model.zip"
             });
 
             (string trainCode, string projectCode, string helperCode) = consoleCodeGen.GenerateCode();
@@ -57,10 +56,10 @@ namespace mlnet.Test
                 MlTask = TaskKind.BinaryClassification,
                 OutputBaseDir = null,
                 OutputName = "MyNamespace",
-                TrainDataset = new MockFileInfo("x:\\dummypath\\dummy_train.csv"),
-                TestDataset = new MockFileInfo("x:\\dummypath\\dummy_test.csv"),
+                TrainDataset = "x:\\dummypath\\dummy_train.csv",
+                TestDataset = "x:\\dummypath\\dummy_test.csv",
                 LabelName = "Label",
-                ModelPath = new MockFileInfo("x:\\models\\model.zip")
+                ModelPath = "x:\\models\\model.zip"
             });
 
             (string trainCode, string projectCode, string helperCode) = consoleCodeGen.GenerateCode();
@@ -81,10 +80,10 @@ namespace mlnet.Test
                 MlTask = TaskKind.BinaryClassification,
                 OutputBaseDir = null,
                 OutputName = "MyNamespace",
-                TrainDataset = new MockFileInfo("x:\\dummypath\\dummy_train.csv"),
-                TestDataset = new MockFileInfo("x:\\dummypath\\dummy_test.csv"),
+                TrainDataset = "x:\\dummypath\\dummy_train.csv",
+                TestDataset = "x:\\dummypath\\dummy_test.csv",
                 LabelName = "Label",
-                ModelPath = new MockFileInfo("x:\\models\\model.zip")
+                ModelPath = "x:\\models\\model.zip"
             });
 
             (string trainCode, string projectCode, string helperCode) = consoleCodeGen.GenerateCode();

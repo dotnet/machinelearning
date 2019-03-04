@@ -105,12 +105,12 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 Trainer = trainer,
                 ClassLabels = classLabels,
                 GeneratedUsings = usings,
-                Path = settings.TrainDataset.FullName,
-                TestPath = settings.TestDataset?.FullName,
+                Path = settings.TrainDataset,
+                TestPath = settings.TestDataset,
                 TaskType = settings.MlTask.ToString(),
                 Namespace = namespaceValue,
                 LabelName = settings.LabelName,
-                ModelPath = settings.ModelPath.FullName
+                ModelPath = settings.ModelPath
             };
 
             return trainingAndScoringCodeGen.TransformText();

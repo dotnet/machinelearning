@@ -9,7 +9,6 @@ using Microsoft.ML.Auto;
 using Microsoft.ML.CLI.CodeGenerator.CSharp;
 using Microsoft.ML.CLI.Data;
 using Microsoft.ML.CLI.Utilities;
-using Microsoft.ML.CLI.Utilities.File;
 using Microsoft.ML.Data;
 using NLog;
 
@@ -111,13 +110,13 @@ namespace Microsoft.ML.CLI.Commands.New
                 columnInference,
                 new CodeGeneratorSettings()
                 {
-                    TrainDataset = new SystemFileInfo(settings.Dataset),
+                    TrainDataset = settings.Dataset.FullName,
                     MlTask = taskKind,
-                    TestDataset = settings.TestDataset == null ? null :  new SystemFileInfo(settings.TestDataset),
+                    TestDataset = settings.TestDataset?.FullName,
                     OutputName = settings.Name,
                     OutputBaseDir = settings.OutputPath.FullName,
                     LabelName = labelName,
-                    ModelPath = new SystemFileInfo(modelPath)
+                    ModelPath = modelPath.FullName
                 });
             codeGenerator.GenerateOutput();
         }
