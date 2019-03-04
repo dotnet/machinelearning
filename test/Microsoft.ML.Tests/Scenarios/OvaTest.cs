@@ -29,7 +29,8 @@ namespace Microsoft.ML.Scenarios
             });
 
             var textData = reader.Load(GetDataPath(dataPath));
-            var data = mlContext.Data.Cache(mlContext.Transforms.Conversion.MapValueToKey("Label").Fit(textData).Transform(textData));
+            var data = mlContext.Data.Cache(mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Fit(textData).Transform(textData));
 
             // Pipeline
             var logReg = mlContext.BinaryClassification.Trainers.LogisticRegression();
@@ -50,7 +51,7 @@ namespace Microsoft.ML.Scenarios
 
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext(seed: 1, conc:1);
+            var mlContext = new MLContext(seed: 1);
             var reader = new TextLoader(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
@@ -62,7 +63,8 @@ namespace Microsoft.ML.Scenarios
 
             // Data
             var textData = reader.Load(GetDataPath(dataPath));
-            var data = mlContext.Data.Cache(mlContext.Transforms.Conversion.MapValueToKey("Label").Fit(textData).Transform(textData));
+            var data = mlContext.Data.Cache(mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Fit(textData).Transform(textData));
 
             // Pipeline
             var ap = mlContext.BinaryClassification.Trainers.AveragedPerceptron(
@@ -97,7 +99,8 @@ namespace Microsoft.ML.Scenarios
 
             // Data
             var textData = reader.Load(GetDataPath(dataPath));
-            var data = mlContext.Data.Cache(mlContext.Transforms.Conversion.MapValueToKey("Label").Fit(textData).Transform(textData));
+            var data = mlContext.Data.Cache(mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Fit(textData).Transform(textData));
 
             // Pipeline
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(
@@ -130,7 +133,8 @@ namespace Microsoft.ML.Scenarios
             });
             // Data
             var textData = reader.Load(GetDataPath(dataPath));
-            var data = mlContext.Data.Cache(mlContext.Transforms.Conversion.MapValueToKey("Label").Fit(textData).Transform(textData));
+            var data = mlContext.Data.Cache(mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Fit(textData).Transform(textData));
 
             // Pipeline
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(

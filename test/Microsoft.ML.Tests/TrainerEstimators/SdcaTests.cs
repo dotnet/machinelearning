@@ -20,7 +20,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = TextLoaderStatic.CreateLoader(Env, ctx => (Label: ctx.LoadFloat(0), Features: ctx.LoadFloat(1, 10)))
                 .Load(dataPath).Cache();
 
-            var binaryData = ML.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean).Fit(data.AsDynamic).Transform(data.AsDynamic);
+            var binaryData = ML.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean)
+                .Fit(data.AsDynamic).Transform(data.AsDynamic);
+
             var binaryTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
                 new SdcaBinaryTrainer.Options { ConvergenceTolerance = 1e-2f, MaxIterations = 10 });
             TestEstimatorCore(binaryTrainer, binaryData);

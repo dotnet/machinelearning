@@ -307,11 +307,11 @@ namespace Microsoft.ML.Data
                 schema.Schema[list[0].Index].Annotations.GetValue(Kinds.SlotNames, ref slotNames);
         }
 
-        public static bool ShouldAddSlotNames(this SchemaShape.Column col)
+        public static bool NeedsSlotNames(this SchemaShape.Column col)
         {
             return col.Annotations.TryFindColumn(Kinds.KeyValues, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Vector
-                && metaCol.ItemType is TextDataViewType; ;
+                && metaCol.ItemType is TextDataViewType;
         }
 
         /// <summary>
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Data
         public static IEnumerable<SchemaShape.Column> AnnotationsForMulticlassScoreColumn(SchemaShape.Column? labelColumn = null)
         {
             var cols = new List<SchemaShape.Column>();
-            if (labelColumn != null && labelColumn.Value.IsKey && ShouldAddSlotNames(labelColumn.Value))
+            if (labelColumn != null && labelColumn.Value.IsKey && NeedsSlotNames(labelColumn.Value))
                 cols.Add(new SchemaShape.Column(Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
             cols.AddRange(GetTrainerOutputAnnotation());
             return cols;

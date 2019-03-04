@@ -425,13 +425,10 @@ namespace Microsoft.ML.Tests
             if (task == TaskType.BinaryClassification)
                 return pipeline.Append(ML.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean))
                     .Fit(srcDV).Transform(srcDV);
-            else
-            if (task == TaskType.MulticlassClassification)
+            else if (task == TaskType.MulticlassClassification)
                 return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("Label"))
                     .Fit(srcDV).Transform(srcDV);
-            else
-            // Create a keytype for Ranking
-            if (task == TaskType.Ranking)
+            else if (task == TaskType.Ranking)
                 return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("GroupId"))
                     .Fit(srcDV).Transform(srcDV);
 
