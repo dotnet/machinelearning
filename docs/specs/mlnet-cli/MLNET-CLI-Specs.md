@@ -334,7 +334,7 @@ mlnet new
 [--ml-task <value>]
 [--model-settings-file <value>]
 [<RSP FILE NAME>]
-[--cache-enabled]
+[--cache]
 [--best-models-count]
 [--list-ml-tasks]
 [--app-type <value>]
@@ -534,16 +534,17 @@ The --help output should include most common examples, since there can be many c
 
 ----------------------------------------------------------
 
-`--cache-enabled`
+`--cache`
 
 Specify if training will use cache for the training data.
 
 Possible values:
 
-- `true`
-- `false`
+- `auto`
+- `force-on`
+- `force-off`
 
-This argument is optional. By default, if this argument is not specified, it will be `true`
+This argument is optional. By default, if this argument is not specified, it will be '`auto`' which will use cache if the heuristics (and perhaps later meta-model) in AutoML decides to.
 
 ----------------------------------------------------------
 
