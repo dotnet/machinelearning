@@ -276,6 +276,8 @@ namespace Microsoft.ML.RunTests
             name = "Census",
             trainFilename = "adult.tiny.with-schema.txt",
             testFilename = "adult.tiny.with-schema.txt",
+            fileHasHeader = true,
+            fileSeparator = '\t',
             loaderSettings = "loader=Text{header+ col=Label:0 col=Num:9-14 col=Cat:TX:1-8}",
             mamlExtraSettings = new[] { "xf=Cat{col=Cat}", "xf=Concat{col=Features:Num,Cat}" },
             extraSettings = @"/inst Text{header+ sep=, label=14 handler=Categorical{cols=5-9,1,13,3}}",
