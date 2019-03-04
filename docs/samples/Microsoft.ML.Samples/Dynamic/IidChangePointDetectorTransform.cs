@@ -138,7 +138,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Load the model.
             using (var file = File.OpenRead(modelPath))
-                model = TransformerChain.LoadFrom(ml, file);
+                model = ml.Model.Load(file);
 
             // Create a time series prediction engine from the checkpointed model.
             engine = model.CreateTimeSeriesPredictionFunction<IidChangePointData, ChangePointPrediction>(ml);
