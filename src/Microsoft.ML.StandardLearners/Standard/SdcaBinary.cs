@@ -137,13 +137,7 @@ namespace Microsoft.ML.Trainers
         }
 
         private protected virtual int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
-        {
-            int maxThreads = Math.Min(8, Math.Max(1, Environment.ProcessorCount / 2));
-            if (0 < Host.ConcurrencyFactor && Host.ConcurrencyFactor < maxThreads)
-                maxThreads = Host.ConcurrencyFactor;
-
-            return maxThreads;
-        }
+            =>  Math.Min(8, Math.Max(1, Environment.ProcessorCount / 2));
     }
 
     public abstract class SdcaTrainerBase<TOptions, TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
@@ -334,14 +328,8 @@ namespace Microsoft.ML.Trainers
             int numThreads;
             if (SdcaTrainerOptions.NumberOfThreads.HasValue)
             {
-                numThreads = SdcaTrainerOptions.NumberOfThreads.Value;
-                Host.CheckUserArg(numThreads > 0, nameof(OptionsBase.NumberOfThreads), "The number of threads must be either null or a positive integer.");
-                if (0 < Host.ConcurrencyFactor && Host.ConcurrencyFactor < numThreads)
-                {
-                    numThreads = Host.ConcurrencyFactor;
-                    ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
-                        + "setting of the environment. Using {0} training thread(s) instead.", numThreads);
-                }
+                numThreads = SdcaTrainerOptions.NumThreads.Value;
+                Host.CheckUserArg(numThreads > 0, nameof(OptionsBase.NumThreads), "The number of threads must be either null or a positive integer.");
             }
             else
                 numThreads = ComputeNumThreads(cursorFactory);

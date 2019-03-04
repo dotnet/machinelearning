@@ -726,13 +726,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         private static ParallelOptions GetParallelOptions(IHostEnvironment hostEnvironment)
-        {
-            //  "Less than 1 means whatever the component views as ideal." (about ConcurrencyFactor)
-            if (hostEnvironment.ConcurrencyFactor < 1)
-                return new ParallelOptions(); // we provide default options and let the Parallel decide
-            else
-                return new ParallelOptions() { MaxDegreeOfParallelism = hostEnvironment.ConcurrencyFactor };
-        }
+            => new ParallelOptions(); // we provide default options and let the Parallel decide
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
