@@ -137,7 +137,7 @@ namespace Microsoft.ML.Tests
                 {
                     FeatureColumnName = DefaultColumnNames.Features,
                     NumberOfIterations = 1,
-                    ClustersCount = 4,
+                    NumberOfClusters = 4,
                     NumberOfThreads = 1,
                     InitializationAlgorithm = Trainers.KMeansPlusPlusTrainer.InitializationAlgorithm.Random
                 }));

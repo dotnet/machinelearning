@@ -40,14 +40,14 @@ namespace Microsoft.ML.Trainers
         {
             KMeansPlusPlus = 0,
             Random = 1,
-            KMeansParallel = 2
+            KMeansYinyang = 2
         }
 
         [BestFriend]
         internal static class Defaults
         {
             /// <value>The number of clusters.</value>
-            public const int ClustersCount = 5;
+            public const int NumberOfClusters = 5;
         }
 
         public sealed class Options : UnsupervisedTrainerInputBaseWithWeight
@@ -58,13 +58,13 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of clusters", SortOrder = 50, Name = "K")]
             [TGUI(SuggestedSweeps = "5,10,20,40")]
             [TlcModule.SweepableDiscreteParam("K", new object[] { 5, 10, 20, 40 })]
-            public int ClustersCount = Defaults.ClustersCount;
+            public int NumberOfClusters = Defaults.NumberOfClusters;
 
             /// <summary>
             /// Cluster initialization algorithm.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Cluster initialization algorithm", ShortName = "init")]
-            public InitializationAlgorithm InitializationAlgorithm = InitializationAlgorithm.KMeansParallel;
+            public InitializationAlgorithm InitializationAlgorithm = InitializationAlgorithm.KMeansYinyang;
 
             /// <summary>
             /// Tolerance parameter for trainer convergence. Low = slower, more accurate.
@@ -119,11 +119,11 @@ namespace Microsoft.ML.Trainers
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), default, TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName))
         {
             Host.CheckValue(options, nameof(options));
-            Host.CheckUserArg(options.ClustersCount > 0, nameof(options.ClustersCount), "Must be positive");
+            Host.CheckUserArg(options.NumberOfClusters > 0, nameof(options.NumberOfClusters), "Must be positive");
 
             _featureColumn = options.FeatureColumnName;
 
-            _k = options.ClustersCount;
+            _k = options.NumberOfClusters;
 
             Host.CheckUserArg(options.NumberOfIterations > 0, nameof(options.NumberOfIterations), "Must be positive");
             _maxIterations = options.NumberOfIterations;
@@ -744,7 +744,7 @@ namespace Microsoft.ML.Trainers
             ch.CheckValue(cursorFactory, nameof(cursorFactory));
             ch.CheckValue(centroids, nameof(centroids));
             ch.CheckUserArg(numThreads > 0, nameof(KMeansPlusPlusTrainer.Options.NumberOfThreads), "Must be positive");
-            ch.CheckUserArg(k > 0, nameof(KMeansPlusPlusTrainer.Options.ClustersCount), "Must be positive");
+            ch.CheckUserArg(k > 0, nameof(KMeansPlusPlusTrainer.Options.NumberOfClusters), "Must be positive");
             ch.CheckParam(dimensionality > 0, nameof(dimensionality), "Must be positive");
             ch.CheckUserArg(accelMemBudgetMb >= 0, nameof(KMeansPlusPlusTrainer.Options.AccelerationMemoryBudgetMb), "Must be non-negative");
 

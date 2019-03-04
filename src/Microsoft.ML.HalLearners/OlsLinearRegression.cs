@@ -46,14 +46,14 @@ namespace Microsoft.ML.Trainers.HalLearners
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization weight", ShortName = "l2", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "1e-6,0.1,1")]
-            [TlcModule.SweepableDiscreteParamAttribute("L2Weight", new object[] { 1e-6f, 0.1f, 1f })]
-            public float L2Weight = 1e-6f;
+            [TlcModule.SweepableDiscreteParamAttribute("L2Regularization", new object[] { 1e-6f, 0.1f, 1f })]
+            public float L2Regularization = 1e-6f;
 
             /// <summary>
             /// Whether to calculate per parameter (e.g., the coefficient of the i-th input feature) significance statistics.
             /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to calculate per parameter significance statistics", ShortName = "sig")]
-            public bool PerParameterSignificance = true;
+            public bool CalculateStatistics = true;
         }
 
         internal const string LoadNameValue = "OLSLinearRegression";
@@ -80,9 +80,9 @@ namespace Microsoft.ML.Trainers.HalLearners
                   TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName), TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName))
         {
             Host.CheckValue(options, nameof(options));
-            Host.CheckUserArg(options.L2Weight >= 0, nameof(options.L2Weight), "L2 regularization term cannot be negative");
-            _l2Weight = options.L2Weight;
-            _perParameterSignificance = options.PerParameterSignificance;
+            Host.CheckUserArg(options.L2Regularization >= 0, nameof(options.L2Regularization), "L2 regularization term cannot be negative");
+            _l2Weight = options.L2Regularization;
+            _perParameterSignificance = options.CalculateStatistics;
         }
 
         private protected override RegressionPredictionTransformer<OrdinaryLeastSquaresRegressionModelParameters> MakeTransformer(OrdinaryLeastSquaresRegressionModelParameters model, DataViewSchema trainSchema)
@@ -545,7 +545,7 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// are all null. A model may not have per parameter statistics because either
         /// there were not more examples than parameters in the model, or because they
         /// were explicitly suppressed in training by setting
-        /// <see cref="OrdinaryLeastSquaresRegressionTrainer.Options.PerParameterSignificance"/>
+        /// <see cref="OrdinaryLeastSquaresRegressionTrainer.Options.CalculateStatistics"/>
         /// to false.
         /// </summary>
         public bool HasStatistics => StandardErrors != null;

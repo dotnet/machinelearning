@@ -30,7 +30,7 @@ namespace Microsoft.ML
         public static KMeansPlusPlusTrainer KMeans(this ClusteringCatalog.ClusteringTrainers catalog,
            string featureColumnName = DefaultColumnNames.Features,
            string exampleWeightColumnName = null,
-           int clustersCount = KMeansPlusPlusTrainer.Defaults.ClustersCount)
+           int clustersCount = KMeansPlusPlusTrainer.Defaults.NumberOfClusters)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -39,7 +39,7 @@ namespace Microsoft.ML
             {
                 FeatureColumnName = featureColumnName,
                 ExampleWeightColumnName = exampleWeightColumnName,
-                ClustersCount = clustersCount
+                NumberOfClusters = clustersCount
             };
             return new KMeansPlusPlusTrainer(env, options);
         }

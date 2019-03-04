@@ -32,7 +32,7 @@ namespace Microsoft.ML.Samples.Dynamic
                     new KMeansPlusPlusTrainer.Options
                     {
                         FeatureColumnName = outputColumnName,
-                        ClustersCount = 2,
+                        NumberOfClusters = 2,
                         NumberOfIterations = 100,
                         OptimizationTolerance = 1e-6f
                     }
