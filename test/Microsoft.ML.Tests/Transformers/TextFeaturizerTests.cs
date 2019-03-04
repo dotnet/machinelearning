@@ -274,7 +274,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void LdaWorkout()
         {
-            IHostEnvironment env = new MLContext(seed: 42, conc: 1);
+            IHostEnvironment env = new MLContext(seed: 42);
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
             var data = TextLoaderStatic.CreateLoader(env, ctx => (
                     label: ctx.LoadBool(0),

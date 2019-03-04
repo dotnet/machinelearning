@@ -49,7 +49,7 @@ namespace Microsoft.ML.Tests
         {
             // Step 1: Create and train a ML.NET pipeline.
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var data = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
                 separatorChar: ';'
 ,
@@ -58,7 +58,11 @@ namespace Microsoft.ML.Tests
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumnName: "Target", featureColumnName: "FeatureVector"));
+                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(new SdcaRegressionTrainer.Options() {
+                    LabelColumnName = "Target",
+                    FeatureColumnName = "FeatureVector",
+                    NumThreads = 1
+                }));
             var model = dynamicPipeline.Fit(data);
             var transformedData = model.Transform(data);
 
@@ -124,7 +128,7 @@ namespace Microsoft.ML.Tests
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
@@ -202,7 +206,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void KeyToVectorWithBagOnnxConversionTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
 
@@ -303,7 +307,7 @@ namespace Microsoft.ML.Tests
         {
             // Step 1: Create and train a ML.NET pipeline.
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var data = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
                 separatorChar: ';'
 ,
@@ -336,7 +340,7 @@ namespace Microsoft.ML.Tests
         {
             // Step 1: Create and train a ML.NET pipeline.
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var data = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
                 separatorChar: ';'
 ,
@@ -367,7 +371,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void MulticlassLogisticRegressionOnnxConversionTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
             var data = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExample>(dataPath,
@@ -397,7 +401,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void RemoveVariablesInPipelineTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
             var data = mlContext.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
@@ -449,7 +453,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void WordEmbeddingsTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var dataPath = GetDataPath(@"small-sentiment-test.tsv");
             var embedNetworkPath = GetDataPath(@"shortsentiment.emd");
             var data = mlContext.Data.LoadFromTextFile<SmallSentimentExample>(dataPath, separatorChar: '\t', hasHeader: false);

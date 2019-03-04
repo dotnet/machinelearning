@@ -24,7 +24,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         void CrossValidation()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
             var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(),
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void TrainWithValidationSet()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
             var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(),
