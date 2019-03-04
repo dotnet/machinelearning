@@ -20,7 +20,6 @@ namespace Microsoft.ML.RunTests
     using Microsoft.ML.TestFramework;
     using Microsoft.ML.Trainers;
     using Microsoft.ML.Trainers.FastTree;
-    using Microsoft.ML.Trainers.HalLearners;
     using Xunit;
     using Xunit.Abstractions;
     using TestLearners = TestLearnersBase;
@@ -41,7 +40,7 @@ namespace Microsoft.ML.RunTests
             base.InitializeEnvironment(environment);
 
             environment.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
-            environment.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
+            environment.ComponentCatalog.RegisterAssembly(typeof(SymbolicStochasticGradientDescentClassificationTrainer).Assembly);
         }
 
         /// <summary>

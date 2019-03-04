@@ -22,7 +22,6 @@ using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.HalLearners;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.Transforms.TimeSeries;
@@ -327,7 +326,7 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoadingTransformer).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(SymbolicStochasticGradientDescentClassificationTrainer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
@@ -1326,7 +1325,7 @@ namespace Microsoft.ML.RunTests
                         NormalizeFeatures = NormalizeOption.Yes,
                         NumThreads = 1,
                         ShowTrainingStats = true,
-                        StdComputer = new ComputeLRTrainingStdThroughHal()
+                        StdComputer = new ComputeLRTrainingStdThroughMkl()
                     };
                     predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
                     var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
@@ -3323,7 +3322,7 @@ namespace Microsoft.ML.RunTests
                 NormalizeFeatures = NormalizeOption.Yes,
                 NumThreads = 1,
                 ShowTrainingStats = true,
-                StdComputer = new ComputeLRTrainingStdThroughHal()
+                StdComputer = new ComputeLRTrainingStdThroughMkl()
             };
             var model = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
 

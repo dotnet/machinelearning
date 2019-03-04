@@ -627,9 +627,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var model = pipe.Fit(dataSource);
             Assert.NotNull(pred);
             // 11 input features, so we ought to have 11 weights.
-            VBuffer<float> weights = new VBuffer<float>();
-            pred.GetFeatureWeights(ref weights);
-            Assert.Equal(11, weights.Length);
+            Assert.Equal(11, pred.Weights.Count);
 
             var data = model.Load(dataSource);
 
@@ -751,9 +749,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var model = pipe.Fit(dataSource);
             Assert.NotNull(pred);
             // 11 input features, so we ought to have 11 weights.
-            VBuffer<float> weights = new VBuffer<float>();
-            pred.GetFeatureWeights(ref weights);
-            Assert.Equal(11, weights.Length);
+            Assert.Equal(11, pred.Weights.Count);
 
             var data = model.Load(dataSource);
 

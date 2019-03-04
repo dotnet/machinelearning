@@ -3,15 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.HalLearners;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {
     /// <summary>
-    /// The trainer catalog extensions for the <see cref="OrdinaryLeastSquaresRegressionTrainer"/> and <see cref="SymSgdClassificationTrainer"/>.
+    /// The trainer catalog extensions for the <see cref="OrdinaryLeastSquaresRegressionTrainer"/> and <see cref="SymbolicStochasticGradientDescentClassificationTrainer"/>.
     /// </summary>
-    public static class HalLearnersCatalog
+    public static class MklComponentsCatalog
     {
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="OrdinaryLeastSquaresRegressionTrainer"/>.
@@ -68,7 +68,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="SymSgdClassificationTrainer"/>.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="SymbolicStochasticGradientDescentClassificationTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -81,28 +81,28 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static SymSgdClassificationTrainer SymbolicStochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static SymbolicStochasticGradientDescentClassificationTrainer SymbolicStochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
-            int numberOfIterations = SymSgdClassificationTrainer.Defaults.NumberOfIterations)
+            int numberOfIterations = SymbolicStochasticGradientDescentClassificationTrainer.Defaults.NumberOfIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
 
-            var options = new SymSgdClassificationTrainer.Options
+            var options = new SymbolicStochasticGradientDescentClassificationTrainer.Options
             {
                 LabelColumnName = labelColumnName,
                 FeatureColumnName = featureColumnName,
             };
 
-            return new SymSgdClassificationTrainer(env, options);
+            return new SymbolicStochasticGradientDescentClassificationTrainer(env, options);
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="SymSgdClassificationTrainer"/>.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="SymbolicStochasticGradientDescentClassificationTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="options">Algorithm advanced options. See <see cref="SymSgdClassificationTrainer.Options"/>.</param>
+        /// <param name="options">Algorithm advanced options. See <see cref="SymbolicStochasticGradientDescentClassificationTrainer.Options"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -110,14 +110,14 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static SymSgdClassificationTrainer SymbolicStochasticGradientDescent(
+        public static SymbolicStochasticGradientDescentClassificationTrainer SymbolicStochasticGradientDescent(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            SymSgdClassificationTrainer.Options options)
+            SymbolicStochasticGradientDescentClassificationTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SymSgdClassificationTrainer(env, options);
+            return new SymbolicStochasticGradientDescentClassificationTrainer(env, options);
         }
 
         /// <summary>
