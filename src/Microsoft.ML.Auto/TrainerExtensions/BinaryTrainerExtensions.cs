@@ -51,7 +51,7 @@ namespace Microsoft.ML.Auto
             {
                 additionalProperties = new Dictionary<string, object>()
                 {
-                    { "NumberOfIterations", DefaultNumIterations.ToString() }
+                    { "NumberOfIterations", DefaultNumIterations }
                 };
             }
 

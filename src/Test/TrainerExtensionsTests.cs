@@ -183,7 +183,7 @@ namespace Microsoft.ML.Auto.Test
   ],
   ""Properties"": {
     ""LabelColumn"": ""L"",
-    ""NumberOfIterations"": ""10""
+    ""NumberOfIterations"": 10
   }
 }";
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
