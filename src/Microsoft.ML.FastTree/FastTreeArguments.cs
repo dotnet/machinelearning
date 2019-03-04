@@ -20,18 +20,80 @@ namespace Microsoft.ML.Trainers.FastTree
     {
     }
 
+    /// <summary>
+    /// Stopping measurements for classification and regression.
+    /// </summary>
+    public enum EarlyStoppingMetric
+    {
+        /// <summary>
+        /// L1-norm of gradient.
+        /// </summary>
+        L1Norm = 1,
+        /// <summary>
+        /// L2-norm of gradient.
+        /// </summary>
+        L2Norm = 2
+    };
+
+    /// <summary>
+    /// Stopping measurements for ranking.
+    /// </summary>
+    public enum EarlyStoppingRankingMetric
+    {
+        /// <summary>
+        /// NDCG@1
+        /// </summary>
+        NdcgAt1 = 1,
+        /// <summary>
+        /// NDCG@3
+        /// </summary>
+        NdcgAt3 = 3
+    }
+
     /// <include file='doc.xml' path='doc/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeBinaryClassificationTrainer
     {
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
         {
+
             /// <summary>
             /// Option for using derivatives optimized for unbalanced sets.
             /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Option for using derivatives optimized for unbalanced sets", ShortName = "us")]
             [TGUI(Label = "Optimize for unbalanced")]
             public bool UnbalancedSets = false;
+
+            /// <summary>
+            /// internal state of <see cref="EarlyStoppingMetric"/>. It should be always synced with
+            /// <see cref="BoostedTreeOptions.EarlyStoppingMetrics"/>.
+            /// </summary>
+            // Disable 649 because Visual Studio can't detect its assignment via property.
+            #pragma warning disable 649
+            private EarlyStoppingMetric _earlyStoppingMetric;
+            #pragma warning restore 649
+
+            /// <summary>
+            /// Early stopping metrics.
+            /// </summary>
+            public EarlyStoppingMetric EarlyStoppingMetric
+            {
+                get { return _earlyStoppingMetric; }
+
+                set
+                {
+                    // Update the state of the user-facing stopping metric.
+                    _earlyStoppingMetric = value;
+                    // Set up internal property according to its public value.
+                    EarlyStoppingMetrics = (int)_earlyStoppingMetric;
+                }
+            }
+
+            public Options()
+            {
+                // Use L1 by default.
+                EarlyStoppingMetric = EarlyStoppingMetric.L1Norm;
+            }
 
             ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeBinaryClassificationTrainer(env, this);
         }
@@ -42,9 +104,31 @@ namespace Microsoft.ML.Trainers.FastTree
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
         {
+            /// <summary>
+            /// internal state of <see cref="EarlyStoppingMetric"/>. It should be always synced with
+            /// <see cref="BoostedTreeOptions.EarlyStoppingMetrics"/>.
+            /// </summary>
+            private EarlyStoppingMetric _earlyStoppingMetric;
+
+            /// <summary>
+            /// Early stopping metrics.
+            /// </summary>
+            public EarlyStoppingMetric EarlyStoppingMetric
+            {
+                get { return _earlyStoppingMetric; }
+
+                set
+                {
+                    // Update the state of the user-facing stopping metric.
+                    _earlyStoppingMetric = value;
+                    // Set up internal property according to its public value.
+                    EarlyStoppingMetrics = (int)_earlyStoppingMetric;
+                }
+            }
+
             public Options()
             {
-                EarlyStoppingMetrics = 1; // Use L1 by default.
+                EarlyStoppingMetric = EarlyStoppingMetric.L1Norm; // Use L1 by default.
             }
 
             ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeRegressionTrainer(env, this);
@@ -63,6 +147,36 @@ namespace Microsoft.ML.Trainers.FastTree
                 "Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, " +
                 "and intermediate values are compound Poisson loss.")]
             public Double Index = 1.5;
+
+            /// <summary>
+            /// internal state of <see cref="EarlyStoppingMetric"/>. It should be always synced with
+            /// <see cref="BoostedTreeOptions.EarlyStoppingMetrics"/>.
+            /// </summary>
+            // Disable 649 because Visual Studio can't detect its assignment via property.
+            #pragma warning disable 649
+            private EarlyStoppingMetric _earlyStoppingMetric;
+            #pragma warning restore 649
+
+            /// <summary>
+            /// Early stopping metrics.
+            /// </summary>
+            public EarlyStoppingMetric EarlyStoppingMetric
+            {
+                get { return _earlyStoppingMetric; }
+
+                set
+                {
+                    // Update the state of the user-facing stopping metric.
+                    _earlyStoppingMetric = value;
+                    // Set up internal property according to its public value.
+                    EarlyStoppingMetrics = (int)_earlyStoppingMetric;
+                }
+            }
+
+            public Options()
+            {
+                EarlyStoppingMetric = EarlyStoppingMetric.L1Norm; // Use L1 by default.
+            }
 
             ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeTweedieTrainer(env, this);
         }
@@ -113,9 +227,34 @@ namespace Microsoft.ML.Trainers.FastTree
             [TGUI(NotGui = true)]
             internal bool NormalizeQueryLambdas;
 
+            /// <summary>
+            /// internal state of <see cref="EarlyStoppingMetric"/>. It should be always synced with
+            /// <see cref="BoostedTreeOptions.EarlyStoppingMetrics"/>.
+            /// </summary>
+            // Disable 649 because Visual Studio can't detect its assignment via property.
+            #pragma warning disable 649
+            private EarlyStoppingRankingMetric _earlyStoppingMetric;
+            #pragma warning restore 649
+
+            /// <summary>
+            /// Early stopping metrics.
+            /// </summary>
+            public EarlyStoppingRankingMetric EarlyStoppingMetric
+            {
+                get { return _earlyStoppingMetric; }
+
+                set
+                {
+                    // Update the state of the user-facing stopping metric.
+                    _earlyStoppingMetric = value;
+                    // Set up internal property according to its public value.
+                    EarlyStoppingMetrics = (int)_earlyStoppingMetric;
+                }
+            }
+
             public Options()
             {
-                EarlyStoppingMetrics = 1;
+                EarlyStoppingMetric = EarlyStoppingRankingMetric.NdcgAt1; // Use L1 by default.
             }
 
             ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeRankingTrainer(env, this);
