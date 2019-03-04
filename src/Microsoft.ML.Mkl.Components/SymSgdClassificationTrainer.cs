@@ -16,7 +16,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Trainers.HalLearners;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(SymbolicStochasticGradientDescentClassificationTrainer), typeof(SymbolicStochasticGradientDescentClassificationTrainer.Options),
@@ -27,7 +27,7 @@ using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(void), typeof(SymbolicStochasticGradientDescentClassificationTrainer), null, typeof(SignatureEntryPointModule), SymbolicStochasticGradientDescentClassificationTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Trainers.HalLearners
+namespace Microsoft.ML.Trainers
 {
     using TPredictor = CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>;
 

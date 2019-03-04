@@ -24,8 +24,10 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers
 {
-    // SDCA linear multiclass trainer.
-    /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a multiclass logistic regression classification model using the stochastic dual coordinate ascent method.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
     public class SdcaMultiClassTrainer : SdcaTrainerBase<SdcaMultiClassTrainer.Options, MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
     {
         internal const string LoadNameValue = "SDCAMC";
@@ -33,8 +35,17 @@ namespace Microsoft.ML.Trainers
         internal const string ShortName = "sasdcamc";
         internal const string Summary = "The SDCA linear multi-class classification trainer.";
 
+        /// <summary>
+        /// Options for the <see cref="SdcaMultiClassTrainer"/>.
+        /// </summary>
         public sealed class Options : OptionsBase
         {
+            /// <summary>
+            /// The custom <a href="tmpurl_loss">loss</a>.
+            /// </summary>
+            /// <value>
+            /// If unspecified, <see cref="LogLoss"/> will be used.
+            /// </value>
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
         }
@@ -200,7 +211,7 @@ namespace Microsoft.ML.Trainers
                             var output = labelOutput + labelPrimalUpdate * normSquared - WDot(in features, in weights[iClass], biasReg[iClass] + biasUnreg[iClass]);
                             var dualUpdate = _loss.DualUpdate(output, 1, dual, invariant, numThreads);
 
-                            // The successive over-relaxation apporach to adjust the sum of dual variables (biasReg) to zero.
+                            // The successive over-relaxation approach to adjust the sum of dual variables (biasReg) to zero.
                             // Reference to details: http://stat.rutgers.edu/home/tzhang/papers/ml02_dual.pdf, pp. 16-17.
                             var adjustment = l1ThresholdZero ? lr * biasReg[iClass] : lr * l1IntermediateBias[iClass];
                             dualUpdate -= adjustment;

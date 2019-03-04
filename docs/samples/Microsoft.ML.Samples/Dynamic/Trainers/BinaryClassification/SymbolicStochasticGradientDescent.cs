@@ -2,7 +2,7 @@
 {
     public static class SymbolicStochasticGradientDescent
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.HalLearners/">Microsoft.ML.HalLearners</a>.
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.Mkl.Components/">Microsoft.ML.Mkl.Components</a>.
         // In this example we will use the adult income dataset. The goal is to predict
         // if a person's income is above $50K or not, based on demographic information about that person.
         // For more details about this dataset, please see https://archive.ics.uci.edu/ml/datasets/adult

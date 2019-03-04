@@ -46,7 +46,7 @@ namespace Microsoft.ML.Trainers
             /// If you have a large number of learned training parameters(more than 500),
             /// generating the training statistics might take a few seconds.
             /// More than 1000 weights might take a few minutes. For those cases consider using the instance of <see cref="ComputeLRTrainingStd"/>
-            /// present in the Microsoft.ML.HalLearners package. That computes the statistics using hardware acceleration.
+            /// present in the Microsoft.ML.Mkl.Components package. That computes the statistics using hardware acceleration.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat", SortOrder = 50)]
             public bool ShowTrainingStats = false;
@@ -54,8 +54,8 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// The instance of <see cref="ComputeLRTrainingStd"/> that computes the std of the training statistics, at the end of training.
             /// The calculations are not part of Microsoft.ML package, due to the size of MKL.
-            /// If you need these calculations, add the Microsoft.ML.HalLearners package, and initialize <see cref="LogisticRegression.Options.StdComputer"/>.
-            /// to the <see cref="ComputeLRTrainingStd"/> implementation in the Microsoft.ML.HalLearners package.
+            /// If you need these calculations, add the Microsoft.ML.Mkl.Components package, and initialize <see cref="LogisticRegression.Options.StdComputer"/>.
+            /// to the <see cref="ComputeLRTrainingStd"/> implementation in the Microsoft.ML.Mkl.Components package.
             /// </summary>
             public ComputeLRTrainingStd StdComputer;
         }
@@ -429,7 +429,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// Computes the standard deviation matrix of each of the non-zero training weights, needed to calculate further the standard deviation,
     /// p-value and z-Score.
-    /// If you need fast calculations, use the <see cref="ComputeLRTrainingStd"/> implementation in the Microsoft.ML.HALLearners package,
+    /// If you need fast calculations, use the <see cref="ComputeLRTrainingStd"/> implementation in the Microsoft.ML.Mkl.Components package,
     /// which makes use of hardware acceleration.
     /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
     /// </summary>
@@ -439,8 +439,8 @@ namespace Microsoft.ML.Trainers
         /// Computes the standard deviation matrix of each of the non-zero training weights, needed to calculate further the standard deviation,
         /// p-value and z-Score.
         /// The calculations are not part of Microsoft.ML package, due to the size of MKL.
-        /// If you need these calculations, add the Microsoft.ML.HalLearners package, and initialize <see cref="LogisticRegression.Options.StdComputer"/>
-        /// to the <see cref="ComputeLRTrainingStd"/> implementation in the Microsoft.ML.HalLearners package.
+        /// If you need these calculations, add the Microsoft.ML.Mkl.Components package, and initialize <see cref="LogisticRegression.Options.StdComputer"/>
+        /// to the <see cref="ComputeLRTrainingStd"/> implementation in the Microsoft.ML.Mkl.Components package.
         /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
         /// </summary>
         public abstract VBuffer<float> ComputeStd(double[] hessian, int[] weightIndices, int parametersCount, int currentWeightsCount, IChannel ch, float l2Weight);

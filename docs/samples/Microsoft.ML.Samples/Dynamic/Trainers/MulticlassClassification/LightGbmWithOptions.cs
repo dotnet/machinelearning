@@ -7,7 +7,7 @@ using static Microsoft.ML.LightGBM.Options;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
 {
-    class LightGbmWithOptions
+    public static class LightGbmWithOptions
     {
         // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
         public static void Example()
@@ -16,10 +16,10 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 0);
 
-            // Create in-memory examples as C# native class.
+            // Create a list of data examples.
             var examples = DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);
 
-            // Convert native C# class to IDataView, a consumble format to ML.NET functions.
+            // Convert the examples list to an IDataView object, which is consumable by ML.NET API.
             var dataView = mlContext.Data.LoadFromEnumerable(examples);
 
             //////////////////// Data Preview ////////////////////
