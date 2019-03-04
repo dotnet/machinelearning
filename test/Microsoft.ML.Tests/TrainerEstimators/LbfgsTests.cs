@@ -77,7 +77,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 new LogisticRegression.Options
                 {
                     ShowTrainingStatistics = true,
-                    ComputeStandardDeviation = new ComputeLRTrainingStdThroughHal(),
+                    ComputeStandardDeviation = new ComputeLRTrainingStdThroughMkl(),
                 }));
 
             var transformer = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>>;
