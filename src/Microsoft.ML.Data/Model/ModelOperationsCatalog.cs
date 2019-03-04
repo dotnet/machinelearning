@@ -28,16 +28,6 @@ namespace Microsoft.ML
             Explainability = new ExplainabilityTransforms(this);
         }
 
-        public abstract class SubCatalogBase
-        {
-            internal IHostEnvironment Environment { get; }
-
-            protected SubCatalogBase(ModelOperationsCatalog owner)
-            {
-                Environment = owner.Environment;
-            }
-        }
-
         /// <summary>
         /// Save the model to the stream.
         /// </summary>
@@ -55,10 +45,13 @@ namespace Microsoft.ML
         /// <summary>
         /// The catalog of model explainability operations.
         /// </summary>
-        public sealed class ExplainabilityTransforms : SubCatalogBase
+        public sealed class ExplainabilityTransforms
         {
-            internal ExplainabilityTransforms(ModelOperationsCatalog owner) : base(owner)
+            internal IHostEnvironment Environment { get; }
+
+            internal ExplainabilityTransforms(ModelOperationsCatalog owner)
             {
+                Environment = owner.Environment;
             }
         }
 
