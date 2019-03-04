@@ -34,18 +34,15 @@ namespace Microsoft.ML.Samples.Dynamic
                 }
             }).Load(imagesDataFile);
 
-            // Installing the Microsoft.ML.DNNImageFeaturizer packages copies the models in the
-            // `DnnImageModels` folder. The location of this folder is needed by the ResNet18 model.
-            string executablePath = typeof(DnnFeaturizeImage).Assembly.CodeBase;
-            string absolutePath = new Uri(executablePath).AbsolutePath;
-            var modelsParentFolder = Path.Combine(Directory.GetParent(absolutePath).FullName, "DnnImageModels");
-
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
+
+            // Installing the Microsoft.ML.DNNImageFeaturizer packages copies the models in the
+            // `DnnImageModels` folder. 
             // Image loading pipeline. 
             var pipeline = mlContext.Transforms.LoadImages(imagesFolder, ("ImageObject", "ImagePath"))
                           .Append(mlContext.Transforms.ResizeImages("ImageObject", imageWidth: 224, imageHeight: 224))
                           .Append(mlContext.Transforms.ExtractPixels("Pixels", "ImageObject"))
-                          .Append(mlContext.Transforms.DnnFeaturizeImage("FeaturizedImage", m => m.ModelSelector.ResNet18(mlContext, m.OutputColumn, m.InputColumn, modelsParentFolder), "Pixels"));
+                          .Append(mlContext.Transforms.DnnFeaturizeImage("FeaturizedImage", m => m.ModelSelector.ResNet18(mlContext, m.OutputColumn, m.InputColumn), "Pixels"));
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
