@@ -6622,7 +6622,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": 0
+          "Default": 1
         },
         {
           "Name": "EnablePruning",
@@ -9394,7 +9394,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": 0
+          "Default": 1
         },
         {
           "Name": "EnablePruning",
@@ -25316,7 +25316,7 @@
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
-              "Default": 0
+              "Default": 1
             },
             {
               "Name": "EnablePruning",
@@ -28034,7 +28034,7 @@
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
-              "Default": 0
+              "Default": 1
             },
             {
               "Name": "EnablePruning",
