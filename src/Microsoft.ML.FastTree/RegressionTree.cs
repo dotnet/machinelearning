@@ -21,11 +21,11 @@ namespace Microsoft.ML.Trainers.FastTree
         private readonly InternalRegressionTree _tree;
 
         /// <summary>
-        /// See <see cref="LessThanOrEqualToThresholdChildren"/>.
+        /// See <see cref="LeftChild"/>.
         /// </summary>
         private readonly ImmutableArray<int> _lteChild;
         /// <summary>
-        /// See <see cref="GreaterThanThresholdChildren"/>.
+        /// See <see cref="RightChild"/>.
         /// </summary>
         private readonly ImmutableArray<int> _gtChild;
         /// <summary>
@@ -50,9 +50,9 @@ namespace Microsoft.ML.Trainers.FastTree
         private readonly ImmutableArray<double> _splitGains;
 
         /// <summary>
-        /// <see cref="LessThanOrEqualToThresholdChildren"/>[i] is the i-th node's child index used when
-        /// (1) the numerical feature indexed by <see cref="NumericalSplitFeatureIndexes"/>[i] is less than the
-        /// threshold <see cref="NumericalSplitThresholds"/>[i], or
+        /// <see cref="LeftChild"/>[i] is the i-th node's child index used when
+        /// (1) the numerical feature indexed by <see cref="NumericalSplitFeatureIndexes"/>[i] is less than or equal
+        /// to the threshold <see cref="NumericalSplitThresholds"/>[i], or
         /// (2) the categorical features indexed by <see cref="GetCategoricalCategoricalSplitFeatureRangeAt(int)"/>'s
         /// returned value with nodeIndex=i is NOT a sub-set of <see cref="GetCategoricalSplitFeaturesAt(int)"/> with
         /// nodeIndex=i.
@@ -63,14 +63,14 @@ namespace Microsoft.ML.Trainers.FastTree
         /// bitwise complement operator in C#; for details, see
         /// https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/bitwise-complement-operator.
         /// </summary>
-        public IReadOnlyList<int> LessThanOrEqualToThresholdChildren => _lteChild;
+        public IReadOnlyList<int> LeftChild => _lteChild;
 
         /// <summary>
-        /// <see cref="GreaterThanThresholdChildren"/>[i] is the i-th node's child index used when the two conditions, (1) and (2),
-        /// described in <see cref="LessThanOrEqualToThresholdChildren"/>'s document are not true. Its return value follows the format
-        /// used in <see cref="LessThanOrEqualToThresholdChildren"/>.
+        /// <see cref="RightChild"/>[i] is the i-th node's child index used when the two conditions, (1) and (2),
+        /// described in <see cref="LeftChild"/>'s document are not true. Its return value follows the format
+        /// used in <see cref="LeftChild"/>.
         /// </summary>
-        public IReadOnlyList<int> GreaterThanThresholdChildren => _gtChild;
+        public IReadOnlyList<int> RightChild => _gtChild;
 
         /// <summary>
         /// <see cref="NumericalSplitFeatureIndexes"/>[i] is the feature index used the splitting function of the
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Return categorical thresholds used at node indexed by nodeIndex. If the considered input feature does NOT
         /// matche any of values returned by <see cref="GetCategoricalSplitFeaturesAt(int)"/>, we call it a
-        /// less-than-threshold event and therefore <see cref="LessThanOrEqualToThresholdChildren"/>[nodeIndex] is the child node that input
+        /// less-than-threshold event and therefore <see cref="LeftChild"/>[nodeIndex] is the child node that input
         /// should go next. The returned value is valid only if <see cref="CategoricalSplitFlags"/>[nodeIndex] is true.
         /// </summary>
         public IReadOnlyList<int> GetCategoricalSplitFeaturesAt(int nodeIndex)

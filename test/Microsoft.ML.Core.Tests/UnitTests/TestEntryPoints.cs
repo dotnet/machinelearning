@@ -4961,10 +4961,10 @@ namespace Microsoft.ML.RunTests
                             }, {
                                 'Name': 'Trainers.FastTreeRanker',
                                 'Inputs': {
-                                    'CustomGains': '0,3,7,15,31',
-                                    'TrainDcg': false,
+                                    'CustomGains': [0,3,7,15,31],
+                                    'UseDcg': false,
                                     'SortingAlgorithm': 'DescendingStablePessimistic',
-                                    'LambdaMartMaxTruncation': 100,
+                                    'NdcgTruncationLevel': 100,
                                     'ShiftedNdcg': false,
                                     'CostFunctionParam': 'w',
                                     'DistanceWeight2': false,
@@ -5027,7 +5027,6 @@ namespace Microsoft.ML.RunTests
                                     'AllowEmptyTrees': true,
                                     'FeatureCompressionLevel': 1,
                                     'CompressEnsemble': false,
-                                    'MaximumTreeCountAfterCompression': -1,
                                     'PrintTestGraph': false,
                                     'PrintTrainValidGraph': false,
                                     'TestFrequency': 2147483647,

@@ -75,38 +75,43 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Comma seperated list of gains associated to each relevance label.", ShortName = "gains")]
             [TGUI(NoSweep = true)]
-            public string CustomGains = "0,3,7,15,31";
+            public double[] CustomGains = new double[] { 0, 3, 7, 15, 31 };
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Train DCG instead of NDCG", ShortName = "dcg")]
-            public bool TrainDcg;
+            public bool UseDcg;
 
             // REVIEW: Hiding sorting for now. Should be an enum or component factory.
+            [BestFriend]
             [Argument(ArgumentType.LastOccurenceWins,
                 HelpText = "The sorting algorithm to use for DCG and LambdaMart calculations [DescendingStablePessimistic/DescendingStable/DescendingReverse/DescendingDotNet]",
                 ShortName = "sort",
                 Hide = true)]
             [TGUI(NotGui = true)]
-            public string SortingAlgorithm = "DescendingStablePessimistic";
+            internal string SortingAlgorithm = "DescendingStablePessimistic";
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "max-NDCG truncation to use in the Lambda Mart algorithm", ShortName = "n", Hide = true)]
             [TGUI(NotGui = true)]
-            public int LambdaMartMaxTruncation = 100;
+            public int NdcgTruncationLevel = 100;
 
+            [BestFriend]
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Use shifted NDCG", Hide = true)]
             [TGUI(NotGui = true)]
-            public bool ShiftedNdcg;
+            internal bool ShiftedNdcg;
 
+            [BestFriend]
             [Argument(ArgumentType.AtMostOnce, HelpText = "Cost function parameter (w/c)", ShortName = "cf", Hide = true)]
             [TGUI(NotGui = true)]
-            public char CostFunctionParam = 'w';
+            internal char CostFunctionParam = 'w';
 
+            [BestFriend]
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Distance weight 2 adjustment to cost", ShortName = "dw", Hide = true)]
             [TGUI(NotGui = true)]
-            public bool DistanceWeight2;
+            internal bool DistanceWeight2;
 
+            [BestFriend]
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Normalize query lambdas", ShortName = "nql", Hide = true)]
             [TGUI(NotGui = true)]
-            public bool NormalizeQueryLambdas;
+            internal bool NormalizeQueryLambdas;
 
             public Options()
             {
@@ -129,7 +134,7 @@ namespace Microsoft.ML.Trainers.FastTree
 #if OLD_DATALOAD
                 ectx.CheckUserArg(0 <= secondaryMetricShare && secondaryMetricShare <= 1, "secondaryMetricShare", "secondaryMetricShare must be between 0 and 1.");
 #endif
-                ectx.CheckUserArg(0 < LambdaMartMaxTruncation, nameof(LambdaMartMaxTruncation), "lambdaMartMaxTruncation must be positive.");
+                ectx.CheckUserArg(0 < NdcgTruncationLevel, nameof(NdcgTruncationLevel), "lambdaMartMaxTruncation must be positive.");
             }
         }
     }
@@ -386,14 +391,6 @@ namespace Microsoft.ML.Trainers.FastTree
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Compress the tree Ensemble", ShortName = "cmp", Hide = true)]
         [TGUI(NotGui = true)]
         public bool CompressEnsemble;
-
-        /// <summary>
-        /// Maximum Number of trees after compression.
-        /// </summary>
-        // REVIEW: Not used.
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum Number of trees after compression", ShortName = "cmpmax", Hide = true)]
-        [TGUI(NotGui = true)]
-        public int MaximumTreeCountAfterCompression = -1;
 
         /// <summary>
         /// Print metrics graph for the first test set.

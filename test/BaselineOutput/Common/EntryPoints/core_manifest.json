@@ -5671,18 +5671,6 @@
           "Default": false
         },
         {
-          "Name": "MaximumTreeCountAfterCompression",
-          "Type": "Int",
-          "Desc": "Maximum Number of trees after compression",
-          "Aliases": [
-            "cmpmax"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": -1
-        },
-        {
           "Name": "PrintTestGraph",
           "Type": "Bool",
           "Desc": "Print metrics graph for the first test set",
@@ -6293,18 +6281,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": false
-        },
-        {
-          "Name": "MaximumTreeCountAfterCompression",
-          "Type": "Int",
-          "Desc": "Maximum Number of trees after compression",
-          "Aliases": [
-            "cmpmax"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": -1
         },
         {
           "Name": "PrintTestGraph",
@@ -7206,18 +7182,6 @@
           "Default": false
         },
         {
-          "Name": "MaximumTreeCountAfterCompression",
-          "Type": "Int",
-          "Desc": "Maximum Number of trees after compression",
-          "Aliases": [
-            "cmpmax"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": -1
-        },
-        {
           "Name": "PrintTestGraph",
           "Type": "Bool",
           "Desc": "Print metrics graph for the first test set",
@@ -7455,7 +7419,10 @@
         },
         {
           "Name": "CustomGains",
-          "Type": "String",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "Float"
+          },
           "Desc": "Comma seperated list of gains associated to each relevance label.",
           "Aliases": [
             "gains"
@@ -7463,10 +7430,16 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "0,3,7,15,31"
+          "Default": [
+            0.0,
+            3.0,
+            7.0,
+            15.0,
+            31.0
+          ]
         },
         {
-          "Name": "TrainDcg",
+          "Name": "UseDcg",
           "Type": "Bool",
           "Desc": "Train DCG instead of NDCG",
           "Aliases": [
@@ -7490,7 +7463,7 @@
           "Default": "DescendingStablePessimistic"
         },
         {
-          "Name": "LambdaMartMaxTruncation",
+          "Name": "NdcgTruncationLevel",
           "Type": "Int",
           "Desc": "max-NDCG truncation to use in the Lambda Mart algorithm",
           "Aliases": [
@@ -8196,18 +8169,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": false
-        },
-        {
-          "Name": "MaximumTreeCountAfterCompression",
-          "Type": "Int",
-          "Desc": "Maximum Number of trees after compression",
-          "Aliases": [
-            "cmpmax"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": -1
         },
         {
           "Name": "PrintTestGraph",
@@ -9095,18 +9056,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": false
-        },
-        {
-          "Name": "MaximumTreeCountAfterCompression",
-          "Type": "Int",
-          "Desc": "Maximum Number of trees after compression",
-          "Aliases": [
-            "cmpmax"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": -1
         },
         {
           "Name": "PrintTestGraph",
@@ -10003,18 +9952,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": false
-        },
-        {
-          "Name": "MaximumTreeCountAfterCompression",
-          "Type": "Int",
-          "Desc": "Maximum Number of trees after compression",
-          "Aliases": [
-            "cmpmax"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": -1
         },
         {
           "Name": "PrintTestGraph",
@@ -25939,18 +25876,6 @@
               "Default": false
             },
             {
-              "Name": "MaximumTreeCountAfterCompression",
-              "Type": "Int",
-              "Desc": "Maximum Number of trees after compression",
-              "Aliases": [
-                "cmpmax"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": -1
-            },
-            {
               "Name": "PrintTestGraph",
               "Type": "Bool",
               "Desc": "Print metrics graph for the first test set",
@@ -26170,7 +26095,10 @@
             },
             {
               "Name": "CustomGains",
-              "Type": "String",
+              "Type": {
+                "Kind": "Array",
+                "ItemType": "Float"
+              },
               "Desc": "Comma seperated list of gains associated to each relevance label.",
               "Aliases": [
                 "gains"
@@ -26178,10 +26106,16 @@
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
-              "Default": "0,3,7,15,31"
+              "Default": [
+                0.0,
+                3.0,
+                7.0,
+                15.0,
+                31.0
+              ]
             },
             {
-              "Name": "TrainDcg",
+              "Name": "UseDcg",
               "Type": "Bool",
               "Desc": "Train DCG instead of NDCG",
               "Aliases": [
@@ -26205,7 +26139,7 @@
               "Default": "DescendingStablePessimistic"
             },
             {
-              "Name": "LambdaMartMaxTruncation",
+              "Name": "NdcgTruncationLevel",
               "Type": "Int",
               "Desc": "max-NDCG truncation to use in the Lambda Mart algorithm",
               "Aliases": [
@@ -26911,18 +26845,6 @@
               "SortOrder": 150.0,
               "IsNullable": false,
               "Default": false
-            },
-            {
-              "Name": "MaximumTreeCountAfterCompression",
-              "Type": "Int",
-              "Desc": "Maximum Number of trees after compression",
-              "Aliases": [
-                "cmpmax"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": -1
             },
             {
               "Name": "PrintTestGraph",
@@ -27792,18 +27714,6 @@
               "SortOrder": 150.0,
               "IsNullable": false,
               "Default": false
-            },
-            {
-              "Name": "MaximumTreeCountAfterCompression",
-              "Type": "Int",
-              "Desc": "Maximum Number of trees after compression",
-              "Aliases": [
-                "cmpmax"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": -1
             },
             {
               "Name": "PrintTestGraph",
@@ -28682,18 +28592,6 @@
               "SortOrder": 150.0,
               "IsNullable": false,
               "Default": false
-            },
-            {
-              "Name": "MaximumTreeCountAfterCompression",
-              "Type": "Int",
-              "Desc": "Maximum Number of trees after compression",
-              "Aliases": [
-                "cmpmax"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": -1
             },
             {
               "Name": "PrintTestGraph",

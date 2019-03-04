@@ -62,12 +62,12 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(0, categoricalSplitFeatureRange.Count);
 
             var expectedGtChild = new int[] { 3, 2, -4, -5 };
-            Assert.Equal(4, trees[0].GreaterThanThresholdChildren.Count);
-            Assert.Equal(expectedGtChild, trees[0].GreaterThanThresholdChildren);
+            Assert.Equal(4, trees[0].RightChild.Count);
+            Assert.Equal(expectedGtChild, trees[0].RightChild);
 
             var expectedLteChild = new int[] { 1, -1, -3, -2 };
-            Assert.Equal(4, trees[0].LessThanOrEqualToThresholdChildren.Count);
-            Assert.Equal(expectedLteChild, trees[0].LessThanOrEqualToThresholdChildren);
+            Assert.Equal(4, trees[0].LeftChild.Count);
+            Assert.Equal(expectedLteChild, trees[0].LeftChild);
 
             var expectedCategoricalSplitFlags = new bool[] { false, false, false, false };
             Assert.Equal(4, trees[0].CategoricalSplitFlags.Count);
@@ -136,12 +136,12 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(4, trees[0].NumberOfNodes);
 
             var expectedGtChild = new int[] { 3, -3, -4, -5 };
-            Assert.Equal(4, trees[0].GreaterThanThresholdChildren.Count);
-            Assert.Equal(expectedGtChild, trees[0].GreaterThanThresholdChildren);
+            Assert.Equal(4, trees[0].RightChild.Count);
+            Assert.Equal(expectedGtChild, trees[0].RightChild);
 
             var expectedLteChild = new int[] { 1, 2, -1, -2 };
-            Assert.Equal(4, trees[0].LessThanOrEqualToThresholdChildren.Count);
-            Assert.Equal(expectedLteChild, trees[0].LessThanOrEqualToThresholdChildren);
+            Assert.Equal(4, trees[0].LeftChild.Count);
+            Assert.Equal(expectedLteChild, trees[0].LeftChild);
 
             var expectedCategoricalSplitFlags = new bool[] { true, true, true, true };
             Assert.Equal(4, trees[0].CategoricalSplitFlags.Count);

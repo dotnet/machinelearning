@@ -76,8 +76,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             Assert.Equal(5, tree.NumberOfLeaves);
             Assert.Equal(4, tree.NumberOfNodes);
-            Assert.Equal(tree.LessThanOrEqualToThresholdChildren, new int[] { 2, -2, -1, -3 });
-            Assert.Equal(tree.GreaterThanThresholdChildren, new int[] { 1, 3, -4, -5 });
+            Assert.Equal(tree.LeftChild, new int[] { 2, -2, -1, -3 });
+            Assert.Equal(tree.RightChild, new int[] { 1, 3, -4, -5 });
             Assert.Equal(tree.NumericalSplitFeatureIndexes, new int[] { 14, 294, 633, 266 });
             Assert.Equal(tree.SplitGains.Count, tree.NumberOfNodes);
             Assert.Equal(tree.NumericalSplitThresholds.Count, tree.NumberOfNodes);
@@ -121,8 +121,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             Assert.Equal(5, tree.NumberOfLeaves);
             Assert.Equal(4, tree.NumberOfNodes);
-            Assert.Equal(tree.LessThanOrEqualToThresholdChildren, new int[] { -1, -2, -3, -4 });
-            Assert.Equal(tree.GreaterThanThresholdChildren, new int[] { 1, 2, 3, -5 });
+            Assert.Equal(tree.LeftChild, new int[] { -1, -2, -3, -4 });
+            Assert.Equal(tree.RightChild, new int[] { 1, 2, 3, -5 });
             Assert.Equal(tree.NumericalSplitFeatureIndexes, new int[] { 9, 0, 1, 8 });
             Assert.Equal(tree.SplitGains.Count, tree.NumberOfNodes);
             Assert.Equal(tree.NumericalSplitThresholds.Count, tree.NumberOfNodes);

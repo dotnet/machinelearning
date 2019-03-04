@@ -131,7 +131,7 @@ namespace Microsoft.ML.Trainers.FastTree
             try
             {
                 Host.AssertValue(FastTreeTrainerOptions.CustomGains);
-                return FastTreeTrainerOptions.CustomGains.Split(',').Select(k => Convert.ToDouble(k.Trim())).ToArray();
+                return FastTreeTrainerOptions.CustomGains;
             }
             catch (Exception ex)
             {
@@ -143,26 +143,17 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private protected override void CheckOptions(IChannel ch)
         {
-            if (!string.IsNullOrEmpty(FastTreeTrainerOptions.CustomGains))
+            if (FastTreeTrainerOptions.CustomGains != null)
             {
-                var stringGain = FastTreeTrainerOptions.CustomGains.Split(',');
-                if (stringGain.Length < 5)
+                var gains = FastTreeTrainerOptions.CustomGains;
+                if (gains.Length < 5)
                 {
                     throw ch.ExceptUserArg(nameof(FastTreeTrainerOptions.CustomGains),
-                        "{0} an invalid number of gain levels. We require at least 5. Make certain they're comma separated.",
-                        stringGain.Length);
+                        "Has {0} gain levels. We require at least 5 elements.",
+                        gains.Length);
                 }
-                Double[] gain = new Double[stringGain.Length];
-                for (int i = 0; i < stringGain.Length; ++i)
-                {
-                    if (!Double.TryParse(stringGain[i], out gain[i]))
-                    {
-                        throw ch.ExceptUserArg(nameof(FastTreeTrainerOptions.CustomGains),
-                            "Could not parse '{0}' as a floating point number", stringGain[0]);
-                    }
-                }
-                DcgCalculator.LabelGainMap = gain;
-                Dataset.DatasetSkeleton.LabelGainMap = gain;
+                DcgCalculator.LabelGainMap = gains;
+                Dataset.DatasetSkeleton.LabelGainMap = gains;
             }
 
             ch.CheckUserArg((FastTreeTrainerOptions.EarlyStoppingRule == null && !FastTreeTrainerOptions.EnablePruning) || (FastTreeTrainerOptions.EarlyStoppingMetrics == 1 || FastTreeTrainerOptions.EarlyStoppingMetrics == 3), nameof(FastTreeTrainerOptions.EarlyStoppingMetrics),
@@ -498,7 +489,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             // parameters
             private int _maxDcgTruncationLevel;
-            private bool _trainDcg;
+            private bool _useDcg;
             // A lookup table for the sigmoid used in the lambda calculation
             // Note: Is built for a specific sigmoid parameter, so assumes this will be constant throughout computation
             private double[] _sigmoidTable;
@@ -570,9 +561,9 @@ namespace Microsoft.ML.Trainers.FastTree
                     _labelCounts[q] = new int[relevancyLevel];
 
                 // precomputed arrays
-                _maxDcgTruncationLevel = options.LambdaMartMaxTruncation;
-                _trainDcg = options.TrainDcg;
-                if (_trainDcg)
+                _maxDcgTruncationLevel = options.NdcgTruncationLevel;
+                _useDcg = options.UseDcg;
+                if (_useDcg)
                 {
                     _inverseMaxDcgt = new double[Dataset.NumQueries];
                     for (int q = 0; q < Dataset.NumQueries; ++q)
@@ -875,7 +866,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                         // Continous cost function and shifted NDCG require a re-sort and recomputation of maxDCG
                         // (Change of scores in the former and scores and labels in the latter)
-                        if (!_trainDcg && (_costFunctionParam == 'c' || _useShiftedNdcg))
+                        if (!_useDcg && (_costFunctionParam == 'c' || _useShiftedNdcg))
                         {
                             PermutationSort(permutation, scoresToUse, labels, numDocuments, begin);
                             inverseMaxDcg = 1.0 / DcgCalculator.MaxDcgQuery(labels, begin, numDocuments, numDocuments, _labelCounts[query]);
