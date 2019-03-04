@@ -99,8 +99,8 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.LabelColumn = labelName;
-                    options.FeatureColumn = featuresName;
+                    options.LabelColumnName = labelName;
+                    options.FeatureColumnName = featuresName;
 
                     var trainer = new SdcaRegressionTrainer(env, options);
                     if (onFit != null)
@@ -203,8 +203,8 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.LabelColumn = labelName;
-                    options.FeatureColumn = featuresName;
+                    options.LabelColumnName = labelName;
+                    options.FeatureColumnName = featuresName;
 
                     var trainer = new SdcaBinaryTrainer(env, options);
                     if (onFit != null)
@@ -310,8 +310,8 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.FeatureColumn = featuresName;
-                    options.LabelColumn = labelName;
+                    options.FeatureColumnName = featuresName;
+                    options.LabelColumnName = labelName;
 
                     var trainer = new SdcaNonCalibratedBinaryTrainer(env, options);
                     if (onFit != null)
@@ -407,8 +407,8 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.LabelColumn = labelName;
-                    options.FeatureColumn = featuresName;
+                    options.LabelColumnName = labelName;
+                    options.FeatureColumnName = featuresName;
 
                     var trainer = new SdcaMultiClassTrainer(env, options);
                     if (onFit != null)

@@ -5,7 +5,7 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
-    public static class SDCALogisticRegression
+    public static class StochasticDualCoordinateAscent
     {
         public static void Example()
         {
@@ -62,8 +62,8 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var advancedPipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
                                   .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
                                       new SdcaBinaryTrainer.Options { 
-                                        LabelColumn = "Sentiment",
-                                        FeatureColumn = "Features",
+                                        LabelColumnName = "Sentiment",
+                                        FeatureColumnName = "Features",
                                         ConvergenceTolerance = 0.01f,  // The learning rate for adjusting bias from being regularized
                                         NumThreads = 2, // Degree of lock-free parallelism 
                                       }));

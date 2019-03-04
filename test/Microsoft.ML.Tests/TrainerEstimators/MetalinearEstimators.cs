@@ -52,10 +52,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// Pkpd trainer
+        /// Pairwise Coupling trainer
         /// </summary>
         [Fact]
-        public void Pkpd()
+        public void PairwiseCouplingTrainer()
         {
             var (pipeline, data) = GetMultiClassPipeline();
 
@@ -84,8 +84,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
                 new SdcaNonCalibratedBinaryTrainer.Options {
-                    LabelColumn = "Label",
-                    FeatureColumn = "Vars",
+                    LabelColumnName = "Label",
+                    FeatureColumnName = "Vars",
                     MaxIterations = 100,
                     Shuffle = true,
                     NumThreads = 1, });

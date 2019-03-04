@@ -22,6 +22,23 @@ namespace Microsoft.ML
         internal const string NameBinary = "Model.bin";
 
         /// <summary>
+        /// Returns the new assembly name to maintain backward compatibility.
+        /// </summary>
+        private string ForwardedLoaderAssemblyName
+        {
+            get
+            {
+                switch (LoaderAssemblyName)
+                {
+                    case "Microsoft.ML.HalLearners":
+                        return "Microsoft.ML.Mkl.Components";
+                    default:
+                        return LoaderAssemblyName;
+                }
+            }
+        }
+
+        /// <summary>
         /// Return whether this context contains a directory and stream for a sub-model with
         /// the indicated name. This does not attempt to load the sub-model.
         /// </summary>
@@ -259,7 +276,7 @@ namespace Microsoft.ML
         {
             if (!string.IsNullOrEmpty(LoaderAssemblyName))
             {
-                var assembly = Assembly.Load(LoaderAssemblyName);
+                var assembly = Assembly.Load(ForwardedLoaderAssemblyName);
                 catalog.RegisterAssembly(assembly);
             }
         }

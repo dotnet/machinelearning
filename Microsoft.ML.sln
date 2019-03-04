@@ -100,7 +100,7 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Microsoft.ML.FSharp.Tests",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.ImageAnalytics", "src\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj", "{00E38F77-1E61-4CDF-8F97-1417D4E85053}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.HalLearners", "src\Microsoft.ML.HalLearners\Microsoft.ML.HalLearners.csproj", "{A7222F41-1CF0-47D9-B80C-B4D77B027A61}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Mkl.Components", "src\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj", "{A7222F41-1CF0-47D9-B80C-B4D77B027A61}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.TensorFlow", "src\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.csproj", "{570A0B8A-5463-44D2-8521-54C0CA4CACA9}"
 EndProject
@@ -142,7 +142,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.StaticPipe", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.TensorFlow.StaticPipe", "src\Microsoft.ML.TensorFlow.StaticPipe\Microsoft.ML.TensorFlow.StaticPipe.csproj", "{F95F7AFB-03AF-4D20-BD75-1740B5FF71D3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.HalLearners.StaticPipe", "src\Microsoft.ML.HalLearners.StaticPipe\Microsoft.ML.HalLearners.StaticPipe.csproj", "{2F25EF6A-C754-45BE-AD9E-7DDF46A1B51A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Mkl.Components.StaticPipe", "src\Microsoft.ML.Mkl.Components.StaticPipe\Microsoft.ML.Mkl.Components.StaticPipe.csproj", "{2F25EF6A-C754-45BE-AD9E-7DDF46A1B51A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OnnxTransformer.StaticPipe", "src\Microsoft.ML.OnnxTransformer.StaticPipe\Microsoft.ML.OnnxTransformer.StaticPipe.csproj", "{D1324668-9568-40F4-AA55-30A9A516C230}"
 EndProject
@@ -150,10 +150,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.LightGBM.Stati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.TimeSeries.StaticPipe", "src\Microsoft.ML.TimeSeries.StaticPipe\Microsoft.ML.TimeSeries.StaticPipe.csproj", "{06A147ED-15EA-4106-9105-9B745125B470}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.HalLearners", "Microsoft.ML.HalLearners", "{63006A14-B924-48C5-83C9-CFE9DA22B01F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Mkl.Components", "Microsoft.ML.Mkl.Components", "{63006A14-B924-48C5-83C9-CFE9DA22B01F}"
 	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.HalLearners\Microsoft.ML.HalLearners.nupkgproj = pkg\Microsoft.ML.HalLearners\Microsoft.ML.HalLearners.nupkgproj
-		pkg\Microsoft.ML.HalLearners\Microsoft.ML.HalLearners.symbols.nupkgproj = pkg\Microsoft.ML.HalLearners\Microsoft.ML.HalLearners.symbols.nupkgproj
+		pkg\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.nupkgproj = pkg\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.nupkgproj
+		pkg\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.symbols.nupkgproj = pkg\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.symbols.nupkgproj
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.ImageAnalytics", "Microsoft.ML.ImageAnalytics", "{1229F799-37F0-4282-B9F0-74BFA97CC362}"

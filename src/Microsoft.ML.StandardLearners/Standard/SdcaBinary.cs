@@ -157,40 +157,80 @@ namespace Microsoft.ML.Trainers
         // 3. Don't "guess" the iteration to converge. It is very data-set dependent and hard to control. Always check for at least once to ensure convergence.
         // 4. Use dual variable updates to infer whether a full iteration of convergence checking is necessary. Convergence checking iteration is time-consuming.
 
-        public abstract class OptionsBase : LearnerInputBaseWithLabel
+        /// <summary>
+        /// Options for the SDCA-based trainers.
+        /// </summary>
+        public abstract class OptionsBase : TrainerInputBaseWithLabel
         {
+            /// <summary>
+            /// The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l2", SortOrder = 1)]
             [TGUI(Label = "L2 Regularizer Constant", SuggestedSweeps = "<Auto>,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2")]
             [TlcModule.SweepableDiscreteParam("L2Const", new object[] { "<Auto>", 1e-7f, 1e-6f, 1e-5f, 1e-4f, 1e-3f, 1e-2f })]
             public float? L2Const;
 
             // REVIEW: make the default positive when we know how to consume a sparse model
+            /// <summary>
+            /// The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L1 soft threshold (L1/L2). Note that it is easier to control and sweep using the threshold parameter than the raw L1-regularizer constant. By default the l1 threshold is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l1", SortOrder = 2)]
             [TGUI(Label = "L1 Soft Threshold", SuggestedSweeps = "<Auto>,0,0.25,0.5,0.75,1")]
             [TlcModule.SweepableDiscreteParam("L1Threshold", new object[] { "<Auto>", 0f, 0.25f, 0.5f, 0.75f, 1f })]
             public float? L1Threshold;
 
+            /// <summary>
+            /// The degree of lock-free parallelism.
+            /// </summary>
+            /// <value>
+            /// Defaults to automatic depending on data sparseness. Determinism is not guaranteed.
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.", NullName = "<Auto>", ShortName = "nt,t,threads", SortOrder = 50)]
             [TGUI(Label = "Number of threads", SuggestedSweeps = "<Auto>,1,2,4")]
             public int? NumThreads;
 
+            /// <summary>
+            /// The tolerance for the ratio between duality gap and primal loss for convergence checking.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The tolerance for the ratio between duality gap and primal loss for convergence checking.", ShortName = "tol")]
             [TGUI(SuggestedSweeps = "0.001, 0.01, 0.1, 0.2")]
             [TlcModule.SweepableDiscreteParam("ConvergenceTolerance", new object[] { 0.001f, 0.01f, 0.1f, 0.2f })]
             public float ConvergenceTolerance = 0.1f;
 
+            /// <summary>
+            /// The maximum number of passes to perform over the data.
+            /// </summary>
+            /// <value>
+            /// Set to 1 to simulate online learning. Defaults to automatic.
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.", NullName = "<Auto>", ShortName = "iter")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "<Auto>,10,20,100")]
             [TlcModule.SweepableDiscreteParam("MaxIterations", new object[] { "<Auto>", 10, 20, 100 })]
             public int? MaxIterations;
 
+            /// <summary>
+            /// Determines whether to shuffle data for each training iteration.
+            /// </summary>
+            /// <value>
+            /// <see langword="true" /> to shuffle data for each training iteration; otherwise, <see langword="false" />.
+            /// Default is <see langword="true" />.
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data every epoch?", ShortName = "shuf")]
             [TlcModule.SweepableDiscreteParam("Shuffle", null, isBool: true)]
             public bool Shuffle = true;
 
+            /// <summary>
+            /// Determines the frequency of checking for convergence in terms of number of iterations.
+            /// </summary>
+            /// <value>
+            /// Set to zero or negative value to disable checking. If <see langword="null"/>, it defaults to <see cref="NumThreads"/>."
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Convergence check frequency (in terms of number of iterations). Set as negative or zero for not checking at all. If left blank, it defaults to check after every 'numThreads' iterations.", NullName = "<Auto>", ShortName = "checkFreq")]
             public int? CheckFrequency;
 
+            /// <summary>
+            /// The learning rate for adjusting bias from being regularized.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The learning rate for adjusting bias from being regularized.", ShortName = "blr")]
             [TGUI(SuggestedSweeps = "0, 0.01, 0.1, 1")]
             [TlcModule.SweepableDiscreteParam("BiasLearningRate", new object[] { 0.0f, 0.01f, 0.1f, 1f })]
@@ -250,8 +290,8 @@ namespace Microsoft.ML.Trainers
         {
             var args = new TOptions();
 
-            args.FeatureColumn = featureColumnName;
-            args.LabelColumn = labelColumn.Name;
+            args.FeatureColumnName = featureColumnName;
+            args.LabelColumnName = labelColumn.Name;
             return args;
         }
 
@@ -264,7 +304,7 @@ namespace Microsoft.ML.Trainers
 
         internal SdcaTrainerBase(IHostEnvironment env, TOptions options, SchemaShape.Column label, SchemaShape.Column weight = default,
             float? l2Const = null, float? l1Threshold = null, int? maxIterations = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, weight)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), label, weight)
         {
             SdcaTrainerOptions = options;
             SdcaTrainerOptions.L2Const = l2Const ?? options.L2Const;
@@ -1419,8 +1459,17 @@ namespace Microsoft.ML.Trainers
 
         public override TrainerInfo Info { get; }
 
+        /// <summary>
+        /// Options base class for binary SDCA trainers.
+        /// </summary>
         public class BinaryOptionsBase : OptionsBase
         {
+            /// <summary>
+            /// The weight to be applied to the positive class. This is useful for training with imbalanced data.
+            /// </summary>
+            /// <value>
+            /// Default value is 1, which means no extra weight.
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
             public float PositiveInstanceWeight = 1;
 
@@ -1463,7 +1512,7 @@ namespace Microsoft.ML.Trainers
         }
 
         private protected SdcaBinaryTrainerBase(IHostEnvironment env, BinaryOptionsBase options, ISupportSdcaClassificationLoss loss = null, bool doCalibration = false)
-            : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
+            : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             _loss = loss ?? new LogLossFactory().CreateComponent(env);
             Loss = _loss;
@@ -1517,11 +1566,17 @@ namespace Microsoft.ML.Trainers
             => new BinaryPredictionTransformer<TModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
     }
 
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a binary logistic regression classification model using the stochastic dual coordinate ascent method.
+    /// The trained model is <a href='tmpurl_calib'>calibrated</a> and can produce probability by feeding the output value of the
+    /// linear function to a <see cref="PlattCalibrator"/>.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
     public sealed class SdcaBinaryTrainer :
         SdcaBinaryTrainerBase<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
-        /// Configuration to training logistic regression using SDCA.
+        /// Options for the <see cref="SdcaBinaryTrainer"/>.
         /// </summary>
         public sealed class Options : BinaryOptionsBase
         {
@@ -1577,13 +1632,23 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a binary logistic regression classification model using the stochastic dual coordinate ascent method.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
     public sealed class SdcaNonCalibratedBinaryTrainer : SdcaBinaryTrainerBase<LinearBinaryModelParameters>
     {
         /// <summary>
-        /// General Configuration to training linear model using SDCA.
+        /// Options for the <see cref="SdcaNonCalibratedBinaryTrainer"/>.
         /// </summary>
         public sealed class Options : BinaryOptionsBase
         {
+            /// <summary>
+            /// The custom <a href="tmpurl_loss">loss</a>.
+            /// </summary>
+            /// <value>
+            /// If unspecified, <see cref="LogLoss"/> will be used.
+            /// </value>
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
         }
@@ -1721,7 +1786,7 @@ namespace Microsoft.ML.Trainers
         LinearTrainerBase<BinaryPredictionTransformer<TModel>, TModel>
         where TModel : class
     {
-        public class OptionsBase : LearnerInputBaseWithWeight
+        public class OptionsBase : TrainerInputBaseWithWeight
         {
             /// <summary>
             /// The L2 weight for <a href='tmpurl_regularization'>regularization</a>.
@@ -1866,9 +1931,9 @@ namespace Microsoft.ML.Trainers
             _options.InitLearningRate = initLearningRate;
             _options.L2Weight = l2Weight;
 
-            _options.FeatureColumn = featureColumn;
-            _options.LabelColumn = labelColumn;
-            _options.WeightColumn = weightColumn;
+            _options.FeatureColumnName = featureColumn;
+            _options.LabelColumnName = labelColumn;
+            _options.ExampleWeightColumnName = weightColumn;
             Loss = loss ?? new LogLoss();
             Info = new TrainerInfo(calibration: false, supportIncrementalTrain: true);
         }
@@ -1881,7 +1946,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="loss">Loss function would be minimized.</param>
         /// <param name="doCalibration">Set to true if a calibration step should be happen after training. Use false otherwise.</param>
         internal SgdBinaryTrainerBase(IHostEnvironment env, OptionsBase options, IClassificationLoss loss = null, bool doCalibration = false)
-            : base(env, options.FeatureColumn, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn), options.WeightColumn)
+            : base(env, options.FeatureColumnName, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName), options.ExampleWeightColumnName)
         {
             options.Check(env);
             Loss = loss;
@@ -1937,7 +2002,7 @@ namespace Microsoft.ML.Trainers
             float bias = 0.0f;
             if (predictor != null)
             {
-                predictor.GetFeatureWeights(ref weights);
+                ((IHaveFeatureWeights)predictor).GetFeatureWeights(ref weights);
                 VBufferUtils.Densify(ref weights);
                 bias = predictor.Bias;
             }
@@ -2308,10 +2373,10 @@ namespace Microsoft.ML.Trainers
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new LegacySgdBinaryTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }
     }
@@ -2332,9 +2397,9 @@ namespace Microsoft.ML.Trainers
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<LegacySdcaBinaryTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<LegacySdcaBinaryTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new LegacySdcaBinaryTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }
     }

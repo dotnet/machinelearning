@@ -117,10 +117,10 @@ namespace Microsoft.ML.Trainers.FastTree
             FastTreeTrainerOptions.NumTrees = numTrees;
             FastTreeTrainerOptions.MinDocumentsInLeafs = minDatapointsInLeaves;
 
-            FastTreeTrainerOptions.LabelColumn = label.Name;
-            FastTreeTrainerOptions.FeatureColumn = featureColumn;
-            FastTreeTrainerOptions.WeightColumn = weightColumn;
-            FastTreeTrainerOptions.GroupIdColumn = groupIdColumn;
+            FastTreeTrainerOptions.LabelColumnName = label.Name;
+            FastTreeTrainerOptions.FeatureColumnName = featureColumn;
+            FastTreeTrainerOptions.ExampleWeightColumnName = weightColumn;
+            FastTreeTrainerOptions.RowGroupColumnName = groupIdColumn;
 
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
@@ -139,8 +139,8 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Constructor that is used when invoking the classes deriving from this, through maml.
         /// </summary>
         private protected FastTreeTrainerBase(IHostEnvironment env, TOptions options, SchemaShape.Column label)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn),
-                  TrainerUtils.MakeU4ScalarColumn(options.GroupIdColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), label, TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName),
+                  TrainerUtils.MakeU4ScalarColumn(options.RowGroupColumnName))
         {
             Host.CheckValue(options, nameof(options));
             FastTreeTrainerOptions = options;

@@ -135,7 +135,7 @@ namespace Microsoft.ML.Tests
             var pipeline = mlContext.Transforms.Normalize("Features").
                 Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeansPlusPlusTrainer.Options
                 {
-                    FeatureColumn = DefaultColumnNames.Features,
+                    FeatureColumnName = DefaultColumnNames.Features,
                     MaxIterations = 1,
                     ClustersCount = 4,
                     NumThreads = 1,

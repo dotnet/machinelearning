@@ -46,12 +46,10 @@ namespace Microsoft.ML.Samples.Static
             var model = learningPipeline.Fit(trainData);
 
             // Check the weights that the model learned
-            VBuffer<float> weights = default;
-            pred.GetFeatureWeights(ref weights);
+            var weights = pred.Weights;
 
-            var weightsValues = weights.GetValues();
-            Console.WriteLine($"weight 0 - {weightsValues[0]}");
-            Console.WriteLine($"weight 1 - {weightsValues[1]}");
+            Console.WriteLine($"weight 0 - {weights[0]}");
+            Console.WriteLine($"weight 1 - {weights[1]}");
 
             // Evaluate how the model is doing on the test data
             var dataWithPredictions = model.Transform(testData);

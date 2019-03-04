@@ -10,6 +10,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.LightGBM;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(Options.TreeBooster), typeof(Options.TreeBooster.Options),
     typeof(SignatureLightGBMBooster), Options.TreeBooster.FriendlyName, Options.TreeBooster.Name)]
@@ -40,7 +41,7 @@ namespace Microsoft.ML.LightGBM
     /// Parameters names comes from LightGBM library.
     /// See https://github.com/Microsoft/LightGBM/blob/master/docs/Parameters.rst.
     /// </summary>
-    public sealed class Options : LearnerInputBaseWithGroupId
+    public sealed class Options : TrainerInputBaseWithGroupId
     {
         public abstract class BoosterParameter<TOptions> : IBoosterParameter
             where TOptions : class, new()
