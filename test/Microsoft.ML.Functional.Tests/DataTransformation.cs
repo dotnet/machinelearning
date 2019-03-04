@@ -21,99 +21,6 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// Extensibility: Add a new column.
-        /// </summary>
-        [Fact]
-        void ExtensibilityAddingOneColumn()
-        {
-            // Concurrency must be 1 to assure that the mapping is done sequentially.
-            var mlContext = new MLContext(seed: 1, conc: 1);
-
-            // Load the Iris dataset
-            var data = mlContext.Data.LoadFromTextFile<Iris>(
-                GetDataPath(TestDatasets.iris.trainFilename),
-                hasHeader: TestDatasets.iris.fileHasHeader,
-                separatorChar: TestDatasets.iris.fileSeparator);
-
-            // Subsample it down to the first 10 rows.
-            int numSamples = 10;
-            data = mlContext.Data.TakeRows(data, numSamples);
-
-            // Create a function that generates a column.
-            Action<Iris, IrisWithOneExtraColumn> generateGroupId = (input, output) =>
-            {
-                output.Label = input.Label;
-                output.Float1 = GetRandomNumber(input.Label + input.PetalLength + input.PetalWidth + input.SepalLength + input.SepalWidth);
-                output.PetalLength = input.PetalLength;
-                output.PetalWidth = input.PetalWidth;
-                output.SepalLength = input.SepalLength;
-                output.SepalWidth = input.SepalWidth;
-            };
-
-            // Create a pipeline to execute the custom function.
-            var pipeline = mlContext.Transforms.CustomMapping(generateGroupId, null);
-
-            // Transform the data.
-            var transformedData = pipeline.Fit(data).Transform(data);
-
-            // Verify that the column has the correct data.
-            var transformedRows = mlContext.Data.CreateEnumerable<IrisWithOneExtraColumn>(transformedData, reuseRowObject: true);
-            foreach (var row in transformedRows)
-            {
-                var randomNumber = GetRandomNumber(row.Label + row.PetalLength + row.PetalWidth + row.SepalLength + row.SepalWidth);
-                Assert.Equal(randomNumber, row.Float1);
-            }
-        }
-
-        /// <summary>
-        /// Extensibility: Add multiple new columns.
-        /// </summary>
-        [Fact]
-        void ExtensibilityAddingTwoColumns()
-        {
-            // Concurrency must be 1 to assure that the mapping is done sequentially.
-            var mlContext = new MLContext(seed: 1, conc: 1);
-
-            // Load the Iris dataset
-            var data = mlContext.Data.LoadFromTextFile<Iris>(
-                GetDataPath(TestDatasets.iris.trainFilename),
-                hasHeader: TestDatasets.iris.fileHasHeader,
-                separatorChar: TestDatasets.iris.fileSeparator);
-
-            // Subsample it down to the first 10 rows.
-            int numSamples = 10;
-            data = mlContext.Data.TakeRows(data, numSamples);
-
-            // Create a function that generates a column.
-            Action<Iris, IrisWithTwoExtraColumns> generateGroupId = (input, output) =>
-            {
-                output.Label = input.Label;
-                output.Float1 = GetRandomNumber(1 + input.Label + input.PetalLength + input.PetalWidth + input.SepalLength + input.SepalWidth);
-                output.Float2 = GetRandomNumber(2 + input.Label + input.PetalLength + input.PetalWidth + input.SepalLength + input.SepalWidth);
-                output.PetalLength = input.PetalLength;
-                output.PetalWidth = input.PetalWidth;
-                output.SepalLength = input.SepalLength;
-                output.SepalWidth = input.SepalWidth;
-            };
-
-            // Create a pipeline to execute the custom function.
-            var pipeline = mlContext.Transforms.CustomMapping(generateGroupId, null);
-
-            // Transform the data.
-            var transformedData = pipeline.Fit(data).Transform(data);
-
-            // Verify that the column has the correct data.
-            var transformedRows = mlContext.Data.CreateEnumerable<IrisWithTwoExtraColumns>(transformedData, reuseRowObject: true);
-            foreach (var row in transformedRows)
-            {
-                var randomNumber1 = GetRandomNumber(1 + row.Label + row.PetalLength + row.PetalWidth + row.SepalLength + row.SepalWidth);
-                var randomNumber2 = GetRandomNumber(2 + row.Label + row.PetalLength + row.PetalWidth + row.SepalLength + row.SepalWidth);
-                Assert.Equal(randomNumber1, row.Float1);
-                Assert.Equal(randomNumber2, row.Float2);
-            }
-        }
-
-        /// <summary>
         /// Extensibility: Add a new column that is a function of other columns.
         /// </summary>
         [Fact]
@@ -167,6 +74,54 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
+        /// Extensibility: Add multiple new columns.
+        /// </summary>
+        [Fact]
+        void ExtensibilityAddingTwoColumns()
+        {
+            // Concurrency must be 1 to assure that the mapping is done sequentially.
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            // Load the Iris dataset
+            var data = mlContext.Data.LoadFromTextFile<Iris>(
+                GetDataPath(TestDatasets.iris.trainFilename),
+                hasHeader: TestDatasets.iris.fileHasHeader,
+                separatorChar: TestDatasets.iris.fileSeparator);
+
+            // Subsample it down to the first 10 rows.
+            int numSamples = 10;
+            data = mlContext.Data.TakeRows(data, numSamples);
+
+            // Create a function that generates a column.
+            Action<Iris, IrisWithTwoExtraColumns> generateGroupId = (input, output) =>
+            {
+                output.Label = input.Label;
+                output.Float1 = GetRandomNumber(1 + input.Label + input.PetalLength + input.PetalWidth + input.SepalLength + input.SepalWidth);
+                output.Float2 = GetRandomNumber(2 + input.Label + input.PetalLength + input.PetalWidth + input.SepalLength + input.SepalWidth);
+                output.PetalLength = input.PetalLength;
+                output.PetalWidth = input.PetalWidth;
+                output.SepalLength = input.SepalLength;
+                output.SepalWidth = input.SepalWidth;
+            };
+
+            // Create a pipeline to execute the custom function.
+            var pipeline = mlContext.Transforms.CustomMapping(generateGroupId, null);
+
+            // Transform the data.
+            var transformedData = pipeline.Fit(data).Transform(data);
+
+            // Verify that the column has the correct data.
+            var transformedRows = mlContext.Data.CreateEnumerable<IrisWithTwoExtraColumns>(transformedData, reuseRowObject: true);
+            foreach (var row in transformedRows)
+            {
+                var randomNumber1 = GetRandomNumber(1 + row.Label + row.PetalLength + row.PetalWidth + row.SepalLength + row.SepalWidth);
+                var randomNumber2 = GetRandomNumber(2 + row.Label + row.PetalLength + row.PetalWidth + row.SepalLength + row.SepalWidth);
+                Assert.Equal(randomNumber1, row.Float1);
+                Assert.Equal(randomNumber2, row.Float2);
+            }
+        }
+
+        /// <summary>
         /// Extensibility: Featurize text using custom word-grams, char-grams, and normalization.
         /// </summary>
         [Fact]
@@ -204,7 +159,7 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// Extensibility: Featurize text using custom word-grams, char-grams, and normalization.
+        /// Extensibility: Apply a normalizer to columns in the dataset.
         /// </summary>
         [Fact]
         void ExtensibilityNormalizeColumns()
