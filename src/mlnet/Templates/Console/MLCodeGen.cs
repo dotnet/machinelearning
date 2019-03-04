@@ -53,26 +53,31 @@ if(!string.IsNullOrEmpty(TestPath)){
  } 
             this.Write("        private static string ModelPath = @\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(ModelPath));
-            this.Write("\";\r\n\r\n        // Set this flag to enable the training process.\r\n        private s" +
-                    "tatic bool EnableTraining = false;\r\n\r\n        static void Main(string[] args)\r\n " +
-                    "       {\r\n            // Create MLContext to be shared across the model creation" +
-                    " workflow objects \r\n            // Set a random seed for repeatable/deterministi" +
-                    "c results across multiple trainings.\r\n            var mlContext = new MLContext(" +
-                    "seed: 1);\r\n\r\n            if (EnableTraining)\r\n            {\r\n                // " +
-                    "Create, Train, Evaluate and Save a model\r\n                BuildTrainEvaluateAndS" +
-                    "aveModel(mlContext);\r\n                ConsoleHelper.ConsoleWriteHeader(\"========" +
-                    "======= End of training process ===============\");\r\n            }\r\n            e" +
-                    "lse\r\n            {\r\n                ConsoleHelper.ConsoleWriteHeader(\"Skipping t" +
-                    "he training process. Please set the flag : \'EnableTraining\' to \'true\' to enable " +
-                    "the training process.\");\r\n            }\r\n\r\n            // Make a single test pre" +
-                    "diction loading the model from .ZIP file\r\n            TestSinglePrediction(mlCon" +
-                    "text);\r\n\r\n            ConsoleHelper.ConsoleWriteHeader(\"=============== End of p" +
-                    "rocess, hit any key to finish ===============\");\r\n            Console.ReadKey();" +
-                    "\r\n\r\n        }\r\n\r\n        private static ITransformer BuildTrainEvaluateAndSaveMo" +
-                    "del(MLContext mlContext)\r\n        {\r\n            // Data loading\r\n            ID" +
-                    "ataView trainingDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(\r\n" +
-                    "                                            path: TrainDataPath,\r\n              " +
-                    "                              hasHeader : ");
+            this.Write(@""";
+
+        static void Main(string[] args)
+        {
+            // Create MLContext to be shared across the model creation workflow objects 
+            var mlContext = new MLContext();
+
+            // (Optional step) Create, Train, Evaluate and Save the model.zip file
+            TrainEvaluateAndSaveModel(mlContext);
+
+            // Make a single test prediction loading the model from model.zip file
+            Predict(mlContext);
+
+            ConsoleHelper.ConsoleWriteHeader(""=============== End of process, hit any key to finish ==============="");
+            Console.ReadKey();
+
+        }
+
+        private static ITransformer TrainEvaluateAndSaveModel(MLContext mlContext)
+        {
+            // Load data
+            Console.WriteLine(""=============== Loading data ==============="");
+            IDataView trainingDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
+                                            path: TrainDataPath,
+                                            hasHeader : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
             this.Write(",\r\n                                            separatorChar : \'");
             this.Write(this.ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
@@ -122,7 +127,7 @@ if(!string.IsNullOrEmpty(TestPath)){
 else{
             this.Write("            var trainingPipeline = trainer;\r\n");
 }
- if(string.IsNullOrEmpty(TestPath)){ 
+if(string.IsNullOrEmpty(TestPath)){ 
             this.Write(@"
             // Cross-Validate with single dataset (since we don't have two datasets, one for training and for evaluate)
             // in order to evaluate and get the model's accuracy metrics
@@ -151,11 +156,11 @@ if("Regression".Equals(TaskType)){
 } 
             this.Write("\r\n            // Train the model fitting to the DataSet\r\n            Console.Writ" +
                     "eLine(\"=============== Training the model ===============\");\r\n            var tr" +
-                    "ainedModel = trainingPipeline.Fit(trainingDataView);\r\n\r\n");
+                    "ainedModel = trainingPipeline.Fit(trainingDataView);\r\n");
  if(!string.IsNullOrEmpty(TestPath)){ 
-            this.Write("            // Evaluate the model and show accuracy stats\r\n            Console.Wr" +
-                    "iteLine(\"===== Evaluating Model\'s accuracy with Test data =====\");\r\n            " +
-                    "var predictions = trainedModel.Transform(testDataView);\r\n");
+            this.Write("\r\n            // Evaluate the model and show accuracy stats\r\n            Console." +
+                    "WriteLine(\"===== Evaluating Model\'s accuracy with Test data =====\");\r\n          " +
+                    "  var predictions = trainedModel.Transform(testDataView);\r\n");
 if("BinaryClassification".Equals(TaskType)){ 
             this.Write("            var metrics = mlContext.");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
@@ -163,16 +168,15 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
             this.Write("\", \"Score\");\r\n            ConsoleHelper.PrintBinaryClassificationMetrics(trainer." +
                     "ToString(), metrics);\r\n");
-}
-if("Regression".Equals(TaskType)){ 
+} if("Regression".Equals(TaskType)){ 
             this.Write("            var metrics = mlContext.");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
             this.Write(".Evaluate(predictions, \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
             this.Write("\", \"Score\");\r\n            ConsoleHelper.PrintRegressionMetrics(trainer.ToString()" +
                     ", metrics);\r\n");
-}
- } 
+} 
+} 
             this.Write(@"
             // Save/persist the trained model to a .ZIP file
             Console.WriteLine($""=============== Saving the model  ==============="");
@@ -180,12 +184,13 @@ if("Regression".Equals(TaskType)){
                 mlContext.Model.Save(trainedModel, fs);
 
             Console.WriteLine(""The model is saved to {0}"", ModelPath);
+            ConsoleHelper.ConsoleWriteHeader(""=============== End of training process ==============="");
 
             return trainedModel;
         }
 
-        // (OPTIONAL) Try/test a single prediction by loading the model from the file, first.
-        private static void TestSinglePrediction(MLContext mlContext)
+        // Try/test a single prediction by loading the model from the file, first.
+        private static void Predict(MLContext mlContext)
         {
             //Load data to test. Could be any test data. For demonstration purpose train data is used here.
             IDataView trainingDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(

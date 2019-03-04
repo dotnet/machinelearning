@@ -21,37 +21,26 @@ namespace MyNamespace
         private static string TestDataPath = @"x:\dummypath\dummy_test.csv";
         private static string ModelPath = @"x:\models\model.zip";
 
-        // Set this flag to enable the training process.
-        private static bool EnableTraining = false;
-
         static void Main(string[] args)
         {
             // Create MLContext to be shared across the model creation workflow objects 
-            // Set a random seed for repeatable/deterministic results across multiple trainings.
-            var mlContext = new MLContext(seed: 1);
+            var mlContext = new MLContext();
 
-            if (EnableTraining)
-            {
-                // Create, Train, Evaluate and Save a model
-                BuildTrainEvaluateAndSaveModel(mlContext);
-                ConsoleHelper.ConsoleWriteHeader("=============== End of training process ===============");
-            }
-            else
-            {
-                ConsoleHelper.ConsoleWriteHeader("Skipping the training process. Please set the flag : 'EnableTraining' to 'true' to enable the training process.");
-            }
+            // (Optional step) Create, Train, Evaluate and Save the model.zip file
+            TrainEvaluateAndSaveModel(mlContext);
 
-            // Make a single test prediction loading the model from .ZIP file
-            TestSinglePrediction(mlContext);
+            // Make a single test prediction loading the model from model.zip file
+            Predict(mlContext);
 
             ConsoleHelper.ConsoleWriteHeader("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
 
         }
 
-        private static ITransformer BuildTrainEvaluateAndSaveModel(MLContext mlContext)
+        private static ITransformer TrainEvaluateAndSaveModel(MLContext mlContext)
         {
-            // Data loading
+            // Load data
+            Console.WriteLine("=============== Loading data ===============");
             IDataView trainingDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
                                             path: TrainDataPath,
                                             hasHeader: true,
@@ -88,12 +77,13 @@ namespace MyNamespace
                 mlContext.Model.Save(trainedModel, fs);
 
             Console.WriteLine("The model is saved to {0}", ModelPath);
+            ConsoleHelper.ConsoleWriteHeader("=============== End of training process ===============");
 
             return trainedModel;
         }
 
-        // (OPTIONAL) Try/test a single prediction by loading the model from the file, first.
-        private static void TestSinglePrediction(MLContext mlContext)
+        // Try/test a single prediction by loading the model from the file, first.
+        private static void Predict(MLContext mlContext)
         {
             //Load data to test. Could be any test data. For demonstration purpose train data is used here.
             IDataView trainingDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
