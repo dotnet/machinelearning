@@ -41,7 +41,8 @@ namespace Microsoft.ML.Transforms
             public readonly string[] Term;
             public readonly bool TextKeyValues;
 
-            protected internal string Terms { get; set; }
+            [BestFriend]
+            internal string Terms { get; set; }
 
             /// <summary>
             /// Describes how the transformer handles one column pair.
@@ -57,8 +58,7 @@ namespace Microsoft.ML.Transforms
                 int maxNumKeys = Defaults.MaxNumKeys,
                 SortOrder sort = Defaults.Sort,
                 string[] term = null,
-                bool textKeyValues = false
-                )
+                bool textKeyValues = false)
             {
                 Contracts.CheckNonWhiteSpace(outputColumnName, nameof(outputColumnName));
                 OutputColumnName = outputColumnName;

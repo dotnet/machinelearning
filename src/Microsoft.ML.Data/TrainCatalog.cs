@@ -85,7 +85,8 @@ namespace Microsoft.ML
         /// <summary>
         /// Results for specific cross-validation fold.
         /// </summary>
-        protected internal struct CrossValidationResult
+        [BestFriend]
+        private protected struct CrossValidationResult
         {
             /// <summary>
             /// Model trained during cross validation fold.
@@ -143,7 +144,8 @@ namespace Microsoft.ML
         /// Train the <paramref name="estimator"/> on <paramref name="numFolds"/> folds of the data sequentially.
         /// Return each model and each scored test dataset.
         /// </summary>
-        protected internal CrossValidationResult[] CrossValidateTrain(IDataView data, IEstimator<ITransformer> estimator,
+        [BestFriend]
+        private protected CrossValidationResult[] CrossValidateTrain(IDataView data, IEstimator<ITransformer> estimator,
             int numFolds, string samplingKeyColumn, uint? seed = null)
         {
             Environment.CheckValue(data, nameof(data));
@@ -248,7 +250,8 @@ namespace Microsoft.ML
             [BestFriend]
             internal TrainCatalogBase Owner { get; }
 
-            internal protected CatalogInstantiatorBase(TrainCatalogBase catalog)
+            [BestFriend]
+            private protected CatalogInstantiatorBase(TrainCatalogBase catalog)
             {
                 Owner = catalog;
             }
