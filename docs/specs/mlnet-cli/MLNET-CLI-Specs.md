@@ -534,7 +534,7 @@ The --help output should include most common examples, since there can be many c
 
 ----------------------------------------------------------
 
-`--cache`
+`--cache` - (*Release 0.2*)
 
 Specify if training will use cache for the training data.
 
