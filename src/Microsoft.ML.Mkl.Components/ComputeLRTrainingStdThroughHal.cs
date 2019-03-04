@@ -11,7 +11,7 @@ namespace Microsoft.ML.Trainers
 {
     using MklOls = OrdinaryLeastSquaresRegressionTrainer.Mkl;
 
-    public sealed class ComputeLRTrainingStdThroughMkl : ComputeLRTrainingStd
+    public sealed class ComputeLRTrainingStdThroughMkl : ComputeLogisticRegressionStandardDeviation
     {
         /// <summary>
         /// Computes the standart deviation matrix of each of the non-zero training weights, needed to calculate further the standart deviation,
@@ -23,7 +23,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="currentWeightsCount"></param>
         /// <param name="ch">The <see cref="IChannel"/> used for messaging.</param>
         /// <param name="l2Weight">The L2Weight used for training. (Supply the same one that got used during training.)</param>
-        public override VBuffer<float> ComputeStd(double[] hessian, int[] weightIndices, int numSelectedParams, int currentWeightsCount, IChannel ch, float l2Weight)
+        public override VBuffer<float> ComputeStandardDeviation(double[] hessian, int[] weightIndices, int numSelectedParams, int currentWeightsCount, IChannel ch, float l2Weight)
         {
             Contracts.AssertValue(ch);
             Contracts.AssertValue(hessian, nameof(hessian));

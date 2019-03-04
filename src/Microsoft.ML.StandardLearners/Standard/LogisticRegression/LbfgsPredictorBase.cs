@@ -22,36 +22,54 @@ namespace Microsoft.ML.Trainers
     {
         public abstract class OptionsBase : TrainerInputBaseWithWeight
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization weight", ShortName = "l2", SortOrder = 50)]
+            /// <summary>
+            /// L2 regularization weight.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization weight", ShortName = "l2, L2Weight", SortOrder = 50)]
             [TGUI(Label = "L2 Weight", Description = "Weight of L2 regularizer term", SuggestedSweeps = "0,0.1,1")]
             [TlcModule.SweepableFloatParamAttribute(0.0f, 1.0f, numSteps: 4)]
-            public float L2Weight = Defaults.L2Weight;
+            public float L2Regularization = Defaults.L2Regularization;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "L1 regularization weight", ShortName = "l1", SortOrder = 50)]
+            /// <summary>
+            /// L1 regularization weight.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "L1 regularization weight", ShortName = "l1, L1Weight", SortOrder = 50)]
             [TGUI(Label = "L1 Weight", Description = "Weight of L1 regularizer term", SuggestedSweeps = "0,0.1,1")]
             [TlcModule.SweepableFloatParamAttribute(0.0f, 1.0f, numSteps: 4)]
-            public float L1Weight = Defaults.L1Weight;
+            public float L1Regularization = Defaults.L1Regularization;
 
+            /// <summary>
+            /// Tolerance parameter for optimization convergence. (Low = slower, more accurate).
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance parameter for optimization convergence. Low = slower, more accurate",
-                ShortName = "ot", SortOrder = 50)]
+                ShortName = "ot, OptTol", SortOrder = 50)]
             [TGUI(Label = "Optimization Tolerance", Description = "Threshold for optimizer convergence", SuggestedSweeps = "1e-4,1e-7")]
             [TlcModule.SweepableDiscreteParamAttribute(new object[] { 1e-4f, 1e-7f })]
-            public float OptTol = Defaults.OptTol;
+            public float OptmizationTolerance = Defaults.OptimizationTolerance;
 
+            /// <summary>
+            /// Number of previous iterations to remember for estimate of Hessian.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Memory size for L-BFGS. Low=faster, less accurate",
-                ShortName = "m", SortOrder = 50)]
+                ShortName = "m, MemorySize", SortOrder = 50)]
             [TGUI(Description = "Memory size for L-BFGS", SuggestedSweeps = "5,20,50")]
             [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[] { 5, 20, 50 })]
-            public int MemorySize = Defaults.MemorySize;
+            public int IterationsToRemember = Defaults.IterationsToRemember;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum iterations.", ShortName = "maxiter")]
+            /// <summary>
+            /// Number of iterations.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum iterations.", ShortName = "maxiter, MaxIterations")]
             [TGUI(Label = "Max Number of Iterations")]
             [TlcModule.SweepableLongParamAttribute("MaxIterations", 1, int.MaxValue)]
-            public int MaxIterations = Defaults.MaxIterations;
+            public int NumberOfIterations = Defaults.NumberOfIterations;
 
+            /// <summary>
+            /// Run SGD to initialize LR weights, converging to this tolerance.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Run SGD to initialize LR weights, converging to this tolerance",
-                ShortName = "sgd")]
-            public float SgdInitializationTolerance = 0;
+                ShortName = "sgd, SgdInitializationTolerance")]
+            public float StochasticGradientDescentInitilaizationTolerance = 0;
 
             /// <summary>
             /// Features must occur in at least this many instances to be included
@@ -68,37 +86,43 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Init Weights Diameter
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Init weights diameter", ShortName = "initwts", SortOrder = 140)]
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Init weights diameter", ShortName = "initwts, InitWtsDiameter", SortOrder = 140)]
             [TGUI(Label = "Initial Weights Scale", SuggestedSweeps = "0,0.1,0.5,1")]
             [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0.0f, 1.0f, numSteps: 5)]
-            public float InitWtsDiameter = 0;
+            public float InitialWeightsDiameter = 0;
 
             // Deprecated
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether or not to use threads. Default is true",
                 ShortName = "t", Hide = true)]
-            public bool UseThreads = true;
+            internal bool UseThreads = true;
 
             /// <summary>
             /// Number of threads. Null means use the number of processors.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of threads", ShortName = "nt")]
-            public int? NumThreads;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of threads", ShortName = "nt, NumThreads")]
+            public int? NumberOfThreads;
 
+            /// <summary>
+            /// Force densification of the internal optimization vectors. Default is false.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Force densification of the internal optimization vectors", ShortName = "do")]
             [TlcModule.SweepableDiscreteParamAttribute("DenseOptimizer", new object[] { false, true })]
             public bool DenseOptimizer = false;
 
+            /// <summary>
+            /// Enforce non-negative weights. Default is false.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Enforce non-negative weights", ShortName = "nn", SortOrder = 90)]
             public bool EnforceNonNegativity = Defaults.EnforceNonNegativity;
 
             [BestFriend]
             internal static class Defaults
             {
-                public const float L2Weight = 1;
-                public const float L1Weight = 1;
-                public const float OptTol = 1e-7f;
-                public const int MemorySize = 20;
-                public const int MaxIterations = int.MaxValue;
+                public const float L2Regularization = 1;
+                public const float L1Regularization = 1;
+                public const float OptimizationTolerance = 1e-7f;
+                public const int IterationsToRemember = 20;
+                public const int NumberOfIterations = int.MaxValue;
                 public const bool EnforceNonNegativity = false;
             }
         }
@@ -165,10 +189,10 @@ namespace Microsoft.ML.Trainers
                             FeatureColumnName = featureColumn,
                             LabelColumnName = labelColumn.Name,
                             ExampleWeightColumnName = weightColumn,
-                            L1Weight = l1Weight,
-                            L2Weight = l2Weight,
-                            OptTol = optimizationTolerance,
-                            MemorySize = memorySize,
+                            L1Regularization = l1Weight,
+                            L2Regularization = l2Weight,
+                            OptmizationTolerance = optimizationTolerance,
+                            IterationsToRemember = memorySize,
                             EnforceNonNegativity = enforceNoNegativity
                         },
                   labelColumn)
@@ -191,31 +215,31 @@ namespace Microsoft.ML.Trainers
             options.FeatureColumnName = FeatureColumn.Name;
             options.LabelColumnName = LabelColumn.Name;
             options.ExampleWeightColumnName = WeightColumn.Name;
-            Host.CheckUserArg(!LbfgsTrainerOptions.UseThreads || LbfgsTrainerOptions.NumThreads > 0 || LbfgsTrainerOptions.NumThreads == null,
-              nameof(LbfgsTrainerOptions.NumThreads), "numThreads must be positive (or empty for default)");
-            Host.CheckUserArg(LbfgsTrainerOptions.L2Weight >= 0, nameof(LbfgsTrainerOptions.L2Weight), "Must be non-negative");
-            Host.CheckUserArg(LbfgsTrainerOptions.L1Weight >= 0, nameof(LbfgsTrainerOptions.L1Weight), "Must be non-negative");
-            Host.CheckUserArg(LbfgsTrainerOptions.OptTol > 0, nameof(LbfgsTrainerOptions.OptTol), "Must be positive");
-            Host.CheckUserArg(LbfgsTrainerOptions.MemorySize > 0, nameof(LbfgsTrainerOptions.MemorySize), "Must be positive");
-            Host.CheckUserArg(LbfgsTrainerOptions.MaxIterations > 0, nameof(LbfgsTrainerOptions.MaxIterations), "Must be positive");
-            Host.CheckUserArg(LbfgsTrainerOptions.SgdInitializationTolerance >= 0, nameof(LbfgsTrainerOptions.SgdInitializationTolerance), "Must be non-negative");
-            Host.CheckUserArg(LbfgsTrainerOptions.NumThreads == null || LbfgsTrainerOptions.NumThreads.Value >= 0, nameof(LbfgsTrainerOptions.NumThreads), "Must be non-negative");
+            Host.CheckUserArg(!LbfgsTrainerOptions.UseThreads || LbfgsTrainerOptions.NumberOfThreads > 0 || LbfgsTrainerOptions.NumberOfThreads == null,
+              nameof(LbfgsTrainerOptions.NumberOfThreads), "Must be positive (or empty for default)");
+            Host.CheckUserArg(LbfgsTrainerOptions.L2Regularization >= 0, nameof(LbfgsTrainerOptions.L2Regularization), "Must be non-negative");
+            Host.CheckUserArg(LbfgsTrainerOptions.L1Regularization >= 0, nameof(LbfgsTrainerOptions.L1Regularization), "Must be non-negative");
+            Host.CheckUserArg(LbfgsTrainerOptions.OptmizationTolerance > 0, nameof(LbfgsTrainerOptions.OptmizationTolerance), "Must be positive");
+            Host.CheckUserArg(LbfgsTrainerOptions.IterationsToRemember > 0, nameof(LbfgsTrainerOptions.IterationsToRemember), "Must be positive");
+            Host.CheckUserArg(LbfgsTrainerOptions.NumberOfIterations > 0, nameof(LbfgsTrainerOptions.NumberOfIterations), "Must be positive");
+            Host.CheckUserArg(LbfgsTrainerOptions.StochasticGradientDescentInitilaizationTolerance >= 0, nameof(LbfgsTrainerOptions.StochasticGradientDescentInitilaizationTolerance), "Must be non-negative");
+            Host.CheckUserArg(LbfgsTrainerOptions.NumberOfThreads == null || LbfgsTrainerOptions.NumberOfThreads.Value >= 0, nameof(LbfgsTrainerOptions.NumberOfThreads), "Must be non-negative");
 
-            Host.CheckParam(!(LbfgsTrainerOptions.L2Weight < 0), nameof(LbfgsTrainerOptions.L2Weight), "Must be non-negative, if provided.");
-            Host.CheckParam(!(LbfgsTrainerOptions.L1Weight < 0), nameof(LbfgsTrainerOptions.L1Weight), "Must be non-negative, if provided");
-            Host.CheckParam(!(LbfgsTrainerOptions.OptTol <= 0), nameof(LbfgsTrainerOptions.OptTol), "Must be positive, if provided.");
-            Host.CheckParam(!(LbfgsTrainerOptions.MemorySize <= 0), nameof(LbfgsTrainerOptions.MemorySize), "Must be positive, if provided.");
+            Host.CheckParam(!(LbfgsTrainerOptions.L2Regularization < 0), nameof(LbfgsTrainerOptions.L2Regularization), "Must be non-negative, if provided.");
+            Host.CheckParam(!(LbfgsTrainerOptions.L1Regularization < 0), nameof(LbfgsTrainerOptions.L1Regularization), "Must be non-negative, if provided");
+            Host.CheckParam(!(LbfgsTrainerOptions.OptmizationTolerance <= 0), nameof(LbfgsTrainerOptions.OptmizationTolerance), "Must be positive, if provided.");
+            Host.CheckParam(!(LbfgsTrainerOptions.IterationsToRemember <= 0), nameof(LbfgsTrainerOptions.IterationsToRemember), "Must be positive, if provided.");
 
-            L2Weight = LbfgsTrainerOptions.L2Weight;
-            L1Weight = LbfgsTrainerOptions.L1Weight;
-            OptTol = LbfgsTrainerOptions.OptTol;
-            MemorySize =LbfgsTrainerOptions.MemorySize;
-            MaxIterations = LbfgsTrainerOptions.MaxIterations;
-            SgdInitializationTolerance = LbfgsTrainerOptions.SgdInitializationTolerance;
+            L2Weight = LbfgsTrainerOptions.L2Regularization;
+            L1Weight = LbfgsTrainerOptions.L1Regularization;
+            OptTol = LbfgsTrainerOptions.OptmizationTolerance;
+            MemorySize =LbfgsTrainerOptions.IterationsToRemember;
+            MaxIterations = LbfgsTrainerOptions.NumberOfIterations;
+            SgdInitializationTolerance = LbfgsTrainerOptions.StochasticGradientDescentInitilaizationTolerance;
             Quiet = LbfgsTrainerOptions.Quiet;
-            InitWtsDiameter = LbfgsTrainerOptions.InitWtsDiameter;
+            InitWtsDiameter = LbfgsTrainerOptions.InitialWeightsDiameter;
             UseThreads = LbfgsTrainerOptions.UseThreads;
-            NumThreads = LbfgsTrainerOptions.NumThreads;
+            NumThreads = LbfgsTrainerOptions.NumberOfThreads;
             DenseOptimizer = LbfgsTrainerOptions.DenseOptimizer;
             EnforceNonNegativity = LbfgsTrainerOptions.EnforceNonNegativity;
 
@@ -245,10 +269,10 @@ namespace Microsoft.ML.Trainers
                 FeatureColumnName = featureColumn,
                 LabelColumnName = labelColumn.Name,
                 ExampleWeightColumnName = weightColumn,
-                L1Weight = l1Weight,
-                L2Weight = l2Weight,
-                OptTol = optimizationTolerance,
-                MemorySize = memorySize,
+                L1Regularization = l1Weight,
+                L2Regularization = l2Weight,
+                OptmizationTolerance = optimizationTolerance,
+                IterationsToRemember = memorySize,
                 EnforceNonNegativity = enforceNoNegativity
             };
 

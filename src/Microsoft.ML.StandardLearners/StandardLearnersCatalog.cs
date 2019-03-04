@@ -449,10 +449,10 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
-        /// <param name="l1Weight">Weight of L1 regularization term.</param>
-        /// <param name="l2Weight">Weight of L2 regularization term.</param>
-        /// <param name="memorySize">Memory size for <see cref="Trainers.LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
+        /// <param name="l1Regularization">Weight of L1 regularization term.</param>
+        /// <param name="l2Regularization">Weight of L2 regularization term.</param>
+        /// <param name="iterationsToRemember">Memory size for <see cref="Trainers.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -465,15 +465,15 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            float l1Weight = LROptions.Defaults.L1Weight,
-            float l2Weight = LROptions.Defaults.L2Weight,
-            float optimizationTolerance = LROptions.Defaults.OptTol,
-            int memorySize = LROptions.Defaults.MemorySize,
-            bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
+            float l1Regularization = LROptions.Defaults.L1Regularization,
+            float l2Regularization = LROptions.Defaults.L2Regularization,
+            float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
+            int iterationsToRemember = LROptions.Defaults.IterationsToRemember,
+            bool enforceNonNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LogisticRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity);
+            return new LogisticRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, iterationsToRemember, enforceNonNegativity);
         }
 
         /// <summary>
@@ -497,24 +497,24 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="l1Weight">Weight of L1 regularization term.</param>
-        /// <param name="l2Weight">Weight of L2 regularization term.</param>
+        /// <param name="l1Regularization">Weight of L1 regularization term.</param>
+        /// <param name="l2Regularization">Weight of L2 regularization term.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Trainers.PoissonRegression"/>. Low=faster, less accurate.</param>
-        /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
+        /// <param name="iterationsToRemember">Memory size for <see cref="Microsoft.ML.Trainers.PoissonRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         public static PoissonRegression PoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            float l1Weight = LROptions.Defaults.L1Weight,
-            float l2Weight = LROptions.Defaults.L2Weight,
-            float optimizationTolerance = LROptions.Defaults.OptTol,
-            int memorySize = LROptions.Defaults.MemorySize,
-            bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
+            float l1Regularization = LROptions.Defaults.L1Regularization,
+            float l2Regularization = LROptions.Defaults.L2Regularization,
+            float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
+            int iterationsToRemember = LROptions.Defaults.IterationsToRemember,
+            bool enforceNonNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new PoissonRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity);
+            return new PoissonRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, iterationsToRemember, enforceNonNegativity);
         }
 
         /// <summary>
@@ -538,24 +538,24 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
-        /// <param name="l1Weight">Weight of L1 regularization term.</param>
-        /// <param name="l2Weight">Weight of L2 regularization term.</param>
-        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Trainers.MulticlassLogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
+        /// <param name="l1Regularization">Weight of L1 regularization term.</param>
+        /// <param name="l2Regularization">Weight of L2 regularization term.</param>
+        /// <param name="iterationsToRemember">Memory size for <see cref="Microsoft.ML.Trainers.MulticlassLogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         public static MulticlassLogisticRegression LogisticRegression(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            float l1Weight = LROptions.Defaults.L1Weight,
-            float l2Weight = LROptions.Defaults.L2Weight,
-            float optimizationTolerance = LROptions.Defaults.OptTol,
-            int memorySize = LROptions.Defaults.MemorySize,
-            bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
+            float l1Regularization = LROptions.Defaults.L1Regularization,
+            float l2Regularization = LROptions.Defaults.L2Regularization,
+            float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
+            int iterationsToRemember = LROptions.Defaults.IterationsToRemember,
+            bool enforceNonNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new MulticlassLogisticRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity);
+            return new MulticlassLogisticRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, iterationsToRemember, enforceNonNegativity);
         }
 
         /// <summary>

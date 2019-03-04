@@ -748,7 +748,7 @@ namespace Microsoft.ML.RunTests
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
-                    OptTol = 10e-4F,
+                    OptmizationTolerance = 10e-4F,
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
@@ -756,7 +756,7 @@ namespace Microsoft.ML.RunTests
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
-                    OptTol = 10e-3F,
+                    OptmizationTolerance = 10e-3F,
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel
@@ -785,7 +785,7 @@ namespace Microsoft.ML.RunTests
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
-                    OptTol = 10e-4F,
+                    OptmizationTolerance = 10e-4F,
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
@@ -793,7 +793,7 @@ namespace Microsoft.ML.RunTests
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
-                    OptTol = 10e-3F,
+                    OptmizationTolerance = 10e-3F,
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel
