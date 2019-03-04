@@ -456,16 +456,16 @@ namespace Microsoft.ML
             /// <example>
             /// <format type="text/markdown">
             /// <![CDATA[
-            /// [!code-csharp[PairAdjacentViolators](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/PairAdjacentViolators.cs)]
+            /// [!code-csharp[PairAdjacentViolators](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/Isotonic.cs)]
             /// ]]>
             /// </format>
             /// </example>
-            public PoolAdjacentViolatorsCalibratorEstimator PoolAdjacentViolators(
+            public IsotonicCalibratorEstimator Isotonic(
                 string labelColumnName = DefaultColumnNames.Label,
                 string scoreColumnName = DefaultColumnNames.Score,
                 string exampleWeightColumnName = null)
             {
-                return new PoolAdjacentViolatorsCalibratorEstimator(Owner.Environment, labelColumnName, scoreColumnName, exampleWeightColumnName);
+                return new IsotonicCalibratorEstimator(Owner.Environment, labelColumnName, scoreColumnName, exampleWeightColumnName);
             }
         }
     }

@@ -254,9 +254,6 @@ namespace Microsoft.ML.Calibrators
     /// <summary>
     /// The Platt calibrator estimator.
     /// </summary>
-    /// <remarks>
-    /// For the usage pattern see the example in <see cref="CalibratorEstimatorBase{TICalibrator}"/>.
-    /// </remarks>
     public sealed class PlattCalibratorEstimator : CalibratorEstimatorBase<PlattCalibrator>
     {
         /// <summary>
@@ -286,9 +283,6 @@ namespace Microsoft.ML.Calibrators
     /// Note that unlike, say, <see cref="PlattCalibratorEstimator"/>, the fit function here is trivial
     /// and just "fits" a calibrator with the provided parameters.
     /// </summary>
-    /// <remarks>
-    /// For the usage pattern see the example in <see cref="CalibratorEstimatorBase{TICalibrator}"/>.
-    /// </remarks>
     public sealed class FixedPlattCalibratorEstimator : CalibratorEstimatorBase<PlattCalibrator>
     {
         /// <summary>
@@ -347,7 +341,6 @@ namespace Microsoft.ML.Calibrators
     /// It divides the range of the outputs into equally sized bins. In each bin,
     /// the probability of belonging to class 1, is the number of class 1 instances in the bin, divided by the total number
     /// of instances in the bin.
-    /// For the usage pattern see the example in <see cref="CalibratorEstimatorBase{TICalibrator}"/>.
     /// </remarks>
     public sealed class NaiveCalibratorEstimator : CalibratorEstimatorBase<NaiveCalibrator>
     {
@@ -393,15 +386,15 @@ namespace Microsoft.ML.Calibrators
     }
 
     /// <summary>
-    /// The pair-adjacent violators calibrator estimator.
+    /// The isotonic calbrated estimator.
     /// </summary>
     /// <remarks>
-    /// For the usage pattern see the example in <see cref="CalibratorEstimatorBase{TICalibrator}"/>.
+    /// Calibrator finds a stepwise constant function (using the Pool Adjacent Violators Algorithm aka PAV) that minimizes the squared error.
     /// </remarks>
-    public sealed class PoolAdjacentViolatorsCalibratorEstimator : CalibratorEstimatorBase<PavCalibrator>
+    public sealed class IsotonicCalibratorEstimator : CalibratorEstimatorBase<PavCalibrator>
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="PoolAdjacentViolatorsCalibratorEstimator"/>
+        /// Initializes a new instance of <see cref="IsotonicCalibratorEstimator"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The label column name. This is consumed when this estimator is fit,
@@ -410,7 +403,7 @@ namespace Microsoft.ML.Calibrators
         /// is fit and when the estimator is consumed.</param>
         /// <param name="weightColumn">The optional weight column name. Note that if specified this is
         /// consumed when this estimator is fit, but not consumed by the resulting transformer.</param>
-        internal PoolAdjacentViolatorsCalibratorEstimator(IHostEnvironment env,
+        internal IsotonicCalibratorEstimator(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string scoreColumn = DefaultColumnNames.Score,
             string weightColumn = null) : base(env, new PavCalibratorTrainer(env), labelColumn, scoreColumn, weightColumn)
@@ -424,7 +417,7 @@ namespace Microsoft.ML.Calibrators
     }
 
     /// <summary>
-    /// The <see cref="ITransformer"/> implementation obtained by training a <see cref="PoolAdjacentViolatorsCalibratorEstimator"/>
+    /// The <see cref="ITransformer"/> implementation obtained by training a <see cref="IsotonicCalibratorEstimator"/>
     /// </summary>
     public sealed class PairAdjacentViolatorsCalibratorTransformer : CalibratorTransformer<PavCalibrator>
     {
