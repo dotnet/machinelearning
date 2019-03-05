@@ -1721,10 +1721,8 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         public sealed class Options : BinaryOptionsBase
         {
-            [Argument(ArgumentType.Multiple, Name = "LossFunction", HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
-            public ISupportSdcaClassificationLossFactory LossFunctionFactory = new LogLossFactory();
-
-            public ISupportSdcaClassificationLoss LossFunction;
+            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
+            public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
@@ -1734,8 +1732,7 @@ namespace Microsoft.ML.Trainers
         }
 
         internal LegacySdcaBinaryTrainer(IHostEnvironment env, Options options)
-            : base(env, options, options.LossFunction ?? options.LossFunctionFactory.CreateComponent(env),
-                  !(options.LossFunction is LogLoss || (options.LossFunction == null && options.LossFunctionFactory is LogLossFactory)))
+            : base(env, options, options.LossFunction.CreateComponent(env), !(options.LossFunction is LogLossFactory))
         {
         }
 
