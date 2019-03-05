@@ -267,5 +267,20 @@ namespace Microsoft.ML.Functional.Tests
             AssertMetricStatistics(metrics.RSquared);
             AssertMetricStatistics(metrics.LossFn);
         }
+
+        /// <summary>
+        /// Verify that a numerical array has no NaNs or infinities.
+        /// </summary>
+        /// <param name="array">An array of doubles.</param>
+        public static void AssertFiniteNumbers(double[] array, int ignoreElementAt = -1)
+        {
+            for (int i = 0; i < array.Length; i++)
+            {
+                if (i == ignoreElementAt)
+                    continue;
+                Assert.False(double.IsNaN(array[i]));
+                Assert.True(double.IsFinite(array[i]));
+            }
+        }
     }
 }

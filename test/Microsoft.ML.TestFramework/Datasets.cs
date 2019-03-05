@@ -16,6 +16,7 @@ namespace Microsoft.ML.RunTests
         public string labelFilename;
         public char fileSeparator;
         public bool fileHasHeader;
+        public bool allowQuoting;
 
         // REVIEW: Replace these with appropriate SubComponents!
         public string settings;
@@ -212,6 +213,7 @@ namespace Microsoft.ML.RunTests
             testFilename = "wikipedia-detox-250-line-test.tsv",
             fileHasHeader = true,
             fileSeparator = '\t',
+            allowQuoting = true,
             GetLoaderColumns = () =>
              {
                  return new[]
