@@ -34,8 +34,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.</param>
-        /// <param name="inputColumnNames">Name of the columns to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="options">Advanced options to the algorithm.</param>
+        /// <param name="inputColumnNames">Name of the columns to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -45,8 +45,8 @@ namespace Microsoft.ML
         /// </example>
         public static TextFeaturizingEstimator FeaturizeText(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
-            IEnumerable<string> inputColumnNames,
-            TextFeaturizingEstimator.Options options)
+            TextFeaturizingEstimator.Options options,
+            params string[] inputColumnNames)
             => new TextFeaturizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
                 outputColumnName, inputColumnNames, options);
 
