@@ -10,9 +10,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Transforms;
@@ -223,7 +221,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// The names of the output and input column pairs for the transformation.
         /// </summary>
-        public IReadOnlyCollection<(string outputColumnName, string[] inputColumnNames)> Columns
+        internal IReadOnlyCollection<(string outputColumnName, string[] inputColumnNames)> Columns
             => _columns.Select(col => (outputColumnName: col.Name, inputColumnNames: col.Sources.Select(source => source.name).ToArray())).ToArray().AsReadOnly();
 
         /// <summary>
