@@ -43,7 +43,7 @@ namespace Microsoft.ML.LightGBM
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumnName">The name of The label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
-        /// <param name="exampleWeightColumnName">The name for the column containing the initial weight.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numberOfLeaves">The number of leaves to use.</param>
         /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
@@ -157,7 +157,7 @@ namespace Microsoft.ML.LightGBM
                     labels[i] = defaultLabel;
         }
 
-        protected override void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
+        private protected override void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
         {
             base.GetDefaultParameters(ch, numRow, hasCategorical, totalCats, true);
             int numberOfLeaves = (int)Options["num_leaves"];

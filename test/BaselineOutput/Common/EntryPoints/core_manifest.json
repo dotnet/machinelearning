@@ -23549,9 +23549,9 @@
               }
             },
             {
-              "Name": "MaximumDroppedTreesPerRound",
+              "Name": "MaximumNumberOfDroppedTreesPerRound",
               "Type": "Int",
-              "Desc": "Maximum number of dropped tree in a boosting round.",
+              "Desc": "Maximum number of dropped trees in a boosting round.",
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23644,7 +23644,7 @@
             {
               "Name": "SubsampleFrequency",
               "Type": "Int",
-              "Desc": "Subsample frequency for bagging. 0 means no subsample. If subsampleFreq > 0, it will use a subset to train and the subset will be updated on every Subsample iteration.",
+              "Desc": "Subsample frequency for bagging. 0 means no subsample. Specifies the frequency at which the bagging occurs, where if this is set to N, the subsampling will happen at every N iterations.This must be set with Subsample as this specifies the amount to subsample.",
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23655,7 +23655,7 @@
               }
             },
             {
-              "Name": "Subsample",
+              "Name": "SubsampleFraction",
               "Type": "Float",
               "Desc": "Subsample ratio of the training instance. Setting it to 0.5 means that LightGBM randomly collected half of the data instances to grow trees and this will prevent overfitting. Range: (0,1].",
               "Required": false,
@@ -23688,8 +23688,7 @@
               "Type": "Float",
               "Desc": "L2 regularization term on weights, increasing this value will make model more conservative.",
               "Aliases": [
-                "l2",
-                "RegLambda"
+                "l2"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -23712,8 +23711,7 @@
               "Type": "Float",
               "Desc": "L1 regularization term on weights, increase this value will make model more conservative.",
               "Aliases": [
-                "l1",
-                "RegAlpha"
+                "l1"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -23802,7 +23800,7 @@
             {
               "Name": "SubsampleFrequency",
               "Type": "Int",
-              "Desc": "Subsample frequency for bagging. 0 means no subsample. If subsampleFreq > 0, it will use a subset to train and the subset will be updated on every Subsample iteration.",
+              "Desc": "Subsample frequency for bagging. 0 means no subsample. Specifies the frequency at which the bagging occurs, where if this is set to N, the subsampling will happen at every N iterations.This must be set with Subsample as this specifies the amount to subsample.",
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23813,7 +23811,7 @@
               }
             },
             {
-              "Name": "Subsample",
+              "Name": "SubsampleFraction",
               "Type": "Float",
               "Desc": "Subsample ratio of the training instance. Setting it to 0.5 means that LightGBM randomly collected half of the data instances to grow trees and this will prevent overfitting. Range: (0,1].",
               "Required": false,
@@ -23846,8 +23844,7 @@
               "Type": "Float",
               "Desc": "L2 regularization term on weights, increasing this value will make model more conservative.",
               "Aliases": [
-                "l2",
-                "RegLambda"
+                "l2"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -23870,8 +23867,7 @@
               "Type": "Float",
               "Desc": "L1 regularization term on weights, increase this value will make model more conservative.",
               "Aliases": [
-                "l1",
-                "RegAlpha"
+                "l1"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -23986,7 +23982,7 @@
             {
               "Name": "SubsampleFrequency",
               "Type": "Int",
-              "Desc": "Subsample frequency for bagging. 0 means no subsample. If subsampleFreq > 0, it will use a subset to train and the subset will be updated on every Subsample iteration.",
+              "Desc": "Subsample frequency for bagging. 0 means no subsample. Specifies the frequency at which the bagging occurs, where if this is set to N, the subsampling will happen at every N iterations.This must be set with Subsample as this specifies the amount to subsample.",
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23997,7 +23993,7 @@
               }
             },
             {
-              "Name": "Subsample",
+              "Name": "SubsampleFraction",
               "Type": "Float",
               "Desc": "Subsample ratio of the training instance. Setting it to 0.5 means that LightGBM randomly collected half of the data instances to grow trees and this will prevent overfitting. Range: (0,1].",
               "Required": false,
@@ -24030,8 +24026,7 @@
               "Type": "Float",
               "Desc": "L2 regularization term on weights, increasing this value will make model more conservative.",
               "Aliases": [
-                "l2",
-                "RegLambda"
+                "l2"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -24054,8 +24049,7 @@
               "Type": "Float",
               "Desc": "L1 regularization term on weights, increase this value will make model more conservative.",
               "Aliases": [
-                "l1",
-                "RegAlpha"
+                "l1"
               ],
               "Required": false,
               "SortOrder": 150.0,

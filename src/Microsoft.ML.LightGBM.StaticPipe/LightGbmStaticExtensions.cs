@@ -22,7 +22,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <param name="features">The features column.</param>
         /// <param name="weights">The weights column.</param>
         /// <param name="numberOfLeaves">The number of leaves to use.</param>
-        /// <param name="minimumDataPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="numberOfIterations">Number of iterations.</param>
         /// <param name="onFit">A delegate that is called every time the
@@ -40,18 +40,18 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         public static Scalar<float> LightGbm(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
             int? numberOfLeaves = null,
-            int? minimumDataPerLeaf = null,
+            int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
             int numberOfIterations = Options.Defaults.NumberOfIterations,
             Action<LightGbmRegressionModelParameters> onFit = null)
         {
-            CheckUserValues(label, features, weights, numberOfLeaves, minimumDataPerLeaf, learningRate, numberOfIterations, onFit);
+            CheckUserValues(label, features, weights, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations, onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
                {
                    var trainer = new LightGbmRegressorTrainer(env, labelName, featuresName, weightsName, numberOfLeaves,
-                       minimumDataPerLeaf, learningRate, numberOfIterations);
+                       minimumExampleCountPerLeaf, learningRate, numberOfIterations);
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                    return trainer;
@@ -197,7 +197,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <param name="groupId">The groupId column.</param>
         /// <param name="weights">The weights column.</param>
         /// <param name="numberOfLeaves">The number of leaves to use.</param>
-        /// <param name="minimumDataPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="numberOfIterations">Number of iterations.</param>
         /// <param name="onFit">A delegate that is called every time the
@@ -213,19 +213,19 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             Key<uint, TVal> groupId,
             Scalar<float> weights = null,
             int? numberOfLeaves = null,
-            int? minimumDataPerLeaf = null,
+            int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
             int numberOfIterations = Options.Defaults.NumberOfIterations,
             Action<LightGbmRankingModelParameters> onFit = null)
         {
-            CheckUserValues(label, features, weights, numberOfLeaves, minimumDataPerLeaf, learningRate, numberOfIterations, onFit);
+            CheckUserValues(label, features, weights, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations, onFit);
             Contracts.CheckValue(groupId, nameof(groupId));
 
             var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
                (env, labelName, featuresName, groupIdName, weightsName) =>
                {
                    var trainer = new LightGbmRankingTrainer(env, labelName, featuresName, groupIdName, weightsName, numberOfLeaves,
-                       minimumDataPerLeaf, learningRate, numberOfIterations);
+                       minimumExampleCountPerLeaf, learningRate, numberOfIterations);
 
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -285,7 +285,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The weights column.</param>
         /// <param name="numberOfLeaves">The number of leaves to use.</param>
-        /// <param name="minimumDataPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="numberOfIterations">Number of iterations.</param>
         /// <param name="onFit">A delegate that is called every time the
@@ -307,18 +307,18 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             Vector<float> features,
             Scalar<float> weights = null,
             int? numberOfLeaves = null,
-            int? minimumDataPerLeaf = null,
+            int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
             int numberOfIterations = Options.Defaults.NumberOfIterations,
             Action<OneVersusAllModelParameters> onFit = null)
         {
-            CheckUserValues(label, features, weights, numberOfLeaves, minimumDataPerLeaf, learningRate, numberOfIterations, onFit);
+            CheckUserValues(label, features, weights, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations, onFit);
 
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new LightGbmMulticlassTrainer(env, labelName, featuresName, weightsName, numberOfLeaves,
-                       minimumDataPerLeaf, learningRate, numberOfIterations);
+                       minimumExampleCountPerLeaf, learningRate, numberOfIterations);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

@@ -8,7 +8,6 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.LightGBM;
-using Microsoft.ML.Model;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 
@@ -85,7 +84,7 @@ namespace Microsoft.ML.LightGBM
     ///</summary>
     /// <remarks>
     /// Light GBM is an open source implementation of boosted trees.
-    ///     <a href = 'https://github.com/Microsoft/LightGBM/wiki' > GitHub: LightGBM</a>
+    /// <a href = 'https://github.com/Microsoft/LightGBM/wiki' > GitHub: LightGBM</a>
     /// </remarks>
     public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<float,
         BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>,
@@ -109,7 +108,7 @@ namespace Microsoft.ML.LightGBM
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumnName">The name of The label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
-        /// <param name="exampleWeightColumnName">The name for the column containing the initial weight.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numberOfLeaves">The number of leaves to use.</param>
         /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>

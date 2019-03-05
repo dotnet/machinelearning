@@ -165,7 +165,7 @@ namespace Microsoft.ML.LightGBM
             ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "Need a label column");
         }
 
-        protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategarical, int totalCats, bool hiddenMsg = false)
+        private protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategarical, int totalCats, bool hiddenMsg = false)
         {
             double learningRate = LightGbmTrainerOptions.LearningRate ?? DefaultLearningRate(numRow, hasCategarical, totalCats);
             int numberOfLeaves = LightGbmTrainerOptions.NumberOfLeaves ?? DefaultNumLeaves(numRow, hasCategarical, totalCats);
@@ -873,7 +873,7 @@ namespace Microsoft.ML.LightGBM
                 return 30;
         }
 
-        protected static int DefaultMinDataPerLeaf(int numRow, int numberOfLeaves, int numClass)
+        private protected static int DefaultMinDataPerLeaf(int numRow, int numberOfLeaves, int numClass)
         {
             if (numClass > 1)
             {

@@ -46,9 +46,9 @@ namespace Microsoft.ML.LightGBM
         public abstract class BoosterParameter<TOptions> : IBoosterParameter
             where TOptions : class, new()
         {
-            protected TOptions BoosterParameterOptions { get; }
+            private protected TOptions BoosterParameterOptions { get; }
 
-            protected BoosterParameter(TOptions options)
+            private protected BoosterParameter(TOptions options)
             {
                 BoosterParameterOptions = options;
             }
@@ -105,12 +105,13 @@ namespace Microsoft.ML.LightGBM
            {nameof(TreeBooster.Options.MinimumSplitGain),               "min_split_gain" },
            {nameof(TreeBooster.Options.MaximumTreeDepth),               "max_depth"},
            {nameof(TreeBooster.Options.MinimumChildWeight),             "min_child_weight"},
+           {nameof(TreeBooster.Options.SubsampleFraction),              "subsample"},
            {nameof(TreeBooster.Options.SubsampleFrequency),             "subsample_freq"},
            {nameof(TreeBooster.Options.L1Regularization),               "reg_alpha"},
            {nameof(TreeBooster.Options.L2Regularization),               "reg_lambda"},
            {nameof(TreeBooster.Options.WeightOfPositiveExamples),       "scale_pos_weight"},
            {nameof(DartBooster.Options.TreeDropFraction),               "drop_rate" },
-           {nameof(DartBooster.Options.MaximumDroppedTreeCountPerRound),    "max_drop" },
+           {nameof(DartBooster.Options.MaximumNumberOfDroppedTreesPerRound),"max_drop" },
            {nameof(DartBooster.Options.SkipDropFraction),               "skip_drop" },
            {nameof(MinimumExampleCountPerLeaf),                         "min_data_per_leaf"},
            {nameof(NumberOfLeaves),                                     "num_leaves"},
@@ -159,7 +160,7 @@ namespace Microsoft.ML.LightGBM
 
                 [Argument(ArgumentType.AtMostOnce,
                     HelpText = "Subsample frequency for bagging. 0 means no subsample. "
-                    + "Specifies the frequency at which the bagging occurs, where if this is set to N, the subsampling will happen at N iterations." +
+                    + "Specifies the frequency at which the bagging occurs, where if this is set to N, the subsampling will happen at every N iterations." +
                     "This must be set with Subsample as this specifies the amount to subsample.")]
                 [TlcModule.Range(Min = 0, Max = int.MaxValue)]
                 public int SubsampleFrequency = 0;
@@ -168,7 +169,7 @@ namespace Microsoft.ML.LightGBM
                     HelpText = "Subsample ratio of the training instance. Setting it to 0.5 means that LightGBM randomly collected " +
                         "half of the data instances to grow trees and this will prevent overfitting. Range: (0,1].")]
                 [TlcModule.Range(Inf = 0.0, Max = 1.0)]
-                public double Subsample = 1;
+                public double SubsampleFraction = 1;
 
                 [Argument(ArgumentType.AtMostOnce,
                     HelpText = "Subsample ratio of columns when constructing each tree. Range: (0,1].",
@@ -208,7 +209,7 @@ namespace Microsoft.ML.LightGBM
             {
                 Contracts.CheckUserArg(BoosterParameterOptions.MinimumSplitGain >= 0, nameof(BoosterParameterOptions.MinimumSplitGain), "must be >= 0.");
                 Contracts.CheckUserArg(BoosterParameterOptions.MinimumChildWeight >= 0, nameof(BoosterParameterOptions.MinimumChildWeight), "must be >= 0.");
-                Contracts.CheckUserArg(BoosterParameterOptions.Subsample > 0 && BoosterParameterOptions.Subsample <= 1, nameof(BoosterParameterOptions.Subsample), "must be in (0,1].");
+                Contracts.CheckUserArg(BoosterParameterOptions.SubsampleFraction > 0 && BoosterParameterOptions.SubsampleFraction <= 1, nameof(BoosterParameterOptions.SubsampleFraction), "must be in (0,1].");
                 Contracts.CheckUserArg(BoosterParameterOptions.FeatureFraction > 0 && BoosterParameterOptions.FeatureFraction <= 1, nameof(BoosterParameterOptions.FeatureFraction), "must be in (0,1].");
                 Contracts.CheckUserArg(BoosterParameterOptions.L2Regularization >= 0, nameof(BoosterParameterOptions.L2Regularization), "must be >= 0.");
                 Contracts.CheckUserArg(BoosterParameterOptions.L1Regularization >= 0, nameof(BoosterParameterOptions.L1Regularization), "must be >= 0.");
@@ -234,9 +235,9 @@ namespace Microsoft.ML.LightGBM
                 [TlcModule.Range(Inf = 0.0, Max = 1.0)]
                 public double TreeDropFraction = 0.1;
 
-                [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of dropped tree in a boosting round.")]
+                [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of dropped trees in a boosting round.")]
                 [TlcModule.Range(Inf = 0, Max = int.MaxValue)]
-                public int MaximumDroppedTreeCountPerRound = 1;
+                public int MaximumNumberOfDroppedTreesPerRound = 1;
 
                 [Argument(ArgumentType.AtMostOnce, HelpText = "Probability for not dropping in a boosting round.")]
                 [TlcModule.Range(Inf = 0.0, Max = 1.0)]

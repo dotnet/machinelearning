@@ -39,7 +39,7 @@ namespace Microsoft.ML.Samples.Static
                                             r.label,
                                             r.features,
                                             numberOfLeaves: 4,
-                                            minimumDataPerLeaf: 6,
+                                            minimumExampleCountPerLeaf: 6,
                                             learningRate: 0.001,
                                         onFit: p => pred = p)
                                 )
