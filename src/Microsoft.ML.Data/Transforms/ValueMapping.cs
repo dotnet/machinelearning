@@ -55,7 +55,7 @@ namespace Microsoft.ML.Transforms
         /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
         /// Used for schema propagation and verification in a pipeline.
         /// </summary>
-        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        public sealed override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
@@ -722,7 +722,7 @@ namespace Microsoft.ML.Transforms
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        protected static PrimitiveDataViewType GetPrimitiveType(Type rawType, out bool isVectorType)
+        private protected static PrimitiveDataViewType GetPrimitiveType(Type rawType, out bool isVectorType)
         {
             Type type = rawType;
             isVectorType = false;

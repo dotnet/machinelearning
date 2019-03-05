@@ -93,15 +93,15 @@ namespace Microsoft.ML.Benchmarks
             };
 
             var loader = mlContext.Data.LoadFromTextFile(_sentimentDataPath, arguments);
-            var text = mlContext.Transforms.Text.FeaturizeText("WordEmbeddings", new List<string> { "SentimentText" }, 
-                new TextFeaturizingEstimator.Options { 
-                    OutputTokens = true,
-                    KeepPunctuations = false,
-                    UseStopRemover = true,
-                    VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
-                    UseCharExtractor = false,
-                    UseWordExtractor = false,
-                }).Fit(loader).Transform(loader);
+            var text = mlContext.Transforms.Text.FeaturizeText("WordEmbeddings", new TextFeaturizingEstimator.Options
+            {
+                OutputTokens = true,
+                KeepPunctuations = false,
+                UseStopRemover = true,
+                VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
+                UseCharExtractor = false,
+                UseWordExtractor = false,
+            }, "SentimentText").Fit(loader).Transform(loader);
 
             var trans = mlContext.Transforms.Text.ExtractWordEmbeddings("Features", "WordEmbeddings_TransformedText", 
                 WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe).Fit(text).Transform(text);

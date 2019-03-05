@@ -98,7 +98,7 @@ namespace Microsoft.ML.Tests.Transformers
                   new TestPrimitiveClass()
                 {
                     AA = new []{"0", "1"},
-                    AB = new []{false, true},
+                    AB = new []{true, false},
                     AC = new []{ int.MinValue, int.MaxValue},
                     AD = new uint[]{ uint.MinValue, uint.MaxValue},
                     AE = new byte[]{ byte.MinValue, byte.MaxValue},
@@ -125,7 +125,9 @@ namespace Microsoft.ML.Tests.Transformers
                 new TypeConvertingEstimator.ColumnOptions("ConvK", DataKind.Single, "AK"),
                 new TypeConvertingEstimator.ColumnOptions("ConvL", DataKind.Single, "AL"),
                 new TypeConvertingEstimator.ColumnOptions("ConvM", DataKind.Single, "AM"),
-                new TypeConvertingEstimator.ColumnOptions("ConvN", DataKind.Single, "AN")}
+                new TypeConvertingEstimator.ColumnOptions("ConvN", DataKind.Single, "AN"),
+                new TypeConvertingEstimator.ColumnOptions("ConvBI", DataKind.Int32, "AB") // verify Boolean -> Int32 conversion
+            }
             );
             TestEstimatorCore(allTypesPipe, allTypesDataView);
 

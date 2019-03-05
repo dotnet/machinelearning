@@ -5,13 +5,13 @@
 using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Trainers.HalLearners;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers
 {
-    using Mkl = OlsLinearRegressionTrainer.Mkl;
+    using MklOls = OrdinaryLeastSquaresRegressionTrainer.Mkl;
 
-    public sealed class ComputeLRTrainingStdThroughHal : ComputeLRTrainingStd
+    public sealed class ComputeLRTrainingStdThroughMkl : ComputeLogisticRegressionStandardDeviation
     {
         /// <summary>
         /// Computes the standart deviation matrix of each of the non-zero training weights, needed to calculate further the standart deviation,
@@ -23,7 +23,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="currentWeightsCount"></param>
         /// <param name="ch">The <see cref="IChannel"/> used for messaging.</param>
         /// <param name="l2Weight">The L2Weight used for training. (Supply the same one that got used during training.)</param>
-        public override VBuffer<float> ComputeStd(double[] hessian, int[] weightIndices, int numSelectedParams, int currentWeightsCount, IChannel ch, float l2Weight)
+        public override VBuffer<float> ComputeStandardDeviation(double[] hessian, int[] weightIndices, int numSelectedParams, int currentWeightsCount, IChannel ch, float l2Weight)
         {
             Contracts.AssertValue(ch);
             Contracts.AssertValue(hessian, nameof(hessian));
@@ -36,12 +36,12 @@ namespace Microsoft.ML.Trainers
             try
             {
                 // First, find the Cholesky decomposition LL' of the Hessian.
-                Mkl.Pptrf(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, numSelectedParams, hessian);
+                MklOls.Pptrf(MklOls.Layout.RowMajor, MklOls.UpLo.Lo, numSelectedParams, hessian);
                 // Note that hessian is already modified at this point. It is no longer the original Hessian,
                 // but instead represents the Cholesky decomposition L.
                 // Also note that the following routine is supposed to consume the Cholesky decomposition L instead
                 // of the original information matrix.
-                Mkl.Pptri(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, numSelectedParams, hessian);
+                MklOls.Pptri(MklOls.Layout.RowMajor, MklOls.UpLo.Lo, numSelectedParams, hessian);
                 // At this point, hessian should contain the inverse of the original Hessian matrix.
                 // Swap hessian with invHessian to avoid confusion in the following context.
                 Utils.Swap(ref hessian, ref invHessian);
