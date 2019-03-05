@@ -11037,7 +11037,7 @@
           }
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.",
           "Aliases": [
@@ -11051,13 +11051,13 @@
           "Default": null
         },
         {
-          "Name": "InitAlgorithm",
+          "Name": "InitializationAlgorithm",
           "Type": {
             "Kind": "Enum",
             "Values": [
               "KMeansPlusPlus",
               "Random",
-              "KMeansParallel"
+              "KMeansYinyang"
             ]
           },
           "Desc": "Cluster initialization algorithm",
@@ -11067,7 +11067,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "KMeansParallel"
+          "Default": "KMeansYinyang"
         },
         {
           "Name": "OptTol",
@@ -11082,7 +11082,7 @@
           "Default": 1E-07
         },
         {
-          "Name": "MaxIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations.",
           "Aliases": [
@@ -14545,7 +14545,7 @@
           "Default": "Auto"
         },
         {
-          "Name": "L2Weight",
+          "Name": "L2Regularization",
           "Type": "Float",
           "Desc": "L2 regularization weight",
           "Aliases": [
@@ -14565,7 +14565,7 @@
           }
         },
         {
-          "Name": "PerParameterSignificance",
+          "Name": "CalculateStatistics",
           "Type": "Bool",
           "Desc": "Whether to calculate per parameter significance statistics",
           "Aliases": [

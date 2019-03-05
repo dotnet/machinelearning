@@ -46,8 +46,8 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             // as data is already processed in a form consumable by the trainer
             var pipeline = mlContext.Regression.Trainers.OrdinaryLeastSquares(new OrdinaryLeastSquaresRegressionTrainer.Options()
             {
-                L2Weight = 0.1f,
-                PerParameterSignificance = false
+                L2Regularization = 0.1f,
+                CalculateStatistics = false
             });
             var model = pipeline.Fit(split.TrainSet);
 
