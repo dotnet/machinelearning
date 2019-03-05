@@ -31,8 +31,10 @@ namespace Microsoft.ML.Trainers
 
         public sealed class Options : OptionsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
-            public ISupportSdcaRegressionLossFactory LossFunction = new SquaredLossFactory();
+            [Argument(ArgumentType.Multiple, Name = "LossFunction", HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
+            internal ISupportSdcaRegressionLossFactory LossFunctionFactory = new SquaredLossFactory();
+
+            public ISupportSdcaRegressionLoss LossFunction;
 
             public Options()
             {
@@ -41,6 +43,9 @@ namespace Microsoft.ML.Trainers
 
                 // Default to use unregularized bias in regression.
                 BiasLearningRate = 1;
+
+                // Default to squared loss function in regression.
+                LossFunction = new SquaredLoss();
             }
         }
 
@@ -72,7 +77,7 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            _loss = loss ?? SdcaTrainerOptions.LossFunction.CreateComponent(env);
+            _loss = loss ?? SdcaTrainerOptions.LossFunction;
             Loss = _loss;
         }
 
@@ -82,7 +87,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(labelColumn, nameof(labelColumn));
             Host.CheckValue(featureColumn, nameof(featureColumn));
 
-            _loss = options.LossFunction.CreateComponent(env);
+            _loss = options.LossFunction;
             Loss = _loss;
         }
 

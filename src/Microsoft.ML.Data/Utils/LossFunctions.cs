@@ -81,12 +81,14 @@ namespace Microsoft.ML
     }
 
     [TlcModule.ComponentKind("SDCAClassificationLossFunction")]
-    public interface ISupportSdcaClassificationLossFactory : IComponentFactory<ISupportSdcaClassificationLoss>
+    [BestFriend]
+    internal interface ISupportSdcaClassificationLossFactory : IComponentFactory<ISupportSdcaClassificationLoss>
     {
     }
 
     [TlcModule.ComponentKind("SDCARegressionLossFunction")]
-    public interface ISupportSdcaRegressionLossFactory : IComponentFactory<ISupportSdcaRegressionLoss>
+    [BestFriend]
+    internal interface ISupportSdcaRegressionLossFactory : IComponentFactory<ISupportSdcaRegressionLoss>
     {
         new ISupportSdcaRegressionLoss CreateComponent(IHostEnvironment env);
     }

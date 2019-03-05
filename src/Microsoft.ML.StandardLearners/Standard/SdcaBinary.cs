@@ -1584,8 +1584,15 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         public sealed class Options : BinaryOptionsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
-            public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
+            [Argument(ArgumentType.Multiple, Name = "LossFunction", HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
+            internal ISupportSdcaClassificationLossFactory LossFunctionFactory = new LogLossFactory();
+
+            public ISupportSdcaClassificationLoss LossFunction;
+            public Options()
+            {
+                // Default to The log loss function for classification.
+                LossFunction = new LogLoss();
+            }
         }
 
         internal SdcaNonCalibratedBinaryTrainer(IHostEnvironment env,
@@ -1601,7 +1608,7 @@ namespace Microsoft.ML.Trainers
         }
 
         internal SdcaNonCalibratedBinaryTrainer(IHostEnvironment env, Options options)
-            : base(env, options, options.LossFunction.CreateComponent(env))
+            : base(env, options, options.LossFunction ?? options.LossFunctionFactory.CreateComponent(env))
         {
         }
 
@@ -1648,18 +1655,26 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         public sealed class Options : BinaryOptionsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
-            public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
+            [Argument(ArgumentType.Multiple, Name = "LossFunction", HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
+            public ISupportSdcaClassificationLossFactory LossFunctionFactory = new LogLossFactory();
+
+            public ISupportSdcaClassificationLoss LossFunction;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public int MaxCalibrationExamples = 1000000;
+
+            public Options()
+            {
+                // Default to The log loss function for classification.
+                LossFunction = new LogLoss();
+            }
         }
 
         internal LegacySdcaBinaryTrainer(IHostEnvironment env, Options options)
-            : base(env, options, options.LossFunction.CreateComponent(env), !(options.LossFunction is LogLossFactory))
+            : base(env, options, options.LossFunction ?? options.LossFunctionFactory.CreateComponent(env), !(options.LossFunction is LogLoss))
         {
         }
 

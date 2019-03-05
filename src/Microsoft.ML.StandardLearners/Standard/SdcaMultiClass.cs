@@ -35,8 +35,16 @@ namespace Microsoft.ML.Trainers
 
         public sealed class Options : OptionsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
-            public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
+            [Argument(ArgumentType.Multiple, Name = "LossFunction", HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
+            internal ISupportSdcaClassificationLossFactory LossFunctionFactory = new LogLossFactory();
+
+            public ISupportSdcaClassificationLoss LossFunction;
+
+            public Options()
+            {
+                // Default to The log loss function for classification.
+                LossFunction = new LogLoss();
+            }
         }
 
         private readonly ISupportSdcaClassificationLoss _loss;
@@ -67,7 +75,7 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            _loss = loss ?? SdcaTrainerOptions.LossFunction.CreateComponent(env);
+            _loss = loss ?? SdcaTrainerOptions.LossFunction;
             Loss = _loss;
         }
 
@@ -78,7 +86,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(labelColumn, nameof(labelColumn));
             Host.CheckValue(featureColumn, nameof(featureColumn));
 
-            _loss = options.LossFunction.CreateComponent(env);
+            _loss = options.LossFunction;
             Loss = _loss;
         }
 
