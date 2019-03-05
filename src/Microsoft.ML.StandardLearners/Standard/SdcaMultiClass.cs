@@ -56,12 +56,6 @@ namespace Microsoft.ML.Trainers
             /// If unspecified, <see cref="LogLoss"/> will be used.
             /// </value>
             public ISupportSdcaClassificationLoss LossFunction;
-
-            public Options()
-            {
-                // Default to The log loss function for classification.
-                LossFunction = new LogLoss();
-            }
         }
 
         private readonly ISupportSdcaClassificationLoss _loss;
@@ -92,7 +86,7 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            _loss = loss ?? SdcaTrainerOptions.LossFunction;
+            _loss = loss ?? SdcaTrainerOptions.LossFunction ?? SdcaTrainerOptions.LossFunctionFactory.CreateComponent(env);
             Loss = _loss;
         }
 
@@ -103,7 +97,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(labelColumn, nameof(labelColumn));
             Host.CheckValue(featureColumn, nameof(featureColumn));
 
-            _loss = options.LossFunction;
+            _loss = options.LossFunction ?? options.LossFunctionFactory.CreateComponent(env);
             Loss = _loss;
         }
 
