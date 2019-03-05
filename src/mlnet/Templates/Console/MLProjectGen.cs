@@ -32,6 +32,12 @@ namespace Microsoft.ML.CLI.Templates.Console
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
   </PropertyGroup>
+  <PropertyGroup>
+    <RestoreSources>
+      https://api.nuget.org/v3/index.json;
+      https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
+    </RestoreSources>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include=""Program.cs"" />
     <Compile Include=""ConsoleHelper.cs"" />

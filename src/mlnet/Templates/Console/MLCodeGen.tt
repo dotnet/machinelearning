@@ -34,15 +34,28 @@ namespace <#= Namespace #>
             // Create MLContext to be shared across the model creation workflow objects 
             var mlContext = new MLContext();
 
-            // (Optional step) Create, Train, Evaluate and Save the model.zip file
-            TrainEvaluateAndSaveModel(mlContext);
+            var command = Command.Predict; // Your desired action here
 
-            // Make a single test prediction loading the model from model.zip file
-            Predict(mlContext);
+            if (command == Command.Predict)
+            {
+                Predict(mlContext);
+                ConsoleHelper.ConsoleWriteHeader("=============== If you also want to train a model use Command.TrainAndPredict  ===============");
+            }
 
-            ConsoleHelper.ConsoleWriteHeader("=============== End of process, hit any key to finish ===============");
+            if (command == Command.TrainAndPredict)
+            {
+                TrainEvaluateAndSaveModel(mlContext);
+                Predict(mlContext);
+            }
+
+            Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
+        }
 
+        private enum Command
+        {
+            Predict,
+            TrainAndPredict
         }
 
         private static ITransformer TrainEvaluateAndSaveModel(MLContext mlContext)
@@ -123,7 +136,7 @@ if(string.IsNullOrEmpty(TestPath)){ #>
                 mlContext.Model.Save(trainedModel, fs);
 
             Console.WriteLine("The model is saved to {0}", ModelPath);
-            ConsoleHelper.ConsoleWriteHeader("=============== End of training process ===============");
+            Console.WriteLine("=============== End of training process ===============");
 
             return trainedModel;
         }
