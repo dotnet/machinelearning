@@ -2821,7 +2821,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private protected abstract uint VerCategoricalSplitSerialized { get; }
 
-        protected internal readonly DataViewType InputType;
+        internal readonly DataViewType InputType;
         DataViewType IValueMapper.InputType => InputType;
 
         protected readonly DataViewType OutputType;

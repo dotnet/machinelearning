@@ -16,10 +16,12 @@ namespace Microsoft.ML
     /// "area" of machine learning. A subclass would represent a particular task in machine learning. The idea
     /// is that a user can instantiate that particular area, and get trainers and evaluators.
     /// </summary>
-    public abstract class TrainCatalogBase
+    public abstract class TrainCatalogBase : IInternalCatalog
     {
+        IHostEnvironment IInternalCatalog.Environment => Environment;
+
         [BestFriend]
-        internal IHostEnvironment Environment { get; }
+        private protected IHostEnvironment Environment { get; }
 
         /// <summary>
         /// A pair of datasets, for the train and test set.
@@ -85,7 +87,8 @@ namespace Microsoft.ML
         /// <summary>
         /// Results for specific cross-validation fold.
         /// </summary>
-        protected internal struct CrossValidationResult
+        [BestFriend]
+        private protected struct CrossValidationResult
         {
             /// <summary>
             /// Model trained during cross validation fold.
@@ -143,7 +146,8 @@ namespace Microsoft.ML
         /// Train the <paramref name="estimator"/> on <paramref name="numFolds"/> folds of the data sequentially.
         /// Return each model and each scored test dataset.
         /// </summary>
-        protected internal CrossValidationResult[] CrossValidateTrain(IDataView data, IEstimator<ITransformer> estimator,
+        [BestFriend]
+        private protected CrossValidationResult[] CrossValidateTrain(IDataView data, IEstimator<ITransformer> estimator,
             int numFolds, string samplingKeyColumn, uint? seed = null)
         {
             Environment.CheckValue(data, nameof(data));
@@ -243,12 +247,15 @@ namespace Microsoft.ML
         /// through <see cref="CatalogUtils"/> to get more "hidden" information from this object,
         /// for example, the environment.
         /// </summary>
-        public abstract class CatalogInstantiatorBase
+        public abstract class CatalogInstantiatorBase : IInternalCatalog
         {
+            IHostEnvironment IInternalCatalog.Environment => Owner.GetEnvironment();
+
             [BestFriend]
             internal TrainCatalogBase Owner { get; }
 
-            internal protected CatalogInstantiatorBase(TrainCatalogBase catalog)
+            [BestFriend]
+            private protected CatalogInstantiatorBase(TrainCatalogBase catalog)
             {
                 Owner = catalog;
             }
@@ -399,7 +406,7 @@ namespace Microsoft.ML
                   string labelColumnName = DefaultColumnNames.Label,
                   string scoreColumnName = DefaultColumnNames.Score)
             {
-                return new NaiveCalibratorEstimator(Owner.Environment, labelColumnName, scoreColumnName);
+                return new NaiveCalibratorEstimator(Owner.GetEnvironment(), labelColumnName, scoreColumnName);
             }
             /// <summary>
             /// Adds probability column by training <a href="https://en.wikipedia.org/wiki/Platt_scaling">platt calibrator</a>.
@@ -419,7 +426,7 @@ namespace Microsoft.ML
                   string scoreColumnName = DefaultColumnNames.Score,
                   string exampleWeightColumnName = null)
             {
-                return new PlattCalibratorEstimator(Owner.Environment, labelColumnName, scoreColumnName, exampleWeightColumnName);
+                return new PlattCalibratorEstimator(Owner.GetEnvironment(), labelColumnName, scoreColumnName, exampleWeightColumnName);
             }
 
             /// <summary>
@@ -440,7 +447,7 @@ namespace Microsoft.ML
                 double offset,
                 string scoreColumnName = DefaultColumnNames.Score)
             {
-                return new FixedPlattCalibratorEstimator(Owner.Environment, slope, offset, scoreColumnName);
+                return new FixedPlattCalibratorEstimator(Owner.GetEnvironment(), slope, offset, scoreColumnName);
             }
 
             /// <summary>
@@ -465,7 +472,7 @@ namespace Microsoft.ML
                 string scoreColumnName = DefaultColumnNames.Score,
                 string exampleWeightColumnName = null)
             {
-                return new IsotonicCalibratorEstimator(Owner.Environment, labelColumnName, scoreColumnName, exampleWeightColumnName);
+                return new IsotonicCalibratorEstimator(Owner.GetEnvironment(), labelColumnName, scoreColumnName, exampleWeightColumnName);
             }
         }
     }

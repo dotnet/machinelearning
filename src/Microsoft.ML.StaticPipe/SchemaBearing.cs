@@ -14,7 +14,7 @@ namespace Microsoft.ML.StaticPipe
     /// <typeparam name="TShape">The shape type parameter.</typeparam>
     public abstract class SchemaBearing<TShape>
     {
-        protected internal readonly IHostEnvironment Env;
+        internal readonly IHostEnvironment Env;
         internal readonly StaticSchemaShape Shape;
 
         private StaticPipeUtils.IndexHelper<TShape> _indexer;

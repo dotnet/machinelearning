@@ -786,8 +786,8 @@ namespace Microsoft.ML.StaticPipelineTesting
                                     null,
                                     options: new KMeansPlusPlusTrainer.Options
                                     {
-                                        ClustersCount = 3,
-                                        NumThreads = 1
+                                        NumberOfClusters = 3,
+                                        NumberOfThreads = 1
                                     },
                                     onFit: p => pred = p
                                 )));
@@ -975,13 +975,12 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Null(pred);
             var model = pipe.Fit(dataSource);
             Assert.NotNull(pred);
-            int[] labelHistogram = default;
-            int[][] featureHistogram = default;
-            pred.GetLabelHistogram(ref labelHistogram, out int labelCount1);
-            pred.GetFeatureHistogram(ref featureHistogram, out int labelCount2, out int featureCount);
-            Assert.True(labelCount1 == 3 && labelCount1 == labelCount2 && labelCount1 <= labelHistogram.Length);
+            var labelHistogram = pred.GetLabelHistogram();
+            var labelCount1 = labelHistogram.Count;
+            var featureHistogram = pred.GetFeatureHistogram();
+            Assert.True(labelCount1 == 3 && labelCount1 == featureHistogram.Count);
             for (int i = 0; i < labelCount1; i++)
-                Assert.True(featureCount == 4 && (featureCount <= featureHistogram[i].Length));
+                Assert.True(featureHistogram[i].Count == 4);
 
             var data = model.Load(dataSource);
 

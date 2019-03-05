@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.NotEmpty(model.Model.StandardErrors);
             Assert.NotEmpty(model.Model.PValues);
             Assert.NotEmpty(model.Model.TValues);
-            trainer = ML.Regression.Trainers.OrdinaryLeastSquares(new OrdinaryLeastSquaresRegressionTrainer.Options() { PerParameterSignificance = false });
+            trainer = ML.Regression.Trainers.OrdinaryLeastSquares(new OrdinaryLeastSquaresRegressionTrainer.Options() { CalculateStatistics = false });
             model = trainer.Fit(dataView);
             Assert.False(model.Model.HasStatistics);
             Done();

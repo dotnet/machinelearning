@@ -36,18 +36,18 @@ namespace Microsoft.ML.Trainers
             + "number of clusters in order to minimize the within-cluster sum of squares. K-means++ improves upon K-means by using a better "
             + "method for choosing the initial cluster centers.";
 
-        public enum InitAlgorithm
+        public enum InitializationAlgorithm
         {
             KMeansPlusPlus = 0,
             Random = 1,
-            KMeansParallel = 2
+            KMeansYinyang = 2
         }
 
         [BestFriend]
         internal static class Defaults
         {
             /// <value>The number of clusters.</value>
-            public const int ClustersCount = 5;
+            public const int NumberOfClusters = 5;
         }
 
         public sealed class Options : UnsupervisedTrainerInputBaseWithWeight
@@ -58,13 +58,13 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of clusters", SortOrder = 50, Name = "K")]
             [TGUI(SuggestedSweeps = "5,10,20,40")]
             [TlcModule.SweepableDiscreteParam("K", new object[] { 5, 10, 20, 40 })]
-            public int ClustersCount = Defaults.ClustersCount;
+            public int NumberOfClusters = Defaults.NumberOfClusters;
 
             /// <summary>
             /// Cluster initialization algorithm.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Cluster initialization algorithm", ShortName = "init")]
-            public InitAlgorithm InitAlgorithm = InitAlgorithm.KMeansParallel;
+            public InitializationAlgorithm InitializationAlgorithm = InitializationAlgorithm.KMeansYinyang;
 
             /// <summary>
             /// Tolerance parameter for trainer convergence. Low = slower, more accurate.
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Trainers
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations.", ShortName = "maxiter")]
             [TGUI(Label = "Max Number of Iterations")]
-            public int MaxIterations = 1000;
+            public int NumberOfIterations = 1000;
 
             /// <summary>
             /// Memory budget (in MBs) to use for KMeans acceleration.
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Trainers
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.", ShortName = "nt,t,threads", SortOrder = 50)]
             [TGUI(Label = "Number of threads")]
-            public int? NumThreads;
+            public int? NumberOfThreads;
         }
 
         private readonly int _k;
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Trainers
         private readonly float _convergenceThreshold; // convergence thresholds
 
         private readonly long _accelMemBudgetMb;
-        private readonly InitAlgorithm _initAlgorithm;
+        private readonly InitializationAlgorithm _initAlgorithm;
         private readonly int _numThreads;
         private readonly string _featureColumn;
 
@@ -119,14 +119,14 @@ namespace Microsoft.ML.Trainers
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), default, TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName))
         {
             Host.CheckValue(options, nameof(options));
-            Host.CheckUserArg(options.ClustersCount > 0, nameof(options.ClustersCount), "Must be positive");
+            Host.CheckUserArg(options.NumberOfClusters > 0, nameof(options.NumberOfClusters), "Must be positive");
 
             _featureColumn = options.FeatureColumnName;
 
-            _k = options.ClustersCount;
+            _k = options.NumberOfClusters;
 
-            Host.CheckUserArg(options.MaxIterations > 0, nameof(options.MaxIterations), "Must be positive");
-            _maxIterations = options.MaxIterations;
+            Host.CheckUserArg(options.NumberOfIterations > 0, nameof(options.NumberOfIterations), "Must be positive");
+            _maxIterations = options.NumberOfIterations;
 
             Host.CheckUserArg(options.OptimizationTolerance > 0, nameof(options.OptimizationTolerance), "Tolerance must be positive");
             _convergenceThreshold = options.OptimizationTolerance;
@@ -134,11 +134,11 @@ namespace Microsoft.ML.Trainers
             Host.CheckUserArg(options.AccelerationMemoryBudgetMb > 0, nameof(options.AccelerationMemoryBudgetMb), "Must be positive");
             _accelMemBudgetMb = options.AccelerationMemoryBudgetMb;
 
-            _initAlgorithm = options.InitAlgorithm;
+            _initAlgorithm = options.InitializationAlgorithm;
 
-            Host.CheckUserArg(!options.NumThreads.HasValue || options.NumThreads > 0, nameof(options.NumThreads),
+            Host.CheckUserArg(!options.NumberOfThreads.HasValue || options.NumberOfThreads > 0, nameof(options.NumberOfThreads),
                 "Must be either null or a positive integer.");
-            _numThreads = ComputeNumThreads(Host, options.NumThreads);
+            _numThreads = ComputeNumThreads(Host, options.NumberOfThreads);
             Info = new TrainerInfo();
         }
 
@@ -184,12 +184,12 @@ namespace Microsoft.ML.Trainers
             // all produce a valid set of output centroids with various trade-offs in runtime (with perhaps
             // random initialization creating a set that's not terribly useful.) They could also be extended to
             // pay attention to their incoming set of centroids and incrementally train.
-            if (_initAlgorithm == InitAlgorithm.KMeansPlusPlus)
+            if (_initAlgorithm == InitializationAlgorithm.KMeansPlusPlus)
             {
                 KMeansPlusPlusInit.Initialize(Host, _numThreads, ch, cursorFactory, _k, dimensionality,
                     centroids, out missingFeatureCount, out totalTrainingInstances);
             }
-            else if (_initAlgorithm == InitAlgorithm.Random)
+            else if (_initAlgorithm == InitializationAlgorithm.Random)
             {
                 KMeansRandomInit.Initialize(Host, _numThreads, ch, cursorFactory, _k,
                     centroids, out missingFeatureCount, out totalTrainingInstances);
@@ -743,8 +743,8 @@ namespace Microsoft.ML.Trainers
             host.CheckValue(ch, nameof(ch));
             ch.CheckValue(cursorFactory, nameof(cursorFactory));
             ch.CheckValue(centroids, nameof(centroids));
-            ch.CheckUserArg(numThreads > 0, nameof(KMeansPlusPlusTrainer.Options.NumThreads), "Must be positive");
-            ch.CheckUserArg(k > 0, nameof(KMeansPlusPlusTrainer.Options.ClustersCount), "Must be positive");
+            ch.CheckUserArg(numThreads > 0, nameof(KMeansPlusPlusTrainer.Options.NumberOfThreads), "Must be positive");
+            ch.CheckUserArg(k > 0, nameof(KMeansPlusPlusTrainer.Options.NumberOfClusters), "Must be positive");
             ch.CheckParam(dimensionality > 0, nameof(dimensionality), "Must be positive");
             ch.CheckUserArg(accelMemBudgetMb >= 0, nameof(KMeansPlusPlusTrainer.Options.AccelerationMemoryBudgetMb), "Must be non-negative");
 
