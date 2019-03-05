@@ -84,7 +84,7 @@ namespace Microsoft.ML.Functional.Tests
             var trainedModel = mlContext.Regression.Trainers.FastTree(new Trainers.FastTree.FastTreeRegressionTrainer.Options {
                     NumberOfTrees = 2,
                     EarlyStoppingMetric = EarlyStoppingMetric.L2Norm,
-                    EarlyStoppingRule = new GLEarlyStoppingCriterion.Options()
+                    EarlyStoppingRule = new GeneralityLossRule()
                 })
                 .Fit(trainData: preprocessedTrainData, validationData: preprocessedValidData);
 

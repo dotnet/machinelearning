@@ -6598,7 +6598,7 @@
           "Default": "GradientDescent"
         },
         {
-          "Name": "EarlyStoppingRule",
+          "Name": "EarlyStoppingRuleFactory",
           "Type": {
             "Kind": "Component",
             "ComponentKind": "EarlyStoppingCriterion"
@@ -7587,7 +7587,7 @@
           "Default": "GradientDescent"
         },
         {
-          "Name": "EarlyStoppingRule",
+          "Name": "EarlyStoppingRuleFactory",
           "Type": {
             "Kind": "Component",
             "ComponentKind": "EarlyStoppingCriterion"
@@ -8474,7 +8474,7 @@
           "Default": "GradientDescent"
         },
         {
-          "Name": "EarlyStoppingRule",
+          "Name": "EarlyStoppingRuleFactory",
           "Type": {
             "Kind": "Component",
             "ComponentKind": "EarlyStoppingCriterion"
@@ -9370,7 +9370,7 @@
           "Default": "GradientDescent"
         },
         {
-          "Name": "EarlyStoppingRule",
+          "Name": "EarlyStoppingRuleFactory",
           "Type": {
             "Kind": "Component",
             "ComponentKind": "EarlyStoppingCriterion"
@@ -25308,7 +25308,7 @@
               "Default": "GradientDescent"
             },
             {
-              "Name": "EarlyStoppingRule",
+              "Name": "EarlyStoppingRuleFactory",
               "Type": {
                 "Kind": "Component",
                 "ComponentKind": "EarlyStoppingCriterion"
@@ -26279,7 +26279,7 @@
               "Default": "GradientDescent"
             },
             {
-              "Name": "EarlyStoppingRule",
+              "Name": "EarlyStoppingRuleFactory",
               "Type": {
                 "Kind": "Component",
                 "ComponentKind": "EarlyStoppingCriterion"
@@ -27148,7 +27148,7 @@
               "Default": "GradientDescent"
             },
             {
-              "Name": "EarlyStoppingRule",
+              "Name": "EarlyStoppingRuleFactory",
               "Type": {
                 "Kind": "Component",
                 "ComponentKind": "EarlyStoppingCriterion"
@@ -28026,7 +28026,7 @@
               "Default": "GradientDescent"
             },
             {
-              "Name": "EarlyStoppingRule",
+              "Name": "EarlyStoppingRuleFactory",
               "Type": {
                 "Kind": "Component",
                 "ComponentKind": "EarlyStoppingCriterion"
