@@ -187,7 +187,7 @@ namespace Microsoft.ML.Data
 
             public sealed override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(column.Index <= Getters.Length && IsColumnActive(column.Index), nameof(column), "requested column not active");
+                Ch.CheckParam(column.Index <= Getters.Length && IsColumnActive(column), nameof(column), "requested column not active");
 
                 if (!(Getters[column.Index] is ValueGetter<TValue>))
                     throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}'");
@@ -197,10 +197,10 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public sealed override bool IsColumnActive(int columnIndex)
+            public sealed override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= columnIndex && columnIndex < Schema.Count, "Column index is out of range");
-                return Getters[columnIndex] != null;
+                Ch.Check(column.Index < Schema.Count, "Column index is out of range");
+                return Getters[column.Index] != null;
             }
         }
 
@@ -271,7 +271,7 @@ namespace Microsoft.ML.Data
                     if (++_currentSourceIndex >= Sources.Length)
                         return false;
 
-                    var columnsNeeded = Schema.Where(col => IsColumnActive(col.Index));
+                    var columnsNeeded = Schema.Where(col => IsColumnActive(col));
                     _currentCursor = Sources[_currentSourceIndex].GetRowCursor(columnsNeeded);
                     _currentIdGetter = _currentCursor.GetIdGetter();
                 }

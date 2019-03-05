@@ -445,10 +445,8 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
-            {
-                return Input.IsColumnActive(columnIndex);
-            }
+            public override bool IsColumnActive(DataViewSchema.Column column)
+                => Input.IsColumnActive(column);
 
             /// <summary>
             /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
@@ -458,9 +456,7 @@ namespace Microsoft.ML.Data
             /// <typeparam name="TValue"> is the output column's content type.</typeparam>
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
-            {
-                return Input.GetGetter<TValue>(column);
-            }
+                => Input.GetGetter<TValue>(column);
         }
 
         private sealed class TypedRow : TypedRowBase
@@ -494,7 +490,7 @@ namespace Microsoft.ML.Data
                 => _row.GetGetter<TValue>(column);
 
             public ValueGetter<DataViewRowId> GetIdGetter() => _row.GetIdGetter();
-            public bool IsColumnActive(int col) => _row.IsColumnActive(col);
+            public bool IsColumnActive(int col) => _row.IsColumnActive(_row.Schema[col]);
         }
 
         private sealed class RowCursorImplementation : RowCursor<TRow>
@@ -535,7 +531,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex) => _cursor.IsColumnActive(columnIndex);
+            public override bool IsColumnActive(DataViewSchema.Column column) => _cursor.IsColumnActive(column);
             public override bool MoveNext() => _cursor.MoveNext();
         }
 

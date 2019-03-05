@@ -413,7 +413,7 @@ namespace Microsoft.ML.Data
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(column.Index));
+                Ch.Check(IsColumnActive(column));
 
                 var getter = _getters[column.Index] as ValueGetter<TValue>;
                 if (getter == null)
@@ -438,10 +438,10 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= columnIndex && columnIndex < Schema.Count);
-                return _active[columnIndex];
+                Ch.Check(column.Index < Schema.Count);
+                return _active[column.Index];
             }
 
             protected override bool MoveNextCore()

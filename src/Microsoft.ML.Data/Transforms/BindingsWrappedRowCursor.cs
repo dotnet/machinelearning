@@ -37,12 +37,12 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Returns whether the given column is active in this row.
         /// </summary>
-        public override bool IsColumnActive(int columnIndex)
+        public override bool IsColumnActive(DataViewSchema.Column column)
         {
-            Ch.Check(0 <= columnIndex & columnIndex < _bindings.ColumnCount, nameof(columnIndex));
+            Ch.Check(column.Index < _bindings.ColumnCount, nameof(column));
             bool isSrc;
-            columnIndex = _bindings.MapColumnIndex(out isSrc, columnIndex);
-            return isSrc && Input.IsColumnActive(columnIndex);
+            int srcColumnIndex = _bindings.MapColumnIndex(out isSrc, column.Index);
+            return isSrc && Input.IsColumnActive(Schema[srcColumnIndex]);
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Data
         /// <param name="column"> is the output column whose getter should be returned.</param>
         public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
         {
-            Ch.Check(IsColumnActive(column.Index), nameof(column));
+            Ch.Check(IsColumnActive(column), nameof(column));
             bool isSrc;
             var index = _bindings.MapColumnIndex(out isSrc, column.Index);
             Ch.Assert(isSrc);

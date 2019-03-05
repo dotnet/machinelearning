@@ -405,7 +405,7 @@ namespace Microsoft.ML.Transforms
                 for (int iinfo = 0; iinfo < length; iinfo++)
                 {
                     _getters[iinfo] = _bindings.UseCounter[iinfo] ? MakeGetter() : (Delegate)MakeGetter(iinfo);
-                    if (!_bindings.UseCounter[iinfo] && IsColumnActive(_bindings.MapIinfoToCol(iinfo)))
+                    if (!_bindings.UseCounter[iinfo] && IsColumnActive(Schema[_bindings.MapIinfoToCol(iinfo)]))
                     {
                         _rngs[iinfo] = new TauswortheHybrid(_bindings.States[iinfo]);
                         _lastCounters[iinfo] = -1;
@@ -418,10 +418,10 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= columnIndex && columnIndex < _bindings.ColumnCount);
-                return _active == null || _active[columnIndex];
+                Ch.Check(column.Index < _bindings.ColumnCount);
+                return _active == null || _active[column.Index];
             }
 
             /// <summary>
@@ -433,7 +433,7 @@ namespace Microsoft.ML.Transforms
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(column.Index));
+                Ch.Check(IsColumnActive(column));
 
                 bool isSrc;
                 int index = _bindings.MapColumnIndex(out isSrc, column.Index);

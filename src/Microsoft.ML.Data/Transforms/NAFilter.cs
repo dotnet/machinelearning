@@ -394,7 +394,7 @@ namespace Microsoft.ML.Transforms
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(column.Index));
+                Ch.Check(IsColumnActive(column));
 
                 ValueGetter<TValue> fn;
                 if (TryGetColumnValueGetter(column.Index, out fn))
@@ -410,7 +410,7 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             private bool TryGetColumnValueGetter<TValue>(int col, out ValueGetter<TValue> fn)
             {
-                Ch.Assert(IsColumnActive(col));
+                Ch.Assert(IsColumnActive(Schema[col]));
 
                 int index;
                 if (!_parent._srcIndexToInfoIndex.TryGetValue(col, out index))

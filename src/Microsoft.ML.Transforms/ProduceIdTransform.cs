@@ -189,13 +189,13 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.CheckParam(0 <= columnIndex && columnIndex < _bindings.ColumnCount, nameof(columnIndex));
+                Ch.CheckParam(column.Index < _bindings.ColumnCount, nameof(column));
                 bool isSrc;
-                int index = _bindings.MapColumnIndex(out isSrc, columnIndex);
+                int index = _bindings.MapColumnIndex(out isSrc, column.Index);
                 if (isSrc)
-                    return Input.IsColumnActive(index);
+                    return Input.IsColumnActive(Input.Schema[index]);
                 Ch.Assert(index == 0);
                 return _active;
             }
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Transforms
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
                 Ch.CheckParam(column.Index < _bindings.ColumnCount, nameof(column));
-                Ch.CheckParam(IsColumnActive(column.Index), nameof(column.Index));
+                Ch.CheckParam(IsColumnActive(column), nameof(column.Index));
                 bool isSrc;
                 int index = _bindings.MapColumnIndex(out isSrc, column.Index);
                 if (isSrc)

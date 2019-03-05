@@ -28,7 +28,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
-            Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
+            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), "column was not active");
 
             Func<DataViewRow, int, Delegate> getGetter = GetGetterAsDelegateCore<int>;
             return Utils.MarshalInvoke(getGetter, row.Schema[col].Type.RawType, row, col);
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(typeDst is PrimitiveDataViewType, nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
-            Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
+            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), "column was not active");
 
             var typeSrc = row.Schema[col].Type;
             Contracts.Check(typeSrc is PrimitiveDataViewType, "Source column type must be primitive");
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(typeDst.RawType == typeof(TDst), nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
-            Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
+            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), "column was not active");
 
             var typeSrc = row.Schema[col].Type;
             Contracts.Check(typeSrc is PrimitiveDataViewType, "Source column type must be primitive");
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
-            Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
+            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), "column was not active");
 
             var typeSrc = row.Schema[col].Type;
             Contracts.Check(typeSrc is PrimitiveDataViewType, "Source column type must be primitive");
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(typeDst, nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
-            Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
+            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), "column was not active");
 
             var typeSrc = row.Schema[col].Type as VectorType;
             Contracts.Check(typeSrc != null, "Source column type must be vector");
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(typeDst.RawType == typeof(TDst), nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
-            Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
+            Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), "column was not active");
 
             var typeSrc = row.Schema[col].Type as VectorType;
             Contracts.Check(typeSrc != null, "Source column type must be vector");
@@ -469,7 +469,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(row, nameof(row));
-            env.CheckParam(Enumerable.Range(0, row.Schema.Count).All(c => row.IsColumnActive(c)), nameof(row), "Some columns were inactive");
+            env.CheckParam(Enumerable.Range(0, row.Schema.Count).All(c => row.IsColumnActive(row.Schema[c])), nameof(row), "Some columns were inactive");
             return new OneRowDataView(env, row);
         }
 
@@ -512,7 +512,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertValue(env);
                 _host = env.Register("OneRowDataView");
                 _host.AssertValue(row);
-                _host.Assert(Enumerable.Range(0, row.Schema.Count).All(c => row.IsColumnActive(c)));
+                _host.Assert(Enumerable.Range(0, row.Schema.Count).All(c => row.IsColumnActive(row.Schema[c])));
 
                 _row = row;
             }
@@ -565,7 +565,7 @@ namespace Microsoft.ML.Data
                 public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
                     Ch.CheckParam(column.Index < Schema.Count, nameof(column));
-                    Ch.CheckParam(IsColumnActive(column.Index), nameof(column.Index), "Requested column is not active.");
+                    Ch.CheckParam(IsColumnActive(column), nameof(column.Index), "Requested column is not active.");
 
                     var getter = _parent._row.GetGetter<TValue>(column);
                     return
@@ -579,13 +579,13 @@ namespace Microsoft.ML.Data
                 /// <summary>
                 /// Returns whether the given column is active in this row.
                 /// </summary>
-                public override bool IsColumnActive(int columnIndex)
+                public override bool IsColumnActive(DataViewSchema.Column column)
                 {
-                    Ch.CheckParam(0 <= columnIndex && columnIndex < Schema.Count, nameof(columnIndex));
+                    Ch.CheckParam(column.Index < Schema.Count, nameof(column));
                     // We present the "illusion" that this column is not active, even though it must be
                     // in the input row.
-                    Ch.Assert(_parent._row.IsColumnActive(columnIndex));
-                    return _active[columnIndex];
+                    Ch.Assert(_parent._row.IsColumnActive(column));
+                    return _active[column.Index];
                 }
 
                 public override ValueGetter<DataViewRowId> GetIdGetter()

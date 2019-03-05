@@ -517,7 +517,7 @@ namespace Microsoft.ML.Transforms
                 int numActive = 0;
                 _colToActivesIndex = new int[colLim];
                 for (int c = 0; c < colLim; ++c)
-                    _colToActivesIndex[c] = _input.IsColumnActive(c) ? numActive++ : -1;
+                    _colToActivesIndex[c] = _input.IsColumnActive(Schema[c]) ? numActive++ : -1;
                 _pipes = new ShufflePipe[numActive + (int)ExtraIndex.Lim];
                 _getters = new Delegate[numActive];
                 for (int c = 0; c < colLim; ++c)
@@ -668,11 +668,11 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.CheckParam(0 <= columnIndex && columnIndex < _colToActivesIndex.Length, nameof(columnIndex));
-                Ch.Assert((_colToActivesIndex[columnIndex] >= 0) == _input.IsColumnActive(columnIndex));
-                return _input.IsColumnActive(columnIndex);
+                Ch.CheckParam(column.Index < _colToActivesIndex.Length, nameof(column));
+                Ch.Assert((_colToActivesIndex[column.Index] >= 0) == _input.IsColumnActive(column));
+                return _input.IsColumnActive(column);
             }
 
             private Delegate CreateGetterDelegate(int col)

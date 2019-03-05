@@ -906,7 +906,7 @@ namespace Microsoft.ML.Transforms
                         T src = default(T);
                         Contracts.Assert(!(info.TypeSrc is VectorType));
                         var inputColumn = input.Schema[info.InputColumnName];
-                        _host.Assert(input.IsColumnActive(inputColumn.Index));
+                        _host.Assert(input.IsColumnActive(inputColumn));
                         var getSrc = input.GetGetter<T>(inputColumn);
                         ValueGetter<uint> retVal =
                             (ref uint dst) =>
@@ -927,7 +927,7 @@ namespace Microsoft.ML.Transforms
                         var info = _infos[_iinfo];
                         // First test whether default maps to default. If so this is sparsity preserving.
                         var inputColumn = input.Schema[info.InputColumnName];
-                        _host.Assert(input.IsColumnActive(inputColumn.Index));
+                        _host.Assert(input.IsColumnActive(inputColumn));
                         var getSrc = input.GetGetter<VBuffer<T>>(inputColumn);
                         VBuffer<T> src = default(VBuffer<T>);
                         ValueGetter<VBuffer<uint>> retVal;

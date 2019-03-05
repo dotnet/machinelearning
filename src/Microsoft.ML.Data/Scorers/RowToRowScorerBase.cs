@@ -8,7 +8,6 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Data
 {
@@ -202,7 +201,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValue(row);
             Contracts.Assert(0 <= col && col < row.Schema.Count);
-            Contracts.Assert(row.IsColumnActive(col));
+            Contracts.Assert(row.IsColumnActive(row.Schema[col]));
 
             var type = row.Schema[col].Type;
             Func<DataViewRow, int, ValueGetter<int>> del = GetGetterFromRow<int>;
@@ -214,7 +213,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValue(output);
             Contracts.Assert(0 <= col && col < output.Schema.Count);
-            Contracts.Assert(output.IsColumnActive(col));
+            Contracts.Assert(output.IsColumnActive(output.Schema[col]));
             return output.GetGetter<T>(output.Schema[col]);
         }
 
@@ -272,10 +271,10 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= columnIndex && columnIndex < _bindings.ColumnCount);
-                return _active[columnIndex];
+                Ch.Check(column.Index < _bindings.ColumnCount);
+                return _active[column.Index];
             }
 
             /// <summary>
@@ -287,7 +286,7 @@ namespace Microsoft.ML.Data
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(column.Index));
+                Ch.Check(IsColumnActive(column));
 
                 bool isSrc;
                 int index = _bindings.MapColumnIndex(out isSrc, column.Index);

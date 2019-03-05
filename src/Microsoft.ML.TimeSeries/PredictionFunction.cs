@@ -124,7 +124,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 for (int c = 0; c < input.Schema.Count; ++c)
                 {
                     bool wantsActive = activeIndices.Contains(c);
-                    bool isActive = input.IsColumnActive(c);
+                    bool isActive = input.IsColumnActive(input.Schema[c]);
                     differentActive |= wantsActive != isActive;
 
                     if (wantsActive && !isActive)

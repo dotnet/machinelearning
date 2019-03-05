@@ -976,7 +976,7 @@ namespace Microsoft.ML.Data
                     {
                         Contracts.AssertValue(parent);
                         Contracts.AssertValue(input);
-                        Contracts.Assert(input.IsColumnActive(parent.SrcCol));
+                        Contracts.Assert(input.IsColumnActive(input.Schema[parent.SrcCol]));
                         Parent = parent;
                     }
                 }
@@ -1017,7 +1017,7 @@ namespace Microsoft.ML.Data
                         Contracts.AssertValue(row);
                         Contracts.Assert(row.Schema == _view.Schema);
                         Contracts.AssertValue(pred);
-                        Contracts.Assert(row.IsColumnActive(SrcCol));
+                        Contracts.Assert(row.IsColumnActive(row.Schema[SrcCol]));
                         return new RowImpl(this, row, pred(0));
                     }
 
@@ -1035,9 +1035,9 @@ namespace Microsoft.ML.Data
                         /// <summary>
                         /// Returns whether the given column is active in this row.
                         /// </summary>
-                        public override bool IsColumnActive(int columnIndex)
+                        public override bool IsColumnActive(DataViewSchema.Column column)
                         {
-                            Contracts.CheckParam(0 <= columnIndex && columnIndex < Parent.ColumnCount, nameof(columnIndex));
+                            Contracts.CheckParam(column.Index < Parent.ColumnCount, nameof(column));
                             return _isActive;
                         }
 
@@ -1050,7 +1050,7 @@ namespace Microsoft.ML.Data
                         /// <param name="column"> is the output column whose getter should be returned.</param>
                         public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                         {
-                            Contracts.Check(IsColumnActive(column.Index));
+                            Contracts.Check(IsColumnActive(column));
                             return Input.GetGetter<TValue>(Input.Schema[Parent.SrcCol]);
                         }
                     }
@@ -1111,7 +1111,7 @@ namespace Microsoft.ML.Data
                         Contracts.AssertValue(row);
                         Contracts.Assert(row.Schema == _view.Schema);
                         Contracts.AssertValue(pred);
-                        Contracts.Assert(row.IsColumnActive(SrcCol));
+                        Contracts.Assert(row.IsColumnActive(row.Schema[SrcCol]));
                         return new RowImpl(this, row, pred);
                     }
 
@@ -1144,10 +1144,10 @@ namespace Microsoft.ML.Data
                         /// <summary>
                         /// Returns whether the given column is active in this row.
                         /// </summary>
-                        public override bool IsColumnActive(int columnIndex)
+                        public override bool IsColumnActive(DataViewSchema.Column column)
                         {
-                            Contracts.CheckParam(0 <= columnIndex && columnIndex < Parent.ColumnCount, nameof(columnIndex));
-                            return _getters[columnIndex] != null;
+                            Contracts.CheckParam(column.Index < Parent.ColumnCount, nameof(column));
+                            return _getters[column.Index] != null;
                         }
 
                         /// <summary>
@@ -1159,7 +1159,7 @@ namespace Microsoft.ML.Data
                         /// <param name="column"> is the output column whose getter should be returned.</param>
                         public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                         {
-                            Contracts.Check(IsColumnActive(column.Index) && column.Index < _getters.Length);
+                            Contracts.Check(IsColumnActive(column) && column.Index < _getters.Length);
                             Contracts.AssertValue(_getters[column.Index]);
                             var fn = _getters[column.Index] as ValueGetter<TValue>;
                             if (fn == null)
@@ -1286,13 +1286,14 @@ namespace Microsoft.ML.Data
                 /// <summary>
                 /// Returns whether the given column is active in this row.
                 /// </summary>
-                public override bool IsColumnActive(int columnIndex)
+                public override bool IsColumnActive(DataViewSchema.Column column)
                 {
-                    Ch.Check(0 <= columnIndex && columnIndex < Schema.Count, "col");
+                    Ch.Check(column.Index < Schema.Count, nameof(column));
                     int splitInd;
                     int splitCol;
-                    _slicer.OutputColumnToSplitterIndices(columnIndex, out splitInd, out splitCol);
-                    return _sliceRows[splitInd] != null && _sliceRows[splitInd].IsColumnActive(splitCol);
+                    _slicer.OutputColumnToSplitterIndices(column.Index, out splitInd, out splitCol);
+                    var row = _sliceRows[splitInd];
+                    return row != null && row.IsColumnActive(row.Schema[splitCol]);
                 }
 
                 /// <summary>
@@ -1304,7 +1305,7 @@ namespace Microsoft.ML.Data
                 /// <param name="column"> is the output column whose getter should be returned.</param>
                 public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
-                    Ch.Check(IsColumnActive(column.Index));
+                    Ch.Check(IsColumnActive(column));
                     int splitInd;
                     int splitCol;
                     _slicer.OutputColumnToSplitterIndices(column.Index, out splitInd, out splitCol);
@@ -1467,9 +1468,9 @@ namespace Microsoft.ML.Data
                 /// <summary>
                 /// Returns whether the given column is active in this row.
                 /// </summary>
-                public override bool IsColumnActive(int columnIndex)
+                public override bool IsColumnActive(DataViewSchema.Column column)
                 {
-                    Ch.CheckParam(columnIndex == 0, nameof(columnIndex));
+                    Ch.CheckParam(column.Index == 0, nameof(column));
                     return _getter != null;
                 }
 
@@ -1527,9 +1528,9 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.CheckParam(columnIndex == 0, nameof(columnIndex));
+                Ch.CheckParam(column.Index == 0, nameof(column));
                 return true;
             }
 

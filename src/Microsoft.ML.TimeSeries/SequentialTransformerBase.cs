@@ -540,7 +540,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public override ValueGetter<T> GetGetter<T>(DataViewSchema.Column column)
             {
                 Contracts.CheckParam(column.Index < _getters.Length, nameof(column), "Invalid col value in GetGetter");
-                Contracts.Check(IsColumnActive(column.Index));
+                Contracts.Check(IsColumnActive(column));
                 var fn = _getters[column.Index] as ValueGetter<T>;
                 if (fn == null)
                     throw Contracts.Except("Unexpected TValue in GetGetter");
@@ -553,10 +553,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Contracts.Check(0 <= columnIndex && columnIndex < _getters.Length);
-                return _getters[columnIndex] != null;
+                Contracts.Check(column.Index < _getters.Length);
+                return _getters[column.Index] != null;
             }
         }
 
@@ -579,10 +579,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= columnIndex && columnIndex < Schema.Count, nameof(columnIndex));
-                return Input.IsColumnActive(columnIndex);
+                Ch.Check(column.Index < Schema.Count, nameof(column));
+                return Input.IsColumnActive(column);
             }
 
             /// <summary>
@@ -594,7 +594,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(column.Index), nameof(column));
+                Ch.Check(IsColumnActive(column), nameof(column));
                 return Input.GetGetter<TValue>(column);
             }
         }
@@ -877,12 +877,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
                 bool isSrc;
-                int index = _parent._bindings.MapColumnIndex(out isSrc, columnIndex);
+                int index = _parent._bindings.MapColumnIndex(out isSrc, column.Index);
                 if (isSrc)
-                    return _input.IsColumnActive((index));
+                    return _input.IsColumnActive(_input.Schema[index]);
                 return _getters[index] != null;
             }
         }
@@ -909,10 +909,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= columnIndex && columnIndex < _bindings.Schema.Count);
-                return _active[columnIndex];
+                Ch.Check(column.Index < _bindings.Schema.Count);
+                return _active[column.Index];
             }
 
             /// <summary>
@@ -924,7 +924,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(column.Index));
+                Ch.Check(IsColumnActive(column));
 
                 bool isSrc;
                 int index = _bindings.MapColumnIndex(out isSrc, column.Index);

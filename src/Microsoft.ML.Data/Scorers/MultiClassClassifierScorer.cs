@@ -359,7 +359,7 @@ namespace Microsoft.ML.Data
                     /// <summary>
                     /// Returns whether the given column is active in this row.
                     /// </summary>
-                    public override bool IsColumnActive(int columnIndex) => Input.IsColumnActive(columnIndex);
+                    public override bool IsColumnActive(DataViewSchema.Column column) => Input.IsColumnActive(column);
 
                     /// <summary>
                     /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
@@ -509,7 +509,7 @@ namespace Microsoft.ML.Data
         {
             Host.AssertValue(output);
             Host.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
-            Host.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
+            Host.Assert(output.IsColumnActive(output.Schema[Bindings.ScoreColumnIndex]));
 
             ValueGetter<VBuffer<float>> mapperScoreGetter = output.GetGetter<VBuffer<float>>(Bindings.RowMapper.OutputSchema[Bindings.ScoreColumnIndex]);
 

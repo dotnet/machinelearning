@@ -30,9 +30,9 @@ namespace Microsoft.ML.Benchmarks
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                if (columnIndex != 0)
+                if (column.Index != 0)
                     throw new Exception();
                 return true;
             }

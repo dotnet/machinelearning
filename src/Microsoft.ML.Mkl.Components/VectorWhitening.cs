@@ -623,9 +623,9 @@ namespace Microsoft.ML.Transforms
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                int src = _cols[iinfo];
-                Host.Assert(input.IsColumnActive(src));
-                return input.GetGetter<T>(input.Schema[src]);
+                var srcCol = input.Schema[_cols[iinfo]];
+                Host.Assert(input.IsColumnActive(srcCol));
+                return input.GetGetter<T>(srcCol);
             }
 
             private static void FillValues(float[] model, ref VBuffer<float> src, ref VBuffer<float> dst, int cdst)

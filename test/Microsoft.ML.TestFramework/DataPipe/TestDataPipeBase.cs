@@ -825,8 +825,8 @@ namespace Microsoft.ML.RunTests
             Func<bool>[] comps = new Func<bool>[colLim];
             for (int col = 0; col < colLim; col++)
             {
-                var f1 = curs1.IsColumnActive(col);
-                var f2 = curs2.IsColumnActive(col);
+                var f1 = curs1.IsColumnActive(curs1.Schema[col]);
+                var f2 = curs2.IsColumnActive(curs2.Schema[col]);
 
                 if (f1 && f2)
                 {
@@ -909,7 +909,7 @@ namespace Microsoft.ML.RunTests
                 for (int col = 0; col < colLim; col++)
                 {
                     // curs1 should have all columns active (for simplicity of the code here).
-                    Contracts.Assert(curs1.IsColumnActive(col));
+                    Contracts.Assert(curs1.IsColumnActive(curs1.Schema[col]));
                     cursors[col] = view2.GetRowCursorForAllColumns();
                 }
 

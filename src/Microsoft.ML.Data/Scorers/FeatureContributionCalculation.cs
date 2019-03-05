@@ -377,7 +377,7 @@ namespace Microsoft.ML.Data
                 var genericRow = _genericRowMapper.GetRow(input, activeColumns);
                 for (var i = 0; i < _outputGenericSchema.Count; i++)
                 {
-                    if (genericRow.IsColumnActive(i))
+                    if (genericRow.IsColumnActive(genericRow.Schema[i]))
                         getters[i] = RowCursorUtils.GetGetterAsDelegate(genericRow, i);
                 }
 

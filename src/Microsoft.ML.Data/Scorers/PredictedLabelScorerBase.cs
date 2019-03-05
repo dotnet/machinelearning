@@ -417,7 +417,7 @@ namespace Microsoft.ML.Data
             Delegate delScore = null;
             if (predicate(0))
             {
-                Host.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
+                Host.Assert(output.IsColumnActive(output.Schema[Bindings.ScoreColumnIndex]));
                 getters[0] = GetPredictedLabelGetter(output, out delScore);
             }
 

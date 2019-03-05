@@ -1989,10 +1989,10 @@ namespace Microsoft.ML.Data.IO
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.CheckParam(0 <= columnIndex && columnIndex < _colToActivesIndex.Length, nameof(columnIndex));
-                return _colToActivesIndex[columnIndex] >= 0;
+                Ch.CheckParam(column.Index < _colToActivesIndex.Length, nameof(column));
+                return _colToActivesIndex[column.Index] >= 0;
             }
 
             protected override bool MoveNextCore()

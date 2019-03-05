@@ -343,12 +343,12 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
                 bool isSrc;
-                int index = _parent._bindings.MapColumnIndex(out isSrc, columnIndex);
+                int index = _parent._bindings.MapColumnIndex(out isSrc, column.Index);
                 if (isSrc)
-                    return Input.IsColumnActive((index));
+                    return Input.IsColumnActive(Schema[index]);
                 return _getters[index] != null;
             }
         }
@@ -375,10 +375,10 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= columnIndex && columnIndex < _bindings.Schema.Count);
-                return _active[columnIndex];
+                Ch.Check(column.Index < _bindings.Schema.Count);
+                return _active[column.Index];
             }
 
             /// <summary>
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Data
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(column.Index));
+                Ch.Check(IsColumnActive(column));
 
                 bool isSrc;
                 int index = _bindings.MapColumnIndex(out isSrc, column.Index);

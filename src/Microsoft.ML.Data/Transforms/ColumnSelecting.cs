@@ -621,7 +621,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex) => true;
+            public override bool IsColumnActive(DataViewSchema.Column column) => true;
         }
 
         private sealed class SelectColumnsDataTransform : IDataTransform, IRowToRowMapper, ITransformTemplate
@@ -734,7 +734,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex) => _active[columnIndex];
+            public override bool IsColumnActive(DataViewSchema.Column column) => _active[column.Index];
         }
     }
 }

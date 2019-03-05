@@ -229,14 +229,14 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Contracts.CheckParam(0 <= columnIndex && columnIndex < Schema.Count, nameof(columnIndex));
+                Contracts.CheckParam(column.Index < Schema.Count, nameof(column));
                 bool isSrc;
-                int iCol = _parent._bindings.MapColumnIndex(out isSrc, columnIndex);
+                int iCol = _parent._bindings.MapColumnIndex(out isSrc, column.Index);
                 if (isSrc)
-                    return _input.IsColumnActive(iCol);
-                return _appendedRow.IsColumnActive(iCol);
+                    return _input.IsColumnActive(_input.Schema[iCol]);
+                return _appendedRow.IsColumnActive(_appendedRow.Schema[iCol]);
             }
 
             /// <summary>

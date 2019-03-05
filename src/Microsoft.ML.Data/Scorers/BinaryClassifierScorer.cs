@@ -220,7 +220,7 @@ namespace Microsoft.ML.Data
         {
             Host.AssertValue(output);
             Host.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
-            Host.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
+            Host.Assert(output.IsColumnActive(output.Schema[Bindings.ScoreColumnIndex]));
 
             var scoreColumn = output.Schema[Bindings.ScoreColumnIndex];
             ValueGetter<float> mapperScoreGetter = output.GetGetter<float>(scoreColumn);

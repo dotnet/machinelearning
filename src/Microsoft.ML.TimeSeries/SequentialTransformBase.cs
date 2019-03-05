@@ -388,10 +388,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= columnIndex && columnIndex < Schema.Count, nameof(columnIndex));
-                return Input.IsColumnActive(columnIndex);
+                Ch.Check(column.Index < Schema.Count, nameof(column));
+                return Input.IsColumnActive(column);
             }
 
             /// <summary>
@@ -403,7 +403,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(column.Index), nameof(column));
+                Ch.Check(IsColumnActive(column), nameof(column));
                 return Input.GetGetter<TValue>(column);
             }
         }

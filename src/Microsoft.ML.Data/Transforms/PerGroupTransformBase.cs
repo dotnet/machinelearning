@@ -276,10 +276,10 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= columnIndex && columnIndex < _parent.GetBindings().ColumnCount);
-                return _active[columnIndex];
+                Ch.Check(column.Index < _parent.GetBindings().ColumnCount);
+                return _active[column.Index];
             }
 
             /// <summary>
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Data
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Contracts.CheckParam(IsColumnActive(column.Index), nameof(column), "requested column is not active");
+                Contracts.CheckParam(IsColumnActive(column), nameof(column), "requested column is not active");
 
                 bool isSrc;
                 var index = _parent.GetBindings().MapColumnIndex(out isSrc, column.Index);

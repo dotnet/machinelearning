@@ -596,10 +596,10 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= columnIndex && columnIndex < _ungroupBinding.InputColumnCount);
-                return _active[columnIndex];
+                Ch.Check(column.Index < _ungroupBinding.InputColumnCount);
+                return _active[column.Index];
             }
 
             /// <summary>

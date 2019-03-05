@@ -563,10 +563,11 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                _parent._groupBinding.CheckColumnInRange(columnIndex);
-                return _active[columnIndex];
+                Ch.CheckParam(column.Index < _active.Length, nameof(column));
+                _parent._groupBinding.CheckColumnInRange(column.Index);
+                return _active[column.Index];
             }
 
             protected override bool MoveNextCore()

@@ -32,10 +32,10 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Returns whether the given column is active in this row.
         /// </summary>
-        public sealed override bool IsColumnActive(int columnIndex)
+        public sealed override bool IsColumnActive(DataViewSchema.Column column)
         {
-            Ch.Check(0 <= columnIndex && columnIndex < Schema.Count);
-            return _active == null || _active[columnIndex];
+            Ch.Check(column.Index < Schema.Count);
+            return _active == null || _active[column.Index];
         }
 
         /// <summary>

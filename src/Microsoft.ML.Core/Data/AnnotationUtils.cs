@@ -475,7 +475,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex) => true;
+            public override bool IsColumnActive(DataViewSchema.Column column) => true;
         }
 
         /// <summary>

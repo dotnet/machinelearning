@@ -522,7 +522,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex) => _internal.IsColumnActive(columnIndex);
+            public override bool IsColumnActive(DataViewSchema.Column column) => _internal.IsColumnActive(column);
             public override bool MoveTo(long rowIndex) => _internal.MoveTo(rowIndex);
         }
 
@@ -1171,10 +1171,10 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public sealed override bool IsColumnActive(int columnIndex)
+            public sealed override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.CheckParam(0 <= columnIndex && columnIndex < _colToActivesIndex.Length, nameof(columnIndex));
-                return _colToActivesIndex[columnIndex] >= 0;
+                Ch.CheckParam(column.Index < _colToActivesIndex.Length, nameof(column));
+                return _colToActivesIndex[column.Index] >= 0;
             }
 
             protected sealed override void Dispose(bool disposing)
@@ -1193,7 +1193,7 @@ namespace Microsoft.ML.Data
 
             public sealed override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(column.Index <= _colToActivesIndex.Length && IsColumnActive(column.Index), nameof(column), "requested column not active");
+                Ch.CheckParam(column.Index <= _colToActivesIndex.Length && IsColumnActive(column), nameof(column), "requested column not active");
                 Ch.Check(_colToActivesIndex[column.Index] < _getters.Length);
 
                 var getter = _getters[_colToActivesIndex[column.Index]] as ValueGetter<TValue>;
@@ -1270,7 +1270,7 @@ namespace Microsoft.ML.Data
                 var host = parent._host;
                 host.AssertValue(input);
                 host.Assert(0 <= srcCol & srcCol < input.Schema.Count);
-                host.Assert(input.IsColumnActive(srcCol));
+                host.Assert(input.IsColumnActive(input.Schema[srcCol]));
 
                 var type = input.Schema[srcCol].Type;
                 Type pipeType;

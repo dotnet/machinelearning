@@ -62,7 +62,7 @@ namespace Microsoft.ML.Data
                 for (int c = 0; c < input.Schema.Count; ++c)
                 {
                     bool wantsActive = activeIndices.Contains(c);
-                    bool isActive = input.IsColumnActive(c);
+                    bool isActive = input.IsColumnActive(input.Schema[c]);
                     differentActive |= wantsActive != isActive;
 
                     if (wantsActive && !isActive)
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex) => _pred(columnIndex);
+            public override bool IsColumnActive(DataViewSchema.Column column) => _pred(column.Index);
         }
     }
 }

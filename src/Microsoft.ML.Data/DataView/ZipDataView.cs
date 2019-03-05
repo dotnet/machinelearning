@@ -164,10 +164,10 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                _zipBinding.CheckColumnInRange(columnIndex);
-                return _isColumnActive[columnIndex];
+                _zipBinding.CheckColumnInRange(column.Index);
+                return _isColumnActive[column.Index];
             }
 
             /// <summary>

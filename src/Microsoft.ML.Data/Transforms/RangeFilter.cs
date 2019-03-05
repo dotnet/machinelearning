@@ -318,7 +318,7 @@ namespace Microsoft.ML.Transforms
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
                 Ch.Check(0 <= column.Index && column.Index < Schema.Count);
-                Ch.Check(IsColumnActive(column.Index));
+                Ch.Check(IsColumnActive(column));
 
                 if (column.Index != Parent._index)
                     return Input.GetGetter<TValue>(column);

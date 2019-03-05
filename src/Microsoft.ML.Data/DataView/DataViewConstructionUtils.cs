@@ -331,10 +331,10 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                CheckColumnInRange(columnIndex);
-                return _getters[columnIndex] != null;
+                CheckColumnInRange(column.Index);
+                return _getters[column.Index] != null;
             }
 
             private void CheckColumnInRange(int columnIndex)
@@ -352,7 +352,7 @@ namespace Microsoft.ML.Data
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Host.CheckParam(column.Index <= _getters.Length && IsColumnActive(column.Index), nameof(column), "requested column not active");
+                Host.CheckParam(column.Index <= _getters.Length && IsColumnActive(column), nameof(column), "requested column not active");
 
                 var getter = _getters[column.Index];
                 Contracts.AssertValue(getter);
@@ -442,7 +442,7 @@ namespace Microsoft.ML.Data
                 /// <summary>
                 /// Returns whether the given column is active in this row.
                 /// </summary>
-                public override bool IsColumnActive(int columnIndex) => _toWrap.IsColumnActive(columnIndex);
+                public override bool IsColumnActive(DataViewSchema.Column column) => _toWrap.IsColumnActive(column);
                 public override bool MoveNext() => _toWrap.MoveNext();
             }
 

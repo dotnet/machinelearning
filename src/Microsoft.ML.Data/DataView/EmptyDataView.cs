@@ -67,7 +67,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex) => 0 <= columnIndex && columnIndex < _active.Length && _active[columnIndex];
+            public override bool IsColumnActive(DataViewSchema.Column column) => column.Index < _active.Length && _active[column.Index];
 
             /// <summary>
             /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Data
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(column.Index), "Cannot get getter for inactive column");
+                Ch.CheckParam(IsColumnActive(column), nameof(column), "requested column not active");
                 return (ref TValue value) => throw Ch.Except(RowCursorUtils.FetchValueStateError);
             }
         }

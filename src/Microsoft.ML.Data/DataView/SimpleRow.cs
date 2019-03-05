@@ -57,7 +57,7 @@ namespace Microsoft.ML.Data
         public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
         {
             Contracts.CheckParam(column.Index < _getters.Length, nameof(column), "Invalid col value in GetGetter");
-            Contracts.Check(IsColumnActive(column.Index));
+            Contracts.Check(IsColumnActive(column));
             if (_getters[column.Index] is ValueGetter<TValue> fn)
                 return fn;
             throw Contracts.Except("Unexpected TValue in GetGetter");
@@ -66,10 +66,10 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Returns whether the given column is active in this row.
         /// </summary>
-        public override bool IsColumnActive(int columnIndex)
+        public override bool IsColumnActive(DataViewSchema.Column column)
         {
-            Contracts.Check(0 <= columnIndex && columnIndex < _getters.Length);
-            return _getters[columnIndex] != null;
+            Contracts.Check(column.Index < _getters.Length);
+            return _getters[column.Index] != null;
         }
     }
 }

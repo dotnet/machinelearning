@@ -132,9 +132,9 @@ namespace Microsoft.Data.DataView
         public abstract ValueGetter<DataViewRowId> GetIdGetter();
 
         /// <summary>
-        /// Returns whether the column with the given index, is active in this row.
+        /// Returns whether the give column is active in this row.
         /// </summary>
-        public abstract bool IsColumnActive(int columnIndex);
+        public abstract bool IsColumnActive(DataViewSchema.Column column);
 
         /// <summary>
         /// Returns a value getter delegate to fetch the value of the given <paramref name="column"/>, from the row.

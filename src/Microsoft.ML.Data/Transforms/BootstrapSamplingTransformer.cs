@@ -227,9 +227,9 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Returns whether the given column is active in this row.
             /// </summary>
-            public override bool IsColumnActive(int columnIndex)
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                return Input.IsColumnActive(columnIndex);
+                return Input.IsColumnActive(column);
             }
 
             protected override bool MoveNextCore()
