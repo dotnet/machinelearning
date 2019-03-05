@@ -136,13 +136,13 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a training pipeline.
             // TODO #2802: Update FeaturizeText to allow specifications of word-grams and char-grams.
-            var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", new string[] { "SentimentText" },
+            var pipeline = mlContext.Transforms.Text.FeaturizeText("Features",
                     new TextFeaturizingEstimator.Options
                     {
                         UseCharExtractor = true,
                         UseWordExtractor = true,
                         VectorNormalizer = TextFeaturizingEstimator.TextNormKind.L1
-                    })
+                    }, "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
                     new SdcaBinaryTrainer.Options { NumThreads = 1 }));
