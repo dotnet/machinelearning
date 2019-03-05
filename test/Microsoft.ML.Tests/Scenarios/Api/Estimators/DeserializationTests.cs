@@ -53,5 +53,62 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 as BinaryClassificationGamModelParameters;
             Assert.NotNull(gam);
         }
+
+        [Fact]
+        public void SaveAndLoadModelWithLoader()
+        {
+            var ml = new MLContext(seed: 1, conc: 1);
+            var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
+            var loader = ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
+            var data = loader.Load(file);
+
+            // Pipeline.
+            var pipeline = ml.BinaryClassification.Trainers.GeneralizedAdditiveModels();
+
+            // Train.
+            var model = pipeline.Fit(data);
+
+            // Save and reload.
+            string modelPath = GetOutputPath(FullTestName + "-model.zip");
+            using (var fs = File.Create(modelPath))
+                ml.Model.Save(loader, model, fs);
+
+            IDataLoader<IMultiStreamSource> loadedModel;
+            ITransformer loadedModelWithoutLoader;
+            using (var fs = File.OpenRead(modelPath))
+            {
+                loadedModel = ml.Model.LoadAsCompositeDataLoader(fs);
+                loadedModelWithoutLoader = ml.Model.Load(fs);
+            }
+
+            // Without deserializing the loader from the model we lose the slot names.
+            data = ml.Data.LoadFromEnumerable(new[] { new InputData() });
+            data = loadedModelWithoutLoader.Transform(data);
+            Assert.Null(data.Schema["Features"].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames));
+
+            data = loadedModel.Load(file);
+            Assert.True(data.Schema["Features"].HasSlotNames(data.Schema["Features"].Type.GetValueCount()));
+            VBuffer<ReadOnlyMemory<char>> slotNames = default;
+            data.Schema["Features"].GetSlotNames(ref slotNames);
+            var ageIndex = FindIndex(slotNames.GetValues(), "age");
+            var transformer = (loadedModel as CompositeDataLoader<IMultiStreamSource, ITransformer>).Transformer.LastTransformer;
+            var gamModel = ((transformer as BinaryPredictionTransformer<object>).Model
+                as CalibratedModelParametersBase<object, ICalibrator>).SubModel
+                as BinaryClassificationGamModelParameters;
+            var ageBinUpperBounds = gamModel.GetBinUpperBounds(ageIndex);
+            var ageBinEffects = gamModel.GetBinEffects(ageIndex);
+        }
+
+        private int FindIndex(ReadOnlySpan<ReadOnlyMemory<char>> values, string slotName)
+        {
+            int index = 0;
+            foreach (var value in values)
+            {
+                if (value.Span.SequenceEqual(slotName.AsSpan()))
+                    return index;
+                index++;
+            }
+            return -1;
+        }
     }
 }

@@ -12,7 +12,6 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 
 [assembly: LoadableClass(TextLoader.Summary, typeof(ILegacyDataLoader), typeof(TextLoader), typeof(TextLoader.Options), typeof(SignatureDataLoader),
     "Text Loader", "TextLoader", "Text", DocName = "loader/TextLoader.md")]
@@ -20,12 +19,15 @@ using Microsoft.ML.Model;
 [assembly: LoadableClass(TextLoader.Summary, typeof(ILegacyDataLoader), typeof(TextLoader), null, typeof(SignatureLoadDataLoader),
     "Text Loader", TextLoader.LoaderSignature)]
 
+[assembly: LoadableClass(TextLoader.Summary, typeof(TextLoader), null, typeof(SignatureLoadModel),
+    "Text Loader", TextLoader.LoaderSignature)]
+
 namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Loads a text file into an IDataView. Supports basic mapping from input columns to <see cref="IDataView"/> columns.
     /// </summary>
-    public sealed partial class TextLoader : IDataLoader<IMultiStreamSource>, ICanSaveModel
+    public sealed partial class TextLoader : IDataLoader<IMultiStreamSource>
     {
         /// <summary>
         /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.

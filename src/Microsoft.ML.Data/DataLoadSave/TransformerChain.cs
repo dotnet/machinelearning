@@ -255,7 +255,9 @@ namespace Microsoft.ML.Data
             {
                 try
                 {
-                    ModelLoadContext.LoadModel<TransformerChain<ITransformer>, SignatureLoadModel>(env, out var transformerChain, rep, LoaderSignature);
+                    ModelLoadContext.LoadModelOrNull<TransformerChain<ITransformer>, SignatureLoadModel>(env, out var transformerChain, rep, LoaderSignature);
+                    if (transformerChain == null)
+                        ModelLoadContext.LoadModel<TransformerChain<ITransformer>, SignatureLoadModel>(env, out transformerChain, rep, $@"Model\{LoaderSignature}");
                     return transformerChain;
                 }
                 catch (FormatException ex)
