@@ -165,6 +165,9 @@ namespace Microsoft.ML
                     return true;
             }
 
+            // TryLoadModelCore should rewind on failure.
+            Contracts.Assert(fp == ent.Stream.Position);
+
             return false;
         }
 
@@ -258,12 +261,6 @@ namespace Microsoft.ML
                 // REVIEW: Should this fall through?
             }
             _ectx.Assert(Reader.BaseStream.Position == FpMin + Header.FpModel);
-
-            if (Reader.BaseStream.Position != FpMin + Header.FpModel)
-            {
-                result = null;
-                return false;
-            }
 
             string sigAlt = ModelHeader.GetLoaderSigAlt(ref Header);
             if (!string.IsNullOrWhiteSpace(sigAlt) &&
