@@ -736,12 +736,6 @@ namespace Microsoft.ML
         /// This trainer can be used as a baseline for other more sophisticated mdels.
         /// </remarks>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/RandomTrainerSample.cs)]
-        /// ]]></format>
-        /// </example>
         internal static RandomTrainer Random(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
