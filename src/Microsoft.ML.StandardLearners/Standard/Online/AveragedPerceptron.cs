@@ -81,11 +81,6 @@ namespace Microsoft.ML.Trainers
             internal int MaxCalibrationExamples = 1000000;
 
             internal override IComponentFactory<IScalarOutputLoss> LossFunctionFactory => LossFunctionFactory1;
-
-            public Options()
-            {
-                LossFunction = new HingeLoss();
-            }
         }
 
         private sealed class TrainState : AveragedTrainStateBase

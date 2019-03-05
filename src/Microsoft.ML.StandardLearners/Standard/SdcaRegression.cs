@@ -64,9 +64,6 @@ namespace Microsoft.ML.Trainers
 
                 // Default to use unregularized bias in regression.
                 BiasLearningRate = 1;
-
-                // Default to squared loss function in regression.
-                LossFunction = new SquaredLoss();
             }
         }
 
@@ -98,7 +95,7 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            _loss = loss ?? SdcaTrainerOptions.LossFunction;
+            _loss = loss ?? SdcaTrainerOptions.LossFunction ?? SdcaTrainerOptions.LossFunctionFactory.CreateComponent(env);
             Loss = _loss;
         }
 
@@ -108,7 +105,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(labelColumn, nameof(labelColumn));
             Host.CheckValue(featureColumn, nameof(featureColumn));
 
-            _loss = options.LossFunction;
+            _loss = options.LossFunction ?? options.LossFunctionFactory.CreateComponent(env);
             Loss = _loss;
         }
 

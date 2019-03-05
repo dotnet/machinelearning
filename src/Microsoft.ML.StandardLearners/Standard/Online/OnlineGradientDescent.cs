@@ -50,7 +50,6 @@ namespace Microsoft.ML.Trainers
             {
                 LearningRate = OgdDefaultArgs.LearningRate;
                 DecreaseLearningRate = OgdDefaultArgs.DecreaseLearningRate;
-                LossFunction = new SquaredLoss();
             }
 
             [BestFriend]
