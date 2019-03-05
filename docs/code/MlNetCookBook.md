@@ -1033,11 +1033,11 @@ To write binary data you need some data to be able to save. Specifically you nee
 // Data model for the iris data
 public class IrisData
 {
-    public float Label { get; set; };
-    public float SepalLength { get; set; };
-    public float SepalWidth { get; set; };
-    public float PetalLength { get; set; };
-    public float PetalWidth { get; set; };
+    public float Label { get; set; }
+    public float SepalLength { get; set; }
+    public float SepalWidth { get; set; }
+    public float PetalLength { get; set; }
+    public float PetalWidth { get; set; }
 }
 
 // An array of iris data points
