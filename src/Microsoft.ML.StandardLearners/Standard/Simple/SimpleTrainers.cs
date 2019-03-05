@@ -32,7 +32,7 @@ namespace Microsoft.ML.Trainers
     /// This is a faulty model parameters that claims to be a <see cref="IValueMapperDist"/>. We maintain the class for
     /// now for backwards compatibility of models (assuming there are any), but might consider removing it in the future.
     /// </summary>
-    [Obsolete("This class was fundamnetally misdesigned, is incapable of implementing the interfaces it claims to implement, " +
+    [Obsolete("This class was fundamentally misdesigned, is incapable of implementing the interfaces it claims to implement, " +
         "and it should not be used for any purposes beyond backwards compatibility of model loading.")]
     internal sealed class RandomModelParameters :
         ModelParametersBase<float>,
