@@ -20,14 +20,14 @@ Install-Package Microsoft.ML
 
 Below are a few of the highlights from this release. There are many other improvements in the API.
 
-* Creation of components through MLContext: advanced options and other feedback. ([#1798](https://github.com/dotnet/machinelearning/issues/1798))
+* Creation of components through MLContext: advanced options and other feedback. ([#1798](https://github.coalsom/dotnet/machinelearning/issues/1798))
 * Several issues closed on internalizing public surface. ([19 issues](https://github.com/dotnet/machinelearning/issues?q=is%3Aissue+lockdown+is%3Aclosed))
 * Stop using MEF as part of the public API. ([#2422](https://github.com/dotnet/machinelearning/issues/2422))
 * Several `NameSpace` changes. ([#2326](https://github.com/dotnet/machinelearning/issues/2326))
 * `ONNX` is now `ONNXConverter`. ([#2625](https://github.com/dotnet/machinelearning/pull/2625))
 * `ONNXTransform` is now `ONNXTransformer`. ([#2544](https://github.com/dotnet/machinelearning/pull/2544))
 * `FastTree` has it's own package now. ([#2752](https://github.com/dotnet/machinelearning/issues/2752))
-* `Ensemble` also has moved to a new package. ([#2717](https://github.com/dotnet/machinelearning/issues/2717))
+* `Ensemble` has been moved out of `Microsoft.ML` package. ([#2717](https://github.com/dotnet/machinelearning/issues/2717))
 * Add support for string types in TensorFlowTransformer. ([#2545](https://github.com/dotnet/machinelearning/issues/2545))
 * Make FastTree/LightGBM learned model suitable for public consumption. ([#1960](https://github.com/dotnet/machinelearning/issues/1960))
 
