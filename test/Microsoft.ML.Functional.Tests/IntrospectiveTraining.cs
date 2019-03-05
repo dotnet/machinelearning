@@ -412,10 +412,10 @@ namespace Microsoft.ML.Functional.Tests
                 .Append(mlContext.Clustering.Trainers.KMeans(
                     new KMeansPlusPlusTrainer.Options
                     {
-                        InitAlgorithm = KMeansPlusPlusTrainer.InitAlgorithm.Random,
-                        ClustersCount = 4,
-                        MaxIterations = 10,
-                        NumThreads = 1
+                        InitializationAlgorithm = KMeansPlusPlusTrainer.InitializationAlgorithm.Random,
+                        NumberOfClusters = 4,
+                        NumberOfIterations = 10,
+                        NumberOfThreads = 1
                     }));
         }
 
