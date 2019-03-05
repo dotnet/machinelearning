@@ -41,7 +41,7 @@ namespace Microsoft.ML.Trainers
 
             public IRegressionLoss LossFunction;
 
-            internal override IComponentFactory<IScalarOutputLoss> LossFunctionFactory => LossFunctionFactory1;
+            internal override IComponentFactory<IScalarLoss> LossFunctionFactory => LossFunctionFactory1;
 
             /// <summary>
             /// Set defaults that vary from the base type.

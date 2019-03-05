@@ -43,7 +43,7 @@ namespace Microsoft.ML
     /// The loss function may know the close-form solution to the optimal dual update
     /// Ref: Sec(6.2) of http://jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf
     /// </summary>
-    public interface ISupportSdcaLoss : IScalarOutputLoss
+    public interface ISupportSdcaLoss : IScalarLoss
     {
         //This method helps the optimizer pre-compute the invariants that will be used later in DualUpdate.
         //scaledFeaturesNormSquared = instanceWeight * (|x|^2 + 1) / (lambda * n), where

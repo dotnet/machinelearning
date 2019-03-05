@@ -16,7 +16,7 @@ namespace Microsoft.ML
         Double Loss(TOutput output, TLabel label);
     }
 
-    public interface IScalarOutputLoss : ILossFunction<float, float>
+    public interface IScalarLoss : ILossFunction<float, float>
     {
         /// <summary>
         /// Derivative of the loss function with respect to output
@@ -30,7 +30,7 @@ namespace Microsoft.ML
     {
     }
 
-    public interface IRegressionLoss : IScalarOutputLoss
+    public interface IRegressionLoss : IScalarLoss
     {
     }
 
@@ -40,7 +40,7 @@ namespace Microsoft.ML
     {
     }
 
-    public interface IClassificationLoss : IScalarOutputLoss
+    public interface IClassificationLoss : IScalarLoss
     {
     }
 

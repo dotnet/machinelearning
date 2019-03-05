@@ -80,7 +80,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             internal int MaxCalibrationExamples = 1000000;
 
-            internal override IComponentFactory<IScalarOutputLoss> LossFunctionFactory => LossFunctionFactory1;
+            internal override IComponentFactory<IScalarLoss> LossFunctionFactory => LossFunctionFactory1;
         }
 
         private sealed class TrainState : AveragedTrainStateBase
