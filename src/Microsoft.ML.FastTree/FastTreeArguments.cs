@@ -273,7 +273,7 @@ namespace Microsoft.ML.Trainers.FastTree
 #if OLD_DATALOAD
                 ectx.CheckUserArg(0 <= secondaryMetricShare && secondaryMetricShare <= 1, "secondaryMetricShare", "secondaryMetricShare must be between 0 and 1.");
 #endif
-                ectx.CheckUserArg(0 < NdcgTruncationLevel, nameof(NdcgTruncationLevel), "lambdaMartMaxTruncation must be positive.");
+                ectx.CheckUserArg(0 < NdcgTruncationLevel, nameof(NdcgTruncationLevel), "must be positive.");
             }
         }
     }
@@ -628,9 +628,10 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3).
         /// </summary>
+        [BestFriend]
         [Argument(ArgumentType.AtMostOnce, HelpText = "Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)", ShortName = "esmt")]
         [TGUI(Description = "Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)")]
-        public int EarlyStoppingMetrics;
+        internal int EarlyStoppingMetrics;
 
         /// <summary>
         /// Enable post-training pruning to avoid overfitting. (a validation set is required).
@@ -732,24 +733,27 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Freeform defining the scores that should be used as the baseline ranker.
         /// </summary>
+        [BestFriend]
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Freeform defining the scores that should be used as the baseline ranker", ShortName = "basescores", Hide = true)]
         [TGUI(NotGui = true)]
-        public string BaselineScoresFormula;
+        internal string BaselineScoresFormula;
 
         /// <summary>
         /// Baseline alpha for tradeoffs of risk (0 is normal training).
         /// </summary>
+        [BestFriend]
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Baseline alpha for tradeoffs of risk (0 is normal training)", ShortName = "basealpha", Hide = true)]
         [TGUI(NotGui = true)]
-        public string BaselineAlphaRisk;
+        internal string BaselineAlphaRisk;
 
         /// <summary>
         /// The discount freeform which specifies the per position discounts of examples in a query (uses a single variable P for position where P=0 is first position).
         /// </summary>
+        [BestFriend]
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The discount freeform which specifies the per position discounts of examples in a query (uses a single variable P for position where P=0 is first position)",
             ShortName = "pdff", Hide = true)]
         [TGUI(NotGui = true)]
-        public string PositionDiscountFreeform;
+        internal string PositionDiscountFreeform;
 
 #if !NO_STORE
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Offload feature bins to a file store", ShortName = "fbsopt", Hide = true)]
