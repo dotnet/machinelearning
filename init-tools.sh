@@ -11,12 +11,14 @@ if [ -z "${__BUILDTOOLS_SOURCE:-}" ]; then __BUILDTOOLS_SOURCE=https://dotnet.my
 export __BUILDTOOLS_USE_CSPROJ=true
 __BUILD_TOOLS_PACKAGE_VERSION=$(cat "$__scriptpath/BuildToolsVersion.txt" | sed 's/\r$//') # remove CR if mounted repo on Windows drive
 
-if [[ $2 == *"Intrinsics"* ]]; then
-    DotNetCliFileName="DotnetCLIVersion.netcoreapp.latest.txt"
-    __TARGET_FRAMEWORK="netcoreapp3.0"
-else
-    DotNetCliFileName="DotnetCLIVersion.txt"
-fi
+DotNetCliFileName="DotnetCLIVersion.txt"
+
+for i do
+    if [[ "$i" == *"Intrinsics"* ]]; then
+        DotNetCliFileName="DotnetCLIVersion.netcoreapp.latest.txt"
+        __TARGET_FRAMEWORK="netcoreapp3.0"
+    fi
+done
 
 __DOTNET_TOOLS_VERSION=$(cat "$__scriptpath/$DotNetCliFileName" | sed 's/\r$//') # remove CR if mounted repo on Windows drive
 __BUILD_TOOLS_PATH="$__PACKAGES_DIR/microsoft.dotnet.buildtools/$__BUILD_TOOLS_PACKAGE_VERSION/lib"
