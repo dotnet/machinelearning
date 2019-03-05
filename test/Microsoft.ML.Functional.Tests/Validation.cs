@@ -7,7 +7,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.HalLearners;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Functional.Tests
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Check that the results are valid
             Assert.IsType<RegressionMetrics>(cvResult[0].Metrics);
-            Assert.IsType<TransformerChain<RegressionPredictionTransformer<OlsLinearRegressionModelParameters>>>(cvResult[0].Model);
+            Assert.IsType<TransformerChain<RegressionPredictionTransformer<OrdinaryLeastSquaresRegressionModelParameters>>>(cvResult[0].Model);
             Assert.True(cvResult[0].ScoredHoldOutSet is IDataView);
             Assert.Equal(5, cvResult.Length);
 

@@ -136,10 +136,10 @@ namespace Microsoft.ML.Tests
                 Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeansPlusPlusTrainer.Options
                 {
                     FeatureColumnName = DefaultColumnNames.Features,
-                    MaxIterations = 1,
-                    ClustersCount = 4,
-                    NumThreads = 1,
-                    InitAlgorithm = Trainers.KMeansPlusPlusTrainer.InitAlgorithm.Random
+                    NumberOfIterations = 1,
+                    NumberOfClusters = 4,
+                    NumberOfThreads = 1,
+                    InitializationAlgorithm = Trainers.KMeansPlusPlusTrainer.InitializationAlgorithm.Random
                 }));
 
             var model = pipeline.Fit(data);
@@ -345,7 +345,7 @@ namespace Microsoft.ML.Tests
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.LightGbm(labelColumnName: "Target", featureColumnName: "FeatureVector", numBoostRound: 3, numLeaves: 16, minDataPerLeaf: 100));
+                .Append(mlContext.Regression.Trainers.LightGbm(labelColumnName: "Target", featureColumnName: "FeatureVector", numberOfIterations: 3, numberOfLeaves: 16, minimumExampleCountPerLeaf: 100));
             var model = dynamicPipeline.Fit(data);
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a file.
@@ -376,7 +376,7 @@ namespace Microsoft.ML.Tests
 
             var pipeline = mlContext.Transforms.Normalize("Features").
                 Append(mlContext.Transforms.Conversion.MapValueToKey("Label")).
-                Append(mlContext.MulticlassClassification.Trainers.LogisticRegression(new MulticlassLogisticRegression.Options() { UseThreads = false }));
+                Append(mlContext.MulticlassClassification.Trainers.LogisticRegression(new MulticlassLogisticRegression.Options() { NumberOfThreads = 1 }));
 
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);

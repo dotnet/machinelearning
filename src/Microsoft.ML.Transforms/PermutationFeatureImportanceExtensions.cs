@@ -66,7 +66,7 @@ namespace Microsoft.ML
                 int permutationCount = 1)
         {
             return PermutationFeatureImportance<TModel, RegressionMetrics, RegressionMetricsStatistics>.GetImportanceMetricsMatrix(
-                            CatalogUtils.GetEnvironment(catalog),
+                            catalog.GetEnvironment(),
                             model,
                             data,
                             idv => catalog.Evaluate(idv, label),
@@ -143,7 +143,7 @@ namespace Microsoft.ML
                 int permutationCount = 1)
         {
             return PermutationFeatureImportance<TModel, BinaryClassificationMetrics, BinaryClassificationMetricsStatistics>.GetImportanceMetricsMatrix(
-                            CatalogUtils.GetEnvironment(catalog),
+                            catalog.GetEnvironment(),
                             model,
                             data,
                             idv => catalog.Evaluate(idv, label),
@@ -217,7 +217,7 @@ namespace Microsoft.ML
                 int permutationCount = 1)
         {
             return PermutationFeatureImportance<TModel, MultiClassClassifierMetrics, MultiClassClassifierMetricsStatistics>.GetImportanceMetricsMatrix(
-                            CatalogUtils.GetEnvironment(catalog),
+                            catalog.GetEnvironment(),
                             model,
                             data,
                             idv => catalog.Evaluate(idv, label),
@@ -298,7 +298,7 @@ namespace Microsoft.ML
                 int permutationCount = 1)
         {
             return PermutationFeatureImportance<TModel, RankingMetrics, RankingMetricsStatistics>.GetImportanceMetricsMatrix(
-                            CatalogUtils.GetEnvironment(catalog),
+                            catalog.GetEnvironment(),
                             model,
                             data,
                             idv => catalog.Evaluate(idv, label, groupId),

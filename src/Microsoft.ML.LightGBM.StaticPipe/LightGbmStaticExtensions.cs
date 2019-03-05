@@ -21,10 +21,10 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="weights">The weights column.</param>
-        /// <param name="numLeaves">The number of leaves to use.</param>
-        /// <param name="numBoostRound">Number of iterations.</param>
-        /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="numberOfLeaves">The number of leaves to use.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
+        /// <param name="numberOfIterations">Number of iterations.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -39,19 +39,19 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// </example>
         public static Scalar<float> LightGbm(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
-            int? numLeaves = null,
-            int? minDataPerLeaf = null,
+            int? numberOfLeaves = null,
+            int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numBoostRound = Options.Defaults.NumBoostRound,
+            int numberOfIterations = Options.Defaults.NumberOfIterations,
             Action<LightGbmRegressionModelParameters> onFit = null)
         {
-            CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, onFit);
+            CheckUserValues(label, features, weights, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations, onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
                {
-                   var trainer = new LightGbmRegressorTrainer(env, labelName, featuresName, weightsName, numLeaves,
-                       minDataPerLeaf, learningRate, numBoostRound);
+                   var trainer = new LightGbmRegressorTrainer(env, labelName, featuresName, weightsName, numberOfLeaves,
+                       minimumExampleCountPerLeaf, learningRate, numberOfIterations);
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                    return trainer;
@@ -104,10 +104,10 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="weights">The weights column.</param>
-        /// <param name="numLeaves">The number of leaves to use.</param>
-        /// <param name="numBoostRound">Number of iterations.</param>
-        /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="numberOfLeaves">The number of leaves to use.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
+        /// <param name="numberOfIterations">Number of iterations.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -122,20 +122,22 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// ]]></format>
         /// </example>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
-            int? numLeaves = null,
-            int? minDataPerLeaf = null,
+            Scalar<bool> label,
+            Vector<float> features,
+            Scalar<float> weights = null,
+            int? numberOfLeaves = null,
+            int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numBoostRound = Options.Defaults.NumBoostRound,
+            int numberOfIterations = Options.Defaults.NumberOfIterations,
             Action<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
-            CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, onFit);
+            CheckUserValues(label, features, weights, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations, onFit);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
                {
-                   var trainer = new LightGbmBinaryTrainer(env, labelName, featuresName, weightsName, numLeaves,
-                       minDataPerLeaf, learningRate, numBoostRound);
+                   var trainer = new LightGbmBinaryTrainer(env, labelName, featuresName, weightsName, numberOfLeaves,
+                       minimumExampleCountPerLeaf, learningRate, numberOfIterations);
 
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -194,10 +196,10 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <param name="features">The features column.</param>
         /// <param name="groupId">The groupId column.</param>
         /// <param name="weights">The weights column.</param>
-        /// <param name="numLeaves">The number of leaves to use.</param>
-        /// <param name="numBoostRound">Number of iterations.</param>
-        /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="numberOfLeaves">The number of leaves to use.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
+        /// <param name="numberOfIterations">Number of iterations.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -206,21 +208,24 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), the calibrated prediction (from 0 to 1), and the predicted label.</returns>
         public static Scalar<float> LightGbm<TVal>(this RankingCatalog.RankingTrainers catalog,
-           Scalar<float> label, Vector<float> features, Key<uint, TVal> groupId, Scalar<float> weights = null,
-            int? numLeaves = null,
-            int? minDataPerLeaf = null,
+            Scalar<float> label,
+            Vector<float> features,
+            Key<uint, TVal> groupId,
+            Scalar<float> weights = null,
+            int? numberOfLeaves = null,
+            int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numBoostRound = Options.Defaults.NumBoostRound,
+            int numberOfIterations = Options.Defaults.NumberOfIterations,
             Action<LightGbmRankingModelParameters> onFit = null)
         {
-            CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, onFit);
+            CheckUserValues(label, features, weights, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations, onFit);
             Contracts.CheckValue(groupId, nameof(groupId));
 
             var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
                (env, labelName, featuresName, groupIdName, weightsName) =>
                {
-                   var trainer = new LightGbmRankingTrainer(env, labelName, featuresName, groupIdName, weightsName, numLeaves,
-                       minDataPerLeaf, learningRate, numBoostRound);
+                   var trainer = new LightGbmRankingTrainer(env, labelName, featuresName, groupIdName, weightsName, numberOfLeaves,
+                       minimumExampleCountPerLeaf, learningRate, numberOfIterations);
 
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -279,10 +284,10 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The weights column.</param>
-        /// <param name="numLeaves">The number of leaves to use.</param>
-        /// <param name="numBoostRound">Number of iterations.</param>
-        /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="numberOfLeaves">The number of leaves to use.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
+        /// <param name="numberOfIterations">Number of iterations.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -301,19 +306,19 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            int? numLeaves = null,
-            int? minDataPerLeaf = null,
+            int? numberOfLeaves = null,
+            int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numBoostRound = Options.Defaults.NumBoostRound,
+            int numberOfIterations = Options.Defaults.NumberOfIterations,
             Action<OneVersusAllModelParameters> onFit = null)
         {
-            CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, onFit);
+            CheckUserValues(label, features, weights, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations, onFit);
 
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new LightGbmMulticlassTrainer(env, labelName, featuresName, weightsName, numLeaves,
-                       minDataPerLeaf, learningRate, numBoostRound);
+                    var trainer = new LightGbmMulticlassTrainer(env, labelName, featuresName, weightsName, numberOfLeaves,
+                       minimumExampleCountPerLeaf, learningRate, numberOfIterations);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -365,8 +370,8 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         }
 
         private static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
-            int? numLeaves,
-            int? minDataPerLeaf,
+            int? numberOfLeaves,
+            int? minimumExampleCountPerLeaf,
             double? learningRate,
             int numBoostRound,
             Delegate onFit)
@@ -374,8 +379,8 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
             Contracts.CheckValueOrNull(weights);
-            Contracts.CheckParam(!(numLeaves < 2), nameof(numLeaves), "Must be at least 2.");
-            Contracts.CheckParam(!(minDataPerLeaf <= 0), nameof(minDataPerLeaf), "Must be positive");
+            Contracts.CheckParam(!(numberOfLeaves < 2), nameof(numberOfLeaves), "Must be at least 2.");
+            Contracts.CheckParam(!(minimumExampleCountPerLeaf <= 0), nameof(minimumExampleCountPerLeaf), "Must be positive");
             Contracts.CheckParam(!(learningRate <= 0), nameof(learningRate), "Must be positive");
             Contracts.CheckParam(numBoostRound > 0, nameof(numBoostRound), "Must be positive");
             Contracts.CheckValueOrNull(onFit);

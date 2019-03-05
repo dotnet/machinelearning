@@ -58,27 +58,28 @@ namespace Microsoft.ML.LightGBM
 
         private protected LightGbmTrainerBase(IHostEnvironment env,
             string name,
-            SchemaShape.Column label,
-            string featureColumn,
-            string weightColumn,
-            string groupIdColumn,
-            int? numLeaves,
-            int? minDataPerLeaf,
+            SchemaShape.Column labelColumn,
+            string featureColumnName,
+            string exampleWeightColumnName,
+            string rowGroupColumnName,
+            int? numberOfLeaves,
+            int? minimumExampleCountPerLeaf,
             double? learningRate,
-            int numBoostRound)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
+            int numberOfIterations)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumnName),
+                  labelColumn, TrainerUtils.MakeR4ScalarWeightColumn(exampleWeightColumnName), TrainerUtils.MakeU4ScalarColumn(rowGroupColumnName))
         {
             LightGbmTrainerOptions = new Options();
 
-            LightGbmTrainerOptions.NumLeaves = numLeaves;
-            LightGbmTrainerOptions.MinDataPerLeaf = minDataPerLeaf;
+            LightGbmTrainerOptions.NumberOfLeaves = numberOfLeaves;
+            LightGbmTrainerOptions.MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf;
             LightGbmTrainerOptions.LearningRate = learningRate;
-            LightGbmTrainerOptions.NumBoostRound = numBoostRound;
+            LightGbmTrainerOptions.NumberOfIterations = numberOfIterations;
 
-            LightGbmTrainerOptions.LabelColumnName = label.Name;
-            LightGbmTrainerOptions.FeatureColumnName = featureColumn;
-            LightGbmTrainerOptions.ExampleWeightColumnName = weightColumn;
-            LightGbmTrainerOptions.RowGroupColumnName = groupIdColumn;
+            LightGbmTrainerOptions.LabelColumnName = labelColumn.Name;
+            LightGbmTrainerOptions.FeatureColumnName = featureColumnName;
+            LightGbmTrainerOptions.ExampleWeightColumnName = exampleWeightColumnName;
+            LightGbmTrainerOptions.RowGroupColumnName = rowGroupColumnName;
 
             InitParallelTraining();
         }
@@ -164,22 +165,22 @@ namespace Microsoft.ML.LightGBM
             ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "Need a label column");
         }
 
-        protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategarical, int totalCats, bool hiddenMsg = false)
+        private protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategarical, int totalCats, bool hiddenMsg = false)
         {
             double learningRate = LightGbmTrainerOptions.LearningRate ?? DefaultLearningRate(numRow, hasCategarical, totalCats);
-            int numLeaves = LightGbmTrainerOptions.NumLeaves ?? DefaultNumLeaves(numRow, hasCategarical, totalCats);
-            int minDataPerLeaf = LightGbmTrainerOptions.MinDataPerLeaf ?? DefaultMinDataPerLeaf(numRow, numLeaves, 1);
+            int numberOfLeaves = LightGbmTrainerOptions.NumberOfLeaves ?? DefaultNumLeaves(numRow, hasCategarical, totalCats);
+            int minimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow, numberOfLeaves, 1);
             Options["learning_rate"] = learningRate;
-            Options["num_leaves"] = numLeaves;
-            Options["min_data_per_leaf"] = minDataPerLeaf;
+            Options["num_leaves"] = numberOfLeaves;
+            Options["min_data_per_leaf"] = minimumExampleCountPerLeaf;
             if (!hiddenMsg)
             {
                 if (!LightGbmTrainerOptions.LearningRate.HasValue)
                     ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.LearningRate) + " = " + learningRate);
-                if (!LightGbmTrainerOptions.NumLeaves.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.NumLeaves) + " = " + numLeaves);
-                if (!LightGbmTrainerOptions.MinDataPerLeaf.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.MinDataPerLeaf) + " = " + minDataPerLeaf);
+                if (!LightGbmTrainerOptions.NumberOfLeaves.HasValue)
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.NumberOfLeaves) + " = " + numberOfLeaves);
+                if (!LightGbmTrainerOptions.MinimumExampleCountPerLeaf.HasValue)
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.MinimumExampleCountPerLeaf) + " = " + minimumExampleCountPerLeaf);
             }
         }
 
@@ -274,9 +275,9 @@ namespace Microsoft.ML.LightGBM
             int[] categoricalFeatures = null;
             const int useCatThreshold = 50000;
             // Disable cat when data is too small, reduce the overfitting.
-            bool useCat = LightGbmTrainerOptions.UseCat ?? numRow > useCatThreshold;
-            if (!LightGbmTrainerOptions.UseCat.HasValue)
-                ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.UseCat) + " = " + useCat);
+            bool useCat = LightGbmTrainerOptions.UseCategoricalSplit ?? numRow > useCatThreshold;
+            if (!LightGbmTrainerOptions.UseCategoricalSplit.HasValue)
+                ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.UseCategoricalSplit) + " = " + useCat);
             if (useCat)
             {
                 var featureCol = trainData.Schema.Schema[DefaultColumnNames.Features];
@@ -369,8 +370,8 @@ namespace Microsoft.ML.LightGBM
             {
                 ch.Info("LightGBM objective={0}", Options["objective"]);
                 using (Booster bst = WrappedLightGbmTraining.Train(ch, pch, Options, dtrain,
-                dvalid: dvalid, numIteration: LightGbmTrainerOptions.NumBoostRound,
-                verboseEval: LightGbmTrainerOptions.VerboseEval, earlyStoppingRound: LightGbmTrainerOptions.EarlyStoppingRound))
+                dvalid: dvalid, numIteration: LightGbmTrainerOptions.NumberOfIterations,
+                verboseEval: LightGbmTrainerOptions.Verbose, earlyStoppingRound: LightGbmTrainerOptions.EarlyStoppingRound))
                 {
                     TrainedEnsemble = bst.GetModel(catMetaData.CategoricalBoudaries);
                 }
@@ -872,11 +873,11 @@ namespace Microsoft.ML.LightGBM
                 return 30;
         }
 
-        protected static int DefaultMinDataPerLeaf(int numRow, int numLeaves, int numClass)
+        private protected static int DefaultMinDataPerLeaf(int numRow, int numberOfLeaves, int numClass)
         {
             if (numClass > 1)
             {
-                int ret = numRow / numLeaves / numClass / 10;
+                int ret = numRow / numberOfLeaves / numClass / 10;
                 ret = Math.Max(ret, 5);
                 ret = Math.Min(ret, 50);
                 return ret;

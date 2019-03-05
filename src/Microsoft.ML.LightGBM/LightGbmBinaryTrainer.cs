@@ -8,7 +8,6 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.LightGBM;
-using Microsoft.ML.Model;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 
@@ -24,7 +23,6 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.LightGBM
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmBinaryModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "LightGBMBinaryExec";
@@ -81,7 +79,13 @@ namespace Microsoft.ML.LightGBM
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
+    ///<summary>
+    /// Trains a Light GBM Model.
+    ///</summary>
+    /// <remarks>
+    /// Light GBM is an open source implementation of boosted trees.
+    /// <a href = 'https://github.com/Microsoft/LightGBM/wiki' > GitHub: LightGBM</a>
+    /// </remarks>
     public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<float,
         BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>
@@ -102,22 +106,22 @@ namespace Microsoft.ML.LightGBM
         /// Initializes a new instance of <see cref="LightGbmBinaryTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of The label column.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weights">The name for the column containing the initial weight.</param>
-        /// <param name="numLeaves">The number of leaves to use.</param>
-        /// <param name="numBoostRound">Number of iterations.</param>
-        /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="labelColumnName">The name of The label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <param name="numberOfLeaves">The number of leaves to use.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
+        /// <param name="numberOfIterations">Number of iterations.</param>
         internal LightGbmBinaryTrainer(IHostEnvironment env,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
-            int? numLeaves = null,
-            int? minDataPerLeaf = null,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string exampleWeightColumnName = null,
+            int? numberOfLeaves = null,
+            int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numBoostRound = LightGBM.Options.Defaults.NumBoostRound)
-            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weights, null, numLeaves, minDataPerLeaf, learningRate, numBoostRound)
+            int numberOfIterations = LightGBM.Options.Defaults.NumberOfIterations)
+            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumnName), featureColumnName, exampleWeightColumnName, null, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations)
         {
         }
 
@@ -138,7 +142,7 @@ namespace Microsoft.ML.LightGBM
             if (!(labelType is BooleanDataViewType || labelType is KeyType || labelType == NumberDataViewType.Single))
             {
                 throw ch.ExceptParam(nameof(data),
-                    $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType}', but must be key, boolean or R4.");
+                    $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType.RawType}', but must be unsigned int, boolean or float.");
             }
         }
 

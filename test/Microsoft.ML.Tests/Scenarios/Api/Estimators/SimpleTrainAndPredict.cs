@@ -6,7 +6,6 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Trainers.HalLearners;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -65,7 +64,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(ml)
-                .Append(ml.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(new SymSgdClassificationTrainer.Options
+                .Append(ml.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(new SymbolicStochasticGradientDescentClassificationTrainer.Options
                 {
                     NumberOfThreads = 1
                 }));

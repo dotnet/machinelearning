@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.HalLearners.StaticPipe
+namespace Microsoft.ML.Mkl.Components.StaticPipe
 {
     /// <summary>
     /// Extensions for statically typed Whitening estimator.
@@ -55,7 +55,7 @@ namespace Microsoft.ML.HalLearners.StaticPipe
             }
         }
 
-        /// <include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
+        /// <include file='../Microsoft.ML.Mkl.Components/doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="input">The column to which the transform will be applied.</param>
         /// <param name="eps">Whitening constant, prevents division by zero when scaling the data by inverse of eigenvalues.</param>
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
@@ -66,7 +66,7 @@ namespace Microsoft.ML.HalLearners.StaticPipe
             int pcaNum = VectorWhiteningEstimator.Defaults.PcaNum)
             => new OutPipelineColumn(input, WhiteningKind.Pca, eps, maxRows, pcaNum);
 
-        /// <include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
+        /// <include file='../Microsoft.ML.Mkl.Components/doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="input">The column to which the transform will be applied.</param>
         /// <param name="eps">Whitening constant, prevents division by zero.</param>
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>

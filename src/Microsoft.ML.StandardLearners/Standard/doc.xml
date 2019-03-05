@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <doc>
   <members>
-    
-    <member name="SDCA">
-      <summary>
-        Train an SDCA linear model.
-      </summary>
+    <!--  
+    The following text describes the SDCA algorithm details.
+    It's used for the remarks section of all SDCA-based trainers (binary, multiclass, regression)
+    -->
+    <member name="SDCA_remarks">
       <remarks>
-        This classifier is a trainer based on the Stochastic Dual Coordinate Ascent(SDCA) method, a state-of-the-art optimization technique for convex objective functions.
+        This trainer is based on the Stochastic Dual Coordinate Ascent (SDCA) method, a state-of-the-art optimization technique for convex objective functions.
         The algorithm can be scaled for use on large out-of-memory data sets due to a semi-asynchronized implementation that supports multi-threading.
         <para>
           Convergence is underwritten by periodically enforcing synchronization between primal and dual updates in a separate thread.
@@ -32,42 +32,6 @@
         </list>
        </remarks>
     </member>
-    <example name="StochasticDualCoordinateAscentBinaryClassifier">
-      <example>
-        <code language="csharp">
-          new StochasticDualCoordinateAscentBinaryClassifier
-          {
-            MaxIterations = 100,
-            NumThreads = 7,
-            LossFunction = new SmoothedHingeLossSDCAClassificationLossFunction(),
-            Caching = Microsoft.ML.Models.CachingOptions.Memory
-          }
-        </code>
-      </example>
-    </example>
-    <example name="StochasticDualCoordinateAscentClassifier">
-      <example>
-        <code language="csharp">
-          new StochasticDualCoordinateAscentClassifier
-          {
-            MaxIterations = 100,
-            NumThreads = 7,
-            LossFunction = new SmoothedHingeLossSDCAClassificationLossFunction()
-          }
-        </code>
-      </example>
-    </example>
-    <example name="StochasticDualCoordinateAscentRegressor">
-      <example>
-        <code language="csharp">
-          new StochasticDualCoordinateAscentRegressor
-          {
-            MaxIterations = 100,
-            NumThreads = 5
-          }
-        </code>
-      </example>
-    </example>
  
   </members>
 </doc>

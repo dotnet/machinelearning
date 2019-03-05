@@ -15,7 +15,7 @@ namespace Microsoft.ML
     public static class KMeansClusteringExtensions
     {
         /// <summary>
-        /// Train a KMeans++ clustering algorithm.
+        /// Train a KMeans++ clustering algorithm using <see cref="KMeansPlusPlusTrainer"/>.
         /// </summary>
         /// <param name="catalog">The clustering catalog trainer object.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
@@ -24,13 +24,13 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[KMeans](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/KMeans.cs)]
+        ///  [!code-csharp[KMeans](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Clustering/KMeans.cs)]
         /// ]]></format>
         /// </example>
         public static KMeansPlusPlusTrainer KMeans(this ClusteringCatalog.ClusteringTrainers catalog,
            string featureColumnName = DefaultColumnNames.Features,
            string exampleWeightColumnName = null,
-           int clustersCount = KMeansPlusPlusTrainer.Defaults.ClustersCount)
+           int clustersCount = KMeansPlusPlusTrainer.Defaults.NumberOfClusters)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -39,16 +39,22 @@ namespace Microsoft.ML
             {
                 FeatureColumnName = featureColumnName,
                 ExampleWeightColumnName = exampleWeightColumnName,
-                ClustersCount = clustersCount
+                NumberOfClusters = clustersCount
             };
             return new KMeansPlusPlusTrainer(env, options);
         }
 
         /// <summary>
-        /// Train a KMeans++ clustering algorithm.
+        /// Train a KMeans++ clustering algorithm using <see cref="KMeansPlusPlusTrainer"/>.
         /// </summary>
         /// <param name="catalog">The clustering catalog trainer object.</param>
         /// <param name="options">Algorithm advanced options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[KMeans](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Clustering/KMeansWithOptions.cs)]
+        /// ]]></format>
+        /// </example>
         public static KMeansPlusPlusTrainer KMeans(this ClusteringCatalog.ClusteringTrainers catalog, KMeansPlusPlusTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));

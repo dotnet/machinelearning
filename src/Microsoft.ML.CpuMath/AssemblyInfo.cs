@@ -9,7 +9,7 @@ using Microsoft.ML.Internal.CpuMath.Core;
 [assembly: InternalsVisibleTo("Microsoft.ML.CpuMath.UnitTests.netcoreapp" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo("Microsoft.ML.Data" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.FastTree" + PublicKey.Value)]
-[assembly: InternalsVisibleTo("Microsoft.ML.HalLearners" + PublicKey.Value)]
+[assembly: InternalsVisibleTo("Microsoft.ML.Mkl.Components" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.KMeansClustering" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.PCA" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.StandardLearners" + PublicKey.Value)]
