@@ -32,6 +32,7 @@ Below are a few of the highlights from this release. There are many other improv
 * `FastTree` has it's own package now. ([#2752](https://github.com/dotnet/machinelearning/issues/2752))
 * `Ensemble` also has moved to a new package. ([#2717](https://github.com/dotnet/machinelearning/issues/2717))
 * Add support for string types in TensorFlowTransformer. ([#2545](https://github.com/dotnet/machinelearning/issues/2545))
+* Make FastTree/LightGBM learned model suitable for public consumption. ([#1960](https://github.com/dotnet/machinelearning/issues/1960))
 
 
 ### Acknowledgements
