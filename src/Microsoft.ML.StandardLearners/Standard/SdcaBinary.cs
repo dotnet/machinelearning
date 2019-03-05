@@ -1659,12 +1659,6 @@ namespace Microsoft.ML.Trainers
             /// If unspecified, <see cref="LogLoss"/> will be used.
             /// </value>
             public ISupportSdcaClassificationLoss LossFunction;
-
-            public Options()
-            {
-                // Default to The log loss function for classification.
-                LossFunction = new LogLoss();
-            }
         }
 
         internal SdcaNonCalibratedBinaryTrainer(IHostEnvironment env,
@@ -1737,16 +1731,11 @@ namespace Microsoft.ML.Trainers
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public int MaxCalibrationExamples = 1000000;
-
-            public Options()
-            {
-                // Default to The log loss function for classification.
-                LossFunction = new LogLoss();
-            }
         }
 
         internal LegacySdcaBinaryTrainer(IHostEnvironment env, Options options)
-            : base(env, options, options.LossFunction ?? options.LossFunctionFactory.CreateComponent(env), !(options.LossFunction is LogLoss))
+            : base(env, options, options.LossFunction ?? options.LossFunctionFactory.CreateComponent(env),
+                  !(options.LossFunction is LogLoss || (options.LossFunction == null && options.LossFunctionFactory is LogLossFactory)))
         {
         }
 
