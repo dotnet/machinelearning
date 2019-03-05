@@ -6,7 +6,7 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Transforms.Conversions
+namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="ValueToKeyMappingEstimator"]/*' />
     public sealed class ValueToKeyMappingEstimator : IEstimator<ValueToKeyMappingTransformer>

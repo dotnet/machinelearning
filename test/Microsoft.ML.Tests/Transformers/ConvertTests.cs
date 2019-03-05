@@ -10,8 +10,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Tools;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -99,7 +98,7 @@ namespace Microsoft.ML.Tests.Transformers
                   new TestPrimitiveClass()
                 {
                     AA = new []{"0", "1"},
-                    AB = new []{false, true},
+                    AB = new []{true, false},
                     AC = new []{ int.MinValue, int.MaxValue},
                     AD = new uint[]{ uint.MinValue, uint.MaxValue},
                     AE = new byte[]{ byte.MinValue, byte.MaxValue},
@@ -126,7 +125,9 @@ namespace Microsoft.ML.Tests.Transformers
                 new TypeConvertingEstimator.ColumnOptions("ConvK", DataKind.Single, "AK"),
                 new TypeConvertingEstimator.ColumnOptions("ConvL", DataKind.Single, "AL"),
                 new TypeConvertingEstimator.ColumnOptions("ConvM", DataKind.Single, "AM"),
-                new TypeConvertingEstimator.ColumnOptions("ConvN", DataKind.Single, "AN")}
+                new TypeConvertingEstimator.ColumnOptions("ConvN", DataKind.Single, "AN"),
+                new TypeConvertingEstimator.ColumnOptions("ConvBI", DataKind.Int32, "AB") // verify Boolean -> Int32 conversion
+            }
             );
             TestEstimatorCore(allTypesPipe, allTypesDataView);
 

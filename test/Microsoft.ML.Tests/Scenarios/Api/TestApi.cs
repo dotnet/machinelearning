@@ -11,7 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;

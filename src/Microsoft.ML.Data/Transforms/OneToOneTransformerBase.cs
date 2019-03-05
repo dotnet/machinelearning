@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Data
 {

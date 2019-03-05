@@ -1,4 +1,4 @@
-﻿using Microsoft.ML.Transforms.Categorical;
+﻿using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {

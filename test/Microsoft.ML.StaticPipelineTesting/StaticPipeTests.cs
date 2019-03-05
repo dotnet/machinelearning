@@ -17,7 +17,6 @@ using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
