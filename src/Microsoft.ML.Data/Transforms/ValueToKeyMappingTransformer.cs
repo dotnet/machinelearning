@@ -569,7 +569,7 @@ namespace Microsoft.ML.Transforms
                 else
                 {
                     // Auto train this column. Leave the term map null for now, but set the lim appropriately.
-                    lims[iinfo] = columns[iinfo].MaxNumKeys;
+                    lims[iinfo] = columns[iinfo].MaxNumberOfKeys;
                     ch.CheckUserArg(lims[iinfo] > 0, nameof(Column.MaxNumTerms), "Must be positive");
                     Contracts.Check(trainingData.Schema.TryGetColumnIndex(infos[iinfo].InputColumnName, out int colIndex));
                     Utils.Add(ref toTrain, colIndex);

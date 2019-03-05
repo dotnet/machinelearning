@@ -1158,4 +1158,17 @@ namespace Microsoft.ML.StaticPipe
             => new ImplVarVector<bool>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
         #endregion
     }
+
+    public enum KeyValueOrder : byte
+    {
+        /// <summary>
+        /// Terms will be assigned ID in the order in which they appear.
+        /// </summary>
+        Occurence = ValueToKeyMappingEstimator.SortOrder.Occurrence,
+
+        /// <summary>
+        /// Terms will be assigned ID according to their sort via an ordinal comparison for the type.
+        /// </summary>
+        Value = ValueToKeyMappingEstimator.SortOrder.Value
+    }
 }
