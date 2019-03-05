@@ -52,11 +52,11 @@ namespace Microsoft.ML
         /// <returns>The loaded model.</returns>
         public ITransformer Load(Stream stream) => TransformerChain.LoadFrom(_env, stream);
 
-        public IDataLoader<IMultiStreamSource> LoadAsCompositeDataLoader(Stream stream)
+        public CompositeDataLoader<IMultiStreamSource, ITransformer> LoadAsCompositeDataLoader(Stream stream)
         {
             using (var rep = RepositoryReader.Open(stream))
             {
-                ModelLoadContext.LoadModel<IDataLoader<IMultiStreamSource>, SignatureLoadModel>(_env, out var model, rep, "Model");
+                ModelLoadContext.LoadModel<CompositeDataLoader<IMultiStreamSource, ITransformer>, SignatureLoadModel>(_env, out var model, rep, "Model");
                 return model;
             }
         }

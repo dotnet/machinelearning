@@ -58,7 +58,7 @@ using Newtonsoft.Json.Linq;
     "Naive Calibration Executor",
     NaiveCalibrator.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(ValueMapperCalibratedModelParameters<object, ICalibrator>), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(CalibratedModelParametersBase), typeof(ValueMapperCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>), null, typeof(SignatureLoadModel),
     "Calibrated Predictor Executor",
     ValueMapperCalibratedModelParameters<IPredictorProducing<float>, ICalibrator>.LoaderSignature, "BulkCaliPredExec")]
 
@@ -151,6 +151,18 @@ namespace Microsoft.ML.Calibrators
         ICalibrator WeaklyTypedCalibrator { get; }
     }
 
+    public abstract class CalibratedModelParametersBase
+    {
+        public object SubModel { get; }
+        public ICalibrator Calibrator { get; }
+
+        private protected CalibratedModelParametersBase(object subModel, ICalibrator calibrator)
+        {
+            SubModel = subModel;
+            Calibrator = calibrator;
+        }
+    }
+
     /// <summary>
     /// Class for allowing a post-processing step, defined by <see cref="Calibrator"/>, to <see cref="SubModel"/>'s
     /// output.
@@ -162,7 +174,7 @@ namespace Microsoft.ML.Calibrators
     /// output value to the probability of belonging to the positive (or negative) class. Detailed math materials
     /// can be found at <a href="https://www.csie.ntu.edu.tw/~cjlin/papers/plattprob.pdf">this paper</a>.
     /// </remarks>
-    public abstract class CalibratedModelParametersBase<TSubModel, TCalibrator> :
+    public abstract class CalibratedModelParametersBase<TSubModel, TCalibrator> : CalibratedModelParametersBase,
         IDistPredictorProducing<float, float>,
         ICanSaveInIniFormat,
         ICanSaveInTextFormat,
@@ -179,11 +191,12 @@ namespace Microsoft.ML.Calibrators
         /// <summary>
         /// <see cref="SubModel"/>'s output would calibrated by <see cref="Calibrator"/>.
         /// </summary>
-        public TSubModel SubModel { get; }
+        public new TSubModel SubModel { get; }
+
         /// <summary>
         /// <see cref="Calibrator"/> is used to post-process score produced by <see cref="SubModel"/>.
         /// </summary>
-        public TCalibrator Calibrator { get; }
+        public new TCalibrator Calibrator { get; }
 
         // Type-unsafed accessors of strongly-typed members.
         IPredictorProducing<float> IWeaklyTypedCalibratedModelParameters.WeaklyTypedSubModel => (IPredictorProducing<float>)SubModel;
@@ -192,6 +205,7 @@ namespace Microsoft.ML.Calibrators
         PredictionKind IPredictor.PredictionKind => ((IPredictorProducing<float>)SubModel).PredictionKind;
 
         private protected CalibratedModelParametersBase(IHostEnvironment env, string name, TSubModel predictor, TCalibrator calibrator)
+            : base(predictor, calibrator)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(name, nameof(name));
@@ -418,7 +432,7 @@ namespace Microsoft.ML.Calibrators
         {
         }
 
-        private static ValueMapperCalibratedModelParameters<TSubModel, TCalibrator> Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static CalibratedModelParametersBase Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             // Can load either the old "bulk" model or standard "cali". The two formats are identical.

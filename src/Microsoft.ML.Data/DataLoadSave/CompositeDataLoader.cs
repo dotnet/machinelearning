@@ -98,29 +98,6 @@ namespace Microsoft.ML.Data
             ctx.SaveModel(Transformer, TransformerDirectory);
         }
 
-        /// <summary>
-        /// Save the contents to a stream, as a "model file".
-        /// </summary>
-        public void SaveTo(IHostEnvironment env, Stream outputStream)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(outputStream, nameof(outputStream));
-
-            env.Check(outputStream.CanWrite && outputStream.CanSeek, "Need a writable and seekable stream to save");
-            using (var ch = env.Start("Saving pipeline"))
-            {
-                using (var rep = RepositoryWriter.CreateNew(outputStream, ch))
-                {
-                    ch.Trace("Saving data loader");
-                    ModelSaveContext.SaveModel(rep, Loader, LoaderDirectory);
-
-                    ch.Trace("Saving transformer chain");
-                    ModelSaveContext.SaveModel(rep, Transformer, TransformerDirectory);
-                    rep.Commit();
-                }
-            }
-        }
-
         internal const string Summary = "A loader that encapsulates a loader and a transformer chain.";
 
         internal const string LoaderSignature = "CompositeLoader";
