@@ -36,7 +36,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// A trainer that trains a predictor that returns random values
     /// </summary>
-    public sealed class RandomTrainer : ITrainer<RandomModelParameters>,
+    internal sealed class RandomTrainer : ITrainer<RandomModelParameters>,
         ITrainerEstimator<BinaryPredictionTransformer<RandomModelParameters>, RandomModelParameters>
     {
         internal const string LoadNameValue = "RandomPredictor";
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Trainers
     /// The predictor implements the Predict() interface. The predictor returns a
     ///  uniform random probability and classification assignment.
     /// </summary>
-    public sealed class RandomModelParameters :
+    internal sealed class RandomModelParameters :
         ModelParametersBase<float>,
         IDistPredictorProducing<float, float>,
         IValueMapperDist

@@ -742,7 +742,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/RandomTrainerSample.cs)]
         /// ]]></format>
         /// </example>
-        public static RandomTrainer Random(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog)
+        internal static RandomTrainer Random(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             return new RandomTrainer(CatalogUtils.GetEnvironment(catalog), new RandomTrainer.Options());
