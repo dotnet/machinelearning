@@ -424,8 +424,8 @@ namespace Microsoft.ML.RunTests
                 var lrInput = new LogisticRegression.Options
                 {
                     TrainingData = data,
-                    L1Weight = (Single)0.1 * i,
-                    L2Weight = (Single)0.01 * (1 + i),
+                    L1Regularization = (Single)0.1 * i,
+                    L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.No
                 };
                 predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
@@ -728,8 +728,8 @@ namespace Microsoft.ML.RunTests
                 var lrInput = new LogisticRegression.Options
                 {
                     TrainingData = data,
-                    L1Weight = (Single)0.1 * i,
-                    L2Weight = (Single)0.01 * (1 + i),
+                    L1Regularization = (Single)0.1 * i,
+                    L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.Yes
                 };
                 predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
@@ -989,8 +989,8 @@ namespace Microsoft.ML.RunTests
                 var lrInput = new LogisticRegression.Options
                 {
                     TrainingData = data,
-                    L1Weight = (Single)0.1 * i,
-                    L2Weight = (Single)0.01 * (1 + i),
+                    L1Regularization = (Single)0.1 * i,
+                    L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.Yes
                 };
                 predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
@@ -1323,9 +1323,9 @@ namespace Microsoft.ML.RunTests
                     {
                         TrainingData = data,
                         NormalizeFeatures = NormalizeOption.Yes,
-                        NumThreads = 1,
-                        ShowTrainingStats = true,
-                        StdComputer = new ComputeLRTrainingStdThroughMkl()
+                        NumberOfThreads = 1,
+                        ShowTrainingStatistics = true,
+                        ComputeStandardDeviation = new ComputeLRTrainingStdThroughMkl()
                     };
                     predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
                     var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
@@ -3320,9 +3320,9 @@ namespace Microsoft.ML.RunTests
             {
                 TrainingData = dataView,
                 NormalizeFeatures = NormalizeOption.Yes,
-                NumThreads = 1,
-                ShowTrainingStats = true,
-                StdComputer = new ComputeLRTrainingStdThroughMkl()
+                NumberOfThreads = 1,
+                ShowTrainingStatistics = true,
+                ComputeStandardDeviation = new ComputeLRTrainingStdThroughMkl()
             };
             var model = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
 
@@ -3330,8 +3330,8 @@ namespace Microsoft.ML.RunTests
             {
                 TrainingData = dataView,
                 NormalizeFeatures = NormalizeOption.Yes,
-                NumThreads = 1,
-                ShowTrainingStats = true
+                NumberOfThreads = 1,
+                ShowTrainingStatistics = true
             };
             var mcModel = LogisticRegression.TrainMultiClass(Env, mcLrInput).PredictorModel;
 

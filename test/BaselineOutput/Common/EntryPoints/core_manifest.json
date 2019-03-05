@@ -13495,11 +13495,12 @@
           "Default": "Auto"
         },
         {
-          "Name": "ShowTrainingStats",
+          "Name": "ShowTrainingStatistics",
           "Type": "Bool",
           "Desc": "Show statistics of training examples.",
           "Aliases": [
-            "stat"
+            "stat",
+            "ShowTrainingStats"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -13507,11 +13508,12 @@
           "Default": false
         },
         {
-          "Name": "L2Weight",
+          "Name": "L2Regularization",
           "Type": "Float",
           "Desc": "L2 regularization weight",
           "Aliases": [
-            "l2"
+            "l2",
+            "L2Weight"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -13525,11 +13527,12 @@
           }
         },
         {
-          "Name": "L1Weight",
+          "Name": "L1Regularization",
           "Type": "Float",
           "Desc": "L1 regularization weight",
           "Aliases": [
-            "l1"
+            "l1",
+            "L1Weight"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -13543,11 +13546,12 @@
           }
         },
         {
-          "Name": "OptTol",
+          "Name": "OptmizationTolerance",
           "Type": "Float",
           "Desc": "Tolerance parameter for optimization convergence. Low = slower, more accurate",
           "Aliases": [
-            "ot"
+            "ot",
+            "OptTol"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -13562,11 +13566,12 @@
           }
         },
         {
-          "Name": "MemorySize",
+          "Name": "IterationsToRemember",
           "Type": "Int",
           "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
-            "m"
+            "m",
+            "MemorySize"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -13594,11 +13599,12 @@
           "Default": false
         },
         {
-          "Name": "InitWtsDiameter",
+          "Name": "InitialWeightsDiameter",
           "Type": "Float",
           "Desc": "Init weights diameter",
           "Aliases": [
-            "initwts"
+            "initwts",
+            "InitWtsDiameter"
           ],
           "Required": false,
           "SortOrder": 140.0,
@@ -13612,11 +13618,12 @@
           }
         },
         {
-          "Name": "MaxIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum iterations.",
           "Aliases": [
-            "maxiter"
+            "maxiter",
+            "MaxIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -13629,11 +13636,12 @@
           }
         },
         {
-          "Name": "SgdInitializationTolerance",
+          "Name": "StochasticGradientDescentInitilaizationTolerance",
           "Type": "Float",
           "Desc": "Run SGD to initialize LR weights, converging to this tolerance",
           "Aliases": [
-            "sgd"
+            "sgd",
+            "SgdInitializationTolerance"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -13665,11 +13673,12 @@
           "Default": true
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "Number of threads",
           "Aliases": [
-            "nt"
+            "nt",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -13806,11 +13815,12 @@
           "Default": "Auto"
         },
         {
-          "Name": "ShowTrainingStats",
+          "Name": "ShowTrainingStatistics",
           "Type": "Bool",
           "Desc": "Show statistics of training examples.",
           "Aliases": [
-            "stat"
+            "stat",
+            "ShowTrainingStats"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -13818,11 +13828,12 @@
           "Default": false
         },
         {
-          "Name": "L2Weight",
+          "Name": "L2Regularization",
           "Type": "Float",
           "Desc": "L2 regularization weight",
           "Aliases": [
-            "l2"
+            "l2",
+            "L2Weight"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -13836,11 +13847,12 @@
           }
         },
         {
-          "Name": "L1Weight",
+          "Name": "L1Regularization",
           "Type": "Float",
           "Desc": "L1 regularization weight",
           "Aliases": [
-            "l1"
+            "l1",
+            "L1Weight"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -13854,11 +13866,12 @@
           }
         },
         {
-          "Name": "OptTol",
+          "Name": "OptmizationTolerance",
           "Type": "Float",
           "Desc": "Tolerance parameter for optimization convergence. Low = slower, more accurate",
           "Aliases": [
-            "ot"
+            "ot",
+            "OptTol"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -13873,11 +13886,12 @@
           }
         },
         {
-          "Name": "MemorySize",
+          "Name": "IterationsToRemember",
           "Type": "Int",
           "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
-            "m"
+            "m",
+            "MemorySize"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -13905,11 +13919,12 @@
           "Default": false
         },
         {
-          "Name": "InitWtsDiameter",
+          "Name": "InitialWeightsDiameter",
           "Type": "Float",
           "Desc": "Init weights diameter",
           "Aliases": [
-            "initwts"
+            "initwts",
+            "InitWtsDiameter"
           ],
           "Required": false,
           "SortOrder": 140.0,
@@ -13923,11 +13938,12 @@
           }
         },
         {
-          "Name": "MaxIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum iterations.",
           "Aliases": [
-            "maxiter"
+            "maxiter",
+            "MaxIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -13940,11 +13956,12 @@
           }
         },
         {
-          "Name": "SgdInitializationTolerance",
+          "Name": "StochasticGradientDescentInitilaizationTolerance",
           "Type": "Float",
           "Desc": "Run SGD to initialize LR weights, converging to this tolerance",
           "Aliases": [
-            "sgd"
+            "sgd",
+            "SgdInitializationTolerance"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -13976,11 +13993,12 @@
           "Default": true
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "Number of threads",
           "Aliases": [
-            "nt"
+            "nt",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -14835,11 +14853,12 @@
           "Default": "Auto"
         },
         {
-          "Name": "L2Weight",
+          "Name": "L2Regularization",
           "Type": "Float",
           "Desc": "L2 regularization weight",
           "Aliases": [
-            "l2"
+            "l2",
+            "L2Weight"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -14853,11 +14872,12 @@
           }
         },
         {
-          "Name": "L1Weight",
+          "Name": "L1Regularization",
           "Type": "Float",
           "Desc": "L1 regularization weight",
           "Aliases": [
-            "l1"
+            "l1",
+            "L1Weight"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -14871,11 +14891,12 @@
           }
         },
         {
-          "Name": "OptTol",
+          "Name": "OptmizationTolerance",
           "Type": "Float",
           "Desc": "Tolerance parameter for optimization convergence. Low = slower, more accurate",
           "Aliases": [
-            "ot"
+            "ot",
+            "OptTol"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -14890,11 +14911,12 @@
           }
         },
         {
-          "Name": "MemorySize",
+          "Name": "IterationsToRemember",
           "Type": "Int",
           "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
-            "m"
+            "m",
+            "MemorySize"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -14922,11 +14944,12 @@
           "Default": false
         },
         {
-          "Name": "InitWtsDiameter",
+          "Name": "InitialWeightsDiameter",
           "Type": "Float",
           "Desc": "Init weights diameter",
           "Aliases": [
-            "initwts"
+            "initwts",
+            "InitWtsDiameter"
           ],
           "Required": false,
           "SortOrder": 140.0,
@@ -14940,11 +14963,12 @@
           }
         },
         {
-          "Name": "MaxIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum iterations.",
           "Aliases": [
-            "maxiter"
+            "maxiter",
+            "MaxIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -14957,11 +14981,12 @@
           }
         },
         {
-          "Name": "SgdInitializationTolerance",
+          "Name": "StochasticGradientDescentInitilaizationTolerance",
           "Type": "Float",
           "Desc": "Run SGD to initialize LR weights, converging to this tolerance",
           "Aliases": [
-            "sgd"
+            "sgd",
+            "SgdInitializationTolerance"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -14993,11 +15018,12 @@
           "Default": true
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "Number of threads",
           "Aliases": [
-            "nt"
+            "nt",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 150.0,
