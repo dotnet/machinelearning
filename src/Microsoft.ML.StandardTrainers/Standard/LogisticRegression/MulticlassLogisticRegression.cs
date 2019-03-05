@@ -66,7 +66,7 @@ namespace Microsoft.ML.Trainers
         // After training, it stores the total weights of training examples in each class.
         private Double[] _prior;
 
-        private ModelStatistics _stats;
+        private ModelStatisticsBase _stats;
 
         private protected override int ClassCount => _numClasses;
 
@@ -300,7 +300,7 @@ namespace Microsoft.ML.Trainers
             ch.Info("AIC:              \t{0}", 2 * numParams + deviance);
 
             // REVIEW: Figure out how to compute the statistics for the coefficients.
-            _stats = new ModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
+            _stats = new ModelStatisticsBase(Host, NumGoodRows, numParams, deviance, nullDeviance);
         }
 
         private protected override void ProcessPriorDistribution(float label, float weight)
@@ -395,7 +395,7 @@ namespace Microsoft.ML.Trainers
         bool ICanSavePfa.CanSavePfa => true;
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
-        internal MulticlassLogisticRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, ModelStatistics stats = null)
+        internal MulticlassLogisticRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, ModelStatisticsBase stats = null)
             : base(env, RegistrationName)
         {
             Contracts.Assert(weights.Length == numClasses + numClasses * numFeatures);
@@ -438,7 +438,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="numFeatures">The length of the feature vector.</param>
         /// <param name="labelNames">The optional label names. If specified not null, it should have the same length as <paramref name="numClasses"/>.</param>
         /// <param name="stats">The model statistics.</param>
-        internal MulticlassLogisticRegressionModelParameters(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, ModelStatistics stats = null)
+        internal MulticlassLogisticRegressionModelParameters(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, ModelStatisticsBase stats = null)
             : base(env, RegistrationName)
         {
             Contracts.CheckValue(weights, nameof(weights));
@@ -552,19 +552,12 @@ namespace Microsoft.ML.Trainers
             if (ctx.TryLoadBinaryStream(LabelNamesSubModelFilename, r => labelNames = LoadLabelNames(ctx, r)))
                 _labelNames = labelNames;
 
-            ModelStatistics stats;
-            var success = ctx.TryLoadModel<ModelStatistics, SignatureLoadModel>(Host, out stats, ModelStatsSubModelFilename);
-
             // backwards compatibility:MLR used to serialize a LinearModelSStatistics object, before there existed two separate classes
             // for ModelStatisticsBase and LinearModelParameterStatistics.
-            if (!success || stats == null)
-            {
-                LinearModelParameterStatistics oldLinearModelStats;
-                ctx.LoadModelOrNull<LinearModelParameterStatistics, SignatureLoadModel>(Host, out oldLinearModelStats, ModelStatsSubModelFilename);
-                Statistics = oldLinearModelStats as ModelStatisticsBase;
-            }
-            else
-                Statistics = stats;
+            // It always only populated only the fields now found on ModelStatisticsBase.
+            ModelStatisticsBase stats;
+            ctx.LoadModelOrNull<ModelStatisticsBase, SignatureLoadModel>(Host, out stats, ModelStatsSubModelFilename);
+            Statistics = stats;
         }
 
         private static MulticlassLogisticRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)

@@ -6,6 +6,8 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using Xunit;
+using System.IO;
+using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
@@ -52,7 +54,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [Fact]
-        public void TestLogisticRegressionNoStats()
+        public void TestLRNoStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
 
@@ -70,7 +72,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [Fact]
-        public void TestLogisticRegressionWithStats()
+        public void TestLRWithStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
 
@@ -115,17 +117,56 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             using (FileStream fs = File.OpenRead(dropModelPath))
             {
-                var result = ModelFileUtils.LoadPredictorOrNull(Env, fs) as ParameterMixingCalibratedPredictor;
-
-                var subPredictor = result?.SubPredictor as LinearBinaryModelParameters;
+                var result = ModelFileUtils.LoadPredictorOrNull(Env, fs) as ParameterMixingCalibratedModelParameters<IPredictorWithFeatureWeights<float>, ICalibrator>;
+                var subPredictor = result?.SubModel as LinearBinaryModelParameters;
                 var stats = subPredictor?.Statistics;
 
-                Assert.Equal(458.970917f, stats.Deviance);
-                Assert.Equal(539.276367f, stats.NullDeviance);
+                CompareNumbersWithTolerance(stats.Deviance, 458.970917);
+                CompareNumbersWithTolerance(stats.NullDeviance, 539.276367);
                 Assert.Equal(7, stats.ParametersCount);
                 Assert.Equal(500, stats.TrainingExampleCount);
 
             }
+        }
+
+        [Fact]
+        public void TestMLRNoStats()
+        {
+            (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
+            var trainer = ML.MulticlassClassification.Trainers.LogisticRegression();
+            var pipeWithTrainer = pipe.Append(trainer);
+
+            var transformer = pipeWithTrainer.Fit(dataView);
+            var model = transformer.LastTransformer.Model as MulticlassLogisticRegressionModelParameters;
+            var stats = model.Statistics;
+
+            Assert.Null(stats);
+
+            Done();
+        }
+
+        [Fact]
+        public void TestMLRWithStats()
+        {
+            (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
+            var trainer = ML.MulticlassClassification.Trainers.LogisticRegression(new MulticlassLogisticRegression.Options
+            {
+                ShowTrainingStats = true
+            });
+            var pipeWithTrainer = pipe.Append(trainer);
+
+            var transformer = pipeWithTrainer.Fit(dataView);
+            var model = transformer.LastTransformer.Model as MulticlassLogisticRegressionModelParameters;
+            var stats = model.Statistics;
+
+            Assert.NotNull(stats);
+
+            CompareNumbersWithTolerance(stats.Deviance, 45.3556442);
+            CompareNumbersWithTolerance(stats.NullDeviance, 329.583679199219);
+            Assert.Equal(12, stats.ParametersCount);
+            Assert.Equal(150, stats.TrainingExampleCount);
+
+            Done();
         }
 
         [Fact]

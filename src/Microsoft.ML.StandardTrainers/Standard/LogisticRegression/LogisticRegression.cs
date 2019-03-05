@@ -252,10 +252,10 @@ namespace Microsoft.ML.Trainers
             long hessianDimension = (long)numParams * (numParams + 1) / 2;
             if (hessianDimension > int.MaxValue || LbfgsTrainerOptions.StdComputer == null)
             {
-                ch.Warning("The number of parameter is too large. Cannot hold the variance-covariance matrix in memory. " +
+                ch.Warning("The number of parameters is too large. Cannot hold the variance-covariance matrix in memory. " +
                     "Skipping computation of standard errors and z-statistics of coefficients. Consider choosing a larger L1 regularizer" +
                     "to reduce the number of parameters.");
-                _stats = new ModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
+                _stats = new ModelStatisticsBase(Host, NumGoodRows, numParams, deviance, nullDeviance);
                 return;
             }
 

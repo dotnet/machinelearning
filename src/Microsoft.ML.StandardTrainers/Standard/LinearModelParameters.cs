@@ -454,18 +454,7 @@ namespace Microsoft.ML.Trainers
             // (Base class)
             // LinearModelParameterStatistics: model statistics (optional, in a separate stream)
             LinearModelParameterStatistics stats;
-
-            var success = ctx.TryLoadModel<LinearModelParameterStatistics, SignatureLoadModel>(Host, out stats, ModelStatsSubModelFilename);
-
-             //   ctx.LoadModelOrNull<LinearModelParameterStatistics, SignatureLoadModel>(Host, out stats, ModelStatsSubModelFilename);
-            if(!success || stats == null)
-            {
-                ModelStatistics modelStats;
-                ctx.LoadModelOrNull<ModelStatistics, SignatureLoadModel>(Host, out modelStats, ModelStatsSubModelFilename);
-                Statistics = modelStats;
-                return;
-            }
-
+            ctx.LoadModelOrNull<LinearModelParameterStatistics, SignatureLoadModel>(Host, out stats, ModelStatsSubModelFilename);
             Statistics = stats;
         }
 

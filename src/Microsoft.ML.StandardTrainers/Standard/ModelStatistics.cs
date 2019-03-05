@@ -15,14 +15,14 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 // This is for deserialization from a model repository.
-[assembly: LoadableClass(typeof(LinearModelParameterStatistics), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(ModelStatisticsBase), typeof(LinearModelParameterStatistics), null, typeof(SignatureLoadModel),
     "Linear Model Statistics",
     LinearModelParameterStatistics.LoaderSignature)]
 
 // This is for deserialization from a model repository.
-[assembly: LoadableClass(typeof(ModelStatistics), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(ModelStatisticsBase), typeof(ModelStatisticsBase), null, typeof(SignatureLoadModel),
     "Model Statistics",
-   ModelStatistics.LoaderSignature)]
+   ModelStatisticsBase.LoaderSignature)]
 
 namespace Microsoft.ML.Trainers
 {
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// The statistics for linear predictor.
     /// </summary>
-    public abstract class ModelStatisticsBase : ICanSaveModel
+    public class ModelStatisticsBase : ICanSaveModel
     {
         protected IHostEnvironment Env;
 
@@ -68,7 +68,9 @@ namespace Microsoft.ML.Trainers
         // Total count of parameters.
         public readonly int ParametersCount;
 
-        private protected ModelStatisticsBase(IHostEnvironment env, long trainingExampleCount, int paramCount, float deviance, float nullDeviance)
+        internal const string LoaderSignature = "ModelStats";
+
+        internal ModelStatisticsBase(IHostEnvironment env, long trainingExampleCount, int paramCount, float deviance, float nullDeviance)
         {
             Contracts.CheckValue(env, nameof(env));
             Env = env;
@@ -82,7 +84,7 @@ namespace Microsoft.ML.Trainers
             NullDeviance = nullDeviance;
         }
 
-        private protected ModelStatisticsBase(IHostEnvironment env, ModelLoadContext ctx)
+        internal ModelStatisticsBase(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             Env = env;
@@ -103,8 +105,6 @@ namespace Microsoft.ML.Trainers
             Deviance = ctx.Reader.ReadFloat();
             NullDeviance = ctx.Reader.ReadFloat();
         }
-
-        protected abstract VersionInfo GetVersionInfo();
 
         void ICanSaveModel.Save(ModelSaveContext ctx)
         {
@@ -170,25 +170,8 @@ namespace Microsoft.ML.Trainers
 
            return builder.ToAnnotations();
         }
-    }
 
-    public sealed class ModelStatistics : ModelStatisticsBase
-    {
-        public const string LoaderSignature = "ModelStats";
-
-        internal ModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, float deviance, float nullDeviance)
-            :base(env, trainingExampleCount, paramCount, deviance, nullDeviance)
-        {
-
-        }
-
-        internal ModelStatistics(IHostEnvironment env, ModelLoadContext ctx)
-            :base(env, ctx)
-        {
-
-        }
-
-        protected override VersionInfo GetVersionInfo()
+        private protected virtual VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
                 modelSignature: "MOD STAT",
@@ -206,11 +189,11 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     public sealed class LinearModelParameterStatistics : ModelStatisticsBase
     {
-        public const string LoaderSignature = "LinearModelStats";
+        internal new const string LoaderSignature = "LinearModelStats";
 
         private const int CoeffStatsRefactorVersion = 0x00010002;
 
-        protected override VersionInfo GetVersionInfo()
+        private protected override VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
                 modelSignature: "LMODSTAT",
@@ -266,23 +249,42 @@ namespace Microsoft.ML.Trainers
             //backwards compatibility
             if (ctx.Header.ModelVerWritten < CoeffStatsRefactorVersion)
             {
-                if(!ctx.Reader.ReadBoolean())
+                if(!ctx.Reader.ReadBoolean()) // this was used in the old model to denote whether there were stdErrorValues or not.
                     return;
             }
 
             float[] stdErrorValues = ctx.Reader.ReadFloatArray(ParametersCount);
             int length = ctx.Reader.ReadInt32();
-            Env.CheckDecode(length >= ParametersCount);
+            env.CheckDecode(length >= ParametersCount);
+
             if (length == ParametersCount)
             {
                 _coeffStdError = new VBuffer<float>(length, stdErrorValues);
-                return;
+            }
+            else
+            {
+                env.Assert(length > ParametersCount);
+                int[] stdErrorIndices = ctx.Reader.ReadIntArray(ParametersCount);
+                _coeffStdError = new VBuffer<float>(length, ParametersCount, stdErrorValues, stdErrorIndices);
             }
 
-            Env.Assert(length > ParametersCount);
-            int[] stdErrorIndices = ctx.Reader.ReadIntArray(ParametersCount);
-            _coeffStdError = new VBuffer<float>(length, ParametersCount, stdErrorValues, stdErrorIndices);
+            //read the bias
+            _bias = ctx.Reader.ReadFloat();
 
+            //read the weights
+            bool isWeightsDense = ctx.Reader.ReadBoolByte();
+            var weightsLength = ctx.Reader.ReadInt32();
+            var weightsValues = ctx.Reader.ReadFloatArray(weightsLength);
+
+            if (isWeightsDense)
+            {
+                _weights = new VBuffer<float>(weightsLength, weightsValues);
+            }
+            else
+            {
+                int[] weightsIndices = ctx.Reader.ReadIntArray(weightsLength);
+                _weights = new VBuffer<float>(weightsLength, weightsLength, stdErrorValues, weightsIndices);
+            }
         }
 
         protected override void SaveCore(ModelSaveContext ctx)
@@ -299,10 +301,18 @@ namespace Microsoft.ML.Trainers
             Env.Assert(coeffStdErrorValues.Length == ParametersCount);
             ctx.Writer.WriteSinglesNoCount(coeffStdErrorValues);
             ctx.Writer.Write(_coeffStdError.Length);
-            if (_coeffStdError.IsDense)
-                return;
+            if (!_coeffStdError.IsDense)
+                ctx.Writer.WriteIntsNoCount(_coeffStdError.GetIndices());
 
-            ctx.Writer.WriteIntsNoCount(_coeffStdError.GetIndices());
+            //save the bias
+            ctx.Writer.Write(_bias);
+
+            //save the weights
+            ctx.Writer.WriteBoolByte(_weights.IsDense);
+            ctx.Writer.Write(_weights.Length);
+            ctx.Writer.WriteSinglesNoCount(_weights.GetValues());
+            if (!_weights.IsDense)
+                ctx.Writer.WriteIntsNoCount(_coeffStdError.GetIndices());
         }
 
         /// <summary>
@@ -379,7 +389,7 @@ namespace Microsoft.ML.Trainers
             var names = default(VBuffer<ReadOnlyMemory<char>>);
 
             featureColumn.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref names);
-            _env.Assert(names.Length > 0, "FeatureColumnName has no metadata.");
+            Env.Assert(names.Length > 0, "FeatureColumnName has no metadata.");
 
             ReadOnlySpan<float> stdErrorValues = _coeffStdError.GetValues();
             const Double sqrt2 = 1.41421356237; // Math.Sqrt(2);
@@ -494,12 +504,6 @@ namespace Microsoft.ML.Trainers
 
             var builder = new DataViewSchema.Annotations.Builder();
             builder.Add(base.MakeStatisticsMetadata(schema, names), c => true);
-
-            var biasStats = GetBiasStatistics();
-            builder.AddPrimitiveValue("BiasEstimate", NumberDataViewType.Single, biasEstimate);
-            builder.AddPrimitiveValue("BiasStandardError", NumberDataViewType.Single, biasStdErr);
-            builder.AddPrimitiveValue("BiasZScore", NumberDataViewType.Single, biasZScore);
-            builder.AddPrimitiveValue("BiasPValue", NumberDataViewType.Single, biasPValue);
 
             var estimate = default(VBuffer<float>);
             var stdErr = default(VBuffer<float>);
