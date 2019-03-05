@@ -16,7 +16,7 @@ namespace Microsoft.ML.Transforms
         [BestFriend]
         internal static class Defaults
         {
-            public const int MaxNumKeys = 1000000;
+            public const int MaxNumberOfKeys = 1000000;
             public const SortOrder Sort = SortOrder.Occurrence;
         }
 
@@ -71,17 +71,17 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-            /// <param name="maxNumKeys">Maximum number of keys to keep per column when auto-training.</param>
+            /// <param name="maxNumberOfKeys">Maximum number of keys to keep per column when auto-training.</param>
             /// <param name="sort">How items should be ordered when vectorized. If <see cref="SortOrder.Occurrence"/> choosen they will be in the order encountered.
             /// If <see cref="SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
             /// <param name="term">List of terms.</param>
             /// <param name="textKeyValues">Whether key value metadata should be text, regardless of the actual input type.</param>
             public ColumnOptions(string outputColumnName, string inputColumnName = null,
-                int maxNumKeys = Defaults.MaxNumKeys,
+                int maxNumberOfKeys = Defaults.MaxNumberOfKeys,
                 SortOrder sort = Defaults.Sort,
                 string[] term = null,
                 bool textKeyValues = false)
-                : base(outputColumnName, inputColumnName, maxNumKeys, sort, term, textKeyValues)
+                : base(outputColumnName, inputColumnName, maxNumberOfKeys, sort, term, textKeyValues)
             {
             }
         }

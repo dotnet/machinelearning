@@ -44,7 +44,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         private const KeyValueOrder DefSort = (KeyValueOrder)ValueToKeyMappingEstimator.Defaults.Sort;
-        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumKeys;
+        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumberOfKeys;
         private const OneHotVectorOutputKind DefOut = (OneHotVectorOutputKind)OneHotEncodingEstimator.Defaults.OutKind;
 
         private readonly struct Config

@@ -948,7 +948,7 @@ namespace Microsoft.ML.StaticPipe
         // class, and all the public facing extension methods for each possible type are in a T4 generated result.
 
         private const KeyValueOrder DefSort = (KeyValueOrder)ValueToKeyMappingEstimator.Defaults.Sort;
-        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumKeys;
+        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumberOfKeys;
 
         private readonly struct Config
         {

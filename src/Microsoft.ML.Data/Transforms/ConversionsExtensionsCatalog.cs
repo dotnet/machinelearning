@@ -121,7 +121,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="maxNumKeys">Maximum number of keys to keep per column when auto-training.</param>
+        /// <param name="maxNumberOfKeys">Maximum number of keys to keep per column when auto-training.</param>
         /// <param name="sort">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.SortOrder.Occurrence"/> choosen they will be in the order encountered.
         /// If <see cref="ValueToKeyMappingEstimator.SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         /// <example>
@@ -134,9 +134,9 @@ namespace Microsoft.ML
         public static ValueToKeyMappingEstimator MapValueToKey(this TransformsCatalog.ConversionTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
-            int maxNumKeys = ValueToKeyMappingEstimator.Defaults.MaxNumKeys,
+            int maxNumberOfKeys = ValueToKeyMappingEstimator.Defaults.MaxNumberOfKeys,
             ValueToKeyMappingEstimator.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort)
-           => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, maxNumKeys, sort);
+           => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, maxNumberOfKeys, sort);
 
         /// <summary>
         /// Converts value types into <see cref="KeyType"/>, optionally loading the keys to use from <paramref name="keyData"/>.
@@ -244,8 +244,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog</param>
         /// <param name="lookupMap">An instance of <see cref="IDataView"/> that contains the key and value columns.</param>
-        /// <param name="keyColumn">Name of the key column in <paramref name="lookupMap"/>.</param>
-        /// <param name="valueColumn">Name of the value column in <paramref name="lookupMap"/>.</param>
+        /// <param name="keyColumnName">Name of the key column in <paramref name="lookupMap"/>.</param>
+        /// <param name="valueColumnName">Name of the value column in <paramref name="lookupMap"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
         /// <returns>A instance of the ValueMappingEstimator</returns>
         /// <example>
@@ -259,8 +259,8 @@ namespace Microsoft.ML
         /// </example>
         public static ValueMappingEstimator ValueMap(
             this TransformsCatalog.ConversionTransforms catalog,
-            IDataView lookupMap, string keyColumn, string valueColumn, params ColumnOptions[] columns)
-            => new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumn, valueColumn,
+            IDataView lookupMap, string keyColumnName, string valueColumnName, params ColumnOptions[] columns)
+            => new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumnName, valueColumnName,
                 ColumnOptions.ConvertToValueTuples(columns));
     }
 }

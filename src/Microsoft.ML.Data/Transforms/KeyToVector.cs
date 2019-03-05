@@ -96,7 +96,7 @@ namespace Microsoft.ML.Transforms
 
         private const string RegistrationName = "KeyToVector";
 
-        public IReadOnlyCollection<KeyToVectorMappingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
+        internal IReadOnlyCollection<KeyToVectorMappingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
         private readonly KeyToVectorMappingEstimator.ColumnOptions[] _columns;
 
         private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(KeyToVectorMappingEstimator.ColumnOptions[] columns)
