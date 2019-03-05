@@ -51,7 +51,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var ml = new MLContext(seed: 1, conc: 1);
             var data = ml.Data.LoadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true, allowQuoting: true);
 
-            var trainer = ml.BinaryClassification.Trainers.FastTree(numLeaves: 5, numTrees: 3);
+            var trainer = ml.BinaryClassification.Trainers.FastTree(numberOfLeaves: 5, numberOfTrees: 3);
 
             BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> pred = null;
 
@@ -74,16 +74,16 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Inspect the last tree.
             var tree = treeCollection.Trees[2];
 
-            Assert.Equal(5, tree.NumLeaves);
-            Assert.Equal(4, tree.NumNodes);
-            Assert.Equal(tree.LteChild, new int[] { 2, -2, -1, -3 });
-            Assert.Equal(tree.GtChild, new int[] { 1, 3, -4, -5 });
+            Assert.Equal(5, tree.NumberOfLeaves);
+            Assert.Equal(4, tree.NumberOfNodes);
+            Assert.Equal(tree.LeftChild, new int[] { 2, -2, -1, -3 });
+            Assert.Equal(tree.RightChild, new int[] { 1, 3, -4, -5 });
             Assert.Equal(tree.NumericalSplitFeatureIndexes, new int[] { 14, 294, 633, 266 });
-            Assert.Equal(tree.SplitGains.Count, tree.NumNodes);
-            Assert.Equal(tree.NumericalSplitThresholds.Count, tree.NumNodes);
+            Assert.Equal(tree.SplitGains.Count, tree.NumberOfNodes);
+            Assert.Equal(tree.NumericalSplitThresholds.Count, tree.NumberOfNodes);
             var expectedSplitGains = new double[] { 0.52634223978445616, 0.45899249367725858, 0.44142707650267105, 0.38348634823264854 };
             var expectedThresholds = new float[] { 0.0911167f, 0.06509889f, 0.019873254f, 0.0361835f };
-            for (int i = 0; i < tree.NumNodes; ++i)
+            for (int i = 0; i < tree.NumberOfNodes; ++i)
             {
                 Assert.Equal(expectedSplitGains[i], tree.SplitGains[i], 6);
                 Assert.Equal(expectedThresholds[i], tree.NumericalSplitThresholds[i], 6);
@@ -119,16 +119,16 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Inspect the last tree.
             var tree = treeCollection.Trees[2];
 
-            Assert.Equal(5, tree.NumLeaves);
-            Assert.Equal(4, tree.NumNodes);
-            Assert.Equal(tree.LteChild, new int[] { -1, -2, -3, -4 });
-            Assert.Equal(tree.GtChild, new int[] { 1, 2, 3, -5 });
+            Assert.Equal(5, tree.NumberOfLeaves);
+            Assert.Equal(4, tree.NumberOfNodes);
+            Assert.Equal(tree.LeftChild, new int[] { -1, -2, -3, -4 });
+            Assert.Equal(tree.RightChild, new int[] { 1, 2, 3, -5 });
             Assert.Equal(tree.NumericalSplitFeatureIndexes, new int[] { 9, 0, 1, 8 });
-            Assert.Equal(tree.SplitGains.Count, tree.NumNodes);
-            Assert.Equal(tree.NumericalSplitThresholds.Count, tree.NumNodes);
+            Assert.Equal(tree.SplitGains.Count, tree.NumberOfNodes);
+            Assert.Equal(tree.NumericalSplitThresholds.Count, tree.NumberOfNodes);
             var expectedSplitGains = new double[] { 21.279269008093962, 19.376698810984138, 17.830020749728774, 17.366801337893413 };
             var expectedThresholds = new float[] { 0.208134219f, 0.198336035f, 0.202952743f, 0.205061346f };
-            for (int i = 0; i < tree.NumNodes; ++i)
+            for (int i = 0; i < tree.NumberOfNodes; ++i)
             {
                 Assert.Equal(expectedSplitGains[i], tree.SplitGains[i], 6);
                 Assert.Equal(expectedThresholds[i], tree.NumericalSplitThresholds[i], 6);
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             Assert.Equal(0, tree.GetCategoricalCategoricalSplitFeatureRangeAt(0).Count);
 
             var samples = new double[] { 0.97468354430379744, 1.0, 0.97727272727272729, 0.972972972972973, 0.26124197002141325 };
-            for (int i = 0; i < tree.NumLeaves; ++i)
+            for (int i = 0; i < tree.NumberOfLeaves; ++i)
             {
                 var sample = tree.GetLeafSamplesAt(i);
                 Assert.Single(sample);

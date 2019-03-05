@@ -453,8 +453,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.FastTree(r.label, r.features,
-                    numTrees: 10,
-                    numLeaves: 5,
+                    numberOfTrees: 10,
+                    numberOfLeaves: 5,
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -494,8 +494,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: catalog.Trainers.FastTree(r.label, r.features,
-                    numTrees: 10,
-                    numLeaves: 5,
+                    numberOfTrees: 10,
+                    numberOfLeaves: 5,
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
