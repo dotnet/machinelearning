@@ -28,11 +28,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <NativeAssemblyReference Include="MklImports" />
     <NativeAssemblyReference Include="MklProxyNative" />
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="LdaNative" />
+    <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md"/>
   </ItemGroup>
 
   <!-- TensorFlow is 64-bit only -->
