@@ -95,7 +95,8 @@ namespace Microsoft.ML
 
     [TlcModule.Component(Name = "LogLoss", FriendlyName = "Log loss", Aliases = new[] { "Logistic", "CrossEntropy" },
         Desc = "Log loss.")]
-    public sealed class LogLossFactory : ISupportSdcaClassificationLossFactory, ISupportClassificationLossFactory
+    [BestFriend]
+    internal sealed class LogLossFactory : ISupportSdcaClassificationLossFactory, ISupportClassificationLossFactory
     {
         public ISupportSdcaClassificationLoss CreateComponent(IHostEnvironment env) => new LogLoss();
 
@@ -366,7 +367,8 @@ namespace Microsoft.ML
     }
 
     [TlcModule.Component(Name = "SquaredLoss", FriendlyName = "Squared Loss", Alias = "L2", Desc = "Squared loss.")]
-    public sealed class SquaredLossFactory : ISupportSdcaRegressionLossFactory, ISupportRegressionLossFactory
+    [BestFriend]
+    internal sealed class SquaredLossFactory : ISupportSdcaRegressionLossFactory, ISupportRegressionLossFactory
     {
         public ISupportSdcaRegressionLoss CreateComponent(IHostEnvironment env) => new SquaredLoss();
 
@@ -407,7 +409,8 @@ namespace Microsoft.ML
     }
 
     [TlcModule.Component(Name = "PoissonLoss", FriendlyName = "Poisson Loss", Desc = "Poisson loss.")]
-    public sealed class PoissonLossFactory : ISupportRegressionLossFactory
+    [BestFriend]
+    internal sealed class PoissonLossFactory : ISupportRegressionLossFactory
     {
         public IRegressionLoss CreateComponent(IHostEnvironment env) => new PoissonLoss();
     }

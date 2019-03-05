@@ -2488,7 +2488,7 @@ namespace Microsoft.ML.RunTests
             expected = FixWhitespace(expected);
             Assert.Equal(expected, json);
 
-            options.LossFunction = new HingeLoss();
+            options.LossFunctionFactory = new HingeLoss.Options();
             result = inputBuilder.GetJsonObject(options, inputBindingMap, inputMap);
             json = FixWhitespace(result.ToString(Formatting.Indented));
 
@@ -2504,7 +2504,7 @@ namespace Microsoft.ML.RunTests
             expected = FixWhitespace(expected);
             Assert.Equal(expected, json);
 
-            options.LossFunction = new HingeLoss(2);
+            options.LossFunctionFactory = new HingeLoss.Options() { Margin = 2 };
             result = inputBuilder.GetJsonObject(options, inputBindingMap, inputMap);
             json = FixWhitespace(result.ToString(Formatting.Indented));
 
