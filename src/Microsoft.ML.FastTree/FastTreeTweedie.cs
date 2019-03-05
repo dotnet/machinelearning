@@ -116,7 +116,6 @@ namespace Microsoft.ML.Trainers.FastTree
                 ch.Warning("For Tweedie regression, early stopping does not yet use the Tweedie distribution.");
 
             bool doEarlyStop = FastTreeTrainerOptions.EarlyStoppingRuleFactory != null ||
-                FastTreeTrainerOptions.EarlyStoppingRule != null ||
                 FastTreeTrainerOptions.EnablePruning;
 
             // Please do not remove it! See comment above.

@@ -49,7 +49,7 @@ namespace Microsoft.ML.Trainers.FastTree
             if (FastTreeTrainerOptions.EnablePruning && !HasValidSet)
                 throw ch.Except("Cannot perform pruning (pruning) without a validation set (valid).");
 
-            bool doEarlyStop = FastTreeTrainerOptions.EarlyStoppingRuleFactory != null || FastTreeTrainerOptions.EarlyStoppingRule != null;
+            bool doEarlyStop = FastTreeTrainerOptions.EarlyStoppingRuleFactory != null;
             if (doEarlyStop && !HasValidSet)
                 throw ch.Except("Cannot perform early stopping without a validation set (valid).");
 
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private protected override bool ShouldStop(IChannel ch, ref EarlyStoppingRuleBase earlyStoppingRule, ref int bestIteration)
         {
-            if (FastTreeTrainerOptions.EarlyStoppingRuleFactory == null && FastTreeTrainerOptions.EarlyStoppingRule == null)
+            if (FastTreeTrainerOptions.EarlyStoppingRuleFactory == null)
                 return false;
 
             ch.AssertValue(ValidTest);
@@ -132,12 +132,8 @@ namespace Microsoft.ML.Trainers.FastTree
             // Create early stopping rule if it's null.
             if (earlyStoppingRule == null)
             {
-                // There are two possible sources of stopping rules. One is the classical IComponentFactory and
-                // the other one is the rule passed in directly by user.
                 if (FastTreeTrainerOptions.EarlyStoppingRuleFactory != null)
                     earlyStoppingRule = FastTreeTrainerOptions.EarlyStoppingRuleFactory.CreateComponent(Host, lowerIsBetter);
-                else if (FastTreeTrainerOptions.EarlyStoppingRule != null)
-                    earlyStoppingRule = FastTreeTrainerOptions.EarlyStoppingRule;
             }
 
             // Early stopping rule cannot be null!

@@ -626,7 +626,17 @@ namespace Microsoft.ML.Trainers.FastTree
         [TGUI(Label = "Early Stopping Rule", Description = "Early stopping rule. (Validation set (/valid) is required.)")]
         internal IEarlyStoppingCriterionFactory EarlyStoppingRuleFactory;
 
-        public EarlyStoppingRuleBase EarlyStoppingRule;
+        private EarlyStoppingRuleBase _earlyStoppingRuleBase;
+
+        public EarlyStoppingRuleBase EarlyStoppingRule
+        {
+            get { return _earlyStoppingRuleBase;  }
+            set
+            {
+                _earlyStoppingRuleBase = value;
+                EarlyStoppingRuleFactory = _earlyStoppingRuleBase.BuildFactory();
+            }
+        }
 
         /// <summary>
         /// Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3).

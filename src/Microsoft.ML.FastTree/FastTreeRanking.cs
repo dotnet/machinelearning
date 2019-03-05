@@ -157,7 +157,6 @@ namespace Microsoft.ML.Trainers.FastTree
             }
 
             bool doEarlyStop = FastTreeTrainerOptions.EarlyStoppingRuleFactory != null ||
-                FastTreeTrainerOptions.EarlyStoppingRule != null ||
                 FastTreeTrainerOptions.EnablePruning;
 
             if (doEarlyStop)

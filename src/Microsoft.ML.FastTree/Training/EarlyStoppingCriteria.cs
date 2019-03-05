@@ -41,6 +41,11 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="isBestCandidate">True if the current result is the best ever.</param>
         /// <returns>If true, the learning should stop.</returns>
         public abstract bool CheckScore(float validationScore, float trainingScore, out bool isBestCandidate);
+
+        /// <summary>
+        /// Create <see cref="IEarlyStoppingCriterionFactory"/> for supporting legacy infra built upon <see cref="IComponentFactory"/>.
+        /// </summary>
+        internal abstract IEarlyStoppingCriterionFactory BuildFactory();
     }
 
     [BestFriend]
@@ -57,7 +62,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// It's <see langword="true"/> if the selected stopping metric should be as low as possible, and <see langword="false"/> otherwise.
         /// </summary>
-        public bool LowerIsBetter { get; }
+        private protected bool LowerIsBetter { get; }
 
         private protected float BestScore {
             get { return _bestScore; }
@@ -72,6 +77,14 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             LowerIsBetter = lowerIsBetter;
             _bestScore = LowerIsBetter ? float.PositiveInfinity : float.NegativeInfinity;
+        }
+
+        /// <summary>
+        /// Lazy constructor. It doesn't initialize anything because in runtime, <see cref="EarlyStoppingRule.EarlyStoppingRule(bool)"/> will be
+        /// called inside the training process to initialize needed fields.
+        /// </summary>
+        private protected EarlyStoppingRule()
+        {
         }
 
         /// <summary>
@@ -101,7 +114,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             public EarlyStoppingRuleBase CreateComponent(IHostEnvironment env, bool lowerIsBetter)
             {
-                return new TolerantEarlyStoppingRule(lowerIsBetter, Threshold);
+                return new TolerantEarlyStoppingRule(this, lowerIsBetter);
             }
         }
 
@@ -114,20 +127,20 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Create a rule which may terminate the training process if validation score exceeds <paramref name="threshold"/> compared with
         /// the best historical validation score.
         /// </summary>
-        /// <param name="lowerIsBetter">Its meaning is identical to <see cref="EarlyStoppingRule.LowerIsBetter"/>.</param>
         /// <param name="threshold">The maximum difference allowed between the (current) validation score and its best historical value.</param>
-        public TolerantEarlyStoppingRule(bool lowerIsBetter = true, float threshold = 0.01f)
-            : base(lowerIsBetter)
+        public TolerantEarlyStoppingRule(float threshold = 0.01f)
+            : base()
         {
             Contracts.CheckUserArg(threshold >= 0, nameof(threshold), "Must be non-negative.");
             Threshold = threshold;
         }
 
-        [BestFriend]
         // Used in command line tool to construct lodable class.
-        internal TolerantEarlyStoppingRule(Options options, bool lowerIsBetter = true)
-            : this(lowerIsBetter, options.Threshold)
+        private TolerantEarlyStoppingRule(Options options, bool lowerIsBetter)
+            : base(lowerIsBetter)
         {
+            Contracts.CheckUserArg(options.Threshold >= 0, nameof(options.Threshold), "Must be non-negative.");
+            Threshold = options.Threshold;
         }
 
         /// <summary>
@@ -144,6 +157,8 @@ namespace Microsoft.ML.Trainers.FastTree
             else
                 return (BestScore - validationScore > Threshold);
         }
+
+        internal override IEarlyStoppingCriterionFactory BuildFactory() => new Options() { Threshold = Threshold };
     }
 
     // For the detail of the following rules, see the following paper.
@@ -177,7 +192,18 @@ namespace Microsoft.ML.Trainers.FastTree
         // Hide this because it's a runtime value.
         private protected Queue<float> PastScores;
 
-        private protected MovingWindowRule(bool lowerIsBetter, float threshold = 0.01f, int windowSize = 5)
+        private protected MovingWindowRule(float threshold, int windowSize)
+            : base()
+        {
+            Contracts.CheckUserArg(0 <= threshold && threshold <= 1, nameof(threshold), "Must be in range [0,1].");
+            Contracts.CheckUserArg(windowSize > 0, nameof(windowSize), "Must be positive.");
+
+            Threshold = threshold;
+            WindowSize = windowSize;
+            PastScores = new Queue<float>(windowSize);
+        }
+
+        private protected MovingWindowRule(bool lowerIsBetter, float threshold, int windowSize)
             : base(lowerIsBetter)
         {
             Contracts.CheckUserArg(0 <= threshold && threshold <= 1, nameof(threshold), "Must be in range [0,1].");
@@ -256,7 +282,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             public EarlyStoppingRuleBase CreateComponent(IHostEnvironment env, bool lowerIsBetter)
             {
-                return new GeneralityLossRule(lowerIsBetter, Threshold);
+                return new GeneralityLossRule(this, lowerIsBetter);
             }
         }
 
@@ -270,21 +296,21 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Create a rule which may terminate the training process in case of loss of generality. The loss of generality means
         /// the specified score on validation start increaseing.
         /// </summary>
-        /// <param name="lowerIsBetter">Its meaning is identical to <see cref="EarlyStoppingRule.LowerIsBetter"/>.</param>
         /// <param name="threshold">The maximum gap (in percentage such as 0.01 for 1% and 0.5 for 50%) between the (current) validation
         /// score and its best historical value.</param>
-        public GeneralityLossRule(bool lowerIsBetter = true, float threshold = 0.01f) :
-            base(lowerIsBetter)
+        public GeneralityLossRule(float threshold = 0.01f) :
+            base()
         {
             Contracts.CheckUserArg(0 <= threshold && threshold <= 1, nameof(threshold), "Must be in range [0,1].");
             Threshold = threshold;
         }
 
-        [BestFriend]
         // Used in command line tool to construct lodable class.
-        internal GeneralityLossRule(Options options, bool lowerIsBetter = true)
-            : this(lowerIsBetter, options.Threshold)
+        private GeneralityLossRule(Options options, bool lowerIsBetter)
+            : base(lowerIsBetter)
         {
+            Contracts.CheckUserArg(0 <= options.Threshold && options.Threshold <= 1, nameof(options.Threshold), "Must be in range [0,1].");
+            Threshold = options.Threshold;
         }
 
         /// <summary>
@@ -301,7 +327,9 @@ namespace Microsoft.ML.Trainers.FastTree
             else
                 return (validationScore < (1 - Threshold) * BestScore);
         }
-    }
+
+        internal override IEarlyStoppingCriterionFactory BuildFactory() => new Options() { Threshold = Threshold };
+}
 
     /// <summary>
     /// Low Progress (LP).
@@ -315,7 +343,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             public EarlyStoppingRuleBase CreateComponent(IHostEnvironment env, bool lowerIsBetter)
             {
-                return new LowProgressRule(lowerIsBetter, Threshold, WindowSize);
+                return new LowProgressRule(this, lowerIsBetter);
             }
         }
 
@@ -324,19 +352,17 @@ namespace Microsoft.ML.Trainers.FastTree
         /// It will terminate the training process if the average of the recent <see cref="MovingWindowRule.WindowSize"/> validation scores
         /// is worse than the best historical validation score.
         /// </summary>
-        /// <param name="lowerIsBetter">Its meaning is identical to <see cref="EarlyStoppingRule.LowerIsBetter"/>.</param>
         /// <param name="threshold">The maximum gap (in percentage such as 0.01 for 1% and 0.5 for 50%) between the (current) averaged validation
         /// score and its best historical value.</param>
         /// <param name="windowSize">See <see cref="MovingWindowRule.WindowSize"/>.</param>
-        public LowProgressRule(bool lowerIsBetter, float threshold = 0.01f, int windowSize = 5)
-            : base(lowerIsBetter, threshold, windowSize)
+        public LowProgressRule(float threshold = 0.01f, int windowSize = 5)
+            : base(threshold, windowSize)
         {
         }
 
-        [BestFriend]
         // Used in command line tool to construct lodable class.
-        internal LowProgressRule(Options options, bool lowerIsBetter = true)
-            : this(lowerIsBetter, options.Threshold, options.WindowSize)
+        private LowProgressRule(Options options, bool lowerIsBetter)
+            : base(lowerIsBetter, options.Threshold, options.WindowSize)
         {
         }
 
@@ -362,7 +388,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
             return false;
         }
-    }
+
+        internal override IEarlyStoppingCriterionFactory BuildFactory() => new Options() { Threshold = Threshold, WindowSize = WindowSize };
+}
 
     /// <summary>
     /// Generality to Progress Ratio (PQ).
@@ -375,19 +403,23 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             public EarlyStoppingRuleBase CreateComponent(IHostEnvironment env, bool lowerIsBetter)
             {
-                return new GeneralityToProgressRatioRule(lowerIsBetter, Threshold, WindowSize);
+                return new GeneralityToProgressRatioRule(this, lowerIsBetter);
             }
         }
 
-        public GeneralityToProgressRatioRule(bool lowerIsBetter, float threshold = 0.01f, int windowSize = 5)
-            : base(lowerIsBetter, threshold, windowSize)
+        /// <summary>
+        /// Create a rule which may terminate the training process when generality-to-progress ratio exceeds <paramref name="threshold"/>.
+        /// </summary>
+        /// <param name="threshold">The maximum ratio gap (in percentage such as 0.01 for 1% and 0.5 for 50%).</param>
+        /// <param name="windowSize">See <see cref="MovingWindowRule.WindowSize"/>.</param>
+        public GeneralityToProgressRatioRule(float threshold = 0.01f, int windowSize = 5)
+            : base(threshold, windowSize)
         {
         }
 
-        [BestFriend]
         // Used in command line tool to construct lodable class.
-        internal GeneralityToProgressRatioRule(Options options, bool lowerIsBetter = true)
-            : this(lowerIsBetter, options.Threshold, options.WindowSize)
+        private GeneralityToProgressRatioRule(Options options, bool lowerIsBetter)
+            : base(lowerIsBetter, options.Threshold, options.WindowSize)
         {
         }
 
@@ -413,6 +445,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
             return false;
         }
+
+        [BestFriend]
+        internal override IEarlyStoppingCriterionFactory BuildFactory() => new Options() { Threshold = Threshold, WindowSize = WindowSize };
     }
 
     /// <summary>
@@ -431,7 +466,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             public EarlyStoppingRuleBase CreateComponent(IHostEnvironment env, bool lowerIsBetter)
             {
-                return new ConsecutiveGeneralityLossRule(lowerIsBetter, WindowSize);
+                return new ConsecutiveGeneralityLossRule(this, lowerIsBetter);
             }
         }
 
@@ -443,18 +478,24 @@ namespace Microsoft.ML.Trainers.FastTree
         private int _count;
         private float _prevScore;
 
-        public ConsecutiveGeneralityLossRule(bool lowerIsBetter, int windowSize = 5)
-            : base(lowerIsBetter)
+        /// <summary>
+        /// Creates a rule which terminates the training process if the validation score is not improved in <see cref="WindowSize"/> consecutive iterations.
+        /// </summary>
+        /// <param name="windowSize">Number of training iterations allowed to have no improvement.</param>
+        public ConsecutiveGeneralityLossRule(int windowSize = 5)
+            : base()
         {
             Contracts.CheckUserArg(windowSize > 0, nameof(windowSize), "Must be positive");
             WindowSize = windowSize;
             _prevScore = LowerIsBetter ? float.PositiveInfinity : float.NegativeInfinity;
         }
 
-        [BestFriend]
-        internal ConsecutiveGeneralityLossRule(Options options, bool lowerIsBetter = true)
-            : this(lowerIsBetter, options.WindowSize)
+        private ConsecutiveGeneralityLossRule(Options options, bool lowerIsBetter)
+            : base(lowerIsBetter)
         {
+            Contracts.CheckUserArg(options.WindowSize > 0, nameof(options.WindowSize), "Must be positive");
+            WindowSize = options.WindowSize;
+            _prevScore = LowerIsBetter ? float.PositiveInfinity : float.NegativeInfinity;
         }
 
         /// <summary>
@@ -471,5 +512,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
             return (_count >= WindowSize);
         }
+
+        [BestFriend]
+        internal override IEarlyStoppingCriterionFactory BuildFactory() => new Options() { WindowSize = WindowSize };
     }
 }
