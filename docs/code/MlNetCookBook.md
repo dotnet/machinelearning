@@ -1050,12 +1050,12 @@ var dataArray = new[]
 // Create the ML.NET context.
 var context = new MLContext();
 
-// Create the data view.
+// Create the data view from an IEnumerable.
 // This method will use the definition of IrisData to understand what columns there are 
 // in the data view. However, the objects in ML.NET are only "promises" of data since 
 // ML.NET operations are lazy. One way to get a look at the data is with Schema Comprehension.
 // Refer to this document for more information - https://github.com/dotnet/machinelearning/blob/master/docs/code/SchemaComprehension.md
-var data = context.CreateDataView(dataArray);
+var data = context.Data.LoadFromEnumerable(dataArray);
 
 // Use a FileStream to create a file. Use the stream and the data view in the "SaveAsBinary" method.
 using(var stream = new FileStream("./iris.idv", FileMode.Create))
