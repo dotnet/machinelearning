@@ -25,7 +25,8 @@ namespace Microsoft.ML
     }
 
     [TlcModule.ComponentKind("RegressionLossFunction")]
-    public interface ISupportRegressionLossFactory : IComponentFactory<IRegressionLoss>
+    [BestFriend]
+    internal interface ISupportRegressionLossFactory : IComponentFactory<IRegressionLoss>
     {
     }
 
@@ -34,7 +35,8 @@ namespace Microsoft.ML
     }
 
     [TlcModule.ComponentKind("ClassificationLossFunction")]
-    public interface ISupportClassificationLossFactory : IComponentFactory<IClassificationLoss>
+    [BestFriend]
+    internal interface ISupportClassificationLossFactory : IComponentFactory<IClassificationLoss>
     {
     }
 
