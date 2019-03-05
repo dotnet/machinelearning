@@ -7,26 +7,21 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers;
 
-[assembly: LoadableClass(RandomTrainer.Summary, typeof(RandomTrainer), typeof(RandomTrainer.Options),
-    new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
-    RandomTrainer.UserNameValue,
-    RandomTrainer.LoadNameValue,
-    "random")]
-
-[assembly: LoadableClass(RandomTrainer.Summary, typeof(PriorTrainer), typeof(PriorTrainer.Options),
+[assembly: LoadableClass(PriorTrainer.Summary, typeof(PriorTrainer), typeof(PriorTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
     PriorTrainer.UserNameValue,
     PriorTrainer.LoadNameValue,
     "prior",
     "constant")]
 
+#pragma warning disable CS0618 // Still desired for backwards compatibility of models, for now.
 [assembly: LoadableClass(typeof(RandomModelParameters), null, typeof(SignatureLoadModel),
     "Random predictor", RandomModelParameters.LoaderSignature)]
+#pragma warning restore CS0618
 
 [assembly: LoadableClass(typeof(PriorModelParameters), null, typeof(SignatureLoadModel),
     "Prior predictor", PriorModelParameters.LoaderSignature)]
@@ -34,96 +29,12 @@ using Microsoft.ML.Trainers;
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
-    /// A trainer that trains a predictor that returns random values
+    /// This is a faulty model parameters that claims to be a <see cref="IValueMapperDist"/>. We maintain the class for
+    /// now for backwards compatibility of models (assuming there are any), but might consider removing it in the future.
     /// </summary>
-    public sealed class RandomTrainer : ITrainer<RandomModelParameters>,
-        ITrainerEstimator<BinaryPredictionTransformer<RandomModelParameters>, RandomModelParameters>
-    {
-        internal const string LoadNameValue = "RandomPredictor";
-        internal const string UserNameValue = "Random Predictor";
-        internal const string Summary = "A toy predictor that returns a random value.";
-
-        internal sealed class Options
-        {
-        }
-
-        private readonly IHost _host;
-
-        /// <summary> Return the type of prediction task.</summary>
-        PredictionKind ITrainer.PredictionKind => PredictionKind.BinaryClassification;
-
-        private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
-
-        /// <summary>
-        /// Auxiliary information about the trainer in terms of its capabilities
-        /// and requirements.
-        /// </summary>
-        public TrainerInfo Info => _info;
-
-        /// <summary>
-        /// Initializes RandomTrainer object.
-        /// </summary>
-        internal RandomTrainer(IHostEnvironment env)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(LoadNameValue);
-        }
-
-        internal RandomTrainer(IHostEnvironment env, Options options)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(LoadNameValue);
-            _host.CheckValue(options, nameof(options));
-        }
-
-        /// <summary>
-        /// Trains and returns a <see cref="BinaryPredictionTransformer{RandomModelParameters}"/>.
-        /// </summary>
-        public BinaryPredictionTransformer<RandomModelParameters> Fit(IDataView input)
-        {
-            RoleMappedData trainRoles = new RoleMappedData(input);
-            var pred = Train(new TrainContext(trainRoles));
-            return new BinaryPredictionTransformer<RandomModelParameters>(_host, pred, input.Schema, featureColumn: null);
-        }
-
-        private RandomModelParameters Train(TrainContext context)
-        {
-            _host.CheckValue(context, nameof(context));
-            return new RandomModelParameters(_host, _host.Rand.Next());
-        }
-
-        RandomModelParameters ITrainer<RandomModelParameters>.Train(TrainContext context) => Train(context);
-
-        IPredictor ITrainer.Train(TrainContext context) => Train(context);
-
-        /// <summary>
-        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
-        /// Used for schema propagation and verification in a pipeline.
-        /// </summary>
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
-        {
-            _host.CheckValue(inputSchema, nameof(inputSchema));
-
-            var outColumns = inputSchema.ToDictionary(x => x.Name);
-
-            var newColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
-            };
-            foreach (SchemaShape.Column column in newColumns)
-                outColumns[column.Name] = column;
-
-            return new SchemaShape(outColumns.Values);
-        }
-    }
-
-    /// <summary>
-    /// The predictor implements the Predict() interface. The predictor returns a
-    ///  uniform random probability and classification assignment.
-    /// </summary>
-    public sealed class RandomModelParameters :
+    [Obsolete("This class was fundamentally misdesigned, is incapable of implementing the interfaces it claims to implement, " +
+        "and it should not be used for any purposes beyond backwards compatibility of model loading.")]
+    internal sealed class RandomModelParameters :
         ModelParametersBase<float>,
         IDistPredictorProducing<float, float>,
         IValueMapperDist
@@ -260,6 +171,7 @@ namespace Microsoft.ML.Trainers
     {
         internal const string LoadNameValue = "PriorPredictor";
         internal const string UserNameValue = "Prior Predictor";
+        internal const string Summary = "A trivial model for producing the prior based on the number of positive and negative examples.";
 
         internal sealed class Options
         {

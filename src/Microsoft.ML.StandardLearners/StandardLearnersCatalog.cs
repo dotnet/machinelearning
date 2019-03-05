@@ -730,25 +730,6 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using the random binary classification model <see cref="RandomTrainer"/>.
-        /// </summary>
-        /// <remarks>
-        /// This trainer can be used as a baseline for other more sophisticated mdels.
-        /// </remarks>
-        /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/RandomTrainerSample.cs)]
-        /// ]]></format>
-        /// </example>
-        public static RandomTrainer Random(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog)
-        {
-            Contracts.CheckValue(catalog, nameof(catalog));
-            return new RandomTrainer(CatalogUtils.GetEnvironment(catalog), new RandomTrainer.Options());
-        }
-
-        /// <summary>
         /// Predict a target using a binary classification model trained with <see cref="PriorTrainer"/> trainer.
         /// </summary>
         /// <remarks>
