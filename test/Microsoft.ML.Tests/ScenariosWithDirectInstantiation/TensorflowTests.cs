@@ -677,8 +677,8 @@ namespace Microsoft.ML.Scenarios
                         LabelColumnName = "Label",
                         FeatureColumnName = "Features",
                         Seed = 1,
-                        NThread = 1,
-                        NumBoostRound = 1
+                        NumberOfThreads = 1,
+                        NumberOfIterations = 1
                     }));
 
                 var trainedModel = pipe.Fit(preprocessedTrainData);

@@ -776,8 +776,8 @@ namespace Microsoft.ML.RunTests
                 LightGbm.TrainMultiClass(Env, new Options
                 {
                     FeatureColumnName = "Features",
-                    NumBoostRound = 5,
-                    NumLeaves = 4,
+                    NumberOfIterations = 5,
+                    NumberOfLeaves = 4,
                     LabelColumnName = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,

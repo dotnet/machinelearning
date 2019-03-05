@@ -50,9 +50,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var trainer = ML.BinaryClassification.Trainers.LightGbm(new Options
             {
-                NumLeaves = 10,
-                NThread = 1,
-                MinDataPerLeaf = 2,
+                NumberOfLeaves = 10,
+                NumberOfThreads = 1,
+                MinimumExampleCountPerLeaf = 2,
             });
 
             var pipeWithTrainer = pipe.Append(trainer);
@@ -169,9 +169,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var dataView = GetRegressionPipeline();
             var trainer = ML.Regression.Trainers.LightGbm(new Options
             {
-                NThread = 1,
+                NumberOfThreads = 1,
                 NormalizeFeatures = NormalizeOption.Warn,
-                CatL2 = 5,
+                L2CategoricalRegularization = 5,
             });
 
             TestEstimatorCore(trainer, dataView);
@@ -295,9 +295,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             int numberOfTrainingIterations = 3;
             var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, new Options
             {
-                NumBoostRound = numberOfTrainingIterations,
-                MinDataPerGroup = 1,
-                MinDataPerLeaf = 1,
+                NumberOfIterations = numberOfTrainingIterations,
+                MinimumExampleCountPerGroup = 1,
+                MinimumExampleCountPerLeaf = 1,
                 UseSoftmax = useSoftmax
             });
 
