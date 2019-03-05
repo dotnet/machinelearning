@@ -29,7 +29,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             var options = new SdcaMultiClassTrainer.Options
             {
                 // Add custom loss
-                LossFunction = new HingeLoss.Options(),
+                LossFunction = new HingeLoss(),
                 // Make the convergence tolerance tighter.
                 ConvergenceTolerance = 0.05f,
                 // Increase the maximum number of passes over training data.
