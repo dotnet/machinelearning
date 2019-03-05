@@ -126,6 +126,10 @@ namespace Microsoft.ML.Transforms.Text
             return new TransformWrapper(_host, WordBagBuildingTransformer.Create(_host, options, input), true);
         }
 
+        /// <summary>
+        /// Schema propagation for estimators.
+        /// Returns the output schema shape of the estimator, if the input schema shape is like the one provided.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -278,6 +282,10 @@ namespace Microsoft.ML.Transforms.Text
             return new TransformWrapper(_host, WordHashBagProducingTransformer.Create(_host, options, input), true);
         }
 
+        /// <summary>
+        /// Schema propagation for estimators.
+        /// Returns the output schema shape of the estimator, if the input schema shape is like the one provided.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
