@@ -72,7 +72,7 @@ namespace Microsoft.ML.Trainers
             {
                 var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
                 var initPred = context.InitialPredictor;
-                var linInitPred = (initPred as IWeaklyTypedCalibratedModelParameters)?.WeeklyTypedSubModel as LinearModelParameters;
+                var linInitPred = (initPred as IWeaklyTypedCalibratedModelParameters)?.WeaklyTypedSubModel as LinearModelParameters;
                 linInitPred = linInitPred ?? initPred as LinearModelParameters;
                 Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");

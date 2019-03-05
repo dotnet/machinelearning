@@ -33,12 +33,33 @@ namespace Microsoft.ML
         /// <param name="stream">A writeable, seekable stream to save to.</param>
         public void Save(ITransformer model, Stream stream) => model.SaveTo(_env, stream);
 
+        public void Save<TSource>(IDataLoader<TSource> model, Stream stream)
+        {
+            using (var rep = RepositoryWriter.CreateNew(stream))
+            {
+                ModelSaveContext.SaveModel(rep, model, "Model");
+                rep.Commit();
+            }
+        }
+
+        public void Save<TSource>(IDataLoader<TSource> loader, ITransformer model, Stream stream) =>
+            Save(new CompositeDataLoader<TSource, ITransformer>(loader, new TransformerChain<ITransformer>(model)), stream);
+
         /// <summary>
         /// Load the model from the stream.
         /// </summary>
         /// <param name="stream">A readable, seekable stream to load from.</param>
         /// <returns>The loaded model.</returns>
         public ITransformer Load(Stream stream) => TransformerChain.LoadFrom(_env, stream);
+
+        public IDataLoader<IMultiStreamSource> LoadAsCompositeDataLoader(Stream stream)
+        {
+            using (var rep = RepositoryReader.Open(stream))
+            {
+                ModelLoadContext.LoadModel<IDataLoader<IMultiStreamSource>, SignatureLoadModel>(_env, out var model, rep, "Model");
+                return model;
+            }
+        }
 
         /// <summary>
         /// Load the model from a file path.

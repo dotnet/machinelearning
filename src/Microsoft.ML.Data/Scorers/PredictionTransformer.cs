@@ -8,22 +8,22 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Runtime;
 
-[assembly: LoadableClass(typeof(BinaryPredictionTransformer<IPredictorProducing<float>>), typeof(BinaryPredictionTransformer), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(BinaryPredictionTransformer<object>), typeof(BinaryPredictionTransformer), null, typeof(SignatureLoadModel),
     "", BinaryPredictionTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>), typeof(MulticlassPredictionTransformer), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(MulticlassPredictionTransformer<object>), typeof(MulticlassPredictionTransformer), null, typeof(SignatureLoadModel),
     "", MulticlassPredictionTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(RegressionPredictionTransformer<IPredictorProducing<float>>), typeof(RegressionPredictionTransformer), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(RegressionPredictionTransformer<object>), typeof(RegressionPredictionTransformer), null, typeof(SignatureLoadModel),
     "", RegressionPredictionTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(RankingPredictionTransformer<IPredictorProducing<float>>), typeof(RankingPredictionTransformer), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(RankingPredictionTransformer<object>), typeof(RankingPredictionTransformer), null, typeof(SignatureLoadModel),
     "", RankingPredictionTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(AnomalyPredictionTransformer<IPredictorProducing<float>>), typeof(AnomalyPredictionTransformer), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(AnomalyPredictionTransformer<object>), typeof(AnomalyPredictionTransformer), null, typeof(SignatureLoadModel),
     "", AnomalyPredictionTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(ClusteringPredictionTransformer<IPredictorProducing<VBuffer<float>>>), typeof(ClusteringPredictionTransformer), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(ClusteringPredictionTransformer<object>), typeof(ClusteringPredictionTransformer), null, typeof(SignatureLoadModel),
     "", ClusteringPredictionTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Data
@@ -51,8 +51,7 @@ namespace Microsoft.ML.Data
         private protected readonly IHost Host;
         [BestFriend]
         private protected ISchemaBindableMapper BindableMapper;
-        [BestFriend]
-        private protected DataViewSchema TrainSchema;
+        protected DataViewSchema TrainSchema;
 
         /// <summary>
         /// Whether a call to <see cref="ITransformer.GetRowToRowMapper(DataViewSchema)"/> should succeed, on an
@@ -142,8 +141,7 @@ namespace Microsoft.ML.Data
 
         private protected abstract void SaveModel(ModelSaveContext ctx);
 
-        [BestFriend]
-        private protected void SaveModelCore(ModelSaveContext ctx)
+        protected void SaveModelCore(ModelSaveContext ctx)
         {
             // *** Binary format ***
             // <base info>
@@ -235,14 +233,14 @@ namespace Microsoft.ML.Data
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
-        private protected sealed override void SaveModel(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             SaveCore(ctx);
         }
 
-        private protected virtual void SaveCore(ModelSaveContext ctx)
+        protected virtual void SaveCore(ModelSaveContext ctx)
         {
             SaveModelCore(ctx);
             ctx.SaveStringOrNull(FeatureColumn);
@@ -268,7 +266,7 @@ namespace Microsoft.ML.Data
         [BestFriend]
         internal AnomalyPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn,
             float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(AnomalyPredictionTransformer<TModel>)),model, inputSchema, featureColumn)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(AnomalyPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
             Host.CheckNonEmpty(thresholdColumn, nameof(thresholdColumn));
             Threshold = threshold;
@@ -297,7 +295,7 @@ namespace Microsoft.ML.Data
             Scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
-        private protected override void SaveCore(ModelSaveContext ctx)
+        protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -366,7 +364,7 @@ namespace Microsoft.ML.Data
             Scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
-        private protected override void SaveCore(ModelSaveContext ctx)
+        protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -430,7 +428,7 @@ namespace Microsoft.ML.Data
             Scorer = new MulticlassClassificationScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
-        private protected override void SaveCore(ModelSaveContext ctx)
+        protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -475,7 +473,7 @@ namespace Microsoft.ML.Data
             Scorer = GetGenericScorer();
         }
 
-        private protected override void SaveCore(ModelSaveContext ctx)
+        protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -517,7 +515,7 @@ namespace Microsoft.ML.Data
             Scorer = GetGenericScorer();
         }
 
-        private protected override void SaveCore(ModelSaveContext ctx)
+        protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -569,7 +567,7 @@ namespace Microsoft.ML.Data
             Scorer = new ClusteringScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
-        private protected override void SaveCore(ModelSaveContext ctx)
+        protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -596,47 +594,47 @@ namespace Microsoft.ML.Data
     {
         public const string LoaderSignature = "BinaryPredXfer";
 
-        public static BinaryPredictionTransformer<IPredictorProducing<float>> Create(IHostEnvironment env, ModelLoadContext ctx)
-            => new BinaryPredictionTransformer<IPredictorProducing<float>>(env, ctx);
+        public static BinaryPredictionTransformer<object> Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new BinaryPredictionTransformer<object>(env, ctx);
     }
 
     internal static class MulticlassPredictionTransformer
     {
         public const string LoaderSignature = "MulticlassPredXfer";
 
-        public static MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>> Create(IHostEnvironment env, ModelLoadContext ctx)
-            => new MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>(env, ctx);
+        public static MulticlassPredictionTransformer<object> Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new MulticlassPredictionTransformer<object>(env, ctx);
     }
 
     internal static class RegressionPredictionTransformer
     {
         public const string LoaderSignature = "RegressionPredXfer";
 
-        public static RegressionPredictionTransformer<IPredictorProducing<float>> Create(IHostEnvironment env, ModelLoadContext ctx)
-            => new RegressionPredictionTransformer<IPredictorProducing<float>>(env, ctx);
+        public static RegressionPredictionTransformer<object> Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new RegressionPredictionTransformer<object>(env, ctx);
     }
 
     internal static class RankingPredictionTransformer
     {
         public const string LoaderSignature = "RankingPredXfer";
 
-        public static RankingPredictionTransformer<IPredictorProducing<float>> Create(IHostEnvironment env, ModelLoadContext ctx)
-            => new RankingPredictionTransformer<IPredictorProducing<float>>(env, ctx);
+        public static RankingPredictionTransformer<object> Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new RankingPredictionTransformer<object>(env, ctx);
     }
 
     internal static class AnomalyPredictionTransformer
     {
         public const string LoaderSignature = "AnomalyPredXfer";
 
-        public static AnomalyPredictionTransformer<IPredictorProducing<float>> Create(IHostEnvironment env, ModelLoadContext ctx)
-            => new AnomalyPredictionTransformer<IPredictorProducing<float>>(env, ctx);
+        public static AnomalyPredictionTransformer<object> Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new AnomalyPredictionTransformer<object>(env, ctx);
     }
 
     internal static class ClusteringPredictionTransformer
     {
         public const string LoaderSignature = "ClusteringPredXfer";
 
-        public static ClusteringPredictionTransformer<IPredictorProducing<VBuffer<float>>> Create(IHostEnvironment env, ModelLoadContext ctx)
-            => new ClusteringPredictionTransformer<IPredictorProducing<VBuffer<float>>>(env, ctx);
+        public static ClusteringPredictionTransformer<object> Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new ClusteringPredictionTransformer<object>(env, ctx);
     }
 }

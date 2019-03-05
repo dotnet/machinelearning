@@ -237,7 +237,7 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Saving/loading routines for transformer chains.
     /// </summary>
-    internal static class TransformerChain
+    public static class TransformerChain
     {
         public const string LoaderSignature = "TransformerChain";
 
@@ -256,7 +256,9 @@ namespace Microsoft.ML.Data
             {
                 try
                 {
-                    ModelLoadContext.LoadModel<TransformerChain<ITransformer>, SignatureLoadModel>(env, out var transformerChain, rep, LoaderSignature);
+                    ModelLoadContext.LoadModelOrNull<TransformerChain<ITransformer>, SignatureLoadModel>(env, out var transformerChain, rep, LoaderSignature);
+                    if (transformerChain == null)
+                        ModelLoadContext.LoadModel<TransformerChain<ITransformer>, SignatureLoadModel>(env, out transformerChain, rep, $@"Model\{LoaderSignature}");
                     return transformerChain;
                 }
                 catch (FormatException ex)
