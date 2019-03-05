@@ -4,10 +4,7 @@
 
 ### Installation
 
-ML.NET supports Windows, MacOS, and Linux. See [supported OS versions of .NET
-Core
-2.0](https://github.com/dotnet/core/blob/master/release-notes/2.0/2.0-supported-os.md)
-for more details.
+ML.NET supports Windows, MacOS, and Linux. See [supported OS versions of .NET Core 2.0](https://github.com/dotnet/core/blob/master/release-notes/2.0/2.0-supported-os.md) for more details.
 
 You can install ML.NET NuGet from the CLI using:
 ```
