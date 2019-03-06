@@ -308,7 +308,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Load(dataSource);
 
             var est = new VectorWhiteningEstimator(ML, "whitened1", "features")
-                .Append(new VectorWhiteningEstimator(ML, "whitened2", "features", kind: WhiteningKind.Pca, pcaNum: 5));
+                .Append(new VectorWhiteningEstimator(ML, "whitened2", "features", kind: WhiteningKind.Pca, rank: 5));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "whitened.tsv");

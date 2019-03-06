@@ -41,6 +41,11 @@ namespace Microsoft.ML
         public NormalizationTransforms Normalization { get; }
 
         /// <summary>
+        /// The list of operations for dimension reduction.
+        /// </summary>
+        public DimensionReductionTransforms DimensionReduction { get; }
+
+        /// <summary>
         /// The list of operations for selecting features based on some criteria.
         /// </summary>
         public FeatureSelectionTransforms FeatureSelection { get; }
@@ -56,6 +61,7 @@ namespace Microsoft.ML
             Kernel = new KernelTransforms(this);
             FeatureSelection = new FeatureSelectionTransforms(this);
             Normalization = new NormalizationTransforms(this);
+            DimensionReduction = new DimensionReductionTransforms(this);
         }
 
         /// <summary>
@@ -137,6 +143,20 @@ namespace Microsoft.ML
             private readonly IHostEnvironment _env;
 
             internal NormalizationTransforms(TransformsCatalog owner)
+            {
+                _env = owner.GetEnvironment();
+            }
+        }
+
+        /// <summary>
+        /// The catalog of dimension reduction methods.
+        /// </summary>
+        public sealed class DimensionReductionTransforms : IInternalCatalog
+        {
+            IHostEnvironment IInternalCatalog.Environment => _env;
+            private readonly IHostEnvironment _env;
+
+            internal DimensionReductionTransforms(TransformsCatalog owner)
             {
                 _env = owner.GetEnvironment();
             }
