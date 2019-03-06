@@ -55,7 +55,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // specify the parameter `numBins', which controls the number of bins used in the approximation of the mutual information
             // between features and label.
             var mutualInfoEst = ml.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation(
-                outputColumnName: "FeaturesMISelect", inputColumnName: "FeaturesCountSelect", labelColumn: "Label", slotsInOutput: 5);
+                outputColumnName: "FeaturesMISelect", inputColumnName: "FeaturesCountSelect", labelColumnName: "Label", slotsInOutput: 5);
 
             // Now, we can put the previous two transformations together in a pipeline.
             var pipeline = countSelectEst.Append(mutualInfoEst);

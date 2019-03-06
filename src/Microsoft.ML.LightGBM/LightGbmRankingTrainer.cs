@@ -22,7 +22,6 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.LightGBM
 {
-
     public sealed class LightGbmRankingModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "LightGBMRankerExec";
@@ -71,7 +70,6 @@ namespace Microsoft.ML.LightGBM
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmRankingTrainer : LightGbmTrainerBase<float, RankingPredictionTransformer<LightGbmRankingModelParameters>, LightGbmRankingModelParameters>
     {
         internal const string UserName = "LightGBM Ranking";
@@ -89,26 +87,28 @@ namespace Microsoft.ML.LightGBM
         /// Initializes a new instance of <see cref="LightGbmRankingTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="groupId">The name of the column containing the group ID. </param>
-        /// <param name="weights">The name of the optional column containing the initial weights.</param>
-        /// <param name="numLeaves">The number of leaves to use.</param>
-        /// <param name="numBoostRound">Number of iterations.</param>
-        /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="rowGroupdColumnName">The name of the column containing the group ID. </param>
+        /// <param name="weightsColumnName">The name of the optional column containing the initial weights.</param>
+        /// <param name="numberOfLeaves">The number of leaves to use.</param>
         /// <param name="learningRate">The learning rate.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="numberOfIterations">The number of iterations to use.</param>
         internal LightGbmRankingTrainer(IHostEnvironment env,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string groupId = DefaultColumnNames.GroupId,
-            string weights = null,
-            int? numLeaves = null,
-            int? minDataPerLeaf = null,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string rowGroupdColumnName = DefaultColumnNames.GroupId,
+            string weightsColumnName = null,
+            int? numberOfLeaves = null,
+            int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numBoostRound = LightGBM.Options.Defaults.NumBoostRound)
-            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weights, groupId, numLeaves, minDataPerLeaf, learningRate, numBoostRound)
+            int numberOfIterations = LightGBM.Options.Defaults.NumberOfIterations)
+            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(labelColumnName),
+                    featureColumnName, weightsColumnName, rowGroupdColumnName, numberOfLeaves,
+                    minimumExampleCountPerLeaf, learningRate, numberOfIterations)
         {
-            Host.CheckNonEmpty(groupId, nameof(groupId));
+            Host.CheckNonEmpty(rowGroupdColumnName, nameof(rowGroupdColumnName));
         }
 
         private protected override void CheckDataValid(IChannel ch, RoleMappedData data)
@@ -121,7 +121,7 @@ namespace Microsoft.ML.LightGBM
             if (!(labelType is KeyType || labelType == NumberDataViewType.Single))
             {
                 throw ch.ExceptParam(nameof(data),
-                    $"Label column '{labelCol.Name}' is of type '{labelType}', but must be key or R4.");
+                    $"Label column '{labelCol.Name}' is of type '{labelType.RawType}', but must be unsigned int or float.");
             }
             // Check group types.
             ch.CheckParam(data.Schema.Group.HasValue, nameof(data), "Need a group column.");
@@ -130,7 +130,7 @@ namespace Microsoft.ML.LightGBM
             if (!(groupType == NumberDataViewType.UInt32 || groupType is KeyType))
             {
                 throw ch.ExceptParam(nameof(data),
-                   $"Group column '{groupCol.Name}' is of type '{groupType}', but must be U4 or a Key.");
+                   $"Group column '{groupCol.Name}' is of type '{groupType.RawType}', but must be unsigned int.");
             }
         }
 
@@ -139,7 +139,7 @@ namespace Microsoft.ML.LightGBM
             Contracts.Assert(labelCol.IsValid);
 
             Action error =
-                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", labelCol.Name, "float or KeyType", labelCol.GetTypeString());
+                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", labelCol.Name, "float or unsigned int", labelCol.GetTypeString());
 
             if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
                 error();

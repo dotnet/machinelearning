@@ -258,7 +258,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Regression.Trainers.GeneralizedAdditiveModels(numIterations: 2));
+                .Append(mlContext.Regression.Trainers.GeneralizedAdditiveModels(numberOfIterations: 2));
 
             // Fit the pipeline and transform the data.
             var model = pipeline.Fit(data);

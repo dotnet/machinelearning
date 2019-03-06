@@ -125,18 +125,6 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [Fact]
-        [TestCategory("Binary")]
-        [TestCategory("SimpleLearners")]
-        public void BinaryRandomTest()
-        {
-            var predictors = new[] {
-                TestLearners.binaryRandom};
-            var datasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(predictors, datasets, extraSettings: new[] { "n=1" });
-            Done();
-        }
-
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
@@ -609,8 +597,8 @@ namespace Microsoft.ML.RunTests
                 fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
                 {
                     FeatureColumnName = "Features",
-                    NumTrees = 5,
-                    NumLeaves = 4,
+                    NumberOfTrees = 5,
+                    NumberOfLeaves = 4,
                     LabelColumnName = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel;
@@ -631,8 +619,8 @@ namespace Microsoft.ML.RunTests
                 fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
                 {
                     FeatureColumnName = "Features",
-                    NumTrees = 5,
-                    NumLeaves = 4,
+                    NumberOfTrees = 5,
+                    NumberOfLeaves = 4,
                     CategoricalSplit = true,
                     LabelColumnName = DefaultColumnNames.Label,
                     TrainingData = cat
@@ -731,8 +719,8 @@ namespace Microsoft.ML.RunTests
                 FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
                 {
                     FeatureColumnName = "Features",
-                    NumTrees = 5,
-                    NumLeaves = 4,
+                    NumberOfTrees = 5,
+                    NumberOfLeaves = 4,
                     LabelColumnName = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,
@@ -776,8 +764,8 @@ namespace Microsoft.ML.RunTests
                 LightGbm.TrainMultiClass(Env, new Options
                 {
                     FeatureColumnName = "Features",
-                    NumBoostRound = 5,
-                    NumLeaves = 4,
+                    NumberOfIterations = 5,
+                    NumberOfLeaves = 4,
                     LabelColumnName = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,
