@@ -59,9 +59,9 @@ namespace Microsoft.ML.Trainers
             [TlcModule.SweepableDiscreteParam("Oversampling", new object[] { 10, 20, 40 })]
             public int Oversampling = Defaults.OversamplingParameters;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "If enabled, data is centered to be zero mean", ShortName = "center")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "If enabled, data is centered to be zero mean", Name ="Center", ShortName = "center")]
             [TlcModule.SweepableDiscreteParam("Center", null, isBool: true)]
-            public bool Center = Defaults.IsCenteredZeroMean;
+            public bool EnsureZeroMean = Defaults.EnsureZeroMean;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The seed for random number generation", ShortName = "seed")]
             public int? Seed;
@@ -70,13 +70,13 @@ namespace Microsoft.ML.Trainers
             {
                 public const int NumComponents = 20;
                 public const int OversamplingParameters = 20;
-                public const bool IsCenteredZeroMean = true;
+                public const bool EnsureZeroMean = true;
             }
         }
 
         private readonly int _rank;
         private readonly int _oversampling;
-        private readonly bool _center;
+        private readonly bool _ensureZeroMean;
         private readonly int _seed;
         private readonly string _featureColumn;
 
@@ -90,20 +90,20 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="RandomizedPcaTrainer"/>.
         /// </summary>
         /// <param name="env">The local instance of the <see cref="IHostEnvironment"/>.</param>
-        /// <param name="features">The name of the feature column.</param>
-        /// <param name="weights">The name of the weight column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="exampleWeightColumnName">The name of the weight column.</param>
         /// <param name="rank">The number of components in the PCA.</param>
         /// <param name="oversampling">Oversampling parameter for randomized PCA training.</param>
-        /// <param name="center">If enabled, data is centered to be zero mean.</param>
+        /// <param name="ensureZeroMean">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation.</param>
         internal RandomizedPcaTrainer(IHostEnvironment env,
-            string features,
-            string weights = null,
+            string featureColumnName,
+            string exampleWeightColumnName = null,
             int rank = Options.Defaults.NumComponents,
             int oversampling = Options.Defaults.OversamplingParameters,
-            bool center = Options.Defaults.IsCenteredZeroMean,
+            bool ensureZeroMean = Options.Defaults.EnsureZeroMean,
             int? seed = null)
-            : this(env, null, features, weights, rank, oversampling, center, seed)
+            : this(env, null, featureColumnName, exampleWeightColumnName, rank, oversampling, ensureZeroMean, seed)
         {
 
         }
@@ -114,27 +114,27 @@ namespace Microsoft.ML.Trainers
 
         }
 
-        private RandomizedPcaTrainer(IHostEnvironment env, Options options, string featureColumn, string weightColumn,
+        private RandomizedPcaTrainer(IHostEnvironment env, Options options, string featureColumnName, string exampleWeightColumnName,
             int rank = 20, int oversampling = 20, bool center = true, int? seed = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn), default, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumnName), default, TrainerUtils.MakeR4ScalarWeightColumn(exampleWeightColumnName))
         {
             // if the args are not null, we got here from maml, and the internal ctor.
             if (options != null)
             {
                 _rank = options.Rank;
-                _center = options.Center;
+                _ensureZeroMean = options.EnsureZeroMean;
                 _oversampling = options.Oversampling;
                 _seed = options.Seed ?? Host.Rand.Next();
             }
             else
             {
                 _rank = rank;
-                _center = center;
+                _ensureZeroMean = center;
                 _oversampling = oversampling;
                 _seed = seed ?? Host.Rand.Next();
             }
 
-            _featureColumn = featureColumn;
+            _featureColumn = featureColumnName;
 
             Host.CheckUserArg(_rank > 0, nameof(_rank), "Rank must be positive");
             Host.CheckUserArg(_oversampling >= 0, nameof(_oversampling), "Oversampling must be non-negative");
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Trainers
                 ch.Info("Estimate memory usage: {0:G2} GB. If running out of memory, reduce rank and oversampling factor.", memoryUsageEstimate);
 
             var y = Zeros(oversampledRank, dimension);
-            var mean = _center ? VBufferUtils.CreateDense<float>(dimension) : VBufferUtils.CreateEmpty<float>(dimension);
+            var mean = _ensureZeroMean ? VBufferUtils.CreateDense<float>(dimension) : VBufferUtils.CreateEmpty<float>(dimension);
 
             var omega = GaussianMatrix(oversampledRank, dimension, _seed);
 

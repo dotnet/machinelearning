@@ -50,7 +50,7 @@ namespace Microsoft.ML.Transforms
             public int Oversampling = PrincipalComponentAnalysisEstimator.Defaults.Oversampling;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "If enabled, data is centered to be zero mean")]
-            public bool Center = PrincipalComponentAnalysisEstimator.Defaults.Center;
+            public bool Center = PrincipalComponentAnalysisEstimator.Defaults.EnsureZeroMean;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The seed for random number generation")]
             public int Seed = PrincipalComponentAnalysisEstimator.Defaults.Seed;
@@ -333,7 +333,7 @@ namespace Microsoft.ML.Transforms
                     }
                 }
 
-                if (columns[iinfo].Center)
+                if (columns[iinfo].EnsureZeroMean)
                     mean[iinfo] = new float[transformInfos[iinfo].Dimension];
             }
             if (totalMemoryUsageEstimate > 2)
@@ -624,7 +624,7 @@ namespace Microsoft.ML.Transforms
             public const string WeightColumn = null;
             public const int Rank = 20;
             public const int Oversampling = 20;
-            public const bool Center = true;
+            public const bool EnsureZeroMean = true;
             public const int Seed = 0;
         }
 
@@ -656,7 +656,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// If enabled, data is centered to be zero mean.
             /// </summary>
-            public readonly bool Center;
+            public readonly bool EnsureZeroMean;
             /// <summary>
             /// The seed for random number generation.
             /// </summary>
@@ -671,14 +671,14 @@ namespace Microsoft.ML.Transforms
             /// <param name="weightColumn">The name of the weight column.</param>
             /// <param name="rank">The number of components in the PCA.</param>
             /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
-            /// <param name="center">If enabled, data is centered to be zero mean.</param>
+            /// <param name="ensureZeroMean">If enabled, data is centered to be zero mean.</param>
             /// <param name="seed">The random seed. If unspecified random state will be instead derived from the <see cref="MLContext"/>.</param>
             public ColumnOptions(string name,
                               string inputColumnName = null,
                               string weightColumn = Defaults.WeightColumn,
                               int rank = Defaults.Rank,
                               int overSampling = Defaults.Oversampling,
-                              bool center = Defaults.Center,
+                              bool ensureZeroMean = Defaults.EnsureZeroMean,
                               int? seed = null)
             {
                 Name = name;
@@ -686,7 +686,7 @@ namespace Microsoft.ML.Transforms
                 WeightColumn = weightColumn;
                 Rank = rank;
                 Oversampling = overSampling;
-                Center = center;
+                EnsureZeroMean = ensureZeroMean;
                 Seed = seed;
                 Contracts.CheckParam(Oversampling >= 0, nameof(Oversampling), "Oversampling must be non-negative.");
                 Contracts.CheckParam(Rank > 0, nameof(Rank), "Rank must be positive.");
@@ -704,15 +704,15 @@ namespace Microsoft.ML.Transforms
         /// <param name="weightColumn">The name of the weight column.</param>
         /// <param name="rank">The number of components in the PCA.</param>
         /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
-        /// <param name="center">If enabled, data is centered to be zero mean.</param>
+        /// <param name="ensureZeroMean">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation.</param>
         internal PrincipalComponentAnalysisEstimator(IHostEnvironment env,
             string outputColumnName,
             string inputColumnName = null,
             string weightColumn = Defaults.WeightColumn, int rank = Defaults.Rank,
-            int overSampling = Defaults.Oversampling, bool center = Defaults.Center,
+            int overSampling = Defaults.Oversampling, bool ensureZeroMean = Defaults.EnsureZeroMean,
             int? seed = null)
-            : this(env, new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, weightColumn, rank, overSampling, center, seed))
+            : this(env, new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, weightColumn, rank, overSampling, ensureZeroMean, seed))
         {
         }
 
