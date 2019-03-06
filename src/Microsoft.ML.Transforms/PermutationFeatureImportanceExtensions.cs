@@ -338,7 +338,10 @@ namespace Microsoft.ML
 
         #endregion
     }
+}
 
+namespace Microsoft.ML.Data
+{
     #region MetricsStatistics
 
     /// <summary>
