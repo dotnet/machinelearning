@@ -402,6 +402,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// The model parameters class for linear binary trainer estimators.
+    /// </summary>
     public sealed partial class LinearBinaryModelParameters : LinearModelParameters,
         ICanGetSummaryInKeyValuePairs,
         IParameterMixer<float>
@@ -577,6 +580,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// The model parameters class for linear regression.
+    /// </summary>
     public sealed class LinearRegressionModelParameters : RegressionModelParameters,
         IParameterMixer<float>,
         ICanGetSummaryInKeyValuePairs

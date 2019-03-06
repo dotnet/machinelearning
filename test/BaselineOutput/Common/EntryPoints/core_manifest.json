@@ -15011,11 +15011,12 @@
       "ShortName": "SDCA",
       "Inputs": [
         {
-          "Name": "L2Const",
+          "Name": "L2Regularization",
           "Type": "Float",
           "Desc": "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.",
           "Aliases": [
-            "l2"
+            "l2",
+            "L2Const"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -15149,13 +15150,14 @@
           }
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.",
           "Aliases": [
             "nt",
             "t",
-            "threads"
+            "threads",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -15219,11 +15221,12 @@
           }
         },
         {
-          "Name": "MaxIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [
-            "iter"
+            "iter",
+            "MaxIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -15259,11 +15262,12 @@
           }
         },
         {
-          "Name": "CheckFrequency",
+          "Name": "ConvergenceCheckFrequency",
           "Type": "Int",
           "Desc": "Convergence check frequency (in terms of number of iterations). Set as negative or zero for not checking at all. If left blank, it defaults to check after every 'numThreads' iterations.",
           "Aliases": [
-            "checkFreq"
+            "checkFreq",
+            "CheckFrequency"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -15315,11 +15319,12 @@
       "ShortName": "sasdcamc",
       "Inputs": [
         {
-          "Name": "L2Const",
+          "Name": "L2Regularization",
           "Type": "Float",
           "Desc": "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.",
           "Aliases": [
-            "l2"
+            "l2",
+            "L2Const"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -15453,13 +15458,14 @@
           }
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.",
           "Aliases": [
             "nt",
             "t",
-            "threads"
+            "threads",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -15488,11 +15494,12 @@
           }
         },
         {
-          "Name": "MaxIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [
-            "iter"
+            "iter",
+            "MaxIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -15528,11 +15535,12 @@
           }
         },
         {
-          "Name": "CheckFrequency",
+          "Name": "ConvergenceCheckFrequency",
           "Type": "Int",
           "Desc": "Convergence check frequency (in terms of number of iterations). Set as negative or zero for not checking at all. If left blank, it defaults to check after every 'numThreads' iterations.",
           "Aliases": [
-            "checkFreq"
+            "checkFreq",
+            "CheckFrequency"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -15584,11 +15592,12 @@
       "ShortName": "sasdcar",
       "Inputs": [
         {
-          "Name": "L2Const",
+          "Name": "L2Regularization",
           "Type": "Float",
           "Desc": "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.",
           "Aliases": [
-            "l2"
+            "l2",
+            "L2Const"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -15722,13 +15731,14 @@
           }
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.",
           "Aliases": [
             "nt",
             "t",
-            "threads"
+            "threads",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -15757,11 +15767,12 @@
           }
         },
         {
-          "Name": "MaxIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [
-            "iter"
+            "iter",
+            "MaxIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -15797,11 +15808,12 @@
           }
         },
         {
-          "Name": "CheckFrequency",
+          "Name": "ConvergenceCheckFrequency",
           "Type": "Int",
           "Desc": "Convergence check frequency (in terms of number of iterations). Set as negative or zero for not checking at all. If left blank, it defaults to check after every 'numThreads' iterations.",
           "Aliases": [
-            "checkFreq"
+            "checkFreq",
+            "CheckFrequency"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -15956,11 +15968,12 @@
           }
         },
         {
-          "Name": "L2Weight",
+          "Name": "L2Regularization",
           "Type": "Float",
           "Desc": "L2 Regularization constant",
           "Aliases": [
-            "l2"
+            "l2",
+            "L2Weight"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -15978,13 +15991,14 @@
           }
         },
         {
-          "Name": "NumThreads",
+          "Name": "NumberOfThreads",
           "Type": "Int",
           "Desc": "Degree of lock-free parallelism. Defaults to automatic depending on data sparseness. Determinism not guaranteed.",
           "Aliases": [
             "nt",
             "t",
-            "threads"
+            "threads",
+            "NumThreads"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -16036,11 +16050,12 @@
           }
         },
         {
-          "Name": "MaxIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning.",
           "Aliases": [
-            "iter"
+            "iter",
+            "MaxIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -16057,12 +16072,13 @@
           }
         },
         {
-          "Name": "InitLearningRate",
+          "Name": "InitialLearningRate",
           "Type": "Float",
           "Desc": "Initial learning rate (only used by SGD)",
           "Aliases": [
             "ilr",
-            "lr"
+            "lr",
+            "InitLearningRate"
           ],
           "Required": false,
           "SortOrder": 150.0,
