@@ -730,7 +730,7 @@ namespace Microsoft.ML.Transforms
                     var originalShape = _parent.TFInputShapes[i];
                     var shape = originalShape.ToIntArray();
 
-                    var colTypeDims = vecType.Dimensions.Select(dim => (long)dim).ToArray();
+                    var colTypeDims = vecType.Dimensions.Prepend(1).Select(dim => (long)dim).ToArray();
                     if (shape == null)
                         _fullySpecifiedShapes[i] = new TFShape(colTypeDims);
                     else
