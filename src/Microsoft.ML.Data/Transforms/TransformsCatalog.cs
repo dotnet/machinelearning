@@ -31,9 +31,14 @@ namespace Microsoft.ML
         public TextTransforms Text { get; }
 
         /// <summary>
-        /// The list of operations for data projection.
+        /// The list of operations for applying kernel methods.
         /// </summary>
-        public ProjectionTransforms Projection { get; }
+        public KernelTransforms Kernel { get; }
+
+        /// <summary>
+        /// The list of operations for data normalization.
+        /// </summary>
+        public NormalizationTransforms Normalization { get; }
 
         /// <summary>
         /// The list of operations for selecting features based on some criteria.
@@ -48,8 +53,9 @@ namespace Microsoft.ML
             Categorical = new CategoricalTransforms(this);
             Conversion = new ConversionTransforms(this);
             Text = new TextTransforms(this);
-            Projection = new ProjectionTransforms(this);
+            Kernel = new KernelTransforms(this);
             FeatureSelection = new FeatureSelectionTransforms(this);
+            Normalization = new NormalizationTransforms(this);
         }
 
         /// <summary>
@@ -95,14 +101,14 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// The catalog of projection operations.
+        /// The catalog of kernel methods.
         /// </summary>
-        public sealed class ProjectionTransforms : IInternalCatalog
+        public sealed class KernelTransforms : IInternalCatalog
         {
             IHostEnvironment IInternalCatalog.Environment => _env;
             private readonly IHostEnvironment _env;
 
-            internal ProjectionTransforms(TransformsCatalog owner)
+            internal KernelTransforms(TransformsCatalog owner)
             {
                 _env = owner.GetEnvironment();
             }
@@ -117,6 +123,20 @@ namespace Microsoft.ML
             private readonly IHostEnvironment _env;
 
             internal FeatureSelectionTransforms(TransformsCatalog owner)
+            {
+                _env = owner.GetEnvironment();
+            }
+        }
+
+        /// <summary>
+        /// The catalog of normalization.
+        /// </summary>
+        public sealed class NormalizationTransforms : IInternalCatalog
+        {
+            IHostEnvironment IInternalCatalog.Environment => _env;
+            private readonly IHostEnvironment _env;
+
+            internal NormalizationTransforms(TransformsCatalog owner)
             {
                 _env = owner.GetEnvironment();
             }

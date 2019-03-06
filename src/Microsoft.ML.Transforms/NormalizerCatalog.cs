@@ -1,46 +1,58 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-using Microsoft.ML.Data;
+﻿using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {
     /// <summary>
-    /// The catalog of projection transformations.
+    /// Extensions for normalizer operations.
     /// </summary>
-    public static class ProjectionCatalog
+    public static class NormalizerCatalog
     {
         /// <summary>
-        /// Takes column filled with a vector of floats and maps its to a random low-dimensional feature space.
+        /// Normalize (rescale) the column according to the specified <paramref name="mode"/>.
         /// </summary>
-        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="catalog">The transform catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="dimension">The number of random Fourier features to create.</param>
-        /// <param name="useCosAndSinBases">If <see langword="true"/>, use both of cos and sin basis functions to create two features for every random Fourier frequency.  /// Otherwise, only cos bases would be used.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="mode">The <see cref="NormalizingEstimator.NormalizerMode"/> used to map the old values in the new scale. </param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[CreateRandomFourierFeatures](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ProjectionTransforms.cs?range=1-6,12-112)]
+        /// [!code-csharp[Normalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Normalizer.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public static RandomFourierFeaturizingEstimator CreateRandomFourierFeatures(this TransformsCatalog.ProjectionTransforms catalog,
-            string outputColumnName,
-            string inputColumnName = null,
-            int dimension = RandomFourierFeaturizingEstimator.Defaults.Dimension,
-            bool useCosAndSinBases = RandomFourierFeaturizingEstimator.Defaults.UseCosAndSinBases)
-            => new RandomFourierFeaturizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, dimension, useCosAndSinBases);
+        public static NormalizingEstimator Normalize(this TransformsCatalog.NormalizationTransforms catalog,
+           string outputColumnName, string inputColumnName = null,
+            NormalizingEstimator.NormalizerMode mode = NormalizingEstimator.NormalizerMode.MinMax)
+            => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName ?? outputColumnName, mode);
 
         /// <summary>
-        /// Takes columns filled with a vector of floats and maps its to a random low-dimensional feature space.
+        /// Normalize (rescale) several columns according to the specified <paramref name="mode"/>.
         /// </summary>
-        /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="columns">The input columns to use for the transformation.</param>
-        public static RandomFourierFeaturizingEstimator CreateRandomFourierFeatures(this TransformsCatalog.ProjectionTransforms catalog, params RandomFourierFeaturizingEstimator.ColumnOptions[] columns)
-            => new RandomFourierFeaturizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+        /// <param name="catalog">The transform catalog</param>
+        /// <param name="mode">The <see cref="NormalizingEstimator.NormalizerMode"/> used to map the old values to the new ones. </param>
+        /// <param name="columns">The pairs of input and output columns.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Normalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Normalizer.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static NormalizingEstimator Normalize(this TransformsCatalog.NormalizationTransforms catalog,
+            NormalizingEstimator.NormalizerMode mode,
+            params ColumnOptions[] columns)
+            => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), mode, ColumnOptions.ConvertToValueTuples(columns));
+
+        /// <summary>
+        /// Normalize (rescale) columns according to specified custom parameters.
+        /// </summary>
+        /// <param name="catalog">The transform catalog</param>
+        /// <param name="columns">The normalization settings for all the columns</param>
+        public static NormalizingEstimator Normalize(this TransformsCatalog.NormalizationTransforms catalog,
+            params NormalizingEstimator.ColumnOptionsBase[] columns)
+            => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
         /// Takes column filled with a vector of floats and normazlize its <paramref name="normKind"/> to one. By setting <paramref name="ensureZeroMean"/> to <see langword="true"/>,
@@ -58,7 +70,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static LpNormalizingEstimator LpNormalize(this TransformsCatalog.ProjectionTransforms catalog, string outputColumnName, string inputColumnName = null,
+        public static LpNormalizingEstimator LpNormalize(this TransformsCatalog.NormalizationTransforms catalog, string outputColumnName, string inputColumnName = null,
             LpNormalizingEstimatorBase.NormKind normKind = LpNormalizingEstimatorBase.Defaults.Norm, bool ensureZeroMean = LpNormalizingEstimatorBase.Defaults.LpEnsureZeroMean)
             => new LpNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, normKind, ensureZeroMean);
 
@@ -67,7 +79,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of the lp-normalization process for each column pair.</param>
-        public static LpNormalizingEstimator LpNormalize(this TransformsCatalog.ProjectionTransforms catalog, params LpNormalizingEstimator.LpNormColumnOptions[] columns)
+        public static LpNormalizingEstimator LpNormalize(this TransformsCatalog.NormalizationTransforms catalog, params LpNormalizingEstimator.LpNormColumnOptions[] columns)
             => new LpNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -87,7 +99,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static GlobalContrastNormalizingEstimator GlobalContrastNormalize(this TransformsCatalog.ProjectionTransforms catalog, string outputColumnName, string inputColumnName = null,
+        public static GlobalContrastNormalizingEstimator GlobalContrastNormalize(this TransformsCatalog.NormalizationTransforms catalog, string outputColumnName, string inputColumnName = null,
              bool ensureZeroMean = LpNormalizingEstimatorBase.Defaults.GcnEnsureZeroMean,
              bool ensureUnitStandardDeviation = LpNormalizingEstimatorBase.Defaults.EnsureUnitStdDev,
              float scale = LpNormalizingEstimatorBase.Defaults.Scale)
@@ -98,7 +110,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of the gcn-normaliztion process for each column pair.</param>
-        public static GlobalContrastNormalizingEstimator GlobalContrastNormalize(this TransformsCatalog.ProjectionTransforms catalog, params GlobalContrastNormalizingEstimator.GcnColumnOptions[] columns)
+        public static GlobalContrastNormalizingEstimator GlobalContrastNormalize(this TransformsCatalog.NormalizationTransforms catalog, params GlobalContrastNormalizingEstimator.GcnColumnOptions[] columns)
             => new GlobalContrastNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

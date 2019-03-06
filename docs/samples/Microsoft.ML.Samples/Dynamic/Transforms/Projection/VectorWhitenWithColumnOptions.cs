@@ -39,7 +39,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
 
             // A pipeline to project Features column into white noise vector.
-            var whiteningPipeline = ml.Transforms.Projection.VectorWhiten(new Transforms.VectorWhiteningEstimator.ColumnOptions(
+            var whiteningPipeline = ml.Transforms.Kernel.VectorWhiten(new Transforms.VectorWhiteningEstimator.ColumnOptions(
                 nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), kind: Transforms.WhiteningKind.Pca, pcaNum: 4));
             // The transformed (projected) data.
             var transformedData = whiteningPipeline.Fit(trainData).Transform(trainData);

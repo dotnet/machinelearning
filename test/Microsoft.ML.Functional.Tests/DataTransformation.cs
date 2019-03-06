@@ -175,7 +175,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Compose the transformation.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
-                .Append(mlContext.Transforms.Normalize("Features", mode: NormalizingEstimator.NormalizerMode.MinMax));
+                .Append(mlContext.Transforms.Normalization.Normalize("Features", mode: NormalizingEstimator.NormalizerMode.MinMax));
             
             // Transform the data.
             var transformedData = pipeline.Fit(data).Transform(data);
