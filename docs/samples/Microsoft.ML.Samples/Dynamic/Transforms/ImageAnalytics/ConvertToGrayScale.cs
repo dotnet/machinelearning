@@ -8,6 +8,8 @@ namespace Microsoft.ML.Samples.Dynamic
         // Sample that loads images from the file system, and converts them to grayscale. 
         public static void Example()
         {
+            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
+            // as well as the source of randomness.
             var mlContext = new MLContext();
 
             // Downloading a few images, and an images.tsv file, which contains a list of the files from the dotnet/machinelearning/test/data/images/.

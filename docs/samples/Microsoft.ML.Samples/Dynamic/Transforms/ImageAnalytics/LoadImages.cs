@@ -8,6 +8,8 @@ namespace Microsoft.ML.Samples.Dynamic
         // Loads the images of the imagesFolder into an IDataView. 
         public static void Example()
         {
+            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
+            // as well as the source of randomness.
             var mlContext = new MLContext();
 
             // Downloading a few images, and an images.tsv file, which contains a list of the files from the dotnet/machinelearning/test/data/images/.
