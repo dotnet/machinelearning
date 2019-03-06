@@ -43,7 +43,7 @@ NOTE: Do not copy the libiomp5 file for Linux builds as this relies on OpenMP to
 6. Run make intel64 name=libMklImports (add threading=sequential if you are building without openmp)
 
 ##OSX
-NOTE: Do not copy the libiomp5 file for Linux builds as this relies on OpenMP to be installed on the system.
+NOTE: Do not copy the libiomp5 file for OSX builds as this relies on OpenMP to be installed on the system.
 1. extract and install the dmg (double-click and drag it in the Applications folder)
 2. Go to /opt/mkl/tools/builder.
 3. Modify user_example_list file in directory to contain all the required functions, that are present in the [mlnetmkl.list](mlnetmkl.list) file
