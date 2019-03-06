@@ -44,13 +44,14 @@ namespace Microsoft.ML
             => new RandomFourierFeaturizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
-        /// Takes column filled with a vector of floats and computes L-p norm of it.
+        /// Takes column filled with a vector of floats and normazlize its <paramref name="normKind"/> to one. By setting <paramref name="ensureZeroMean"/> to <see langword="true"/>,
+        /// a pre-processing step would be applied to make the specified column's mean be a zero vector.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="normKind">Type of norm to use to normalize each sample.</param>
-        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+        /// <param name="ensureZeroMean">If <see langword="true"/>, subtract mean from each value before normalizing and use the raw input otherwise.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -59,11 +60,11 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static LpNormalizingEstimator LpNormalize(this TransformsCatalog.ProjectionTransforms catalog, string outputColumnName, string inputColumnName = null,
-            LpNormalizingEstimatorBase.NormalizerKind normKind = LpNormalizingEstimatorBase.Defaults.NormKind, bool subMean = LpNormalizingEstimatorBase.Defaults.LpSubstractMean)
-            => new LpNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, normKind, subMean);
+            LpNormalizingEstimatorBase.NormKind normKind = LpNormalizingEstimatorBase.Defaults.Norm, bool ensureZeroMean = LpNormalizingEstimatorBase.Defaults.LpEnsureZeroMean)
+            => new LpNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, normKind, ensureZeroMean);
 
         /// <summary>
-        /// Takes columns filled with a vector of floats and computes L-p norm of it.
+        /// Takes column filled with a vector of floats and normazlize its norm to one. Note that the allowed norm functions are defined in <see cref="LpNormalizingEstimatorBase.NormKind"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of the lp-normalization process for each column pair.</param>
@@ -87,7 +88,7 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static GlobalContrastNormalizingEstimator GlobalContrastNormalize(this TransformsCatalog.ProjectionTransforms catalog, string outputColumnName, string inputColumnName = null,
-             bool substractMean = LpNormalizingEstimatorBase.Defaults.GcnSubstractMean,
+             bool substractMean = LpNormalizingEstimatorBase.Defaults.GcnEnsureZeroMean,
              bool useStdDev = LpNormalizingEstimatorBase.Defaults.UseStdDev,
              float scale = LpNormalizingEstimatorBase.Defaults.Scale)
             => new GlobalContrastNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, substractMean, useStdDev, scale);

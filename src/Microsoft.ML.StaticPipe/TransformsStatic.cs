@@ -65,7 +65,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
         /// <param name="scale">Scale features by this value.</param>
         public static Vector<float> GlobalContrastNormalize(this Vector<float> input,
-            bool subMean = LpNormalizingEstimatorBase.Defaults.GcnSubstractMean,
+            bool subMean = LpNormalizingEstimatorBase.Defaults.GcnEnsureZeroMean,
             bool useStdDev = LpNormalizingEstimatorBase.Defaults.UseStdDev,
             float scale = LpNormalizingEstimatorBase.Defaults.Scale) => new OutPipelineColumn(input, subMean, useStdDev, scale);
     }

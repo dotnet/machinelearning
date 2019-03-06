@@ -201,21 +201,21 @@ namespace Microsoft.ML.Transforms.Text
             public StopWordsRemovingEstimator.Language StopwordsLanguage
                 => (StopWordsRemovingEstimator.Language)Enum.Parse(typeof(StopWordsRemovingEstimator.Language), Language.ToString());
 
-            public LpNormalizingEstimatorBase.NormalizerKind LpNormalizerKind
+            public LpNormalizingEstimatorBase.NormKind LpNormalizerKind
             {
                 get
                 {
                     switch (VectorNormalizer)
                     {
                         case TextNormKind.L1:
-                            return LpNormalizingEstimatorBase.NormalizerKind.L1Norm;
+                            return LpNormalizingEstimatorBase.NormKind.L1Norm;
                         case TextNormKind.L2:
-                            return LpNormalizingEstimatorBase.NormalizerKind.L2Norm;
+                            return LpNormalizingEstimatorBase.NormKind.L2Norm;
                         case TextNormKind.LInf:
-                            return LpNormalizingEstimatorBase.NormalizerKind.LInf;
+                            return LpNormalizingEstimatorBase.NormKind.LInf;
                         default:
                             Contracts.Assert(false, "Unexpected normalizer type");
-                            return LpNormalizingEstimatorBase.NormalizerKind.L2Norm;
+                            return LpNormalizingEstimatorBase.NormKind.L2Norm;
                     }
                 }
             }
@@ -447,7 +447,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var dstCol = GenerateColumnName(view.Schema, charFeatureCol, "LpCharNorm");
                     tempCols.Add(dstCol);
-                    xfCols.Add(new LpNormalizingEstimator.LpNormColumnOptions(dstCol, charFeatureCol, normalizerKind: tparams.LpNormalizerKind));
+                    xfCols.Add(new LpNormalizingEstimator.LpNormColumnOptions(dstCol, charFeatureCol, normKind: tparams.LpNormalizerKind));
                     charFeatureCol = dstCol;
                 }
 
@@ -455,7 +455,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var dstCol = GenerateColumnName(view.Schema, wordFeatureCol, "LpWordNorm");
                     tempCols.Add(dstCol);
-                    xfCols.Add(new LpNormalizingEstimator.LpNormColumnOptions(dstCol, wordFeatureCol, normalizerKind: tparams.LpNormalizerKind));
+                    xfCols.Add(new LpNormalizingEstimator.LpNormColumnOptions(dstCol, wordFeatureCol, normKind: tparams.LpNormalizerKind));
                     wordFeatureCol = dstCol;
                 }
 
