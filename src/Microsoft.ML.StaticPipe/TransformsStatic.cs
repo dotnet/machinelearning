@@ -1612,7 +1612,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="generator">Which kernel to use. (if it is null, <see cref="GaussianKernel"/> is used.)</param>
         /// <param name="seed">The seed of the random number generator for generating the new features. If not specified global random would be used.</param>
         public static Vector<float> LowerVectorSizeWithRandomFourierTransformation(this Vector<float> input,
-            int newDim = RandomFourierFeaturizingEstimator.Defaults.NewDim, bool useSin = RandomFourierFeaturizingEstimator.Defaults.UseSin,
+            int newDim = RandomFourierFeaturizingEstimator.Defaults.Dimension, bool useSin = RandomFourierFeaturizingEstimator.Defaults.UseCosAndSinBases,
             KernelBase generator = null, int? seed = null)
         {
             Contracts.CheckValue(input, nameof(input));

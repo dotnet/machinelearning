@@ -18,8 +18,9 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="newDim">The number of random Fourier features to create.</param>
-        /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
+        /// <param name="dimension">The number of random Fourier features to create.</param>
+        /// <param name="useCosAndSinBases">If <see langword="true"/>, use both of cos and sin basis functions to create two features for every random Fourier frequency.
+        /// Otherwise, only cos bases would be used.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -30,9 +31,9 @@ namespace Microsoft.ML
         public static RandomFourierFeaturizingEstimator CreateRandomFourierFeatures(this TransformsCatalog.ProjectionTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
-            int newDim = RandomFourierFeaturizingEstimator.Defaults.NewDim,
-            bool useSin = RandomFourierFeaturizingEstimator.Defaults.UseSin)
-            => new RandomFourierFeaturizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, newDim, useSin);
+            int dimension = RandomFourierFeaturizingEstimator.Defaults.Dimension,
+            bool useCosAndSinBases = RandomFourierFeaturizingEstimator.Defaults.UseCosAndSinBases)
+            => new RandomFourierFeaturizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, dimension, useCosAndSinBases);
 
         /// <summary>
         /// Takes columns filled with a vector of floats and maps its to a random low-dimensional feature space.
