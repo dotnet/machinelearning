@@ -3,11 +3,13 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public static class ResizeImages
+    public static class ConvertToGrayscale
     {
-        // Example on how to load the images from the file system, and resize them. 
+        // Sample that loads images from the file system, and converts them to grayscale. 
         public static void Example()
         {
+            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
+            // as well as the source of randomness.
             var mlContext = new MLContext();
 
             // Downloading a few images, and an images.tsv file, which contains a list of the files from the dotnet/machinelearning/test/data/images/.
@@ -29,29 +31,28 @@ namespace Microsoft.ML.Samples.Dynamic
                 {
                         new TextLoader.Column("ImagePath", DataKind.String, 0),
                         new TextLoader.Column("Name", DataKind.String, 1),
-                }
+                 }
             }).Load(imagesDataFile);
 
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
             // Image loading pipeline. 
-            var pipeline = mlContext.Transforms.LoadImages(imagesFolder, ("ImageReal", "ImagePath"))
-                        .Append(mlContext.Transforms.ResizeImages("ImageReal", imageWidth: 100, imageHeight: 100));
-                                
+            var pipeline = mlContext.Transforms.LoadImages(imagesFolder, ("ImageObject", "ImagePath"))
+                           .Append(mlContext.Transforms.ConvertToGrayscale(("Grayscale", "ImageObject")));
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
-            // The transformedData IDataView contains the loaded images now
-            //Preview of the transformedData
+            // The transformedData IDataView contains the loaded images column, and the grayscaled column.
+            // Preview of the transformedData
             var transformedDataPreview = transformedData.Preview();
 
             // Preview of the content of the images.tsv file
-            // The actual images, in the ImageReal column are of type System.Drawing.Bitmap.
+            // The actual images, in the Grayscale column are of type System.Drawing.Bitmap.
             //
-            // ImagePath    Name        ImageReal
-            // tomato.bmp   tomato      {System.Drawing.Bitmap}
-            // banana.jpg   banana      {System.Drawing.Bitmap}
-            // hotdog.jpg   hotdog      {System.Drawing.Bitmap}
-            // tomato.jpg   tomato      {System.Drawing.Bitmap}
+            // ImagePath    Name        ImageObject                   Grayscale
+            // tomato.bmp   tomato      {System.Drawing.Bitmap}     {System.Drawing.Bitmap}
+            // banana.jpg   banana      {System.Drawing.Bitmap}     {System.Drawing.Bitmap}
+            // hotdog.jpg   hotdog      {System.Drawing.Bitmap}     {System.Drawing.Bitmap}
+            // tomato.jpg   tomato      {System.Drawing.Bitmap}     {System.Drawing.Bitmap}
 
         }
     }
