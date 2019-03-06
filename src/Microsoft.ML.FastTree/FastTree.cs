@@ -245,7 +245,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        private protected virtual bool ShouldStop(IChannel ch, ref IEarlyStoppingCriterion earlyStopping, ref int bestIteration)
+        private protected virtual bool ShouldStop(IChannel ch, ref EarlyStoppingRuleBase earlyStopping, ref int bestIteration)
         {
             bestIteration = Ensemble.NumTrees;
             return false;
@@ -650,7 +650,7 @@ namespace Microsoft.ML.Trainers.FastTree
 #endif
 #endif
 
-            IEarlyStoppingCriterion earlyStoppingRule = null;
+            EarlyStoppingRuleBase earlyStoppingRule = null;
             int bestIteration = 0;
             int emptyTrees = 0;
             using (var pch = Host.StartProgressChannel("FastTree training"))
