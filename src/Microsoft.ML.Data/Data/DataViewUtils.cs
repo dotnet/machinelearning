@@ -334,7 +334,7 @@ namespace Microsoft.ML.Data
 
                 int[] activeToCol;
                 int[] colToActive;
-                Utils.BuildSubsetMaps(schema.Count, schema, cursor.IsColumnActive, out activeToCol, out colToActive);
+                Utils.BuildSubsetMaps(schema, cursor.IsColumnActive, out activeToCol, out colToActive);
 
                 // Because the schema of the consolidator is not necessary fixed, we are merely
                 // opportunistic about buffer sharing, from cursoring to cursoring. If we can do
@@ -517,7 +517,7 @@ namespace Microsoft.ML.Data
                 // Create the mappings between active column index, and column index.
                 int[] activeToCol;
                 int[] colToActive;
-                Utils.BuildSubsetMaps(_schema.Count, _schema, input.IsColumnActive, out activeToCol, out colToActive);
+                Utils.BuildSubsetMaps(_schema, input.IsColumnActive, out activeToCol, out colToActive);
 
                 Func<DataViewRowCursor, int, InPipe> createFunc = CreateInPipe<int>;
                 var inGenMethod = createFunc.GetMethodInfo().GetGenericMethodDefinition();
@@ -1116,7 +1116,7 @@ namespace Microsoft.ML.Data
                 /// This throws if the column is not active in this row, or if the type
                 /// <typeparamref name="TValue"/> differs from this column's type.
                 /// </summary>
-                /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+                /// <typeparam name="TValue"> is the column's content type.</typeparam>
                 /// <param name="column"> is the output column whose getter should be returned.</param>
                 public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
@@ -1180,7 +1180,7 @@ namespace Microsoft.ML.Data
                 _cursors = cursors;
                 _schema = _cursors[0].Schema;
 
-                Utils.BuildSubsetMaps(_schema.Count, _schema, _cursors[0].IsColumnActive, out _activeToCol, out _colToActive);
+                Utils.BuildSubsetMaps(_schema, _cursors[0].IsColumnActive, out _activeToCol, out _colToActive);
 
                 Func<int, Delegate> func = CreateGetter<int>;
                 _methInfo = func.GetMethodInfo().GetGenericMethodDefinition();
@@ -1307,7 +1307,7 @@ namespace Microsoft.ML.Data
             /// This throws if the column is not active in this row, or if the type
             /// <typeparamref name="TValue"/> differs from this column's type.
             /// </summary>
-            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {

@@ -1076,7 +1076,7 @@ namespace Microsoft.ML.Data
             out int stratCol, out int stratVal, out int foldCol, out AggregatedMetric[] weightedAgg)
         {
             var isWeightedColumn = data.Schema.GetColumnOrNull(MetricKinds.ColumnNames.IsWeighted);
-            var hasWeighted = isWeightedColumn != null && isWeightedColumn.HasValue;
+            var hasWeighted = isWeightedColumn.HasValue;
             var hasStrats = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratCol, out int scol);
             var hasStratVals = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out int svalcol);
             env.Assert(hasStrats == hasStratVals);
@@ -1155,7 +1155,7 @@ namespace Microsoft.ML.Data
                             throw Contracts.Except("Multiple unweighted rows found in metrics data view.");
 
                         numResults++;
-                        UpdateSums(isWeightedColumn.Value.Index, stratCol, stratVal, agg, numFolds > 1, metricNames, hasWeighted, hasStrats,
+                        UpdateSums(isWeightedCol, stratCol, stratVal, agg, numFolds > 1, metricNames, hasWeighted, hasStrats,
                             colCount, getters, vBufferGetters, ref metricVal, ref metricVals);
                     }
 

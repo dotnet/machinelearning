@@ -132,7 +132,7 @@ namespace Microsoft.Data.DataView
         public abstract ValueGetter<DataViewRowId> GetIdGetter();
 
         /// <summary>
-        /// Returns whether the give column is active in this row.
+        /// Returns whether the given column is active in this row.
         /// </summary>
         public abstract bool IsColumnActive(DataViewSchema.Column column);
 
@@ -141,7 +141,7 @@ namespace Microsoft.Data.DataView
         /// This throws if the column is not active in this row, or if the type
         /// <typeparamref name="TValue"/> differs from this column's type.
         /// </summary>
-        /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+        /// <typeparam name="TValue"> is the column's content type.</typeparam>
         /// <param name="column"> is the output column whose getter should be returned.</param>
         public abstract ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column);
 

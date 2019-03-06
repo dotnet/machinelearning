@@ -205,7 +205,7 @@ namespace Microsoft.ML.Transforms
             /// This throws if the column is not active in this row, or if the type
             /// <typeparamref name="TValue"/> differs from this column's type.
             /// </summary>
-            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
             /// <param name="column"> is the output column whose getter should be returned.</param>
             public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
