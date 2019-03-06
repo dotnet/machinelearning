@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageDescription>ML.NET additional learners making use of hardware acceleration. They use Intel Mkl.</PackageDescription>
+    <PackageDescription>ML.NET additional learners making use of Intel Mkl.</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
-	<ProjectReference Include="../Microsoft.ML.Mkl.Redist/Microsoft.ML.Mkl.Redist.nupkgproj" />
+    <ProjectReference Include="../Microsoft.ML.Mkl.Redist/Microsoft.ML.Mkl.Redist.nupkgproj" />
   </ItemGroup>
 
   <ItemGroup> 

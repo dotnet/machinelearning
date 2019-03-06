@@ -677,7 +677,7 @@ namespace Microsoft.ML.SamplesUtils
         }
 
         /// <summary>
-        /// Helper function used to generate random <see cref="GenerateRandomMulticlassClassificationExamples"/>s.
+        /// Helper function used to generate random <see cref="MulticlassClassificationExample"/> objects.
         /// </summary>
         /// <param name="count">Number of generated examples.</param>
         /// <returns>A list of random examples.</returns>

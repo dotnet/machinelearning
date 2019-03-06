@@ -15,7 +15,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Trainers.HalLearners;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(OrdinaryLeastSquaresRegressionTrainer.Summary, typeof(OrdinaryLeastSquaresRegressionTrainer), typeof(OrdinaryLeastSquaresRegressionTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -29,7 +29,7 @@ using Microsoft.ML.Trainers.HalLearners;
 
 [assembly: LoadableClass(typeof(void), typeof(OrdinaryLeastSquaresRegressionTrainer), null, typeof(SignatureEntryPointModule), OrdinaryLeastSquaresRegressionTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Trainers.HalLearners
+namespace Microsoft.ML.Trainers
 {
     /// <include file='doc.xml' path='doc/members/member[@name="OLS"]/*' />
     public sealed class OrdinaryLeastSquaresRegressionTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OlsLinearRegressionModelParameters>, OlsLinearRegressionModelParameters>
