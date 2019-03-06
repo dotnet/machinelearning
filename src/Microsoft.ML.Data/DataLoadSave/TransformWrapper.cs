@@ -15,9 +15,13 @@ using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Data
 {
-    // REVIEW: this class is public, as long as the Wrappers.cs in tests still rely on it.
-    // It needs to become internal.
-    public sealed class TransformWrapper : ITransformer
+    /// <summary>
+    /// This is a shim class to present the legacy <see cref="IDataTransform"/> interface as an <see cref="ITransformer"/>.
+    /// Note that there are some important differences in usages that make this shimming somewhat non-seemless, so the goal
+    /// would be gradual removal of this as we do away with <see cref="IDataTransform"/> based code.
+    /// </summary>
+    [BestFriend]
+    internal sealed class TransformWrapper : ITransformer
     {
         internal const string LoaderSignature = "TransformWrapper";
         private const string TransformDirTemplate = "Step_{0:000}";
@@ -148,11 +152,13 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Estimator for trained wrapped transformers.
     /// </summary>
-    public abstract class TrainedWrapperEstimatorBase : IEstimator<TransformWrapper>
+    internal abstract class TrainedWrapperEstimatorBase : IEstimator<TransformWrapper>
     {
-        protected readonly IHost Host;
+        [BestFriend]
+        private protected readonly IHost Host;
 
-        protected TrainedWrapperEstimatorBase(IHost host)
+        [BestFriend]
+        private protected TrainedWrapperEstimatorBase(IHost host)
         {
             Contracts.CheckValue(host, nameof(host));
             Host = host;

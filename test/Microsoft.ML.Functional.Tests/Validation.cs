@@ -7,7 +7,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.HalLearners;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Functional.Tests
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Check that the results are valid
             Assert.IsType<RegressionMetrics>(cvResult[0].Metrics);
-            Assert.IsType<TransformerChain<RegressionPredictionTransformer<OlsLinearRegressionModelParameters>>>(cvResult[0].Model);
+            Assert.IsType<TransformerChain<RegressionPredictionTransformer<OrdinaryLeastSquaresRegressionModelParameters>>>(cvResult[0].Model);
             Assert.True(cvResult[0].ScoredHoldOutSet is IDataView);
             Assert.Equal(5, cvResult.Length);
 
@@ -82,8 +82,8 @@ namespace Microsoft.ML.Functional.Tests
 
             // Train the model with a validation set.
             var trainedModel = mlContext.Regression.Trainers.FastTree(new Trainers.FastTree.FastTreeRegressionTrainer.Options {
-                    NumTrees = 2,
-                    EarlyStoppingMetrics = 2,
+                    NumberOfTrees = 2,
+                    EarlyStoppingMetric = EarlyStoppingMetric.L2Norm,
                     EarlyStoppingRule = new GLEarlyStoppingCriterion.Options()
                 })
                 .Fit(trainData: preprocessedTrainData, validationData: preprocessedValidData);

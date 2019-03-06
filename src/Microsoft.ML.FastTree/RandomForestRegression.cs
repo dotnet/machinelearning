@@ -8,7 +8,6 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
@@ -264,23 +263,23 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Initializes a new instance of <see cref="FastForestRegression"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The optional name for the column containing the initial weight.</param>
-        /// <param name="numLeaves">The max number of leaves in each regression tree.</param>
-        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="exampleWeightColumnName">The optional name for the column containing the example weight.</param>
+        /// <param name="numberOfLeaves">The max number of leaves in each regression tree.</param>
+        /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
         internal FastForestRegression(IHostEnvironment env,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weightColumn = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves)
-            : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves)
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string exampleWeightColumnName = null,
+            int numberOfLeaves = Defaults.NumberOfLeaves,
+            int numberOfTrees = Defaults.NumberOfTrees,
+            int minimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf)
+            : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumnName), featureColumnName, exampleWeightColumnName, null, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf)
         {
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            Host.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
+            Host.CheckNonEmpty(featureColumnName, nameof(featureColumnName));
         }
 
         /// <summary>
@@ -289,7 +288,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="env">The instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="options">Algorithm advanced settings.</param>
         internal FastForestRegression(IHostEnvironment env, Options options)
-            : base(env, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumn), true)
+            : base(env, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName), true)
         {
         }
 
@@ -310,7 +309,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 ConvertData(trainData);
                 TrainCore(ch);
             }
-            return new FastForestRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions, FastTreeTrainerOptions.QuantileSampleCount);
+            return new FastForestRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions, FastTreeTrainerOptions.NumberOfQuantileSamples);
         }
 
         private protected override void PrepareLabels(IChannel ch)
@@ -435,11 +434,11 @@ namespace Microsoft.ML.Trainers.FastTree
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<FastForestRegression.Options, CommonOutputs.RegressionOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<FastForestRegression.Options, CommonOutputs.RegressionOutput>(host, input,
                 () => new FastForestRegression(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.GroupIdColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.RowGroupColumnName));
         }
     }
 }

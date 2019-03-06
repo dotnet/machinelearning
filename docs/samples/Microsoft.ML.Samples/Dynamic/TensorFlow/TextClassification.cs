@@ -45,8 +45,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // Load the TensorFlow model once.
             //      - Use it for quering the schema for input and output in the model
             //      - Use it for prediction in the pipeline.
-            var modelInfo = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
-            var schema = modelInfo.GetModelSchema();
+            var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
+            var schema = tensorFlowModel.GetModelSchema();
             var featuresType = (VectorType)schema["Features"].Type;
             Console.WriteLine("Name: {0}, Type: {1}, Shape: (-1, {2})", "Features", featuresType.ItemType.RawType, featuresType.Dimensions[0]);
             var predictionType = (VectorType)schema["Prediction/Softmax"].Type;
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var engine = mlContext.Transforms.Text.TokenizeWords("TokenizedWords", "Sentiment_Text")
                 .Append(mlContext.Transforms.Conversion.ValueMap(lookupMap, "Words", "Ids", new ColumnOptions[] { ("VariableLenghtFeatures", "TokenizedWords") }))
                 .Append(mlContext.Transforms.CustomMapping(ResizeFeaturesAction, "Resize"))
-                .Append(mlContext.Transforms.ScoreTensorFlowModel(modelInfo, new[] { "Prediction/Softmax" }, new[] { "Features" }))
+                .Append(tensorFlowModel.ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" }))
                 .Append(mlContext.Transforms.CopyColumns(("Prediction", "Prediction/Softmax")))
                 .Fit(dataView)
                 .CreatePredictionEngine<IMDBSentiment, OutputScores>(mlContext);

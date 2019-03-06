@@ -236,7 +236,7 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Saving/loading routines for transformer chains.
     /// </summary>
-    public static class TransformerChain
+    internal static class TransformerChain
     {
         public const string LoaderSignature = "TransformerChain";
 

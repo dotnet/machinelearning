@@ -24,17 +24,28 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers
 {
-    // SDCA linear multiclass trainer.
-    /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
-    public class SdcaMultiClassTrainer : SdcaTrainerBase<SdcaMultiClassTrainer.Options, MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a multiclass logistic regression classification model using the stochastic dual coordinate ascent method.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
+    public sealed class SdcaMultiClassTrainer : SdcaTrainerBase<SdcaMultiClassTrainer.Options, MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
     {
         internal const string LoadNameValue = "SDCAMC";
         internal const string UserNameValue = "Fast Linear Multi-class Classification (SA-SDCA)";
         internal const string ShortName = "sasdcamc";
         internal const string Summary = "The SDCA linear multi-class classification trainer.";
 
+        /// <summary>
+        /// Options for the <see cref="SdcaMultiClassTrainer"/>.
+        /// </summary>
         public sealed class Options : OptionsBase
         {
+            /// <summary>
+            /// The custom <a href="tmpurl_loss">loss</a>.
+            /// </summary>
+            /// <value>
+            /// If unspecified, <see cref="LogLoss"/> will be used.
+            /// </value>
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
         }
@@ -83,7 +94,7 @@ namespace Microsoft.ML.Trainers
         }
 
         internal SdcaMultiClassTrainer(IHostEnvironment env, Options options)
-            : this(env, options, options.FeatureColumn, options.LabelColumn)
+            : this(env, options, options.FeatureColumnName, options.LabelColumnName)
         {
         }
 
@@ -131,7 +142,7 @@ namespace Microsoft.ML.Trainers
             int maxUpdateTrials = 2 * numThreads;
             var l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
             bool l1ThresholdZero = l1Threshold == 0;
-            var lr = SdcaTrainerOptions.BiasLearningRate * SdcaTrainerOptions.L2Const.Value;
+            var lr = SdcaTrainerOptions.BiasLearningRate * SdcaTrainerOptions.L2Regularization.Value;
 
             var pch = progress != null ? progress.StartProgressChannel("Dual update") : null;
             using (pch)
@@ -200,7 +211,7 @@ namespace Microsoft.ML.Trainers
                             var output = labelOutput + labelPrimalUpdate * normSquared - WDot(in features, in weights[iClass], biasReg[iClass] + biasUnreg[iClass]);
                             var dualUpdate = _loss.DualUpdate(output, 1, dual, invariant, numThreads);
 
-                            // The successive over-relaxation apporach to adjust the sum of dual variables (biasReg) to zero.
+                            // The successive over-relaxation approach to adjust the sum of dual variables (biasReg) to zero.
                             // Reference to details: http://stat.rutgers.edu/home/tzhang/papers/ml02_dual.pdf, pp. 16-17.
                             var adjustment = l1ThresholdZero ? lr * biasReg[iClass] : lr * l1IntermediateBias[iClass];
                             dualUpdate -= adjustment;
@@ -350,9 +361,9 @@ namespace Microsoft.ML.Trainers
                 Host.Assert(idToIdx == null || row * numClasses == duals.Length);
             }
 
-            Contracts.Assert(SdcaTrainerOptions.L2Const.HasValue);
+            Contracts.Assert(SdcaTrainerOptions.L2Regularization.HasValue);
             Contracts.Assert(SdcaTrainerOptions.L1Threshold.HasValue);
-            Double l2Const = SdcaTrainerOptions.L2Const.Value;
+            Double l2Const = SdcaTrainerOptions.L2Regularization.Value;
             Double l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
 
             Double weightsL1Norm = 0;
@@ -452,9 +463,9 @@ namespace Microsoft.ML.Trainers
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<SdcaMultiClassTrainer.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<SdcaMultiClassTrainer.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
                 () => new SdcaMultiClassTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName));
         }
     }
 }

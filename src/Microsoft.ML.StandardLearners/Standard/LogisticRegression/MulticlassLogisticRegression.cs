@@ -45,8 +45,11 @@ namespace Microsoft.ML.Trainers
 
         public sealed class Options : OptionsBase
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat", SortOrder = 50)]
-            public bool ShowTrainingStats = false;
+            /// <summary>
+            /// If set to <value>true</value> training statistics will be generated at the end of training.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat, ShowTrainingStats", SortOrder = 50)]
+            public bool ShowTrainingStatistics = false;
         }
 
         private int _numClasses;
@@ -84,26 +87,26 @@ namespace Microsoft.ML.Trainers
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            float l1Weight = Options.Defaults.L1Weight,
-            float l2Weight = Options.Defaults.L2Weight,
-            float optimizationTolerance = Options.Defaults.OptTol,
-            int memorySize = Options.Defaults.MemorySize,
+            float l1Weight = Options.Defaults.L1Regularization,
+            float l2Weight = Options.Defaults.L2Regularization,
+            float optimizationTolerance = Options.Defaults.OptimizationTolerance,
+            int memorySize = Options.Defaults.IterationsToRemember,
             bool enforceNoNegativity = Options.Defaults.EnforceNonNegativity)
             : base(env, featureColumn, TrainerUtils.MakeU4ScalarColumn(labelColumn), weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
-            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStats;
+            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStatistics;
         }
 
         /// <summary>
         /// Initializes a new instance of <see cref="MulticlassLogisticRegression"/>
         /// </summary>
         internal MulticlassLogisticRegression(IHostEnvironment env, Options options)
-            : base(env, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumn))
+            : base(env, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
         {
-            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStats;
+            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStatistics;
         }
 
         private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
@@ -333,6 +336,9 @@ namespace Microsoft.ML.Trainers
             => TrainTransformer(trainData, initPredictor: modelParameters);
     }
 
+    /// <summary>
+    /// The model parameters class for Multiclass Logistic Regression.
+    /// </summary>
     public sealed class MulticlassLogisticRegressionModelParameters :
         ModelParametersBase<VBuffer<float>>,
         IValueMapper,
@@ -1012,10 +1018,10 @@ namespace Microsoft.ML.Trainers
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<MulticlassLogisticRegression.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<MulticlassLogisticRegression.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
                 () => new MulticlassLogisticRegression(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
     }
 }

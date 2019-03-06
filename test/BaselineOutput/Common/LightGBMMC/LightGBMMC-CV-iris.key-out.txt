@@ -1,11 +1,11 @@
 maml.exe CV tr=LightGBMMC{nt=1 iter=10 v=- lr=0.2 mil=10 nl=20} threads=- dout=%Output% loader=Text{col=Label:TX:0 col=Features:1-*} data=%Data% seed=1 xf=Term{col=Label}
 Not adding a normalizer.
-Auto-tuning parameters: UseCat = False
+Auto-tuning parameters: UseCategoricalSplit = False
 Auto-tuning parameters: UseSoftmax = False
 LightGBM objective=multiclassova
 Not training a calibrator because it is not needed.
 Not adding a normalizer.
-Auto-tuning parameters: UseCat = False
+Auto-tuning parameters: UseCategoricalSplit = False
 Auto-tuning parameters: UseSoftmax = False
 LightGBM objective=multiclassova
 Not training a calibrator because it is not needed.

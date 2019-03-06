@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
@@ -33,7 +34,7 @@ namespace Microsoft.ML.Trainers
         internal const string ShortName = "MNB";
         internal const string Summary = "Trains a multiclass Naive Bayes predictor that supports binary feature values.";
 
-        internal sealed class Options : LearnerInputBaseWithLabel
+        internal sealed class Options : TrainerInputBaseWithLabel
         {
         }
 
@@ -68,8 +69,8 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="MultiClassNaiveBayesTrainer"/>
         /// </summary>
         internal MultiClassNaiveBayesTrainer(IHostEnvironment env, Options options)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(options.FeatureColumn),
-                  TrainerUtils.MakeU4ScalarColumn(options.LabelColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName),
+                  TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
         {
             Host.CheckValue(options, nameof(options));
         }
@@ -174,9 +175,9 @@ namespace Microsoft.ML.Trainers
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
                 () => new MultiClassNaiveBayesTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName));
         }
     }
 
@@ -213,38 +214,14 @@ namespace Microsoft.ML.Trainers
         DataViewType IValueMapper.OutputType => _outputType;
 
         /// <summary>
-        /// Copies the label histogram into a buffer.
+        /// Get the label histogram.
         /// </summary>
-        /// <param name="labelHistogram">A possibly reusable array, which will
-        /// be expanded as necessary to accomodate the data.</param>
-        /// <param name="labelCount">Set to the length of the resized array, which is also the number of different labels.</param>
-        public void GetLabelHistogram(ref int[] labelHistogram, out int labelCount)
-        {
-            labelCount = _labelCount;
-            Utils.EnsureSize(ref labelHistogram, _labelCount);
-            Array.Copy(_labelHistogram, labelHistogram, _labelCount);
-        }
+        public IReadOnlyList<int> GetLabelHistogram() => _labelHistogram;
 
         /// <summary>
-        /// Copies the feature histogram into a buffer.
+        /// Get the feature histogram.
         /// </summary>
-        /// <param name="featureHistogram">A possibly reusable array, which will
-        /// be expanded as necessary to accomodate the data.</param>
-        /// <param name="labelCount">Set to the first dimension of the resized array,
-        /// which is the number of different labels encountered in training.</param>
-        /// <param name="featureCount">Set to the second dimension of the resized array,
-        /// which is also the number of different feature combinations encountered in training.</param>
-        public void GetFeatureHistogram(ref int[][] featureHistogram, out int labelCount, out int featureCount)
-        {
-            labelCount = _labelCount;
-            featureCount = _featureCount;
-            Utils.EnsureSize(ref featureHistogram, _labelCount);
-            for (int i = 0; i < _labelCount; i++)
-            {
-                Utils.EnsureSize(ref featureHistogram[i], _featureCount);
-                Array.Copy(_featureHistogram[i], featureHistogram[i], _featureCount);
-            }
-        }
+        public IReadOnlyList<IReadOnlyList<int>> GetFeatureHistogram() => _featureHistogram;
 
         /// <summary>
         /// Instantiates new model parameters from trained model.

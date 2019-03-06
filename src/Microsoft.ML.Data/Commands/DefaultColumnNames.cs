@@ -4,7 +4,13 @@
 
 namespace Microsoft.ML.Data
 {
-    public static class DefaultColumnNames
+    /// <summary>
+    /// A set of string literals intended to be "canonical" names for column names intended for particular purpose.
+    /// While not part of the public API surface, its primary purpose is intended to be used in such a way as to encourage
+    /// uniformity on the public API surface, wherever it is judged where columns with default names should be consumed.
+    /// </summary>
+    [BestFriend]
+    internal static class DefaultColumnNames
     {
         public const string Features = "Features";
         public const string Label = "Label";

@@ -1,10 +1,10 @@
 maml.exe CV tr=LightGBM{nt=1 iter=10 booster=dart lr=0.2 mil=10 nl=20} threads=- cache=- dout=%Output% loader=Text{sparse- col=Attr:TX:6 col=Label:0 col=Features:1-5,6,7-9} data=%Data% seed=1
 Not adding a normalizer.
-Auto-tuning parameters: UseCat = False
+Auto-tuning parameters: UseCategoricalSplit = False
 LightGBM objective=binary
 Not training a calibrator because it is not needed.
 Not adding a normalizer.
-Auto-tuning parameters: UseCat = False
+Auto-tuning parameters: UseCategoricalSplit = False
 LightGBM objective=binary
 Not training a calibrator because it is not needed.
 TEST POSITIVE RATIO:	0.3702 (134.0/(134.0+228.0))

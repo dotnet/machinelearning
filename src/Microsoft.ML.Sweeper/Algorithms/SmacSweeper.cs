@@ -137,10 +137,10 @@ namespace Microsoft.ML.Sweeper
                     new FastForestRegression.Options
                     {
                         FeatureFraction = _args.SplitRatio,
-                        NumTrees = _args.NumOfTrees,
-                        MinDocumentsInLeafs = _args.NMinForSplit,
-                        LabelColumn = DefaultColumnNames.Label,
-                        FeatureColumn = DefaultColumnNames.Features,
+                        NumberOfTrees = _args.NumOfTrees,
+                        MinimumExampleCountPerLeaf = _args.NMinForSplit,
+                        LabelColumnName = DefaultColumnNames.Label,
+                        FeatureColumnName = DefaultColumnNames.Features,
                     });
                 var predictor = trainer.Fit(view);
 

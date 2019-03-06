@@ -52,7 +52,8 @@ namespace Microsoft.ML.Data
         private protected readonly IHost Host;
         [BestFriend]
         private protected ISchemaBindableMapper BindableMapper;
-        protected DataViewSchema TrainSchema;
+        [BestFriend]
+        private protected DataViewSchema TrainSchema;
 
         /// <summary>
         /// Whether a call to <see cref="ITransformer.GetRowToRowMapper(DataViewSchema)"/> should succeed, on an
@@ -142,7 +143,8 @@ namespace Microsoft.ML.Data
 
         private protected abstract void SaveModel(ModelSaveContext ctx);
 
-        protected void SaveModelCore(ModelSaveContext ctx)
+        [BestFriend]
+        private protected void SaveModelCore(ModelSaveContext ctx)
         {
             // *** Binary format ***
             // <base info>
@@ -234,14 +236,14 @@ namespace Microsoft.ML.Data
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
-        private protected override void SaveModel(ModelSaveContext ctx)
+        private protected sealed override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             SaveCore(ctx);
         }
 
-        protected virtual void SaveCore(ModelSaveContext ctx)
+        private protected virtual void SaveCore(ModelSaveContext ctx)
         {
             SaveModelCore(ctx);
             ctx.SaveStringOrNull(FeatureColumn);
@@ -296,7 +298,7 @@ namespace Microsoft.ML.Data
             Scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -365,7 +367,7 @@ namespace Microsoft.ML.Data
             Scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -429,7 +431,7 @@ namespace Microsoft.ML.Data
             Scorer = new MultiClassClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -474,7 +476,7 @@ namespace Microsoft.ML.Data
             Scorer = GetGenericScorer();
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -516,7 +518,7 @@ namespace Microsoft.ML.Data
             Scorer = GetGenericScorer();
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -568,7 +570,7 @@ namespace Microsoft.ML.Data
             Scorer = new ClusteringScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());

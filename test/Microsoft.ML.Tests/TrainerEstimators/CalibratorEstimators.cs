@@ -82,7 +82,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var calibratorTestData = GetCalibratorTestData();
 
             // pav calibrator
-            var pavCalibratorEstimator = new PavCalibratorEstimator(Env);
+            var pavCalibratorEstimator = new IsotonicCalibratorEstimator(Env);
             var pavCalibratorTransformer = pavCalibratorEstimator.Fit(calibratorTestData.ScoredData);
 
             //check data

@@ -38,9 +38,9 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
                            .Append(mlContext.Regression.Trainers.LightGbm(new Options
                            {
-                               LabelColumn = labelName,
-                               NumLeaves = 4,
-                               MinDataPerLeaf = 6,
+                               LabelColumnName = labelName,
+                               NumberOfLeaves = 4,
+                               MinimumExampleCountPerLeaf = 6,
                                LearningRate = 0.001,
                                Booster = new GossBooster.Options
                                {

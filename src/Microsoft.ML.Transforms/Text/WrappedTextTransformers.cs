@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Data.DataLoadSave;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Transforms.Text
@@ -14,8 +15,9 @@ namespace Microsoft.ML.Transforms.Text
     /// Produces a bag of counts of ngrams (sequences of consecutive words) in a given text.
     /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
     /// </summary>
-    public sealed class WordBagEstimator : TrainedWrapperEstimatorBase
+    public sealed class WordBagEstimator : IEstimator<ITransformer>
     {
+        private readonly IHost _host;
         private readonly (string outputColumnName, string[] sourceColumnsNames)[] _columns;
         private readonly int _ngramLength;
         private readonly int _skipLength;
@@ -89,12 +91,14 @@ namespace Microsoft.ML.Transforms.Text
             bool allLengths = true,
             int maxNumTerms = 10000000,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordBagEstimator)))
         {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(WordBagEstimator));
+
             foreach (var (outputColumnName, inputColumnName) in columns)
             {
-                Host.CheckUserArg(Utils.Size(inputColumnName) > 0, nameof(columns));
-                Host.CheckValue(outputColumnName, nameof(columns));
+                _host.CheckUserArg(Utils.Size(inputColumnName) > 0, nameof(columns));
+                _host.CheckValue(outputColumnName, nameof(columns));
             }
 
             _columns = columns;
@@ -106,7 +110,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
-        public override TransformWrapper Fit(IDataView input)
+        public ITransformer Fit(IDataView input)
         {
             // Create arguments.
             var options = new WordBagBuildingTransformer.Options
@@ -119,7 +123,20 @@ namespace Microsoft.ML.Transforms.Text
                 Weighting = _weighting
             };
 
-            return new TransformWrapper(Host, WordBagBuildingTransformer.Create(Host, options, input), true);
+            return new TransformWrapper(_host, WordBagBuildingTransformer.Create(_host, options, input), true);
+        }
+
+        /// <summary>
+        /// Schema propagation for estimators.
+        /// Returns the output schema shape of the estimator, if the input schema shape is like the one provided.
+        /// </summary>
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+
+            var fakeSchema = FakeSchemaFactory.Create(inputSchema);
+            var transformer = Fit(new EmptyDataView(_host, fakeSchema));
+            return SchemaShape.Create(transformer.GetOutputSchema(fakeSchema));
         }
     }
 
@@ -127,8 +144,9 @@ namespace Microsoft.ML.Transforms.Text
     /// Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given text.
     /// It does so by hashing each ngram and using the hash value as the index in the bag.
     /// </summary>
-    public sealed class WordHashBagEstimator : TrainedWrapperEstimatorBase
+    public sealed class WordHashBagEstimator : IEstimator<ITransformer>
     {
+        private readonly IHost _host;
         private readonly (string outputColumnName, string[] inputColumnNames)[] _columns;
         private readonly int _hashBits;
         private readonly int _ngramLength;
@@ -225,12 +243,14 @@ namespace Microsoft.ML.Transforms.Text
             uint seed = 314489979,
             bool ordered = true,
             int invertHash = 0)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordBagEstimator)))
         {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(WordHashBagEstimator));
+
             foreach (var (input, output) in columns)
             {
-                Host.CheckUserArg(Utils.Size(input) > 0, nameof(input));
-                Host.CheckValue(output, nameof(input));
+                _host.CheckUserArg(Utils.Size(input) > 0, nameof(input));
+                _host.CheckValue(output, nameof(input));
             }
 
             _columns = columns;
@@ -244,7 +264,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
-        public override TransformWrapper Fit(IDataView input)
+        public ITransformer Fit(IDataView input)
         {
             // Create arguments.
             var options = new WordHashBagProducingTransformer.Options
@@ -259,7 +279,20 @@ namespace Microsoft.ML.Transforms.Text
                 InvertHash = _invertHash
             };
 
-            return new TransformWrapper(Host, WordHashBagProducingTransformer.Create(Host, options, input), true);
+            return new TransformWrapper(_host, WordHashBagProducingTransformer.Create(_host, options, input), true);
+        }
+
+        /// <summary>
+        /// Schema propagation for estimators.
+        /// Returns the output schema shape of the estimator, if the input schema shape is like the one provided.
+        /// </summary>
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+
+            var fakeSchema = FakeSchemaFactory.Create(inputSchema);
+            var transformer = Fit(new EmptyDataView(_host, fakeSchema));
+            return SchemaShape.Create(transformer.GetOutputSchema(fakeSchema));
         }
     }
 }

@@ -18,16 +18,16 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private protected BoostingFastTreeTrainerBase(IHostEnvironment env,
             SchemaShape.Column label,
-            string featureColumn,
-            string weightColumn,
-            string groupIdColumn,
-            int numLeaves,
-            int numTrees,
-            int minDatapointsInLeaves,
+            string featureColumnName,
+            string exampleWeightColumnName,
+            string rowGroupColumnName,
+            int numberOfLeaves,
+            int numberOfTrees,
+            int minimumExampleCountPerLeaf,
             double learningRate)
-            : base(env, label, featureColumn, weightColumn, groupIdColumn, numLeaves, numTrees, minDatapointsInLeaves)
+            : base(env, label, featureColumnName, exampleWeightColumnName, rowGroupColumnName, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf)
         {
-            FastTreeTrainerOptions.LearningRates = learningRate;
+            FastTreeTrainerOptions.LearningRate = learningRate;
         }
 
         private protected override void CheckOptions(IChannel ch)
@@ -40,10 +40,10 @@ namespace Microsoft.ML.Trainers.FastTree
             if (FastTreeTrainerOptions.CompressEnsemble && FastTreeTrainerOptions.WriteLastEnsemble)
                 throw ch.Except("Ensemble compression cannot be done when forcing to write last ensemble (hl)");
 
-            if (FastTreeTrainerOptions.NumLeaves > 2 && FastTreeTrainerOptions.HistogramPoolSize > FastTreeTrainerOptions.NumLeaves - 1)
+            if (FastTreeTrainerOptions.NumberOfLeaves > 2 && FastTreeTrainerOptions.HistogramPoolSize > FastTreeTrainerOptions.NumberOfLeaves - 1)
                 throw ch.Except("Histogram pool size (ps) must be at least 2.");
 
-            if (FastTreeTrainerOptions.NumLeaves > 2 && FastTreeTrainerOptions.HistogramPoolSize > FastTreeTrainerOptions.NumLeaves - 1)
+            if (FastTreeTrainerOptions.NumberOfLeaves > 2 && FastTreeTrainerOptions.HistogramPoolSize > FastTreeTrainerOptions.NumberOfLeaves - 1)
                 throw ch.Except("Histogram pool size (ps) must be at most numLeaves - 1.");
 
             if (FastTreeTrainerOptions.EnablePruning && !HasValidSet)
@@ -61,12 +61,12 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override TreeLearner ConstructTreeLearner(IChannel ch)
         {
             return new LeastSquaresRegressionTreeLearner(
-                TrainSet, FastTreeTrainerOptions.NumLeaves, FastTreeTrainerOptions.MinDocumentsInLeafs, FastTreeTrainerOptions.EntropyCoefficient,
+                TrainSet, FastTreeTrainerOptions.NumberOfLeaves, FastTreeTrainerOptions.MinimumExampleCountPerLeaf, FastTreeTrainerOptions.EntropyCoefficient,
                 FastTreeTrainerOptions.FeatureFirstUsePenalty, FastTreeTrainerOptions.FeatureReusePenalty, FastTreeTrainerOptions.SoftmaxTemperature,
-                FastTreeTrainerOptions.HistogramPoolSize, FastTreeTrainerOptions.RngSeed, FastTreeTrainerOptions.SplitFraction, FastTreeTrainerOptions.FilterZeroLambdas,
-                FastTreeTrainerOptions.AllowEmptyTrees, FastTreeTrainerOptions.GainConfidenceLevel, FastTreeTrainerOptions.MaxCategoricalGroupsPerNode,
-                FastTreeTrainerOptions.MaxCategoricalSplitPoints, BsrMaxTreeOutput(), ParallelTraining,
-                FastTreeTrainerOptions.MinDocsPercentageForCategoricalSplit, FastTreeTrainerOptions.Bundling, FastTreeTrainerOptions.MinDocsForCategoricalSplit, FastTreeTrainerOptions.Bias);
+                FastTreeTrainerOptions.HistogramPoolSize, FastTreeTrainerOptions.Seed, FastTreeTrainerOptions.FeatureFractionPerSplit, FastTreeTrainerOptions.FilterZeroLambdas,
+                FastTreeTrainerOptions.AllowEmptyTrees, FastTreeTrainerOptions.GainConfidenceLevel, FastTreeTrainerOptions.MaximumCategoricalGroupCountPerNode,
+                FastTreeTrainerOptions.MaximumCategoricalSplitPointCount, BsrMaxTreeOutput(), ParallelTraining,
+                FastTreeTrainerOptions.MinimumExampleFractionForCategoricalSplit, FastTreeTrainerOptions.Bundling, FastTreeTrainerOptions.MinimumExamplesForCategoricalSplit, FastTreeTrainerOptions.Bias);
         }
 
         private protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Trainers.FastTree
             optimizationAlgorithm.ObjectiveFunction = ConstructObjFunc(ch);
             optimizationAlgorithm.Smoothing = FastTreeTrainerOptions.Smoothing;
             optimizationAlgorithm.DropoutRate = FastTreeTrainerOptions.DropoutRate;
-            optimizationAlgorithm.DropoutRng = new Random(FastTreeTrainerOptions.RngSeed);
+            optimizationAlgorithm.DropoutRng = new Random(FastTreeTrainerOptions.Seed);
             optimizationAlgorithm.PreScoreUpdateEvent += PrintTestGraph;
 
             return optimizationAlgorithm;
@@ -162,7 +162,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected double BsrMaxTreeOutput()
         {
             if (FastTreeTrainerOptions.BestStepRankingRegressionTrees)
-                return FastTreeTrainerOptions.MaxTreeOutput;
+                return FastTreeTrainerOptions.MaximumTreeOutput;
             else
                 return -1;
         }

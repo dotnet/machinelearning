@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 
@@ -15,10 +16,12 @@ namespace Microsoft.ML
     /// "area" of machine learning. A subclass would represent a particular task in machine learning. The idea
     /// is that a user can instantiate that particular area, and get trainers and evaluators.
     /// </summary>
-    public abstract class TrainCatalogBase
+    public abstract class TrainCatalogBase : IInternalCatalog
     {
+        IHostEnvironment IInternalCatalog.Environment => Environment;
+
         [BestFriend]
-        internal IHostEnvironment Environment { get; }
+        private protected IHostEnvironment Environment { get; }
 
         /// <summary>
         /// A pair of datasets, for the train and test set.
@@ -84,7 +87,8 @@ namespace Microsoft.ML
         /// <summary>
         /// Results for specific cross-validation fold.
         /// </summary>
-        protected internal struct CrossValidationResult
+        [BestFriend]
+        private protected struct CrossValidationResult
         {
             /// <summary>
             /// Model trained during cross validation fold.
@@ -142,7 +146,8 @@ namespace Microsoft.ML
         /// Train the <paramref name="estimator"/> on <paramref name="numFolds"/> folds of the data sequentially.
         /// Return each model and each scored test dataset.
         /// </summary>
-        protected internal CrossValidationResult[] CrossValidateTrain(IDataView data, IEstimator<ITransformer> estimator,
+        [BestFriend]
+        private protected CrossValidationResult[] CrossValidateTrain(IDataView data, IEstimator<ITransformer> estimator,
             int numFolds, string samplingKeyColumn, uint? seed = null)
         {
             Environment.CheckValue(data, nameof(data));
@@ -203,13 +208,13 @@ namespace Microsoft.ML
 
             if (samplingKeyColumn == null)
             {
-                samplingKeyColumn = data.Schema.GetTempColumnName("IdPreservationColumn");
+                samplingKeyColumn = data.Schema.GetTempColumnName("SamplingKeyColumn");
                 data = new GenerateNumberTransform(Environment, data, samplingKeyColumn, seed);
             }
             else
             {
                 if (!data.Schema.TryGetColumnIndex(samplingKeyColumn, out int stratCol))
-                    throw Environment.ExceptSchemaMismatch(nameof(samplingKeyColumn), "GroupPreservationColumn", samplingKeyColumn);
+                    throw Environment.ExceptSchemaMismatch(nameof(samplingKeyColumn), "SamplingKeyColumn", samplingKeyColumn);
 
                 var type = data.Schema[stratCol].Type;
                 if (!RangeFilter.IsValidRangeFilterColumnType(Environment, type))
@@ -242,12 +247,15 @@ namespace Microsoft.ML
         /// through <see cref="CatalogUtils"/> to get more "hidden" information from this object,
         /// for example, the environment.
         /// </summary>
-        public abstract class CatalogInstantiatorBase
+        public abstract class CatalogInstantiatorBase : IInternalCatalog
         {
+            IHostEnvironment IInternalCatalog.Environment => Owner.GetEnvironment();
+
             [BestFriend]
             internal TrainCatalogBase Owner { get; }
 
-            internal protected CatalogInstantiatorBase(TrainCatalogBase catalog)
+            [BestFriend]
+            private protected CatalogInstantiatorBase(TrainCatalogBase catalog)
             {
                 Owner = catalog;
             }
@@ -267,6 +275,7 @@ namespace Microsoft.ML
         internal BinaryClassificationCatalog(IHostEnvironment env)
             : base(env, nameof(BinaryClassificationCatalog))
         {
+            Calibrators = new CalibratorsCatalog(this);
             Trainers = new BinaryClassificationTrainers(this);
         }
 
@@ -365,6 +374,106 @@ namespace Microsoft.ML
             var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);
             return result.Select(x => new CrossValidationResult<CalibratedBinaryClassificationMetrics>(x.Model,
                 Evaluate(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
+        }
+
+        /// <summary>
+        /// The list of trainers for performing binary classification.
+        /// </summary>
+        public CalibratorsCatalog Calibrators { get; }
+
+        /// <summary>
+        /// Catalog which contains different methods to produce calibrators.
+        /// </summary>
+        public sealed class CalibratorsCatalog : CatalogInstantiatorBase
+        {
+            internal CalibratorsCatalog(BinaryClassificationCatalog catalog)
+                : base(catalog)
+            {
+            }
+            /// <summary>
+            /// Adds probability column by training naive binning-based calibrator.
+            /// </summary>
+            /// <param name="labelColumnName">The name of the label column.</param>
+            /// <param name="scoreColumnName">The name of the score column.</param>
+            /// <example>
+            /// <format type="text/markdown">
+            /// <![CDATA[
+            /// [!code-csharp[NaiveCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/Naive.cs)]
+            /// ]]>
+            /// </format>
+            /// </example>
+            public NaiveCalibratorEstimator Naive(
+                  string labelColumnName = DefaultColumnNames.Label,
+                  string scoreColumnName = DefaultColumnNames.Score)
+            {
+                return new NaiveCalibratorEstimator(Owner.GetEnvironment(), labelColumnName, scoreColumnName);
+            }
+            /// <summary>
+            /// Adds probability column by training <a href="https://en.wikipedia.org/wiki/Platt_scaling">platt calibrator</a>.
+            /// </summary>
+            /// <param name="labelColumnName">The name of the label column.</param>
+            /// <param name="scoreColumnName">The name of the score column.</param>
+            /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+            /// <example>
+            /// <format type="text/markdown">
+            /// <![CDATA[
+            /// [!code-csharp[PlattCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/Platt.cs)]
+            /// ]]>
+            /// </format>
+            /// </example>
+            public PlattCalibratorEstimator Platt(
+                  string labelColumnName = DefaultColumnNames.Label,
+                  string scoreColumnName = DefaultColumnNames.Score,
+                  string exampleWeightColumnName = null)
+            {
+                return new PlattCalibratorEstimator(Owner.GetEnvironment(), labelColumnName, scoreColumnName, exampleWeightColumnName);
+            }
+
+            /// <summary>
+            /// Adds probability column by specifying <a href="https://en.wikipedia.org/wiki/Platt_scaling">platt calibrator</a>.
+            /// </summary>
+            /// <param name="slope">The slope in the function of the exponent of the sigmoid.</param>
+            /// <param name="offset">The offset in the function of the exponent of the sigmoid.</param>
+            /// <param name="scoreColumnName">The name of the score column.</param>
+            /// <example>
+            /// <format type="text/markdown">
+            /// <![CDATA[
+            /// [!code-csharp[FixedPlattCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/FixedPlatt.cs)]
+            /// ]]>
+            /// </format>
+            /// </example>
+            public FixedPlattCalibratorEstimator Platt(
+                double slope,
+                double offset,
+                string scoreColumnName = DefaultColumnNames.Score)
+            {
+                return new FixedPlattCalibratorEstimator(Owner.GetEnvironment(), slope, offset, scoreColumnName);
+            }
+
+            /// <summary>
+            /// Adds probability column by training pair adjacent violators calibrator.
+            /// </summary>
+            /// <remarks>
+            ///  The calibrator finds a stepwise constant function (using the Pool Adjacent Violators Algorithm aka PAV) that minimizes the squared error.
+            ///  Also know as <a href="https://en.wikipedia.org/wiki/Isotonic_regression">Isotonic regression</a>
+            /// </remarks>
+            /// <param name="labelColumnName">The name of the label column.</param>
+            /// <param name="scoreColumnName">The name of the score column.</param>
+            /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+            /// <example>
+            /// <format type="text/markdown">
+            /// <![CDATA[
+            /// [!code-csharp[PairAdjacentViolators](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/Isotonic.cs)]
+            /// ]]>
+            /// </format>
+            /// </example>
+            public IsotonicCalibratorEstimator Isotonic(
+                string labelColumnName = DefaultColumnNames.Label,
+                string scoreColumnName = DefaultColumnNames.Score,
+                string exampleWeightColumnName = null)
+            {
+                return new IsotonicCalibratorEstimator(Owner.GetEnvironment(), labelColumnName, scoreColumnName, exampleWeightColumnName);
+            }
         }
     }
 

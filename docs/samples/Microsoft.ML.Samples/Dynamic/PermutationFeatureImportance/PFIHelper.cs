@@ -3,7 +3,6 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.SamplesUtils;
-using Microsoft.ML.Trainers.HalLearners;
 
 namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
 {
@@ -49,7 +48,7 @@ namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
         private readonly static Action<ContinuousInputRow, BinaryOutputRow> GreaterThanAverage = (input, output) 
             => output.AboveAverage = input.MedianHomeValue > 22.6;
 
-        public static float[] GetLinearModelWeights(OlsLinearRegressionModelParameters linearModel)
+        public static float[] GetLinearModelWeights(OrdinaryLeastSquaresRegressionModelParameters linearModel)
         {
             return linearModel.Weights.ToArray();
         }

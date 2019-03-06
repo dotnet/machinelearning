@@ -122,7 +122,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Load the model.
             using (var file = File.OpenRead(modelPath))
-                model = TransformerChain.LoadFrom(ml, file);
+                model = ml.Model.Load(file);
 
             for (int index = 0; index < 5; index++)
             {

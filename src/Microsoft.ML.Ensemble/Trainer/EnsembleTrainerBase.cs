@@ -22,7 +22,7 @@ namespace Microsoft.ML.Trainers.Ensemble
          where TSelector : class, ISubModelSelector<TOutput>
          where TCombiner : class, IOutputCombiner<TOutput>
     {
-        public abstract class ArgumentsBase : LearnerInputBaseWithLabel
+        public abstract class ArgumentsBase : TrainerInputBaseWithLabel
         {
 #pragma warning disable CS0649 // These are set via reflection.
             [Argument(ArgumentType.AtMostOnce,

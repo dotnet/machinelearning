@@ -13,6 +13,7 @@ namespace Microsoft.ML.Data.DataLoadSave
     /// It will pretend that all vector sizes are equal to 10, all key value counts are equal to 10,
     /// and all values are defaults (for annotations).
     /// </summary>
+    [BestFriend]
     internal static class FakeSchemaFactory
     {
         private const int AllVectorSizes = 10;
