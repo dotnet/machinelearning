@@ -42,7 +42,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "Categorical.OneHotEncoding";
 
-        internal override string Usings => "using Microsoft.ML.Transforms.Categorical;\r\n";
+        internal override string Usings => "using Microsoft.ML.Transforms;\r\n";
 
         private string ArgumentsName = "OneHotEncodingEstimator.ColumnOptions";
 
@@ -210,7 +210,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "Categorical.OneHotHashEncoding";
 
-        internal override string Usings => "using Microsoft.ML.Transforms.Categorical;\r\n";
+        internal override string Usings => "using Microsoft.ML.Transforms;\r\n";
 
         private string ArgumentsName = "OneHotHashEncodingEstimator.ColumnOptions";
 
@@ -272,7 +272,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "Conversion.ConvertType";
 
-        internal override string Usings => "using Microsoft.ML.Transforms.Conversions;\r\n";
+        internal override string Usings => "using Microsoft.ML.Transforms;\r\n";
 
         private string ArgumentsName = "TypeConvertingEstimator.ColumnOptions";
 
@@ -311,7 +311,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "Conversion.MapValueToKey";
 
-        internal override string Usings => "using Microsoft.ML.Transforms.Conversions;\r\n";
+        internal override string Usings => "using Microsoft.ML.Transforms;\r\n";
 
         public override string GenerateTransformer()
         {

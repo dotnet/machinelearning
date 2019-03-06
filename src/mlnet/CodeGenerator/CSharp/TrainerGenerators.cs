@@ -70,7 +70,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 }
             }
 
-            internal override string Usings => "using Microsoft.ML.Trainers.Online;\r\n ";
+            internal override string Usings => "using Microsoft.ML.Trainers;\r\n ";
 
             public AveragedPerceptron(PipelineNode node) : base(node)
             {
@@ -196,7 +196,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 }
             }
 
-            internal override string Usings => "using Microsoft.ML.Trainers.Online;\r\n ";
+            internal override string Usings => "using Microsoft.ML.Trainers;\r\n ";
 
             public LinearSvm(PipelineNode node) : base(node)
             {
@@ -266,7 +266,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 }
             }
 
-            internal override string Usings => "using Microsoft.ML.Trainers.Online;\r\n";
+            internal override string Usings => "using Microsoft.ML.Trainers;\r\n";
 
             public OnlineGradientDescentRegression(PipelineNode node) : base(node)
             {

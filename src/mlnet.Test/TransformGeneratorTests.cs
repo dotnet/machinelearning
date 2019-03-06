@@ -34,7 +34,7 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expectedTransform = "Categorical.OneHotEncoding(new []{new OneHotEncodingEstimator.ColumnOptions(\"categorical_column_1\",\"categorical_column_1\")})";
-            var expectedUsings = "using Microsoft.ML.Transforms.Categorical;\r\n";
+            var expectedUsings = "using Microsoft.ML.Transforms;\r\n";
             Assert.AreEqual(expectedTransform, actual[0].Item1);
             Assert.AreEqual(expectedUsings, actual[0].Item2);
         }
@@ -109,7 +109,7 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expectedTransform = "Categorical.OneHotHashEncoding(new []{new OneHotHashEncodingEstimator.ColumnOptions(\"Categorical_column_1\",\"Categorical_column_1\")})";
-            var expectedUsings = "using Microsoft.ML.Transforms.Categorical;\r\n";
+            var expectedUsings = "using Microsoft.ML.Transforms;\r\n";
             Assert.AreEqual(expectedTransform, actual[0].Item1);
             Assert.AreEqual(expectedUsings, actual[0].Item2);
         }
@@ -139,7 +139,7 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expectedTransform = "Conversion.ConvertType(new []{new TypeConvertingEstimator.ColumnOptions(\"R4_column_1\",DataKind.Single,\"I4_column_1\")})";
-            string expectedUsings = "using Microsoft.ML.Transforms.Conversions;\r\n";
+            string expectedUsings = "using Microsoft.ML.Transforms;\r\n";
             Assert.AreEqual(expectedTransform, actual[0].Item1);
             Assert.AreEqual(expectedUsings, actual[0].Item2);
         }
@@ -154,7 +154,7 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expectedTransform = "Conversion.MapValueToKey(\"Label\",\"Label\")";
-            var expectedUsings = "using Microsoft.ML.Transforms.Conversions;\r\n";
+            var expectedUsings = "using Microsoft.ML.Transforms;\r\n";
             Assert.AreEqual(expectedTransform, actual[0].Item1);
             Assert.AreEqual(expectedUsings, actual[0].Item2);
         }

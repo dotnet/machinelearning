@@ -309,7 +309,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            var expectedUsings = "using Microsoft.ML.Trainers.Online;\r\n";
+            var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
             string expectedTrainerString = "OnlineGradientDescent(new OnlineGradientDescentTrainer.Options(){RecencyGainMulti=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2);
@@ -383,7 +383,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            var expectedUsings = "using Microsoft.ML.Trainers.Online;\r\n ";
+            var expectedUsings = "using Microsoft.ML.Trainers;\r\n ";
             string expectedTrainerString = "LinearSupportVectorMachines(new LinearSvmTrainer.Options(){NoBias=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2);
@@ -421,7 +421,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            var expectedUsings = "using Microsoft.ML.Trainers.Online;\r\n";
+            var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
             string expectedTrainerString = "OnlineGradientDescent(new OnlineGradientDescentTrainer.Options(){Shrinkage=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2);
@@ -610,7 +610,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            var expectedUsings = "using Microsoft.ML.Trainers.Online;\r\n ";
+            var expectedUsings = "using Microsoft.ML.Trainers;\r\n ";
             string expectedTrainerString = "AveragedPerceptron(new AveragedPerceptronTrainer.Options(){Shuffle=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2);

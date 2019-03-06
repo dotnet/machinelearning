@@ -78,7 +78,7 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expectedTransform = "Categorical.OneHotEncoding(new []{new OneHotEncodingEstimator.ColumnOptions(\"Label\",\"Label\")})";
-            var expectedUsings = "using Microsoft.ML.Transforms.Categorical;\r\n";
+            var expectedUsings = "using Microsoft.ML.Transforms;\r\n";
             Assert.AreEqual(expectedTransform, actual[0].Item1);
             Assert.AreEqual(expectedUsings, actual[0].Item2);
         }

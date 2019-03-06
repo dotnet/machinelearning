@@ -4,8 +4,6 @@
 
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Auto
 {
@@ -39,7 +37,7 @@ namespace Microsoft.ML.Auto
 
         public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn)
         {
-            var pipelineNode = new PipelineNode(EstimatorName.ColumnCopying.ToString(), 
+            var pipelineNode = new PipelineNode(EstimatorName.ColumnCopying.ToString(),
                 PipelineNodeType.Transform, inColumn, outColumn);
             var estimator = CreateInstance(context, inColumn, outColumn);
             return new SuggestedTransform(pipelineNode, estimator);
@@ -192,7 +190,7 @@ namespace Microsoft.ML.Auto
 
         public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn)
         {
-            var pipelineNode = new PipelineNode(EstimatorName.TextFeaturizing.ToString(), 
+            var pipelineNode = new PipelineNode(EstimatorName.TextFeaturizing.ToString(),
                 PipelineNodeType.Transform, inColumn, outColumn);
             var estimator = CreateInstance(context, inColumn, outColumn);
             return new SuggestedTransform(pipelineNode, estimator);
@@ -213,7 +211,7 @@ namespace Microsoft.ML.Auto
 
         public static SuggestedTransform CreateSuggestedTransform(MLContext context, string[] inColumns, string[] outColumns)
         {
-            var pipelineNode = new PipelineNode(EstimatorName.TypeConverting.ToString(), 
+            var pipelineNode = new PipelineNode(EstimatorName.TypeConverting.ToString(),
                 PipelineNodeType.Transform, inColumns, outColumns);
             var estimator = CreateInstance(context, inColumns, outColumns);
             return new SuggestedTransform(pipelineNode, estimator);
@@ -239,7 +237,7 @@ namespace Microsoft.ML.Auto
 
         public static SuggestedTransform CreateSuggestedTransform(MLContext context, string inColumn, string outColumn)
         {
-            var pipelineNode = new PipelineNode(EstimatorName.ValueToKeyMapping.ToString(), 
+            var pipelineNode = new PipelineNode(EstimatorName.ValueToKeyMapping.ToString(),
                 PipelineNodeType.Transform, inColumn, outColumn);
             var estimator = CreateInstance(context, inColumn, outColumn);
             return new SuggestedTransform(pipelineNode, estimator);

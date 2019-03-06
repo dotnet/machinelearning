@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.HalLearners;
-using Microsoft.ML.Trainers.Online;
 
 namespace Microsoft.ML.Auto
 {
