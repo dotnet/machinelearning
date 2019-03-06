@@ -169,6 +169,43 @@ namespace mlnet.Test
         }
 
         [TestMethod]
+        public void SDCAMultiBasicTest()
+        {
+            var context = new MLContext();
+
+            var elementProperties = new Dictionary<string, object>();
+            PipelineNode node = new PipelineNode("SdcaMulti", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
+            var actual = codeGenerator.GenerateTrainerAndUsings();
+            string expectedTrainerString = "StochasticDualCoordinateAscent(labelColumnName:\"Label\",featureColumnName:\"Features\")";
+            Assert.AreEqual(expectedTrainerString, actual.Item1);
+            Assert.IsNull(actual.Item2);
+
+        }
+
+        [TestMethod]
+        public void SDCAMultiAdvancedParameterTest()
+        {
+
+            var context = new MLContext();
+
+            var elementProperties = new Dictionary<string, object>()
+            {
+                {"BiasLearningRate", 0.1f },
+            };
+            PipelineNode node = new PipelineNode("SdcaMulti", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
+            var actual = codeGenerator.GenerateTrainerAndUsings();
+            var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
+            string expectedTrainerString = "StochasticDualCoordinateAscent(new SdcaMultiClassTrainer.Options(){BiasLearningRate=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            Assert.AreEqual(expectedTrainerString, actual.Item1);
+            Assert.AreEqual(expectedUsings, actual.Item2);
+
+        }
+
+        [TestMethod]
         public void SDCARegressionBasicTest()
         {
             var context = new MLContext();
@@ -348,6 +385,43 @@ namespace mlnet.Test
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
             string expectedTrainerString = "LogisticRegression(new LogisticRegression.Options(){DenseOptimizer=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            Assert.AreEqual(expectedTrainerString, actual.Item1);
+            Assert.AreEqual(expectedUsings, actual.Item2);
+
+        }
+
+        [TestMethod]
+        public void LogisticRegressionMultiBasicTest()
+        {
+            var context = new MLContext();
+
+            var elementProperties = new Dictionary<string, object>();
+            PipelineNode node = new PipelineNode("LogisticRegressionMulti", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
+            var actual = codeGenerator.GenerateTrainerAndUsings();
+            string expectedTrainerString = "LogisticRegression(labelColumnName:\"Label\",featureColumnName:\"Features\")";
+            Assert.AreEqual(expectedTrainerString, actual.Item1);
+            Assert.IsNull(actual.Item2);
+
+        }
+
+        [TestMethod]
+        public void LogisticRegressionMultiAdvancedParameterTest()
+        {
+
+            var context = new MLContext();
+
+            var elementProperties = new Dictionary<string, object>()
+            {
+                {"DenseOptimizer", true },
+            };
+            PipelineNode node = new PipelineNode("LogisticRegressionMulti", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
+            var actual = codeGenerator.GenerateTrainerAndUsings();
+            var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
+            string expectedTrainerString = "LogisticRegression(new MulticlassLogisticRegression.Options(){DenseOptimizer=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2);
 

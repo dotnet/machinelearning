@@ -48,6 +48,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                         return new LinearSvm(node);
                     case TrainerName.LogisticRegressionBinary:
                         return new LogisticRegressionBinary(node);
+                    case TrainerName.LogisticRegressionMulti:
+                        return new LogisticRegressionMulti(node);
                     case TrainerName.OnlineGradientDescentRegression:
                         return new OnlineGradientDescentRegression(node);
                     case TrainerName.OrdinaryLeastSquaresRegression:
@@ -56,6 +58,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                         return new PoissonRegression(node);
                     case TrainerName.SdcaBinary:
                         return new StochasticDualCoordinateAscentBinary(node);
+                    case TrainerName.SdcaMulti:
+                        return new StochasticDualCoordinateAscentMulti(node);
                     case TrainerName.SdcaRegression:
                         return new StochasticDualCoordinateAscentRegression(node);
                     case TrainerName.StochasticGradientDescentBinary:

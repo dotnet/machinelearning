@@ -203,13 +203,12 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             }
         }
 
-        internal class LogisticRegressionBinary : TrainerGeneratorBase
+        #region Logistic Regression
+
+        internal abstract class LogisticRegressionBase : TrainerGeneratorBase
         {
             //ClassName of the trainer
             internal override string MethodName => "LogisticRegression";
-
-            //ClassName of the options to trainer
-            internal override string OptionsName => "LogisticRegression.Options";
 
             //The named parameters to the trainer.
             internal override IDictionary<string, string> NamedParameters
@@ -233,10 +232,30 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
             internal override string Usings => "using Microsoft.ML.Trainers;\r\n";
 
+            public LogisticRegressionBase(PipelineNode node) : base(node)
+            {
+            }
+        }
+        internal class LogisticRegressionBinary : LogisticRegressionBase
+        {
+            //ClassName of the options to trainer
+            internal override string OptionsName => "LogisticRegression.Options";
+
             public LogisticRegressionBinary(PipelineNode node) : base(node)
             {
             }
         }
+
+        internal class LogisticRegressionMulti : LogisticRegressionBase
+        {
+            //ClassName of the options to trainer
+            internal override string OptionsName => "MulticlassLogisticRegression.Options";
+
+            public LogisticRegressionMulti(PipelineNode node) : base(node)
+            {
+            }
+        }
+        #endregion
 
         internal class OnlineGradientDescentRegression : TrainerGeneratorBase
         {
@@ -376,6 +395,16 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             internal override string OptionsName => "SdcaBinaryTrainer.Options";
 
             public StochasticDualCoordinateAscentBinary(PipelineNode node) : base(node)
+            {
+            }
+        }
+
+        internal class StochasticDualCoordinateAscentMulti : StochasticDualCoordinateAscentBase
+        {
+            //ClassName of the options to trainer
+            internal override string OptionsName => "SdcaMultiClassTrainer.Options";
+
+            public StochasticDualCoordinateAscentMulti(PipelineNode node) : base(node)
             {
             }
         }
