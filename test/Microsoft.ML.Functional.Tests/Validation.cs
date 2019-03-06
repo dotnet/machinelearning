@@ -4,12 +4,12 @@
 
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FastTree;
 using Xunit;
-using Microsoft.ML.Functional.Tests.Datasets;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Functional.Tests

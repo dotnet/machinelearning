@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
-using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Functional.Tests.Datasets
 {
     /// <summary>
-    /// A class for the Iris test dataset.
+    /// A class for the Adult test dataset.
     /// </summary>
     internal sealed class Adult
     {
@@ -60,7 +57,7 @@ namespace Microsoft.ML.Functional.Tests.Datasets
         public float HoursPerWeek { get; set; }
 
         /// <summary>
-        /// The list of columns commonly used as numerical features.
+        /// The list of columns commonly used as categorical features.
         /// </summary>
         public static readonly string[] CategoricalFeatures = new string[] { "WorkClass", "Education", "MaritalStatus", "Occupation", "Relationship", "Ethnicity", "Sex", "NativeCountryRegion" };
 

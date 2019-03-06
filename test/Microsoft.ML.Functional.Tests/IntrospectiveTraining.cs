@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
@@ -263,7 +264,7 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// I can take an existing model file and inspect what transformers were included in the pipeline. 	 
+        /// Introspective Training: I can inspect a pipeline to determine which transformers were included. 	 
         /// </summary>
         [Fact]
         public void InspectPipelineContents()
@@ -301,13 +302,6 @@ namespace Microsoft.ML.Functional.Tests
                     var column = currentSchema.GetColumnOrNull(expectedColumn);
                     Assert.NotNull(column);
                 }
-                // And we can see that future columns do not yet exist.
-                if (i < expectedColumns.Length - 1)
-                    foreach (var expectedColumn in expectedColumns[i+1])
-                    {
-                        var column = currentSchema.GetColumnOrNull(expectedColumn);
-                        Assert.Null(column);
-                    }
                 i++;
             }
         }
@@ -337,8 +331,8 @@ namespace Microsoft.ML.Functional.Tests
             // Transform the data.
             var transformedData = model.Transform(data);
 
-            // Verify that the slotnames cane be used to backtrack by confirming that 
-            //  all unique values in the input data are in the output data slot names.
+            // Verify that the slotnames can be used to backtrack to the original values by confirming that 
+            // all unique values in the input data are in the output data slot names.
             // First get a list of the unique values.
             VBuffer<ReadOnlyMemory<char>> categoricalSlotNames = new VBuffer<ReadOnlyMemory<char>>();
             transformedData.Schema["CategoricalFeatures"].GetSlotNames(ref categoricalSlotNames);
@@ -370,6 +364,9 @@ namespace Microsoft.ML.Functional.Tests
             }
         }
         
+        /// <summary>
+        /// Introspective Training: I can create nested pipelines, and extract individual components.
+        /// </summary>
         [Fact]
         public void InspectNestedPipeline()
         {
@@ -388,12 +385,9 @@ namespace Microsoft.ML.Functional.Tests
             var model = pipeline.Fit(data);
 
             // Extract the trained models.
-            var modelEnumerator = model.GetEnumerator();
-            modelEnumerator.MoveNext(); // The Concat Transform
-            modelEnumerator.MoveNext();
-            var kMeansModel = (modelEnumerator.Current as TransformerChain<ClusteringPredictionTransformer<KMeansModelParameters>>).LastTransformer;
-            modelEnumerator.MoveNext();
-            var mcLrModel = (modelEnumerator.Current as TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>>).LastTransformer;
+            var modelComponents = model.ToList();
+            var kMeansModel = (modelComponents[1] as TransformerChain<ClusteringPredictionTransformer<KMeansModelParameters>>).LastTransformer;
+            var mcLrModel = (modelComponents[2] as TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>>).LastTransformer;
 
             // Validate the k-means model.
             VBuffer<float>[] centroids = default;
