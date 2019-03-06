@@ -62,9 +62,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(),
-                hasHeader: TestDatasets.housing.fileHasHeader, separatorChar: TestDatasets.housing.fileSeparator)
-                .Load(BaseTestClass.GetDataPath(TestDatasets.housing.trainFilename));
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create the train and validation set.
             var dataSplit = mlContext.Regression.TrainTestSplit(data, testFraction: 0.2);
@@ -81,7 +79,7 @@ namespace Microsoft.ML.Functional.Tests
             var preprocessedValidData = preprocessor.Transform(validData);
 
             // Train the model with a validation set.
-            var trainedModel = mlContext.Regression.Trainers.FastTree(new Trainers.FastTree.FastTreeRegressionTrainer.Options {
+            var trainedModel = mlContext.Regression.Trainers.FastTree(new FastTreeRegressionTrainer.Options {
                     NumberOfTrees = 2,
                     EarlyStoppingMetric = EarlyStoppingMetric.L2Norm,
                     EarlyStoppingRule = new GLEarlyStoppingCriterion.Options()

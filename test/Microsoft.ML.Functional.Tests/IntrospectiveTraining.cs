@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-//using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
@@ -142,7 +141,7 @@ namespace Microsoft.ML.Functional.Tests
             // Compose the transformation.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .Append(mlContext.Regression.Trainers.GeneralizedAdditiveModels(
-                    new RegressionGamTrainer.Options { NumIterations = 100 }));
+                    new RegressionGamTrainer.Options { NumberOfIterations = 100 }));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
@@ -151,16 +150,15 @@ namespace Microsoft.ML.Functional.Tests
             var gamModel = model.LastTransformer.Model;
 
             // Take look at the shape functions.
-            var shapeFunctionsBins = gamModel.GetBinUpperBounds();
-            var shapeFunctionsValues = gamModel.GetBinEffects();
-
-            // Validate that the shape functions lengths match.
-            Assert.Equal(shapeFunctionsBins.Length, shapeFunctionsValues.Length);
-            for (int i = 0; i < shapeFunctionsBins.Length; i++)
+            for (int i = 0; i < gamModel.NumberOfShapeFunctions; i++)
             {
-                Assert.Equal(shapeFunctionsBins[i].Length, shapeFunctionsValues[i].Length);
-                Common.AssertFiniteNumbers(shapeFunctionsBins[i], shapeFunctionsBins[i].Length - 1);
-                Common.AssertFiniteNumbers(shapeFunctionsValues[i]);
+                var shapeFunctionBins = gamModel.GetBinUpperBounds(i);
+                var shapeFunctionValues = gamModel.GetBinEffects(i);
+
+                // Validate that the shape functions lengths match.
+                Assert.Equal(shapeFunctionBins.Count, shapeFunctionValues.Count);
+                Common.AssertFiniteNumbers(shapeFunctionBins as IList<double>, shapeFunctionBins.Count - 1);
+                Common.AssertFiniteNumbers(shapeFunctionValues as IList<double>);
             }
         }
 
@@ -217,7 +215,7 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                    new SdcaNonCalibratedBinaryTrainer.Options { NumThreads = 1 }));
+                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
@@ -435,8 +433,8 @@ namespace Microsoft.ML.Functional.Tests
             return mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
                 new SdcaMultiClassTrainer.Options {
-                    MaxIterations = 10,
-                    NumThreads = 1 }));
+                    NumberOfIterations = 10,
+                    NumberOfThreads = 1 }));
         }
     }
 }
