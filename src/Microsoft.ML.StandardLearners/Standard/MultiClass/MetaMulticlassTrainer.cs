@@ -100,9 +100,7 @@ namespace Microsoft.ML.Trainers
             var lab = data.Schema.Label.Value;
             IDataView dataView = data.Data;
             if (!Args.ImputeMissingLabelsAsNegative)
-            {
                 dataView = new NAFilter(Host, data.Data, false, lab.Name);
-            }
 
             return LambdaColumnMapper.Create(Host, "Label mapper", data.Data,
                 lab.Name, lab.Name, type, BooleanDataViewType.Instance,
