@@ -31,7 +31,7 @@ namespace Microsoft.ML.Scenarios
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
-                    new SdcaMultiClassTrainer.Options { NumThreads = 1 }));
+                    new SdcaMultiClassTrainer.Options { NumberOfThreads = 1 }));
 
             // Read training and test data sets
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);

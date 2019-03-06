@@ -157,40 +157,80 @@ namespace Microsoft.ML.Trainers
         // 3. Don't "guess" the iteration to converge. It is very data-set dependent and hard to control. Always check for at least once to ensure convergence.
         // 4. Use dual variable updates to infer whether a full iteration of convergence checking is necessary. Convergence checking iteration is time-consuming.
 
+        /// <summary>
+        /// Options for the SDCA-based trainers.
+        /// </summary>
         public abstract class OptionsBase : TrainerInputBaseWithLabel
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l2", SortOrder = 1)]
+            /// <summary>
+            /// The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l2, L2Const", SortOrder = 1)]
             [TGUI(Label = "L2 Regularizer Constant", SuggestedSweeps = "<Auto>,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2")]
             [TlcModule.SweepableDiscreteParam("L2Const", new object[] { "<Auto>", 1e-7f, 1e-6f, 1e-5f, 1e-4f, 1e-3f, 1e-2f })]
-            public float? L2Const;
+            public float? L2Regularization;
 
             // REVIEW: make the default positive when we know how to consume a sparse model
+            /// <summary>
+            /// The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L1 soft threshold (L1/L2). Note that it is easier to control and sweep using the threshold parameter than the raw L1-regularizer constant. By default the l1 threshold is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l1", SortOrder = 2)]
             [TGUI(Label = "L1 Soft Threshold", SuggestedSweeps = "<Auto>,0,0.25,0.5,0.75,1")]
             [TlcModule.SweepableDiscreteParam("L1Threshold", new object[] { "<Auto>", 0f, 0.25f, 0.5f, 0.75f, 1f })]
             public float? L1Threshold;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.", NullName = "<Auto>", ShortName = "nt,t,threads", SortOrder = 50)]
+            /// <summary>
+            /// The degree of lock-free parallelism.
+            /// </summary>
+            /// <value>
+            /// Defaults to automatic depending on data sparseness. Determinism is not guaranteed.
+            /// </value>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.", NullName = "<Auto>", ShortName = "nt,t,threads, NumThreads", SortOrder = 50)]
             [TGUI(Label = "Number of threads", SuggestedSweeps = "<Auto>,1,2,4")]
-            public int? NumThreads;
+            public int? NumberOfThreads;
 
+            /// <summary>
+            /// The tolerance for the ratio between duality gap and primal loss for convergence checking.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The tolerance for the ratio between duality gap and primal loss for convergence checking.", ShortName = "tol")]
             [TGUI(SuggestedSweeps = "0.001, 0.01, 0.1, 0.2")]
             [TlcModule.SweepableDiscreteParam("ConvergenceTolerance", new object[] { 0.001f, 0.01f, 0.1f, 0.2f })]
             public float ConvergenceTolerance = 0.1f;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.", NullName = "<Auto>", ShortName = "iter")]
+            /// <summary>
+            /// The maximum number of passes to perform over the data.
+            /// </summary>
+            /// <value>
+            /// Set to 1 to simulate online learning. Defaults to automatic.
+            /// </value>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.", NullName = "<Auto>", ShortName = "iter, MaxIterations")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "<Auto>,10,20,100")]
             [TlcModule.SweepableDiscreteParam("MaxIterations", new object[] { "<Auto>", 10, 20, 100 })]
-            public int? MaxIterations;
+            public int? NumberOfIterations;
 
+            /// <summary>
+            /// Determines whether to shuffle data for each training iteration.
+            /// </summary>
+            /// <value>
+            /// <see langword="true" /> to shuffle data for each training iteration; otherwise, <see langword="false" />.
+            /// Default is <see langword="true" />.
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data every epoch?", ShortName = "shuf")]
             [TlcModule.SweepableDiscreteParam("Shuffle", null, isBool: true)]
             public bool Shuffle = true;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Convergence check frequency (in terms of number of iterations). Set as negative or zero for not checking at all. If left blank, it defaults to check after every 'numThreads' iterations.", NullName = "<Auto>", ShortName = "checkFreq")]
-            public int? CheckFrequency;
+            /// <summary>
+            /// Determines the frequency of checking for convergence in terms of number of iterations.
+            /// </summary>
+            /// <value>
+            /// Set to zero or negative value to disable checking. If <see langword="null"/>, it defaults to <see cref="NumberOfThreads"/>."
+            /// </value>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Convergence check frequency (in terms of number of iterations). Set as negative or zero for not checking at all. If left blank, it defaults to check after every 'numThreads' iterations.", NullName = "<Auto>", ShortName = "checkFreq, CheckFrequency")]
+            public int? ConvergenceCheckFrequency;
 
+            /// <summary>
+            /// The learning rate for adjusting bias from being regularized.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The learning rate for adjusting bias from being regularized.", ShortName = "blr")]
             [TGUI(SuggestedSweeps = "0, 0.01, 0.1, 1")]
             [TlcModule.SweepableDiscreteParam("BiasLearningRate", new object[] { 0.0f, 0.01f, 0.1f, 1f })]
@@ -199,19 +239,19 @@ namespace Microsoft.ML.Trainers
             internal virtual void Check(IHostEnvironment env)
             {
                 Contracts.AssertValue(env);
-                env.CheckUserArg(L2Const == null || L2Const >= 0, nameof(L2Const), "L2 constant must be non-negative.");
+                env.CheckUserArg(L2Regularization == null || L2Regularization >= 0, nameof(L2Regularization), "L2 constant must be non-negative.");
                 env.CheckUserArg(L1Threshold == null || L1Threshold >= 0, nameof(L1Threshold), "L1 threshold must be non-negative.");
-                env.CheckUserArg(MaxIterations == null || MaxIterations > 0, nameof(MaxIterations), "Max number of iterations must be positive.");
+                env.CheckUserArg(NumberOfIterations == null || NumberOfIterations > 0, nameof(NumberOfIterations), "Max number of iterations must be positive.");
                 env.CheckUserArg(ConvergenceTolerance > 0 && ConvergenceTolerance <= 1, nameof(ConvergenceTolerance), "Convergence tolerance must be positive and no larger than 1.");
 
-                if (L2Const < L2LowerBound)
+                if (L2Regularization < L2LowerBound)
                 {
                     using (var ch = env.Start("SDCA arguments checking"))
                     {
                         ch.Warning($"The L2 regularization constant must be at least {L2LowerBound}. In SDCA, the dual formulation " +
                             $"is only valid with a positive constant, and values below {L2LowerBound} cause very slow convergence. " +
-                            $"The original {nameof(L2Const)} = {L2Const}, was replaced with {nameof(L2Const)} = {L2LowerBound}.");
-                        L2Const = L2LowerBound;
+                            $"The original {nameof(L2Regularization)} = {L2Regularization}, was replaced with {nameof(L2Regularization)} = {L2LowerBound}.");
+                        L2Regularization = L2LowerBound;
                     }
                 }
             }
@@ -267,9 +307,9 @@ namespace Microsoft.ML.Trainers
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), label, weight)
         {
             SdcaTrainerOptions = options;
-            SdcaTrainerOptions.L2Const = l2Const ?? options.L2Const;
+            SdcaTrainerOptions.L2Regularization = l2Const ?? options.L2Regularization;
             SdcaTrainerOptions.L1Threshold = l1Threshold ?? options.L1Threshold;
-            SdcaTrainerOptions.MaxIterations = maxIterations ?? options.MaxIterations;
+            SdcaTrainerOptions.NumberOfIterations = maxIterations ?? options.NumberOfIterations;
             SdcaTrainerOptions.Check(env);
         }
 
@@ -292,10 +332,10 @@ namespace Microsoft.ML.Trainers
 
             var cursorFactory = new FloatLabelCursor.Factory(data, cursorOpt);
             int numThreads;
-            if (SdcaTrainerOptions.NumThreads.HasValue)
+            if (SdcaTrainerOptions.NumberOfThreads.HasValue)
             {
-                numThreads = SdcaTrainerOptions.NumThreads.Value;
-                Host.CheckUserArg(numThreads > 0, nameof(OptionsBase.NumThreads), "The number of threads must be either null or a positive integer.");
+                numThreads = SdcaTrainerOptions.NumberOfThreads.Value;
+                Host.CheckUserArg(numThreads > 0, nameof(OptionsBase.NumberOfThreads), "The number of threads must be either null or a positive integer.");
                 if (0 < Host.ConcurrencyFactor && Host.ConcurrencyFactor < numThreads)
                 {
                     numThreads = Host.ConcurrencyFactor;
@@ -313,8 +353,8 @@ namespace Microsoft.ML.Trainers
                 ch.Info("Using {0} threads to train.", numThreads);
 
             int checkFrequency = 0;
-            if (SdcaTrainerOptions.CheckFrequency.HasValue)
-                checkFrequency = SdcaTrainerOptions.CheckFrequency.Value;
+            if (SdcaTrainerOptions.ConvergenceCheckFrequency.HasValue)
+                checkFrequency = SdcaTrainerOptions.ConvergenceCheckFrequency.Value;
             else
             {
                 checkFrequency = numThreads;
@@ -414,14 +454,14 @@ namespace Microsoft.ML.Trainers
 
             ch.Check(count > 0, "Training set has 0 instances, aborting training.");
             // Tune the default hyperparameters based on dataset size.
-            if (SdcaTrainerOptions.MaxIterations == null)
-                SdcaTrainerOptions.MaxIterations = TuneDefaultMaxIterations(ch, count, numThreads);
+            if (SdcaTrainerOptions.NumberOfIterations == null)
+                SdcaTrainerOptions.NumberOfIterations = TuneDefaultMaxIterations(ch, count, numThreads);
 
-            Contracts.Assert(SdcaTrainerOptions.MaxIterations.HasValue);
-            if (SdcaTrainerOptions.L2Const == null)
-                SdcaTrainerOptions.L2Const = TuneDefaultL2(ch, SdcaTrainerOptions.MaxIterations.Value, count, numThreads);
+            Contracts.Assert(SdcaTrainerOptions.NumberOfIterations.HasValue);
+            if (SdcaTrainerOptions.L2Regularization == null)
+                SdcaTrainerOptions.L2Regularization = TuneDefaultL2(ch, SdcaTrainerOptions.NumberOfIterations.Value, count, numThreads);
 
-            Contracts.Assert(SdcaTrainerOptions.L2Const.HasValue);
+            Contracts.Assert(SdcaTrainerOptions.L2Regularization.HasValue);
             if (SdcaTrainerOptions.L1Threshold == null)
                 SdcaTrainerOptions.L1Threshold = TuneDefaultL1(ch, numFeatures);
 
@@ -455,8 +495,8 @@ namespace Microsoft.ML.Trainers
 
             int bestIter = 0;
             var bestPrimalLoss = double.PositiveInfinity;
-            ch.Assert(SdcaTrainerOptions.L2Const.HasValue);
-            var l2Const = SdcaTrainerOptions.L2Const.Value;
+            ch.Assert(SdcaTrainerOptions.L2Regularization.HasValue);
+            var l2Const = SdcaTrainerOptions.L2Regularization.Value;
             float lambdaNInv = 1 / (l2Const * count);
 
             DualsTableBase duals = null;
@@ -519,8 +559,8 @@ namespace Microsoft.ML.Trainers
             ch.AssertValue(metricNames);
             ch.AssertValue(metrics);
             ch.Assert(metricNames.Length == metrics.Length);
-            ch.Assert(SdcaTrainerOptions.MaxIterations.HasValue);
-            var maxIterations = SdcaTrainerOptions.MaxIterations.Value;
+            ch.Assert(SdcaTrainerOptions.NumberOfIterations.HasValue);
+            var maxIterations = SdcaTrainerOptions.NumberOfIterations.Value;
 
             var rands = new Random[maxIterations];
             for (int i = 0; i < maxIterations; i++)
@@ -762,7 +802,7 @@ namespace Microsoft.ML.Trainers
             int maxUpdateTrials = 2 * numThreads;
             var l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
             bool l1ThresholdZero = l1Threshold == 0;
-            var lr = SdcaTrainerOptions.BiasLearningRate * SdcaTrainerOptions.L2Const.Value;
+            var lr = SdcaTrainerOptions.BiasLearningRate * SdcaTrainerOptions.L2Regularization.Value;
             var pch = progress != null ? progress.StartProgressChannel("Dual update") : null;
             using (pch)
             using (var cursor = SdcaTrainerOptions.Shuffle ? cursorFactory.Create(rand) : cursorFactory.Create())
@@ -950,9 +990,9 @@ namespace Microsoft.ML.Trainers
                 Host.Assert(idToIdx == null || row == duals.Length);
             }
 
-            Contracts.Assert(SdcaTrainerOptions.L2Const.HasValue);
+            Contracts.Assert(SdcaTrainerOptions.L2Regularization.HasValue);
             Contracts.Assert(SdcaTrainerOptions.L1Threshold.HasValue);
-            Double l2Const = SdcaTrainerOptions.L2Const.Value;
+            Double l2Const = SdcaTrainerOptions.L2Regularization.Value;
             Double l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
             Double l1Regularizer = l1Threshold * l2Const * (VectorUtils.L1Norm(in weights[0]) + Math.Abs(biasReg[0]));
             var l2Regularizer = l2Const * (VectorUtils.NormSquared(weights[0]) + biasReg[0] * biasReg[0]) * 0.5;
@@ -1419,8 +1459,17 @@ namespace Microsoft.ML.Trainers
 
         public override TrainerInfo Info { get; }
 
+        /// <summary>
+        /// Options base class for binary SDCA trainers.
+        /// </summary>
         public class BinaryOptionsBase : OptionsBase
         {
+            /// <summary>
+            /// The weight to be applied to the positive class. This is useful for training with imbalanced data.
+            /// </summary>
+            /// <value>
+            /// Default value is 1, which means no extra weight.
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
             public float PositiveInstanceWeight = 1;
 
@@ -1503,11 +1552,17 @@ namespace Microsoft.ML.Trainers
             => new BinaryPredictionTransformer<TModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
     }
 
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a binary logistic regression classification model using the stochastic dual coordinate ascent method.
+    /// The trained model is <a href='tmpurl_calib'>calibrated</a> and can produce probability by feeding the output value of the
+    /// linear function to a <see cref="PlattCalibrator"/>.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
     public sealed class SdcaBinaryTrainer :
         SdcaBinaryTrainerBase<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
-        /// Configuration to training logistic regression using SDCA.
+        /// Options for the <see cref="SdcaBinaryTrainer"/>.
         /// </summary>
         public sealed class Options : BinaryOptionsBase
         {
@@ -1563,13 +1618,23 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a binary logistic regression classification model using the stochastic dual coordinate ascent method.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
     public sealed class SdcaNonCalibratedBinaryTrainer : SdcaBinaryTrainerBase<LinearBinaryModelParameters>
     {
         /// <summary>
-        /// General Configuration to training linear model using SDCA.
+        /// Options for the <see cref="SdcaNonCalibratedBinaryTrainer"/>.
         /// </summary>
         public sealed class Options : BinaryOptionsBase
         {
+            /// <summary>
+            /// The custom <a href="tmpurl_loss">loss</a>.
+            /// </summary>
+            /// <value>
+            /// If unspecified, <see cref="LogLoss"/> will be used.
+            /// </value>
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
         }
@@ -1712,10 +1777,10 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// The L2 weight for <a href='tmpurl_regularization'>regularization</a>.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization constant", ShortName = "l2", SortOrder = 50)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization constant", ShortName = "l2, L2Weight", SortOrder = 50)]
             [TGUI(Label = "L2 Regularization Constant", SuggestedSweeps = "1e-7,5e-7,1e-6,5e-6,1e-5")]
             [TlcModule.SweepableDiscreteParam("L2Const", new object[] { 1e-7f, 5e-7f, 1e-6f, 5e-6f, 1e-5f })]
-            public float L2Weight = Defaults.L2Weight;
+            public float L2Regularization = Defaults.L2Regularization;
 
             /// <summary>
             /// The degree of lock-free parallelism used by SGD.
@@ -1723,9 +1788,9 @@ namespace Microsoft.ML.Trainers
             /// <value>
             /// Defaults to automatic depending on data sparseness. Determinism is not guaranteed.
             /// </value>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic depending on data sparseness. Determinism not guaranteed.", ShortName = "nt,t,threads", SortOrder = 50)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic depending on data sparseness. Determinism not guaranteed.", ShortName = "nt,t,threads, NumThreads", SortOrder = 50)]
             [TGUI(Label = "Number of threads", SuggestedSweeps = "1,2,4")]
-            public int? NumThreads;
+            public int? NumberOfThreads;
 
             /// <summary>
             /// The convergence tolerance. If the exponential moving average of loss reductions falls below this tolerance,
@@ -1742,17 +1807,17 @@ namespace Microsoft.ML.Trainers
             /// <value>
             /// Set to 1 to simulate online learning.
             /// </value>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning.", ShortName = "iter")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning.", ShortName = "iter, MaxIterations")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "1,5,10,20")]
             [TlcModule.SweepableDiscreteParam("MaxIterations", new object[] { 1, 5, 10, 20 })]
-            public int MaxIterations = Defaults.MaxIterations;
+            public int NumberOfIterations = Defaults.NumberOfIterations;
 
             /// <summary>
             /// The initial <a href="tmpurl_lr">learning rate</a> used by SGD.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate (only used by SGD)", ShortName = "ilr,lr")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate (only used by SGD)", ShortName = "ilr,lr, InitLearningRate")]
             [TGUI(Label = "Initial Learning Rate (for SGD)")]
-            public double InitLearningRate = Defaults.InitLearningRate;
+            public double InitialLearningRate = Defaults.InitialLearningRate;
 
             /// <summary>
             /// Determines whether to shuffle data for each training iteration.
@@ -1778,7 +1843,7 @@ namespace Microsoft.ML.Trainers
             /// Determines the frequency of checking for convergence in terms of number of iterations.
             /// </summary>
             /// <value>
-            /// Default equals <see cref="NumThreads"/>."
+            /// Default equals <see cref="NumberOfThreads"/>."
             /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Convergence check frequency (in terms of number of iterations). Default equals number of threads", ShortName = "checkFreq")]
             public int? CheckFrequency;
@@ -1786,17 +1851,17 @@ namespace Microsoft.ML.Trainers
             internal void Check(IHostEnvironment env)
             {
                 Contracts.CheckValue(env, nameof(env));
-                env.CheckUserArg(L2Weight >= 0, nameof(L2Weight), "Must be non-negative.");
-                env.CheckUserArg(InitLearningRate > 0, nameof(InitLearningRate), "Must be positive.");
-                env.CheckUserArg(MaxIterations > 0, nameof(MaxIterations), "Must be positive.");
+                env.CheckUserArg(L2Regularization >= 0, nameof(L2Regularization), "Must be non-negative.");
+                env.CheckUserArg(InitialLearningRate > 0, nameof(InitialLearningRate), "Must be positive.");
+                env.CheckUserArg(NumberOfIterations > 0, nameof(NumberOfIterations), "Must be positive.");
                 env.CheckUserArg(PositiveInstanceWeight > 0, nameof(PositiveInstanceWeight), "Must be positive");
 
-                if (InitLearningRate * L2Weight >= 1)
+                if (InitialLearningRate * L2Regularization >= 1)
                 {
                     using (var ch = env.Start("Argument Adjustment"))
                     {
-                        ch.Warning("{0} {1} set too high; reducing to {1}", nameof(InitLearningRate),
-                            InitLearningRate, InitLearningRate = (float)0.5 / L2Weight);
+                        ch.Warning("{0} {1} set too high; reducing to {1}", nameof(InitialLearningRate),
+                            InitialLearningRate, InitialLearningRate = (float)0.5 / L2Regularization);
                     }
                 }
 
@@ -1807,9 +1872,9 @@ namespace Microsoft.ML.Trainers
             [BestFriend]
             internal static class Defaults
             {
-                public const float L2Weight = 1e-6f;
-                public const int MaxIterations = 20;
-                public const double InitLearningRate = 0.01;
+                public const float L2Regularization = 1e-6f;
+                public const int NumberOfIterations = 20;
+                public const double InitialLearningRate = 0.01;
             }
         }
 
@@ -1839,18 +1904,18 @@ namespace Microsoft.ML.Trainers
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
             IClassificationLoss loss = null,
-            int maxIterations = OptionsBase.Defaults.MaxIterations,
-            double initLearningRate = OptionsBase.Defaults.InitLearningRate,
-            float l2Weight = OptionsBase.Defaults.L2Weight)
+            int maxIterations = OptionsBase.Defaults.NumberOfIterations,
+            double initLearningRate = OptionsBase.Defaults.InitialLearningRate,
+            float l2Weight = OptionsBase.Defaults.L2Regularization)
             : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weightColumn)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
             _options = new OptionsBase();
-            _options.MaxIterations = maxIterations;
-            _options.InitLearningRate = initLearningRate;
-            _options.L2Weight = l2Weight;
+            _options.NumberOfIterations = maxIterations;
+            _options.InitialLearningRate = initLearningRate;
+            _options.L2Regularization = l2Weight;
 
             _options.FeatureColumnName = featureColumn;
             _options.LabelColumnName = labelColumn;
@@ -1903,10 +1968,10 @@ namespace Microsoft.ML.Trainers
             var cursorFactory = new FloatLabelCursor.Factory(data, cursorOpt);
 
             int numThreads;
-            if (_options.NumThreads.HasValue)
+            if (_options.NumberOfThreads.HasValue)
             {
-                numThreads = _options.NumThreads.Value;
-                ch.CheckUserArg(numThreads > 0, nameof(_options.NumThreads), "The number of threads must be either null or a positive integer.");
+                numThreads = _options.NumberOfThreads.Value;
+                ch.CheckUserArg(numThreads > 0, nameof(_options.NumberOfThreads), "The number of threads must be either null or a positive integer.");
             }
             else
                 numThreads = ComputeNumThreads(cursorFactory);
@@ -1915,7 +1980,7 @@ namespace Microsoft.ML.Trainers
             int checkFrequency = _options.CheckFrequency ?? numThreads;
             if (checkFrequency <= 0)
                 checkFrequency = int.MaxValue;
-            var l2Weight = _options.L2Weight;
+            var l2Weight = _options.L2Regularization;
             var lossFunc = Loss;
             var pOptions = new ParallelOptions { MaxDegreeOfParallelism = numThreads };
             var positiveInstanceWeight = _options.PositiveInstanceWeight;
@@ -1940,7 +2005,7 @@ namespace Microsoft.ML.Trainers
             // REVIEW: Investigate using parallel row cursor set instead of getting cursor independently. The convergence of SDCA need to be verified.
             Action<int, IProgressChannel> checkConvergence = (e, pch) =>
             {
-                if (e % checkFrequency == 0 && e != _options.MaxIterations)
+                if (e % checkFrequency == 0 && e != _options.NumberOfIterations)
                 {
                     Double trainTime = watch.Elapsed.TotalSeconds;
                     var lossSum = new CompensatedSum();
@@ -1966,7 +2031,7 @@ namespace Microsoft.ML.Trainers
                     improvement = improvement == 0 ? loss - newLoss : 0.5 * (loss - newLoss + improvement);
                     loss = newLoss;
 
-                    pch.Checkpoint(loss, improvement, e, _options.MaxIterations);
+                    pch.Checkpoint(loss, improvement, e, _options.NumberOfIterations);
                     converged = improvement < _options.ConvergenceTolerance;
                 }
             };
@@ -1976,11 +2041,11 @@ namespace Microsoft.ML.Trainers
             //Reference: Leon Bottou. Stochastic Gradient Descent Tricks.
             //https://research.microsoft.com/pubs/192769/tricks-2012.pdf
 
-            var trainingTasks = new Action<Random, IProgressChannel>[_options.MaxIterations];
-            var rands = new Random[_options.MaxIterations];
-            var ilr = _options.InitLearningRate;
+            var trainingTasks = new Action<Random, IProgressChannel>[_options.NumberOfIterations];
+            var rands = new Random[_options.NumberOfIterations];
+            var ilr = _options.InitialLearningRate;
             long t = 0;
-            for (int epoch = 1; epoch <= _options.MaxIterations; epoch++)
+            for (int epoch = 1; epoch <= _options.NumberOfIterations; epoch++)
             {
                 int e = epoch; //localize the modified closure
                 rands[e - 1] = RandomUtils.Create(Host.Rand.Next());
@@ -2041,9 +2106,9 @@ namespace Microsoft.ML.Trainers
                 {
                     int iter = 0;
                     pch.SetHeader(new ProgressHeader(new[] { "Loss", "Improvement" }, new[] { "iterations" }),
-                        entry => entry.SetProgress(0, iter, _options.MaxIterations));
+                        entry => entry.SetProgress(0, iter, _options.NumberOfIterations));
                     // Synchorized SGD.
-                    for (int i = 0; i < _options.MaxIterations; i++)
+                    for (int i = 0; i < _options.NumberOfIterations; i++)
                     {
                         iter = i;
                         trainingTasks[i](rands[i], pch);
@@ -2061,7 +2126,7 @@ namespace Microsoft.ML.Trainers
                             // REVIEW: technically, we could keep track of how many iterations have started,
                             // but this needs more synchronization than Parallel.For allows.
                         });
-                    Parallel.For(0, _options.MaxIterations, pOptions, i => trainingTasks[i](rands[i], pch));
+                    Parallel.For(0, _options.NumberOfIterations, pOptions, i => trainingTasks[i](rands[i], pch));
                     //note that P.Invoke will wait until all tasks finish
                 }
             }
@@ -2128,9 +2193,9 @@ namespace Microsoft.ML.Trainers
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
-            int maxIterations = Options.Defaults.MaxIterations,
-            double initLearningRate = Options.Defaults.InitLearningRate,
-            float l2Weight = Options.Defaults.L2Weight)
+            int maxIterations = Options.Defaults.NumberOfIterations,
+            double initLearningRate = Options.Defaults.InitialLearningRate,
+            float l2Weight = Options.Defaults.L2Regularization)
             : base(env, labelColumn, featureColumn, weightColumn, new LogLoss(), maxIterations, initLearningRate, l2Weight)
         {
         }
@@ -2182,6 +2247,9 @@ namespace Microsoft.ML.Trainers
     {
         public sealed class Options : OptionsBase
         {
+            /// <summary>
+            /// The loss function to use. Default is <see cref="LogLoss"/>.
+            /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public IClassificationLoss Loss = new LogLoss();
         }
@@ -2190,9 +2258,9 @@ namespace Microsoft.ML.Trainers
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
-            int maxIterations = Options.Defaults.MaxIterations,
-            double initLearningRate = Options.Defaults.InitLearningRate,
-            float l2Weight = Options.Defaults.L2Weight,
+            int maxIterations = Options.Defaults.NumberOfIterations,
+            double initLearningRate = Options.Defaults.InitialLearningRate,
+            float l2Weight = Options.Defaults.L2Regularization,
             IClassificationLoss loss = null)
             : base(env, labelColumn, featureColumn, weightColumn, loss, maxIterations, initLearningRate, l2Weight)
         {

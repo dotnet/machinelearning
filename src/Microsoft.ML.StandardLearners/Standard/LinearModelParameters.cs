@@ -261,7 +261,7 @@ namespace Microsoft.ML.Trainers
             return Bias + VectorUtils.DotProduct(in _weightsDense, in src);
         }
 
-        protected virtual void GetFeatureContributions(in VBuffer<float> features, ref VBuffer<float> contributions, int top, int bottom, bool normalize)
+        private protected virtual void GetFeatureContributions(in VBuffer<float> features, ref VBuffer<float> contributions, int top, int bottom, bool normalize)
         {
             if (features.Length != Weight.Length)
                 throw Contracts.Except("Input is of length {0} does not match expected length  of weights {1}", features.Length, Weight.Length);
@@ -402,6 +402,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// The model parameters class for linear binary trainer estimators.
+    /// </summary>
     public sealed partial class LinearBinaryModelParameters : LinearModelParameters,
         ICanGetSummaryInKeyValuePairs,
         IParameterMixer<float>
@@ -577,6 +580,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// The model parameters class for linear regression.
+    /// </summary>
     public sealed class LinearRegressionModelParameters : RegressionModelParameters,
         IParameterMixer<float>,
         ICanGetSummaryInKeyValuePairs
@@ -662,6 +668,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// The model parameters class for Poisson Regression.
+    /// </summary>
     public sealed class PoissonRegressionModelParameters : RegressionModelParameters, IParameterMixer<float>
     {
         internal const string LoaderSignature = "PoissonRegressionExec";

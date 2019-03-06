@@ -165,7 +165,7 @@ namespace Microsoft.ML.Transforms
                 if (modelBytes == null)
                 {
                     Host.CheckNonWhiteSpace(options.ModelFile, nameof(options.ModelFile));
-                    Host.CheckUserArg(File.Exists(options.ModelFile), nameof(options.ModelFile));
+                    Host.CheckIO(File.Exists(options.ModelFile), "Model file {0} does not exists.", options.ModelFile);
                     Model = new OnnxModel(options.ModelFile, options.GpuDeviceId, options.FallbackToCpu);
                 }
                 else

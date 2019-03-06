@@ -52,12 +52,16 @@ namespace Microsoft.ML.Trainers.Recommender
         private const uint VersionNoMinCount = 0x00010002;
 
         private readonly IHost _host;
+
         ///<summary> The number of rows.</summary>
         public readonly int NumberOfRows;
+
         ///<summary> The number of columns.</summary>
         public readonly int NumberOfColumns;
+
         ///<summary> The rank of the factor matrices.</summary>
         public readonly int ApproximationRank;
+
         /// <summary>
         /// Left approximation matrix
         /// </summary>

@@ -20,18 +20,80 @@ namespace Microsoft.ML.Trainers.FastTree
     {
     }
 
+    /// <summary>
+    /// Stopping measurements for classification and regression.
+    /// </summary>
+    public enum EarlyStoppingMetric
+    {
+        /// <summary>
+        /// L1-norm of gradient.
+        /// </summary>
+        L1Norm = 1,
+        /// <summary>
+        /// L2-norm of gradient.
+        /// </summary>
+        L2Norm = 2
+    };
+
+    /// <summary>
+    /// Stopping measurements for ranking.
+    /// </summary>
+    public enum EarlyStoppingRankingMetric
+    {
+        /// <summary>
+        /// NDCG@1
+        /// </summary>
+        NdcgAt1 = 1,
+        /// <summary>
+        /// NDCG@3
+        /// </summary>
+        NdcgAt3 = 3
+    }
+
     /// <include file='doc.xml' path='doc/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeBinaryClassificationTrainer
     {
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
         {
+
             /// <summary>
             /// Option for using derivatives optimized for unbalanced sets.
             /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Option for using derivatives optimized for unbalanced sets", ShortName = "us")]
             [TGUI(Label = "Optimize for unbalanced")]
             public bool UnbalancedSets = false;
+
+            /// <summary>
+            /// internal state of <see cref="EarlyStoppingMetric"/>. It should be always synced with
+            /// <see cref="BoostedTreeOptions.EarlyStoppingMetrics"/>.
+            /// </summary>
+            // Disable 649 because Visual Studio can't detect its assignment via property.
+            #pragma warning disable 649
+            private EarlyStoppingMetric _earlyStoppingMetric;
+            #pragma warning restore 649
+
+            /// <summary>
+            /// Early stopping metrics.
+            /// </summary>
+            public EarlyStoppingMetric EarlyStoppingMetric
+            {
+                get { return _earlyStoppingMetric; }
+
+                set
+                {
+                    // Update the state of the user-facing stopping metric.
+                    _earlyStoppingMetric = value;
+                    // Set up internal property according to its public value.
+                    EarlyStoppingMetrics = (int)_earlyStoppingMetric;
+                }
+            }
+
+            public Options()
+            {
+                // Use L1 by default.
+                EarlyStoppingMetric = EarlyStoppingMetric.L1Norm;
+            }
 
             ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeBinaryClassificationTrainer(env, this);
         }
@@ -42,9 +104,31 @@ namespace Microsoft.ML.Trainers.FastTree
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
         {
+            /// <summary>
+            /// internal state of <see cref="EarlyStoppingMetric"/>. It should be always synced with
+            /// <see cref="BoostedTreeOptions.EarlyStoppingMetrics"/>.
+            /// </summary>
+            private EarlyStoppingMetric _earlyStoppingMetric;
+
+            /// <summary>
+            /// Early stopping metrics.
+            /// </summary>
+            public EarlyStoppingMetric EarlyStoppingMetric
+            {
+                get { return _earlyStoppingMetric; }
+
+                set
+                {
+                    // Update the state of the user-facing stopping metric.
+                    _earlyStoppingMetric = value;
+                    // Set up internal property according to its public value.
+                    EarlyStoppingMetrics = (int)_earlyStoppingMetric;
+                }
+            }
+
             public Options()
             {
-                EarlyStoppingMetrics = 1; // Use L1 by default.
+                EarlyStoppingMetric = EarlyStoppingMetric.L1Norm; // Use L1 by default.
             }
 
             ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeRegressionTrainer(env, this);
@@ -64,6 +148,36 @@ namespace Microsoft.ML.Trainers.FastTree
                 "and intermediate values are compound Poisson loss.")]
             public Double Index = 1.5;
 
+            /// <summary>
+            /// internal state of <see cref="EarlyStoppingMetric"/>. It should be always synced with
+            /// <see cref="BoostedTreeOptions.EarlyStoppingMetrics"/>.
+            /// </summary>
+            // Disable 649 because Visual Studio can't detect its assignment via property.
+            #pragma warning disable 649
+            private EarlyStoppingMetric _earlyStoppingMetric;
+            #pragma warning restore 649
+
+            /// <summary>
+            /// Early stopping metrics.
+            /// </summary>
+            public EarlyStoppingMetric EarlyStoppingMetric
+            {
+                get { return _earlyStoppingMetric; }
+
+                set
+                {
+                    // Update the state of the user-facing stopping metric.
+                    _earlyStoppingMetric = value;
+                    // Set up internal property according to its public value.
+                    EarlyStoppingMetrics = (int)_earlyStoppingMetric;
+                }
+            }
+
+            public Options()
+            {
+                EarlyStoppingMetric = EarlyStoppingMetric.L1Norm; // Use L1 by default.
+            }
+
             ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeTweedieTrainer(env, this);
         }
     }
@@ -75,42 +189,72 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Comma seperated list of gains associated to each relevance label.", ShortName = "gains")]
             [TGUI(NoSweep = true)]
-            public string CustomGains = "0,3,7,15,31";
+            public double[] CustomGains = new double[] { 0, 3, 7, 15, 31 };
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Train DCG instead of NDCG", ShortName = "dcg")]
-            public bool TrainDcg;
+            public bool UseDcg;
 
             // REVIEW: Hiding sorting for now. Should be an enum or component factory.
+            [BestFriend]
             [Argument(ArgumentType.LastOccurenceWins,
                 HelpText = "The sorting algorithm to use for DCG and LambdaMart calculations [DescendingStablePessimistic/DescendingStable/DescendingReverse/DescendingDotNet]",
                 ShortName = "sort",
                 Hide = true)]
             [TGUI(NotGui = true)]
-            public string SortingAlgorithm = "DescendingStablePessimistic";
+            internal string SortingAlgorithm = "DescendingStablePessimistic";
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "max-NDCG truncation to use in the Lambda Mart algorithm", ShortName = "n", Hide = true)]
             [TGUI(NotGui = true)]
-            public int LambdaMartMaxTruncation = 100;
+            public int NdcgTruncationLevel = 100;
 
+            [BestFriend]
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Use shifted NDCG", Hide = true)]
             [TGUI(NotGui = true)]
-            public bool ShiftedNdcg;
+            internal bool ShiftedNdcg;
 
+            [BestFriend]
             [Argument(ArgumentType.AtMostOnce, HelpText = "Cost function parameter (w/c)", ShortName = "cf", Hide = true)]
             [TGUI(NotGui = true)]
-            public char CostFunctionParam = 'w';
+            internal char CostFunctionParam = 'w';
 
+            [BestFriend]
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Distance weight 2 adjustment to cost", ShortName = "dw", Hide = true)]
             [TGUI(NotGui = true)]
-            public bool DistanceWeight2;
+            internal bool DistanceWeight2;
 
+            [BestFriend]
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Normalize query lambdas", ShortName = "nql", Hide = true)]
             [TGUI(NotGui = true)]
-            public bool NormalizeQueryLambdas;
+            internal bool NormalizeQueryLambdas;
+
+            /// <summary>
+            /// internal state of <see cref="EarlyStoppingMetric"/>. It should be always synced with
+            /// <see cref="BoostedTreeOptions.EarlyStoppingMetrics"/>.
+            /// </summary>
+            // Disable 649 because Visual Studio can't detect its assignment via property.
+            #pragma warning disable 649
+            private EarlyStoppingRankingMetric _earlyStoppingMetric;
+            #pragma warning restore 649
+
+            /// <summary>
+            /// Early stopping metrics.
+            /// </summary>
+            public EarlyStoppingRankingMetric EarlyStoppingMetric
+            {
+                get { return _earlyStoppingMetric; }
+
+                set
+                {
+                    // Update the state of the user-facing stopping metric.
+                    _earlyStoppingMetric = value;
+                    // Set up internal property according to its public value.
+                    EarlyStoppingMetrics = (int)_earlyStoppingMetric;
+                }
+            }
 
             public Options()
             {
-                EarlyStoppingMetrics = 1;
+                EarlyStoppingMetric = EarlyStoppingRankingMetric.NdcgAt1; // Use L1 by default.
             }
 
             ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeRankingTrainer(env, this);
@@ -129,12 +273,12 @@ namespace Microsoft.ML.Trainers.FastTree
 #if OLD_DATALOAD
                 ectx.CheckUserArg(0 <= secondaryMetricShare && secondaryMetricShare <= 1, "secondaryMetricShare", "secondaryMetricShare must be between 0 and 1.");
 #endif
-                ectx.CheckUserArg(0 < LambdaMartMaxTruncation, nameof(LambdaMartMaxTruncation), "lambdaMartMaxTruncation must be positive.");
+                ectx.CheckUserArg(0 < NdcgTruncationLevel, nameof(NdcgTruncationLevel), "must be positive.");
             }
         }
     }
 
-    public enum Bundle : Byte
+    public enum Bundle : byte
     {
         None = 0,
         AggregateLowPopulation = 1,
@@ -144,10 +288,10 @@ namespace Microsoft.ML.Trainers.FastTree
     [BestFriend]
     internal static class Defaults
     {
-        public const int NumTrees = 100;
-        public const int NumLeaves = 20;
-        public const int MinDocumentsInLeaves = 10;
-        public const double LearningRates = 0.2;
+        public const int NumberOfTrees = 100;
+        public const int NumberOfLeaves = 20;
+        public const int MinimumExampleCountPerLeaf = 10;
+        public const double LearningRate = 0.2;
     }
 
     public abstract class TreeOptions : TrainerInputBaseWithGroupId
@@ -162,10 +306,10 @@ namespace Microsoft.ML.Trainers.FastTree
         /// The number of threads to use.
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The number of threads to use", ShortName = "t", NullName = "<Auto>")]
-        public int? NumThreads = null;
+        public int? NumberOfThreads = null;
 
         // this random seed is used for:
-        // 1. doc sampling for feature binning
+        // 1. example sampling for feature binning
         // 2. init Randomize Score
         // 3. grad Sampling Rate in Objective Function
         // 4. tree learner
@@ -175,7 +319,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// The seed of the random number generator.
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The seed of the random number generator", ShortName = "r1")]
-        public int RngSeed = 123;
+        public int Seed = 123;
 
         // this random seed is only for active feature selection
         /// <summary>
@@ -183,7 +327,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The seed of the active feature selection", ShortName = "r3", Hide = true)]
         [TGUI(NotGui = true)]
-        public int FeatureSelectSeed = 123;
+        public int FeatureSelectionSeed = 123;
 
         /// <summary>
         /// The entropy (regularization) coefficient between 0 and 1.
@@ -222,25 +366,25 @@ namespace Microsoft.ML.Trainers.FastTree
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum categorical split groups to consider when splitting on a categorical feature. " +
                                                              "Split groups are a collection of split points. This is used to reduce overfitting when " +
                                                              "there many categorical features.", ShortName = "mcg")]
-        public int MaxCategoricalGroupsPerNode = 64;
+        public int MaximumCategoricalGroupCountPerNode = 64;
 
         /// <summary>
         /// Maximum categorical split points to consider when splitting on a categorical feature.
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum categorical split points to consider when splitting on a categorical feature.", ShortName = "maxcat")]
-        public int MaxCategoricalSplitPoints = 64;
+        public int MaximumCategoricalSplitPointCount = 64;
 
         /// <summary>
-        /// Minimum categorical docs percentage in a bin to consider for a split.
+        /// Minimum categorical example percentage in a bin to consider for a split. Default is 0.1% of all training examples.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum categorical docs percentage in a bin to consider for a split.", ShortName = "mdop")]
-        public double MinDocsPercentageForCategoricalSplit = 0.001;
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum categorical example percentage in a bin to consider for a split.", ShortName = "mdop")]
+        public double MinimumExampleFractionForCategoricalSplit = 0.001;
 
         /// <summary>
-        /// Minimum categorical doc count in a bin to consider for a split.
+        /// Minimum categorical example count in a bin to consider for a split.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum categorical doc count in a bin to consider for a split.", ShortName = "mdo")]
-        public int MinDocsForCategoricalSplit = 100;
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum categorical example count in a bin to consider for a split.", ShortName = "mdo")]
+        public int MinimumExamplesForCategoricalSplit = 100;
 
         /// <summary>
         /// Bias for calculating gradient for each feature bin for a categorical feature.
@@ -263,7 +407,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Maximum number of distinct values (bins) per feature.
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum number of distinct values (bins) per feature", ShortName = "mb")]
-        public int MaxBins = 255;  // save one for undefs
+        public int MaximumBinCountPerFeature = 255;  // save one for undefs
 
         /// <summary>
         /// Sparsity level needed to use sparse feature representation.
@@ -298,10 +442,10 @@ namespace Microsoft.ML.Trainers.FastTree
         public Double SoftmaxTemperature;
 
         /// <summary>
-        /// Print execution time breakdown to stdout.
+        /// Print execution time breakdown to ML.NET channel.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Print execution time breakdown to stdout", ShortName = "et")]
-        public bool ExecutionTimes;
+        public bool ExecutionTime;
 
         // REVIEW: Different from original FastRank arguments (shortname l vs. nl). Different default from TLC FR Wrapper (20 vs. 20).
         /// <summary>
@@ -310,17 +454,17 @@ namespace Microsoft.ML.Trainers.FastTree
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The max number of leaves in each regression tree", ShortName = "nl", SortOrder = 2)]
         [TGUI(Description = "The maximum number of leaves per tree", SuggestedSweeps = "2-128;log;inc:4")]
         [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, isLogScale: true, stepSize: 4)]
-        public int NumLeaves = Defaults.NumLeaves;
+        public int NumberOfLeaves = Defaults.NumberOfLeaves;
 
         /// <summary>
-        /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.
+        /// The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data.
         /// </summary>
         // REVIEW: Arrays not supported in GUI
         // REVIEW: Different shortname than FastRank module. Same as the TLC FRWrapper.
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data", ShortName = "mil", SortOrder = 3)]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data", ShortName = "mil", SortOrder = 3)]
         [TGUI(Description = "Minimum number of training instances required to form a leaf", SuggestedSweeps = "1,10,50")]
         [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
-        public int MinDocumentsInLeafs = Defaults.MinDocumentsInLeaves;
+        public int MinimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf;
 
         /// <summary>
         /// Total number of decision trees to create in the ensemble.
@@ -329,10 +473,10 @@ namespace Microsoft.ML.Trainers.FastTree
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Total number of decision trees to create in the ensemble", ShortName = "iter", SortOrder = 1)]
         [TGUI(Description = "Total number of trees constructed", SuggestedSweeps = "20,100,500")]
         [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[] { 20, 100, 500 })]
-        public int NumTrees = Defaults.NumTrees;
+        public int NumberOfTrees = Defaults.NumberOfTrees;
 
         /// <summary>
-        /// The fraction of features (chosen randomly) to use on each iteration.
+        /// The fraction of features (chosen randomly) to use on each iteration. Use 0.9 if only 90% of features is needed.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "The fraction of features (chosen randomly) to use on each iteration", ShortName = "ff")]
         public Double FeatureFraction = 1;
@@ -344,23 +488,23 @@ namespace Microsoft.ML.Trainers.FastTree
         public int BaggingSize;
 
         /// <summary>
-        /// Percentage of training examples used in each bag.
+        /// Percentage of training examples used in each bag. Default is 0.7 (70%).
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Percentage of training examples used in each bag", ShortName = "bagfrac")]
         // REVIEW: sweeping bagfrac doesn't make sense unless 'baggingSize' is non-zero. The 'SuggestedSweeps' here
         // are used to denote 'sensible range', but the GUI will interpret this as 'you must sweep these values'. So, I'm keeping
         // the values there for the future, when we have an appropriate way to encode this information.
         // [TGUI(SuggestedSweeps = "0.5,0.7,0.9")]
-        public Double BaggingTrainFraction = 0.7;
+        public Double BaggingExampleFraction = 0.7;
 
         /// <summary>
-        /// The fraction of features (chosen randomly) to use on each split.
+        /// The fraction of features (chosen randomly) to use on each split. If it's value is 0.9, 90% of all features would be dropped in expectation.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "The fraction of features (chosen randomly) to use on each split", ShortName = "sf")]
-        public Double SplitFraction = 1;
+        public Double FeatureFractionPerSplit = 1;
 
         /// <summary>
-        /// Smoothing paramter for tree regularization.
+        /// Smoothing parameter for tree regularization.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Smoothing paramter for tree regularization", ShortName = "s")]
         public Double Smoothing;
@@ -375,9 +519,10 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The level of feature compression to use.
         /// </summary>
+        [BestFriend]
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The level of feature compression to use", ShortName = "fcomp", Hide = true)]
         [TGUI(NotGui = true)]
-        public int FeatureCompressionLevel = 1;
+        internal int FeatureCompressionLevel = 1;
 
         /// <summary>
         /// Compress the tree Ensemble.
@@ -387,27 +532,21 @@ namespace Microsoft.ML.Trainers.FastTree
         public bool CompressEnsemble;
 
         /// <summary>
-        /// Maximum Number of trees after compression.
-        /// </summary>
-        // REVIEW: Not used.
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum Number of trees after compression", ShortName = "cmpmax", Hide = true)]
-        [TGUI(NotGui = true)]
-        public int MaxTreesAfterCompression = -1;
-
-        /// <summary>
         /// Print metrics graph for the first test set.
         /// </summary>
+        [BestFriend]
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Print metrics graph for the first test set", ShortName = "graph", Hide = true)]
         [TGUI(NotGui = true)]
-        public bool PrintTestGraph;
+        internal bool PrintTestGraph;
 
         /// <summary>
         /// Print Train and Validation metrics in graph.
         /// </summary>
         //It is only enabled if printTestGraph is also set
+        [BestFriend]
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Print Train and Validation metrics in graph", ShortName = "graphtv", Hide = true)]
         [TGUI(NotGui = true)]
-        public bool PrintTrainValidGraph;
+        internal bool PrintTrainValidGraph;
 
         /// <summary>
         /// Calculate metric values for train/valid/test every k rounds.
@@ -418,27 +557,27 @@ namespace Microsoft.ML.Trainers.FastTree
         internal virtual void Check(IExceptionContext ectx)
         {
             Contracts.AssertValue(ectx);
-            ectx.CheckUserArg(NumThreads == null || NumThreads > 0, nameof(NumThreads), "numThreads must be positive.");
-            ectx.CheckUserArg(NumLeaves >= 2, nameof(NumLeaves), "numLeaves must be at least 2.");
-            ectx.CheckUserArg(0 <= EntropyCoefficient && EntropyCoefficient <= 1, nameof(EntropyCoefficient), "entropyCoefficient must be between 0 and 1.");
-            ectx.CheckUserArg(0 <= GainConfidenceLevel && GainConfidenceLevel < 1, nameof(GainConfidenceLevel), "gainConfidenceLevel must be in [0, 1).");
-            ectx.CheckUserArg(0 <= FeatureFraction && FeatureFraction <= 1, nameof(FeatureFraction), "featureFraction must be between 0 and 1.");
-            ectx.CheckUserArg(0 <= SplitFraction && SplitFraction <= 1, nameof(SplitFraction), "splitFraction must be between 0 and 1.");
-            ectx.CheckUserArg(0 <= SoftmaxTemperature, nameof(SoftmaxTemperature), "softmaxTemperature must be non-negative.");
-            ectx.CheckUserArg(0 < MaxBins, nameof(MaxBins), "maxBins must greater than 0.");
-            ectx.CheckUserArg(0 <= SparsifyThreshold && SparsifyThreshold <= 1, nameof(SparsifyThreshold), "specifyThreshold must be between 0 and 1.");
-            ectx.CheckUserArg(0 < NumTrees, nameof(NumTrees), "Number of trees must be positive.");
-            ectx.CheckUserArg(0 <= Smoothing && Smoothing <= 1, nameof(Smoothing), "smoothing must be between 0 and 1.");
-            ectx.CheckUserArg(0 <= BaggingSize, nameof(BaggingSize), "baggingSize must be non-negative.");
-            ectx.CheckUserArg(0 <= BaggingTrainFraction && BaggingTrainFraction <= 1, nameof(BaggingTrainFraction), "baggingTrainFraction must be between 0 and 1.");
-            ectx.CheckUserArg(0 <= FeatureFirstUsePenalty, nameof(FeatureFirstUsePenalty), "featureFirstUsePenalty must be non-negative.");
-            ectx.CheckUserArg(0 <= FeatureReusePenalty, nameof(FeatureReusePenalty), "featureReusePenalty must be non-negative.");
-            ectx.CheckUserArg(0 <= MaxCategoricalGroupsPerNode, nameof(MaxCategoricalGroupsPerNode), "maxCategoricalGroupsPerNode must be non-negative.");
-            ectx.CheckUserArg(0 <= MaxCategoricalSplitPoints, nameof(MaxCategoricalSplitPoints), "maxCategoricalSplitPoints must be non-negative.");
-            ectx.CheckUserArg(0 <= MinDocsPercentageForCategoricalSplit, nameof(MinDocsPercentageForCategoricalSplit), "minDocsPercentageForCategoricalSplit must be non-negative.");
-            ectx.CheckUserArg(0 <= MinDocsForCategoricalSplit, nameof(MinDocsForCategoricalSplit), "minDocsForCategoricalSplit must be non-negative.");
-            ectx.CheckUserArg(Bundle.None <= Bundling && Bundling <= Bundle.Adjacent, nameof(Bundling), "bundling must be between 0 and 2.");
-            ectx.CheckUserArg(Bias >= 0, nameof(Bias), "Bias must be greater than equal to zero.");
+            ectx.CheckUserArg(NumberOfThreads == null || NumberOfThreads > 0, nameof(NumberOfThreads), "Must be positive.");
+            ectx.CheckUserArg(NumberOfLeaves >= 2, nameof(NumberOfLeaves), "Must be at least 2.");
+            ectx.CheckUserArg(0 <= EntropyCoefficient && EntropyCoefficient <= 1, nameof(EntropyCoefficient), "Must be between 0 and 1.");
+            ectx.CheckUserArg(0 <= GainConfidenceLevel && GainConfidenceLevel < 1, nameof(GainConfidenceLevel), "Must be in [0, 1).");
+            ectx.CheckUserArg(0 <= FeatureFraction && FeatureFraction <= 1, nameof(FeatureFraction), "Must be between 0 and 1.");
+            ectx.CheckUserArg(0 <= FeatureFractionPerSplit && FeatureFractionPerSplit <= 1, nameof(FeatureFractionPerSplit), "Must be between 0 and 1.");
+            ectx.CheckUserArg(0 <= SoftmaxTemperature, nameof(SoftmaxTemperature), "Must be non-negative.");
+            ectx.CheckUserArg(0 < MaximumBinCountPerFeature, nameof(MaximumBinCountPerFeature), "Must greater than 0.");
+            ectx.CheckUserArg(0 <= SparsifyThreshold && SparsifyThreshold <= 1, nameof(SparsifyThreshold), "Must be between 0 and 1.");
+            ectx.CheckUserArg(0 < NumberOfTrees, nameof(NumberOfTrees), "Must be positive.");
+            ectx.CheckUserArg(0 <= Smoothing && Smoothing <= 1, nameof(Smoothing), "Must be between 0 and 1.");
+            ectx.CheckUserArg(0 <= BaggingSize, nameof(BaggingSize), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= BaggingExampleFraction && BaggingExampleFraction <= 1, nameof(BaggingExampleFraction), "Must be between 0 and 1.");
+            ectx.CheckUserArg(0 <= FeatureFirstUsePenalty, nameof(FeatureFirstUsePenalty), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= FeatureReusePenalty, nameof(FeatureReusePenalty), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= MaximumCategoricalGroupCountPerNode, nameof(MaximumCategoricalGroupCountPerNode), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= MaximumCategoricalSplitPointCount, nameof(MaximumCategoricalSplitPointCount), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= MinimumExampleFractionForCategoricalSplit, nameof(MinimumExampleFractionForCategoricalSplit), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= MinimumExamplesForCategoricalSplit, nameof(MinimumExamplesForCategoricalSplit), "Must be non-negative.");
+            ectx.CheckUserArg(Bundle.None <= Bundling && Bundling <= Bundle.Adjacent, nameof(Bundling), "Must be between 0 and 2.");
+            ectx.CheckUserArg(Bias >= 0, nameof(Bias), "Must be greater than equal to zero.");
         }
     }
 
@@ -463,13 +602,13 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Number of post-bracket line search steps.
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of post-bracket line search steps", ShortName = "lssteps")]
-        public int NumPostBracketSteps;
+        public int MaximumNumberOfLineSearchSteps;
 
         /// <summary>
         /// Minimum line search step size.
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum line search step size", ShortName = "minstep")]
-        public Double MinStepSize;
+        public Double MinimumStepSize;
 
         public enum OptimizationAlgorithmType { GradientDescent, AcceleratedGradientDescent, ConjugateGradientDescent };
 
@@ -489,9 +628,10 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3).
         /// </summary>
+        [BestFriend]
         [Argument(ArgumentType.AtMostOnce, HelpText = "Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)", ShortName = "esmt")]
         [TGUI(Description = "Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)")]
-        public int EarlyStoppingMetrics;
+        internal int EarlyStoppingMetrics;
 
         /// <summary>
         /// Enable post-training pruning to avoid overfitting. (a validation set is required).
@@ -510,7 +650,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "The tolerance threshold for pruning", ShortName = "prth")]
         [TGUI(Description = "Pruning threshold")]
-        public Double PruningThreshold = 0.004;
+        public double PruningThreshold = 0.004;
 
         /// <summary>
         /// The moving window size for pruning.
@@ -525,7 +665,7 @@ namespace Microsoft.ML.Trainers.FastTree
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The learning rate", ShortName = "lr", SortOrder = 4)]
         [TGUI(Label = "Learning Rate", SuggestedSweeps = "0.025-0.4;log")]
         [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale: true)]
-        public Double LearningRates = Defaults.LearningRates;
+        public double LearningRate = Defaults.LearningRate;
 
         /// <summary>
         /// Shrinkage.
@@ -559,7 +699,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Upper bound on absolute value of single tree output.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo")]
-        public Double MaxTreeOutput = 100;
+        public Double MaximumTreeOutput = 100;
 
         /// <summary>
         /// Training starts from random ordering (determined by /r1).
@@ -593,24 +733,27 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Freeform defining the scores that should be used as the baseline ranker.
         /// </summary>
+        [BestFriend]
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Freeform defining the scores that should be used as the baseline ranker", ShortName = "basescores", Hide = true)]
         [TGUI(NotGui = true)]
-        public string BaselineScoresFormula;
+        internal string BaselineScoresFormula;
 
         /// <summary>
         /// Baseline alpha for tradeoffs of risk (0 is normal training).
         /// </summary>
+        [BestFriend]
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Baseline alpha for tradeoffs of risk (0 is normal training)", ShortName = "basealpha", Hide = true)]
         [TGUI(NotGui = true)]
-        public string BaselineAlphaRisk;
+        internal string BaselineAlphaRisk;
 
         /// <summary>
-        /// The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position).
+        /// The discount freeform which specifies the per position discounts of examples in a query (uses a single variable P for position where P=0 is first position).
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)",
+        [BestFriend]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "The discount freeform which specifies the per position discounts of examples in a query (uses a single variable P for position where P=0 is first position)",
             ShortName = "pdff", Hide = true)]
         [TGUI(NotGui = true)]
-        public string PositionDiscountFreeform;
+        internal string PositionDiscountFreeform;
 
 #if !NO_STORE
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Offload feature bins to a file store", ShortName = "fbsopt", Hide = true)]
@@ -630,14 +773,14 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             base.Check(ectx);
 
-            ectx.CheckUserArg(0 <= MaxTreeOutput, nameof(MaxTreeOutput), "maxTreeOutput must be non-negative.");
-            ectx.CheckUserArg(0 <= PruningThreshold, nameof(PruningThreshold), "pruningThreshold must be non-negative.");
-            ectx.CheckUserArg(0 < PruningWindowSize, nameof(PruningWindowSize), "pruningWindowSize must be positive.");
-            ectx.CheckUserArg(0 < Shrinkage, nameof(Shrinkage), "shrinkage must be positive.");
-            ectx.CheckUserArg(0 <= DropoutRate && DropoutRate <= 1, nameof(DropoutRate), "dropoutRate must be between 0 and 1.");
-            ectx.CheckUserArg(0 < GetDerivativesSampleRate, nameof(GetDerivativesSampleRate), "getDerivativesSampleRate must be positive.");
-            ectx.CheckUserArg(0 <= NumPostBracketSteps, nameof(NumPostBracketSteps), "numPostBracketSteps must be non-negative.");
-            ectx.CheckUserArg(0 <= MinStepSize, nameof(MinStepSize), "minStepSize must be non-negative.");
+            ectx.CheckUserArg(0 <= MaximumTreeOutput, nameof(MaximumTreeOutput), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= PruningThreshold, nameof(PruningThreshold), "Must be non-negative.");
+            ectx.CheckUserArg(0 < PruningWindowSize, nameof(PruningWindowSize), "Must be positive.");
+            ectx.CheckUserArg(0 < Shrinkage, nameof(Shrinkage), "Must be positive.");
+            ectx.CheckUserArg(0 <= DropoutRate && DropoutRate <= 1, nameof(DropoutRate), "Must be between 0 and 1.");
+            ectx.CheckUserArg(0 < GetDerivativesSampleRate, nameof(GetDerivativesSampleRate), "Must be positive.");
+            ectx.CheckUserArg(0 <= MaximumNumberOfLineSearchSteps, nameof(MaximumNumberOfLineSearchSteps), "Must be non-negative.");
+            ectx.CheckUserArg(0 <= MinimumStepSize, nameof(MinimumStepSize), "Must be non-negative.");
         }
     }
 }

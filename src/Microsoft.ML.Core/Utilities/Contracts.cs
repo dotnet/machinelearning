@@ -737,7 +737,11 @@ namespace Microsoft.ML
             if (!f)
                 throw ExceptIO(ctx, msg);
         }
-
+        public static void CheckIO(this IExceptionContext ctx, bool f, string msg, params object[] args)
+        {
+            if (!f)
+                throw ExceptIO(ctx, msg, args);
+        }
 #if !CPUMATH_INFRASTRUCTURE
         /// <summary>
         /// Check state of the host and throw exception if host marked to stop all exection.

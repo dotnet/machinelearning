@@ -22,7 +22,6 @@ using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.HalLearners;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.Transforms.TimeSeries;
@@ -327,7 +326,7 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoadingTransformer).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(SymbolicStochasticGradientDescentClassificationTrainer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
@@ -425,8 +424,8 @@ namespace Microsoft.ML.RunTests
                 var lrInput = new LogisticRegression.Options
                 {
                     TrainingData = data,
-                    L1Weight = (Single)0.1 * i,
-                    L2Weight = (Single)0.01 * (1 + i),
+                    L1Regularization = (Single)0.1 * i,
+                    L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.No
                 };
                 predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
@@ -729,8 +728,8 @@ namespace Microsoft.ML.RunTests
                 var lrInput = new LogisticRegression.Options
                 {
                     TrainingData = data,
-                    L1Weight = (Single)0.1 * i,
-                    L2Weight = (Single)0.01 * (1 + i),
+                    L1Regularization = (Single)0.1 * i,
+                    L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.Yes
                 };
                 predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
@@ -991,8 +990,8 @@ namespace Microsoft.ML.RunTests
                 var lrInput = new LogisticRegression.Options
                 {
                     TrainingData = data,
-                    L1Weight = (Single)0.1 * i,
-                    L2Weight = (Single)0.01 * (1 + i),
+                    L1Regularization = (Single)0.1 * i,
+                    L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.Yes
                 };
                 predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
@@ -1325,9 +1324,9 @@ namespace Microsoft.ML.RunTests
                     {
                         TrainingData = data,
                         NormalizeFeatures = NormalizeOption.Yes,
-                        NumThreads = 1,
-                        ShowTrainingStats = true,
-                        StdComputer = new ComputeLRTrainingStdThroughHal()
+                        NumberOfThreads = 1,
+                        ShowTrainingStatistics = true,
+                        ComputeStandardDeviation = new ComputeLRTrainingStdThroughMkl()
                     };
                     predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
                     var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
@@ -2506,7 +2505,7 @@ namespace Microsoft.ML.RunTests
             var options = new LegacySdcaBinaryTrainer.Options()
             {
                 NormalizeFeatures = NormalizeOption.Yes,
-                CheckFrequency = 42
+                ConvergenceCheckFrequency = 42
             };
 
             var inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
@@ -2521,7 +2520,7 @@ namespace Microsoft.ML.RunTests
 
             var expected =
                 @"{
-  ""CheckFrequency"": 42,
+  ""ConvergenceCheckFrequency"": 42,
   ""TrainingData"": ""$data"",
   ""NormalizeFeatures"": ""Yes""
 }";
@@ -2537,7 +2536,7 @@ namespace Microsoft.ML.RunTests
   ""LossFunction"": {
     ""Name"": ""HingeLoss""
   },
-  ""CheckFrequency"": 42,
+  ""ConvergenceCheckFrequency"": 42,
   ""TrainingData"": ""$data"",
   ""NormalizeFeatures"": ""Yes""
 }";
@@ -2556,7 +2555,7 @@ namespace Microsoft.ML.RunTests
       ""Margin"": 2.0
     }
   },
-  ""CheckFrequency"": 42,
+  ""ConvergenceCheckFrequency"": 42,
   ""TrainingData"": ""$data"",
   ""NormalizeFeatures"": ""Yes""
 }";
@@ -2737,7 +2736,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointKMeans()
         {
-            TestEntryPointRoutine("Train-Tiny-28x28.txt", "Trainers.KMeansPlusPlusClusterer", "col=Weight:R4:0 col=Features:R4:1-784", ",'InitAlgorithm':'KMeansPlusPlus'");
+            TestEntryPointRoutine("Train-Tiny-28x28.txt", "Trainers.KMeansPlusPlusClusterer", "col=Weight:R4:0 col=Features:R4:1-784", ",'InitializationAlgorithm':'KMeansPlusPlus'");
         }
 
         [Fact]
@@ -3360,9 +3359,9 @@ namespace Microsoft.ML.RunTests
             {
                 TrainingData = dataView,
                 NormalizeFeatures = NormalizeOption.Yes,
-                NumThreads = 1,
-                ShowTrainingStats = true,
-                StdComputer = new ComputeLRTrainingStdThroughHal()
+                NumberOfThreads = 1,
+                ShowTrainingStatistics = true,
+                ComputeStandardDeviation = new ComputeLRTrainingStdThroughMkl()
             };
             var model = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
 
@@ -3370,8 +3369,8 @@ namespace Microsoft.ML.RunTests
             {
                 TrainingData = dataView,
                 NormalizeFeatures = NormalizeOption.Yes,
-                NumThreads = 1,
-                ShowTrainingStats = true
+                NumberOfThreads = 1,
+                ShowTrainingStatistics = true
             };
             var mcModel = LogisticRegression.TrainMultiClass(Env, mcLrInput).PredictorModel;
 
@@ -3568,8 +3567,8 @@ namespace Microsoft.ML.RunTests
             var fastTree = Trainers.FastTree.FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Options
             {
                 FeatureColumnName = "Features",
-                NumTrees = 5,
-                NumLeaves = 4,
+                NumberOfTrees = 5,
+                NumberOfLeaves = 4,
                 LabelColumnName = DefaultColumnNames.Label,
                 TrainingData = concat.OutputData
             });
@@ -5001,18 +5000,18 @@ namespace Microsoft.ML.RunTests
                             }, {
                                 'Name': 'Trainers.FastTreeRanker',
                                 'Inputs': {
-                                    'CustomGains': '0,3,7,15,31',
-                                    'TrainDcg': false,
+                                    'CustomGains': [0,3,7,15,31],
+                                    'UseDcg': false,
                                     'SortingAlgorithm': 'DescendingStablePessimistic',
-                                    'LambdaMartMaxTruncation': 100,
+                                    'NdcgTruncationLevel': 100,
                                     'ShiftedNdcg': false,
                                     'CostFunctionParam': 'w',
                                     'DistanceWeight2': false,
                                     'NormalizeQueryLambdas': false,
                                     'BestStepRankingRegressionTrees': false,
                                     'UseLineSearch': false,
-                                    'NumPostBracketSteps': 0,
-                                    'MinStepSize': 0.0,
+                                    'MaximumNumberOfLineSearchSteps': 0,
+                                    'MinimumStepSize': 0.0,
                                     'OptimizationAlgorithm': 'GradientDescent',
                                     'EarlyStoppingRule': null,
                                     'EarlyStoppingMetrics': 1,
@@ -5020,12 +5019,12 @@ namespace Microsoft.ML.RunTests
                                     'UseTolerantPruning': false,
                                     'PruningThreshold': 0.004,
                                     'PruningWindowSize': 5,
-                                    'LearningRates': 0.2,
+                                    'LearningRate': 0.2,
                                     'Shrinkage': 1.0,
                                     'DropoutRate': 0.0,
                                     'GetDerivativesSampleRate': 1,
                                     'WriteLastEnsemble': false,
-                                    'MaxTreeOutput': 100.0,
+                                    'MaximumTreeOutput': 100.0,
                                     'RandomStart': false,
                                     'FilterZeroLambdas': false,
                                     'BaselineScoresFormula': null,
@@ -5035,39 +5034,38 @@ namespace Microsoft.ML.RunTests
                                         'Name': 'Single',
                                         'Settings': {}
                                     },
-                                    'NumThreads': 1,
-                                    'RngSeed': 123,
-                                    'FeatureSelectSeed': 123,
+                                    'NumberOfThreads': 1,
+                                    'Seed': 123,
+                                    'FeatureSelectionSeed': 123,
                                     'EntropyCoefficient': 0.0,
                                     'HistogramPoolSize': -1,
                                     'DiskTranspose': null,
                                     'FeatureFlocks': true,
                                     'CategoricalSplit': false,
-                                    'MaxCategoricalGroupsPerNode': 64,
-                                    'MaxCategoricalSplitPoints': 64,
-                                    'MinDocsPercentageForCategoricalSplit': 0.001,
-                                    'MinDocsForCategoricalSplit': 100,
+                                    'MaximumCategoricalGroupCountPerNode': 64,
+                                    'MaximumCategoricalSplitPointCount': 64,
+                                    'MinimumExampleFractionForCategoricalSplit': 0.001,
+                                    'MinimumExamplesForCategoricalSplit': 100,
                                     'Bias': 0.0,
                                     'Bundling': 'None',
-                                    'MaxBins': 255,
+                                    'MaximumBinCountPerFeature': 255,
                                     'SparsifyThreshold': 0.7,
                                     'FeatureFirstUsePenalty': 0.0,
                                     'FeatureReusePenalty': 0.0,
                                     'GainConfidenceLevel': 0.0,
                                     'SoftmaxTemperature': 0.0,
-                                    'ExecutionTimes': false,
-                                    'NumLeaves': 20,
-                                    'MinDocumentsInLeafs': 10,
-                                    'NumTrees': 100,
+                                    'ExecutionTime': false,
+                                    'NumberOfLeaves': 20,
+                                    'MinimumExampleCountPerLeaf': 10,
+                                    'NumberOfTrees': 100,
                                     'FeatureFraction': 1.0,
                                     'BaggingSize': 0,
-                                    'BaggingTrainFraction': 0.7,
-                                    'SplitFraction': 1.0,
+                                    'BaggingExampleFraction': 0.7,
+                                    'FeatureFractionPerSplit': 1.0,
                                     'Smoothing': 0.0,
                                     'AllowEmptyTrees': true,
                                     'FeatureCompressionLevel': 1,
                                     'CompressEnsemble': false,
-                                    'MaxTreesAfterCompression': -1,
                                     'PrintTestGraph': false,
                                     'PrintTrainValidGraph': false,
                                     'TestFrequency': 2147483647,

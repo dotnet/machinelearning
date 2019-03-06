@@ -214,7 +214,7 @@ namespace Microsoft.ML.Transforms
         private readonly bool[] _textMetadata;
         private const string RegistrationName = "Term";
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ValueToKeyMappingEstimator.ColumnOptions[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ValueToKeyMappingEstimator.ColumnOptionsBase[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray();
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Transforms
         { }
 
         internal ValueToKeyMappingTransformer(IHostEnvironment env, IDataView input,
-            ValueToKeyMappingEstimator.ColumnOptions[] columns, IDataView keyData, bool autoConvert)
+            ValueToKeyMappingEstimator.ColumnOptionsBase[] columns, IDataView keyData, bool autoConvert)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             using (var ch = Host.Start("Training"))
@@ -513,7 +513,7 @@ namespace Microsoft.ML.Transforms
         /// This builds the <see cref="TermMap"/> instances per column.
         /// </summary>
         private static TermMap[] Train(IHostEnvironment env, IChannel ch, ColInfo[] infos,
-            IDataView keyData, ValueToKeyMappingEstimator.ColumnOptions[] columns, IDataView trainingData, bool autoConvert)
+            IDataView keyData, ValueToKeyMappingEstimator.ColumnOptionsBase[] columns, IDataView trainingData, bool autoConvert)
         {
             Contracts.AssertValue(env);
             env.AssertValue(ch);
