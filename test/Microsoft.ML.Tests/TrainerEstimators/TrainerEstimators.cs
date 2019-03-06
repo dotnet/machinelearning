@@ -89,7 +89,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void TestEstimatorHogwildSGD()
         {
-            var trainers = new[] { ML.BinaryClassification.Trainers.StochasticGradientDescent(l2Weight: 0, maxIterations: 80),
+            var trainers = new[] { ML.BinaryClassification.Trainers.StochasticGradientDescent(l2Regularization: 0, numberOfIterations: 80),
                 ML.BinaryClassification.Trainers.StochasticGradientDescent(new Trainers.SgdBinaryTrainer.Options(){ L2Regularization = 0, NumberOfIterations = 80})};
 
             foreach (var trainer in trainers)

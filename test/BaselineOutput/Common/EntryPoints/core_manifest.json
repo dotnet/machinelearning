@@ -15262,11 +15262,12 @@
           }
         },
         {
-          "Name": "CheckFrequency",
+          "Name": "ConvergenceCheckFrequency",
           "Type": "Int",
           "Desc": "Convergence check frequency (in terms of number of iterations). Set as negative or zero for not checking at all. If left blank, it defaults to check after every 'numThreads' iterations.",
           "Aliases": [
-            "checkFreq"
+            "checkFreq",
+            "CheckFrequency"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -15534,11 +15535,12 @@
           }
         },
         {
-          "Name": "CheckFrequency",
+          "Name": "ConvergenceCheckFrequency",
           "Type": "Int",
           "Desc": "Convergence check frequency (in terms of number of iterations). Set as negative or zero for not checking at all. If left blank, it defaults to check after every 'numThreads' iterations.",
           "Aliases": [
-            "checkFreq"
+            "checkFreq",
+            "CheckFrequency"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -15806,11 +15808,12 @@
           }
         },
         {
-          "Name": "CheckFrequency",
+          "Name": "ConvergenceCheckFrequency",
           "Type": "Int",
           "Desc": "Convergence check frequency (in terms of number of iterations). Set as negative or zero for not checking at all. If left blank, it defaults to check after every 'numThreads' iterations.",
           "Aliases": [
-            "checkFreq"
+            "checkFreq",
+            "CheckFrequency"
           ],
           "Required": false,
           "SortOrder": 150.0,

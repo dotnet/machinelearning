@@ -225,8 +225,8 @@ namespace Microsoft.ML.Trainers
             /// <value>
             /// Set to zero or negative value to disable checking. If <see langword="null"/>, it defaults to <see cref="NumberOfThreads"/>."
             /// </value>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Convergence check frequency (in terms of number of iterations). Set as negative or zero for not checking at all. If left blank, it defaults to check after every 'numThreads' iterations.", NullName = "<Auto>", ShortName = "checkFreq")]
-            public int? CheckFrequency;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Convergence check frequency (in terms of number of iterations). Set as negative or zero for not checking at all. If left blank, it defaults to check after every 'numThreads' iterations.", NullName = "<Auto>", ShortName = "checkFreq, CheckFrequency")]
+            public int? ConvergenceCheckFrequency;
 
             /// <summary>
             /// The learning rate for adjusting bias from being regularized.
@@ -353,8 +353,8 @@ namespace Microsoft.ML.Trainers
                 ch.Info("Using {0} threads to train.", numThreads);
 
             int checkFrequency = 0;
-            if (SdcaTrainerOptions.CheckFrequency.HasValue)
-                checkFrequency = SdcaTrainerOptions.CheckFrequency.Value;
+            if (SdcaTrainerOptions.ConvergenceCheckFrequency.HasValue)
+                checkFrequency = SdcaTrainerOptions.ConvergenceCheckFrequency.Value;
             else
             {
                 checkFrequency = numThreads;

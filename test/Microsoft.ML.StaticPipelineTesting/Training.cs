@@ -385,7 +385,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (r.label, preds: catalog.Trainers.Sdca(
                     r.label,
                     r.features,
-                    maxIterations: 2,
+                    numberOfIterations: 2,
                     loss: loss, onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -430,7 +430,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (r.label, preds: catalog.Trainers.Sdca(
                     r.label,
                     r.features,
-                    maxIterations: 2)));
+                    numberOfIterations: 2)));
 
             var results = catalog.CrossValidate(reader.Load(dataSource), est, r => r.label)
                 .Select(x => x.metrics).ToArray();
