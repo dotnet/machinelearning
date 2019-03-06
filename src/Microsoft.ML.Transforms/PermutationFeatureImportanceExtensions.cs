@@ -352,17 +352,17 @@ namespace Microsoft.ML.Data
         private readonly SummaryStatistics _statistic;
 
         /// <summary>
-        /// Get the mean value for the metric
+        /// Get the mean value for the metric.
         /// </summary>
         public double Mean => _statistic.Mean;
 
         /// <summary>
-        /// Get the standard deviation for the metric
+        /// Get the standard deviation for the metric.
         /// </summary>
         public double StandardDeviation => (_statistic.RawCount <= 1) ? 0 : _statistic.SampleStdDev;
 
         /// <summary>
-        /// Get the standard error of the mean for the metric
+        /// Get the standard error of the mean for the metric.
         /// </summary>
         public double StandardError => (_statistic.RawCount <= 1) ? 0 : _statistic.StandardErrorMean;
 
@@ -378,7 +378,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Add another metric to the set of observations
+        /// Add another metric to the set of observations.
         /// </summary>
         /// <param name="metric">The metric being accumulated</param>
         internal void Add(double metric)
@@ -424,27 +424,27 @@ namespace Microsoft.ML.Data
     public sealed class RegressionMetricsStatistics : IMetricsStatistics<RegressionMetrics>
     {
         /// <summary>
-        /// Summary Statistics for L1
+        /// Summary statistics for <see cref="RegressionMetrics.MeanAbsoluteError"/>.
         /// </summary>
         public MetricStatistics MeanAbsoluteError { get; }
 
         /// <summary>
-        /// Summary Statistics for L2
+        /// Summary statistics for <see cref="RegressionMetrics.MeanSquaredError"/>.
         /// </summary>
         public MetricStatistics MeanSquaredError { get; }
 
         /// <summary>
-        /// Summary statistics for the root mean square loss (or RMS).
+        /// Summary statistics for <see cref="RegressionMetrics.RootMeanSquaredError"/>.
         /// </summary>
         public MetricStatistics RootMeanSquaredError { get; }
 
         /// <summary>
-        /// Summary statistics for the user-supplied loss function.
+        /// Summary statistics for <see cref="RegressionMetrics.LossFunction"/>.
         /// </summary>
         public MetricStatistics LossFunction { get; }
 
         /// <summary>
-        /// Summary statistics for the R squared value.
+        /// Summary statistics for <see cref="RegressionMetrics.RSquared"/>.
         /// </summary>
         public MetricStatistics RSquared { get; }
 
@@ -478,42 +478,42 @@ namespace Microsoft.ML.Data
     public sealed class BinaryClassificationMetricsStatistics : IMetricsStatistics<BinaryClassificationMetrics>
     {
         /// <summary>
-        /// Summary Statistics for AUC
+        /// Summary Statistics for <see cref="BinaryClassificationMetrics.AreaUnderRocCurve"/>.
         /// </summary>
         public MetricStatistics AreaUnderRocCurve { get; }
 
         /// <summary>
-        /// Summary Statistics for Accuracy
+        /// Summary Statistics for <see cref="BinaryClassificationMetrics.Accuracy"/>.
         /// </summary>
         public MetricStatistics Accuracy { get; }
 
         /// <summary>
-        /// Summary statistics for Positive Precision
+        /// Summary statistics for <see cref="BinaryClassificationMetrics.PositivePrecision"/>.
         /// </summary>
         public MetricStatistics PositivePrecision { get; }
 
         /// <summary>
-        /// Summary statistics for Positive Recall
+        /// Summary statistics for <see cref="BinaryClassificationMetrics.PositiveRecall"/>.
         /// </summary>
         public MetricStatistics PositiveRecall { get; }
 
         /// <summary>
-        /// Summary statistics for Negative Precision.
+        /// Summary statistics for <see cref="BinaryClassificationMetrics.NegativePrecision"/>.
         /// </summary>
         public MetricStatistics NegativePrecision { get; }
 
         /// <summary>
-        /// Summary statistics for Negative Recall.
+        /// Summary statistics for <see cref="BinaryClassificationMetrics.NegativeRecall"/>.
         /// </summary>
         public MetricStatistics NegativeRecall { get; }
 
         /// <summary>
-        /// Summary statistics for F1Score.
+        /// Summary statistics for <see cref="BinaryClassificationMetrics.F1Score"/>.
         /// </summary>
         public MetricStatistics F1Score { get; }
 
         /// <summary>
-        /// Summary statistics for AUPRC.
+        /// Summary statistics for <see cref="BinaryClassificationMetrics.AreaUnderPrecisionRecallCurve"/>.
         /// </summary>
         public MetricStatistics AreaUnderPrecisionRecallCurve { get; }
 
@@ -553,39 +553,39 @@ namespace Microsoft.ML.Data
     public sealed class MultiClassClassifierMetricsStatistics : IMetricsStatistics<MultiClassClassifierMetrics>
     {
         /// <summary>
-        /// Summary Statistics for Micro-Accuracy
+        /// Summary statistics for <see cref="MultiClassClassifierMetrics.MacroAccuracy"/>.
         /// </summary>
-        public MetricStatistics AccuracyMacro { get; }
+        public MetricStatistics MacroAccuracy { get; }
 
         /// <summary>
-        /// Summary Statistics for Micro-Accuracy
+        /// Summary statistics for <see cref="MultiClassClassifierMetrics.MicroAccuracy"/>.
         /// </summary>
-        public MetricStatistics AccuracyMicro { get; }
+        public MetricStatistics MicroAccuracy { get; }
 
         /// <summary>
-        /// Summary statistics for Log Loss
+        /// Summary statistics for <see cref="MultiClassClassifierMetrics.LogLoss"/>.
         /// </summary>
         public MetricStatistics LogLoss { get; }
 
         /// <summary>
-        /// Summary statistics for Log Loss Reduction
+        /// Summary statistics for <see cref="MultiClassClassifierMetrics.LogLossReduction"/>.
         /// </summary>
         public MetricStatistics LogLossReduction { get; }
 
         /// <summary>
-        /// Summary statistics for Top K Accuracy
+        /// Summary statistics for <see cref="MultiClassClassifierMetrics.TopKAccuracy"/>.
         /// </summary>
         public MetricStatistics TopKAccuracy { get; }
 
         /// <summary>
-        /// Summary statistics for Per Class Log Loss
+        /// Summary statistics for <see cref="MultiClassClassifierMetrics.PerClassLogLoss"/>.
         /// </summary>
         public MetricStatistics[] PerClassLogLoss { get; private set; }
 
         internal MultiClassClassifierMetricsStatistics()
         {
-            AccuracyMacro = new MetricStatistics();
-            AccuracyMicro = new MetricStatistics();
+            MacroAccuracy = new MetricStatistics();
+            MicroAccuracy = new MetricStatistics();
             LogLoss = new MetricStatistics();
             LogLossReduction = new MetricStatistics();
             TopKAccuracy = new MetricStatistics();
@@ -597,8 +597,8 @@ namespace Microsoft.ML.Data
         /// <param name="metrics">The observed binary classification evaluation metric</param>
         void IMetricsStatistics<MultiClassClassifierMetrics>.Add(MultiClassClassifierMetrics metrics)
         {
-            AccuracyMacro.Add(metrics.MacroAccuracy);
-            AccuracyMicro.Add(metrics.MicroAccuracy);
+            MacroAccuracy.Add(metrics.MacroAccuracy);
+            MicroAccuracy.Add(metrics.MicroAccuracy);
             LogLoss.Add(metrics.LogLoss);
             LogLossReduction.Add(metrics.LogLossReduction);
             TopKAccuracy.Add(metrics.TopKAccuracy);
@@ -616,12 +616,12 @@ namespace Microsoft.ML.Data
     public sealed class RankingMetricsStatistics : IMetricsStatistics<RankingMetrics>
     {
         /// <summary>
-        /// Summary Statistics for DCG
+        /// Summary statistics for <see cref="RankingMetrics.DiscountedCumulativeGains"/>.
         /// </summary>
         public MetricStatistics[] DiscountedCumulativeGains { get; private set; }
 
         /// <summary>
-        /// Summary Statistics for L2
+        /// Summary statistics for <see cref="RankingMetrics.NormalizedDiscountedCumulativeGains"/>.
         /// </summary>
         public MetricStatistics[] NormalizedDiscountedCumulativeGains { get; private set; }
 

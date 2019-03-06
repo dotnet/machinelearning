@@ -242,10 +242,10 @@ namespace Microsoft.ML.Tests
             // X4Rand: 3
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.AccuracyMicro.Mean));
-            Assert.Equal(1, MinDeltaIndex(pfi, m => m.AccuracyMicro.Mean));
-            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.AccuracyMacro.Mean));
-            Assert.Equal(1, MinDeltaIndex(pfi, m => m.AccuracyMacro.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.MicroAccuracy.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.MicroAccuracy.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.MacroAccuracy.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.MacroAccuracy.Mean));
             Assert.Equal(3, MaxDeltaIndex(pfi, m => m.LogLossReduction.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.LogLossReduction.Mean));
 
@@ -282,10 +282,10 @@ namespace Microsoft.ML.Tests
             // X3Important: 5 // Most important
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            Assert.Equal(2, MaxDeltaIndex(pfi, m => m.AccuracyMicro.Mean));
-            Assert.Equal(5, MinDeltaIndex(pfi, m => m.AccuracyMicro.Mean));
-            Assert.Equal(2, MaxDeltaIndex(pfi, m => m.AccuracyMacro.Mean));
-            Assert.Equal(5, MinDeltaIndex(pfi, m => m.AccuracyMacro.Mean));
+            Assert.Equal(2, MaxDeltaIndex(pfi, m => m.MicroAccuracy.Mean));
+            Assert.Equal(5, MinDeltaIndex(pfi, m => m.MicroAccuracy.Mean));
+            Assert.Equal(2, MaxDeltaIndex(pfi, m => m.MacroAccuracy.Mean));
+            Assert.Equal(5, MinDeltaIndex(pfi, m => m.MacroAccuracy.Mean));
             Assert.Equal(2, MaxDeltaIndex(pfi, m => m.LogLossReduction.Mean));
             Assert.Equal(5, MinDeltaIndex(pfi, m => m.LogLossReduction.Mean));
 
