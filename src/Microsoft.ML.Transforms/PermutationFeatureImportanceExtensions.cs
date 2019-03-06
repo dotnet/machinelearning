@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
@@ -69,6 +68,7 @@ namespace Microsoft.ML
                             catalog.GetEnvironment(),
                             model,
                             data,
+                            () => new RegressionMetricsStatistics(),
                             idv => catalog.Evaluate(idv, label),
                             RegressionDelta,
                             features,
@@ -146,6 +146,7 @@ namespace Microsoft.ML
                             catalog.GetEnvironment(),
                             model,
                             data,
+                            () => new BinaryClassificationMetricsStatistics(),
                             idv => catalog.Evaluate(idv, label),
                             BinaryClassifierDelta,
                             features,
@@ -220,6 +221,7 @@ namespace Microsoft.ML
                             catalog.GetEnvironment(),
                             model,
                             data,
+                            () => new MultiClassClassifierMetricsStatistics(),
                             idv => catalog.Evaluate(idv, label),
                             MulticlassClassificationDelta,
                             features,
@@ -301,6 +303,7 @@ namespace Microsoft.ML
                             catalog.GetEnvironment(),
                             model,
                             data,
+                            () => new RankingMetricsStatistics(),
                             idv => catalog.Evaluate(idv, label, groupId),
                             RankingDelta,
                             features,
@@ -334,306 +337,4 @@ namespace Microsoft.ML
 
         #endregion
     }
-
-    #region MetricsStatistics
-
-    /// <summary>
-    /// The MetricsStatistics class computes summary statistics over multiple observations of a metric.
-    /// </summary>
-    public sealed class MetricStatistics
-    {
-        private readonly SummaryStatistics _statistic;
-
-        /// <summary>
-        /// Get the mean value for the metric
-        /// </summary>
-        public double Mean => _statistic.Mean;
-
-        /// <summary>
-        /// Get the standard deviation for the metric
-        /// </summary>
-        public double StandardDeviation => (_statistic.RawCount <= 1) ? 0 : _statistic.SampleStdDev;
-
-        /// <summary>
-        /// Get the standard error of the mean for the metric
-        /// </summary>
-        public double StandardError => (_statistic.RawCount <= 1) ? 0 : _statistic.StandardErrorMean;
-
-        /// <summary>
-        /// Get the count for the number of samples used. Useful for interpreting
-        /// the standard deviation and the stardard error and building confidence intervals.
-        /// </summary>
-        public int Count => (int) _statistic.RawCount;
-
-        internal MetricStatistics()
-        {
-            _statistic = new SummaryStatistics();
-        }
-
-        /// <summary>
-        /// Add another metric to the set of observations
-        /// </summary>
-        /// <param name="metric">The metric being accumulated</param>
-        internal void Add(double metric)
-        {
-            _statistic.Add(metric);
-        }
-    }
-
-    /// <summary>
-    /// The MetricsStatisticsBase class is the base class for computing summary
-    /// statistics over multiple observations of model evaluation metrics.
-    /// </summary>
-    /// <typeparam name="T">The EvaluationMetric type, such as RegressionMetrics</typeparam>
-    public abstract class MetricsStatisticsBase<T>{
-        internal MetricsStatisticsBase()
-        {
-        }
-
-        public abstract void Add(T metrics);
-
-        protected static void AddArray(double[] src, MetricStatistics[] dest)
-        {
-            Contracts.Assert(src.Length == dest.Length, "Array sizes do not match.");
-
-            for (int i = 0; i < dest.Length; i++)
-                dest[i].Add(src[i]);
-        }
-
-        protected MetricStatistics[] InitializeArray(int length)
-        {
-            var array = new MetricStatistics[length];
-            for (int i = 0; i < array.Length; i++)
-                array[i] = new MetricStatistics();
-
-            return array;
-        }
-    }
-
-    /// <summary>
-    /// The RegressionMetricsStatistics class is computes summary
-    /// statistics over multiple observations of regression evaluation metrics.
-    /// </summary>
-    public sealed class RegressionMetricsStatistics : MetricsStatisticsBase<RegressionMetrics>
-    {
-        /// <summary>
-        /// Summary Statistics for L1
-        /// </summary>
-        public MetricStatistics L1 { get; }
-
-        /// <summary>
-        /// Summary Statistics for L2
-        /// </summary>
-        public MetricStatistics L2 { get; }
-
-        /// <summary>
-        /// Summary statistics for the root mean square loss (or RMS).
-        /// </summary>
-        public MetricStatistics Rms { get; }
-
-        /// <summary>
-        /// Summary statistics for the user-supplied loss function.
-        /// </summary>
-        public MetricStatistics LossFn { get; }
-
-        /// <summary>
-        /// Summary statistics for the R squared value.
-        /// </summary>
-        public MetricStatistics RSquared { get; }
-
-        public RegressionMetricsStatistics()
-        {
-            L1 = new MetricStatistics();
-            L2 = new MetricStatistics();
-            Rms = new MetricStatistics();
-            LossFn = new MetricStatistics();
-            RSquared = new MetricStatistics();
-        }
-
-        /// <summary>
-        /// Add a set of evaluation metrics to the set of observations.
-        /// </summary>
-        /// <param name="metrics">The observed regression evaluation metric</param>
-        public override void Add(RegressionMetrics metrics)
-        {
-            L1.Add(metrics.MeanAbsoluteError);
-            L2.Add(metrics.MeanSquaredError);
-            Rms.Add(metrics.RootMeanSquaredError);
-            LossFn.Add(metrics.LossFunction);
-            RSquared.Add(metrics.RSquared);
-        }
-    }
-
-    /// <summary>
-    /// The BinaryClassificationMetricsStatistics class is computes summary
-    /// statistics over multiple observations of binary classification evaluation metrics.
-    /// </summary>
-    public sealed class BinaryClassificationMetricsStatistics : MetricsStatisticsBase<BinaryClassificationMetrics>
-    {
-        /// <summary>
-        /// Summary Statistics for AUC
-        /// </summary>
-        public MetricStatistics Auc { get; }
-
-        /// <summary>
-        /// Summary Statistics for Accuracy
-        /// </summary>
-        public MetricStatistics Accuracy { get; }
-
-        /// <summary>
-        /// Summary statistics for Positive Precision
-        /// </summary>
-        public MetricStatistics PositivePrecision { get; }
-
-        /// <summary>
-        /// Summary statistics for Positive Recall
-        /// </summary>
-        public MetricStatistics PositiveRecall { get; }
-
-        /// <summary>
-        /// Summary statistics for Negative Precision.
-        /// </summary>
-        public MetricStatistics NegativePrecision { get; }
-
-        /// <summary>
-        /// Summary statistics for Negative Recall.
-        /// </summary>
-        public MetricStatistics NegativeRecall { get; }
-
-        /// <summary>
-        /// Summary statistics for F1Score.
-        /// </summary>
-        public MetricStatistics F1Score { get; }
-
-        /// <summary>
-        /// Summary statistics for AUPRC.
-        /// </summary>
-        public MetricStatistics Auprc { get; }
-
-        public BinaryClassificationMetricsStatistics()
-        {
-            Auc = new MetricStatistics();
-            Accuracy = new MetricStatistics();
-            PositivePrecision = new MetricStatistics();
-            PositiveRecall = new MetricStatistics();
-            NegativePrecision = new MetricStatistics();
-            NegativeRecall = new MetricStatistics();
-            F1Score = new MetricStatistics();
-            Auprc = new MetricStatistics();
-        }
-
-        /// <summary>
-        /// Add a set of evaluation metrics to the set of observations.
-        /// </summary>
-        /// <param name="metrics">The observed binary classification evaluation metric</param>
-        public override void Add(BinaryClassificationMetrics metrics)
-        {
-            Auc.Add(metrics.AreaUnderRocCurve);
-            Accuracy.Add(metrics.Accuracy);
-            PositivePrecision.Add(metrics.PositivePrecision);
-            PositiveRecall.Add(metrics.PositiveRecall);
-            NegativePrecision.Add(metrics.NegativePrecision);
-            NegativeRecall.Add(metrics.NegativeRecall);
-            F1Score.Add(metrics.F1Score);
-            Auprc.Add(metrics.AreaUnderPrecisionRecallCurve);
-        }
-    }
-
-    /// <summary>
-    /// The MultiClassClassifierMetricsStatistics class is computes summary
-    /// statistics over multiple observations of binary classification evaluation metrics.
-    /// </summary>
-    public sealed class MultiClassClassifierMetricsStatistics : MetricsStatisticsBase<MultiClassClassifierMetrics>
-    {
-        /// <summary>
-        /// Summary Statistics for Micro-Accuracy
-        /// </summary>
-        public MetricStatistics AccuracyMacro { get; }
-
-        /// <summary>
-        /// Summary Statistics for Micro-Accuracy
-        /// </summary>
-        public MetricStatistics AccuracyMicro { get; }
-
-        /// <summary>
-        /// Summary statistics for Log Loss
-        /// </summary>
-        public MetricStatistics LogLoss { get; }
-
-        /// <summary>
-        /// Summary statistics for Log Loss Reduction
-        /// </summary>
-        public MetricStatistics LogLossReduction { get; }
-
-        /// <summary>
-        /// Summary statistics for Top K Accuracy
-        /// </summary>
-        public MetricStatistics TopKAccuracy { get; }
-
-        /// <summary>
-        /// Summary statistics for Per Class Log Loss
-        /// </summary>
-        public MetricStatistics[] PerClassLogLoss { get; private set; }
-
-        public MultiClassClassifierMetricsStatistics()
-        {
-            AccuracyMacro = new MetricStatistics();
-            AccuracyMicro = new MetricStatistics();
-            LogLoss = new MetricStatistics();
-            LogLossReduction = new MetricStatistics();
-            TopKAccuracy = new MetricStatistics();
-        }
-
-        /// <summary>
-        /// Add a set of evaluation metrics to the set of observations.
-        /// </summary>
-        /// <param name="metrics">The observed binary classification evaluation metric</param>
-        public override void Add(MultiClassClassifierMetrics metrics)
-        {
-            AccuracyMacro.Add(metrics.MacroAccuracy);
-            AccuracyMicro.Add(metrics.MicroAccuracy);
-            LogLoss.Add(metrics.LogLoss);
-            LogLossReduction.Add(metrics.LogLossReduction);
-            TopKAccuracy.Add(metrics.TopKAccuracy);
-
-            if (PerClassLogLoss == null)
-                PerClassLogLoss = InitializeArray(metrics.PerClassLogLoss.Length);
-            AddArray(metrics.PerClassLogLoss, PerClassLogLoss);
-        }
-    }
-
-    /// <summary>
-    /// The RankerMetricsStatistics class is computes summary
-    /// statistics over multiple observations of regression evaluation metrics.
-    /// </summary>
-    public sealed class RankingMetricsStatistics : MetricsStatisticsBase<RankingMetrics>
-    {
-        /// <summary>
-        /// Summary Statistics for DCG
-        /// </summary>
-        public MetricStatistics[] Dcg { get; private set; }
-
-        /// <summary>
-        /// Summary Statistics for L2
-        /// </summary>
-        public MetricStatistics[] Ndcg { get; private set; }
-
-        /// <summary>
-        /// Add a set of evaluation metrics to the set of observations.
-        /// </summary>
-        /// <param name="metrics">The observed regression evaluation metric</param>
-        public override void Add(RankingMetrics metrics)
-        {
-            if (Dcg == null)
-                Dcg = InitializeArray(metrics.DiscountedCumulativeGains.Length);
-
-            if (Ndcg == null)
-                Ndcg = InitializeArray(metrics.NormalizedDiscountedCumulativeGains.Length);
-
-            AddArray(metrics.DiscountedCumulativeGains, Dcg);
-            AddArray(metrics.NormalizedDiscountedCumulativeGains, Ndcg);
-        }
-    }
-
-    #endregion
 }

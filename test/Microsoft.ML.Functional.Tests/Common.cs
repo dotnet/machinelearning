@@ -261,11 +261,11 @@ namespace Microsoft.ML.Functional.Tests
         /// <param name="metrics">The metrics object.</param>
         public static void AssertMetricsStatistics(RegressionMetricsStatistics metrics)
         {
-            AssertMetricStatistics(metrics.Rms);
-            AssertMetricStatistics(metrics.L1);
-            AssertMetricStatistics(metrics.L2);
+            AssertMetricStatistics(metrics.RootMeanSquaredError);
+            AssertMetricStatistics(metrics.MeanAbsoluteError);
+            AssertMetricStatistics(metrics.MeanSquaredError);
             AssertMetricStatistics(metrics.RSquared);
-            AssertMetricStatistics(metrics.LossFn);
+            AssertMetricStatistics(metrics.LossFunction);
         }
     }
 }
