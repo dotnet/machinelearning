@@ -5,7 +5,7 @@
 using System;
 using Microsoft.ML.EntryPoints;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Trainers
 {
     public interface ILossFunction<in TOutput, in TLabel>
     {

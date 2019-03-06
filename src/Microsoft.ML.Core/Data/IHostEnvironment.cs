@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Runtime
 {
     /// <summary>
     /// A channel provider can create new channels and generic information pipes.
