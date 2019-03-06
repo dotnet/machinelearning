@@ -9,9 +9,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ColumnSelectingTransformer.Summary, typeof(IDataTransform), typeof(ColumnSelectingTransformer),
@@ -140,12 +138,12 @@ namespace Microsoft.ML.Transforms
 
         bool ITransformer.IsRowToRowMapper => true;
 
-        public IEnumerable<string> SelectColumns => _selectedColumns.AsReadOnly();
+        internal IEnumerable<string> SelectColumns => _selectedColumns.AsReadOnly();
 
-        public bool KeepColumns { get; }
+        internal bool KeepColumns { get; }
 
-        public bool KeepHidden { get; }
-        public bool IgnoreMissing { get; }
+        internal bool KeepHidden { get; }
+        internal bool IgnoreMissing { get; }
 
         private static VersionInfo GetVersionInfo()
         {
