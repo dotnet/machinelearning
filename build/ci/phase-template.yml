@@ -38,7 +38,7 @@ phases:
     - script: $(_buildScript) -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
       displayName: Download Benchmark Data
     - ${{ if eq(parameters.name, 'MacOS') }}:
-      - script: brew update && brew install libomp mono-libgdiplus gettext && brew link gettext --force
+      - script: brew update && brew install libomp mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
         displayName: Install runtime dependencies
     - script: $(_buildScript) -$(_configuration) -runtests -coverage=$(_codeCoverage)
       displayName: Run Tests.
