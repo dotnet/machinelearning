@@ -4974,7 +4974,7 @@ namespace Microsoft.ML.RunTests
                                     'MaximumNumberOfLineSearchSteps': 0,
                                     'MinimumStepSize': 0.0,
                                     'OptimizationAlgorithm': 'GradientDescent',
-                                    'EarlyStoppingRuleFactory': null,
+                                    'EarlyStoppingRule': null,
                                     'EarlyStoppingMetrics': 1,
                                     'EnablePruning': false,
                                     'UseTolerantPruning': false,
