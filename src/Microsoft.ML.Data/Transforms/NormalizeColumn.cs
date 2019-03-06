@@ -15,6 +15,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 

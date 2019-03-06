@@ -9,6 +9,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {

@@ -10,6 +10,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 [assembly: EntryPointModule(typeof(SummarizePredictor))]
 

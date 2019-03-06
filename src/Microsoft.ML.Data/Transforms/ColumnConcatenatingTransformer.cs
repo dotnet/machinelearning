@@ -13,6 +13,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 

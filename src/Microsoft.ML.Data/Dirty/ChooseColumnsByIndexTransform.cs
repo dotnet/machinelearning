@@ -11,6 +11,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(typeof(ChooseColumnsByIndexTransform), typeof(ChooseColumnsByIndexTransform.Options), typeof(SignatureDataTransform),
     "", "ChooseColumnsByIndexTransform", "ChooseColumnsByIndex")]

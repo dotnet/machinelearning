@@ -13,6 +13,8 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(MultiOutputRegressionEvaluator), typeof(MultiOutputRegressionEvaluator), typeof(MultiOutputRegressionEvaluator.Arguments), typeof(SignatureEvaluator),
     "Multi Output Regression Evaluator", MultiOutputRegressionEvaluator.LoadName, "MultiOutputRegression", "MRE")]
@@ -176,11 +178,11 @@ namespace Microsoft.ML.Data
 
                 private readonly IRegressionLoss _lossFunction;
 
-                public Double L1 { get { return _sumWeights > 0 ? _sumL1 / _sumWeights : 0; } }
+                public Double L1 => _sumWeights > 0 ? _sumL1 / _sumWeights : 0;
 
-                public Double L2 { get { return _sumWeights > 0 ? _sumL2 / _sumWeights : 0; } }
+                public Double L2 => _sumWeights > 0 ? _sumL2 / _sumWeights : 0;
 
-                public Double Dist { get { return _sumWeights > 0 ? _sumEuclidean / _sumWeights : 0; } }
+                public Double Dist => _sumWeights > 0 ? _sumEuclidean / _sumWeights : 0;
 
                 public Double[] PerLabelL1
                 {
@@ -548,7 +550,7 @@ namespace Microsoft.ML.Data
             var t = schema[LabelIndex].Type as VectorType;
             if (t == null || !t.IsKnownSize || (t.ItemType != NumberDataViewType.Single && t.ItemType != NumberDataViewType.Double))
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "known-size vector of float or double", t.ToString());
-            labelType = new VectorType((PrimitiveDataViewType)t.ItemType, t.Size);
+            labelType = new VectorType(t.ItemType, t.Size);
             var slotNamesType = new VectorType(TextDataViewType.Instance, t.Size);
             var builder = new DataViewSchema.Annotations.Builder();
             builder.AddSlotNames(t.Size, CreateSlotNamesGetter(schema, LabelIndex, labelType.Size, "True"));
@@ -557,7 +559,7 @@ namespace Microsoft.ML.Data
             t = schema[ScoreIndex].Type as VectorType;
             if (t == null || !t.IsKnownSize || t.ItemType != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "known-size vector of float", t.ToString());
-            scoreType = new VectorType((PrimitiveDataViewType)t.ItemType, t.Size);
+            scoreType = new VectorType(t.ItemType, t.Size);
             builder = new DataViewSchema.Annotations.Builder();
             builder.AddSlotNames(t.Size, CreateSlotNamesGetter(schema, ScoreIndex, scoreType.Size, "Predicted"));
 

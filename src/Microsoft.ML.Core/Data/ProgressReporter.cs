@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.ML.Runtime
 {
     /// <summary>
     /// The progress reporting classes used by <see cref="HostEnvironmentBase{THostEnvironmentBase}"/> descendants.

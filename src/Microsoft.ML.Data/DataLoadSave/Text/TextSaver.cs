@@ -13,6 +13,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(TextSaver.Summary, typeof(TextSaver), typeof(TextSaver.Arguments), typeof(SignatureDataSaver),
     "Text Saver", "TextSaver", "Text", DocName = "saver/TextSaver.md")]

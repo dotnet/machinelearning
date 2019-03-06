@@ -15,6 +15,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(typeof(CrossValidationCommand), typeof(CrossValidationCommand.Arguments), typeof(SignatureCommand),
     "Cross Validation", CrossValidationCommand.LoadName)]

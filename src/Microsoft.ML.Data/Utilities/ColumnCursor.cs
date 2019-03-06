@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Data.DataView;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
