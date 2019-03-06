@@ -43,6 +43,12 @@ namespace Microsoft.ML.Trainers.FastTree
         public abstract bool CheckScore(float validationScore, float trainingScore, out bool isBestCandidate);
 
         /// <summary>
+        /// Having <see langword="private protected"/> constructor without parameter prevents derivations of <see cref="EarlyStoppingRuleBase"/> from being
+        /// implemented by the public.
+        /// </summary>
+        private protected EarlyStoppingRuleBase() { }
+
+        /// <summary>
         /// Create <see cref="IEarlyStoppingCriterionFactory"/> for supporting legacy infra built upon <see cref="IComponentFactory"/>.
         /// </summary>
         internal abstract IEarlyStoppingCriterionFactory BuildFactory();
@@ -73,7 +79,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        private protected EarlyStoppingRule(bool lowerIsBetter)
+        private protected EarlyStoppingRule(bool lowerIsBetter) : base()
         {
             LowerIsBetter = lowerIsBetter;
             _bestScore = LowerIsBetter ? float.PositiveInfinity : float.NegativeInfinity;
@@ -83,7 +89,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Lazy constructor. It doesn't initialize anything because in runtime, <see cref="EarlyStoppingRule.EarlyStoppingRule(bool)"/> will be
         /// called inside the training process to initialize needed fields.
         /// </summary>
-        private protected EarlyStoppingRule()
+        private protected EarlyStoppingRule() : base()
         {
         }
 
