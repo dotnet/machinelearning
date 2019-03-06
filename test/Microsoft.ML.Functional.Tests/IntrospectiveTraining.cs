@@ -4,8 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.ML.Calibrators;
+//using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
@@ -20,7 +21,7 @@ namespace Microsoft.ML.Functional.Tests
 {
     public class IntrospectiveTraining : BaseTestClass
     {
-        public IntrospectiveTraining(ITestOutputHelper output): base(output)
+        public IntrospectiveTraining(ITestOutputHelper output) : base(output)
         {
         }
 
@@ -259,10 +260,26 @@ namespace Microsoft.ML.Functional.Tests
             var model = pipeline.Fit(data);
 
             // Extract the normalizer from the trained pipeline.
-            // TODO #2854: Extract the normalizer parameters.
             var normalizer = model.LastTransformer;
-        }
 
+            // Extract the normalizer parameters.
+            // TODO #2854: Normalizer parameters are easy to find via intellisense.
+            int i = 0;
+            bool found = false;
+            foreach (var column in normalizer.Columns)
+            {
+                if (column.Name == "Features")
+                {
+                    found = true;
+                    var featuresNormalizer = normalizer.Columns[i].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<float>>;
+                    Assert.NotNull(featuresNormalizer);
+                    Common.AssertFiniteNumbers(featuresNormalizer.Offset);
+                    Common.AssertFiniteNumbers(featuresNormalizer.Scale);
+                }
+                i++;
+            }
+            Assert.True(found);
+        }
         /// <summary>
         /// Introspective Training: I can inspect a pipeline to determine which transformers were included. 	 
         /// </summary>
