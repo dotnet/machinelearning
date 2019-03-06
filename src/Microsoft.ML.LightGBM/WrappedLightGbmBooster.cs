@@ -205,9 +205,9 @@ namespace Microsoft.ML.LightGBM
                         kvPairs[kv[0].Trim()] = kv[1].Trim();
                         ++i;
                     }
-                    int numLeaves = int.Parse(kvPairs["num_leaves"], CultureInfo.InvariantCulture);
+                    int numberOfLeaves = int.Parse(kvPairs["num_leaves"], CultureInfo.InvariantCulture);
                     int numCat = int.Parse(kvPairs["num_cat"], CultureInfo.InvariantCulture);
-                    if (numLeaves > 1)
+                    if (numberOfLeaves > 1)
                     {
                         var leftChild = Str2IntArray(kvPairs["left_child"], ' ');
                         var rightChild = Str2IntArray(kvPairs["right_child"], ' ');
@@ -217,12 +217,12 @@ namespace Microsoft.ML.LightGBM
                         var leafOutput = Str2DoubleArray(kvPairs["leaf_value"], ' ');
                         var decisionType = Str2UIntArray(kvPairs["decision_type"], ' ');
                         var defaultValue = GetDefalutValue(threshold, decisionType);
-                        var categoricalSplitFeatures = new int[numLeaves - 1][];
-                        var categoricalSplit = new bool[numLeaves - 1];
+                        var categoricalSplitFeatures = new int[numberOfLeaves - 1][];
+                        var categoricalSplit = new bool[numberOfLeaves - 1];
                         if (categoricalFeatureBoudaries != null)
                         {
                             // Add offsets to split features.
-                            for (int node = 0; node < numLeaves - 1; ++node)
+                            for (int node = 0; node < numberOfLeaves - 1; ++node)
                                 splitFeature[node] = categoricalFeatureBoudaries[splitFeature[node]];
                         }
 
@@ -230,7 +230,7 @@ namespace Microsoft.ML.LightGBM
                         {
                             var catBoundaries = Str2IntArray(kvPairs["cat_boundaries"], ' ');
                             var catThreshold = Str2UIntArray(kvPairs["cat_threshold"], ' ');
-                            for (int node = 0; node < numLeaves - 1; ++node)
+                            for (int node = 0; node < numberOfLeaves - 1; ++node)
                             {
                                 if (GetIsCategoricalSplit(decisionType[node]))
                                 {
@@ -254,7 +254,7 @@ namespace Microsoft.ML.LightGBM
                                 }
                             }
                         }
-                        InternalRegressionTree tree = InternalRegressionTree.Create(numLeaves, splitFeature, splitGain,
+                        InternalRegressionTree tree = InternalRegressionTree.Create(numberOfLeaves, splitFeature, splitGain,
                             threshold.Select(x => (float)(x)).ToArray(), defaultValue.Select(x => (float)(x)).ToArray(), leftChild, rightChild, leafOutput,
                             categoricalSplitFeatures, categoricalSplit);
                         res.AddTree(tree);

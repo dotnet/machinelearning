@@ -38,8 +38,8 @@ namespace Microsoft.ML.Samples.Static
                 .Append(r => (r.label, score: mlContext.Regression.Trainers.LightGbm(
                                             r.label,
                                             r.features,
-                                            numLeaves: 4,
-                                            minDataPerLeaf: 6,
+                                            numberOfLeaves: 4,
+                                            minimumExampleCountPerLeaf: 6,
                                             learningRate: 0.001,
                                         onFit: p => pred = p)
                                 )

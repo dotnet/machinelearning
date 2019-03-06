@@ -388,7 +388,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // reading them from disk multiple times.
                 .AppendCacheCheckpoint(mlContext)
                 // Now we're ready to train. We chose our FastTree trainer for this classification task.
-                .Append(mlContext.BinaryClassification.Trainers.FastTree(numTrees: 50));
+                .Append(mlContext.BinaryClassification.Trainers.FastTree(numberOfTrees: 50));
 
             // Train the model.
             var model = fullLearningPipeline.Fit(data);

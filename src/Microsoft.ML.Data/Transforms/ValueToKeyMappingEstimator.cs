@@ -32,7 +32,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public class ColumnOptions
+        public abstract class ColumnOptionsBase
         {
             public readonly string OutputColumnName;
             public readonly string InputColumnName;
@@ -41,8 +41,28 @@ namespace Microsoft.ML.Transforms
             public readonly string[] Term;
             public readonly bool TextKeyValues;
 
-            protected internal string Terms { get; set; }
+            [BestFriend]
+            internal string Terms { get; set; }
 
+            [BestFriend]
+            private protected ColumnOptionsBase(string outputColumnName, string inputColumnName,
+                int maxNumKeys, SortOrder sort, string[] term, bool textKeyValues)
+            {
+                Contracts.CheckNonWhiteSpace(outputColumnName, nameof(outputColumnName));
+                OutputColumnName = outputColumnName;
+                InputColumnName = inputColumnName ?? outputColumnName;
+                Sort = sort;
+                MaxNumKeys = maxNumKeys;
+                Term = term;
+                TextKeyValues = textKeyValues;
+            }
+        }
+
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
+        public sealed class ColumnOptions : ColumnOptionsBase
+        {
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
@@ -57,21 +77,14 @@ namespace Microsoft.ML.Transforms
                 int maxNumKeys = Defaults.MaxNumKeys,
                 SortOrder sort = Defaults.Sort,
                 string[] term = null,
-                bool textKeyValues = false
-                )
+                bool textKeyValues = false)
+                : base(outputColumnName, inputColumnName, maxNumKeys, sort, term, textKeyValues)
             {
-                Contracts.CheckNonWhiteSpace(outputColumnName, nameof(outputColumnName));
-                OutputColumnName = outputColumnName;
-                InputColumnName = inputColumnName ?? outputColumnName;
-                Sort = sort;
-                MaxNumKeys = maxNumKeys;
-                Term = term;
-                TextKeyValues = textKeyValues;
             }
         }
 
         private readonly IHost _host;
-        private readonly ColumnOptions[] _columns;
+        private readonly ColumnOptionsBase[] _columns;
         private readonly IDataView _keyData;
 
         /// <summary>
@@ -88,7 +101,7 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        internal ValueToKeyMappingEstimator(IHostEnvironment env, ColumnOptions[] columns, IDataView keyData = null)
+        internal ValueToKeyMappingEstimator(IHostEnvironment env, ColumnOptionsBase[] columns, IDataView keyData = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(ValueToKeyMappingEstimator));

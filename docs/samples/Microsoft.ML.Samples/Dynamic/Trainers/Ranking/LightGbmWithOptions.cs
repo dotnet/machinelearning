@@ -23,10 +23,10 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
             var pipeline = mlContext.Ranking.Trainers.LightGbm(
                 new Options
                 {
-                    NumLeaves = 4,
-                    MinDataPerLeaf = 10,
+                    NumberOfLeaves = 4,
+                    MinimumExampleCountPerGroup = 10,
                     LearningRate = 0.1,
-                    NumBoostRound = 2,
+                    NumberOfIterations = 2,
                     Booster = new TreeBooster.Options
                     {
                         FeatureFraction = 0.9

@@ -183,7 +183,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public class ColumnOptions : ValueToKeyMappingEstimator.ColumnOptions
+        public sealed class ColumnOptions : ValueToKeyMappingEstimator.ColumnOptionsBase
         {
             public readonly OneHotEncodingTransformer.OutputKind OutputKind;
             /// <summary>

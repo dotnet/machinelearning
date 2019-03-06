@@ -10,32 +10,19 @@ namespace Microsoft.ML
     /// <summary>
     /// An object serving as a 'catalog' of available model operations.
     /// </summary>
-    public sealed class ModelOperationsCatalog
+    public sealed class ModelOperationsCatalog : IInternalCatalog
     {
-        /// <summary>
-        /// This is a best friend because an extension method defined in another assembly needs this field.
-        /// </summary>
-        [BestFriend]
-        internal IHostEnvironment Environment { get; }
+        IHostEnvironment IInternalCatalog.Environment => _env;
+        private readonly IHostEnvironment _env;
 
         public ExplainabilityTransforms Explainability { get; }
 
         internal ModelOperationsCatalog(IHostEnvironment env)
         {
             Contracts.AssertValue(env);
-            Environment = env;
+            _env = env;
 
             Explainability = new ExplainabilityTransforms(this);
-        }
-
-        public abstract class SubCatalogBase
-        {
-            internal IHostEnvironment Environment { get; }
-
-            protected SubCatalogBase(ModelOperationsCatalog owner)
-            {
-                Environment = owner.Environment;
-            }
         }
 
         /// <summary>
@@ -43,22 +30,26 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="model">The trained model to be saved.</param>
         /// <param name="stream">A writeable, seekable stream to save to.</param>
-        public void Save(ITransformer model, Stream stream) => model.SaveTo(Environment, stream);
+        public void Save(ITransformer model, Stream stream) => model.SaveTo(_env, stream);
 
         /// <summary>
         /// Load the model from the stream.
         /// </summary>
         /// <param name="stream">A readable, seekable stream to load from.</param>
         /// <returns>The loaded model.</returns>
-        public ITransformer Load(Stream stream) => TransformerChain.LoadFrom(Environment, stream);
+        public ITransformer Load(Stream stream) => TransformerChain.LoadFrom(_env, stream);
 
         /// <summary>
         /// The catalog of model explainability operations.
         /// </summary>
-        public sealed class ExplainabilityTransforms : SubCatalogBase
+        public sealed class ExplainabilityTransforms : IInternalCatalog
         {
-            internal ExplainabilityTransforms(ModelOperationsCatalog owner) : base(owner)
+            IHostEnvironment IInternalCatalog.Environment => _env;
+            private readonly IHostEnvironment _env;
+
+            internal ExplainabilityTransforms(ModelOperationsCatalog owner)
             {
+                _env = owner._env;
             }
         }
 
@@ -75,7 +66,7 @@ namespace Microsoft.ML
             where TSrc : class
             where TDst : class, new()
         {
-            return new PredictionEngine<TSrc, TDst>(Environment, transformer, false, inputSchemaDefinition, outputSchemaDefinition);
+            return new PredictionEngine<TSrc, TDst>(_env, transformer, false, inputSchemaDefinition, outputSchemaDefinition);
         }
     }
 }

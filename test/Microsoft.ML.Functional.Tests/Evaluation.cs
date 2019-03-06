@@ -94,7 +94,7 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.LogisticRegression(
-                    new LogisticRegression.Options { NumThreads = 1 }));
+                    new LogisticRegression.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Functional.Tests
             // Create a training pipeline.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Clustering.Trainers.KMeans(new KMeansPlusPlusTrainer.Options { NumThreads = 1 }));
+                .Append(mlContext.Clustering.Trainers.KMeans(new KMeansPlusPlusTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a training pipeline.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
-                .Append(mlContext.Ranking.Trainers.FastTree(new FastTreeRankingTrainer.Options { NumThreads = 1 }));
+                .Append(mlContext.Ranking.Trainers.FastTree(new FastTreeRankingTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -247,7 +247,7 @@ namespace Microsoft.ML.Functional.Tests
                     "CrimesPerCapita", "PercentResidental", "PercentNonRetail", "CharlesRiver", "NitricOxides", "RoomsPerDwelling",
                     "PercentPre40s", "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio"})
                 .Append(mlContext.Transforms.CopyColumns("Label", "MedianHomeValue"))
-                .Append(mlContext.Regression.Trainers.FastTree(new FastTreeRegressionTrainer.Options { NumThreads = 1 }));
+                .Append(mlContext.Regression.Trainers.FastTree(new FastTreeRegressionTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -279,7 +279,7 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.LogisticRegression(
-                    new LogisticRegression.Options { NumThreads = 1 }));
+                    new LogisticRegression.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);

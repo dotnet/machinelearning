@@ -668,6 +668,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// The model parameters class for Poisson Regression.
+    /// </summary>
     public sealed class PoissonRegressionModelParameters : RegressionModelParameters, IParameterMixer<float>
     {
         internal const string LoaderSignature = "PoissonRegressionExec";

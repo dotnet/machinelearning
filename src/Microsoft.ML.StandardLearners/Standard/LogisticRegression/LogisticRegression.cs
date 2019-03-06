@@ -42,22 +42,22 @@ namespace Microsoft.ML.Trainers
         public sealed class Options : OptionsBase
         {
             /// <summary>
-            /// If set to <value>true</value>training statistics will be generated at the end of training.
+            /// If set to <value>true</value> training statistics will be generated at the end of training.
             /// If you have a large number of learned training parameters(more than 500),
             /// generating the training statistics might take a few seconds.
-            /// More than 1000 weights might take a few minutes. For those cases consider using the instance of <see cref="ComputeLRTrainingStd"/>
+            /// More than 1000 weights might take a few minutes. For those cases consider using the instance of <see cref="ComputeLogisticRegressionStandardDeviation"/>
             /// present in the Microsoft.ML.Mkl.Components package. That computes the statistics using hardware acceleration.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat", SortOrder = 50)]
-            public bool ShowTrainingStats = false;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat, ShowTrainingStats", SortOrder = 50)]
+            public bool ShowTrainingStatistics = false;
 
             /// <summary>
-            /// The instance of <see cref="ComputeLRTrainingStd"/> that computes the std of the training statistics, at the end of training.
+            /// The instance of <see cref="ComputeLogisticRegressionStandardDeviation"/> that computes the std of the training statistics, at the end of training.
             /// The calculations are not part of Microsoft.ML package, due to the size of MKL.
-            /// If you need these calculations, add the Microsoft.ML.Mkl.Components package, and initialize <see cref="LogisticRegression.Options.StdComputer"/>.
-            /// to the <see cref="ComputeLRTrainingStd"/> implementation in the Microsoft.ML.Mkl.Components package.
+            /// If you need these calculations, add the Microsoft.ML.Mkl.Components package, and initialize <see cref="LogisticRegression.Options.ComputeStandardDeviation"/>.
+            /// to the <see cref="ComputeLogisticRegressionStandardDeviation"/> implementation in the Microsoft.ML.Mkl.Components package.
             /// </summary>
-            public ComputeLRTrainingStd StdComputer;
+            public ComputeLogisticRegressionStandardDeviation ComputeStandardDeviation;
         }
 
         private double _posWeight;
@@ -79,10 +79,10 @@ namespace Microsoft.ML.Trainers
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            float l1Weight = Options.Defaults.L1Weight,
-            float l2Weight = Options.Defaults.L2Weight,
-            float optimizationTolerance = Options.Defaults.OptTol,
-            int memorySize = Options.Defaults.MemorySize,
+            float l1Weight = Options.Defaults.L1Regularization,
+            float l2Weight = Options.Defaults.L2Regularization,
+            float optimizationTolerance = Options.Defaults.OptimizationTolerance,
+            int memorySize = Options.Defaults.IterationsToRemember,
             bool enforceNoNegativity = Options.Defaults.EnforceNonNegativity)
             : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weights,
                   l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
             _posWeight = 0;
-            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStats;
+            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStatistics;
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Trainers
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             _posWeight = 0;
-            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStats;
+            ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStatistics;
         }
 
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -354,11 +354,11 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            if (LbfgsTrainerOptions.StdComputer == null)
+            if (LbfgsTrainerOptions.ComputeStandardDeviation == null)
                 _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
             else
             {
-                var std = LbfgsTrainerOptions.StdComputer.ComputeStd(hessian, weightIndices, numParams, CurrentWeights.Length, ch, L2Weight);
+                var std = LbfgsTrainerOptions.ComputeStandardDeviation.ComputeStandardDeviation(hessian, weightIndices, numParams, CurrentWeights.Length, ch, L2Weight);
                 _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance, std);
             }
         }
@@ -429,20 +429,20 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// Computes the standard deviation matrix of each of the non-zero training weights, needed to calculate further the standard deviation,
     /// p-value and z-Score.
-    /// If you need fast calculations, use the <see cref="ComputeLRTrainingStd"/> implementation in the Microsoft.ML.Mkl.Components package,
+    /// If you need fast calculations, use the <see cref="ComputeLogisticRegressionStandardDeviation"/> implementation in the Microsoft.ML.Mkl.Components package,
     /// which makes use of hardware acceleration.
     /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
     /// </summary>
-    public abstract class ComputeLRTrainingStd
+    public abstract class ComputeLogisticRegressionStandardDeviation
     {
         /// <summary>
         /// Computes the standard deviation matrix of each of the non-zero training weights, needed to calculate further the standard deviation,
         /// p-value and z-Score.
         /// The calculations are not part of Microsoft.ML package, due to the size of MKL.
-        /// If you need these calculations, add the Microsoft.ML.Mkl.Components package, and initialize <see cref="LogisticRegression.Options.StdComputer"/>
-        /// to the <see cref="ComputeLRTrainingStd"/> implementation in the Microsoft.ML.Mkl.Components package.
+        /// If you need these calculations, add the Microsoft.ML.Mkl.Components package, and initialize <see cref="LogisticRegression.Options.ComputeStandardDeviation"/>
+        /// to the <see cref="ComputeLogisticRegressionStandardDeviation"/> implementation in the Microsoft.ML.Mkl.Components package.
         /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
         /// </summary>
-        public abstract VBuffer<float> ComputeStd(double[] hessian, int[] weightIndices, int parametersCount, int currentWeightsCount, IChannel ch, float l2Weight);
+        public abstract VBuffer<float> ComputeStandardDeviation(double[] hessian, int[] weightIndices, int parametersCount, int currentWeightsCount, IChannel ch, float l2Weight);
     }
 }

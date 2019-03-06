@@ -21,7 +21,8 @@ namespace Microsoft.ML.Trainers
         /// A standard string to use in errors or warnings by subclasses, to communicate the idea that no valid
         /// instances were able to be found.
         /// </summary>
-        protected const string NoTrainingInstancesMessage = "No valid training instances found, all instances have missing features.";
+        [BestFriend]
+        private protected const string NoTrainingInstancesMessage = "No valid training instances found, all instances have missing features.";
 
         /// <summary>
         /// The feature column that the trainer expects.
@@ -40,7 +41,8 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         public readonly SchemaShape.Column WeightColumn;
 
-        protected readonly IHost Host;
+        [BestFriend]
+        private protected readonly IHost Host;
 
         /// <summary>
         /// The information about the trainer: whether it benefits from normalization, caching etc.
@@ -174,12 +176,13 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         public readonly SchemaShape.Column GroupIdColumn;
 
-        public TrainerEstimatorBaseWithGroupId(IHost host,
+        [BestFriend]
+        private protected TrainerEstimatorBaseWithGroupId(IHost host,
                 SchemaShape.Column feature,
                 SchemaShape.Column label,
                 SchemaShape.Column weight = default,
                 SchemaShape.Column groupId = default)
-            :base(host, feature, label, weight)
+            : base(host, feature, label, weight)
         {
             GroupIdColumn = groupId;
         }

@@ -143,6 +143,7 @@ namespace Microsoft.ML.Data
 
         private protected abstract void SaveModel(ModelSaveContext ctx);
 
+        [BestFriend]
         private protected void SaveModelCore(ModelSaveContext ctx)
         {
             // *** Binary format ***
@@ -235,7 +236,7 @@ namespace Microsoft.ML.Data
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
-        private protected override void SaveModel(ModelSaveContext ctx)
+        private protected sealed override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
