@@ -35,6 +35,7 @@ if(NOT WIN32)
     endif()
 endif()
 
+add_definitions(-DUSE_OMP)
 add_library(SymSgdNative SHARED ${SOURCES} ${RESOURCES})
 target_link_libraries(SymSgdNative PUBLIC ${MKL_LIBRARY} PUBLIC ${OPENMP_LIBRARY})
 

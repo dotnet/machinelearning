@@ -49,6 +49,8 @@ phases:
     - agent.os -equals Darwin
   steps:
   # Only build native assets to avoid conflicts.
+  - script: brew update && brew install libomp && brew link libomp --force
+    displayName: Install build dependencies
   - script: ./build.sh -buildNative -$(BuildConfig) -skipRIDAgnosticAssets
     displayName: Build
 
