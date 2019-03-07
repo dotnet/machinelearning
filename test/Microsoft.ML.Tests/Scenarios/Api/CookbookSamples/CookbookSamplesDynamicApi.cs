@@ -541,9 +541,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         {
             // Define the operation code.
             Action<InputRow, OutputRow> mapping = (input, output) => output.Label = input.Income > 50000;
-            // Make a custom transformer and transform the data.
-            var transformer = mlContext.Transforms.CustomMapping(mapping, null);
-            return transformer.Fit(data).Transform(data);
+            // Make a custom estimator and transform the data.
+            var estimator = mlContext.Transforms.CustomMapping(mapping, null);
+            return estimator.Fit(data).Transform(data);
         }
 
         public static ITransformer TrainModel(MLContext mlContext, IDataView trainData)
