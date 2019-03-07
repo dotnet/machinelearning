@@ -454,7 +454,7 @@ namespace Microsoft.ML.Trainers
             var maps = new ValueMapper<VBuffer<float>, float, float>[_mappers.Length];
             for (int i = 0; i < _mappers.Length; i++)
                 maps[i] = _mappers[i].GetMapper<VBuffer<float>, float, float>();
-            var parallelOptions = Host.ConcurrencyFactor < 1 ? new ParallelOptions() : new ParallelOptions() { MaxDegreeOfParallelism = Host.ConcurrencyFactor };
+            var parallelOptions = new ParallelOptions();
             var buffer = new double[_mappers.Length];
             ValueMapper<VBuffer<float>, VBuffer<float>> del =
                 (in VBuffer<float> src, ref VBuffer<float> dst) =>

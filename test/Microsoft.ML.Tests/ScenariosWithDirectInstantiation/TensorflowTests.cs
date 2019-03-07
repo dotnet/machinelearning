@@ -31,7 +31,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformMatrixMultiplicationTest()
         {
             var modelLocation = "model_matmul/frozen_saved_model.pb";
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             // Pipeline
             var loader = mlContext.Data.LoadFromEnumerable(
                     new List<TestData>(new TestData[] {
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformInputShapeTest()
         {
             var modelLocation = "model_shape_test";
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var data = GetShapeData();
             // Pipeline
             var loader = mlContext.Data.LoadFromEnumerable(data);
@@ -246,7 +246,7 @@ namespace Microsoft.ML.Scenarios
                                                 b = new bool[] { false, false },
                             } });
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             // Pipeline
 
             var loader = mlContext.Data.LoadFromEnumerable(data);
@@ -340,7 +340,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformObjectDetectionTest()
         {
             var modelLocation = @"C:\models\TensorFlow\ssd_mobilenet_v1_coco_2018_01_28\frozen_inference_graph.pb";
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = mlContext.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
@@ -381,7 +381,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformInceptionTest()
         {
             var modelLocation = @"C:\models\TensorFlow\tensorflow_inception_graph.pb";
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = mlContext.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
@@ -409,7 +409,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowInputsOutputsSchemaTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var model_location = "mnist_model/frozen_saved_model.pb";
             var schema = TensorFlowUtils.GetModelSchema(mlContext, model_location);
             Assert.Equal(86, schema.Count);
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowTransformMNISTConvTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var reader = mlContext.Data.CreateTextLoader(
                     columns: new[]
                     {
@@ -530,7 +530,7 @@ namespace Microsoft.ML.Scenarios
             var model_location = "mnist_lr_model";
             try
             {
-                var mlContext = new MLContext(seed: 1, conc: 1);
+                var mlContext = new MLContext(seed: 1);
                 var reader = mlContext.Data.CreateTextLoader(columns: new[]
                     {
                         new TextLoader.Column("Label", DataKind.Int64, 0),
@@ -619,7 +619,7 @@ namespace Microsoft.ML.Scenarios
             const string modelLocation = "mnist_conv_model";
             try
             {
-                var mlContext = new MLContext(seed: 1, conc: 1);
+                var mlContext = new MLContext(seed: 1);
 
                 var reader = mlContext.Data.CreateTextLoader(new[]
                     {
@@ -711,7 +711,7 @@ namespace Microsoft.ML.Scenarios
             // Two group of test criteria are checked. One group contains micro and macro accuracies. The other group is the range
             // of predicted label of a single in-memory example.
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var reader = mlContext.Data.CreateTextLoader(columns: new[]
                 {
                     new TextLoader.Column("Label", DataKind.UInt32 , new [] { new TextLoader.Range(0) }, new KeyCount(10)),
@@ -832,7 +832,7 @@ namespace Microsoft.ML.Scenarios
         {
             var modelLocation = "cifar_model/frozen_model.pb";
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
@@ -877,7 +877,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformCifarSavedModel()
         {
             var modelLocation = "cifar_saved_model";
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
@@ -919,7 +919,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowGettingSchemaMultipleTimes()
         {
             var modelLocation = "cifar_saved_model";
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             for (int i = 0; i < 10; i++)
             {
                 var schema = TensorFlowUtils.GetModelSchema(mlContext, modelLocation);
@@ -933,7 +933,7 @@ namespace Microsoft.ML.Scenarios
         {
             var modelLocation = "cifar_model/frozen_model.pb";
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var imageHeight = 28;
             var imageWidth = 28;
             var dataFile = GetDataPath("images/images.tsv");
@@ -976,7 +976,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowSentimentClassificationTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var data = new[] { new TensorFlowSentiment() { Sentiment_Text = "this film was just brilliant casting location scenery story direction everyone's really suited the part they played and you could just imagine being there robert  is an amazing actor and now the same being director  father came from the same scottish island as myself so i loved the fact there was a real connection with this film the witty remarks throughout the film were great it was just brilliant so much that i bought the film as soon as it was released for  and would recommend it to everyone to watch and the fly fishing was amazing really cried at the end it was so sad and you know what they say if you cry at a film it must have been good and this definitely was also  to the two little boy's that played the  of norman and paul they were just brilliant children are often left out of the  list i think because the stars that play them all grown up are such a big profile for the whole film but these children are amazing and should be praised for what they have done don't you think the whole story was so lovely because it was true and was someone's life after all that was shared with us all" } };
             var dataView = mlContext.Data.LoadFromEnumerable(data);
 
@@ -1038,7 +1038,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowStringTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(@"model_string_test");
             var schema = tensorFlowModel.GetModelSchema();
             Assert.True(schema.TryGetColumnIndex("A", out var colIndex));

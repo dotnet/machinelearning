@@ -54,7 +54,7 @@ namespace Microsoft.ML.Scenarios
                 };
             }
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Turn the data into the ML.NET data view.
             // We can use CreateDataView or ReadFromEnumerable, depending on whether 'churnData' is an IList, 

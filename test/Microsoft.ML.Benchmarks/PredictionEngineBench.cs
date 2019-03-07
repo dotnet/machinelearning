@@ -38,7 +38,7 @@ namespace Microsoft.ML.Benchmarks
 
             string _irisDataPath = BaseTestClass.GetDataPath("iris.txt");
 
-            var env = new MLContext(seed: 1, conc: 1);
+            var env = new MLContext(seed: 1);
 
             // Create text loader.
             var options = new TextLoader.Options()
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Benchmarks
 
             string _sentimentDataPath = BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv");
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Create text loader.
             var options = new TextLoader.Options()
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Benchmarks
 
             string _breastCancerDataPath = BaseTestClass.GetDataPath("breast-cancer.txt");
 
-            var env = new MLContext(seed: 1, conc: 1);
+            var env = new MLContext(seed: 1);
 
             // Create text loader.
             var options = new TextLoader.Options()

@@ -30,7 +30,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         void CrossValidation()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Get the dataset
             var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void TrainWithValidationSet()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
             var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Functional.Tests
             var trainedModel = mlContext.Regression.Trainers.FastTree(new FastTreeRegressionTrainer.Options {
                     NumberOfTrees = 2,
                     EarlyStoppingMetric = EarlyStoppingMetric.L2Norm,
-                    EarlyStoppingRule = new GLEarlyStoppingCriterion.Options()
+                    EarlyStoppingRule = new GeneralityLossRule()
                 })
                 .Fit(trainData: preprocessedTrainData, validationData: preprocessedValidData);
 

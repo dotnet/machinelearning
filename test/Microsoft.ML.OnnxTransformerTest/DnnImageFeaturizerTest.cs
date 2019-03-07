@@ -91,7 +91,7 @@ namespace Microsoft.ML.Tests
         [OnnxFact]
         public void OnnxStatic()
         {
-            var env = new MLContext(null, 1);
+            var env = new MLContext(null);
             var imageHeight = 224;
             var imageWidth = 224;
             var dataFile = GetDataPath("images/images.tsv");

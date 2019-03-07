@@ -144,7 +144,7 @@ namespace Microsoft.ML.Tests
         {
             var modelLocation = "cifar_model/frozen_model.pb";
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var imageHeight = 32;
             var imageWidth = 32;
             var dataFile = GetDataPath("images/images.tsv");
@@ -186,7 +186,7 @@ namespace Microsoft.ML.Tests
         {
             const string modelLocation = "cifar_model/frozen_model.pb";
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));

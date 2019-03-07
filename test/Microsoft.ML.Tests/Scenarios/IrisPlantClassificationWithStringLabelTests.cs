@@ -13,7 +13,7 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public void TrainAndPredictIrisModelWithStringLabelTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var reader = mlContext.Data.CreateTextLoader(columns: new[]
                 {
