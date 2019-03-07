@@ -30,14 +30,15 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void InspectFastForestRegresionTrees()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
             var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Regression.Trainers.FastForest(numLeaves: 5, numTrees: 3));
+                .Append(mlContext.Regression.Trainers.FastForest(
+                    new FastForestRegression.Options { NumberOfLeaves = 5, NumberOfTrees = 3, NumberOfThreads = 1 }));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
@@ -70,7 +71,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void InspectFastTreeModelParameters()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
@@ -80,7 +81,8 @@ namespace Microsoft.ML.Functional.Tests
             // Create a training pipeline.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.BinaryClassification.Trainers.FastTree(numberOfLeaves: 5, numberOfTrees: 3));
+                .Append(mlContext.BinaryClassification.Trainers.FastTree(
+                    new FastTreeBinaryClassificationTrainer.Options{ NumberOfLeaves = 5, NumberOfTrees= 3, NumberOfThreads = 1 }));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
@@ -130,7 +132,7 @@ namespace Microsoft.ML.Functional.Tests
         void IntrospectGamShapeFunctions()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Load the Iris dataset.
             var data = mlContext.Data.LoadFromTextFile<Iris>(
@@ -141,7 +143,7 @@ namespace Microsoft.ML.Functional.Tests
             // Compose the transformation.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .Append(mlContext.Regression.Trainers.GeneralizedAdditiveModels(
-                    new RegressionGamTrainer.Options { NumberOfIterations = 100 }));
+                    new RegressionGamTrainer.Options { NumberOfIterations = 100, NumberOfThreads = 1 }));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
@@ -171,7 +173,7 @@ namespace Microsoft.ML.Functional.Tests
             // Test Parameters
             int numTopics = 10;
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Load the dataset.
             var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
@@ -204,7 +206,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void InpsectLinearModelParameters()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
@@ -242,7 +244,7 @@ namespace Microsoft.ML.Functional.Tests
         void IntrospectNormalization()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Load the Iris dataset.
             var data = mlContext.Data.LoadFromTextFile<Iris>(
@@ -284,7 +286,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void InspectPipelineContents()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
             var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
@@ -327,7 +329,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void InspectSlotNamesForReversibleHash()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Load the Adult dataset.
             var data = mlContext.Data.LoadFromTextFile<Adult>(GetDataPath(TestDatasets.adult.trainFilename),
@@ -385,7 +387,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void InspectNestedPipeline()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var data = mlContext.Data.LoadFromTextFile<Iris>(GetDataPath(TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
