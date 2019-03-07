@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
@@ -38,7 +39,8 @@ namespace Microsoft.ML.Transforms
             public readonly string InputColumnName;
             public readonly SortOrder Sort;
             public readonly int MaxNumKeys;
-            public readonly string[] Term;
+            public IReadOnlyList<string> Term => TermArray;
+            internal readonly string[] TermArray;
             public readonly bool TextKeyValues;
 
             [BestFriend]
@@ -53,7 +55,7 @@ namespace Microsoft.ML.Transforms
                 InputColumnName = inputColumnName ?? outputColumnName;
                 Sort = sort;
                 MaxNumKeys = maxNumKeys;
-                Term = term;
+                TermArray = term;
                 TextKeyValues = textKeyValues;
             }
         }

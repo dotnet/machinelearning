@@ -860,7 +860,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.groupId, r => r.score);
             Assert.NotNull(metrics);
 
-            Assert.True(metrics.NormalizedDiscountedCumulativeGains.Length == metrics.DiscountedCumulativeGains.Length && metrics.DiscountedCumulativeGains.Length == 3);
+            Assert.True(metrics.NormalizedDiscountedCumulativeGains.Count == metrics.DiscountedCumulativeGains.Count && metrics.DiscountedCumulativeGains.Count == 3);
 
             Assert.InRange(metrics.DiscountedCumulativeGains[0], 1.4, 1.6);
             Assert.InRange(metrics.DiscountedCumulativeGains[1], 1.4, 1.8);
@@ -901,7 +901,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.groupId, r => r.score);
             Assert.NotNull(metrics);
 
-            Assert.True(metrics.NormalizedDiscountedCumulativeGains.Length == metrics.DiscountedCumulativeGains.Length && metrics.DiscountedCumulativeGains.Length == 3);
+            Assert.True(metrics.NormalizedDiscountedCumulativeGains.Count == metrics.DiscountedCumulativeGains.Count && metrics.DiscountedCumulativeGains.Count == 3);
 
             Assert.InRange(metrics.DiscountedCumulativeGains[0], 1.4, 1.6);
             Assert.InRange(metrics.DiscountedCumulativeGains[1], 1.4, 1.8);

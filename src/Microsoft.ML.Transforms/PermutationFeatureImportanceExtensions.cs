@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
@@ -236,7 +237,7 @@ namespace Microsoft.ML
             if (a.TopK != b.TopK)
                 Contracts.Assert(a.TopK == b.TopK, "TopK to compare must be the same length.");
 
-            var perClassLogLoss = ComputeArrayDeltas(a.PerClassLogLoss, b.PerClassLogLoss);
+            var perClassLogLoss = ComputeSequenceDeltas(a.PerClassLogLoss, b.PerClassLogLoss);
 
             return new MultiClassClassifierMetrics(
                 accuracyMicro: a.MicroAccuracy - b.MicroAccuracy,
@@ -315,8 +316,8 @@ namespace Microsoft.ML
         private static RankingMetrics RankingDelta(
             RankingMetrics a, RankingMetrics b)
         {
-            var dcg = ComputeArrayDeltas(a.DiscountedCumulativeGains, b.DiscountedCumulativeGains);
-            var ndcg = ComputeArrayDeltas(a.NormalizedDiscountedCumulativeGains, b.NormalizedDiscountedCumulativeGains);
+            var dcg = ComputeSequenceDeltas(a.DiscountedCumulativeGains, b.DiscountedCumulativeGains);
+            var ndcg = ComputeSequenceDeltas(a.NormalizedDiscountedCumulativeGains, b.NormalizedDiscountedCumulativeGains);
 
             return new RankingMetrics(dcg: dcg, ndcg: ndcg);
         }
@@ -325,12 +326,12 @@ namespace Microsoft.ML
 
         #region Helpers
 
-        private static double[] ComputeArrayDeltas(double[] a, double[] b)
+        private static double[] ComputeSequenceDeltas(IReadOnlyList<double> a, IReadOnlyList<double> b)
         {
-            Contracts.Assert(a.Length == b.Length, "Arrays to compare must be of the same length.");
+            Contracts.Assert(a.Count == b.Count);
 
-            var delta = new double[a.Length];
-            for (int i = 0; i < a.Length; i++)
+            var delta = new double[a.Count];
+            for (int i = 0; i < a.Count; i++)
                 delta[i] = a[i] - b[i];
             return delta;
         }

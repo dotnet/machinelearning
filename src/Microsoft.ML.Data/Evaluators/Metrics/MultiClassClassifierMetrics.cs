@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.Data.DataView;
 
 namespace Microsoft.ML.Data
@@ -78,7 +80,7 @@ namespace Microsoft.ML.Data
         /// p[i] is the probability returned by the classifier if the instance belongs to the class,
         /// and 1 minus the probability returned by the classifier if the instance does not belong to the class.
         /// </remarks>
-        public double[] PerClassLogLoss { get; }
+        public IReadOnlyList<double> PerClassLogLoss { get; }
 
         internal MultiClassClassifierMetrics(IExceptionContext ectx, DataViewRow overallResult, int topK)
         {
@@ -92,8 +94,7 @@ namespace Microsoft.ML.Data
                 TopKAccuracy = FetchDouble(MultiClassClassifierEvaluator.TopKAccuracy);
 
             var perClassLogLoss = RowCursorUtils.Fetch<VBuffer<double>>(ectx, overallResult, MultiClassClassifierEvaluator.PerClassLogLoss);
-            PerClassLogLoss = new double[perClassLogLoss.Length];
-            perClassLogLoss.CopyTo(PerClassLogLoss);
+            PerClassLogLoss = perClassLogLoss.DenseValues().ToImmutableArray();
         }
 
         internal MultiClassClassifierMetrics(double accuracyMicro, double accuracyMacro, double logLoss, double logLossReduction,
@@ -105,8 +106,7 @@ namespace Microsoft.ML.Data
             LogLossReduction = logLossReduction;
             TopK = topK;
             TopKAccuracy = topKAccuracy;
-            PerClassLogLoss = new double[perClassLogLoss.Length];
-            perClassLogLoss.CopyTo(PerClassLogLoss, 0);
+            PerClassLogLoss = perClassLogLoss.ToImmutableArray();
         }
     }
 }

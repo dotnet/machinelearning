@@ -259,7 +259,7 @@ namespace Microsoft.ML.Data
 
                 // Progress units.
                 bool first = true;
-                for (int i = 0; i < ev.ProgressEntry.Header.UnitNames.Length; i++)
+                for (int i = 0; i < ev.ProgressEntry.Header.UnitNames.Count; i++)
                 {
                     if (ev.ProgressEntry.Progress[i] == null)
                         continue;
@@ -272,7 +272,7 @@ namespace Microsoft.ML.Data
                 }
 
                 // Metrics.
-                for (int i = 0; i < ev.ProgressEntry.Header.MetricNames.Length; i++)
+                for (int i = 0; i < ev.ProgressEntry.Header.MetricNames.Count; i++)
                 {
                     if (ev.ProgressEntry.Metrics[i] == null)
                         continue;
