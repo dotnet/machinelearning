@@ -909,17 +909,18 @@ namespace Microsoft.ML.Data.Conversion
         public void Convert(in DT src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("{0:o}", src); }
         public void Convert(in DZ src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("{0:o}", src); }
         #endregion ToStringBuilder
+
         #region ToBL
-        public void Convert(in R8 src, ref BL dst) => dst = src > 0 ? true : false;
-        public void Convert(in R4 src, ref BL dst) => dst = src > 0 ? true : false;
-        public void Convert(in I1 src, ref BL dst) => dst = src > 0 ? true : false;
-        public void Convert(in I2 src, ref BL dst) => dst = src > 0 ? true : false;
-        public void Convert(in I4 src, ref BL dst) => dst = src > 0 ? true : false;
-        public void Convert(in I8 src, ref BL dst) => dst = src > 0 ? true : false;
-        public void Convert(in U1 src, ref BL dst) => dst = src > 0 ? true : false;
-        public void Convert(in U2 src, ref BL dst) => dst = src > 0 ? true : false;
-        public void Convert(in U4 src, ref BL dst) => dst = src > 0 ? true : false;
-        public void Convert(in U8 src, ref BL dst) => dst = src > 0 ? true : false;
+        public void Convert(in R8 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in R4 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in I1 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in I2 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in I4 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in I8 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in U1 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in U2 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in U4 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in U8 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
         #endregion
 
         #region FromR4
