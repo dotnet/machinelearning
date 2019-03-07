@@ -13,7 +13,6 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(VectorToImageConvertingTransformer.Summary, typeof(IDataTransform), typeof(VectorToImageConvertingTransformer), typeof(VectorToImageConvertingTransformer.Options), typeof(SignatureDataTransform),
@@ -192,8 +191,8 @@ namespace Microsoft.ML.ImageAnalytics
 
         /// <param name="env">The host environment.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="outputImageHeight">The height of the output images.</param>
-        /// <param name="outputImageWidth">The width of the output images.</param>
+        /// <param name="imageHeight">The height of the output images.</param>
+        /// <param name="imageWidth">The width of the output images.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="colorsPresent">Specifies which <see cref="ImagePixelExtractingEstimator.ColorBits"/> are in present the input pixel vectors. The order of colors is specified in <paramref name="orderOfColors"/>.</param>
         /// <param name="orderOfColors">The order in which colors are presented in the input vector.</param>
@@ -206,7 +205,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="defaultGreen">Default value for grenn color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Green"/>.</param>
         /// <param name="defaultBlue">Default value for blue color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Blue"/>.</param>
         internal VectorToImageConvertingTransformer(IHostEnvironment env, string outputColumnName,
-            int outputImageHeight, int outputImageWidth,
+            int imageHeight, int imageWidth,
             string inputColumnName = null,
             ImagePixelExtractingEstimator.ColorBits colorsPresent = ImagePixelExtractingEstimator.Defaults.Colors,
             ImagePixelExtractingEstimator.ColorsOrder orderOfColors = ImagePixelExtractingEstimator.Defaults.Order,
@@ -217,7 +216,7 @@ namespace Microsoft.ML.ImageAnalytics
             int defaultRed = VectorToImageConvertingEstimator.Defaults.DefaultRed,
             int defaultGreen = VectorToImageConvertingEstimator.Defaults.DefaultGreen,
             int defaultBlue = VectorToImageConvertingEstimator.Defaults.DefaultBlue)
-            : this(env, new VectorToImageConvertingEstimator.ColumnOptions(outputColumnName, outputImageHeight, outputImageWidth, inputColumnName, colorsPresent, orderOfColors, interleavedColors, scalePixelColor, offsetPixelCOlor, defaultAlpha, defaultRed, defaultGreen, defaultBlue))
+            : this(env, new VectorToImageConvertingEstimator.ColumnOptions(outputColumnName, imageHeight, imageWidth, inputColumnName, colorsPresent, orderOfColors, interleavedColors, scalePixelColor, offsetPixelCOlor, defaultAlpha, defaultRed, defaultGreen, defaultBlue))
         {
         }
 
@@ -575,8 +574,8 @@ namespace Microsoft.ML.ImageAnalytics
             }
 
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-            /// <param name="outputImageHeight">The height of the output images.</param>
-            /// <param name="outputImageWidth">The width of the output images.</param>
+            /// <param name="imageHeight">The height of the output images.</param>
+            /// <param name="imageWidth">The width of the output images.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="colorsPresent">Specifies which <see cref="ImagePixelExtractingEstimator.ColorBits"/> are present in the input pixel vectors. The order of colors is specified in <paramref name="orderOfColors"/>.</param>
             /// <param name="orderOfColors">The order in which colors are presented in the input vector.</param>
@@ -589,7 +588,7 @@ namespace Microsoft.ML.ImageAnalytics
             /// <param name="defaultGreen">Default value for grenn color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Green"/>.</param>
             /// <param name="defaultBlue">Default value for blue color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Blue"/>.</param>
             public ColumnOptions(string name,
-                int outputImageHeight, int outputImageWidth,
+                int imageHeight, int imageWidth,
                 string inputColumnName = null,
                 ImagePixelExtractingEstimator.ColorBits colorsPresent = ImagePixelExtractingEstimator.Defaults.Colors,
                 ImagePixelExtractingEstimator.ColorsOrder orderOfColors = ImagePixelExtractingEstimator.Defaults.Order,
@@ -619,12 +618,12 @@ namespace Microsoft.ML.ImageAnalytics
                 Order = orderOfColors;
                 InterleavedColors = interleavedColors;
 
-                Contracts.CheckParam(outputImageWidth > 0, nameof(outputImageWidth), "Image width must be greater than zero");
-                Contracts.CheckParam(outputImageHeight > 0, nameof(outputImageHeight), "Image height must be greater than zero");
+                Contracts.CheckParam(imageWidth > 0, nameof(imageWidth), "Image width must be greater than zero");
+                Contracts.CheckParam(imageHeight > 0, nameof(imageHeight), "Image height must be greater than zero");
                 Contracts.CheckParam(FloatUtils.IsFinite(offsetPixelColor), nameof(offsetPixelColor));
                 Contracts.CheckParam(FloatUtils.IsFiniteNonZero(scalePixelColor), nameof(scalePixelColor));
-                ImageWidth = outputImageWidth;
-                ImageHeight = outputImageHeight;
+                ImageWidth = imageWidth;
+                ImageHeight = imageHeight;
                 OffsetPixelColor = offsetPixelColor;
                 ScalePixelColor = scalePixelColor;
                 DefaultAlpha = defaultAlpha;
@@ -678,8 +677,8 @@ namespace Microsoft.ML.ImageAnalytics
         /// Convert pixels values into an image.
         ///</summary>
         /// <param name="env">The host environment.</param>
-        /// <param name="outputImageHeight">The height of the output images.</param>
-        /// <param name="outputImageWidth">The width of the output images.</param>
+        /// <param name="imageHeight">The height of the output images.</param>
+        /// <param name="imageWidth">The width of the output images.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>. Null means <paramref name="inputColumnName"/> is replaced.</param>
         /// <param name="inputColumnName">Name of the input column.</param>
         /// <param name="colorsPresent">Specifies which <see cref="ImagePixelExtractingEstimator.ColorBits"/> are in present the input pixel vectors. The order of colors is specified in <paramref name="orderOfColors"/>.</param>
@@ -694,8 +693,8 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="defaultBlue">Default value for blue color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Blue"/>.</param>
         [BestFriend]
         internal VectorToImageConvertingEstimator(IHostEnvironment env,
-            int outputImageHeight,
-            int outputImageWidth,
+            int imageHeight,
+            int imageWidth,
             string outputColumnName,
             string inputColumnName = null,
             ImagePixelExtractingEstimator.ColorBits colorsPresent = ImagePixelExtractingEstimator.Defaults.Colors,
@@ -708,7 +707,7 @@ namespace Microsoft.ML.ImageAnalytics
             int defaultGreen = VectorToImageConvertingEstimator.Defaults.DefaultGreen,
             int defaultBlue = VectorToImageConvertingEstimator.Defaults.DefaultBlue)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorToImageConvertingEstimator)),
-                  new VectorToImageConvertingTransformer(env, outputColumnName, outputImageHeight, outputImageWidth, inputColumnName, colorsPresent, orderOfColors, interleavedColors, scalePixelColor, offsetPixelColor, defaultAlpha, defaultRed, defaultGreen, defaultBlue))
+                  new VectorToImageConvertingTransformer(env, outputColumnName, imageHeight, imageWidth, inputColumnName, colorsPresent, orderOfColors, interleavedColors, scalePixelColor, offsetPixelColor, defaultAlpha, defaultRed, defaultGreen, defaultBlue))
         {
         }
 

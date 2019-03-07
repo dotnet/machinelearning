@@ -86,15 +86,15 @@ namespace Microsoft.ML
         /// pre-trained DNN featurizers</a> to extract features for usage in the machine learning algorithms.
         /// Those pre-trained models have a defined width and height for their input images, so often, after getting loaded, the images will need to get resized before
         /// further processing.
-        /// The new width and height can be specified in the <paramref name="outputImageWidth"/> and <paramref name="outputImageHeight"/>
+        /// The new width and height can be specified in the <paramref name="imageWidth"/> and <paramref name="imageHeight"/>
         /// <seealso cref = "ImageEstimatorsCatalog" />
         /// <seealso cref= "ImageLoadingEstimator" />
         /// </remarks >
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="outputImageWidth">The transformed image width.</param>
-        /// <param name="outputImageHeight">The transformed image height.</param>
+        /// <param name="imageWidth">The transformed image width.</param>
+        /// <param name="imageHeight">The transformed image height.</param>
         /// <param name="resizing"> The type of image resizing as specified in <see cref="ImageResizingEstimator.ResizingKind"/>.</param>
         /// <param name="cropAnchor">Where to place the anchor, to start cropping. Options defined in <see cref="ImageResizingEstimator.Anchor"/></param>
         /// <example>
@@ -105,12 +105,12 @@ namespace Microsoft.ML
         /// </example>
         public static ImageResizingEstimator ResizeImages(this TransformsCatalog catalog,
             string outputColumnName,
-            int outputImageWidth,
-            int outputImageHeight,
+            int imageWidth,
+            int imageHeight,
             string inputColumnName = null,
             ImageResizingEstimator.ResizingKind resizing = ImageResizingEstimator.ResizingKind.IsoCrop,
             ImageResizingEstimator.Anchor cropAnchor = ImageResizingEstimator.Anchor.Center)
-        => new ImageResizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, outputImageWidth, outputImageHeight, inputColumnName, resizing, cropAnchor);
+        => new ImageResizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, imageWidth, imageHeight, inputColumnName, resizing, cropAnchor);
 
         /// <summary>
         /// Resizes the images to a new width and height.
@@ -148,8 +148,8 @@ namespace Microsoft.ML
         /// Converts vectors of pixels into <see cref="ImageType"/> representation.
         /// </summary>
         /// <param name="catalog">The transforms' catalog.</param>
-        /// <param name="height">The height of the output images.</param>
-        /// <param name="width">The width of the output images.</param>
+        /// <param name="imageHeight">The height of the output images.</param>
+        /// <param name="imageWidth">The width of the output images.</param>
         /// <param name="outputColumnName"> Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName"> Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="colorsPresent">Specifies which <see cref="ImagePixelExtractingEstimator.ColorBits"/> are in present the input pixel vectors. The order of colors is specified in <paramref name="orderOfColors"/>.</param>
@@ -162,7 +162,7 @@ namespace Microsoft.ML
         /// <param name="defaultRed">Default value for red color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Red"/>.</param>
         /// <param name="defaultGreen">Default value for grenn color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Green"/>.</param>
         /// <param name="defaultBlue">Default value for blue color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Blue"/>.</param>
-        public static VectorToImageConvertingEstimator ConvertToImage(this TransformsCatalog catalog, int height, int width, string outputColumnName, string inputColumnName = null,
+        public static VectorToImageConvertingEstimator ConvertToImage(this TransformsCatalog catalog, int imageHeight, int imageWidth, string outputColumnName, string inputColumnName = null,
             ImagePixelExtractingEstimator.ColorBits colorsPresent = ImagePixelExtractingEstimator.Defaults.Colors,
             ImagePixelExtractingEstimator.ColorsOrder orderOfColors = ImagePixelExtractingEstimator.Defaults.Order,
             bool interleavedColors = ImagePixelExtractingEstimator.Defaults.Interleave,
@@ -172,6 +172,6 @@ namespace Microsoft.ML
             int defaultRed = VectorToImageConvertingEstimator.Defaults.DefaultRed,
             int defaultGreen = VectorToImageConvertingEstimator.Defaults.DefaultGreen,
             int defaultBlue = VectorToImageConvertingEstimator.Defaults.DefaultBlue)
-            => new VectorToImageConvertingEstimator(CatalogUtils.GetEnvironment(catalog), height, width, outputColumnName, inputColumnName, colorsPresent, orderOfColors, interleavedColors, scalePixelColor, offsetPixelColor);
+            => new VectorToImageConvertingEstimator(CatalogUtils.GetEnvironment(catalog), imageHeight, imageWidth, outputColumnName, inputColumnName, colorsPresent, orderOfColors, interleavedColors, scalePixelColor, offsetPixelColor);
     }
 }

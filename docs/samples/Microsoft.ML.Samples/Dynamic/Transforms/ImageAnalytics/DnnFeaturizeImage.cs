@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
@@ -42,7 +41,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // `DnnImageModels` folder. 
             // Image loading pipeline. 
             var pipeline = mlContext.Transforms.LoadImages(imagesFolder, ("ImageObject", "ImagePath"))
-                          .Append(mlContext.Transforms.ResizeImages("ImageObject", outputImageWidth: 224, outputImageHeight: 224))
+                          .Append(mlContext.Transforms.ResizeImages("ImageObject", imageWidth: 224, imageHeight: 224))
                           .Append(mlContext.Transforms.ExtractPixels("Pixels", "ImageObject"))
                           .Append(mlContext.Transforms.DnnFeaturizeImage("FeaturizedImage", m => m.ModelSelector.ResNet18(mlContext, m.OutputColumn, m.InputColumn), "Pixels"));
 
