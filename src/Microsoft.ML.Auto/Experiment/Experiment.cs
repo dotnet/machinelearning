@@ -84,7 +84,7 @@ namespace Microsoft.ML.Auto
                     var getPiplelineStopwatch = Stopwatch.StartNew();
 
                     // get next pipeline
-                    pipeline = PipelineSuggester.GetNextInferredPipeline(_context, _history, columns, _task, _optimizingMetricInfo.IsMaximizing, _trainerWhitelist);
+                    pipeline = PipelineSuggester.GetNextInferredPipeline(_context, _history, columns, _task, _optimizingMetricInfo.IsMaximizing, _trainerWhitelist, _experimentSettings.EnableCaching);
 
                     getPiplelineStopwatch.Stop();
 

@@ -104,8 +104,8 @@ namespace mlnet.Test
                 var trainer2 = new SuggestedTrainer(context, new LightGbmBinaryExtension(), new ColumnInformation(), hyperparams2);
                 var transforms1 = new List<SuggestedTransform>() { ColumnConcatenatingExtension.CreateSuggestedTransform(context, new[] { "In" }, "Out") };
                 var transforms2 = new List<SuggestedTransform>() { ColumnConcatenatingExtension.CreateSuggestedTransform(context, new[] { "In" }, "Out") };
-                var inferredPipeline1 = new SuggestedPipeline(transforms1, trainer1, context);
-                var inferredPipeline2 = new SuggestedPipeline(transforms2, trainer2, context);
+                var inferredPipeline1 = new SuggestedPipeline(transforms1, trainer1, context, null);
+                var inferredPipeline2 = new SuggestedPipeline(transforms2, trainer2, context, null);
 
                 this.pipeline = inferredPipeline1.ToPipeline();
                 var textLoaderArgs = new TextLoader.Options()

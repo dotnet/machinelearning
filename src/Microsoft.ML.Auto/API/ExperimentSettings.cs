@@ -11,7 +11,13 @@ namespace Microsoft.ML.Auto
         public uint MaxExperimentTimeInSeconds { get; set; } = 24 * 60 * 60;
         public CancellationToken CancellationToken { get; set; } = default;
 
-        internal bool EnableCaching;
+        /// <summary>
+        /// This setting controls whether or not an AutoML experiment will make use of ML.NET-provided caching.
+        /// If set to true, caching will be forced on for all pipelines. If set to false, caching will be forced off.
+        /// If set to null (default value), AutoML will decide whether to enable caching for each model.
+        /// </summary>
+        public bool? EnableCaching = null;
+
         internal int MaxModels = int.MaxValue;
         internal IDebugLogger DebugLogger;
     }

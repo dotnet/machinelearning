@@ -30,7 +30,8 @@ namespace Microsoft.ML.Auto
             (string, DataViewType, ColumnPurpose, ColumnDimensions)[] columns,
             TaskKind task,
             bool isMaximizingMetric,
-            IEnumerable<TrainerName> trainerWhitelist = null)
+            IEnumerable<TrainerName> trainerWhitelist = null,
+            bool? _enableCaching = null)
         {
             var availableTrainers = RecipeInference.AllowedTrainers(context, task, 
                 ColumnInformationUtil.BuildColumnInfo(columns), trainerWhitelist);
@@ -40,7 +41,7 @@ namespace Microsoft.ML.Auto
             // if we haven't run all pipelines once
             if (history.Count() < availableTrainers.Count())
             {
-                return GetNextFirstStagePipeline(context, history, availableTrainers, transforms);
+                return GetNextFirstStagePipeline(context, history, availableTrainers, transforms, _enableCaching);
             }
 
             // get top trainers from stage 1 runs
@@ -71,7 +72,7 @@ namespace Microsoft.ML.Auto
                         break;
                     }
 
-                    var suggestedPipeline = new SuggestedPipeline(transforms, newTrainer, context);
+                    var suggestedPipeline = new SuggestedPipeline(transforms, newTrainer, context, _enableCaching);
 
                     // make sure we have not seen pipeline before
                     if (!visitedPipelines.Contains(suggestedPipeline))
@@ -117,10 +118,11 @@ namespace Microsoft.ML.Auto
         private static SuggestedPipeline GetNextFirstStagePipeline(MLContext context,
             IEnumerable<SuggestedPipelineResult> history,
             IEnumerable<SuggestedTrainer> availableTrainers,
-            IEnumerable<SuggestedTransform> transforms)
+            IEnumerable<SuggestedTransform> transforms,
+            bool? _enableCaching)
         {
             var trainer = availableTrainers.ElementAt(history.Count());
-            return new SuggestedPipeline(transforms, trainer, context);
+            return new SuggestedPipeline(transforms, trainer, context, _enableCaching);
         }
 
         private static IValueGenerator[] ConvertToValueGenerators(IEnumerable<SweepableParam> hps)

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
@@ -16,20 +15,24 @@ namespace Microsoft.ML.Auto
     /// </summary>
     internal class SuggestedPipeline
     {
-        private readonly MLContext _context;
         public readonly IList<SuggestedTransform> Transforms;
         public readonly SuggestedTrainer Trainer;
+
+        private readonly MLContext _context;
+        private readonly bool? _enableCaching;
 
         public SuggestedPipeline(IEnumerable<SuggestedTransform> transforms,
             SuggestedTrainer trainer,
             MLContext context,
+            bool? enableCaching,
             bool autoNormalize = true)
         {
             Transforms = transforms.Select(t => t.Clone()).ToList();
             Trainer = trainer.Clone();
             _context = context;
+            _enableCaching = enableCaching;
 
-            if(autoNormalize)
+            if (autoNormalize)
             {
                 AddNormalizationTransforms();
             }
@@ -88,7 +91,7 @@ namespace Microsoft.ML.Auto
                 }
             }
 
-            return new SuggestedPipeline(transforms, trainer, context, false);
+            return new SuggestedPipeline(transforms, trainer, context, null);
         }
 
         public IEstimator<ITransformer> ToEstimator()
@@ -106,6 +109,11 @@ namespace Microsoft.ML.Auto
 
             // Get learner
             var learner = Trainer.BuildTrainer();
+
+            if (_enableCaching == true || (_enableCaching == null && learner.Info.WantCaching))
+            {
+                pipeline = pipeline.AppendCacheCheckpoint(_context);
+            }
 
             // Append learner to pipeline
             pipeline = pipeline.Append(learner);
