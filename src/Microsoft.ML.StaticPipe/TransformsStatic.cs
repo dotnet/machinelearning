@@ -1613,7 +1613,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="generator">Which kernel to use. (if it is null, <see cref="GaussianKernel"/> is used.)</param>
         /// <param name="seed">The seed of the random number generator for generating the new features. If not specified global random would be used.</param>
         public static Vector<float> LowerVectorSizeWithRandomFourierTransformation(this Vector<float> input,
-            int dimension = RandomFourierExpansionEstimator.Defaults.Dimension, bool useCosAndSinBases = RandomFourierExpansionEstimator.Defaults.UseCosAndSinBases,
+            int dimension = RandomFourierExpansionEstimator.Defaults.Rank, bool useCosAndSinBases = RandomFourierExpansionEstimator.Defaults.UseCosAndSinBases,
             KernelBase generator = null, int? seed = null)
         {
             Contracts.CheckValue(input, nameof(input));
@@ -1637,11 +1637,11 @@ namespace Microsoft.ML.StaticPipe
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly PrincipalComponentAnalysisEstimator.ColumnOptions _colInfo;
+            private readonly PrincipalComponentAnalyzer.ColumnOptions _colInfo;
 
             public Reconciler(string weightColumn, int rank, int overSampling, bool ensureZeroMean, int? seed = null)
             {
-                _colInfo = new PrincipalComponentAnalysisEstimator.ColumnOptions(
+                _colInfo = new PrincipalComponentAnalyzer.ColumnOptions(
                     null, null, weightColumn, rank, overSampling, ensureZeroMean, seed);
             }
 
@@ -1655,7 +1655,7 @@ namespace Microsoft.ML.StaticPipe
                 var outCol = (OutPipelineColumn)toOutput[0];
                 var inputColName = inputNames[outCol.Input];
                 var outputColName = outputNames[outCol];
-                return new PrincipalComponentAnalysisEstimator(env, outputColName, inputColName,
+                return new PrincipalComponentAnalyzer(env, outputColName, inputColName,
                                          _colInfo.WeightColumn, _colInfo.Rank, _colInfo.Oversampling,
                                          _colInfo.EnsureZeroMean, _colInfo.Seed);
             }
@@ -1674,10 +1674,10 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="seed">The seed for random number generation</param>
         /// <returns>Vector containing the principal components.</returns>
         public static Vector<float> ToPrincipalComponents(this Vector<float> input,
-            string weightColumn = PrincipalComponentAnalysisEstimator.Defaults.WeightColumn,
-            int rank = PrincipalComponentAnalysisEstimator.Defaults.Rank,
-            int overSampling = PrincipalComponentAnalysisEstimator.Defaults.Oversampling,
-            bool ensureZeroMean = PrincipalComponentAnalysisEstimator.Defaults.EnsureZeroMean,
+            string weightColumn = PrincipalComponentAnalyzer.Defaults.WeightColumn,
+            int rank = PrincipalComponentAnalyzer.Defaults.Rank,
+            int overSampling = PrincipalComponentAnalyzer.Defaults.Oversampling,
+            bool ensureZeroMean = PrincipalComponentAnalyzer.Defaults.EnsureZeroMean,
             int? seed = null) => new OutPipelineColumn(input, weightColumn, rank, overSampling, ensureZeroMean, seed);
     }
 }

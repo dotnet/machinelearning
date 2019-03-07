@@ -35,7 +35,7 @@ namespace Microsoft.ML.Functional.Tests
                 .Load(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
             // Create a training pipeline.
-            var pipeline = mlContext.AnomalyDetection.Trainers.RandomizedPca();
+            var pipeline = mlContext.AnomalyDetection.Trainers.AnalyzeRandomizedPrincipalComponents();
 
             // Train the model.
             var model = pipeline.Fit(trainData);

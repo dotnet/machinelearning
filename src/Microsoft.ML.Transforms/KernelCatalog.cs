@@ -18,7 +18,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="dimension">The number of random Fourier features to create.</param>
+        /// <param name="rank">The number of random Fourier features to create.</param>
         /// <param name="useCosAndSinBases">If <see langword="true"/>, use both of cos and sin basis functions to create two features for every random Fourier frequency.
         /// Otherwise, only cos bases would be used.</param>
         /// <example>
@@ -31,9 +31,9 @@ namespace Microsoft.ML
         public static RandomFourierExpansionEstimator RandomFourierExpand(this TransformsCatalog catalog,
             string outputColumnName,
             string inputColumnName = null,
-            int dimension = RandomFourierExpansionEstimator.Defaults.Dimension,
+            int rank = RandomFourierExpansionEstimator.Defaults.Rank,
             bool useCosAndSinBases = RandomFourierExpansionEstimator.Defaults.UseCosAndSinBases)
-            => new RandomFourierExpansionEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, dimension, useCosAndSinBases);
+            => new RandomFourierExpansionEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, rank, useCosAndSinBases);
 
         /// <summary>
         /// Takes columns filled with a vector of floats and maps its to a random low-dimensional feature space.

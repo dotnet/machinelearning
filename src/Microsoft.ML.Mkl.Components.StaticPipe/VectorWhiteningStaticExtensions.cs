@@ -64,7 +64,7 @@ namespace Microsoft.ML.Mkl.Components.StaticPipe
             float eps = VectorWhiteningEstimator.Defaults.Epsilon,
             int maxRows = VectorWhiteningEstimator.Defaults.MaximumNumberOfRows,
             int pcaNum = VectorWhiteningEstimator.Defaults.Rank)
-            => new OutPipelineColumn(input, WhiteningKind.Pca, eps, maxRows, pcaNum);
+            => new OutPipelineColumn(input, WhiteningKind.PrincipalComponentAnalysis, eps, maxRows, pcaNum);
 
         /// <include file='../Microsoft.ML.Mkl.Components/doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="input">The column to which the transform will be applied.</param>
@@ -73,6 +73,6 @@ namespace Microsoft.ML.Mkl.Components.StaticPipe
         public static Vector<float> ZcaWhitening(this Vector<float> input,
             float eps = VectorWhiteningEstimator.Defaults.Epsilon,
             int maxRows = VectorWhiteningEstimator.Defaults.MaximumNumberOfRows)
-            => new OutPipelineColumn(input, WhiteningKind.Zca, eps, maxRows, VectorWhiteningEstimator.Defaults.Rank);
+            => new OutPipelineColumn(input, WhiteningKind.ZeroPhaseComponentAnalysis, eps, maxRows, VectorWhiteningEstimator.Defaults.Rank);
     }
 }

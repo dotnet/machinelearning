@@ -5,13 +5,13 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
-using static Microsoft.ML.Trainers.RandomizedPcaTrainer;
+using static Microsoft.ML.Trainers.RandomizedPrincipalComponentAnalyzer;
 
 namespace Microsoft.ML
 {
     public static class PcaCatalog
     {
-        /// <summary>Initializes a new instance of <see cref="PrincipalComponentAnalysisEstimator"/>.</summary>
+        /// <summary>Initializes a new instance of <see cref="PrincipalComponentAnalyzer"/>.</summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
@@ -20,22 +20,22 @@ namespace Microsoft.ML
         /// <param name="overSampling">Oversampling parameter for randomized PrincipalComponentAnalysis training.</param>
         /// <param name="ensureZeroMean">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation.</param>
-        public static PrincipalComponentAnalysisEstimator ProjectToPrincipalComponents(this TransformsCatalog catalog,
+        public static PrincipalComponentAnalyzer ProjectToPrincipalComponents(this TransformsCatalog catalog,
             string outputColumnName,
             string inputColumnName = null,
             string exampleWeightColumnName = null,
-            int rank = PrincipalComponentAnalysisEstimator.Defaults.Rank,
-            int overSampling = PrincipalComponentAnalysisEstimator.Defaults.Oversampling,
-            bool ensureZeroMean = PrincipalComponentAnalysisEstimator.Defaults.EnsureZeroMean,
+            int rank = PrincipalComponentAnalyzer.Defaults.Rank,
+            int overSampling = PrincipalComponentAnalyzer.Defaults.Oversampling,
+            bool ensureZeroMean = PrincipalComponentAnalyzer.Defaults.EnsureZeroMean,
             int? seed = null)
-            => new PrincipalComponentAnalysisEstimator(CatalogUtils.GetEnvironment(catalog),
+            => new PrincipalComponentAnalyzer(CatalogUtils.GetEnvironment(catalog),
                 outputColumnName, inputColumnName, exampleWeightColumnName, rank, overSampling, ensureZeroMean, seed);
 
-        /// <summary>Initializes a new instance of <see cref="PrincipalComponentAnalysisEstimator"/>.</summary>
+        /// <summary>Initializes a new instance of <see cref="PrincipalComponentAnalyzer"/>.</summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Input columns to apply PrincipalComponentAnalysis on.</param>
-        public static PrincipalComponentAnalysisEstimator ProjectToPrincipalComponents(this TransformsCatalog catalog, params PrincipalComponentAnalysisEstimator.ColumnOptions[] columns)
-            => new PrincipalComponentAnalysisEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+        public static PrincipalComponentAnalyzer ProjectToPrincipalComponents(this TransformsCatalog catalog, params PrincipalComponentAnalyzer.ColumnOptions[] columns)
+            => new PrincipalComponentAnalyzer(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
         /// Trains an approximate PCA using Randomized SVD algorithm.
@@ -53,7 +53,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/AnomalyDetection/RandomizedPcaSample.cs)]
         /// ]]></format>
         /// </example>
-        public static RandomizedPcaTrainer RandomizedPca(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog,
+        public static RandomizedPrincipalComponentAnalyzer AnalyzeRandomizedPrincipalComponents(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
             int rank = Options.Defaults.NumComponents,
@@ -63,7 +63,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new RandomizedPcaTrainer(env, featureColumnName, exampleWeightColumnName, rank, oversampling, ensureZeroMean, seed);
+            return new RandomizedPrincipalComponentAnalyzer(env, featureColumnName, exampleWeightColumnName, rank, oversampling, ensureZeroMean, seed);
         }
 
         /// <summary>
@@ -77,11 +77,11 @@ namespace Microsoft.ML
         ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/AnomalyDetection/RandomizedPcaSampleWithOptions.cs)]
         /// ]]></format>
         /// </example>
-        public static RandomizedPcaTrainer RandomizedPca(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog, Options options)
+        public static RandomizedPrincipalComponentAnalyzer AnalyzeRandomizedPrincipalComponents(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog, Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new RandomizedPcaTrainer(env, options);
+            return new RandomizedPrincipalComponentAnalyzer(env, options);
         }
     }
 }

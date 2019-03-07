@@ -14,7 +14,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="mode">The <see cref="NormalizingEstimator.NormalizerMode"/> used to map the old values in the new scale. </param>
+        /// <param name="mode">The <see cref="NormalizingEstimator.NormalizationMode"/> used to map the old values in the new scale. </param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -24,14 +24,14 @@ namespace Microsoft.ML
         /// </example>
         public static NormalizingEstimator Normalize(this TransformsCatalog catalog,
            string outputColumnName, string inputColumnName = null,
-            NormalizingEstimator.NormalizerMode mode = NormalizingEstimator.NormalizerMode.MinMax)
+            NormalizingEstimator.NormalizationMode mode = NormalizingEstimator.NormalizationMode.MinMax)
             => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName ?? outputColumnName, mode);
 
         /// <summary>
         /// Normalize (rescale) several columns according to the specified <paramref name="mode"/>.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
-        /// <param name="mode">The <see cref="NormalizingEstimator.NormalizerMode"/> used to map the old values to the new ones. </param>
+        /// <param name="mode">The <see cref="NormalizingEstimator.NormalizationMode"/> used to map the old values to the new ones. </param>
         /// <param name="columns">The pairs of input and output columns.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -41,7 +41,7 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static NormalizingEstimator Normalize(this TransformsCatalog catalog,
-            NormalizingEstimator.NormalizerMode mode,
+            NormalizingEstimator.NormalizationMode mode,
             params ColumnOptions[] columns)
             => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), mode, ColumnOptions.ConvertToValueTuples(columns));
 
@@ -71,11 +71,11 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static LpNormalizingEstimator LpNormalize(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null,
-            LpNormalizingEstimatorBase.NormKind normKind = LpNormalizingEstimatorBase.Defaults.Norm, bool ensureZeroMean = LpNormalizingEstimatorBase.Defaults.LpEnsureZeroMean)
+            LpNormalizingEstimatorBase.NormFunction normKind = LpNormalizingEstimatorBase.Defaults.Norm, bool ensureZeroMean = LpNormalizingEstimatorBase.Defaults.LpEnsureZeroMean)
             => new LpNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, normKind, ensureZeroMean);
 
         /// <summary>
-        /// Takes column filled with a vector of floats and normazlize its norm to one. Note that the allowed norm functions are defined in <see cref="LpNormalizingEstimatorBase.NormKind"/>.
+        /// Takes column filled with a vector of floats and normazlize its norm to one. Note that the allowed norm functions are defined in <see cref="LpNormalizingEstimatorBase.NormFunction"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of the lp-normalization process for each column pair.</param>

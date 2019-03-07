@@ -44,7 +44,7 @@ namespace Microsoft.ML.Transforms
             public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of random Fourier features to create", ShortName = "dim")]
-            public int NewDim = RandomFourierExpansionEstimator.Defaults.Dimension;
+            public int NewDim = RandomFourierExpansionEstimator.Defaults.Rank;
 
             [Argument(ArgumentType.Multiple, HelpText = "Which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureKernelBase))]
             public IComponentFactory<KernelBase> MatrixGenerator = new GaussianKernel.Options();
@@ -114,8 +114,8 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(host);
 
                 SrcDim = d;
-                NewDim = column.Dimension;
-                host.CheckUserArg(NewDim > 0, nameof(column.Dimension));
+                NewDim = column.Rank;
+                host.CheckUserArg(NewDim > 0, nameof(column.Rank));
                 _useSin = column.UseCosAndSinBases;
                 var seed = column.Seed;
                 _rand = seed.HasValue ? RandomUtils.Create(seed) : RandomUtils.Create(host.Rand);
@@ -611,7 +611,7 @@ namespace Microsoft.ML.Transforms
         [BestFriend]
         internal static class Defaults
         {
-            public const int Dimension = 1000;
+            public const int Rank = 1000;
             public const bool UseCosAndSinBases = false;
         }
 
@@ -635,7 +635,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// The number of random Fourier features to create.
             /// </summary>
-            public readonly int Dimension;
+            public readonly int Rank;
             /// <summary>
             /// If <see langword="true"/>, use both of cos and sin basis functions to create two features for every random Fourier frequency.
             /// Otherwise, only cos bases would be used.
@@ -650,19 +650,19 @@ namespace Microsoft.ML.Transforms
             /// Describes how the transformer handles one column pair.
             /// </summary>
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-            /// <param name="dimension">The number of random Fourier features to create.</param>
+            /// <param name="rank">The number of random Fourier features to create.</param>
             /// <param name="useCosAndSinBases">If <see langword="true"/>, use both of cos and sin basis functions to create two features for
             /// every random Fourier frequency. Otherwise, only cos bases would be used.</param>
             /// <param name="inputColumnName">Name of column to transform. </param>
             /// <param name="generator">Which fourier generator to use.</param>
             /// <param name="seed">The seed of the random number generator for generating the new features (if unspecified, the global random is used).</param>
-            public ColumnOptions(string name, int dimension, bool useCosAndSinBases, string inputColumnName = null, KernelBase generator = null, int? seed = null)
+            public ColumnOptions(string name, int rank, bool useCosAndSinBases, string inputColumnName = null, KernelBase generator = null, int? seed = null)
             {
-                Contracts.CheckUserArg(dimension > 0, nameof(dimension), "must be positive.");
+                Contracts.CheckUserArg(rank > 0, nameof(rank), "must be positive.");
                 InputColumnName = inputColumnName ?? name;
                 Name = name;
                 Generator = generator ?? new GaussianKernel();
-                Dimension = dimension;
+                Rank = rank;
                 UseCosAndSinBases = useCosAndSinBases;
                 Seed = seed;
             }
@@ -677,10 +677,10 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">Host Environment.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="newDim">The number of random Fourier features to create.</param>
-        /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
-        internal RandomFourierExpansionEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int newDim = Defaults.Dimension, bool useSin = Defaults.UseCosAndSinBases)
-            : this(env, new ColumnOptions(outputColumnName, newDim, useSin, inputColumnName ?? outputColumnName))
+        /// <param name="rank">The number of random Fourier features to create.</param>
+        /// <param name="useCosAndSinBases">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
+        internal RandomFourierExpansionEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int rank = Defaults.Rank, bool useCosAndSinBases = Defaults.UseCosAndSinBases)
+            : this(env, new ColumnOptions(outputColumnName, rank, useCosAndSinBases, inputColumnName ?? outputColumnName))
         {
         }
 

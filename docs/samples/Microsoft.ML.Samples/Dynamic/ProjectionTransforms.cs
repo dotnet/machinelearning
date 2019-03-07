@@ -37,7 +37,7 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             // A pipeline to project Features column into Random fourier space.
-            var rffPipeline = ml.Transforms.RandomFourierExpand(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), dimension: 4);
+            var rffPipeline = ml.Transforms.RandomFourierExpand(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), rank: 4);
             // The transformed (projected) data.
             var transformedData = rffPipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //0.165 0.117 -0.547  0.014
 
             // A pipeline to project Features column into L-p normalized vector.
-            var lpNormalizePipeline = ml.Transforms.LpNormalize(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), normKind: Transforms.LpNormalizingEstimatorBase.NormKind.L1Norm);
+            var lpNormalizePipeline = ml.Transforms.LpNormalize(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), normKind: Transforms.LpNormalizingEstimatorBase.NormFunction.L1Norm);
             // The transformed (projected) data.
             transformedData = lpNormalizePipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.

@@ -39,11 +39,11 @@ namespace Microsoft.ML.Transforms
     {
         /// <summary> PCA whitening.</summary>
         [TGUI(Label = "PCA whitening")]
-        Pca,
+        PrincipalComponentAnalysis,
 
         /// <summary> ZCA whitening.</summary>
         [TGUI(Label = "ZCA whitening")]
-        Zca
+        ZeroPhaseComponentAnalysis
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
@@ -436,14 +436,14 @@ namespace Microsoft.ML.Transforms
                 }
 
                 // For ZCA need to do additional multiply by U.
-                if (ex.Kind == WhiteningKind.Pca)
+                if (ex.Kind == WhiteningKind.PrincipalComponentAnalysis)
                 {
                     // Save all components for PCA. Retained components will be selected during evaluation.
                     models[iinfo] = uScaled;
                     if (ex.SaveInv)
                         invModels[iinfo] = uInvScaled;
                 }
-                else if (ex.Kind == WhiteningKind.Zca)
+                else if (ex.Kind == WhiteningKind.ZeroPhaseComponentAnalysis)
                 {
                     models[iinfo] = new float[u.Length];
                     Mkl.Gemm(Layout, Mkl.Transpose.NoTrans, Mkl.Transpose.NoTrans,
@@ -588,7 +588,7 @@ namespace Microsoft.ML.Transforms
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var info = _parent._columns[iinfo];
-                    DataViewType outType = (info.Kind == WhiteningKind.Pca && info.Rank > 0) ? new VectorType(NumberDataViewType.Single, info.Rank) : _srcTypes[iinfo];
+                    DataViewType outType = (info.Kind == WhiteningKind.PrincipalComponentAnalysis && info.Rank > 0) ? new VectorType(NumberDataViewType.Single, info.Rank) : _srcTypes[iinfo];
                     result[iinfo] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, outType, null);
                 }
                 return result;
@@ -601,13 +601,13 @@ namespace Microsoft.ML.Transforms
                 disposer = null;
 
                 var ex = _parent._columns[iinfo];
-                Host.Assert(ex.Kind == WhiteningKind.Pca || ex.Kind == WhiteningKind.Zca);
+                Host.Assert(ex.Kind == WhiteningKind.PrincipalComponentAnalysis || ex.Kind == WhiteningKind.ZeroPhaseComponentAnalysis);
                 var getSrc = GetSrcGetter<VBuffer<float>>(input, iinfo);
                 var src = default(VBuffer<float>);
                 int cslotSrc = _srcTypes[iinfo].GetValueCount();
                 // Notice that here that the learned matrices in _models will have the same size for both PCA and ZCA,
                 // so we perform a truncation of the matrix in FillValues, that only keeps PcaNum columns.
-                int cslotDst = (ex.Kind == WhiteningKind.Pca && ex.Rank > 0) ? ex.Rank : cslotSrc;
+                int cslotDst = (ex.Kind == WhiteningKind.PrincipalComponentAnalysis && ex.Rank > 0) ? ex.Rank : cslotSrc;
                 var model = _parent._models[iinfo];
                 ValueGetter<VBuffer<float>> del =
                     (ref VBuffer<float> dst) =>
@@ -672,7 +672,7 @@ namespace Microsoft.ML.Transforms
         [BestFriend]
         internal static class Defaults
         {
-            public const WhiteningKind Kind = WhiteningKind.Zca;
+            public const WhiteningKind Kind = WhiteningKind.ZeroPhaseComponentAnalysis;
             public const float Epsilon = 1e-5f;
             public const int MaximumNumberOfRows = 100 * 1000;
             public const bool SaveInverse = false;
@@ -727,7 +727,7 @@ namespace Microsoft.ML.Transforms
                 InputColumnName = inputColumnName ?? name;
                 Contracts.CheckValue(InputColumnName, nameof(InputColumnName));
                 Kind = kind;
-                Contracts.CheckUserArg(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca, nameof(Kind));
+                Contracts.CheckUserArg(Kind == WhiteningKind.PrincipalComponentAnalysis || Kind == WhiteningKind.ZeroPhaseComponentAnalysis, nameof(Kind));
                 Epsilon = epsilon;
                 Contracts.CheckUserArg(0 <= Epsilon && Epsilon < float.PositiveInfinity, nameof(Epsilon));
                 MaximumNumberOfRows = maximumNumberOfRows;
@@ -744,7 +744,7 @@ namespace Microsoft.ML.Transforms
                 InputColumnName = item.Source ?? item.Name;
                 Contracts.CheckValue(InputColumnName, nameof(InputColumnName));
                 Kind = item.Kind ?? options.Kind;
-                Contracts.CheckUserArg(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca, nameof(item.Kind));
+                Contracts.CheckUserArg(Kind == WhiteningKind.PrincipalComponentAnalysis || Kind == WhiteningKind.ZeroPhaseComponentAnalysis, nameof(item.Kind));
                 Epsilon = item.Eps ?? options.Eps;
                 Contracts.CheckUserArg(0 <= Epsilon && Epsilon < float.PositiveInfinity, nameof(item.Eps));
                 MaximumNumberOfRows = item.MaxRows ?? options.MaxRows;
@@ -765,7 +765,7 @@ namespace Microsoft.ML.Transforms
                 // byte:  saveInv
                 // int:   pcaNum
                 Kind = (WhiteningKind)ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca);
+                Contracts.CheckDecode(Kind == WhiteningKind.PrincipalComponentAnalysis || Kind == WhiteningKind.ZeroPhaseComponentAnalysis);
                 Epsilon = ctx.Reader.ReadFloat();
                 Contracts.CheckDecode(0 <= Epsilon && Epsilon < float.PositiveInfinity);
                 MaximumNumberOfRows = ctx.Reader.ReadInt32();
@@ -785,7 +785,7 @@ namespace Microsoft.ML.Transforms
                 // int:   maxrow
                 // byte:  saveInv
                 // int:   pcaNum
-                Contracts.Assert(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca);
+                Contracts.Assert(Kind == WhiteningKind.PrincipalComponentAnalysis || Kind == WhiteningKind.ZeroPhaseComponentAnalysis);
                 ctx.Writer.Write((int)Kind);
                 Contracts.Assert(0 <= Epsilon && Epsilon < float.PositiveInfinity);
                 ctx.Writer.Write(Epsilon);
