@@ -71,6 +71,7 @@ namespace Microsoft.ML.Benchmarks
             IDataView data = loader.Load(dataPath);
 
             var pipeline = new ColumnConcatenatingEstimator(mlContext, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
             return pipeline.Fit(data);
