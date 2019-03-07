@@ -142,19 +142,19 @@ namespace Microsoft.ML
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numberOfIterations">The number of iterations to use in learning the features.</param>
-        /// <param name="maximumBinCountPerFeature">The maximum number of bins to use to approximate features.</param>
+        /// <param name="maximumBinsPerFeature">The maximum number of bins to use to approximate features.</param>
         /// <param name="learningRate">The learning rate. GAMs work best with a small learning rate.</param>
         public static BinaryClassificationGamTrainer GeneralizedAdditiveModels(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
             int numberOfIterations = GamDefaults.NumberOfIterations,
-            int maximumBinCountPerFeature = GamDefaults.MaximumBinCountPerFeature,
+            int maximumBinsPerFeature = GamDefaults.MaximumBinsPerFeature,
             double learningRate = GamDefaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new BinaryClassificationGamTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfIterations, learningRate, maximumBinCountPerFeature);
+            return new BinaryClassificationGamTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfIterations, learningRate, maximumBinsPerFeature);
         }
 
         /// <summary>
@@ -178,19 +178,19 @@ namespace Microsoft.ML
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numberOfIterations">The number of iterations to use in learning the features.</param>
-        /// <param name="maxBinCountPerFeature">The maximum number of bins to use to approximate features.</param>
+        /// <param name="maximumBinsPerFeature">The maximum number of bins to use to approximate features.</param>
         /// <param name="learningRate">The learning rate. GAMs work best with a small learning rate.</param>
         public static RegressionGamTrainer GeneralizedAdditiveModels(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
             int numberOfIterations = GamDefaults.NumberOfIterations,
-            int maxBinCountPerFeature = GamDefaults.MaximumBinCountPerFeature,
+            int maximumBinsPerFeature = GamDefaults.MaximumBinsPerFeature,
             double learningRate = GamDefaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new RegressionGamTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfIterations, learningRate, maxBinCountPerFeature);
+            return new RegressionGamTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfIterations, learningRate, maximumBinsPerFeature);
         }
 
         /// <summary>

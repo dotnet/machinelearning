@@ -80,7 +80,7 @@ namespace Microsoft.ML.Trainers.FastTree
             public bool? DiskTranspose;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum number of distinct values (bins) per feature", ShortName = "mb")]
-            public int MaximumBinCountPerFeature = GamDefaults.MaximumBinCountPerFeature;
+            public int MaximumBinsPerFeature = GamDefaults.MaximumBinsPerFeature;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single output", ShortName = "mo")]
             public double MaximumTreeOutput = double.PositiveInfinity;
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Trainers.FastTree
             GamTrainerOptions = new TOptions();
             GamTrainerOptions.NumberOfIterations = numberOfIterations;
             GamTrainerOptions.LearningRate = learningRate;
-            GamTrainerOptions.MaximumBinCountPerFeature = maximumBinCountPerFeature;
+            GamTrainerOptions.MaximumBinsPerFeature = maximumBinCountPerFeature;
 
             GamTrainerOptions.LabelColumnName = label.Name;
             GamTrainerOptions.FeatureColumnName = featureColumnName;
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Trainers.FastTree
             Host.CheckParam(options.NumberOfThreads == null || options.NumberOfThreads > 0, nameof(options.NumberOfThreads), "Must be positive.");
             Host.CheckParam(0 <= options.EntropyCoefficient && options.EntropyCoefficient <= 1, nameof(options.EntropyCoefficient), "Must be in [0, 1].");
             Host.CheckParam(0 <= options.GainConfidenceLevel && options.GainConfidenceLevel < 1, nameof(options.GainConfidenceLevel), "Must be in [0, 1).");
-            Host.CheckParam(0 < options.MaximumBinCountPerFeature, nameof(options.MaximumBinCountPerFeature), "Must be posittive.");
+            Host.CheckParam(0 < options.MaximumBinsPerFeature, nameof(options.MaximumBinsPerFeature), "Must be posittive.");
             Host.CheckParam(0 < options.NumberOfIterations, nameof(options.NumberOfIterations), "Must be positive.");
             Host.CheckParam(0 < options.MinimumExampleCountPerLeaf, nameof(options.MinimumExampleCountPerLeaf), "Must be positive.");
 
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Trainers.FastTree
             CheckLabel(trainData);
 
             var useTranspose = UseTranspose(GamTrainerOptions.DiskTranspose, trainData);
-            var instanceConverter = new ExamplesToFastTreeBins(Host, GamTrainerOptions.MaximumBinCountPerFeature, useTranspose, !GamTrainerOptions.FeatureFlocks, GamTrainerOptions.MinimumExampleCountPerLeaf, float.PositiveInfinity);
+            var instanceConverter = new ExamplesToFastTreeBins(Host, GamTrainerOptions.MaximumBinsPerFeature, useTranspose, !GamTrainerOptions.FeatureFlocks, GamTrainerOptions.MinimumExampleCountPerLeaf, float.PositiveInfinity);
 
             ParallelTraining.InitEnvironment();
             TrainSet = instanceConverter.FindBinsAndReturnDataset(trainData, PredictionKind, ParallelTraining, null, false);
@@ -694,7 +694,7 @@ namespace Microsoft.ML.Trainers.FastTree
     internal static class GamDefaults
     {
         internal const int NumberOfIterations = 9500;
-        internal const int MaximumBinCountPerFeature = 255;
+        internal const int MaximumBinsPerFeature = 255;
         internal const double LearningRate = 0.002; // A small value
     }
 }
