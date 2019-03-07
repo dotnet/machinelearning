@@ -37,11 +37,11 @@ namespace Microsoft.ML.Trainers
         {
             [Argument(ArgumentType.Multiple, Name = "LossFunction", HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             [TGUI(Label = "Loss Function")]
-            internal ISupportRegressionLossFactory LossFunctionFactory1 = new SquaredLossFactory();
+            internal ISupportRegressionLossFactory RegressionLossFunctionFactory = new SquaredLossFactory();
 
             public IRegressionLoss LossFunction;
 
-            internal override IComponentFactory<IScalarLoss> LossFunctionFactory => LossFunctionFactory1;
+            internal override IComponentFactory<IScalarLoss> LossFunctionFactory => RegressionLossFunctionFactory;
 
             /// <summary>
             /// Set defaults that vary from the base type.

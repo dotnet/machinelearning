@@ -61,7 +61,7 @@ namespace Microsoft.ML.Trainers
             /// A custom <a href="tmpurl_loss">loss</a>.
             /// </summary>
             [Argument(ArgumentType.Multiple, Name = "LossFunction", HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
-            internal ISupportClassificationLossFactory LossFunctionFactory1 = new HingeLoss.Options();
+            internal ISupportClassificationLossFactory ClassificationLossFunctionFactory = new HingeLoss.Options();
 
             /// <summary>
             /// A custom <a href="tmpurl_loss">loss</a>.
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             internal int MaxCalibrationExamples = 1000000;
 
-            internal override IComponentFactory<IScalarLoss> LossFunctionFactory => LossFunctionFactory1;
+            internal override IComponentFactory<IScalarLoss> LossFunctionFactory => ClassificationLossFunctionFactory;
         }
 
         private sealed class TrainState : AveragedTrainStateBase
