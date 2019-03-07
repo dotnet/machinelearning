@@ -12,6 +12,7 @@ namespace Microsoft.ML.Auto
         CategoricalFeature = 3,
         TextFeature = 4,
         Weight = 5,
-        ImagePath = 6
+        ImagePath = 6,
+        SamplingKey = 7
     }
 }

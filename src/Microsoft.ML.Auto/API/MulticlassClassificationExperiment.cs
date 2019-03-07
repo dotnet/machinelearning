@@ -52,9 +52,14 @@ namespace Microsoft.ML.Auto
             _settings = settings;
         }
 
-        public IEnumerable<RunResult<MultiClassClassifierMetrics>> Execute(IDataView trainData, string labelColumn = DefaultColumnNames.Label, IEstimator<ITransformer> preFeaturizers = null)
+        public IEnumerable<RunResult<MultiClassClassifierMetrics>> Execute(IDataView trainData, string labelColumn = DefaultColumnNames.Label,
+            string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizers = null)
         {
-            var columnInformation = new ColumnInformation() { LabelColumn = labelColumn };
+            var columnInformation = new ColumnInformation()
+            {
+                LabelColumn = labelColumn,
+                SamplingKeyColumn = samplingKeyColumn
+            };
             return Execute(_context, trainData, columnInformation, null, preFeaturizers);
         }
 

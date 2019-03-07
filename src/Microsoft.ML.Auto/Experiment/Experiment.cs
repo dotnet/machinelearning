@@ -42,7 +42,7 @@ namespace Microsoft.ML.Auto
         {
             if (validationData == null)
             {
-                (trainData, validationData) = context.Regression.TestValidateSplit(context, trainData);
+                (trainData, validationData) = context.Regression.TestValidateSplit(context, trainData, columnInfo);
             }
             _trainData = trainData;
             _validationData = validationData;

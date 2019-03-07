@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Auto
 {
@@ -29,10 +26,10 @@ namespace Microsoft.ML.Auto
         }
 
         public static (IDataView testData, IDataView validationData) TestValidateSplit(this TrainCatalogBase catalog, 
-            MLContext context, IDataView trainData)
+            MLContext context, IDataView trainData, ColumnInformation columnInfo)
         {
             IDataView validationData;
-            var splitData = catalog.TrainTestSplit(trainData);
+            var splitData = catalog.TrainTestSplit(trainData, samplingKeyColumn: columnInfo.SamplingKeyColumn);
             trainData = splitData.TrainSet;
             validationData = splitData.TestSet;
             trainData = trainData.DropLastColumn(context);

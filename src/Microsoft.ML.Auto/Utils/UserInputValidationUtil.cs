@@ -20,6 +20,7 @@ namespace Microsoft.ML.Auto
         private const string CategoricalColumnPurposeName = "categorical";
         private const string TextColumnPurposeName = "text";
         private const string IgnoredColumnPurposeName = "ignored";
+        private const string SamplingKeyColumnPurposeName = "sampling key";
 
         public static void ValidateExperimentExecuteArgs(IDataView trainData, ColumnInformation columnInformation,
             IDataView validationData)
@@ -65,6 +66,7 @@ namespace Microsoft.ML.Auto
             ValidateColumnInformation(columnInformation);
             ValidateTrainDataColumn(trainData, columnInformation.LabelColumn, LabelColumnPurposeName);
             ValidateTrainDataColumn(trainData, columnInformation.WeightColumn, WeightColumnPurposeName);
+            ValidateTrainDataColumn(trainData, columnInformation.SamplingKeyColumn, SamplingKeyColumnPurposeName);
             ValidateTrainDataColumns(trainData, columnInformation.CategoricalColumns, CategoricalColumnPurposeName,
                 new DataViewType[] { NumberDataViewType.Single, TextDataViewType.Instance });
             ValidateTrainDataColumns(trainData, columnInformation.NumericColumns, NumericColumnPurposeName,
@@ -190,7 +192,7 @@ namespace Microsoft.ML.Auto
             var nullableColumn = trainData.Schema.GetColumnOrNull(columnName);
             if (nullableColumn == null)
             {
-                throw new ArgumentException($"Provided {columnPurpose} column {columnName} '{columnName}' not found in training data.");
+                throw new ArgumentException($"Provided {columnPurpose} column '{columnName}' not found in training data.");
             }
 
             if(allowedTypes == null)

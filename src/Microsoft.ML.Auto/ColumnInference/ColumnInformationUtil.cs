@@ -23,6 +23,11 @@ namespace Microsoft.ML.Auto
                 return ColumnPurpose.Weight;
             }
 
+            if (columnName == columnInfo.SamplingKeyColumn)
+            {
+                return ColumnPurpose.SamplingKey;
+            }
+
             if (columnInfo.CategoricalColumns.Contains(columnName))
             {
                 return ColumnPurpose.CategoricalFeature;
@@ -59,6 +64,9 @@ namespace Microsoft.ML.Auto
                         break;
                     case ColumnPurpose.Weight:
                         columnInfo.WeightColumn = column.name;
+                        break;
+                    case ColumnPurpose.SamplingKey:
+                        columnInfo.SamplingKeyColumn = column.name;
                         break;
                     case ColumnPurpose.CategoricalFeature:
                         columnInfo.CategoricalColumns.Add(column.name);
