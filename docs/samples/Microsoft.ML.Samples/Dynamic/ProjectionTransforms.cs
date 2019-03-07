@@ -37,7 +37,7 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             // A pipeline to project Features column into Random fourier space.
-            var rffPipeline = ml.Transforms.KernelExpansion.CreateRandomFourierFeatures(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), dimension: 4);
+            var rffPipeline = ml.Transforms.KernelExpansion.RandomFourierExpand(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), dimension: 4);
             // The transformed (projected) data.
             var transformedData = rffPipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.

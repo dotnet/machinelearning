@@ -27,19 +27,19 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static RandomFourierFeaturizingEstimator CreateRandomFourierFeatures(this TransformsCatalog.KernelExpansionTransforms catalog,
+        public static RandomFourierExpansionEstimator RandomFourierExpand(this TransformsCatalog.KernelExpansionTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
-            int dimension = RandomFourierFeaturizingEstimator.Defaults.Dimension,
-            bool useCosAndSinBases = RandomFourierFeaturizingEstimator.Defaults.UseCosAndSinBases)
-            => new RandomFourierFeaturizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, dimension, useCosAndSinBases);
+            int dimension = RandomFourierExpansionEstimator.Defaults.Dimension,
+            bool useCosAndSinBases = RandomFourierExpansionEstimator.Defaults.UseCosAndSinBases)
+            => new RandomFourierExpansionEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, dimension, useCosAndSinBases);
 
         /// <summary>
         /// Takes columns filled with a vector of floats and maps its to a random low-dimensional feature space.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">The input columns to use for the transformation.</param>
-        public static RandomFourierFeaturizingEstimator CreateRandomFourierFeatures(this TransformsCatalog.KernelExpansionTransforms catalog, params RandomFourierFeaturizingEstimator.ColumnOptions[] columns)
-            => new RandomFourierFeaturizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+        public static RandomFourierExpansionEstimator RandomFourierExpand(this TransformsCatalog.KernelExpansionTransforms catalog, params RandomFourierExpansionEstimator.ColumnOptions[] columns)
+            => new RandomFourierExpansionEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

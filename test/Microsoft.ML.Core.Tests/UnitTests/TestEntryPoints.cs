@@ -717,9 +717,9 @@ namespace Microsoft.ML.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features1", 10, false, "Features"),
-                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features2", 10, false, "Features"),
+                data = new RandomFourierExpansionEstimator(Env, new[] {
+                    new RandomFourierExpansionEstimator.ColumnOptions("Features1", 10, false, "Features"),
+                    new RandomFourierExpansionEstimator.ColumnOptions("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
 
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
@@ -1169,9 +1169,9 @@ namespace Microsoft.ML.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features1", 10, false, "Features"),
-                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features2", 10, false, "Features"),
+                data = new RandomFourierExpansionEstimator(Env, new[] {
+                    new RandomFourierExpansionEstimator.ColumnOptions("Features1", 10, false, "Features"),
+                    new RandomFourierExpansionEstimator.ColumnOptions("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
 
