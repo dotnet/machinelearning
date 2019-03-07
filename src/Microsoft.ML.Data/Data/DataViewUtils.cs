@@ -93,17 +93,11 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Get the target number of threads to use, given a host and another indicator of thread count.
-        /// When num > 0, this uses num limited to twice what the host says. Otherwise, if preferOne
-        /// is true, it returns 1. Otherwise, it returns what the host says.
+        /// Get the target number of threads to use, given an indicator of thread count.
         /// </summary>
-        public static int GetThreadCount(IHost host, int num = 0, bool preferOne = false)
+        public static int GetThreadCount(int num = 0, bool preferOne = false)
         {
-            Contracts.CheckValue(host, nameof(host));
-
-            int conc = host.ConcurrencyFactor;
-            if (conc <= 0)
-                conc = Math.Max(2, Environment.ProcessorCount - 1);
+            int conc = Math.Max(2, Environment.ProcessorCount - 1);
 
             if (num > 0)
                 return Math.Min(num, 2 * conc);
@@ -122,7 +116,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(host, nameof(host));
             host.CheckValue(view, nameof(view));
 
-            int cthd = GetThreadCount(host);
+            int cthd = GetThreadCount();
             host.Assert(cthd > 0);
             if (cthd == 1 || !AllCacheable(columnsNeeded))
             {

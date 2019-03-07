@@ -75,10 +75,9 @@ namespace Microsoft.ML
         /// Create the ML context.
         /// </summary>
         /// <param name="seed">Random seed. Set to <c>null</c> for a non-deterministic environment.</param>
-        /// <param name="conc">Concurrency level. Set to 1 to run single-threaded. Set to 0 to pick automatically.</param>
-        public MLContext(int? seed = null, int conc = 0)
+        public MLContext(int? seed = null)
         {
-            _env = new LocalEnvironment(seed, conc);
+            _env = new LocalEnvironment(seed);
             _env.AddListener(ProcessMessage);
 
             BinaryClassification = new BinaryClassificationCatalog(_env);
@@ -104,11 +103,10 @@ namespace Microsoft.ML
             log(this, new LoggingEventArgs(msg));
         }
 
-        int IHostEnvironment.ConcurrencyFactor => _env.ConcurrencyFactor;
         bool IHostEnvironment.IsCancelled => _env.IsCancelled;
         string IExceptionContext.ContextDescription => _env.ContextDescription;
         TException IExceptionContext.Process<TException>(TException ex) => _env.Process(ex);
-        IHost IHostEnvironment.Register(string name, int? seed, bool? verbose, int? conc) => _env.Register(name, seed, verbose, conc);
+        IHost IHostEnvironment.Register(string name, int? seed, bool? verbose) => _env.Register(name, seed, verbose);
         IChannel IChannelProvider.Start(string name) => _env.Start(name);
         IPipe<TMessage> IChannelProvider.StartPipe<TMessage>(string name) => _env.StartPipe<TMessage>(name);
         IProgressChannel IProgressChannelProvider.StartProgressChannel(string name) => _env.StartProgressChannel(name);

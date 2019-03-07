@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void IntrospectiveTraining()
         {
-            var ml = new MLContext(seed: 1, conc: 1);
+            var ml = new MLContext(seed: 1);
             var data = ml.Data.LoadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true, allowQuoting: true);
 
             var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText")
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void FastTreeClassificationIntrospectiveTraining()
         {
-            var ml = new MLContext(seed: 1, conc: 1);
+            var ml = new MLContext(seed: 1);
             var data = ml.Data.LoadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true, allowQuoting: true);
 
             var trainer = ml.BinaryClassification.Trainers.FastTree(numberOfLeaves: 5, numberOfTrees: 3);
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void FastForestRegressionIntrospectiveTraining()
         {
-            var ml = new MLContext(seed: 1, conc: 1);
+            var ml = new MLContext(seed: 1);
             var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(1000);
             var dataView = ml.Data.LoadFromEnumerable(data);
 

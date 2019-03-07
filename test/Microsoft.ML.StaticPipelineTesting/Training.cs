@@ -31,7 +31,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SdcaRegression()
         {
-            var env = new MLContext(seed: 0, conc: 1);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -765,7 +765,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void KMeans()
         {
-            var env = new MLContext(seed: 0, conc: 1);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -1142,7 +1142,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Specify where to find data file
             var dataPath = GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename);
@@ -1193,7 +1193,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Create in-memory examples as C# native class.
             var examples = SamplesUtils.DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);

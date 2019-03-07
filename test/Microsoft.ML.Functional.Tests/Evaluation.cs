@@ -25,7 +25,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void TrainAndEvaluateAnomalyDetection()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var trainData = MnistOneClass.GetTextLoader(mlContext,
                     TestDatasets.mnistOneClass.fileHasHeader, TestDatasets.mnistOneClass.fileSeparator)
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void TrainAndEvaluateBinaryClassification()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void TrainAndEvaluateBinaryClassificationWithCalibration()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void TrainAndEvaluateClustering()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var data = mlContext.Data.LoadFromTextFile<Iris>(GetDataPath(TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void TrainAndEvaluateMulticlassClassification()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var data = mlContext.Data.LoadFromTextFile<Iris>(GetDataPath(TestDatasets.iris.trainFilename),
                 hasHeader: TestDatasets.iris.fileHasHeader,
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void TrainAndEvaluateRanking()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var data = Iris.LoadAsRankingProblem(mlContext,
                 GetDataPath(TestDatasets.iris.trainFilename),
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Functional.Tests
         [MatrixFactorizationFact]
         public void TrainAndEvaluateRecommendation()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
             var data = TrivialMatrixFactorization.LoadAndFeaturizeFromTextFile(
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void TrainAndEvaluateRegression()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
             var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(),
@@ -269,7 +269,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void TrainAndEvaluateWithPrecisionRecallCurves()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,

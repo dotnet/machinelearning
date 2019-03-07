@@ -19,7 +19,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
         public static void Example()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var rawData = new[] {
                 new InputData() { Survived = true },
                 new InputData() { Survived = false },

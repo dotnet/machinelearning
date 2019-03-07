@@ -581,17 +581,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private void InitializeThreads()
         {
             ParallelTraining = new SingleTrainer();
-
-            int numThreads = GamTrainerOptions.NumberOfThreads ?? Environment.ProcessorCount;
-            if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
-                using (var ch = Host.Start("GamTrainer"))
-                {
-                    numThreads = Host.ConcurrencyFactor;
-                    ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
-                        + "setting of the environment. Using {0} training threads instead.", numThreads);
-                }
-
-            ThreadTaskManager.Initialize(numThreads);
+            ThreadTaskManager.Initialize(GamTrainerOptions.NumberOfThreads ?? Environment.ProcessorCount);
         }
 
         private protected abstract ObjectiveFunctionBase CreateObjectiveFunction();
