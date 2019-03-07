@@ -38,10 +38,14 @@ namespace Samples
             experimentSettings.ProgressHandler = new ProgressHandler();
 
             // STEP 3: Using a different optimizing metric instead of RSquared and use only LightGbm
-            Console.WriteLine($"Starting an experiment with MeanSquaredError optimizing metric and using LightGbm trainer only");
             experimentSettings.OptimizingMetric = RegressionMetric.MeanSquaredError;
             experimentSettings.Trainers.Clear();
             experimentSettings.Trainers.Add(RegressionTrainer.LightGbm);
+
+            // STEP 4: Start AutoML experiment
+            Console.WriteLine($"Starting an experiment with MeanSquaredError optimizing metric and using LightGbm trainer only\r\n");
+            RegressionExperiment autoExperiment = mlContext.Auto().CreateRegressionExperiment(experimentSettings);
+            autoExperiment.Execute(trainDataView, LabelColumn);
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();

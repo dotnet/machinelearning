@@ -47,13 +47,19 @@ namespace Samples
     class ProgressHandler : IProgress<RunResult<RegressionMetrics>>
     {
         int iterationIndex;
+        private bool _initialized = false;
+
         public ProgressHandler()
         {
-            ConsolePrinter.PrintRegressionMetricsHeader();
         }
 
         public void Report(RunResult<RegressionMetrics> iterationResult)
         {
+            if (!_initialized)
+            {
+                ConsolePrinter.PrintRegressionMetricsHeader();
+                _initialized = true;
+            }
             iterationIndex++;
             ConsolePrinter.PrintRegressionMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics);
         }
