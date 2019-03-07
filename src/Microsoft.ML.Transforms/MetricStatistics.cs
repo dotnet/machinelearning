@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
@@ -51,11 +52,11 @@ namespace Microsoft.ML.Data
 
     internal static class MetricsStatisticsUtils
     {
-        public static void AddArray(double[] src, MetricStatistics[] dest)
+        public static void AddToEach(IReadOnlyList<double> src, IReadOnlyList<MetricStatistics> dest)
         {
-            Contracts.Assert(src.Length == dest.Length, "Array sizes do not match.");
+            Contracts.Assert(src.Count == dest.Count);
 
-            for (int i = 0; i < dest.Length; i++)
+            for (int i = 0; i < dest.Count; i++)
                 dest[i].Add(src[i]);
         }
 
@@ -242,7 +243,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Summary statistics for <see cref="MultiClassClassifierMetrics.PerClassLogLoss"/>.
         /// </summary>
-        public MetricStatistics[] PerClassLogLoss { get; private set; }
+        public IReadOnlyList<MetricStatistics> PerClassLogLoss { get; private set; }
 
         internal MultiClassClassifierMetricsStatistics()
         {
@@ -266,8 +267,8 @@ namespace Microsoft.ML.Data
             TopKAccuracy.Add(metrics.TopKAccuracy);
 
             if (PerClassLogLoss == null)
-                PerClassLogLoss = MetricsStatisticsUtils.InitializeArray(metrics.PerClassLogLoss.Length);
-            MetricsStatisticsUtils.AddArray(metrics.PerClassLogLoss, PerClassLogLoss);
+                PerClassLogLoss = MetricsStatisticsUtils.InitializeArray(metrics.PerClassLogLoss.Count);
+            MetricsStatisticsUtils.AddToEach(metrics.PerClassLogLoss, PerClassLogLoss);
         }
     }
 
@@ -280,12 +281,12 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Summary statistics for <see cref="RankingMetrics.DiscountedCumulativeGains"/>.
         /// </summary>
-        public MetricStatistics[] DiscountedCumulativeGains { get; private set; }
+        public IReadOnlyList<MetricStatistics> DiscountedCumulativeGains { get; private set; }
 
         /// <summary>
         /// Summary statistics for <see cref="RankingMetrics.NormalizedDiscountedCumulativeGains"/>.
         /// </summary>
-        public MetricStatistics[] NormalizedDiscountedCumulativeGains { get; private set; }
+        public IReadOnlyList<MetricStatistics> NormalizedDiscountedCumulativeGains { get; private set; }
 
         internal RankingMetricsStatistics()
         {
@@ -298,13 +299,13 @@ namespace Microsoft.ML.Data
         void IMetricsStatistics<RankingMetrics>.Add(RankingMetrics metrics)
         {
             if (DiscountedCumulativeGains == null)
-                DiscountedCumulativeGains = MetricsStatisticsUtils.InitializeArray(metrics.DiscountedCumulativeGains.Length);
+                DiscountedCumulativeGains = MetricsStatisticsUtils.InitializeArray(metrics.DiscountedCumulativeGains.Count);
 
             if (NormalizedDiscountedCumulativeGains == null)
-                NormalizedDiscountedCumulativeGains = MetricsStatisticsUtils.InitializeArray(metrics.NormalizedDiscountedCumulativeGains.Length);
+                NormalizedDiscountedCumulativeGains = MetricsStatisticsUtils.InitializeArray(metrics.NormalizedDiscountedCumulativeGains.Count);
 
-            MetricsStatisticsUtils.AddArray(metrics.DiscountedCumulativeGains, DiscountedCumulativeGains);
-            MetricsStatisticsUtils.AddArray(metrics.NormalizedDiscountedCumulativeGains, NormalizedDiscountedCumulativeGains);
+            MetricsStatisticsUtils.AddToEach(metrics.DiscountedCumulativeGains, DiscountedCumulativeGains);
+            MetricsStatisticsUtils.AddToEach(metrics.NormalizedDiscountedCumulativeGains, NormalizedDiscountedCumulativeGains);
         }
     }
 }
