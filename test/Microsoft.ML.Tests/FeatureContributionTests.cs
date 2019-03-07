@@ -275,8 +275,13 @@ namespace Microsoft.ML.Tests
             var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2VBuffer", "X3Important")
                 .Append(ML.Transforms.Normalize("Features"));
 
-            // Create a keytype for Ranking
-            if (task == TaskType.Ranking)
+            if (task == TaskType.BinaryClassification)
+                return pipeline.Append(ML.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean))
+                    .Fit(srcDV).Transform(srcDV);
+            else if (task == TaskType.MulticlassClassification)
+                return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("Label"))
+                    .Fit(srcDV).Transform(srcDV);
+            else if (task == TaskType.Ranking)
                 return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("GroupId"))
                     .Fit(srcDV).Transform(srcDV);
 
