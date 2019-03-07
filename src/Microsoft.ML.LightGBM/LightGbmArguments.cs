@@ -128,71 +128,68 @@ namespace Microsoft.ML.LightGBM
         internal ISupportParallel ParallelTrainer = new SingleTrainerFactory();
     }
 
-    namespace Options
+    public class BinaryClassifierOptions : OptionBase
     {
-        public class Binary : OptionBase
+        public enum EvaluateMetricType
         {
-            public enum EvaluateMetricType
-            {
-                DefaultMetric,
-                Logloss,
-                Error,
-                Auc,
-            };
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function." + nameof(LightGbmBinaryTrainer) + ", " + nameof(LightGbmMulticlassTrainer) +
-                " and in " + nameof(LightGbmRankingTrainer) + ".", ShortName = "sigmoid")]
-            [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
-            public double Sigmoid = 0.5;
+            DefaultMetric,
+            Logloss,
+            Error,
+            Auc,
+        };
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function." + nameof(LightGbmBinaryTrainer) + ", " + nameof(LightGbmMulticlassTrainer) +
+            " and in " + nameof(LightGbmRankingTrainer) + ".", ShortName = "sigmoid")]
+        [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
+        public double Sigmoid = 0.5;
 
-            [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Evaluation metrics.",
-                ShortName = "em")]
-            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.DefaultMetric;
+        [Argument(ArgumentType.AtMostOnce,
+            HelpText = "Evaluation metrics.",
+            ShortName = "em")]
+        public EvaluateMetricType EvaluationMetric = EvaluateMetricType.DefaultMetric;
+    }
+
+    public class MulticlassClassifierOptions : OptionBase
+    {
+        public enum EvaluateMetricType
+        {
+            Default,
+            Mae,
+            Rmse,
+            Merror,
+            Mlogloss,
         }
 
-        public class Multiclass : OptionBase
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Use softmax loss for the multi classification.")]
+        [TlcModule.SweepableDiscreteParam("UseSoftmax", new object[] { true, false })]
+        public bool? UseSoftmax;
+
+        [Argument(ArgumentType.AtMostOnce,
+            HelpText = "Evaluation metrics.",
+            ShortName = "em")]
+        public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Default;
+    }
+
+    public class RegressionClassifierOptions : OptionBase
+    {
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Comma seperated list of gains associated to each relevance label.", ShortName = "gains")]
+        [TGUI(Label = "Ranking Label Gain")]
+        public string CustomGains = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
+    }
+
+    public class RankingOptions : OptionBase
+    {
+        public enum EvaluateMetricType
         {
-            public enum EvaluateMetricType
-            {
-                Default,
-                Mae,
-                Rmse,
-                Merror,
-                Mlogloss,
-            }
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Use softmax loss for the multi classification.")]
-            [TlcModule.SweepableDiscreteParam("UseSoftmax", new object[] { true, false })]
-            public bool? UseSoftmax;
-
-            [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Evaluation metrics.",
-                ShortName = "em")]
-            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Default;
+            Default,
+            Ndcg,
+            Map
         }
 
-        public class Regression : OptionBase
-        {
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma seperated list of gains associated to each relevance label.", ShortName = "gains")]
-            [TGUI(Label = "Ranking Label Gain")]
-            public string CustomGains = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
-        }
-
-        public class Ranking : OptionBase
-        {
-            public enum EvaluateMetricType
-            {
-                Default,
-                Ndcg,
-                Map
-            }
-
-            [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Evaluation metrics.",
-                ShortName = "em")]
-            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Default;
-        }
+        [Argument(ArgumentType.AtMostOnce,
+            HelpText = "Evaluation metrics.",
+            ShortName = "em")]
+        public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Default;
     }
 
     /// <summary>
