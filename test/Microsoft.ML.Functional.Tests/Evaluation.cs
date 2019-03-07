@@ -237,17 +237,11 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1);
 
-            // Get the dataset.
-            var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(),
-                hasHeader: TestDatasets.housing.fileHasHeader, separatorChar: TestDatasets.housing.fileSeparator)
-                .Load(GetDataPath(TestDatasets.housing.trainFilename));
-
-            // Create a pipeline to train on the sentiment data.
-            var pipeline = mlContext.Transforms.Concatenate("Features", new string[] {
-                    "CrimesPerCapita", "PercentResidental", "PercentNonRetail", "CharlesRiver", "NitricOxides", "RoomsPerDwelling",
-                    "PercentPre40s", "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio"})
-                .Append(mlContext.Transforms.CopyColumns("Label", "MedianHomeValue"))
-                .Append(mlContext.Regression.Trainers.FastTree(new FastTreeRegressionTrainer.Options { NumberOfThreads = 1 }));
+            // Get the dataset
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+            // Create a pipeline to train on the housing data.
+            var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
+                .Append(mlContext.Regression.Trainers.FastForest(new FastForestRegression.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);
