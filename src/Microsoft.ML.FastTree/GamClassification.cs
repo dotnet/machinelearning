@@ -71,7 +71,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string rowGroupColumnName = null,
             int numberOfIterations = GamDefaults.NumberOfIterations,
             double learningRate = GamDefaults.LearningRate,
-            int maximumBinCountPerFeature = GamDefaults.MaximumBinsPerFeature)
+            int maximumBinCountPerFeature = GamDefaults.MaximumBinCountPerFeature)
             : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumnName), featureColumnName, rowGroupColumnName, numberOfIterations, learningRate, maximumBinCountPerFeature)
         {
             _sigmoidParameter = 1;
