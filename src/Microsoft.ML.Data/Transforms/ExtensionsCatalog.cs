@@ -10,7 +10,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Spcifies the names of output and input columns for a transformation.
+    /// Specifies input and output column names for a transformation.
     /// </summary>
     public sealed class ColumnOptions
     {
@@ -18,7 +18,7 @@ namespace Microsoft.ML
         private readonly string _inputColumnName;
 
         /// <summary>
-        /// Spcifies the names of output and input columns for a transformation.
+        /// Specifies input and output column names for a transformation.
         /// </summary>
         /// <param name="outputColumnName">Name of output column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of input column.</param>
@@ -28,6 +28,9 @@ namespace Microsoft.ML
             _inputColumnName = inputColumnName;
         }
 
+        /// <summary>
+        /// Instantiates a <see cref="ColumnOptions"/> from a tuple of input and output column names.
+        /// </summary>
         public static implicit operator ColumnOptions((string outputColumnName, string inputColumnName) value)
         {
             return new ColumnOptions(value.outputColumnName, value.inputColumnName);

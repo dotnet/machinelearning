@@ -37,7 +37,7 @@ namespace Microsoft.ML.Transforms
                 ItemType = type;
             }
 
-            public static Builder Create(DataViewType type, ValueToKeyMappingEstimator.SortOrder sortOrder)
+            public static Builder Create(DataViewType type, ValueToKeyMappingEstimator.MappingOrder sortOrder)
             {
                 Contracts.AssertValue(type);
                 Contracts.Assert(type is VectorType || type is PrimitiveDataViewType);
@@ -45,8 +45,8 @@ namespace Microsoft.ML.Transforms
                 // accept any value, but currently the internal implementations of Builder are split
                 // along this being a purely binary option, for now (though this can easily change
                 // with mot implementations of Builder).
-                Contracts.Assert(sortOrder == ValueToKeyMappingEstimator.SortOrder.Occurrence || sortOrder == ValueToKeyMappingEstimator.SortOrder.Value);
-                bool sorted = sortOrder == ValueToKeyMappingEstimator.SortOrder.Value;
+                Contracts.Assert(sortOrder == ValueToKeyMappingEstimator.MappingOrder.ByOccurrence || sortOrder == ValueToKeyMappingEstimator.MappingOrder.ByValue);
+                bool sorted = sortOrder == ValueToKeyMappingEstimator.MappingOrder.ByValue;
 
                 PrimitiveDataViewType itemType = type.GetItemType() as PrimitiveDataViewType;
                 Contracts.AssertValue(itemType);
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Transforms
                 }
 
                 if (Count == 0)
-                    throw ch.ExceptUserArg(nameof(Options.Term), "Nothing parsed as '{0}'", ItemType);
+                    throw ch.ExceptUserArg(nameof(Options.Key), "Nothing parsed as '{0}'", ItemType);
             }
 
             /// <summary>
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Transforms
                 }
 
                 if (Count == 0)
-                    throw ch.ExceptUserArg(nameof(Options.Term), "Nothing parsed as '{0}'", ItemType);
+                    throw ch.ExceptUserArg(nameof(Options.Key), "Nothing parsed as '{0}'", ItemType);
             }
         }
 

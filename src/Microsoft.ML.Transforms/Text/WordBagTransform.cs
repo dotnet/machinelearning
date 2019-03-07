@@ -298,13 +298,13 @@ namespace Microsoft.ML.Transforms.Text
                     termArgs =
                         new ValueToKeyMappingTransformer.Options()
                         {
-                            MaxNumTerms = int.MaxValue,
-                            Term = termLoaderArgs.Term,
-                            Terms = termLoaderArgs.Terms,
+                            MaximumNumberOfKeys = int.MaxValue,
+                            Key = termLoaderArgs.Term,
+                            Keys = termLoaderArgs.Terms,
                             DataFile = termLoaderArgs.DataFile,
                             Loader = termLoaderArgs.Loader,
-                            TermsColumn = termLoaderArgs.TermsColumn,
-                            Sort = termLoaderArgs.Sort,
+                            KeysColumnName = termLoaderArgs.TermsColumn,
+                            MappingOrder = termLoaderArgs.Sort,
                             Columns = new ValueToKeyMappingTransformer.Column[termCols.Count]
                         };
                     if (termLoaderArgs.DropUnknowns)
@@ -315,7 +315,7 @@ namespace Microsoft.ML.Transforms.Text
                     termArgs =
                         new ValueToKeyMappingTransformer.Options()
                         {
-                            MaxNumTerms = Utils.Size(options.MaxNumTerms) > 0 ? options.MaxNumTerms[0] : NgramExtractingEstimator.Defaults.MaxNumTerms,
+                            MaximumNumberOfKeys = Utils.Size(options.MaxNumTerms) > 0 ? options.MaxNumTerms[0] : NgramExtractingEstimator.Defaults.MaxNumTerms,
                             Columns = new ValueToKeyMappingTransformer.Column[termCols.Count]
                         };
                 }
@@ -328,7 +328,7 @@ namespace Microsoft.ML.Transforms.Text
                         {
                             Name = column.Name,
                             Source = column.Source,
-                            MaxNumTerms = Utils.Size(column.MaxNumTerms) > 0 ? column.MaxNumTerms[0] : default(int?)
+                            MaximumNumberOfKeys = Utils.Size(column.MaxNumTerms) > 0 ? column.MaxNumTerms[0] : default(int?)
                         };
 
                     if (missingDropColumns != null)
@@ -423,7 +423,7 @@ namespace Microsoft.ML.Transforms.Text
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
             "If by value, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').", SortOrder = 5)]
-        public ValueToKeyMappingEstimator.SortOrder Sort = ValueToKeyMappingEstimator.SortOrder.Occurrence;
+        public ValueToKeyMappingEstimator.MappingOrder Sort = ValueToKeyMappingEstimator.MappingOrder.ByOccurrence;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Drop unknown terms instead of mapping them to NA term.", ShortName = "dropna", SortOrder = 6)]
         public bool DropUnknowns = false;

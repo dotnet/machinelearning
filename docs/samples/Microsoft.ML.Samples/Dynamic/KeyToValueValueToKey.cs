@@ -34,12 +34,12 @@ namespace Microsoft.ML.Samples.Dynamic
                 .Append(ml.Transforms.Conversion.MapValueToKey(defaultColumnName, "Review"));
 
             // Another pipeline, that customizes the advanced settings of the ValueToKeyMappingEstimator.
-            // We can change the maxNumTerm to limit how many keys will get generated out of the set of words, 
-            // and condition the order in which they get evaluated by changing sort from the default Occurence (order in which they get encountered) 
+            // We can change the maximumNumberOfKeys to limit how many keys will get generated out of the set of words, 
+            // and condition the order in which they get evaluated by changing mappingOrder from the default ByOccurence (order in which they get encountered) 
             // to value/alphabetically.
             string customizedColumnName = "CustomizedKeys";
             var customized_pipeline = ml.Transforms.Text.TokenizeWords("Review")
-                .Append(ml.Transforms.Conversion.MapValueToKey(customizedColumnName, "Review", maxNumberOfKeys: 10, sort: ValueToKeyMappingEstimator.SortOrder.Value));
+                .Append(ml.Transforms.Conversion.MapValueToKey(customizedColumnName, "Review", maximumNumberOfKeys: 10, mappingOrder: ValueToKeyMappingEstimator.MappingOrder.ByValue));
 
             // The transformed data.
             var transformedData_default = default_pipeline.Fit(trainData).Transform(trainData);

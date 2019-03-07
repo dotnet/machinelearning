@@ -43,8 +43,8 @@ namespace Microsoft.ML.StaticPipe
             Bin = 4,
         }
 
-        private const KeyValueOrder DefSort = (KeyValueOrder)ValueToKeyMappingEstimator.Defaults.Sort;
-        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumberOfKeys;
+        private const KeyValueOrder DefSort = (KeyValueOrder)ValueToKeyMappingEstimator.Defaults.Order;
+        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaximumNumberOfKeys;
         private const OneHotVectorOutputKind DefOut = (OneHotVectorOutputKind)OneHotEncodingEstimator.Defaults.OutKind;
 
         private readonly struct Config
@@ -114,7 +114,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     var tcol = (ICategoricalCol)toOutput[i];
                     infos[i] = new OneHotEncodingEstimator.ColumnOptions(outputNames[toOutput[i]], inputNames[tcol.Input], (OneHotEncodingTransformer.OutputKind)tcol.Config.OutputKind,
-                        tcol.Config.Max, (ValueToKeyMappingEstimator.SortOrder)tcol.Config.Order);
+                        tcol.Config.Max, (ValueToKeyMappingEstimator.MappingOrder)tcol.Config.Order);
                     if (tcol.Config.OnFit != null)
                     {
                         int ii = i; // Necessary because if we capture i that will change to toOutput.Length on call.
@@ -134,13 +134,13 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="input">Incoming data.</param>
         /// <param name="outputKind">Specify the output type of indicator array: array or binary encoded data.</param>
         /// <param name="order">How the Id for each value would be assigined: by occurrence or by value.</param>
-        /// <param name="maxItems">Maximum number of ids to keep during data scanning.</param>
+        /// <param name="maximumNumberOfItems">Maximum number of ids to keep during data scanning.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         public static Vector<float> OneHotEncoding(this Scalar<string> input, OneHotScalarOutputKind outputKind = (OneHotScalarOutputKind)DefOut, KeyValueOrder order = DefSort,
-            int maxItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
+            int maximumNumberOfItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new ImplScalar<string>(input, new Config((OneHotVectorOutputKind)outputKind, order, maxItems, Wrap(onFit)));
+            return new ImplScalar<string>(input, new Config((OneHotVectorOutputKind)outputKind, order, maximumNumberOfItems, Wrap(onFit)));
         }
 
         /// <summary>
@@ -149,13 +149,13 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="input">Incoming data.</param>
         /// <param name="outputKind">Specify the output type of indicator array: Multiarray, array or binary encoded data.</param>
         /// <param name="order">How the Id for each value would be assigined: by occurrence or by value.</param>
-        /// <param name="maxItems">Maximum number of ids to keep during data scanning.</param>
+        /// <param name="maximumNumberOfItems">Maximum number of ids to keep during data scanning.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
-        public static Vector<float> OneHotEncoding(this Vector<string> input, OneHotVectorOutputKind outputKind = DefOut, KeyValueOrder order = DefSort, int maxItems = DefMax,
+        public static Vector<float> OneHotEncoding(this Vector<string> input, OneHotVectorOutputKind outputKind = DefOut, KeyValueOrder order = DefSort, int maximumNumberOfItems = DefMax,
             ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new ImplVector<string>(input, new Config(outputKind, order, maxItems, Wrap(onFit)));
+            return new ImplVector<string>(input, new Config(outputKind, order, maximumNumberOfItems, Wrap(onFit)));
         }
     }
 }

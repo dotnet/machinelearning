@@ -16,17 +16,17 @@ namespace Microsoft.ML.Transforms
         [BestFriend]
         internal static class Defaults
         {
-            public const int MaxNumberOfKeys = 1000000;
-            public const SortOrder Sort = SortOrder.Occurrence;
+            public const int MaximumNumberOfKeys = 1000000;
+            public const MappingOrder Order = MappingOrder.ByOccurrence;
         }
 
         /// <summary>
         /// Controls how the order of the output keys.
         /// </summary>
-        public enum SortOrder : byte
+        public enum MappingOrder : byte
         {
-            Occurrence = 0,
-            Value = 1,
+            ByOccurrence = 0,
+            ByValue = 1,
             // REVIEW: We can think about having a frequency order option. What about
             // other things, like case insensitive (where appropriate), culturally aware, etc.?
         }
@@ -38,26 +38,26 @@ namespace Microsoft.ML.Transforms
         {
             public readonly string OutputColumnName;
             public readonly string InputColumnName;
-            public readonly SortOrder Sort;
-            public readonly int MaxNumberOfKeys;
-            public IReadOnlyList<string> Term => TermArray;
-            internal readonly string[] TermArray;
-            public readonly bool TextKeyValues;
+            public readonly MappingOrder MappingOrder;
+            public readonly int MaximumNumberOfKeys;
+            public IReadOnlyList<string> Keys => KeysArray;
+            internal readonly string[] KeysArray;
+            public readonly bool KeyValuesAnnotationsAsText;
 
             [BestFriend]
-            internal string Terms { get; set; }
+            internal string Key { get; set; }
 
             [BestFriend]
             private protected ColumnOptionsBase(string outputColumnName, string inputColumnName,
-                int maxNumberOfKeys, SortOrder sort, string[] term, bool textKeyValues)
+                int maxNumberOfKeys, MappingOrder mappingOrder, string[] keys, bool keyValuesAnnotationsAsText)
             {
                 Contracts.CheckNonWhiteSpace(outputColumnName, nameof(outputColumnName));
                 OutputColumnName = outputColumnName;
                 InputColumnName = inputColumnName ?? outputColumnName;
-                Sort = sort;
-                MaxNumberOfKeys = maxNumberOfKeys;
-                TermArray = term;
-                TextKeyValues = textKeyValues;
+                MappingOrder = mappingOrder;
+                MaximumNumberOfKeys = maxNumberOfKeys;
+                Keys = keys;
+                KeyValuesAnnotationsAsText = keyValuesAnnotationsAsText;
             }
         }
 
@@ -71,17 +71,17 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-            /// <param name="maxNumberOfKeys">Maximum number of keys to keep per column when auto-training.</param>
-            /// <param name="sort">How items should be ordered when vectorized. If <see cref="SortOrder.Occurrence"/> choosen they will be in the order encountered.
-            /// If <see cref="SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
-            /// <param name="term">List of terms.</param>
-            /// <param name="textKeyValues">Whether key value metadata should be text, regardless of the actual input type.</param>
+            /// <param name="maximumNumberOfKeys">Maximum number of keys to keep per column when auto-training.</param>
+            /// <param name="mappingOrder">How items should be ordered when vectorized. If <see cref="MappingOrder.ByOccurrence"/> choosen they will be in the order encountered.
+            /// If <see cref="MappingOrder.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+            /// <param name="keys">List of terms.</param>
+            /// <param name="keyValuesAnnotationsAsText">Whether key value annotations should be text, regardless of the actual input type.</param>
             public ColumnOptions(string outputColumnName, string inputColumnName = null,
-                int maxNumberOfKeys = Defaults.MaxNumberOfKeys,
-                SortOrder sort = Defaults.Sort,
-                string[] term = null,
-                bool textKeyValues = false)
-                : base(outputColumnName, inputColumnName, maxNumberOfKeys, sort, term, textKeyValues)
+                int maximumNumberOfKeys = Defaults.MaximumNumberOfKeys,
+                MappingOrder mappingOrder = Defaults.Order,
+                string[] keys = null,
+                bool keyValuesAnnotationsAsText = false)
+                : base(outputColumnName, inputColumnName, maximumNumberOfKeys, mappingOrder, keys, keyValuesAnnotationsAsText)
             {
             }
         }
@@ -96,11 +96,11 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">Host Environment.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="maxNumberOfKeys">Maximum number of keys to keep per column when auto-training.</param>
-        /// <param name="sort">How items should be ordered when vectorized. If <see cref="SortOrder.Occurrence"/> choosen they will be in the order encountered.
-        /// If <see cref="SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
-        internal ValueToKeyMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int maxNumberOfKeys = Defaults.MaxNumberOfKeys, SortOrder sort = Defaults.Sort) :
-           this(env, new[] { new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, maxNumberOfKeys, sort) })
+        /// <param name="maximumNumberOfKeys">Maximum number of keys to keep per column when auto-training.</param>
+        /// <param name="sort">How items should be ordered when vectorized. If <see cref="MappingOrder.ByOccurrence"/> choosen they will be in the order encountered.
+        /// If <see cref="MappingOrder.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+        internal ValueToKeyMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int maximumNumberOfKeys = Defaults.MaximumNumberOfKeys, MappingOrder sort = Defaults.Order) :
+           this(env, new [] { new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, maximumNumberOfKeys, sort) })
         {
         }
 
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Transforms
                 if (!col.IsKey || !col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var kv) || kv.Kind != SchemaShape.Column.VectorKind.Vector)
                 {
                     kv = new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector,
-                        colInfo.TextKeyValues ? TextDataViewType.Instance : col.ItemType, col.IsKey);
+                        colInfo.KeyValuesAnnotationsAsText ? TextDataViewType.Instance : col.ItemType, col.IsKey);
                 }
                 Contracts.Assert(kv.IsValid);
 

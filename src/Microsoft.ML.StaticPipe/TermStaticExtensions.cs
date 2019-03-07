@@ -1164,11 +1164,11 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Terms will be assigned ID in the order in which they appear.
         /// </summary>
-        Occurence = ValueToKeyMappingEstimator.SortOrder.Occurrence,
+        Occurence = ValueToKeyMappingEstimator.MappingOrder.ByOccurrence,
 
         /// <summary>
         /// Terms will be assigned ID according to their sort via an ordinal comparison for the type.
         /// </summary>
-        Value = ValueToKeyMappingEstimator.SortOrder.Value
+        Value = ValueToKeyMappingEstimator.MappingOrder.ByValue
     }
 }

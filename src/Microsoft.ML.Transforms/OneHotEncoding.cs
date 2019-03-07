@@ -95,7 +95,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        internal sealed class Options : ValueToKeyMappingTransformer.ArgumentsBase
+        internal sealed class Options : ValueToKeyMappingTransformer.OptionsBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -132,17 +132,17 @@ namespace Microsoft.ML.Transforms
                     column.Name,
                     column.Source ?? column.Name,
                     column.OutputKind ?? options.OutputKind,
-                    column.MaxNumTerms ?? options.MaxNumTerms,
-                    column.Sort ?? options.Sort,
-                    column.Terms ?? options.Terms);
-                col.SetTerms(column.Term ?? options.Term);
+                    column.MaximumNumberOfKeys ?? options.MaximumNumberOfKeys,
+                    column.Sort ?? options.MappingOrder,
+                    column.Keys ?? options.Keys);
+                col.SetTerms(column.Key ?? options.Key);
                 columns.Add(col);
             }
             IDataView keyData = null;
             if (!string.IsNullOrEmpty(options.DataFile))
             {
                 using (var ch = h.Start("Load term data"))
-                    keyData = ValueToKeyMappingTransformer.GetKeyDataViewOrNull(env, ch, options.DataFile, options.TermsColumn, options.Loader, out bool autoLoaded);
+                    keyData = ValueToKeyMappingTransformer.GetKeyDataViewOrNull(env, ch, options.DataFile, options.KeysColumnName, options.Loader, out bool autoLoaded);
                 h.AssertValue(keyData);
             }
             var transformed = new OneHotEncodingEstimator(env, columns.ToArray(), keyData).Fit(input).Transform(input);
@@ -192,22 +192,22 @@ namespace Microsoft.ML.Transforms
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="outputKind">Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector.</param>
-            /// <param name="maxNumberOfTerms">Maximum number of terms to keep per column when auto-training.</param>
-            /// <param name="sort">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.SortOrder.Occurrence"/> choosen they will be in the order encountered.
-            /// If <see cref="ValueToKeyMappingEstimator.SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
-            /// <param name="term">List of terms.</param>
+            /// <param name="maxNumberOfKeys">Maximum number of terms to keep per column when auto-training.</param>
+            /// <param name="mappingOrder">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.MappingOrder.ByOccurrence"/> choosen they will be in the order encountered.
+            /// If <see cref="ValueToKeyMappingEstimator.MappingOrder.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+            /// <param name="keys">List of terms.</param>
             public ColumnOptions(string name, string inputColumnName = null,
                 OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutKind,
-                int maxNumberOfTerms = ValueToKeyMappingEstimator.Defaults.MaxNumberOfKeys, ValueToKeyMappingEstimator.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort,
-                string[] term = null)
-                : base(name, inputColumnName ?? name, maxNumberOfTerms, sort, term, true)
+                int maxNumberOfKeys = ValueToKeyMappingEstimator.Defaults.MaximumNumberOfKeys, ValueToKeyMappingEstimator.MappingOrder mappingOrder = ValueToKeyMappingEstimator.Defaults.Order,
+                string[] keys = null)
+                : base(name, inputColumnName ?? name, maxNumberOfKeys, mappingOrder, keys, true)
             {
                 OutputKind = outputKind;
             }
 
             internal void SetTerms(string terms)
             {
-                Terms = terms;
+                Key = terms;
             }
 
         }

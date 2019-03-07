@@ -42,7 +42,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         private const OneHotHashVectorOutputKind DefOut = (OneHotHashVectorOutputKind)OneHotHashEncodingEstimator.Defaults.OutputKind;
-        private const int DefHashBits = OneHotHashEncodingEstimator.Defaults.HashBits;
+        private const int DefHashBits = OneHotHashEncodingEstimator.Defaults.NumberOfHashBits;
         private const uint DefSeed = OneHotHashEncodingEstimator.Defaults.Seed;
         private const bool DefOrdered = OneHotHashEncodingEstimator.Defaults.Ordered;
         private const int DefInvertHash = OneHotHashEncodingEstimator.Defaults.InvertHash;

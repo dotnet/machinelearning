@@ -23,14 +23,14 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
+        /// <param name="numberOfHashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
         /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <paramref name="invertHash"/>Specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public static HashingEstimator Hash(this TransformsCatalog.ConversionTransforms catalog, string outputColumnName, string inputColumnName = null,
-            int hashBits = HashDefaults.HashBits, int invertHash = HashDefaults.InvertHash)
-            => new HashingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, hashBits, invertHash);
+            int numberOfHashBits = HashDefaults.NumberOfHashBits, int invertHash = HashDefaults.InvertHash)
+            => new HashingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, numberOfHashBits, invertHash);
 
         /// <summary>
         /// Hashes the values in the input column.
@@ -110,10 +110,10 @@ namespace Microsoft.ML
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="bag">Whether bagging is used for the conversion. </param>
+        /// <param name="useBagging">Whether bagging is used for the conversion. </param>
         public static KeyToVectorMappingEstimator MapKeyToVector(this TransformsCatalog.ConversionTransforms catalog,
-            string outputColumnName, string inputColumnName = null, bool bag = KeyToVectorMappingEstimator.Defaults.Bag)
-            => new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, bag);
+            string outputColumnName, string inputColumnName = null, bool useBagging = KeyToVectorMappingEstimator.Defaults.UseBagging)
+            => new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, useBagging);
 
         /// <summary>
         /// Converts value types into <see cref="KeyType"/>.
@@ -121,9 +121,9 @@ namespace Microsoft.ML
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="maxNumberOfKeys">Maximum number of keys to keep per column when auto-training.</param>
-        /// <param name="sort">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.SortOrder.Occurrence"/> choosen they will be in the order encountered.
-        /// If <see cref="ValueToKeyMappingEstimator.SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+        /// <param name="maximumNumberOfKeys">Maximum number of keys to keep per column when auto-training.</param>
+        /// <param name="mappingOrder">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.MappingOrder.ByOccurrence"/> choosen they will be in the order encountered.
+        /// If <see cref="ValueToKeyMappingEstimator.MappingOrder.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -134,9 +134,9 @@ namespace Microsoft.ML
         public static ValueToKeyMappingEstimator MapValueToKey(this TransformsCatalog.ConversionTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
-            int maxNumberOfKeys = ValueToKeyMappingEstimator.Defaults.MaxNumberOfKeys,
-            ValueToKeyMappingEstimator.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort)
-           => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, maxNumberOfKeys, sort);
+            int maximumNumberOfKeys = ValueToKeyMappingEstimator.Defaults.MaximumNumberOfKeys,
+            ValueToKeyMappingEstimator.MappingOrder mappingOrder = ValueToKeyMappingEstimator.Defaults.Order)
+           => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, maximumNumberOfKeys, mappingOrder);
 
         /// <summary>
         /// Converts value types into <see cref="KeyType"/>, optionally loading the keys to use from <paramref name="keyData"/>.

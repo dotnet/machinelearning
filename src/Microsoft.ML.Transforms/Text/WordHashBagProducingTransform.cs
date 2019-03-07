@@ -287,7 +287,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             public const int NgramLength = 1;
             public const int SkipLength = 0;
-            public const int HashBits = 16;
+            public const int NumberOfHashBits = 16;
             public const uint Seed = 314489979;
             public const bool Ordered = true;
             public const int InvertHash = 0;
@@ -383,13 +383,13 @@ namespace Microsoft.ML.Transforms.Text
                 var termArgs =
                     new ValueToKeyMappingTransformer.Options()
                     {
-                        MaxNumTerms = int.MaxValue,
-                        Term = termLoaderArgs.Term,
-                        Terms = termLoaderArgs.Terms,
+                        MaximumNumberOfKeys = int.MaxValue,
+                        Key = termLoaderArgs.Term,
+                        Keys = termLoaderArgs.Terms,
                         DataFile = termLoaderArgs.DataFile,
                         Loader = termLoaderArgs.Loader,
-                        TermsColumn = termLoaderArgs.TermsColumn,
-                        Sort = termLoaderArgs.Sort,
+                        KeysColumnName = termLoaderArgs.TermsColumn,
+                        MappingOrder = termLoaderArgs.Sort,
                         Columns = termCols.ToArray()
                     };
                 view = ValueToKeyMappingTransformer.Create(h, termArgs, view);

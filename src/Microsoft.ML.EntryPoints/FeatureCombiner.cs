@@ -103,7 +103,7 @@ namespace Microsoft.ML.EntryPoints
                     new ValueToKeyMappingTransformer.Options()
                     {
                         Columns = ktv
-                            .Select(c => new ValueToKeyMappingTransformer.Column() { Name = c.Name, Source = c.Name, Term = GetTerms(viewTrain, c.InputColumnName) })
+                            .Select(c => new ValueToKeyMappingTransformer.Column() { Name = c.Name, Source = c.Name, Key = GetTerms(viewTrain, c.InputColumnName) })
                             .ToArray(),
                         TextKeyValues = true
                     },
@@ -253,7 +253,7 @@ namespace Microsoft.ML.EntryPoints
                         Name = input.LabelColumn,
                         Source = input.LabelColumn,
                         TextKeyValues = input.TextKeyValues,
-                        Sort = ValueToKeyMappingEstimator.SortOrder.Value
+                        Sort = ValueToKeyMappingEstimator.MappingOrder.ByValue
                     }
                 }
             };

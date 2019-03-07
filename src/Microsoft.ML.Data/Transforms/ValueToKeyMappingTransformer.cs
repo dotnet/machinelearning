@@ -47,18 +47,18 @@ namespace Microsoft.ML.Transforms
         [BestFriend]
         internal abstract class ColumnBase : OneToOneColumn
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep when auto-training", ShortName = "max")]
-            public int? MaxNumTerms;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of keys to keep when auto-training", ShortName = "max")]
+            public int? MaximumNumberOfKeys;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Name = "Terms", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public string Term;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of keys", Name = "Key", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
+            public string Key;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", Name = "Term", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public string[] Terms;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "List of keys", Name = "Keys", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            public string[] Keys;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
                 "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').")]
-            public ValueToKeyMappingEstimator.SortOrder? Sort;
+            public ValueToKeyMappingEstimator.MappingOrder? Sort;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether key value metadata should be text, regardless of the actual input type", ShortName = "textkv", Hide = true)]
             public bool? TextKeyValues;
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Transforms
                 // REVIEW: This pattern isn't robust enough. If a new field is added, this code needs
                 // to be updated accordingly, or it will break. The only protection we have against this
                 // is unit tests....
-                if (MaxNumTerms != null || !string.IsNullOrEmpty(Term) || Sort != null || TextKeyValues != null)
+                if (MaximumNumberOfKeys != null || !string.IsNullOrEmpty(Key) || Sort != null || TextKeyValues != null)
                     return false;
                 return base.TryUnparseCore(sb);
             }
@@ -99,26 +99,26 @@ namespace Microsoft.ML.Transforms
         }
 
         [BestFriend]
-        internal abstract class ArgumentsBase : TransformInputBase
+        internal abstract class OptionsBase : TransformInputBase
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep per column when auto-training", ShortName = "max", SortOrder = 5)]
-            public int MaxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumberOfKeys;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of keys to keep per column when auto-training", ShortName = "max", SortOrder = 5)]
+            public int MaximumNumberOfKeys = ValueToKeyMappingEstimator.Defaults.MaximumNumberOfKeys;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Name = "Terms", SortOrder = 105, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public string Term;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of keys", Name = "Key", SortOrder = 105, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
+            public string Key;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", Name = "Term", SortOrder = 106, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public string[] Terms;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "List of keys", Name = "Keys", SortOrder = 106, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            public string[] Keys;
 
-            [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Data file containing the terms", ShortName = "data", SortOrder = 110, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
+            [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Data file containing the keys", ShortName = "data", SortOrder = 110, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string DataFile;
 
             [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 111, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureDataLoader))]
             [BestFriend]
             internal IComponentFactory<IMultiStreamSource, ILegacyDataLoader> Loader;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the text column containing the terms", ShortName = "termCol", SortOrder = 112, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public string TermsColumn;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the text column containing the keys", ShortName = "keysCol", SortOrder = 112, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
+            public string KeysColumnName;
 
             // REVIEW: The behavior of sorting when doing term on an input key value is to sort on the key numbers themselves,
             // that is, to maintain the relative order of the key values. The alternative is that, for these, we would sort on the key
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Transforms
             // REVIEW: Should we always sort? Opinions are mixed. See work item 7797429.
             [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
                 "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').", SortOrder = 113)]
-            public ValueToKeyMappingEstimator.SortOrder Sort = ValueToKeyMappingEstimator.Defaults.Sort;
+            public ValueToKeyMappingEstimator.MappingOrder MappingOrder = ValueToKeyMappingEstimator.Defaults.Order;
 
             // REVIEW: Should we do this here, or correct the various pieces of code here and in MRS etc. that
             // assume key-values will be string? Once we correct these things perhaps we can see about removing it.
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Transforms
         }
 
         [BestFriend]
-        internal sealed class Options : ArgumentsBase
+        internal sealed class Options : OptionsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -262,7 +262,7 @@ namespace Microsoft.ML.Transforms
                 _unboundMaps = Train(Host, ch, infos, keyData, columns, input, autoConvert);
                 _textMetadata = new bool[_unboundMaps.Length];
                 for (int iinfo = 0; iinfo < columns.Length; ++iinfo)
-                    _textMetadata[iinfo] = columns[iinfo].TextKeyValues;
+                    _textMetadata[iinfo] = columns[iinfo].KeyValuesAnnotationsAsText;
                 ch.Assert(_unboundMaps.Length == columns.Length);
             }
         }
@@ -279,32 +279,32 @@ namespace Microsoft.ML.Transforms
             var cols = new ValueToKeyMappingEstimator.ColumnOptions[options.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
-                if ((options.Terms != null || !string.IsNullOrEmpty(options.Term)) &&
+                if ((options.Keys != null || !string.IsNullOrEmpty(options.Key)) &&
                   (!string.IsNullOrWhiteSpace(options.DataFile) || options.Loader != null ||
-                      !string.IsNullOrWhiteSpace(options.TermsColumn)))
+                      !string.IsNullOrWhiteSpace(options.KeysColumnName)))
                 {
                     ch.Warning("Explicit term list specified. Data file arguments will be ignored");
                 }
-                if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.SortOrder), options.Sort))
-                    throw ch.ExceptUserArg(nameof(options.Sort), "Undefined sorting criteria '{0}' detected", options.Sort);
+                if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.MappingOrder), options.MappingOrder))
+                    throw ch.ExceptUserArg(nameof(options.MappingOrder), "Undefined sorting criteria '{0}' detected", options.MappingOrder);
 
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var item = options.Columns[i];
-                    var sortOrder = item.Sort ?? options.Sort;
-                    if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.SortOrder), sortOrder))
-                        throw env.ExceptUserArg(nameof(options.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.Name);
+                    var sortOrder = item.Sort ?? options.MappingOrder;
+                    if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.MappingOrder), sortOrder))
+                        throw env.ExceptUserArg(nameof(options.MappingOrder), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.Name);
 
                     cols[i] = new ValueToKeyMappingEstimator.ColumnOptions(
                         item.Name,
                         item.Source ?? item.Name,
-                        item.MaxNumTerms ?? options.MaxNumTerms,
+                        item.MaximumNumberOfKeys ?? options.MaximumNumberOfKeys,
                         sortOrder,
-                        item.Terms,
+                        item.Keys,
                         item.TextKeyValues ?? options.TextKeyValues);
-                    cols[i].Terms = item.Term ?? options.Term;
+                    cols[i].Key = item.Key ?? options.Key;
                 };
-                var keyData = GetKeyDataViewOrNull(env, ch, options.DataFile, options.TermsColumn, options.Loader, out bool autoLoaded);
+                var keyData = GetKeyDataViewOrNull(env, ch, options.DataFile, options.KeysColumnName, options.Loader, out bool autoLoaded);
                 return new ValueToKeyMappingTransformer(env, input, cols, keyData, autoLoaded).MakeDataTransform(input);
             }
         }
@@ -374,7 +374,7 @@ namespace Microsoft.ML.Transforms
 
         /// <summary>
         /// Returns a single-column <see cref="IDataView"/>, based on values from <see cref="Options"/>,
-        /// in the case where <see cref="ArgumentsBase.DataFile"/> is set. If that is not set, this will
+        /// in the case where <see cref="OptionsBase.DataFile"/> is set. If that is not set, this will
         /// return <see langword="null"/>.
         /// </summary>
         /// <param name="env">The host environment.</param>
@@ -436,7 +436,7 @@ namespace Microsoft.ML.Transforms
                     {
                         ch.Warning(
                             "{0} should not be specified when default loader is " + nameof(TextLoader) + ". Ignoring {0}={1}",
-                            nameof(Options.TermsColumn), src);
+                            nameof(Options.KeysColumnName), src);
                     }
 
                     // Create text loader.
@@ -531,14 +531,14 @@ namespace Microsoft.ML.Transforms
             for (int iinfo = 0; iinfo < infos.Length; iinfo++)
             {
                 // First check whether we have a terms argument, and handle it appropriately.
-                var terms = columns[iinfo].Terms.AsMemory();
-                var termsArray = columns[iinfo].TermArray;
+                var terms = columns[iinfo].Key.AsMemory();
+                var termsArray = columns[iinfo].KeysArray;
 
                 terms = ReadOnlyMemoryUtils.TrimSpaces(terms);
                 if (!terms.IsEmpty || (termsArray != null && termsArray.Length > 0))
                 {
                     // We have terms! Pass it in.
-                    var sortOrder = columns[iinfo].Sort;
+                    var sortOrder = columns[iinfo].MappingOrder;
                     var bldr = Builder.Create(infos[iinfo].TypeSrc, sortOrder);
                     if (!terms.IsEmpty)
                         bldr.ParseAddTermArg(ref terms, ch);
@@ -551,7 +551,7 @@ namespace Microsoft.ML.Transforms
                     // First column using this file.
                     if (termsFromFile == null)
                     {
-                        var bldr = Builder.Create(infos[iinfo].TypeSrc, columns[iinfo].Sort);
+                        var bldr = Builder.Create(infos[iinfo].TypeSrc, columns[iinfo].MappingOrder);
                         termsFromFile = CreateTermMapFromData(env, ch, keyData, autoConvert, bldr);
                     }
                     if (!termsFromFile.ItemType.Equals(infos[iinfo].TypeSrc.GetItemType()))
@@ -569,8 +569,8 @@ namespace Microsoft.ML.Transforms
                 else
                 {
                     // Auto train this column. Leave the term map null for now, but set the lim appropriately.
-                    lims[iinfo] = columns[iinfo].MaxNumberOfKeys;
-                    ch.CheckUserArg(lims[iinfo] > 0, nameof(Column.MaxNumTerms), "Must be positive");
+                    lims[iinfo] = columns[iinfo].MaximumNumberOfKeys;
+                    ch.CheckUserArg(lims[iinfo] > 0, nameof(Column.MaximumNumberOfKeys), "Must be positive");
                     Contracts.Check(trainingData.Schema.TryGetColumnIndex(infos[iinfo].InputColumnName, out int colIndex));
                     Utils.Add(ref toTrain, colIndex);
                     ++trainsNeeded;
@@ -597,7 +597,7 @@ namespace Microsoft.ML.Transforms
                     {
                         if (termMap[iinfo] != null)
                             continue;
-                        var bldr = Builder.Create(infos[iinfo].TypeSrc, columns[iinfo].Sort);
+                        var bldr = Builder.Create(infos[iinfo].TypeSrc, columns[iinfo].MappingOrder);
                         trainerInfo[itrainer] = iinfo;
                         trainingData.Schema.TryGetColumnIndex(infos[iinfo].InputColumnName, out int colIndex);
                         trainer[itrainer++] = Trainer.Create(cursor, colIndex, false, lims[iinfo], bldr);

@@ -94,7 +94,7 @@ namespace Microsoft.ML.Transforms
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bits to hash into. Must be between 1 and 30, inclusive.",
                 ShortName = "bits", SortOrder = 2)]
-            public int HashBits = OneHotHashEncodingEstimator.Defaults.HashBits;
+            public int HashBits = OneHotHashEncodingEstimator.Defaults.NumberOfHashBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
             public uint Seed = OneHotHashEncodingEstimator.Defaults.Seed;
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Transforms
             IDataView input,
             string name,
             string source = null,
-            int hashBits = OneHotHashEncodingEstimator.Defaults.HashBits,
+            int hashBits = OneHotHashEncodingEstimator.Defaults.NumberOfHashBits,
             int invertHash = OneHotHashEncodingEstimator.Defaults.InvertHash,
             OneHotEncodingTransformer.OutputKind outputKind = OneHotHashEncodingEstimator.Defaults.OutputKind)
         {
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Transforms
         [BestFriend]
         internal static class Defaults
         {
-            public const int HashBits = 16;
+            public const int NumberOfHashBits = 16;
             public const uint Seed = 314489979;
             public const bool Ordered = true;
             public const int InvertHash = 0;
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Transforms
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="outputKind">Kind of output: bag, indicator vector etc.</param>
-            /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
+            /// <param name="numberOfHashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
             /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
             /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
@@ -237,12 +237,12 @@ namespace Microsoft.ML.Transforms
             /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
             public ColumnOptions(string name, string inputColumnName = null,
                 OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutputKind,
-                int hashBits = Defaults.HashBits,
+                int numberOfHashBits = Defaults.NumberOfHashBits,
                 uint seed = Defaults.Seed,
                 bool ordered = Defaults.Ordered,
                 int invertHash = Defaults.InvertHash)
             {
-                HashInfo = new HashingEstimator.ColumnOptions(name, inputColumnName ?? name, hashBits, seed, ordered, invertHash);
+                HashInfo = new HashingEstimator.ColumnOptions(name, inputColumnName ?? name, numberOfHashBits, seed, ordered, invertHash);
                 OutputKind = outputKind;
             }
         }
@@ -267,7 +267,7 @@ namespace Microsoft.ML.Transforms
         internal OneHotHashEncodingEstimator(IHostEnvironment env,
             string outputColumnName,
             string inputColumnName = null,
-            int hashBits = Defaults.HashBits,
+            int hashBits = Defaults.NumberOfHashBits,
             int invertHash = Defaults.InvertHash,
             OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutputKind)
             : this(env, new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, outputKind, hashBits, invertHash: invertHash))
