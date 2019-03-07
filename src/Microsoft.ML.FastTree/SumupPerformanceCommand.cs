@@ -82,7 +82,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // Capture the environment options from args.
             env.CheckUserArg(!args.Parallel.HasValue || args.Parallel > 0, nameof(args.Parallel), "If defined must be positive");
 
-            _host = env.Register("FastTreeSumupPerformance", args.RandomSeed, args.Verbose, args.Parallel);
+            _host = env.Register("FastTreeSumupPerformance", args.RandomSeed, args.Verbose);
             _host.CheckValue(args, nameof(args));
 
             _host.CheckUserArg(Enum.IsDefined(typeof(IntArrayType), args.Type) && args.Type != IntArrayType.Current, nameof(args.Type), "Value not defined");

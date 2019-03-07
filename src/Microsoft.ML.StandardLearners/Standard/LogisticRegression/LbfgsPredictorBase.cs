@@ -435,12 +435,6 @@ namespace Microsoft.ML.Trainers
             // Compute the number of threads to use. The ctor should have verified that this will
             // produce a positive value.
             int numThreads = !UseThreads ? 1 : (NumThreads ?? Environment.ProcessorCount);
-            if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
-            {
-                numThreads = Host.ConcurrencyFactor;
-                ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
-                        + "setting of the environment. Using {0} training threads instead.", numThreads);
-            }
 
             ch.Assert(numThreads > 0);
 

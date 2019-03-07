@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.FastTree;
 
@@ -20,22 +19,22 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of datapoints allowed in a leaf of a regression tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         public static FastTreeRegressionTrainer FastTree(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+            int numberOfLeaves = Defaults.NumberOfLeaves,
+            int numberOfTrees = Defaults.NumberOfTrees,
+            int minimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf,
+            double learningRate = Defaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FastTreeRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numLeaves, numTrees, minDatapointsInLeaves, learningRate);
+            return new FastTreeRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf, learningRate);
         }
 
         /// <summary>
@@ -60,22 +59,22 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         public static FastTreeBinaryClassificationTrainer FastTree(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+            int numberOfLeaves = Defaults.NumberOfLeaves,
+            int numberOfTrees = Defaults.NumberOfTrees,
+            int minimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf,
+            double learningRate = Defaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FastTreeBinaryClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numLeaves, numTrees, minDatapointsInLeaves, learningRate);
+            return new FastTreeBinaryClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf, learningRate);
         }
 
         /// <summary>
@@ -101,23 +100,23 @@ namespace Microsoft.ML
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="rowGroupColumnName">The name of the group column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         public static FastTreeRankingTrainer FastTree(this RankingCatalog.RankingTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string rowGroupColumnName = DefaultColumnNames.GroupId,
             string exampleWeightColumnName = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+            int numberOfLeaves = Defaults.NumberOfLeaves,
+            int numberOfTrees = Defaults.NumberOfTrees,
+            int minimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf,
+            double learningRate = Defaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FastTreeRankingTrainer(env, labelColumnName, featureColumnName, rowGroupColumnName, exampleWeightColumnName, numLeaves, numTrees, minDatapointsInLeaves, learningRate);
+            return new FastTreeRankingTrainer(env, labelColumnName, featureColumnName, rowGroupColumnName, exampleWeightColumnName, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf, learningRate);
         }
 
         /// <summary>
@@ -142,20 +141,20 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="numIterations">The number of iterations to use in learning the features.</param>
+        /// <param name="numberOfIterations">The number of iterations to use in learning the features.</param>
+        /// <param name="maximumBinCountPerFeature">The maximum number of bins to use to approximate features.</param>
         /// <param name="learningRate">The learning rate. GAMs work best with a small learning rate.</param>
-        /// <param name="maxBins">The maximum number of bins to use to approximate features.</param>
         public static BinaryClassificationGamTrainer GeneralizedAdditiveModels(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int numIterations = GamDefaults.NumIterations,
-            double learningRate = GamDefaults.LearningRates,
-            int maxBins = GamDefaults.MaxBins)
+            int numberOfIterations = GamDefaults.NumberOfIterations,
+            int maximumBinCountPerFeature = GamDefaults.MaximumBinCountPerFeature,
+            double learningRate = GamDefaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new BinaryClassificationGamTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numIterations, learningRate, maxBins);
+            return new BinaryClassificationGamTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfIterations, learningRate, maximumBinCountPerFeature);
         }
 
         /// <summary>
@@ -178,20 +177,20 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="numIterations">The number of iterations to use in learning the features.</param>
+        /// <param name="numberOfIterations">The number of iterations to use in learning the features.</param>
+        /// <param name="maxBinCountPerFeature">The maximum number of bins to use to approximate features.</param>
         /// <param name="learningRate">The learning rate. GAMs work best with a small learning rate.</param>
-        /// <param name="maxBins">The maximum number of bins to use to approximate features.</param>
         public static RegressionGamTrainer GeneralizedAdditiveModels(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int numIterations = GamDefaults.NumIterations,
-            double learningRate = GamDefaults.LearningRates,
-            int maxBins = GamDefaults.MaxBins)
+            int numberOfIterations = GamDefaults.NumberOfIterations,
+            int maxBinCountPerFeature = GamDefaults.MaximumBinCountPerFeature,
+            double learningRate = GamDefaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new RegressionGamTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numIterations, learningRate, maxBins);
+            return new RegressionGamTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfIterations, learningRate, maxBinCountPerFeature);
         }
 
         /// <summary>
@@ -222,10 +221,10 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+            int numLeaves = Defaults.NumberOfLeaves,
+            int numTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf,
+            double learningRate = Defaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -261,9 +260,9 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves)
+            int numLeaves = Defaults.NumberOfLeaves,
+            int numTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -299,9 +298,9 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves)
+            int numLeaves = Defaults.NumberOfLeaves,
+            int numTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);

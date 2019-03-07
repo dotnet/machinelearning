@@ -405,7 +405,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var dynamicpipeline = mlContext.Transforms.Categorical.OneHotEncoding("DemographicCategory")
                 .Append(new ColumnConcatenatingEstimator (mlContext, "Features", "DemographicCategory", "LastVisits"))
                 .AppendCacheCheckpoint(mlContext) // FastTree will benefit from caching data in memory.
-                .Append(mlContext.BinaryClassification.Trainers.FastTree("HasChurned", "Features", numTrees: 20));
+                .Append(mlContext.BinaryClassification.Trainers.FastTree("HasChurned", "Features", numberOfTrees: 20));
 
             var dynamicModel = dynamicpipeline.Fit(trainData);
 
@@ -422,7 +422,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     r.HasChurned,
                     Features: r.DemographicCategory.OneHotEncoding().ConcatWith(r.LastVisits)))
                 .AppendCacheCheckpoint() // FastTree will benefit from caching data in memory.
-                .Append(r => mlContext.BinaryClassification.Trainers.FastTree(r.HasChurned, r.Features, numTrees: 20));
+                .Append(r => mlContext.BinaryClassification.Trainers.FastTree(r.HasChurned, r.Features, numberOfTrees: 20));
 
             var staticModel = staticpipeline.Fit(staticData);
 
@@ -550,7 +550,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     // Concatenate two of the 3 categorical pipelines, and the numeric features.
                     Features: r.NumericalFeatures.ConcatWith(r.CategoricalBag, r.WorkclassOneHotTrimmed)))
                 // Now we're ready to train. We chose our FastTree trainer for this classification task.
-                .Append(r => mlContext.BinaryClassification.Trainers.FastTree(r.Label, r.Features, numTrees: 50));
+                .Append(r => mlContext.BinaryClassification.Trainers.FastTree(r.Label, r.Features, numberOfTrees: 50));
 
             // Train the model.
             var model = fullpipeline.Fit(data);

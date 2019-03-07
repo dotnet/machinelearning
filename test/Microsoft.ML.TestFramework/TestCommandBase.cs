@@ -699,7 +699,7 @@ namespace Microsoft.ML.RunTests
                         col=Label:Num:0}}
                     xf=Categorical{{col=CatFeatures:CatFeaturesText}}
                     xf=Concat{{col=Features:NumFeatures,CatFeatures}}
-                    trainer=ft{{iter=1 numLeaves=2}}
+                    trainer=ft{{numberOfTrees=1 numberOfLeaves=2}}
                     out={{{1}}}", trainDataPath, modelPath);
             RunMTAThread(new ThreadStart(() => MainForTest(args)));
             TestCore("showschema", string.Format("steps+ in={{{0}}} meta+", modelPath));

@@ -22,7 +22,7 @@ namespace Microsoft.ML.Scenarios
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var data = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]

@@ -138,7 +138,7 @@ namespace Microsoft.ML.Trainers
 
             Host.CheckUserArg(!options.NumberOfThreads.HasValue || options.NumberOfThreads > 0, nameof(options.NumberOfThreads),
                 "Must be either null or a positive integer.");
-            _numThreads = ComputeNumThreads(Host, options.NumberOfThreads);
+            _numThreads = ComputeNumThreads(options.NumberOfThreads);
             Info = new TrainerInfo();
         }
 
@@ -219,18 +219,13 @@ namespace Microsoft.ML.Trainers
             return new KMeansModelParameters(Host, _k, centroids, copyIn: true);
         }
 
-        private static int ComputeNumThreads(IHost host, int? argNumThreads)
+        private static int ComputeNumThreads(int? argNumThreads)
         {
             // REVIEW: For small data sets it would be nice to clamp down on concurrency, it
             // isn't going to get us a performance improvement.
-            int maxThreads;
-            if (host.ConcurrencyFactor < 1)
-                maxThreads = Environment.ProcessorCount / 2;
-            else
-                maxThreads = host.ConcurrencyFactor;
+            int maxThreads = Environment.ProcessorCount / 2;
 
-            // If we specified a number of threads that's fine, but it must be below the
-            // host-set concurrency factor.
+            // If we specified a number of threads that's fine, but it must be below maxThreads.
             if (argNumThreads.HasValue)
                 maxThreads = Math.Min(maxThreads, argNumThreads.Value);
 

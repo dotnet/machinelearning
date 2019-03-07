@@ -28,7 +28,7 @@ namespace Microsoft.ML.Transforms
         internal ColumnConcatenatingEstimator(IHostEnvironment env, string outputColumnName, params string[] inputColumnNames)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register("ColumnConcatenatingEstimator ");
+            _host = env.Register(nameof(ColumnConcatenatingEstimator));
 
             _host.CheckNonEmpty(outputColumnName, nameof(outputColumnName));
             _host.CheckValue(inputColumnNames, nameof(inputColumnNames));

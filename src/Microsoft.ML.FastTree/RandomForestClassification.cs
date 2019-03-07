@@ -10,7 +10,6 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
 
@@ -33,13 +32,13 @@ namespace Microsoft.ML.Trainers.FastTree
     public abstract class FastForestOptionsBase : TreeOptions
     {
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of labels to be sampled from each leaf to make the distribtuion", ShortName = "qsc")]
-        public int QuantileSampleCount = 100;
+        public int NumberOfQuantileSamples = 100;
 
         public FastForestOptionsBase()
         {
             FeatureFraction = 0.7;
             BaggingSize = 1;
-            SplitFraction = 0.7;
+            FeatureFractionPerSplit = 0.7;
         }
     }
 
@@ -112,7 +111,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public sealed class Options : FastForestOptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo")]
-            public Double MaxTreeOutput = 100;
+            public Double MaximumOutputMagnitudePerTree = 100;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
@@ -135,23 +134,23 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Initializes a new instance of <see cref="FastForestClassification"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
-        /// <param name="numLeaves">The max number of leaves in each regression tree.</param>
-        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="exampleWeightColumnName">The name for the column containing the example weight.</param>
+        /// <param name="numberOfLeaves">The max number of leaves in each regression tree.</param>
+        /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
         internal FastForestClassification(IHostEnvironment env,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weightColumn = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves)
-            : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves)
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string exampleWeightColumnName = null,
+            int numberOfLeaves = Defaults.NumberOfLeaves,
+            int numberOfTrees = Defaults.NumberOfTrees,
+            int minimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf)
+            : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumnName), featureColumnName, exampleWeightColumnName, null, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf)
         {
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            Host.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
+            Host.CheckNonEmpty(featureColumnName, nameof(featureColumnName));
         }
 
         /// <summary>
@@ -231,7 +230,7 @@ namespace Microsoft.ML.Trainers.FastTree
             private readonly bool[] _labels;
 
             public ObjectiveFunctionImpl(Dataset trainSet, bool[] trainSetLabels, Options options)
-                : base(trainSet, options, options.MaxTreeOutput)
+                : base(trainSet, options, options.MaximumOutputMagnitudePerTree)
             {
                 _labels = trainSetLabels;
             }

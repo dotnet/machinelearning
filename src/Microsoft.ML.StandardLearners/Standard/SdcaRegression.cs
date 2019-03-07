@@ -133,15 +133,7 @@ namespace Microsoft.ML.Trainers
 
         // REVIEW: No extra benefits from using more threads in training.
         private protected override int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
-        {
-            int maxThreads;
-            if (Host.ConcurrencyFactor < 1)
-                maxThreads = Math.Min(2, Math.Max(1, Environment.ProcessorCount / 2));
-            else
-                maxThreads = Host.ConcurrencyFactor;
-
-            return maxThreads;
-        }
+            => Math.Min(2, Math.Max(1, Environment.ProcessorCount / 2));
 
         // Using a different logic for default L2 parameter in regression.
         private protected override float TuneDefaultL2(IChannel ch, int maxIterations, long rowCount, int numThreads)
