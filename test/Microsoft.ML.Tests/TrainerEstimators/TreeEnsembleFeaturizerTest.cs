@@ -24,9 +24,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var trainer = ML.BinaryClassification.Trainers.FastTree(
                 new FastTreeBinaryClassificationTrainer.Options
                 {
-                    NumThreads = 1,
-                    NumTrees = 10,
-                    NumLeaves = 5,
+                    NumberOfThreads = 1,
+                    NumberOfTrees = 10,
+                    NumberOfLeaves = 5,
                 });
 
             // Train the defined tree model.

@@ -142,7 +142,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Load the model.
             using (var file = File.OpenRead(modelPath))
-                model = TransformerChain.LoadFrom(ml, file);
+                model = ml.Model.Load(file);
 
             // We must create a new prediction engine from the persisted model.
             engine = model.CreateTimeSeriesPredictionFunction<SsaChangePointData, ChangePointPrediction>(ml);

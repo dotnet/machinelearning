@@ -31,7 +31,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformMatrixMultiplicationTest()
         {
             var modelLocation = "model_matmul/frozen_saved_model.pb";
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             // Pipeline
             var loader = mlContext.Data.LoadFromEnumerable(
                     new List<TestData>(new TestData[] {
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Scenarios
                                                      2.0f, 2.0f },
                                          b = new[] { 3.0f, 3.0f,
                                                      3.0f, 3.0f } } }));
-            var trans = mlContext.Transforms.ScoreTensorFlowModel(modelLocation, new[] { "c" }, new[] { "a", "b" }).Fit(loader).Transform(loader);
+            var trans = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(new[] { "c" }, new[] { "a", "b" }).Fit(loader).Transform(loader);
 
             using (var cursor = trans.GetRowCursorForAllColumns())
             {
@@ -126,14 +126,14 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformInputShapeTest()
         {
             var modelLocation = "model_shape_test";
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var data = GetShapeData();
             // Pipeline
             var loader = mlContext.Data.LoadFromEnumerable(data);
             var inputs = new string[] { "OneDim", "TwoDim", "ThreeDim", "FourDim", "FourDimKnown" };
             var outputs = new string[] { "o_OneDim", "o_TwoDim", "o_ThreeDim", "o_FourDim", "o_FourDimKnown" };
 
-            var trans = mlContext.Transforms.ScoreTensorFlowModel(modelLocation, outputs, inputs).Fit(loader).Transform(loader);
+            var trans = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(outputs, inputs).Fit(loader).Transform(loader);
 
             using (var cursor = trans.GetRowCursorForAllColumns())
             {
@@ -246,14 +246,14 @@ namespace Microsoft.ML.Scenarios
                                                 b = new bool[] { false, false },
                             } });
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             // Pipeline
 
             var loader = mlContext.Data.LoadFromEnumerable(data);
 
             var inputs = new string[] { "f64", "f32", "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8", "b" };
             var outputs = new string[] { "o_f64", "o_f32", "o_i64", "o_i32", "o_i16", "o_i8", "o_u64", "o_u32", "o_u16", "o_u8", "o_b" };
-            var trans = mlContext.Transforms.ScoreTensorFlowModel(model_location, outputs, inputs).Fit(loader).Transform(loader); ;
+            var trans = mlContext.Model.LoadTensorFlowModel(model_location).ScoreTensorFlowModel(outputs, inputs).Fit(loader).Transform(loader); ;
 
             using (var cursor = trans.GetRowCursorForAllColumns())
             {
@@ -340,7 +340,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformObjectDetectionTest()
         {
             var modelLocation = @"C:\models\TensorFlow\ssd_mobilenet_v1_coco_2018_01_28\frozen_inference_graph.pb";
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = mlContext.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
@@ -348,7 +348,7 @@ namespace Microsoft.ML.Scenarios
             var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", 32, 32, "ImageReal").Transform(images);
 
             var pixels = mlContext.Transforms.ExtractPixels("image_tensor", "ImageCropped", asFloat: false).Fit(cropped).Transform(cropped);
-            var tf = mlContext.Transforms.ScoreTensorFlowModel(modelLocation,
+            var tf = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(
                 new[] { "detection_boxes", "detection_scores", "num_detections", "detection_classes" }, new[] { "image_tensor" }).Fit(pixels).Transform(pixels);
 
             tf.Schema.TryGetColumnIndex("image_tensor", out int input);
@@ -381,14 +381,14 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformInceptionTest()
         {
             var modelLocation = @"C:\models\TensorFlow\tensorflow_inception_graph.pb";
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = mlContext.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
             var images = mlContext.Transforms.LoadImages(imageFolder, ("ImageReal", "ImagePath")).Fit(data).Transform(data);
-            var cropped = mlContext.Transforms.ResizeImages("ImageCropped", 224, 224 , "ImageReal").Fit(images).Transform(images);
-            var pixels = mlContext.Transforms.ExtractPixels("input","ImageCropped").Fit(cropped).Transform(cropped);
-            var tf = mlContext.Transforms.ScoreTensorFlowModel(modelLocation, "softmax2_pre_activation", "input").Fit(pixels).Transform(pixels);
+            var cropped = mlContext.Transforms.ResizeImages("ImageCropped", 224, 224, "ImageReal").Fit(images).Transform(images);
+            var pixels = mlContext.Transforms.ExtractPixels("input", "ImageCropped").Fit(cropped).Transform(cropped);
+            var tf = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("softmax2_pre_activation", "input").Fit(pixels).Transform(pixels);
 
             tf.Schema.TryGetColumnIndex("input", out int input);
             tf.Schema.TryGetColumnIndex("softmax2_pre_activation", out int b);
@@ -409,7 +409,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowInputsOutputsSchemaTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var model_location = "mnist_model/frozen_saved_model.pb";
             var schema = TensorFlowUtils.GetModelSchema(mlContext, model_location);
             Assert.Equal(86, schema.Count);
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowTransformMNISTConvTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var reader = mlContext.Data.CreateTextLoader(
                     columns: new[]
                     {
@@ -502,7 +502,7 @@ namespace Microsoft.ML.Scenarios
             var testData = reader.Load(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
             var pipe = mlContext.Transforms.CopyColumns(("reshape_input", "Placeholder"))
-                .Append(mlContext.Transforms.ScoreTensorFlowModel("mnist_model/frozen_saved_model.pb", new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }))
+                .Append(mlContext.Model.LoadTensorFlowModel("mnist_model/frozen_saved_model.pb").ScoreTensorFlowModel(new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }))
                 .Append(mlContext.Transforms.Concatenate("Features", "Softmax", "dense/Relu"))
                 .Append(mlContext.MulticlassClassification.Trainers.LightGbm("Label", "Features"));
 
@@ -530,7 +530,7 @@ namespace Microsoft.ML.Scenarios
             var model_location = "mnist_lr_model";
             try
             {
-                var mlContext = new MLContext(seed: 1, conc: 1);
+                var mlContext = new MLContext(seed: 1);
                 var reader = mlContext.Data.CreateTextLoader(columns: new[]
                     {
                         new TextLoader.Column("Label", DataKind.Int64, 0),
@@ -544,21 +544,17 @@ namespace Microsoft.ML.Scenarios
 
                 var pipe = mlContext.Transforms.Categorical.OneHotEncoding("OneHotLabel", "Label")
                     .Append(mlContext.Transforms.Normalize(new NormalizingEstimator.MinMaxColumnOptions("Features", "Placeholder")))
-                    .Append(mlContext.Transforms.TensorFlow(new TensorFlowEstimator.Options()
-                    {
-                        ModelLocation = model_location,
-                        InputColumns = new[] { "Features" },
-                        OutputColumns = new[] { "Prediction", "b" },
-                        LabelColumn = "OneHotLabel",
-                        TensorFlowLabel = "Label",
-                        OptimizationOperation = "SGDOptimizer",
-                        LossOperation = "Loss",
-                        Epoch = 10,
-                        LearningRateOperation = "SGDOptimizer/learning_rate",
-                        LearningRate = 0.001f,
-                        BatchSize = 20,
-                        ReTrain = true
-                    }))
+                    .Append(mlContext.Model.LoadTensorFlowModel(model_location).RetrainTensorFlowModel(
+                        inputColumnNames: new[] { "Features" },
+                        outputColumnNames: new[] { "Prediction", "b" },
+                        labelColumnName: "OneHotLabel",
+                        tensorFlowLabel: "Label",
+                        optimizationOperation: "SGDOptimizer",
+                        lossOperation: "Loss",
+                        epoch: 10,
+                        learningRateOperation: "SGDOptimizer/learning_rate",
+                        learningRate: 0.001f,
+                        batchSize: 20))
                     .Append(mlContext.Transforms.Concatenate("Features", "Prediction"))
                     .Append(mlContext.Transforms.Conversion.MapValueToKey("KeyLabel", "Label", maxNumKeys: 10))
                     .Append(mlContext.MulticlassClassification.Trainers.LightGbm("KeyLabel", "Features"));
@@ -623,7 +619,7 @@ namespace Microsoft.ML.Scenarios
             const string modelLocation = "mnist_conv_model";
             try
             {
-                var mlContext = new MLContext(seed: 1, conc: 1);
+                var mlContext = new MLContext(seed: 1);
 
                 var reader = mlContext.Data.CreateTextLoader(new[]
                     {
@@ -662,22 +658,18 @@ namespace Microsoft.ML.Scenarios
                 }
 
                 var pipe = mlContext.Transforms.CopyColumns(("Features", "Placeholder"))
-                    .Append(mlContext.Transforms.TensorFlow(new TensorFlowEstimator.Options()
-                    {
-                        ModelLocation = modelLocation,
-                        InputColumns = new[] { "Features" },
-                        OutputColumns = new[] { "Prediction" },
-                        LabelColumn = "TfLabel",
-                        TensorFlowLabel = "Label",
-                        OptimizationOperation = "MomentumOp",
-                        LossOperation = "Loss",
-                        MetricOperation = "Accuracy",
-                        Epoch = 10,
-                        LearningRateOperation = "learning_rate",
-                        LearningRate = 0.01f,
-                        BatchSize = 20,
-                        ReTrain = true
-                    }))
+                    .Append(mlContext.Model.LoadTensorFlowModel(modelLocation).RetrainTensorFlowModel(
+                        inputColumnNames: new[] { "Features" },
+                        outputColumnNames: new[] { "Prediction" },
+                        labelColumnName: "TfLabel",
+                        tensorFlowLabel: "Label",
+                        optimizationOperation: "MomentumOp",
+                        lossOperation: "Loss",
+                        metricOperation: "Accuracy",
+                        epoch: 10,
+                        learningRateOperation: "learning_rate",
+                        learningRate: 0.01f,
+                        batchSize: 20))
                     .Append(mlContext.Transforms.Concatenate("Features", "Prediction"))
                     .AppendCacheCheckpoint(mlContext)
                     .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new LightGBM.Options()
@@ -685,8 +677,8 @@ namespace Microsoft.ML.Scenarios
                         LabelColumnName = "Label",
                         FeatureColumnName = "Features",
                         Seed = 1,
-                        NThread = 1,
-                        NumBoostRound = 1
+                        NumberOfThreads = 1,
+                        NumberOfIterations = 1
                     }));
 
                 var trainedModel = pipe.Fit(preprocessedTrainData);
@@ -719,7 +711,7 @@ namespace Microsoft.ML.Scenarios
             // Two group of test criteria are checked. One group contains micro and macro accuracies. The other group is the range
             // of predicted label of a single in-memory example.
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var reader = mlContext.Data.CreateTextLoader(columns: new[]
                 {
                     new TextLoader.Column("Label", DataKind.UInt32 , new [] { new TextLoader.Range(0) }, new KeyCount(10)),
@@ -733,7 +725,7 @@ namespace Microsoft.ML.Scenarios
             var testData = reader.Load(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
             var pipe = mlContext.Transforms.CopyColumns(("reshape_input", "Placeholder"))
-                .Append(mlContext.Transforms.ScoreTensorFlowModel("mnist_model", new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }))
+                .Append(mlContext.Model.LoadTensorFlowModel("mnist_model").ScoreTensorFlowModel(new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }))
                 .Append(mlContext.Transforms.Concatenate("Features", new[] { "Softmax", "dense/Relu" }))
                 .Append(mlContext.MulticlassClassification.Trainers.LightGbm("Label", "Features"));
 
@@ -840,8 +832,8 @@ namespace Microsoft.ML.Scenarios
         {
             var modelLocation = "cifar_model/frozen_model.pb";
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
-            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
+            var mlContext = new MLContext(seed: 1);
+            var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
             var type = (VectorType)schema[column].Type;
@@ -863,7 +855,7 @@ namespace Microsoft.ML.Scenarios
                 .Append(new ImagePixelExtractingEstimator(mlContext, "Input", "ImageCropped", interleave: true));
 
             var pixels = pipeEstimator.Fit(data).Transform(data);
-            IDataView trans = mlContext.Transforms.ScoreTensorFlowModel(tensorFlowModel, "Output", "Input").Fit(pixels).Transform(pixels);
+            IDataView trans = tensorFlowModel.ScoreTensorFlowModel("Output", "Input").Fit(pixels).Transform(pixels);
 
             trans.Schema.TryGetColumnIndex("Output", out int output);
             using (var cursor = trans.GetRowCursor(trans.Schema["Output"]))
@@ -885,8 +877,8 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformCifarSavedModel()
         {
             var modelLocation = "cifar_saved_model";
-            var mlContext = new MLContext(seed: 1, conc: 1);
-            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
+            var mlContext = new MLContext(seed: 1);
+            var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
             var type = (VectorType)schema[column].Type;
@@ -904,7 +896,7 @@ namespace Microsoft.ML.Scenarios
             var images = mlContext.Transforms.LoadImages(imageFolder, ("ImageReal", "ImagePath")).Fit(data).Transform(data);
             var cropped = mlContext.Transforms.ResizeImages("ImageCropped", imageWidth, imageHeight, "ImageReal").Fit(images).Transform(images);
             var pixels = mlContext.Transforms.ExtractPixels("Input", "ImageCropped", interleave: true).Fit(cropped).Transform(cropped);
-            IDataView trans = mlContext.Transforms.ScoreTensorFlowModel(tensorFlowModel, "Output", "Input").Fit(pixels).Transform(pixels);
+            IDataView trans = tensorFlowModel.ScoreTensorFlowModel("Output", "Input").Fit(pixels).Transform(pixels);
 
             trans.Schema.TryGetColumnIndex("Output", out int output);
             using (var cursor = trans.GetRowCursorForAllColumns())
@@ -927,7 +919,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowGettingSchemaMultipleTimes()
         {
             var modelLocation = "cifar_saved_model";
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             for (int i = 0; i < 10; i++)
             {
                 var schema = TensorFlowUtils.GetModelSchema(mlContext, modelLocation);
@@ -941,7 +933,7 @@ namespace Microsoft.ML.Scenarios
         {
             var modelLocation = "cifar_model/frozen_model.pb";
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var imageHeight = 28;
             var imageWidth = 28;
             var dataFile = GetDataPath("images/images.tsv");
@@ -960,7 +952,7 @@ namespace Microsoft.ML.Scenarios
             var thrown = false;
             try
             {
-                IDataView trans = mlContext.Transforms.ScoreTensorFlowModel(modelLocation, "Output", "Input").Fit(pixels).Transform(pixels);
+                IDataView trans = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("Output", "Input").Fit(pixels).Transform(pixels);
             }
             catch
             {
@@ -984,7 +976,7 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowSentimentClassificationTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var data = new[] { new TensorFlowSentiment() { Sentiment_Text = "this film was just brilliant casting location scenery story direction everyone's really suited the part they played and you could just imagine being there robert  is an amazing actor and now the same being director  father came from the same scottish island as myself so i loved the fact there was a real connection with this film the witty remarks throughout the film were great it was just brilliant so much that i bought the film as soon as it was released for  and would recommend it to everyone to watch and the fly fishing was amazing really cried at the end it was so sad and you know what they say if you cry at a film it must have been good and this definitely was also  to the two little boy's that played the  of norman and paul they were just brilliant children are often left out of the  list i think because the stars that play them all grown up are such a big profile for the whole film but these children are amazing and should be praised for what they have done don't you think the whole story was so lovely because it was true and was someone's life after all that was shared with us all" } };
             var dataView = mlContext.Data.LoadFromEnumerable(data);
 
@@ -1010,7 +1002,7 @@ namespace Microsoft.ML.Scenarios
             // For explanation on how was the `sentiment_model` created 
             // c.f. https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/README.md
             string modelLocation = @"sentiment_model";
-            var tfEnginePipe = mlContext.Transforms.ScoreTensorFlowModel(modelLocation, new[] { "Prediction/Softmax" }, new[] { "Features" })
+            var tfEnginePipe = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" })
                 .Append(mlContext.Transforms.CopyColumns(("Prediction", "Prediction/Softmax")))
                 .Fit(dataView)
                 .CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(mlContext);
@@ -1025,7 +1017,7 @@ namespace Microsoft.ML.Scenarios
 
         class TextInput
         {
-            [LoadColumn(0,1)]
+            [LoadColumn(0, 1)]
             [VectorType(2)]
             public string[] A; // Whatever is passed in 'TextInput.A' will be returned as-is in 'TextOutput.AOut'
 
@@ -1046,16 +1038,16 @@ namespace Microsoft.ML.Scenarios
         [TensorFlowFact]
         public void TensorFlowStringTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
-            var model = TensorFlowUtils.LoadTensorFlowModel(mlContext, @"model_string_test");
-            var schema = model.GetModelSchema();
+            var mlContext = new MLContext(seed: 1);
+            var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(@"model_string_test");
+            var schema = tensorFlowModel.GetModelSchema();
             Assert.True(schema.TryGetColumnIndex("A", out var colIndex));
             Assert.True(schema.TryGetColumnIndex("B", out colIndex));
 
             var dataview = mlContext.Data.CreateTextLoader<TextInput>().Load(new MultiFileSource(null));
 
-            var pipeline = mlContext.Transforms.ScoreTensorFlowModel(model, new[] { "Original_A", "Joined_Splited_Text" }, new[] { "A", "B" })
-                .Append(mlContext.Transforms.CopyColumns(("AOut", "Original_A"),("BOut", "Joined_Splited_Text")));
+            var pipeline = tensorFlowModel.ScoreTensorFlowModel(new[] { "Original_A", "Joined_Splited_Text" }, new[] { "A", "B" })
+                .Append(mlContext.Transforms.CopyColumns(("AOut", "Original_A"), ("BOut", "Joined_Splited_Text")));
             var transformer = pipeline.Fit(dataview).CreatePredictionEngine<TextInput, TextOutput>(mlContext);
 
             var input = new TextInput
@@ -1065,7 +1057,7 @@ namespace Microsoft.ML.Scenarios
             };
             var textOutput = transformer.Predict(input);
 
-            for(int i=0;i< input.A.Length;i++)
+            for (int i = 0; i < input.A.Length; i++)
                 Assert.Equal(input.A[i], textOutput.AOut[i]);
             Assert.Equal(string.Join(" ", input.B).Replace("/", " "), textOutput.BOut[0]);
         }

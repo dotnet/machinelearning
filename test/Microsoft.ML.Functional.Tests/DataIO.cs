@@ -32,7 +32,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void ReadFromIEnumerable()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Read the dataset from an enumerable.
             var data = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void ExportToIEnumerable()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Read the dataset from an enumerable.
             var enumerableBefore = TypeTestData.GenerateDataset();
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void WriteToAndReadFromADelimetedFile()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             
             var dataBefore = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
 
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void WriteToAndReadASchemaFromADelimitedFile()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var dataBefore = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
 
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void WriteAndReadAFromABinaryFile()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var dataBefore = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
 

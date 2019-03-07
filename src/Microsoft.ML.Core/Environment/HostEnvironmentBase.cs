@@ -110,8 +110,8 @@ namespace Microsoft.ML.Data
             // We don't have dispose mechanism for hosts, so to let GC collect children hosts we make them WeakReference.
             private readonly List<WeakReference<IHost>> _children;
 
-            public HostBase(HostEnvironmentBase<TEnv> source, string shortName, string parentFullName, Random rand, bool verbose, int? conc)
-                : base(source, rand, verbose, conc, shortName, parentFullName)
+            public HostBase(HostEnvironmentBase<TEnv> source, string shortName, string parentFullName, Random rand, bool verbose)
+                : base(source, rand, verbose, shortName, parentFullName)
             {
                 Depth = source.Depth + 1;
                 _children = new List<WeakReference<IHost>>();
@@ -131,14 +131,14 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public new IHost Register(string name, int? seed = null, bool? verbose = null, int? conc = null)
+            public new IHost Register(string name, int? seed = null, bool? verbose = null)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 IHost host;
                 lock (_cancelLock)
                 {
                     Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
-                    host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose, conc ?? _conc);
+                    host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
                     if (!IsCancelled)
                         _children.Add(new WeakReference<IHost>(host));
                 }
@@ -339,14 +339,6 @@ namespace Microsoft.ML.Data
 
         protected readonly ProgressReporting.ProgressTracker ProgressTracker;
 
-        // Can be set dynamically.
-        private int? _conc;
-
-        /// <summary>
-        /// This host environment supports changing this value dynamically.
-        /// </summary>
-        public int ConcurrencyFactor { get { return _conc ?? Master.ConcurrencyFactor; } set { _conc = value; } }
-
         public bool IsCancelled { get; protected set; }
 
         public ComponentCatalog ComponentCatalog { get; }
@@ -356,13 +348,12 @@ namespace Microsoft.ML.Data
         /// <summary>
         ///  The main constructor.
         /// </summary>
-        protected HostEnvironmentBase(Random rand, bool verbose, int conc,
+        protected HostEnvironmentBase(Random rand, bool verbose,
             string shortName = null, string parentFullName = null)
             : base(shortName, parentFullName, verbose)
         {
             Contracts.CheckValueOrNull(rand);
             _rand = rand ?? RandomUtils.Create();
-            _conc = conc;
             ListenerDict = new ConcurrentDictionary<Type, Dispatcher>();
             ProgressTracker = new ProgressReporting.ProgressTracker(this);
             _cancelLock = new object();
@@ -374,13 +365,12 @@ namespace Microsoft.ML.Data
         /// This constructor is for forking.
         /// </summary>
         protected HostEnvironmentBase(HostEnvironmentBase<TEnv> source, Random rand, bool verbose,
-            int? conc, string shortName = null, string parentFullName = null)
+            string shortName = null, string parentFullName = null)
             : base(shortName, parentFullName, verbose)
         {
             Contracts.CheckValue(source, nameof(source));
             Contracts.CheckValueOrNull(rand);
             _rand = rand ?? RandomUtils.Create();
-            _conc = conc;
             _cancelLock = new object();
 
             // This fork shares some stuff with the master.
@@ -391,15 +381,15 @@ namespace Microsoft.ML.Data
             ComponentCatalog = source.ComponentCatalog;
         }
 
-        public IHost Register(string name, int? seed = null, bool? verbose = null, int? conc = null)
+        public IHost Register(string name, int? seed = null, bool? verbose = null)
         {
             Contracts.CheckNonEmpty(name, nameof(name));
             Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
-            return RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose, conc);
+            return RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
         }
 
         protected abstract IHost RegisterCore(HostEnvironmentBase<TEnv> source, string shortName,
-            string parentFullName, Random rand, bool verbose, int? conc);
+            string parentFullName, Random rand, bool verbose);
 
         public IProgressChannel StartProgressChannel(string name)
         {

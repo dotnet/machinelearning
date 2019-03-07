@@ -99,7 +99,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
             catch (Exception ex)
             {
-                Assert.Equal("Could not parse value -9223372036854775809 in line 1, column DvInt8", ex.Message);
+                Assert.Contains("Could not parse value -9223372036854775809 in line 1, column DvInt8", ex.Message);
                 return;
             }
 
@@ -123,7 +123,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
             catch (Exception ex)
             {
-                Assert.Equal("Could not parse value 9223372036854775808 in line 1, column DvInt8", ex.Message);
+                Assert.Contains("Could not parse value 9223372036854775808 in line 1, column DvInt8", ex.Message);
                 return;
             }
 
@@ -143,7 +143,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ConstructorDoesntThrow()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt"));
             Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt", hasHeader: true));
@@ -588,7 +588,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ThrowsExceptionWithPropertyName()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             try
             {
                 mlContext.Data.LoadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt");

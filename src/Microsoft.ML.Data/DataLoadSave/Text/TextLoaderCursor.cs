@@ -71,7 +71,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(srcNeeded >= 0);
 
                 // Determine the number of threads to use.
-                cthd = DataViewUtils.GetThreadCount(parent._host, n, !parent._useThreads);
+                cthd = DataViewUtils.GetThreadCount(n, !parent._useThreads);
 
                 long cblkMax = parent._maxRows / BatchSize;
                 if (cthd > cblkMax)

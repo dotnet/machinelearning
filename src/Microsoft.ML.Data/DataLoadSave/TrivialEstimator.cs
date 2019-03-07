@@ -16,10 +16,13 @@ namespace Microsoft.ML.Data
     public abstract class TrivialEstimator<TTransformer> : IEstimator<TTransformer>
         where TTransformer : class, ITransformer
     {
-        protected readonly IHost Host;
-        protected readonly TTransformer Transformer;
+        [BestFriend]
+        private protected readonly IHost Host;
+        [BestFriend]
+        private protected readonly TTransformer Transformer;
 
-        protected TrivialEstimator(IHost host, TTransformer transformer)
+        [BestFriend]
+        private protected TrivialEstimator(IHost host, TTransformer transformer)
         {
             Contracts.AssertValue(host);
 

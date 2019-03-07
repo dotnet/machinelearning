@@ -1,13 +1,13 @@
 ﻿using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.SamplesUtils;
-using Microsoft.ML.Trainers.HalLearners;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 {
     public static class OrdinaryLeastSquaresWithOptions
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.HalLearners/">Microsoft.ML.HalLearners</a>.
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.Mkl.Components/">Microsoft.ML.Mkl.Components</a>.
         // In this examples we will use the housing price dataset. The goal is to predict median home value.
         // For more details about this dataset, please see https://archive.ics.uci.edu/ml/machine-learning-databases/housing/
         public static void Example()
@@ -44,10 +44,10 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 
             // Create the estimator, here we only need OrdinaryLeastSquares trainer 
             // as data is already processed in a form consumable by the trainer
-            var pipeline = mlContext.Regression.Trainers.OrdinaryLeastSquares(new OlsLinearRegressionTrainer.Options()
+            var pipeline = mlContext.Regression.Trainers.OrdinaryLeastSquares(new OrdinaryLeastSquaresRegressionTrainer.Options()
             {
-                L2Weight = 0.1f,
-                PerParameterSignificance = false
+                L2Regularization = 0.1f,
+                CalculateStatistics = false
             });
             var model = pipeline.Fit(split.TrainSet);
 

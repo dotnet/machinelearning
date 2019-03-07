@@ -47,6 +47,12 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="outputKind">The expected kind of the output column.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[ConvertType](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/ConvertType.cs)]
+        /// ]]></format>
+        /// </example>
         public static TypeConvertingEstimator ConvertType(this TransformsCatalog.ConversionTransforms catalog, string outputColumnName, string inputColumnName = null,
             DataKind outputKind = ConvertDefaults.DefaultOutputKind)
             => new TypeConvertingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, outputKind);
@@ -90,7 +96,7 @@ namespace Microsoft.ML
              => new KeyToValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columns));
 
         /// <summary>
-        /// Convert the key types back to their original vectors.
+        /// Maps key types or key values into a floating point vector.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="columns">The input column to map back to vectors.</param>
@@ -99,7 +105,7 @@ namespace Microsoft.ML
             => new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
-        /// Convert the key types back to their original vectors.
+        /// Maps key types or key values into a floating point vector.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>

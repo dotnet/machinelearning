@@ -1642,10 +1642,10 @@ namespace Microsoft.ML.Data.Conversion
         #endregion FromTX
 
         #region FromBL
-        public void Convert(in BL src, ref I1 dst) => dst = (I1)(object)src;
-        public void Convert(in BL src, ref I2 dst) => dst = (I2)(object)src;
-        public void Convert(in BL src, ref I4 dst) => dst = (I4)(object)src;
-        public void Convert(in BL src, ref I8 dst) => dst = (I8)(object)src;
+        public void Convert(in BL src, ref I1 dst) => dst = System.Convert.ToSByte(src);
+        public void Convert(in BL src, ref I2 dst) => dst = System.Convert.ToInt16(src);
+        public void Convert(in BL src, ref I4 dst) => dst = System.Convert.ToInt32(src);
+        public void Convert(in BL src, ref I8 dst) => dst = System.Convert.ToInt64(src);
         public void Convert(in BL src, ref R4 dst) => dst = System.Convert.ToSingle(src);
         public void Convert(in BL src, ref R8 dst) => dst = System.Convert.ToDouble(src);
         public void Convert(in BL src, ref BL dst) => dst = src;

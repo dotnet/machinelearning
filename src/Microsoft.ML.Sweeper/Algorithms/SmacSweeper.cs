@@ -137,8 +137,8 @@ namespace Microsoft.ML.Sweeper
                     new FastForestRegression.Options
                     {
                         FeatureFraction = _args.SplitRatio,
-                        NumTrees = _args.NumOfTrees,
-                        MinDocumentsInLeafs = _args.NMinForSplit,
+                        NumberOfTrees = _args.NumOfTrees,
+                        MinimumExampleCountPerLeaf = _args.NMinForSplit,
                         LabelColumnName = DefaultColumnNames.Label,
                         FeatureColumnName = DefaultColumnNames.Features,
                     });

@@ -100,6 +100,7 @@ namespace Microsoft.ML.Trainers
             /// See <a href="https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/mf_adaptive_pakdd.pdf">Equation</a> (1).
             /// </remarks>
             SquareLossRegression = 0,
+
             /// <summary>
             /// Used in implicit-feedback recommendation problem.
             /// </summary>
@@ -115,7 +116,7 @@ namespace Microsoft.ML.Trainers
         public sealed class Options
         {
             /// <summary>
-            /// The name of variable (i.e., Column in a <see cref="IDataView"/> type system) used be as matrix's column index.
+            /// The name of variable (i.e., Column in a <see cref="IDataView"/> type system) used as matrix's column index.
             /// </summary>
             public string MatrixColumnIndexColumnName;
 

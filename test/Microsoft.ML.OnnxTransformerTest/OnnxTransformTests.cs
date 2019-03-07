@@ -180,7 +180,7 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "squeezenet", "00000001", "model.onnx");
 
-            var env = new MLContext(conc: 1);
+            var env = new MLContext();
             var imageHeight = 224;
             var imageWidth = 224;
             var dataFile = GetDataPath("images/images.tsv");
@@ -229,7 +229,7 @@ namespace Microsoft.ML.Tests
         public void OnnxModelScenario()
         {
             var modelFile = "squeezenet/00000001/model.onnx";
-            var env = new ConsoleEnvironment(seed: 1, conc: 1);
+            var env = new ConsoleEnvironment(seed: 1);
             var samplevector = GetSampleArrayData();
 
             var dataView = ML.Data.LoadFromEnumerable(
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Tests
         public void OnnxModelMultiInput()
         {
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "twoinput", "twoinput.onnx");
-            var env = new ConsoleEnvironment(seed: 1, conc: 1);
+            var env = new ConsoleEnvironment(seed: 1);
             var samplevector = GetSampleArrayData();
 
             var dataView = ML.Data.LoadFromEnumerable(

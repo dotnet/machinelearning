@@ -10,7 +10,6 @@ using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
 
@@ -119,25 +118,25 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Initializes a new instance of <see cref="FastTreeBinaryClassificationTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="exampleWeightColumnName">The name for the column containing the example weight.</param>
         /// <param name="learningRate">The learning rate.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
-        /// <param name="numLeaves">The max number of leaves in each regression tree.</param>
-        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="numberOfLeaves">The max number of leaves in each regression tree.</param>
+        /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
         internal FastTreeBinaryClassificationTrainer(IHostEnvironment env,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weightColumn = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
-            : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, learningRate)
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string exampleWeightColumnName = null,
+            int numberOfLeaves = Defaults.NumberOfLeaves,
+            int numberOfTrees = Defaults.NumberOfTrees,
+            int minimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf,
+            double learningRate = Defaults.LearningRate)
+            : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumnName), featureColumnName, exampleWeightColumnName, null, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf, learningRate)
         {
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
-            _sigmoidParameter = 2.0 * FastTreeTrainerOptions.LearningRates;
+            _sigmoidParameter = 2.0 * FastTreeTrainerOptions.LearningRate;
         }
 
         /// <summary>
@@ -149,7 +148,7 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
-            _sigmoidParameter = 2.0 * FastTreeTrainerOptions.LearningRates;
+            _sigmoidParameter = 2.0 * FastTreeTrainerOptions.LearningRate;
         }
 
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -191,14 +190,14 @@ namespace Microsoft.ML.Trainers.FastTree
             return new ObjectiveImpl(
                 TrainSet,
                 _trainSetLabels,
-                FastTreeTrainerOptions.LearningRates,
+                FastTreeTrainerOptions.LearningRate,
                 FastTreeTrainerOptions.Shrinkage,
                 _sigmoidParameter,
                 FastTreeTrainerOptions.UnbalancedSets,
-                FastTreeTrainerOptions.MaxTreeOutput,
+                FastTreeTrainerOptions.MaximumTreeOutput,
                 FastTreeTrainerOptions.GetDerivativesSampleRate,
                 FastTreeTrainerOptions.BestStepRankingRegressionTrees,
-                FastTreeTrainerOptions.RngSeed,
+                FastTreeTrainerOptions.Seed,
                 ParallelTraining);
         }
 
@@ -209,7 +208,7 @@ namespace Microsoft.ML.Trainers.FastTree
             {
                 var lossCalculator = new BinaryClassificationTest(optimizationAlgorithm.TrainingScores, _trainSetLabels, _sigmoidParameter);
                 // REVIEW: we should makeloss indices an enum in BinaryClassificationTest
-                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, FastTreeTrainerOptions.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/, FastTreeTrainerOptions.NumPostBracketSteps, FastTreeTrainerOptions.MinStepSize);
+                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, FastTreeTrainerOptions.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/, FastTreeTrainerOptions.MaximumNumberOfLineSearchSteps, FastTreeTrainerOptions.MinimumStepSize);
             }
             return optimizationAlgorithm;
         }
