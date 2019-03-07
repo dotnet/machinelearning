@@ -138,7 +138,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.DimensionReductionTransforms catalog, string outputColumnName, string inputColumnName = null,
+        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null,
             WhiteningKind kind = VectorWhiteningEstimator.Defaults.Kind,
             float epsilon = VectorWhiteningEstimator.Defaults.Epsilon,
             int maximumNumberOfRows = VectorWhiteningEstimator.Defaults.MaximumNumberOfRows,
@@ -158,7 +158,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.DimensionReductionTransforms catalog, params VectorWhiteningEstimator.ColumnOptions[] columns)
+        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog catalog, params VectorWhiteningEstimator.ColumnOptions[] columns)
             => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
     }

@@ -94,7 +94,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var pipeline =
                 // First 'normalize' the data (rescale to be
                 // between -1 and 1 for all examples), and then train the model.
-                mlContext.Transforms.Normalization.Normalize("FeatureVector")
+                mlContext.Transforms.Normalize("FeatureVector")
                 // We add a step for caching data in memory so that the downstream iterative training
                 // algorithm can efficiently scan through the data multiple times. Otherwise, the following
                 // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.
@@ -240,7 +240,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Apply all kinds of standard ML.NET normalization to the raw features.
             var pipeline =
-                mlContext.Transforms.Normalization.Normalize(
+                mlContext.Transforms.Normalize(
                     new NormalizingEstimator.MinMaxColumnOptions("MinMaxNormalized", "Features", fixZero: true),
                     new NormalizingEstimator.MeanVarColumnOptions("MeanVarNormalized", "Features", fixZero: true),
                     new NormalizingEstimator.BinningColumnOptions("BinNormalized", "Features", numBins: 256));

@@ -20,7 +20,7 @@ namespace Microsoft.ML
         /// <param name="overSampling">Oversampling parameter for randomized PrincipalComponentAnalysis training.</param>
         /// <param name="ensureZeroMean">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation.</param>
-        public static PrincipalComponentAnalysisEstimator ProjectToPrincipalComponents(this TransformsCatalog.DimensionReductionTransforms catalog,
+        public static PrincipalComponentAnalysisEstimator ProjectToPrincipalComponents(this TransformsCatalog catalog,
             string outputColumnName,
             string inputColumnName = null,
             string exampleWeightColumnName = null,
@@ -34,7 +34,7 @@ namespace Microsoft.ML
         /// <summary>Initializes a new instance of <see cref="PrincipalComponentAnalysisEstimator"/>.</summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Input columns to apply PrincipalComponentAnalysis on.</param>
-        public static PrincipalComponentAnalysisEstimator ProjectToPrincipalComponents(this TransformsCatalog.DimensionReductionTransforms catalog, params PrincipalComponentAnalysisEstimator.ColumnOptions[] columns)
+        public static PrincipalComponentAnalysisEstimator ProjectToPrincipalComponents(this TransformsCatalog catalog, params PrincipalComponentAnalysisEstimator.ColumnOptions[] columns)
             => new PrincipalComponentAnalysisEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>

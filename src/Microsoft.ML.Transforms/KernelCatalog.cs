@@ -19,7 +19,8 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="dimension">The number of random Fourier features to create.</param>
-        /// <param name="useCosAndSinBases">If <see langword="true"/>, use both of cos and sin basis functions to create two features for every random Fourier frequency.  /// Otherwise, only cos bases would be used.</param>
+        /// <param name="useCosAndSinBases">If <see langword="true"/>, use both of cos and sin basis functions to create two features for every random Fourier frequency.
+        /// Otherwise, only cos bases would be used.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -27,7 +28,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static RandomFourierExpansionEstimator RandomFourierExpand(this TransformsCatalog.KernelExpansionTransforms catalog,
+        public static RandomFourierExpansionEstimator RandomFourierExpand(this TransformsCatalog catalog,
             string outputColumnName,
             string inputColumnName = null,
             int dimension = RandomFourierExpansionEstimator.Defaults.Dimension,
@@ -39,7 +40,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">The input columns to use for the transformation.</param>
-        public static RandomFourierExpansionEstimator RandomFourierExpand(this TransformsCatalog.KernelExpansionTransforms catalog, params RandomFourierExpansionEstimator.ColumnOptions[] columns)
+        public static RandomFourierExpansionEstimator RandomFourierExpand(this TransformsCatalog catalog, params RandomFourierExpansionEstimator.ColumnOptions[] columns)
             => new RandomFourierExpansionEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

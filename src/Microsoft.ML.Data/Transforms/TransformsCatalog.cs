@@ -31,21 +31,6 @@ namespace Microsoft.ML
         public TextTransforms Text { get; }
 
         /// <summary>
-        /// The list of operations for applying kernel methods.
-        /// </summary>
-        public KernelExpansionTransforms KernelExpansion { get; }
-
-        /// <summary>
-        /// The list of operations for data normalization.
-        /// </summary>
-        public NormalizationTransforms Normalization { get; }
-
-        /// <summary>
-        /// The list of operations for dimension reduction.
-        /// </summary>
-        public DimensionReductionTransforms DimensionReduction { get; }
-
-        /// <summary>
         /// The list of operations for selecting features based on some criteria.
         /// </summary>
         public FeatureSelectionTransforms FeatureSelection { get; }
@@ -58,10 +43,7 @@ namespace Microsoft.ML
             Categorical = new CategoricalTransforms(this);
             Conversion = new ConversionTransforms(this);
             Text = new TextTransforms(this);
-            KernelExpansion = new KernelExpansionTransforms(this);
             FeatureSelection = new FeatureSelectionTransforms(this);
-            Normalization = new NormalizationTransforms(this);
-            DimensionReduction = new DimensionReductionTransforms(this);
         }
 
         /// <summary>
@@ -107,20 +89,6 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// The catalog of kernel methods.
-        /// </summary>
-        public sealed class KernelExpansionTransforms : IInternalCatalog
-        {
-            IHostEnvironment IInternalCatalog.Environment => _env;
-            private readonly IHostEnvironment _env;
-
-            internal KernelExpansionTransforms(TransformsCatalog owner)
-            {
-                _env = owner.GetEnvironment();
-            }
-        }
-
-        /// <summary>
         /// The catalog of feature selection operations.
         /// </summary>
         public sealed class FeatureSelectionTransforms : IInternalCatalog
@@ -129,34 +97,6 @@ namespace Microsoft.ML
             private readonly IHostEnvironment _env;
 
             internal FeatureSelectionTransforms(TransformsCatalog owner)
-            {
-                _env = owner.GetEnvironment();
-            }
-        }
-
-        /// <summary>
-        /// The catalog of normalization.
-        /// </summary>
-        public sealed class NormalizationTransforms : IInternalCatalog
-        {
-            IHostEnvironment IInternalCatalog.Environment => _env;
-            private readonly IHostEnvironment _env;
-
-            internal NormalizationTransforms(TransformsCatalog owner)
-            {
-                _env = owner.GetEnvironment();
-            }
-        }
-
-        /// <summary>
-        /// The catalog of dimension reduction methods.
-        /// </summary>
-        public sealed class DimensionReductionTransforms : IInternalCatalog
-        {
-            IHostEnvironment IInternalCatalog.Environment => _env;
-            private readonly IHostEnvironment _env;
-
-            internal DimensionReductionTransforms(TransformsCatalog owner)
             {
                 _env = owner.GetEnvironment();
             }

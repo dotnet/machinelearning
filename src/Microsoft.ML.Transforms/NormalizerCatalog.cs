@@ -6,7 +6,7 @@ namespace Microsoft.ML
     /// <summary>
     /// Extensions for normalizer operations.
     /// </summary>
-    public static class NormalizerCatalog
+    public static class NormalizationCatalog
     {
         /// <summary>
         /// Normalize (rescale) the column according to the specified <paramref name="mode"/>.
@@ -22,7 +22,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static NormalizingEstimator Normalize(this TransformsCatalog.NormalizationTransforms catalog,
+        public static NormalizingEstimator Normalize(this TransformsCatalog catalog,
            string outputColumnName, string inputColumnName = null,
             NormalizingEstimator.NormalizerMode mode = NormalizingEstimator.NormalizerMode.MinMax)
             => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName ?? outputColumnName, mode);
@@ -40,7 +40,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static NormalizingEstimator Normalize(this TransformsCatalog.NormalizationTransforms catalog,
+        public static NormalizingEstimator Normalize(this TransformsCatalog catalog,
             NormalizingEstimator.NormalizerMode mode,
             params ColumnOptions[] columns)
             => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), mode, ColumnOptions.ConvertToValueTuples(columns));
@@ -50,7 +50,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The normalization settings for all the columns</param>
-        public static NormalizingEstimator Normalize(this TransformsCatalog.NormalizationTransforms catalog,
+        public static NormalizingEstimator Normalize(this TransformsCatalog catalog,
             params NormalizingEstimator.ColumnOptionsBase[] columns)
             => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
@@ -70,7 +70,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static LpNormalizingEstimator LpNormalize(this TransformsCatalog.NormalizationTransforms catalog, string outputColumnName, string inputColumnName = null,
+        public static LpNormalizingEstimator LpNormalize(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null,
             LpNormalizingEstimatorBase.NormKind normKind = LpNormalizingEstimatorBase.Defaults.Norm, bool ensureZeroMean = LpNormalizingEstimatorBase.Defaults.LpEnsureZeroMean)
             => new LpNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, normKind, ensureZeroMean);
 
@@ -79,7 +79,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of the lp-normalization process for each column pair.</param>
-        public static LpNormalizingEstimator LpNormalize(this TransformsCatalog.NormalizationTransforms catalog, params LpNormalizingEstimator.LpNormColumnOptions[] columns)
+        public static LpNormalizingEstimator LpNormalize(this TransformsCatalog catalog, params LpNormalizingEstimator.LpNormColumnOptions[] columns)
             => new LpNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static GlobalContrastNormalizingEstimator GlobalContrastNormalize(this TransformsCatalog.NormalizationTransforms catalog, string outputColumnName, string inputColumnName = null,
+        public static GlobalContrastNormalizingEstimator GlobalContrastNormalize(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null,
              bool ensureZeroMean = LpNormalizingEstimatorBase.Defaults.GcnEnsureZeroMean,
              bool ensureUnitStandardDeviation = LpNormalizingEstimatorBase.Defaults.EnsureUnitStdDev,
              float scale = LpNormalizingEstimatorBase.Defaults.Scale)
@@ -110,7 +110,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of the gcn-normaliztion process for each column pair.</param>
-        public static GlobalContrastNormalizingEstimator GlobalContrastNormalize(this TransformsCatalog.NormalizationTransforms catalog, params GlobalContrastNormalizingEstimator.GcnColumnOptions[] columns)
+        public static GlobalContrastNormalizingEstimator GlobalContrastNormalize(this TransformsCatalog catalog, params GlobalContrastNormalizingEstimator.GcnColumnOptions[] columns)
             => new GlobalContrastNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

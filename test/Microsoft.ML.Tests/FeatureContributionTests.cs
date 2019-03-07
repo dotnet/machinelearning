@@ -273,7 +273,7 @@ namespace Microsoft.ML.Tests
             var srcDV = bldr.GetDataView();
 
             var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2VBuffer", "X3Important")
-                .Append(ML.Transforms.Normalization.Normalize("Features"));
+                .Append(ML.Transforms.Normalize("Features"));
 
             // Create a keytype for Ranking
             if (task == TaskType.Ranking)
