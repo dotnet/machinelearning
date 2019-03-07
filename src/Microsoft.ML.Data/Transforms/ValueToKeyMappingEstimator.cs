@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
@@ -32,17 +33,38 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public class ColumnOptions
+        public abstract class ColumnOptionsBase
         {
             public readonly string OutputColumnName;
             public readonly string InputColumnName;
             public readonly SortOrder Sort;
             public readonly int MaxNumKeys;
-            public readonly string[] Term;
+            public IReadOnlyList<string> Term => TermArray;
+            internal readonly string[] TermArray;
             public readonly bool TextKeyValues;
 
-            protected internal string Terms { get; set; }
+            [BestFriend]
+            internal string Terms { get; set; }
 
+            [BestFriend]
+            private protected ColumnOptionsBase(string outputColumnName, string inputColumnName,
+                int maxNumKeys, SortOrder sort, string[] term, bool textKeyValues)
+            {
+                Contracts.CheckNonWhiteSpace(outputColumnName, nameof(outputColumnName));
+                OutputColumnName = outputColumnName;
+                InputColumnName = inputColumnName ?? outputColumnName;
+                Sort = sort;
+                MaxNumKeys = maxNumKeys;
+                TermArray = term;
+                TextKeyValues = textKeyValues;
+            }
+        }
+
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
+        public sealed class ColumnOptions : ColumnOptionsBase
+        {
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
@@ -57,21 +79,14 @@ namespace Microsoft.ML.Transforms
                 int maxNumKeys = Defaults.MaxNumKeys,
                 SortOrder sort = Defaults.Sort,
                 string[] term = null,
-                bool textKeyValues = false
-                )
+                bool textKeyValues = false)
+                : base(outputColumnName, inputColumnName, maxNumKeys, sort, term, textKeyValues)
             {
-                Contracts.CheckNonWhiteSpace(outputColumnName, nameof(outputColumnName));
-                OutputColumnName = outputColumnName;
-                InputColumnName = inputColumnName ?? outputColumnName;
-                Sort = sort;
-                MaxNumKeys = maxNumKeys;
-                Term = term;
-                TextKeyValues = textKeyValues;
             }
         }
 
         private readonly IHost _host;
-        private readonly ColumnOptions[] _columns;
+        private readonly ColumnOptionsBase[] _columns;
         private readonly IDataView _keyData;
 
         /// <summary>
@@ -88,7 +103,7 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        internal ValueToKeyMappingEstimator(IHostEnvironment env, ColumnOptions[] columns, IDataView keyData = null)
+        internal ValueToKeyMappingEstimator(IHostEnvironment env, ColumnOptionsBase[] columns, IDataView keyData = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(ValueToKeyMappingEstimator));

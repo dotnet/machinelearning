@@ -39,8 +39,8 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
                            .Append(mlContext.Regression.Trainers.LightGbm(new Options
                            {
                                LabelColumnName = labelName,
-                               NumLeaves = 4,
-                               MinDataPerLeaf = 6,
+                               NumberOfLeaves = 4,
+                               MinimumExampleCountPerLeaf = 6,
                                LearningRate = 0.001,
                                Booster = new GossBooster.Options
                                {

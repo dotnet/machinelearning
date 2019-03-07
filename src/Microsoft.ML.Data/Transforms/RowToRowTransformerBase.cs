@@ -14,9 +14,11 @@ namespace Microsoft.ML.Data
     /// </summary>
     public abstract class RowToRowTransformerBase : ITransformer
     {
-        protected readonly IHost Host;
+        [BestFriend]
+        private protected readonly IHost Host;
 
-        protected RowToRowTransformerBase(IHost host)
+        [BestFriend]
+        private protected RowToRowTransformerBase(IHost host)
         {
             Contracts.AssertValue(host);
             Host = host;
@@ -53,7 +55,8 @@ namespace Microsoft.ML.Data
             return new RowToRowMapperTransform(Host, input, MakeRowMapper(input.Schema), MakeRowMapper);
         }
 
-        protected abstract class MapperBase : IRowMapper
+        [BestFriend]
+        private protected abstract class MapperBase : IRowMapper
         {
             protected readonly IHost Host;
             protected readonly DataViewSchema InputSchema;

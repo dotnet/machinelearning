@@ -75,11 +75,11 @@ module SmokeTest1 =
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
-        let ml = MLContext(seed = new System.Nullable<int>(1), conc = 1)
+        let ml = MLContext(seed = new System.Nullable<int>(1))
         let data = ml.Data.LoadFromTextFile<SentimentData>(testDataPath, hasHeader = true, allowQuoting = true)
 
         let pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText") 
-                        .Append(ml.BinaryClassification.Trainers.FastTree(numLeaves = 5, numTrees = 5))      
+                        .Append(ml.BinaryClassification.Trainers.FastTree(numberOfLeaves = 5, numberOfTrees = 5))
 
         let model = pipeline.Fit(data)
 
@@ -115,11 +115,11 @@ module SmokeTest2 =
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
         
-        let ml = MLContext(seed = new System.Nullable<int>(1), conc = 1)
+        let ml = MLContext(seed = new System.Nullable<int>(1))
         let data = ml.Data.LoadFromTextFile<SentimentData>(testDataPath, hasHeader = true, allowQuoting = true)
 
         let pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText") 
-                        .Append(ml.BinaryClassification.Trainers.FastTree(numLeaves = 5, numTrees = 5))
+                        .Append(ml.BinaryClassification.Trainers.FastTree(numberOfLeaves = 5, numberOfTrees = 5))
         
         let model = pipeline.Fit(data)
 
@@ -152,11 +152,11 @@ module SmokeTest3 =
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
-        let ml = MLContext(seed = new System.Nullable<int>(1), conc = 1)
+        let ml = MLContext(seed = new System.Nullable<int>(1))
         let data = ml.Data.LoadFromTextFile<SentimentData>(testDataPath, hasHeader = true, allowQuoting = true)
 
         let pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText") 
-                        .Append(ml.BinaryClassification.Trainers.FastTree(numLeaves = 5, numTrees = 5))
+                        .Append(ml.BinaryClassification.Trainers.FastTree(numberOfLeaves = 5, numberOfTrees = 5))
         
         let model = pipeline.Fit(data)
 

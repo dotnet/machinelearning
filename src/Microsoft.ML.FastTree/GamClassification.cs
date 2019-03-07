@@ -59,20 +59,20 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Initializes a new instance of <see cref="BinaryClassificationGamTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
-        /// <param name="numIterations">The number of iterations to use in learning the features.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="rowGroupColumnName">The name for the column containing the example weight.</param>
+        /// <param name="numberOfIterations">The number of iterations to use in learning the features.</param>
         /// <param name="learningRate">The learning rate. GAMs work best with a small learning rate.</param>
-        /// <param name="maxBins">The maximum number of bins to use to approximate features</param>
+        /// <param name="maximumBinCountPerFeature">The maximum number of bins to use to approximate features</param>
         internal BinaryClassificationGamTrainer(IHostEnvironment env,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weightColumn = null,
-            int numIterations = GamDefaults.NumIterations,
-            double learningRate = GamDefaults.LearningRates,
-            int maxBins = GamDefaults.MaxBins)
-            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, numIterations, learningRate, maxBins)
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string rowGroupColumnName = null,
+            int numberOfIterations = GamDefaults.NumberOfIterations,
+            double learningRate = GamDefaults.LearningRate,
+            int maximumBinCountPerFeature = GamDefaults.MaximumBinCountPerFeature)
+            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumnName), featureColumnName, rowGroupColumnName, numberOfIterations, learningRate, maximumBinCountPerFeature)
         {
             _sigmoidParameter = 1;
         }
@@ -115,14 +115,14 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FastTreeBinaryClassificationTrainer.ObjectiveImpl(
                 TrainSet,
                 ConvertTargetsToBool(TrainSet.Targets),
-                GamTrainerOptions.LearningRates,
+                GamTrainerOptions.LearningRate,
                 0,
                 _sigmoidParameter,
                 GamTrainerOptions.UnbalancedSets,
-                GamTrainerOptions.MaxOutput,
+                GamTrainerOptions.MaximumTreeOutput,
                 GamTrainerOptions.GetDerivativesSampleRate,
                 false,
-                GamTrainerOptions.RngSeed,
+                GamTrainerOptions.Seed,
                 ParallelTraining
             );
         }

@@ -77,7 +77,7 @@ namespace Microsoft.ML.Samples.Static
                             row.Label,
                             row.Features,
                             l1Threshold: 0.25f,
-                            maxIterations: 100)))
+                            numberOfIterations: 100)))
                 .Append(row => (
                     Label: row.Label,
                     Score: row.Score,

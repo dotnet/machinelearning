@@ -49,7 +49,7 @@ namespace Microsoft.ML.Tests
         {
             // Step 1: Create and train a ML.NET pipeline.
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var data = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
                 separatorChar: ';'
 ,
@@ -58,7 +58,11 @@ namespace Microsoft.ML.Tests
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumnName: "Target", featureColumnName: "FeatureVector"));
+                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(new SdcaRegressionTrainer.Options() {
+                    LabelColumnName = "Target",
+                    FeatureColumnName = "FeatureVector",
+                    NumberOfThreads = 1
+                }));
             var model = dynamicPipeline.Fit(data);
             var transformedData = model.Transform(data);
 
@@ -124,7 +128,7 @@ namespace Microsoft.ML.Tests
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
@@ -136,10 +140,10 @@ namespace Microsoft.ML.Tests
                 Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeansPlusPlusTrainer.Options
                 {
                     FeatureColumnName = DefaultColumnNames.Features,
-                    MaxIterations = 1,
-                    ClustersCount = 4,
-                    NumThreads = 1,
-                    InitAlgorithm = Trainers.KMeansPlusPlusTrainer.InitAlgorithm.Random
+                    NumberOfIterations = 1,
+                    NumberOfClusters = 4,
+                    NumberOfThreads = 1,
+                    InitializationAlgorithm = Trainers.KMeansPlusPlusTrainer.InitializationAlgorithm.Random
                 }));
 
             var model = pipeline.Fit(data);
@@ -180,7 +184,7 @@ namespace Microsoft.ML.Tests
             string dataPath = GetDataPath("breast-cancer.txt");
             string modelPath = GetOutputPath("ModelWithLessIO.zip");
             var trainingPathArgs = $"data={dataPath} out={modelPath}";
-            var trainingArgs = " loader=text{col=Label:BL:0 col=F1:R4:1-8 col=F2:TX:9} xf=Cat{col=F2} xf=Concat{col=Features:F1,F2} tr=ft{numThreads=1 numLeaves=8 numTrees=3} seed=1";
+            var trainingArgs = " loader=text{col=Label:BL:0 col=F1:R4:1-8 col=F2:TX:9} xf=Cat{col=F2} xf=Concat{col=Features:F1,F2} tr=ft{numberOfThreads=1 numberOfLeaves=8 numberOfTrees=3} seed=1";
             Assert.Equal(0, Maml.Main(new[] { "train " + trainingPathArgs + trainingArgs}));
 
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
@@ -202,7 +206,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void KeyToVectorWithBagOnnxConversionTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
 
@@ -213,7 +217,7 @@ namespace Microsoft.ML.Tests
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingTransformer.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
-            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
+            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfLeaves: 2, numberOfTrees: 1, minimumExampleCountPerLeaf: 2));
 
             var model = pipeline.Fit(data);
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
@@ -303,7 +307,7 @@ namespace Microsoft.ML.Tests
         {
             // Step 1: Create and train a ML.NET pipeline.
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var data = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
                 separatorChar: ';'
 ,
@@ -312,7 +316,11 @@ namespace Microsoft.ML.Tests
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumnName: "Target", featureColumnName: "FeatureVector"));
+                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(new SdcaRegressionTrainer.Options() {
+                    LabelColumnName = "Target",
+                    FeatureColumnName = "FeatureVector",
+                    NumberOfThreads = 1
+                }));
             var model = dynamicPipeline.Fit(data);
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a file.
@@ -336,7 +344,7 @@ namespace Microsoft.ML.Tests
         {
             // Step 1: Create and train a ML.NET pipeline.
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var data = mlContext.Data.LoadFromTextFile<AdultData>(trainDataPath,
                 separatorChar: ';'
 ,
@@ -345,7 +353,7 @@ namespace Microsoft.ML.Tests
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.LightGbm(labelColumnName: "Target", featureColumnName: "FeatureVector", numBoostRound: 3, numLeaves: 16, minDataPerLeaf: 100));
+                .Append(mlContext.Regression.Trainers.LightGbm(labelColumnName: "Target", featureColumnName: "FeatureVector", numberOfIterations: 3, numberOfLeaves: 16, minimumExampleCountPerLeaf: 100));
             var model = dynamicPipeline.Fit(data);
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a file.
@@ -367,7 +375,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void MulticlassLogisticRegressionOnnxConversionTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
             var data = mlContext.Data.LoadFromTextFile<BreastCancerMulticlassExample>(dataPath,
@@ -376,7 +384,7 @@ namespace Microsoft.ML.Tests
 
             var pipeline = mlContext.Transforms.Normalize("Features").
                 Append(mlContext.Transforms.Conversion.MapValueToKey("Label")).
-                Append(mlContext.MulticlassClassification.Trainers.LogisticRegression(new MulticlassLogisticRegression.Options() { UseThreads = false }));
+                Append(mlContext.MulticlassClassification.Trainers.LogisticRegression(new MulticlassLogisticRegression.Options() { NumberOfThreads = 1 }));
 
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
@@ -397,7 +405,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void RemoveVariablesInPipelineTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
             var data = mlContext.Data.LoadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
@@ -408,7 +416,7 @@ namespace Microsoft.ML.Tests
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
             .Append(mlContext.Transforms.Normalize("Features"))
-            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
+            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfLeaves: 2, numberOfTrees: 1, minimumExampleCountPerLeaf: 2));
 
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
@@ -449,7 +457,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void WordEmbeddingsTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var dataPath = GetDataPath(@"small-sentiment-test.tsv");
             var embedNetworkPath = GetDataPath(@"shortsentiment.emd");
             var data = mlContext.Data.LoadFromTextFile<SmallSentimentExample>(dataPath, separatorChar: '\t', hasHeader: false);

@@ -76,7 +76,7 @@ namespace Microsoft.ML.Tests
         public void TestSDCARegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.StochasticDualCoordinateAscent(
-                new SdcaRegressionTrainer.Options { NumThreads = 1, }), GetSparseDataset(numberOfInstances: 100), "SDCARegression");
+                new SdcaRegressionTrainer.Options { NumberOfThreads = 1, }), GetSparseDataset(numberOfInstances: 100), "SDCARegression");
         }
 
         [Fact]
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Tests
         public void TestPoissonRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.PoissonRegression(
-                new PoissonRegression.Options { NumThreads = 1 }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
+                new PoissonRegression.Options { NumberOfThreads = 1 }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
         }
 
         [Fact]
@@ -152,14 +152,14 @@ namespace Microsoft.ML.Tests
         public void TestSDCABinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options { NumThreads = 1, }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary", precision: 5);
+                new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary", precision: 5);
         }
 
         [Fact]
         public void TestSGDBinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticGradientDescent(
-                new SgdBinaryTrainer.Options { NumThreads = 1}),
+                new SgdBinaryTrainer.Options { NumberOfThreads = 1}),
                 GetSparseDataset(TaskType.BinaryClassification, 100), "SGDBinary");
         }
 

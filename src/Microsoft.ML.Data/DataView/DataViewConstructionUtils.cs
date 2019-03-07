@@ -740,7 +740,7 @@ namespace Microsoft.ML.Data
 
         internal abstract Delegate GetGetterDelegate();
 
-        protected AnnotationInfo(string kind, DataViewType annotationType)
+        private protected AnnotationInfo(string kind, DataViewType annotationType)
         {
             Contracts.AssertValueOrNull(annotationType);
             Contracts.AssertNonEmpty(kind);

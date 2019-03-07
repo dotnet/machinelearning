@@ -23,10 +23,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void Visibility()
         {
-            var ml = new MLContext(seed: 1, conc: 1);
+            var ml = new MLContext(seed: 1);
             var pipeline = ml.Data.CreateTextLoader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true)
-                .Append(ml.Transforms.Text.FeaturizeText("Features", new List<string> { "SentimentText" }, 
-                                                        new Transforms.Text.TextFeaturizingEstimator.Options { OutputTokens = true }));
+                .Append(ml.Transforms.Text.FeaturizeText(
+                    "Features", new Transforms.Text.TextFeaturizingEstimator.Options { OutputTokens = true }, "SentimentText"));
 
             var src = new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename));
             var data = pipeline.Fit(src).Load(src);

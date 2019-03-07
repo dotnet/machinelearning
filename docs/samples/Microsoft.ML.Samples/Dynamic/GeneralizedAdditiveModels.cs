@@ -28,7 +28,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 .ToArray();
             var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
                     .Append(mlContext.Regression.Trainers.GeneralizedAdditiveModels(
-                        labelColumnName: labelName, featureColumnName: "Features", maxBins: 16));
+                        labelColumnName: labelName, featureColumnName: "Features", maxBinCountPerFeature: 16));
             var fitPipeline = pipeline.Fit(data);
 
             // Extract the model from the pipeline
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Now investigate the properties of the Generalized Additive Model: The intercept and shape functions.
 
             // The intercept for the GAM models represent the average prediction for the training data
-            var intercept = gamModel.Intercept;
+            var intercept = gamModel.Bias;
             // Expected output: Average predicted cost: 22.53
             Console.WriteLine($"Average predicted cost: {intercept:0.00}");
 
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Distillation." <a href='https://arxiv.org/abs/1710.06169'>arXiv:1710.06169</a>."
             Console.WriteLine();
             Console.WriteLine("Student-Teacher Ratio");
-            for (int i = 0; i < teacherRatioBinUpperBounds.Length; i++)
+            for (int i = 0; i < teacherRatioBinUpperBounds.Count; i++)
             {
                 Console.WriteLine($"x < {teacherRatioBinUpperBounds[i]:0.00} => {teacherRatioBinEffects[i]:0.000}");
             }

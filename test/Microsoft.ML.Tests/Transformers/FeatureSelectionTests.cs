@@ -42,7 +42,7 @@ namespace Microsoft.ML.Tests.Transformers
             var est = new WordBagEstimator(ML, "bag_of_words", "text")
                 .AppendCacheCheckpoint(ML)
                 .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("bag_of_words_count", "bag_of_words", 10)
-                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("bag_of_words_mi", "bag_of_words", labelColumn: "label")));
+                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("bag_of_words_mi", "bag_of_words", labelColumnName: "label")));
 
             var outputPath = GetOutputPath("FeatureSelection", "featureselection.tsv");
             using (var ch = Env.Start("save"))
@@ -115,11 +115,11 @@ namespace Microsoft.ML.Tests.Transformers
             var data = ML.Data.Cache(reader.Load(new MultiFileSource(dataPath)).AsDynamic);
 
             var columns = new[] {
-                new CountFeatureSelectingEstimator.ColumnOptions("FeatureSelectDouble", "VectorDouble", minCount: 1),
-                new CountFeatureSelectingEstimator.ColumnOptions("ScalFeatureSelectMissing690", "ScalarFloat", minCount: 690),
-                new CountFeatureSelectingEstimator.ColumnOptions("ScalFeatureSelectMissing100", "ScalarFloat", minCount: 100),
-                new CountFeatureSelectingEstimator.ColumnOptions("VecFeatureSelectMissing690", "VectorDouble", minCount: 690),
-                new CountFeatureSelectingEstimator.ColumnOptions("VecFeatureSelectMissing100", "VectorDouble", minCount: 100)
+                new CountFeatureSelectingEstimator.ColumnOptions("FeatureSelectDouble", "VectorDouble", count: 1),
+                new CountFeatureSelectingEstimator.ColumnOptions("ScalFeatureSelectMissing690", "ScalarFloat", count: 690),
+                new CountFeatureSelectingEstimator.ColumnOptions("ScalFeatureSelectMissing100", "ScalarFloat", count: 100),
+                new CountFeatureSelectingEstimator.ColumnOptions("VecFeatureSelectMissing690", "VectorDouble", count: 690),
+                new CountFeatureSelectingEstimator.ColumnOptions("VecFeatureSelectMissing100", "VectorDouble", count: 100)
             };
             var est = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("FeatureSelect", "VectorFloat", count: 1)
                 .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(columns));
@@ -182,8 +182,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = reader.Load(new MultiFileSource(dataPath)).AsDynamic;
 
-            var est = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("FeatureSelect", "VectorFloat", slotsInOutput: 1, labelColumn: "Label")
-                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation(labelColumn: "Label", slotsInOutput: 2, numBins: 100,
+            var est = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("FeatureSelect", "VectorFloat", slotsInOutput: 1, labelColumnName: "Label")
+                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation(labelColumnName: "Label", slotsInOutput: 2, numberOfBins: 100,
                     columns: new ColumnOptions[] {
                         ("out1", "VectorFloat"),
                         ("out2", "VectorDouble")
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = reader.Load(new MultiFileSource(dataPath)).AsDynamic;
 
-            var pipe = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("FeatureSelect", "VectorFloat", slotsInOutput: 1, labelColumn: "Label");
+            var pipe = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("FeatureSelect", "VectorFloat", slotsInOutput: 1, labelColumnName: "Label");
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

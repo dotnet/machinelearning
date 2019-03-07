@@ -254,7 +254,7 @@ namespace Microsoft.ML.Data
 
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
 
-            n = DataViewUtils.GetThreadCount(_host, n);
+            n = DataViewUtils.GetThreadCount(n);
 
             if (n <= 1)
                 return new DataViewRowCursor[] { GetRowCursor(columnsNeeded, rand) };

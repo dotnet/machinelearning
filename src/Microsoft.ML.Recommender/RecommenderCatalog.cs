@@ -69,7 +69,7 @@ namespace Microsoft.ML
                 int approximationRank = MatrixFactorizationTrainer.Defaults.ApproximationRank,
                 double learningRate = MatrixFactorizationTrainer.Defaults.LearningRate,
                 int numberOfIterations = MatrixFactorizationTrainer.Defaults.NumIterations)
-                    => new MatrixFactorizationTrainer(Owner.Environment, labelColumn, matrixColumnIndexColumnName, matrixRowIndexColumnName,
+                    => new MatrixFactorizationTrainer(Owner.GetEnvironment(), labelColumn, matrixColumnIndexColumnName, matrixRowIndexColumnName,
                         approximationRank, learningRate, numberOfIterations);
 
             /// <summary>
@@ -90,7 +90,7 @@ namespace Microsoft.ML
             /// </example>
             public MatrixFactorizationTrainer MatrixFactorization(
                 MatrixFactorizationTrainer.Options options)
-                    => new MatrixFactorizationTrainer(Owner.Environment, options);
+                    => new MatrixFactorizationTrainer(Owner.GetEnvironment(), options);
         }
 
         /// <summary>

@@ -36,6 +36,6 @@ namespace Microsoft.ML.StaticPipe
             this DataOperationsCatalog catalog, Func<Context, TShape> func, IMultiStreamSource files = null,
             bool hasHeader = false, char separator = '\t', bool allowQuoting = true, bool allowSparse = true,
             bool trimWhitspace = false)
-         => CreateLoader(catalog.Environment, func, files, separator, hasHeader, allowQuoting, allowSparse, trimWhitspace);
+         => CreateLoader(catalog.GetEnvironment(), func, files, separator, hasHeader, allowQuoting, allowSparse, trimWhitspace);
     }
 }
