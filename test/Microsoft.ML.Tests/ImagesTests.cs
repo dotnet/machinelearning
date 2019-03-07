@@ -202,7 +202,7 @@ namespace Microsoft.ML.Tests
 
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, interleave: true, scale: 2f/19, offset: 30).Transform(cropped);
             IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
-               ImagePixelExtractingEstimator.ColorBits.All, interleave: true, scale: 19/2f, offset: -30).Transform(pixels);
+               ImagePixelExtractingEstimator.ColorBits.All, interleavedColors: true, scalePixelColor: 19/2f, offsetPixelCOlor: -30).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithAlphaInterleave) + "_model.zip";
 
@@ -262,7 +262,7 @@ namespace Microsoft.ML.Tests
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", interleave: true, scale: 2f / 19, offset: 30).Transform(cropped);
 
             IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
-               interleave: true, scale: 19 / 2f, offset: -30).Transform(pixels);
+               interleavedColors: true, scalePixelColor: 19 / 2f, offsetPixelCOlor: -30).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithoutAlphaInterleave) + "_model.zip";
 
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Tests
 
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, order:ImagePixelExtractingEstimator.ColorsOrder.ABRG).Transform(cropped);
             IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
-               ImagePixelExtractingEstimator.ColorBits.All,order: ImagePixelExtractingEstimator.ColorsOrder.ABRG).Transform(pixels);
+               ImagePixelExtractingEstimator.ColorBits.All,orderOfColors: ImagePixelExtractingEstimator.ColorsOrder.ABRG).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithDifferentOrder) + "_model.zip";
 
@@ -384,7 +384,7 @@ namespace Microsoft.ML.Tests
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, scale: 2f / 19, offset: 30).Transform(cropped);
 
             IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
-                ImagePixelExtractingEstimator.ColorBits.All, scale: 19 / 2f, offset: -30).Transform(pixels);
+                ImagePixelExtractingEstimator.ColorBits.All, scalePixelColor: 19 / 2f, offsetPixelCOlor: -30).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithAlphaNoInterleave) + "_model.zip";
 
@@ -444,7 +444,7 @@ namespace Microsoft.ML.Tests
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", scale: 2f / 19, offset: 30).Transform(cropped);
 
             IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
-                scale: 19 / 2f, offset: -30).Transform(pixels);
+                scalePixelColor: 19 / 2f, offsetPixelCOlor: -30).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithoutAlphaNoInterleave) + "_model.zip";
 
@@ -505,7 +505,7 @@ namespace Microsoft.ML.Tests
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, interleave: true).Transform(cropped);
 
             IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
-                ImagePixelExtractingEstimator.ColorBits.All, interleave: true).Transform(pixels);
+                ImagePixelExtractingEstimator.ColorBits.All, interleavedColors: true).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithAlphaInterleaveNoOffset) + "_model.zip";
 
@@ -565,7 +565,7 @@ namespace Microsoft.ML.Tests
 
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", interleave: true).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels", interleave: true).Transform(pixels);
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels", interleavedColors: true).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithoutAlphaInterleaveNoOffset) + "_model.zip";
 
