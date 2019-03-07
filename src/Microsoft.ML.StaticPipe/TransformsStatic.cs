@@ -1608,7 +1608,8 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">The column to apply Random Fourier transfomration.</param>
         /// <param name="dimension">The number of random Fourier features to create.</param>
-        /// <param name="useCosAndSinBases">If <see langword="true"/>, use both of cos and sin basis functions to create two features for every random Fourier frequency.  /// Otherwise, only cos bases would be used.</param>
+        /// <param name="useCosAndSinBases">If <see langword="true"/>, use both of cos and sin basis functions to create two features for every random Fourier frequency.
+        /// Otherwise, only cos bases would be used.</param>
         /// <param name="generator">Which kernel to use. (if it is null, <see cref="GaussianKernel"/> is used.)</param>
         /// <param name="seed">The seed of the random number generator for generating the new features. If not specified global random would be used.</param>
         public static Vector<float> LowerVectorSizeWithRandomFourierTransformation(this Vector<float> input,

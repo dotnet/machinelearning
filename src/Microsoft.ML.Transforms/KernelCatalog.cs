@@ -10,7 +10,7 @@ namespace Microsoft.ML
     /// <summary>
     /// The catalog of numerical feature engineering using kernel methods.
     /// </summary>
-    public static class KernelCatalog
+    public static class KernelExpansionCatalog
     {
         /// <summary>
         /// Takes column filled with a vector of floats and maps its to a random low-dimensional feature space.
@@ -27,7 +27,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static RandomFourierFeaturizingEstimator CreateRandomFourierFeatures(this TransformsCatalog.KernelTransforms catalog,
+        public static RandomFourierFeaturizingEstimator CreateRandomFourierFeatures(this TransformsCatalog.KernelExpansionTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
             int dimension = RandomFourierFeaturizingEstimator.Defaults.Dimension,
@@ -39,7 +39,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">The input columns to use for the transformation.</param>
-        public static RandomFourierFeaturizingEstimator CreateRandomFourierFeatures(this TransformsCatalog.KernelTransforms catalog, params RandomFourierFeaturizingEstimator.ColumnOptions[] columns)
+        public static RandomFourierFeaturizingEstimator CreateRandomFourierFeatures(this TransformsCatalog.KernelExpansionTransforms catalog, params RandomFourierFeaturizingEstimator.ColumnOptions[] columns)
             => new RandomFourierFeaturizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

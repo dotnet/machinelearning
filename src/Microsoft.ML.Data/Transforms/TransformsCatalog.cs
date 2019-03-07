@@ -33,7 +33,7 @@ namespace Microsoft.ML
         /// <summary>
         /// The list of operations for applying kernel methods.
         /// </summary>
-        public KernelTransforms Kernel { get; }
+        public KernelExpansionTransforms KernelExpansion { get; }
 
         /// <summary>
         /// The list of operations for data normalization.
@@ -58,7 +58,7 @@ namespace Microsoft.ML
             Categorical = new CategoricalTransforms(this);
             Conversion = new ConversionTransforms(this);
             Text = new TextTransforms(this);
-            Kernel = new KernelTransforms(this);
+            KernelExpansion = new KernelExpansionTransforms(this);
             FeatureSelection = new FeatureSelectionTransforms(this);
             Normalization = new NormalizationTransforms(this);
             DimensionReduction = new DimensionReductionTransforms(this);
@@ -109,12 +109,12 @@ namespace Microsoft.ML
         /// <summary>
         /// The catalog of kernel methods.
         /// </summary>
-        public sealed class KernelTransforms : IInternalCatalog
+        public sealed class KernelExpansionTransforms : IInternalCatalog
         {
             IHostEnvironment IInternalCatalog.Environment => _env;
             private readonly IHostEnvironment _env;
 
-            internal KernelTransforms(TransformsCatalog owner)
+            internal KernelExpansionTransforms(TransformsCatalog owner)
             {
                 _env = owner.GetEnvironment();
             }

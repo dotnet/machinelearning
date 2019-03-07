@@ -51,7 +51,7 @@ namespace Microsoft.ML.Tests.Transformers
             var validFitInvalidData = ML.Data.LoadFromEnumerable(new[] { new TestClassBiggerSize { A = new float[200] }, new TestClassBiggerSize { A = new float[200] } });
             var dataView = ML.Data.LoadFromEnumerable(data);
 
-            var pipe = ML.Transforms.Kernel.CreateRandomFourierFeatures(new[]{
+            var pipe = ML.Transforms.KernelExpansion.CreateRandomFourierFeatures(new[]{
                     new RandomFourierFeaturizingEstimator.ColumnOptions("RffA", 5, false, "A"),
                     new RandomFourierFeaturizingEstimator.ColumnOptions("RffB", 10, true, "A", new LaplacianKernel())
                 });
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Tests.Transformers
             };
             var dataView = ML.Data.LoadFromEnumerable(data);
 
-            var est = ML.Transforms.Kernel.CreateRandomFourierFeatures(new[]{
+            var est = ML.Transforms.KernelExpansion.CreateRandomFourierFeatures(new[]{
                     new RandomFourierFeaturizingEstimator.ColumnOptions("RffA", 5, false, "A"),
                     new RandomFourierFeaturizingEstimator.ColumnOptions("RffB", 10, true, "A", new LaplacianKernel())
                 });
