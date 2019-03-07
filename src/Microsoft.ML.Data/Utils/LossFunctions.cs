@@ -69,7 +69,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="label">The label of the example.</param>
         /// <param name="dual">The dual variable of the example.</param>
-        Double DualLoss(float label, Double dual);
+        Double DualLoss(float label, float dual);
     }
 
     public interface ISupportSdcaClassificationLoss : ISupportSdcaLoss, IClassificationLoss
@@ -139,7 +139,7 @@ namespace Microsoft.ML
             return maxNumThreads >= 2 && Math.Abs(fullUpdate) > Threshold ? fullUpdate / maxNumThreads : fullUpdate;
         }
 
-        public Double DualLoss(float label, Double dual)
+        public Double DualLoss(float label, float dual)
         {
             // Normalize the dual with label.
             if (label <= 0)
@@ -219,7 +219,7 @@ namespace Microsoft.ML
             return maxNumThreads >= 2 && Math.Abs(fullUpdate) > Threshold ? fullUpdate / maxNumThreads : fullUpdate;
         }
 
-        public Double DualLoss(float label, Double dual)
+        public Double DualLoss(float label, float dual)
         {
             if (label <= 0)
                 dual = -dual;
@@ -316,7 +316,7 @@ namespace Microsoft.ML
             return maxNumThreads >= 2 && Math.Abs(fullUpdate) > Threshold ? fullUpdate / maxNumThreads : fullUpdate;
         }
 
-        public Double DualLoss(float label, Double dual)
+        public Double DualLoss(float label, float dual)
         {
             if (label <= 0)
                 dual = -dual;
@@ -402,7 +402,7 @@ namespace Microsoft.ML
             return maxNumThreads >= 2 ? fullUpdate / maxNumThreads : fullUpdate;
         }
 
-        public Double DualLoss(float label, Double dual)
+        public Double DualLoss(float label, float dual)
         {
             return -dual * (dual / 4 - label);
         }
