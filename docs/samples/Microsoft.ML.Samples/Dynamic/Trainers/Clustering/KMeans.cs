@@ -41,8 +41,10 @@ namespace Microsoft.ML.Samples.Dynamic
             var centroid = centroids[0].GetValues();
             Console.WriteLine($"The coordinates of centroid 0 are: ({string.Join(", ", centroid.ToArray())})");
 
-            //  Expected Output:
+            //  Expected output similar to:
             //      The coordinates of centroid 0 are: (26, 6, 1)
+            //
+            // Note: use the advanced options constructor to set the number of threads to 1 for a deterministic behavior.
         }
     }
 }

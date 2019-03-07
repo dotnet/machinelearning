@@ -225,8 +225,7 @@ namespace Microsoft.ML.Trainers
             // isn't going to get us a performance improvement.
             int maxThreads = Environment.ProcessorCount / 2;
 
-            // If we specified a number of threads that's fine, but it must be below the
-            // host-set concurrency factor.
+            // If we specified a number of threads that's fine, but it must be below maxThreads.
             if (argNumThreads.HasValue)
                 maxThreads = Math.Min(maxThreads, argNumThreads.Value);
 

@@ -328,8 +328,8 @@ namespace Microsoft.ML.Trainers
             int numThreads;
             if (SdcaTrainerOptions.NumberOfThreads.HasValue)
             {
-                numThreads = SdcaTrainerOptions.NumThreads.Value;
-                Host.CheckUserArg(numThreads > 0, nameof(OptionsBase.NumThreads), "The number of threads must be either null or a positive integer.");
+                numThreads = SdcaTrainerOptions.NumberOfThreads.Value;
+                Host.CheckUserArg(numThreads > 0, nameof(OptionsBase.NumberOfThreads), "The number of threads must be either null or a positive integer.");
             }
             else
                 numThreads = ComputeNumThreads(cursorFactory);

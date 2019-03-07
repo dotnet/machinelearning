@@ -181,7 +181,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             Tests = new List<Test>();
 
-            InitializeThreads(FastTreeTrainerOptions.NumThreads ?? Environment.ProcessorCount);
+            InitializeThreads(FastTreeTrainerOptions.NumberOfThreads ?? Environment.ProcessorCount);
         }
 
         private protected void ConvertData(RoleMappedData trainData)

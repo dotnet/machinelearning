@@ -61,7 +61,7 @@ namespace Microsoft.ML.Tests
                 .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(new SdcaRegressionTrainer.Options() {
                     LabelColumnName = "Target",
                     FeatureColumnName = "FeatureVector",
-                    NumThreads = 1
+                    NumberOfThreads = 1
                 }));
             var model = dynamicPipeline.Fit(data);
             var transformedData = model.Transform(data);
@@ -319,7 +319,7 @@ namespace Microsoft.ML.Tests
                 .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(new SdcaRegressionTrainer.Options() {
                     LabelColumnName = "Target",
                     FeatureColumnName = "FeatureVector",
-                    NumThreads = 1
+                    NumberOfThreads = 1
                 }));
             var model = dynamicPipeline.Fit(data);
 

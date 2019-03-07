@@ -57,8 +57,12 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Recommendation
             // Feed the test data into the model and then iterate through all predictions.
             foreach (var pred in mlContext.Data.CreateEnumerable<MatrixElementForScore>(model.Transform(testDataView), false))
                 Console.WriteLine($"Predicted value at row {pred.MatrixRowIndex - 1} and column {pred.MatrixColumnIndex - 1} is {pred.Score}");
+
+            // Expected output similar to:
             // Predicted value at row 7 and column 1 is 2.876928
             // Predicted value at row 6 and column 3 is 3.587935
+            //
+            // Note: use the advanced options constructor to set the number of threads to 1 for a deterministic behavior.
         }
     }
 }
