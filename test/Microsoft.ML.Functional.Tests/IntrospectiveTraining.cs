@@ -293,7 +293,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Regression.Trainers.FastForest(numLeaves: 5, numTrees: 3));
+                .Append(mlContext.Regression.Trainers.FastForest(numberOfLeaves: 5, numberOfTrees: 3));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
