@@ -294,7 +294,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void TestTrainTestSplit()
         {
             var mlContext = new MLContext(0);
-
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             // Create the reader: define the data columns and where to find them in the text file.
             var input = mlContext.Data.LoadFromTextFile(dataPath, new[] {

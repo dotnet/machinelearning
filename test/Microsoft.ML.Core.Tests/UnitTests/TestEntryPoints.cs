@@ -2016,10 +2016,7 @@ namespace Microsoft.ML.RunTests
         public void EntryPointBinaryEnsemble()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.EnsembleBinaryClassifier", xfNames:
-                new[] {
-                    "Transforms.ColumnTypeConverter",
-
-                },
+                new[] { "Transforms.ColumnTypeConverter" },
                 xfArgs:
                 new[] {
                     @"'Column': [{'Name': 'Label','Source': 'Label','Type': 'BL'}]"
@@ -2030,9 +2027,7 @@ namespace Microsoft.ML.RunTests
         public void EntryPointClassificationEnsemble()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.EnsembleClassification", xfNames:
-                new[] {
-                    "Transforms.TextToKeyConverter",
-                },
+                new[] { "Transforms.TextToKeyConverter" },
                 xfArgs:
                 new[] {
                     @"'Column': [{'Name': 'Label','Source': 'Label'}]"
@@ -2389,7 +2384,6 @@ namespace Microsoft.ML.RunTests
                        {{
                          {string.Format(xfTemplate, xfNames[i], i + 1, xfArgs[i], i + 2)}
                        }},";
-
             }
             string inputGraph = string.Format(@"
                 {{

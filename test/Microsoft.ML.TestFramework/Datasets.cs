@@ -456,7 +456,6 @@ namespace Microsoft.ML.RunTests
             fileHasHeader = true,
             fileSeparator = '\t',
             mamlExtraSettings = new[] { "xf=Term{col=Label}" }
-
         };
 
         public static TestDataset irisMissing = new TestDataset()
