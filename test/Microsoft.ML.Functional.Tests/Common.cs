@@ -279,7 +279,7 @@ namespace Microsoft.ML.Functional.Tests
                 if (i == ignoreElementAt)
                     continue;
                 Assert.False(float.IsNaN(array[i]));
-                Assert.True(float.IsFinite(array[i]));
+                Assert.False(float.IsInfinity(array[i]));
             }
         }
 
@@ -294,7 +294,7 @@ namespace Microsoft.ML.Functional.Tests
                 if (i == ignoreElementAt)
                     continue;
                 Assert.False(double.IsNaN(array[i]));
-                Assert.True(double.IsFinite(array[i]));
+                Assert.False(double.IsInfinity(array[i]));
             }
         }
     }

@@ -355,7 +355,7 @@ namespace Microsoft.ML.Functional.Tests
             foreach (var slotName in categoricalSlotNames.GetValues())
             {
                 var slotNameString = slotName.ToString();
-                if (slotNameString.StartsWith('{'))
+                if (slotNameString.StartsWith("{"))
                 {
                     // Values look like this: {3:Exec-managerial,2:Widowed}.
                     slotNameString = slotNameString.Substring(1, slotNameString.Length - 2);
