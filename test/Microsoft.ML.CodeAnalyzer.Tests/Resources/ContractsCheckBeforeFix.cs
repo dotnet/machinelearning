@@ -1,6 +1,6 @@
-﻿using Microsoft.ML.Runtime; using Microsoft.ML;
+﻿using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using System; using Microsoft.ML.Runtime;
+using System;
 namespace Bubba
 {
     public class Foo

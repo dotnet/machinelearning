@@ -3,8 +3,8 @@
 // code, as well as code for "Contracts" derived from and intended to resemble
 // the corresponding code in ML.NET.
 
-using System; using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime; using Microsoft.ML;
+using System;
+using Microsoft.ML;
 using Microsoft.ML.Model;
 
 namespace TestNamespace

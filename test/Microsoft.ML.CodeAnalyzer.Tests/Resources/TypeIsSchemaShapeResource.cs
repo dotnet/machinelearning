@@ -1,7 +1,7 @@
-﻿using System; using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime; using Microsoft.ML;
+﻿using System;
+using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Runtime; using Microsoft.ML.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 
 namespace Bubba

@@ -1,5 +1,5 @@
-﻿using System; using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime; using Microsoft.ML;
+﻿using System;
+using Microsoft.ML;
 
 namespace TestNamespace
 {
