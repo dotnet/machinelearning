@@ -11,6 +11,7 @@ using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(SdcaRegressionTrainer.Summary, typeof(SdcaRegressionTrainer), typeof(SdcaRegressionTrainer.Options),

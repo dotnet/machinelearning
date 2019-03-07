@@ -5,6 +5,7 @@
 using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Numeric
 {
@@ -47,7 +48,7 @@ namespace Microsoft.ML.Numeric
 
             if (EnforceNonNegativity)
             {
-                VBufferUtils.Apply(ref initial, delegate(int ind, ref float initialVal)
+                VBufferUtils.Apply(ref initial, delegate (int ind, ref float initialVal)
                 {
                     if (initialVal < 0.0 && ind >= _biasCount)
                         initialVal = 0;
@@ -167,15 +168,15 @@ namespace Microsoft.ML.Numeric
                 if (!EnforceNonNegativity)
                 {
                     VBufferUtils.ApplyWith(in _x, ref _newX,
-                        delegate(int ind, float xVal, ref float newXval)
+                        delegate (int ind, float xVal, ref float newXval)
                         {
-                            if (xVal*newXval < 0.0 && ind >= _biasCount)
+                            if (xVal * newXval < 0.0 && ind >= _biasCount)
                                 newXval = 0;
                         });
                 }
                 else
                 {
-                    VBufferUtils.Apply(ref _newX, delegate(int ind, ref float newXval)
+                    VBufferUtils.Apply(ref _newX, delegate (int ind, ref float newXval)
                     {
                         if (newXval < 0.0 && ind >= _biasCount)
                             newXval = 0;

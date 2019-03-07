@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
@@ -12,6 +11,7 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.TensorFlow
 {

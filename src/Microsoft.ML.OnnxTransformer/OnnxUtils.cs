@@ -10,6 +10,7 @@ using System.Numerics.Tensors;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.Runtime;
 using OnnxShape = System.Collections.Generic.List<int>;
 
 namespace Microsoft.ML.Transforms

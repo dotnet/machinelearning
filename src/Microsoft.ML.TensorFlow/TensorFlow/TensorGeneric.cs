@@ -3,6 +3,7 @@
 
 using System;
 using System.Text;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.TensorFlow
 {

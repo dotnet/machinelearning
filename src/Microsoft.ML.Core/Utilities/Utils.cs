@@ -12,7 +12,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.Data.DataView;
-
+using Microsoft.ML.Runtime;
 namespace Microsoft.ML.Internal.Utilities
 {
 
@@ -758,7 +758,7 @@ namespace Microsoft.ML.Internal.Utilities
             var result = new bool[length];
             foreach (var col in columnsNeeded)
             {
-                if(col.Index < result.Length)
+                if (col.Index < result.Length)
                     result[col.Index] = true;
             }
 

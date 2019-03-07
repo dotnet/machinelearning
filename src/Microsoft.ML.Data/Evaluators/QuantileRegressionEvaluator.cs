@@ -11,6 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(QuantileRegressionEvaluator), typeof(QuantileRegressionEvaluator), typeof(QuantileRegressionEvaluator.Arguments), typeof(SignatureEvaluator),
     "Quantile Regression Evaluator", QuantileRegressionEvaluator.LoadName, "QuantileRegression")]

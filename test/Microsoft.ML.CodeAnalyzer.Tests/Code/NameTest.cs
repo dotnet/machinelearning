@@ -90,7 +90,7 @@ namespace TestNamespace
         }
 
         internal const string TestSource = @"
-using System;
+using System; using Microsoft.ML.Runtime;
 namespace silly { }
 namespace NotSilly { }
 namespace foo.bar.Biz
@@ -132,7 +132,7 @@ namespace foo.bar.Biz
         public async Task ExternName()
         {
             const string source = @"
-using System;
+using System; using Microsoft.ML.Runtime;
 using System.Runtime.InteropServices;
 
 namespace TestNamespace
@@ -157,7 +157,7 @@ namespace TestNamespace
         }
 
         private const string FixedTestSource = @"
-using System;
+using System; using Microsoft.ML.Runtime;
 namespace silly { }
 namespace NotSilly { }
 namespace foo.bar.Biz

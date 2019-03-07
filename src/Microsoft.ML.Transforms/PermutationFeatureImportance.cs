@@ -11,6 +11,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms
 {
@@ -276,9 +277,9 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         private sealed class FeatureIndex
         {
-            #pragma warning disable 0649
+#pragma warning disable 0649
             public int Index;
-            #pragma warning restore 0649
+#pragma warning restore 0649
         }
 
         /// <summary>
@@ -286,9 +287,9 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         private sealed class FeatureName
         {
-            #pragma warning disable 0649
+#pragma warning disable 0649
             public ReadOnlyMemory<char> Name;
-            #pragma warning restore 0649
+#pragma warning restore 0649
         }
     }
 }

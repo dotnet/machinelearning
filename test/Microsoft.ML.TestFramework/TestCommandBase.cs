@@ -14,6 +14,7 @@ using Microsoft.ML.Command;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;

@@ -11,6 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(AveragedPerceptronTrainer.Summary, typeof(AveragedPerceptronTrainer), typeof(AveragedPerceptronTrainer.Options),

@@ -8,6 +8,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
 [assembly: LoadableClass(RegressionGamTrainer.Summary,

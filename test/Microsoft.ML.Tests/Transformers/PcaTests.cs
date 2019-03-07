@@ -6,7 +6,6 @@ using System.IO;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
 

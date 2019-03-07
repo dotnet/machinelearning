@@ -10,7 +10,6 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
@@ -693,7 +692,7 @@ namespace Microsoft.ML.Transforms
             {
                 var active = new bool[_mapper.InputSchema.Count];
                 foreach (var column in columns)
-                        active[_mapper.GetInputIndex(column.Index)] = true;
+                    active[_mapper.GetInputIndex(column.Index)] = true;
 
                 return _mapper.InputSchema.Where(col => col.Index < active.Length && active[col.Index]);
             }

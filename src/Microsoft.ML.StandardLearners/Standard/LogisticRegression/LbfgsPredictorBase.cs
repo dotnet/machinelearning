@@ -11,14 +11,14 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
-using Microsoft.ML.Trainers;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers
 {
     public abstract class LbfgsTrainerBase<TOptions, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
       where TTransformer : ISingleFeaturePredictionTransformer<TModel>
       where TModel : class
-      where TOptions : LbfgsTrainerBase<TOptions, TTransformer, TModel>.OptionsBase, new ()
+      where TOptions : LbfgsTrainerBase<TOptions, TTransformer, TModel>.OptionsBase, new()
     {
         public abstract class OptionsBase : TrainerInputBaseWithWeight
         {

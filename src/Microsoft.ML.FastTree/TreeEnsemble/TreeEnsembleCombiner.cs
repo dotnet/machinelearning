@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
 [assembly: LoadableClass(typeof(TreeEnsembleCombiner), null, typeof(SignatureModelCombiner), "Fast Tree Model Combiner", "FastTreeCombiner")]
@@ -104,7 +105,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                     var cali = new PlattCalibrator(_host, -1, 0);
                     var fastTreeModel = new FastTreeBinaryModelParameters(_host, ensemble, featureCount, null);
-                    return new FeatureWeightsCalibratedModelParameters<FastTreeBinaryModelParameters,PlattCalibrator>(_host, fastTreeModel, cali);
+                    return new FeatureWeightsCalibratedModelParameters<FastTreeBinaryModelParameters, PlattCalibrator>(_host, fastTreeModel, cali);
                 case PredictionKind.Regression:
                     return new FastTreeRegressionModelParameters(_host, ensemble, featureCount, null);
                 case PredictionKind.Ranking:

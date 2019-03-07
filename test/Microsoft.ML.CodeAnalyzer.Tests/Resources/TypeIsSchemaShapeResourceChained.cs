@@ -1,8 +1,8 @@
-﻿using System;
+﻿using System; using Microsoft.ML.Runtime;
 using System.Collections.Generic;
-using Microsoft.ML;
+using Microsoft.ML.Runtime; using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Data;
+using Microsoft.ML.Runtime; using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 
 namespace Bubba

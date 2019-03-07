@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {
@@ -41,7 +42,7 @@ namespace Microsoft.ML.Internal.Utilities
             return result;
         }
 
-        private static double _vScale = 2 * Math.Sqrt(2 / Math.E);
+        private static readonly double _vScale = 2 * Math.Sqrt(2 / Math.E);
 
         /// <summary>
         /// Returns a number sampled from a zero-mean, unit variance Gaussian
@@ -291,7 +292,7 @@ namespace Microsoft.ML.Internal.Utilities
                 double r = p / q;
                 double a = (n + 1) * r;
 
-                for (;;)
+                for (; ; )
                 {
                     if (u <= s)
                         break;
@@ -329,7 +330,7 @@ namespace Microsoft.ML.Internal.Utilities
                 double h = double.NaN;
 
                 // Step 1
-                for (;;)
+                for (; ; )
                 {
                     double v = rn.NextDouble();
                     double u;

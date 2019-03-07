@@ -7,9 +7,8 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.TimeSeries;
 
 [assembly: LoadableClass(PercentileThresholdTransform.Summary, typeof(PercentileThresholdTransform), typeof(PercentileThresholdTransform.Arguments), typeof(SignatureDataTransform),
@@ -75,7 +74,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         public PercentileThresholdTransform(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-            : base(env, ctx, LoaderSignature,input)
+            : base(env, ctx, LoaderSignature, input)
         {
             // *** Binary format ***
             // Double: _percentile

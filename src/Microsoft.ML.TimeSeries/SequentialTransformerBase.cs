@@ -10,9 +10,9 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
@@ -749,7 +749,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
-             Host.CheckValueOrNull(rand);
+            Host.CheckValueOrNull(rand);
 
             Func<int, bool> predicateInput;
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);

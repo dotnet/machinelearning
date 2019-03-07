@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms
 {
@@ -99,7 +100,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="sort">How items should be ordered when vectorized. If <see cref="SortOrder.Occurrence"/> choosen they will be in the order encountered.
         /// If <see cref="SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         internal ValueToKeyMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int maxNumKeys = Defaults.MaxNumKeys, SortOrder sort = Defaults.Sort) :
-           this(env, new [] { new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, maxNumKeys, sort) })
+           this(env, new[] { new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, maxNumKeys, sort) })
         {
         }
 

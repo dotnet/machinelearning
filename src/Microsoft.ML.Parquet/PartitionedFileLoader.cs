@@ -16,6 +16,7 @@ using Microsoft.ML.Data.IO;
 using Microsoft.ML.Data.Utilities;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(PartitionedFileLoader.Summary, typeof(PartitionedFileLoader), typeof(PartitionedFileLoader.Arguments), typeof(SignatureDataLoader),
     PartitionedFileLoader.UserName, PartitionedFileLoader.LoadName, PartitionedFileLoader.ShortName)]
@@ -368,8 +369,8 @@ namespace Microsoft.ML.Data
 
             private readonly bool[] _active;
             private readonly bool[] _subActive; // Active columns of the sub-cursor.
-            private Delegate[] _getters;
-            private Delegate[] _subGetters; // Cached getters of the sub-cursor.
+            private readonly Delegate[] _getters;
+            private readonly Delegate[] _subGetters; // Cached getters of the sub-cursor.
 
             private readonly IEnumerable<DataViewSchema.Column> _columnsNeeded;
             private readonly IEnumerable<DataViewSchema.Column> _subActivecolumnsNeeded;

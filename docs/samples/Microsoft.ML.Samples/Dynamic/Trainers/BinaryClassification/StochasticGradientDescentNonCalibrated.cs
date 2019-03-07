@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Microsoft.ML.Samples.Dynamic
+﻿namespace Microsoft.ML.Samples.Dynamic
 {
     public static class StochasticGradientDescentNonCalibrated
     {

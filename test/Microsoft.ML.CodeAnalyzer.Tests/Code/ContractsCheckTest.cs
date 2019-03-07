@@ -67,7 +67,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
             // except the namespace is distinct so it is a different type. We should not find
             // diagnostics on a class like this!
             const string decoySource = @"
-using System;
+using System; using Microsoft.ML.Runtime;
 namespace TestNamespace
 {
     public static class Contracts

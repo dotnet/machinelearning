@@ -729,7 +729,7 @@ namespace Microsoft.ML.Data
                         }
                         else
                         {
-                            kind = col.Type == default? InternalDataKind.R4 : col.Type;
+                            kind = col.Type == default ? InternalDataKind.R4 : col.Type;
                             ch.CheckUserArg(Enum.IsDefined(typeof(InternalDataKind), kind), nameof(Column.Type), "Bad item type");
                             itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                         }

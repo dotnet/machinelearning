@@ -13,6 +13,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(TypeConvertingTransformer.Summary, typeof(IDataTransform), typeof(TypeConvertingTransformer), typeof(TypeConvertingTransformer.Options), typeof(SignatureDataTransform),

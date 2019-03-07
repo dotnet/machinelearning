@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
@@ -68,12 +69,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
         public void CheckPoint(IHostEnvironment env, string modelPath)
         {
             using (var file = File.Create(modelPath))
-                if (Transformer is ITransformerChainAccessor )
+                if (Transformer is ITransformerChainAccessor)
                 {
 
                     new TransformerChain<ITransformer>
-                    (((ITransformerChainAccessor )Transformer).Transformers,
-                    ((ITransformerChainAccessor )Transformer).Scopes).SaveTo(env, file);
+                    (((ITransformerChainAccessor)Transformer).Transformers,
+                    ((ITransformerChainAccessor)Transformer).Scopes).SaveTo(env, file);
                 }
                 else
                     Transformer.SaveTo(env, file);
@@ -83,9 +84,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
             ITransformer[] transformersClone = null;
             TransformerScope[] scopeClone = null;
-            if (transformer is ITransformerChainAccessor )
+            if (transformer is ITransformerChainAccessor)
             {
-                ITransformerChainAccessor  accessor = (ITransformerChainAccessor )transformer;
+                ITransformerChainAccessor accessor = (ITransformerChainAccessor)transformer;
                 transformersClone = accessor.Transformers.Select(x => x).ToArray();
                 scopeClone = accessor.Scopes.Select(x => x).ToArray();
                 int index = 0;
@@ -178,8 +179,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         private bool IsRowToRowMapper(ITransformer transformer)
         {
-            if (transformer is ITransformerChainAccessor )
-                return ((ITransformerChainAccessor )transformer).Transformers.All(t => t.IsRowToRowMapper || t is IStatefulTransformer);
+            if (transformer is ITransformerChainAccessor)
+                return ((ITransformerChainAccessor)transformer).Transformers.All(t => t.IsRowToRowMapper || t is IStatefulTransformer);
             else
                 return transformer.IsRowToRowMapper || transformer is IStatefulTransformer;
         }
@@ -190,15 +191,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Contracts.Check(IsRowToRowMapper(InputTransformer), nameof(GetRowToRowMapper) +
                 " method called despite " + nameof(IsRowToRowMapper) + " being false. or transformer not being " + nameof(IStatefulTransformer));
 
-            if (!(InputTransformer is ITransformerChainAccessor ))
+            if (!(InputTransformer is ITransformerChainAccessor))
                 if (InputTransformer is IStatefulTransformer)
                     return ((IStatefulTransformer)InputTransformer).GetStatefulRowToRowMapper(inputSchema);
                 else
                     return InputTransformer.GetRowToRowMapper(inputSchema);
 
-            Contracts.Check(InputTransformer is ITransformerChainAccessor );
+            Contracts.Check(InputTransformer is ITransformerChainAccessor);
 
-            var transformers = ((ITransformerChainAccessor )InputTransformer).Transformers;
+            var transformers = ((ITransformerChainAccessor)InputTransformer).Transformers;
             IRowToRowMapper[] mappers = new IRowToRowMapper[transformers.Length];
             DataViewSchema schema = inputSchema;
             for (int i = 0; i < mappers.Length; ++i)

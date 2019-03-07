@@ -143,7 +143,7 @@ namespace Microsoft.ML.Calibrators
     public abstract class CalibratorTransformer<TICalibrator> : RowToRowTransformerBase, ISingleFeaturePredictionTransformer<TICalibrator>
         where TICalibrator : class, ICalibrator
     {
-        private TICalibrator _calibrator;
+        private readonly TICalibrator _calibrator;
         private readonly string _loaderSignature;
 
         private protected CalibratorTransformer(IHostEnvironment env, TICalibrator calibrator, string loaderSignature)
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Calibrators
             where TCalibrator : class, ICalibrator
         {
             private TCalibrator _calibrator;
-            private int _scoreColIndex;
+            private readonly int _scoreColIndex;
             private CalibratorTransformer<TCalibrator> _parent;
 
             internal Mapper(CalibratorTransformer<TCalibrator> parent, TCalibrator calibrator, DataViewSchema inputSchema) :

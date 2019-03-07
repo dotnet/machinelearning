@@ -1,5 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
-using Microsoft.ML;
+using Microsoft.ML.Runtime; using Microsoft.ML;
 
 [assembly: InternalsVisibleTo("ProjectB")]
 [assembly: WantsToBeBestFriends]

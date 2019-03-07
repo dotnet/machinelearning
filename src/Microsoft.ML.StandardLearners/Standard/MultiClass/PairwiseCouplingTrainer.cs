@@ -9,9 +9,9 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(PairwiseCouplingTrainer.Summary, typeof(PairwiseCouplingTrainer), typeof(PairwiseCouplingTrainer.Options),
