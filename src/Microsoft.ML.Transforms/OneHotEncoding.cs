@@ -26,37 +26,10 @@ namespace Microsoft.ML.Transforms
     /// <include file='doc.xml' path='doc/members/member[@name="CategoricalOneHotVectorizer"]/*' />
     public sealed class OneHotEncodingTransformer : ITransformer
     {
-        public enum OutputKind : byte
-        {
-            /// <summary>
-            /// Output is a bag (multi-set) vector
-            /// </summary>
-            [TGUI(Label = "Output is a bag (multi-set) vector")]
-            Bag = 1,
-
-            /// <summary>
-            /// Output is an indicator vector
-            /// </summary>
-            [TGUI(Label = "Output is an indicator vector")]
-            Ind = 2,
-
-            /// <summary>
-            /// Output is a key value
-            /// </summary>
-            [TGUI(Label = "Output is a key value")]
-            Key = 3,
-
-            /// <summary>
-            /// Output is binary encoded
-            /// </summary>
-            [TGUI(Label = "Output is binary encoded")]
-            Bin = 4,
-        }
-
         internal sealed class Column : ValueToKeyMappingTransformer.ColumnBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector", ShortName = "kind")]
-            public OutputKind? OutputKind;
+            public OneHotEncodingEstimator.OutputKind? OutputKind;
 
             internal static Column Parse(string str)
             {
@@ -76,7 +49,7 @@ namespace Microsoft.ML.Transforms
                     return false;
                 if (extra == null)
                     return true;
-                if (!Enum.TryParse(extra, true, out OutputKind kind))
+                if (!Enum.TryParse(extra, true, out OneHotEncodingEstimator.OutputKind kind))
                     return false;
                 OutputKind = kind;
                 return true;
@@ -88,7 +61,7 @@ namespace Microsoft.ML.Transforms
                 if (OutputKind == null)
                     return TryUnparseCore(sb);
                 var kind = OutputKind.Value;
-                if (!Enum.IsDefined(typeof(OutputKind), kind))
+                if (!Enum.IsDefined(typeof(OneHotEncodingEstimator.OutputKind), kind))
                     return false;
                 string extra = OutputKind.Value.ToString();
                 return TryUnparseCore(sb, extra);
@@ -102,7 +75,7 @@ namespace Microsoft.ML.Transforms
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)",
                 ShortName = "kind", SortOrder = 102)]
-            public OutputKind OutputKind = OneHotEncodingEstimator.Defaults.OutKind;
+            public OneHotEncodingEstimator.OutputKind OutputKind = OneHotEncodingEstimator.Defaults.OutKind;
 
             public Options()
             {
@@ -132,17 +105,17 @@ namespace Microsoft.ML.Transforms
                     column.Name,
                     column.Source ?? column.Name,
                     column.OutputKind ?? options.OutputKind,
-                    column.MaximumNumberOfKeys ?? options.MaximumNumberOfKeys,
-                    column.Sort ?? options.MappingOrder,
-                    column.Keys ?? options.Keys);
-                col.SetTerms(column.Key ?? options.Key);
+                    column.MaxNumTerms ?? options.MaxNumTerms,
+                    column.Sort ?? options.Sort,
+                    column.Terms ?? options.Terms);
+                col.SetTerms(column.Term ?? options.Term);
                 columns.Add(col);
             }
             IDataView keyData = null;
             if (!string.IsNullOrEmpty(options.DataFile))
             {
                 using (var ch = h.Start("Load term data"))
-                    keyData = ValueToKeyMappingTransformer.GetKeyDataViewOrNull(env, ch, options.DataFile, options.KeysColumnName, options.Loader, out bool autoLoaded);
+                    keyData = ValueToKeyMappingTransformer.GetKeyDataViewOrNull(env, ch, options.DataFile, options.TermsColumn, options.Loader, out bool autoLoaded);
                 h.AssertValue(keyData);
             }
             var transformed = new OneHotEncodingEstimator(env, columns.ToArray(), keyData).Fit(input).Transform(input);
@@ -177,7 +150,34 @@ namespace Microsoft.ML.Transforms
         [BestFriend]
         internal static class Defaults
         {
-            public const OneHotEncodingTransformer.OutputKind OutKind = OneHotEncodingTransformer.OutputKind.Ind;
+            public const OutputKind OutKind = OutputKind.Indicator;
+        }
+
+        public enum OutputKind : byte
+        {
+            /// <summary>
+            /// Output is a bag (multi-set) vector
+            /// </summary>
+            [TGUI(Label = "Output is a bag (multi-set) vector")]
+            Bag = 1,
+
+            /// <summary>
+            /// Output is an indicator vector
+            /// </summary>
+            [TGUI(Label = "Output is an indicator vector")]
+            Indicator = 2,
+
+            /// <summary>
+            /// Output is a key value
+            /// </summary>
+            [TGUI(Label = "Output is a key value")]
+            Key = 3,
+
+            /// <summary>
+            /// Output is binary encoded
+            /// </summary>
+            [TGUI(Label = "Output is binary encoded")]
+            Binary = 4,
         }
 
         /// <summary>
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public sealed class ColumnOptions : ValueToKeyMappingEstimator.ColumnOptionsBase
         {
-            public readonly OneHotEncodingTransformer.OutputKind OutputKind;
+            public readonly OutputKind OutputKind;
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Transforms
             /// If <see cref="ValueToKeyMappingEstimator.MappingOrder.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
             /// <param name="keys">List of terms.</param>
             public ColumnOptions(string name, string inputColumnName = null,
-                OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutKind,
+                OutputKind outputKind = Defaults.OutKind,
                 int maxNumberOfKeys = ValueToKeyMappingEstimator.Defaults.MaximumNumberOfKeys, ValueToKeyMappingEstimator.MappingOrder mappingOrder = ValueToKeyMappingEstimator.Defaults.Order,
                 string[] keys = null)
                 : base(name, inputColumnName ?? name, maxNumberOfKeys, mappingOrder, keys, true)
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="outputKind">The type of output expected.</param>
         internal OneHotEncodingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
-            OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutKind)
+            OutputKind outputKind = Defaults.OutKind)
             : this(env, new[] { new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, outputKind) })
         {
         }
@@ -237,20 +237,20 @@ namespace Microsoft.ML.Transforms
             for (int i = 0; i < columns.Length; i++)
             {
                 var column = columns[i];
-                OneHotEncodingTransformer.OutputKind kind = columns[i].OutputKind;
+                OutputKind kind = columns[i].OutputKind;
                 switch (kind)
                 {
                     default:
                         throw _host.ExceptUserArg(nameof(column.OutputKind));
-                    case OneHotEncodingTransformer.OutputKind.Key:
+                    case OutputKind.Key:
                         continue;
-                    case OneHotEncodingTransformer.OutputKind.Bin:
+                    case OutputKind.Binary:
                         binaryCols.Add((column.OutputColumnName, column.OutputColumnName));
                         break;
-                    case OneHotEncodingTransformer.OutputKind.Ind:
+                    case OutputKind.Indicator:
                         cols.Add((column.OutputColumnName, column.OutputColumnName, false));
                         break;
-                    case OneHotEncodingTransformer.OutputKind.Bag:
+                    case OutputKind.Bag:
                         cols.Add((column.OutputColumnName, column.OutputColumnName, true));
                         break;
                 }

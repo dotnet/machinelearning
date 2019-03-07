@@ -44,8 +44,8 @@ namespace Microsoft.ML.StaticPipe
         private const OneHotHashVectorOutputKind DefOut = (OneHotHashVectorOutputKind)OneHotHashEncodingEstimator.Defaults.OutputKind;
         private const int DefHashBits = OneHotHashEncodingEstimator.Defaults.NumberOfHashBits;
         private const uint DefSeed = OneHotHashEncodingEstimator.Defaults.Seed;
-        private const bool DefOrdered = OneHotHashEncodingEstimator.Defaults.Ordered;
-        private const int DefInvertHash = OneHotHashEncodingEstimator.Defaults.InvertHash;
+        private const bool DefOrdered = OneHotHashEncodingEstimator.Defaults.UseOrderedHashing;
+        private const int DefInvertHash = OneHotHashEncodingEstimator.Defaults.MaximumNumberOfInverts;
 
         private readonly struct Config
         {
@@ -104,7 +104,7 @@ namespace Microsoft.ML.StaticPipe
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ICategoricalCol)toOutput[i];
-                    infos[i] = new OneHotHashEncodingEstimator.ColumnOptions(outputNames[toOutput[i]], inputNames[tcol.Input], (OneHotEncodingTransformer.OutputKind)tcol.Config.OutputKind,
+                    infos[i] = new OneHotHashEncodingEstimator.ColumnOptions(outputNames[toOutput[i]], inputNames[tcol.Input], (OneHotEncodingEstimator.OutputKind)tcol.Config.OutputKind,
                         tcol.Config.HashBits, tcol.Config.Seed, tcol.Config.Ordered, tcol.Config.InvertHash);
                 }
                 return new OneHotHashEncodingEstimator(env, infos);

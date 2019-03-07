@@ -16681,9 +16681,9 @@
                     "Kind": "Enum",
                     "Values": [
                       "Bag",
-                      "Ind",
+                      "Indicator",
                       "Key",
-                      "Bin"
+                      "Binary"
                     ]
                   },
                   "Desc": "Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)",
@@ -16801,9 +16801,9 @@
             "Kind": "Enum",
             "Values": [
               "Bag",
-              "Ind",
+              "Indicator",
               "Key",
-              "Bin"
+              "Binary"
             ]
           },
           "Desc": "Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)",
@@ -16887,9 +16887,9 @@
                     "Kind": "Enum",
                     "Values": [
                       "Bag",
-                      "Ind",
+                      "Indicator",
                       "Key",
-                      "Bin"
+                      "Binary"
                     ]
                   },
                   "Desc": "Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector",
@@ -16930,8 +16930,8 @@
                   "Type": {
                     "Kind": "Enum",
                     "Values": [
-                      "Occurrence",
-                      "Value"
+                      "ByOccurrence",
+                      "ByValue"
                     ]
                   },
                   "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
@@ -16998,7 +16998,7 @@
         {
           "Name": "MaxNumTerms",
           "Type": "Int",
-          "Desc": "Maximum number of terms to keep per column when auto-training",
+          "Desc": "Maximum number of keys to keep per column when auto-training",
           "Aliases": [
             "max"
           ],
@@ -17013,9 +17013,9 @@
             "Kind": "Enum",
             "Values": [
               "Bag",
-              "Ind",
+              "Indicator",
               "Key",
-              "Bin"
+              "Binary"
             ]
           },
           "Desc": "Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)",
@@ -17025,7 +17025,7 @@
           "Required": false,
           "SortOrder": 102.0,
           "IsNullable": false,
-          "Default": "Ind"
+          "Default": "Indicator"
         },
         {
           "Name": "Term",
@@ -17040,19 +17040,19 @@
           "Default": null
         },
         {
-          "Name": "Sort",
+          "Name": "MappingOrder",
           "Type": {
             "Kind": "Enum",
             "Values": [
-              "Occurrence",
-              "Value"
+              "ByOccurrence",
+              "ByValue"
             ]
           },
           "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
           "Required": false,
           "SortOrder": 113.0,
           "IsNullable": false,
-          "Default": "Occurrence"
+          "Default": "ByOccurrence"
         },
         {
           "Name": "TextKeyValues",
@@ -17904,8 +17904,8 @@
                   "Type": {
                     "Kind": "Enum",
                     "Values": [
-                      "Occurrence",
-                      "Value"
+                      "ByOccurrence",
+                      "ByValue"
                     ]
                   },
                   "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
@@ -17973,7 +17973,7 @@
         {
           "Name": "MaxNumTerms",
           "Type": "Int",
-          "Desc": "Maximum number of terms to keep per column when auto-training",
+          "Desc": "Maximum number of keys to keep per column when auto-training",
           "Aliases": [
             "max"
           ],
@@ -17995,19 +17995,19 @@
           "Default": null
         },
         {
-          "Name": "Sort",
+          "Name": "MappingOrder",
           "Type": {
             "Kind": "Enum",
             "Values": [
-              "Occurrence",
-              "Value"
+              "ByOccurrence",
+              "ByValue"
             ]
           },
           "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
           "Required": false,
           "SortOrder": 113.0,
           "IsNullable": false,
-          "Default": "Occurrence"
+          "Default": "ByOccurrence"
         },
         {
           "Name": "TextKeyValues",
@@ -22457,15 +22457,15 @@
                 "Type": {
                   "Kind": "Enum",
                   "Values": [
-                    "Occurrence",
-                    "Value"
+                    "ByOccurrence",
+                    "ByValue"
                   ]
                 },
                 "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
                 "Required": false,
                 "SortOrder": 5.0,
                 "IsNullable": false,
-                "Default": "Occurrence"
+                "Default": "ByOccurrence"
               },
               {
                 "Name": "DropUnknowns",
@@ -22618,8 +22618,8 @@
                   "Type": {
                     "Kind": "Enum",
                     "Values": [
-                      "Occurrence",
-                      "Value"
+                      "ByOccurrence",
+                      "ByValue"
                     ]
                   },
                   "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
@@ -22687,7 +22687,7 @@
         {
           "Name": "MaxNumTerms",
           "Type": "Int",
-          "Desc": "Maximum number of terms to keep per column when auto-training",
+          "Desc": "Maximum number of keys to keep per column when auto-training",
           "Aliases": [
             "max"
           ],
@@ -22709,19 +22709,19 @@
           "Default": null
         },
         {
-          "Name": "Sort",
+          "Name": "MappingOrder",
           "Type": {
             "Kind": "Enum",
             "Values": [
-              "Occurrence",
-              "Value"
+              "ByOccurrence",
+              "ByValue"
             ]
           },
           "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
           "Required": false,
           "SortOrder": 113.0,
           "IsNullable": false,
-          "Default": "Occurrence"
+          "Default": "ByOccurrence"
         },
         {
           "Name": "TextKeyValues",

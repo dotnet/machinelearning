@@ -220,7 +220,7 @@ namespace Microsoft.ML.Transforms
                 }
 
                 if (Count == 0)
-                    throw ch.ExceptUserArg(nameof(Options.Key), "Nothing parsed as '{0}'", ItemType);
+                    throw ch.ExceptUserArg(nameof(Options.Term), "Nothing parsed as '{0}'", ItemType);
             }
 
             /// <summary>
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Transforms
                 }
 
                 if (Count == 0)
-                    throw ch.ExceptUserArg(nameof(Options.Key), "Nothing parsed as '{0}'", ItemType);
+                    throw ch.ExceptUserArg(nameof(Options.Term), "Nothing parsed as '{0}'", ItemType);
             }
         }
 

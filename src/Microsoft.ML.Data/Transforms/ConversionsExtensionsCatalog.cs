@@ -24,13 +24,13 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="numberOfHashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
-        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/>Specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <paramref name="maximumNumberOfInverts"/>Specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public static HashingEstimator Hash(this TransformsCatalog.ConversionTransforms catalog, string outputColumnName, string inputColumnName = null,
-            int numberOfHashBits = HashDefaults.NumberOfHashBits, int invertHash = HashDefaults.InvertHash)
-            => new HashingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, numberOfHashBits, invertHash);
+            int numberOfHashBits = HashDefaults.NumberOfHashBits, int maximumNumberOfInverts = HashDefaults.MaximumNumberOfInverts)
+            => new HashingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, numberOfHashBits, maximumNumberOfInverts);
 
         /// <summary>
         /// Hashes the values in the input column.

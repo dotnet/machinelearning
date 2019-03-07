@@ -411,7 +411,7 @@ namespace Microsoft.ML.RunTests
             TestCore(null, false,
                 new[] {
                     "loader=Text{quote+ sparse+ col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
-                    "xf=Cat{max=5 col={name=Bag src=Text kind=bag} col=One:ind:OneText}",
+                    "xf=Cat{max=5 col={name=Bag src=Text kind=bag} col=One:indicator:OneText}",
                     "xf=Cat{max=7 col=Hot:Text}",
                     "xf=Cat{max=8 col=Key:kEY:Text col=KeyOne:KeY:OneText}",
                 });

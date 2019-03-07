@@ -298,13 +298,13 @@ namespace Microsoft.ML.Transforms.Text
                     termArgs =
                         new ValueToKeyMappingTransformer.Options()
                         {
-                            MaximumNumberOfKeys = int.MaxValue,
-                            Key = termLoaderArgs.Term,
-                            Keys = termLoaderArgs.Terms,
+                            MaxNumTerms = int.MaxValue,
+                            Term = termLoaderArgs.Term,
+                            Terms = termLoaderArgs.Terms,
                             DataFile = termLoaderArgs.DataFile,
                             Loader = termLoaderArgs.Loader,
-                            KeysColumnName = termLoaderArgs.TermsColumn,
-                            MappingOrder = termLoaderArgs.Sort,
+                            TermsColumn = termLoaderArgs.TermsColumn,
+                            Sort = termLoaderArgs.Sort,
                             Columns = new ValueToKeyMappingTransformer.Column[termCols.Count]
                         };
                     if (termLoaderArgs.DropUnknowns)
@@ -315,7 +315,7 @@ namespace Microsoft.ML.Transforms.Text
                     termArgs =
                         new ValueToKeyMappingTransformer.Options()
                         {
-                            MaximumNumberOfKeys = Utils.Size(options.MaxNumTerms) > 0 ? options.MaxNumTerms[0] : NgramExtractingEstimator.Defaults.MaxNumTerms,
+                            MaxNumTerms = Utils.Size(options.MaxNumTerms) > 0 ? options.MaxNumTerms[0] : NgramExtractingEstimator.Defaults.MaxNumTerms,
                             Columns = new ValueToKeyMappingTransformer.Column[termCols.Count]
                         };
                 }
@@ -328,7 +328,7 @@ namespace Microsoft.ML.Transforms.Text
                         {
                             Name = column.Name,
                             Source = column.Source,
-                            MaximumNumberOfKeys = Utils.Size(column.MaxNumTerms) > 0 ? column.MaxNumTerms[0] : default(int?)
+                            MaxNumTerms = Utils.Size(column.MaxNumTerms) > 0 ? column.MaxNumTerms[0] : default(int?)
                         };
 
                     if (missingDropColumns != null)

@@ -1835,7 +1835,7 @@ namespace Microsoft.ML.RunTests
                             ],
                             'Data': '$AllData',
                             'MaxNumTerms': 1000000,
-                            'Sort': 'Occurrence',
+                            'Sort': 'ByOccurrence',
                             'TextKeyValues': false
                         },
                         'Name': 'Transforms.TextToKeyConverter',
@@ -3925,10 +3925,10 @@ namespace Microsoft.ML.RunTests
                                     'Source': 'Categories'
                                 }
                             ],
-                            'OutputKind': 'Ind',
+                            'OutputKind': 'Indicator',
                             'MaxNumTerms': 1000000,
                             'Term': null,
-                            'Sort': 'Occurrence',
+                            'Sort': 'ByOccurrence',
                             'TextKeyValues': true,
                             'Data': '$Var_99eb21288359485f936577da8f2e1061'
                         },
@@ -4524,7 +4524,7 @@ namespace Microsoft.ML.RunTests
                             'Column': [{
                                     'MaxNumTerms': null,
                                     'Term': null,
-                                    'Sort': 'Value',
+                                    'Sort': 'ByValue',
                                     'TextKeyValues': null,
                                     'Name': 'Strat',
                                     'Source': 'Label'
@@ -4532,7 +4532,7 @@ namespace Microsoft.ML.RunTests
                             ],
                             'MaxNumTerms': 1000000,
                             'Term': null,
-                            'Sort': 'Occurrence',
+                            'Sort': 'ByOccurrence',
                             'TextKeyValues': false,
                             'Data': '$Var_64f1865a99b84b9d9e0c72292c14c3af'
                         },
@@ -4928,7 +4928,7 @@ namespace Microsoft.ML.RunTests
                                     ],
                                     'MaxNumTerms': 1000000,
                                     'Term': null,
-                                    'Sort': 'Occurrence',
+                                    'Sort': 'ByOccurrence',
                                     'TextKeyValues': false,
                                     'Data': '$Var_48d35aae527f439398805f51e5f0cfab'
                                 },

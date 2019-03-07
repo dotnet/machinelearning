@@ -113,7 +113,7 @@ namespace Microsoft.ML.StaticPipe
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ICategoricalCol)toOutput[i];
-                    infos[i] = new OneHotEncodingEstimator.ColumnOptions(outputNames[toOutput[i]], inputNames[tcol.Input], (OneHotEncodingTransformer.OutputKind)tcol.Config.OutputKind,
+                    infos[i] = new OneHotEncodingEstimator.ColumnOptions(outputNames[toOutput[i]], inputNames[tcol.Input], (OneHotEncodingEstimator.OutputKind)tcol.Config.OutputKind,
                         tcol.Config.Max, (ValueToKeyMappingEstimator.MappingOrder)tcol.Config.Order);
                     if (tcol.Config.OnFit != null)
                     {

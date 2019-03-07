@@ -47,8 +47,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Conversion.Hash(new[]{
-                    new HashingEstimator.ColumnOptions("HashA", "A", numberOfHashBits:4, invertHash:-1),
-                    new HashingEstimator.ColumnOptions("HashB", "B", numberOfHashBits:3, ordered:true),
+                    new HashingEstimator.ColumnOptions("HashA", "A", numberOfHashBits:4, maximumNumberOfInverts:-1),
+                    new HashingEstimator.ColumnOptions("HashB", "B", numberOfHashBits:3, useOrderedHashing:true),
                     new HashingEstimator.ColumnOptions("HashC", "C", seed:42),
                     new HashingEstimator.ColumnOptions("HashD", "A"),
                 });
@@ -69,9 +69,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Conversion.Hash(new[] {
-                new HashingEstimator.ColumnOptions("HashA", "A", invertHash:1, numberOfHashBits:10),
-                new HashingEstimator.ColumnOptions("HashAUnlim", "A", invertHash:-1, numberOfHashBits:10),
-                new HashingEstimator.ColumnOptions("HashAUnlimOrdered", "A", invertHash:-1, numberOfHashBits:10, ordered:true)
+                new HashingEstimator.ColumnOptions("HashA", "A", maximumNumberOfInverts:1, numberOfHashBits:10),
+                new HashingEstimator.ColumnOptions("HashAUnlim", "A", maximumNumberOfInverts:-1, numberOfHashBits:10),
+                new HashingEstimator.ColumnOptions("HashAUnlimOrdered", "A", maximumNumberOfInverts:-1, numberOfHashBits:10, useOrderedHashing:true)
             });
             var result = pipe.Fit(dataView).Transform(dataView);
             ValidateMetadata(result);
@@ -109,8 +109,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Conversion.Hash(new[]{
-                    new HashingEstimator.ColumnOptions("HashA", "A", numberOfHashBits:4, invertHash:-1),
-                    new HashingEstimator.ColumnOptions("HashB", "B", numberOfHashBits:3, ordered:true),
+                    new HashingEstimator.ColumnOptions("HashA", "A", numberOfHashBits:4, maximumNumberOfInverts:-1),
+                    new HashingEstimator.ColumnOptions("HashB", "B", numberOfHashBits:3, useOrderedHashing:true),
                     new HashingEstimator.ColumnOptions("HashC", "C", seed:42),
                     new HashingEstimator.ColumnOptions("HashD" ,"A"),
             });

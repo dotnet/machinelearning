@@ -383,13 +383,13 @@ namespace Microsoft.ML.Transforms.Text
                 var termArgs =
                     new ValueToKeyMappingTransformer.Options()
                     {
-                        MaximumNumberOfKeys = int.MaxValue,
-                        Key = termLoaderArgs.Term,
-                        Keys = termLoaderArgs.Terms,
+                        MaxNumTerms = int.MaxValue,
+                        Term = termLoaderArgs.Term,
+                        Terms = termLoaderArgs.Terms,
                         DataFile = termLoaderArgs.DataFile,
                         Loader = termLoaderArgs.Loader,
-                        KeysColumnName = termLoaderArgs.TermsColumn,
-                        MappingOrder = termLoaderArgs.Sort,
+                        TermsColumn = termLoaderArgs.TermsColumn,
+                        Sort = termLoaderArgs.Sort,
                         Columns = termCols.ToArray()
                     };
                 view = ValueToKeyMappingTransformer.Create(h, termArgs, view);

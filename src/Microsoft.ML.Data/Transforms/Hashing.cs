@@ -51,11 +51,11 @@ namespace Microsoft.ML.Transforms
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the position of each term should be included in the hash",
                 ShortName = "ord")]
-            public bool Ordered = HashingEstimator.Defaults.Ordered;
+            public bool Ordered = HashingEstimator.Defaults.UseOrderedHashing;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
-            public int InvertHash = HashingEstimator.Defaults.InvertHash;
+            public int InvertHash = HashingEstimator.Defaults.MaximumNumberOfInverts;
         }
 
         internal sealed class Column : OneToOneColumn
@@ -172,8 +172,8 @@ namespace Microsoft.ML.Transforms
             _columns = columns.ToArray();
             foreach (var column in _columns)
             {
-                if (column.InvertHash != 0)
-                    throw Host.ExceptParam(nameof(columns), $"Found colunm with {nameof(column.InvertHash)} set to non zero value, please use { nameof(HashingEstimator)} instead");
+                if (column.MaximumNumberOfInverts != 0)
+                    throw Host.ExceptParam(nameof(columns), $"Found colunm with {nameof(column.MaximumNumberOfInverts)} set to non zero value, please use { nameof(HashingEstimator)} instead");
             }
         }
 
@@ -194,10 +194,10 @@ namespace Microsoft.ML.Transforms
 
                 types[i] = GetOutputType(input.Schema, _columns[i]);
                 int invertHashMaxCount;
-                if (_columns[i].InvertHash == -1)
+                if (_columns[i].MaximumNumberOfInverts == -1)
                     invertHashMaxCount = int.MaxValue;
                 else
-                    invertHashMaxCount = _columns[i].InvertHash;
+                    invertHashMaxCount = _columns[i].MaximumNumberOfInverts;
                 if (invertHashMaxCount > 0)
                 {
                     Utils.Add(ref invertIinfos, i);
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Transforms
             var mask = (1U << _columns[iinfo].NumberOfHashBits) - 1;
             uint seed = _columns[iinfo].Seed;
             // In case of single valued input column, hash in 0 for the slot index.
-            if (_columns[iinfo].Ordered)
+            if (_columns[iinfo].UseOrderedHashing)
                 seed = Hashing.MurmurRound(seed, 0);
 
             if (srcType is KeyType)
@@ -438,7 +438,7 @@ namespace Microsoft.ML.Transforms
             var mask = (1U << ex.NumberOfHashBits) - 1;
             var seed = ex.Seed;
 
-            if (!ex.Ordered)
+            if (!ex.UseOrderedHashing)
                 return MakeVectorHashGetter<T, THash>(seed, mask, getSrc);
             return MakeVectorOrderedHashGetter<T, THash>(seed, mask, getSrc);
         }
@@ -856,7 +856,7 @@ namespace Microsoft.ML.Transforms
                 _srcType = row.Schema[srcCol].Type;
                 _ex = ex;
                 // If this is a vector and ordered, then we must include the slot as part of the representation.
-                _includeSlot = _srcType is VectorType && _ex.Ordered;
+                _includeSlot = _srcType is VectorType && _ex.UseOrderedHashing;
             }
 
             /// <summary>
@@ -874,7 +874,7 @@ namespace Microsoft.ML.Transforms
                 DataViewType typeSrc = row.Schema[srcCol].Type;
                 VectorType vectorTypeSrc = typeSrc as VectorType;
 
-                Type t = vectorTypeSrc != null ? (ex.Ordered ? typeof(ImplVecOrdered<>) : typeof(ImplVec<>)) : typeof(ImplOne<>);
+                Type t = vectorTypeSrc != null ? (ex.UseOrderedHashing ? typeof(ImplVecOrdered<>) : typeof(ImplVec<>)) : typeof(ImplOne<>);
                 DataViewType itemType = vectorTypeSrc?.ItemType ?? typeSrc;
 
                 t = t.MakeGenericType(itemType.RawType);
@@ -1117,8 +1117,8 @@ namespace Microsoft.ML.Transforms
         {
             public const int NumberOfHashBits = NumBitsLim - 1;
             public const uint Seed = 314489979;
-            public const bool Ordered = false;
-            public const int InvertHash = 0;
+            public const bool UseOrderedHashing = false;
+            public const int MaximumNumberOfInverts = 0;
         }
 
         /// <summary>
@@ -1137,14 +1137,14 @@ namespace Microsoft.ML.Transforms
             /// <summary> Hashing seed.</summary>
             public readonly uint Seed;
             /// <summary> Whether the position of each term should be included in the hash.</summary>
-            public readonly bool Ordered;
+            public readonly bool UseOrderedHashing;
             /// <summary>
             /// During hashing we constuct mappings between original values and the produced hash values.
             /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-            /// <see cref="InvertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+            /// <see cref="MaximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
             /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.
             /// </summary>
-            public readonly int InvertHash;
+            public readonly int MaximumNumberOfInverts;
 
             /// <summary>
             /// Describes how the transformer handles one column pair.
@@ -1153,29 +1153,29 @@ namespace Microsoft.ML.Transforms
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="numberOfHashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
-            /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
-            /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+            /// <param name="useOrderedHashing">Whether the position of each term should be included in the hash.</param>
+            /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
             /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-            /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+            /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
             /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
             public ColumnOptions(string name,
                 string inputColumnName = null,
                 int numberOfHashBits = Defaults.NumberOfHashBits,
                 uint seed = Defaults.Seed,
-                bool ordered = Defaults.Ordered,
-                int invertHash = Defaults.InvertHash)
+                bool useOrderedHashing = Defaults.UseOrderedHashing,
+                int maximumNumberOfInverts = Defaults.MaximumNumberOfInverts)
             {
-                if (invertHash < -1)
-                    throw Contracts.ExceptParam(nameof(invertHash), "Value too small, must be -1 or larger");
-                if (invertHash != 0 && numberOfHashBits >= 31)
+                if (maximumNumberOfInverts < -1)
+                    throw Contracts.ExceptParam(nameof(maximumNumberOfInverts), "Value too small, must be -1 or larger");
+                if (maximumNumberOfInverts != 0 && numberOfHashBits >= 31)
                     throw Contracts.ExceptParam(nameof(numberOfHashBits), $"Cannot support invertHash for a {0} bit hash. 30 is the maximum possible.", numberOfHashBits);
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
                 Name = name;
                 InputColumnName = inputColumnName ?? name;
                 NumberOfHashBits = numberOfHashBits;
                 Seed = seed;
-                Ordered = ordered;
-                InvertHash = invertHash;
+                UseOrderedHashing = useOrderedHashing;
+                MaximumNumberOfInverts = maximumNumberOfInverts;
             }
 
             internal ColumnOptions(string name, string inputColumnName, ModelLoadContext ctx)
@@ -1187,9 +1187,9 @@ namespace Microsoft.ML.Transforms
                 // uint: HashSeed
                 // byte: Ordered
                 NumberOfHashBits = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(HashingEstimator.NumBitsMin <= NumberOfHashBits && NumberOfHashBits < HashingEstimator.NumBitsLim);
+                Contracts.CheckDecode(NumBitsMin <= NumberOfHashBits && NumberOfHashBits < NumBitsLim);
                 Seed = ctx.Reader.ReadUInt32();
-                Ordered = ctx.Reader.ReadBoolByte();
+                UseOrderedHashing = ctx.Reader.ReadBoolByte();
             }
 
             internal void Save(ModelSaveContext ctx)
@@ -1199,11 +1199,11 @@ namespace Microsoft.ML.Transforms
                 // uint: HashSeed
                 // byte: Ordered
 
-                Contracts.Assert(HashingEstimator.NumBitsMin <= NumberOfHashBits && NumberOfHashBits < HashingEstimator.NumBitsLim);
+                Contracts.Assert(NumBitsMin <= NumberOfHashBits && NumberOfHashBits < NumBitsLim);
                 ctx.Writer.Write(NumberOfHashBits);
 
                 ctx.Writer.Write(Seed);
-                ctx.Writer.WriteBoolByte(Ordered);
+                ctx.Writer.WriteBoolByte(UseOrderedHashing);
             }
         }
 
@@ -1232,8 +1232,8 @@ namespace Microsoft.ML.Transforms
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         internal HashingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
-            int hashBits = Defaults.NumberOfHashBits, int invertHash = Defaults.InvertHash)
-            : this(env, new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, numberOfHashBits: hashBits, invertHash: invertHash))
+            int hashBits = Defaults.NumberOfHashBits, int invertHash = Defaults.MaximumNumberOfInverts)
+            : this(env, new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, numberOfHashBits: hashBits, maximumNumberOfInverts: invertHash))
         {
         }
 
@@ -1272,7 +1272,7 @@ namespace Microsoft.ML.Transforms
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
-                if (colInfo.InvertHash != 0)
+                if (colInfo.MaximumNumberOfInverts != 0)
                     metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.ItemType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, new SchemaShape(metadata));
             }
