@@ -48,7 +48,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 loadedModel = ml.Model.Load(fs);
 
             var gam = (((loadedModel as TransformerChain<ITransformer>).LastTransformer
-                as BinaryPredictionTransformer<object>).Model
+                as ISingleFeaturePredictionTransformer<object>).Model
                 as CalibratedModelParametersBase).SubModel
                 as BinaryClassificationGamModelParameters;
             Assert.NotNull(gam);
@@ -92,9 +92,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             data.Schema["Features"].GetSlotNames(ref slotNames);
             var ageIndex = FindIndex(slotNames.GetValues(), "age");
             var transformer = (loadedModel as CompositeDataLoader<IMultiStreamSource, ITransformer>).Transformer.LastTransformer;
-            var gamModel = ((transformer as BinaryPredictionTransformer<object>).Model
-                as CalibratedModelParametersBase).SubModel
-                as BinaryClassificationGamModelParameters;
+            var singleFeaturePredictionTransformer = transformer as ISingleFeaturePredictionTransformer<object>;
+            Assert.NotNull(singleFeaturePredictionTransformer);
+            var calibratedModelParameters = singleFeaturePredictionTransformer.Model as CalibratedModelParametersBase;
+            Assert.NotNull(calibratedModelParameters);
+            var gamModel = calibratedModelParameters.SubModel as BinaryClassificationGamModelParameters;
+            Assert.NotNull(gamModel);
             var ageBinUpperBounds = gamModel.GetBinUpperBounds(ageIndex);
             var ageBinEffects = gamModel.GetBinEffects(ageIndex);
         }

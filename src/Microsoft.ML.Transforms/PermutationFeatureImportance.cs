@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML.Transforms
 {
     internal static class PermutationFeatureImportance<TModel, TMetric, TResult> where TResult : IMetricsStatistics<TMetric>
+        where TModel : class
     {
         public static ImmutableArray<TResult>
             GetImportanceMetricsMatrix(
