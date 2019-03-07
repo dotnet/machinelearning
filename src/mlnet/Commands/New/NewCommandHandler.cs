@@ -160,9 +160,27 @@ namespace Microsoft.ML.CLI.Commands.New
 
             if (taskKind == TaskKind.MulticlassClassification)
             {
-                throw new NotImplementedException();
+                var progressReporter = new ProgressHandlers.MulticlassClassificationHandler();
+
+                var experimentSettings = new MulticlassExperimentSettings()
+                {
+                    MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
+                    ProgressHandler = progressReporter
+                };
+
+                experimentSettings.Trainers.Clear();
+                experimentSettings.Trainers.Add(MulticlassClassificationTrainer.LightGbm);
+                experimentSettings.Trainers.Add(MulticlassClassificationTrainer.LogisticRegression);
+                experimentSettings.Trainers.Add(MulticlassClassificationTrainer.StochasticDualCoordinateAscent);
+
+                var result = context.Auto()
+                .CreateMulticlassClassificationExperiment(experimentSettings)
+                    .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = labelName });
+                logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
+                var bestIteration = result.Best();
+                pipeline = bestIteration.Pipeline;
+                model = bestIteration.Model;
             }
-            //Multi-class exploration here
 
             return (pipeline, model);
         }

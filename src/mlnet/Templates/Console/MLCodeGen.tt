@@ -193,7 +193,7 @@ foreach(var label in ClassLabels)
         public bool Prediction { get; set; }
 
 <# } #>
-<#if("MultiClassClassification".Equals(TaskType)){ #>
+<#if("MulticlassClassification".Equals(TaskType)){ #>
         public float[] Score { get; set; }
 <#}else{ #>
         public float Score { get; set; }

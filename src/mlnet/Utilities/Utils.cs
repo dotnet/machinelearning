@@ -52,6 +52,8 @@ namespace Microsoft.ML.CLI.Utilities
             {
                 case "binary-classification":
                     return TaskKind.BinaryClassification;
+                case "multiclass-classification":
+                    return TaskKind.MulticlassClassification;
                 case "regression":
                     return TaskKind.Regression;
                 default: // this should never be hit because the validation is done on command-line-api.

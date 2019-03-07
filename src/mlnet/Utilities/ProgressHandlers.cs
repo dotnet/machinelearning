@@ -39,5 +39,20 @@ namespace Microsoft.ML.CLI.Utilities
                 ConsolePrinter.PrintBinaryClassificationMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics);
             }
         }
+
+        internal class MulticlassClassificationHandler : IProgress<RunResult<MultiClassClassifierMetrics>>
+        {
+            int iterationIndex;
+            internal MulticlassClassificationHandler()
+            {
+                ConsolePrinter.PrintMulticlassClassificationMetricsHeader();
+            }
+
+            public void Report(RunResult<MultiClassClassifierMetrics> iterationResult)
+            {
+                iterationIndex++;
+                ConsolePrinter.PrintMulticlassClassificationMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics);
+            }
+        }
     }
 }

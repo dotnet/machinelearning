@@ -150,6 +150,9 @@
   <data name="MetricsForRegressionModels" xml:space="preserve">
     <value>Metrics for regression models</value>
   </data>
+  <data name="MetricsForMulticlassModels" xml:space="preserve">
+    <value>Metrics for multi-class models</value>
+  </data>
   <data name="RetrieveBestPipeline" xml:space="preserve">
     <value>Retrieving best pipeline ...</value>
   </data>

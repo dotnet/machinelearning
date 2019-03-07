@@ -23,7 +23,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 throw new ArgumentNullException(nameof(pipeline));
             var node = pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Trainer).First();
             if (node == null)
-                return null;
+                throw new ArgumentException($"The trainer was not found.");
             if (Enum.TryParse(node.Name, out TrainerName trainer))
             {
                 switch (trainer)
@@ -67,10 +67,10 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     case TrainerName.SymSgdBinary:
                         return new SymbolicStochasticGradientDescent(node);
                     default:
-                        return null;
+                        throw new ArgumentException($"The trainer '{trainer}' is not handled currently.");
                 }
             }
-            return null;
+            throw new ArgumentException($"The trainer '{node.Name}' is not handled currently.");
         }
     }
 }

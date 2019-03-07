@@ -103,7 +103,7 @@ namespace Microsoft.ML.CLI.Commands
 
         private static string[] GetMlTaskSuggestions()
         {
-            return new[] { "binary-classification", "regression" };
+            return new[] { "binary-classification", "multiclass-classification", "regression" };
         }
 
         private static string[] GetVerbositySuggestions()
