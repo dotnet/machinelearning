@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var data = ml.Data.LoadFromTextFile<IrisData>(GetDataPath(TestDatasets.irisData.trainFilename), separatorChar: ',');
 
             var sdcaTrainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options { NumberOfIterations = 100, Shuffle = true, NumberOfThreads = 1, });
+                new SdcaNonCalibratedBinaryTrainer.Options { MaximumNumberOfIterations = 100, Shuffle = true, NumberOfThreads = 1, });
 
             var pipeline = new ColumnConcatenatingEstimator (ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(ml.Transforms.Conversion.MapValueToKey("Label"), TransformerScope.TrainTest)

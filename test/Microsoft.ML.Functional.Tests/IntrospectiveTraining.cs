@@ -425,7 +425,7 @@ namespace Microsoft.ML.Functional.Tests
                     {
                         InitializationAlgorithm = KMeansPlusPlusTrainer.InitializationAlgorithm.Random,
                         NumberOfClusters = 4,
-                        NumberOfIterations = 10,
+                        MaximumNumberOfIterations = 10,
                         NumberOfThreads = 1
                     }));
         }
@@ -435,7 +435,7 @@ namespace Microsoft.ML.Functional.Tests
             return mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
                 new SdcaMultiClassTrainer.Options {
-                    NumberOfIterations = 10,
+                    MaximumNumberOfIterations = 10,
                     NumberOfThreads = 1 }));
         }
     }
