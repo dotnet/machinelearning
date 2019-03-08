@@ -164,7 +164,8 @@ namespace Microsoft.ML
     public sealed class HingeLoss : ISupportSdcaClassificationLoss
     {
         [TlcModule.Component(Name = "HingeLoss", FriendlyName = "Hinge loss", Alias = "Hinge", Desc = "Hinge loss.")]
-        public sealed class Options : ISupportSdcaClassificationLossFactory, ISupportClassificationLossFactory
+        [BestFriend]
+        internal sealed class Options : ISupportSdcaClassificationLossFactory, ISupportClassificationLossFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Margin value", ShortName = "marg")]
             public float Margin = Defaults.Margin;
@@ -178,7 +179,7 @@ namespace Microsoft.ML
         private const float Threshold = 0.5f;
         private readonly float _margin;
 
-        internal HingeLoss(Options options)
+        private HingeLoss(Options options)
         {
             _margin = options.Margin;
         }
@@ -236,7 +237,7 @@ namespace Microsoft.ML
     {
         [TlcModule.Component(Name = "SmoothedHingeLoss", FriendlyName = "Smoothed Hinge Loss", Alias = "SmoothedHinge",
                              Desc = "Smoothed Hinge loss.")]
-        public sealed class Options : ISupportSdcaClassificationLossFactory, ISupportClassificationLossFactory
+        internal sealed class Options : ISupportSdcaClassificationLossFactory, ISupportClassificationLossFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Smoothing constant", ShortName = "smooth")]
             public float SmoothingConst = Defaults.SmoothingConst;
@@ -335,7 +336,7 @@ namespace Microsoft.ML
     public sealed class ExpLoss : IClassificationLoss
     {
         [TlcModule.Component(Name = "ExpLoss", FriendlyName = "Exponential Loss", Desc = "Exponential loss.")]
-        public sealed class Options : ISupportClassificationLossFactory
+        internal sealed class Options : ISupportClassificationLossFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Beta (dilation)", ShortName = "beta")]
             public float Beta = 1;
@@ -347,7 +348,7 @@ namespace Microsoft.ML
 
         private readonly float _beta;
 
-        public ExpLoss(Options options)
+        internal ExpLoss(Options options)
         {
             _beta = options.Beta;
         }
@@ -442,7 +443,7 @@ namespace Microsoft.ML
     public sealed class TweedieLoss : IRegressionLoss
     {
         [TlcModule.Component(Name = "TweedieLoss", FriendlyName = "Tweedie Loss", Alias = "tweedie", Desc = "Tweedie loss.")]
-        public sealed class Options : ISupportRegressionLossFactory
+        internal sealed class Options : ISupportRegressionLossFactory
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText =
                 "Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, " +
@@ -458,7 +459,7 @@ namespace Microsoft.ML
         private readonly Double _index1; // 1 minus the index parameter.
         private readonly Double _index2; // 2 minus the index parameter.
 
-        public TweedieLoss(Options options)
+        private TweedieLoss(Options options)
         {
             Contracts.CheckUserArg(1 <= options.Index && options.Index <= 2, nameof(options.Index), "Must be in the range [1, 2]");
             _index = options.Index;
