@@ -31,16 +31,13 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     public sealed class CoefficientStatistics
     {
-        public readonly string Name;
         public readonly float Estimate;
         public readonly float StandardError;
         public readonly float ZScore;
         public readonly float PValue;
 
-        internal CoefficientStatistics(string name, float estimate, float stdError, float zScore, float pValue)
+        internal CoefficientStatistics(float estimate, float stdError, float zScore, float pValue)
         {
-            Contracts.AssertNonEmpty(name);
-            Name = name;
             Estimate = estimate;
             StandardError = stdError;
             ZScore = zScore;
@@ -316,7 +313,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Computes the standart deviation, Z-Score and p-Value.
+        /// Computes the standart deviation, Z-Score and p-Value for the value being passed as the bias.
         /// </summary>
         public CoefficientStatistics GetBiasStatisticsForValue(float bias)
         {
@@ -327,7 +324,7 @@ namespace Microsoft.ML.Trainers
             var pValue = 1.0f - (float)ProbabilityFunctions.Erf(Math.Abs(zScore / sqrt2));
 
             //string name, float estimate, float stdError, float zScore, float pValue
-            return new CoefficientStatistics("(Bias)", bias, stdError, zScore, pValue);
+            return new CoefficientStatistics(bias, stdError, zScore, pValue);
         }
 
         // sefilipi: do we want to offer this? Do we want to offer setting the weights?
@@ -398,7 +395,7 @@ namespace Microsoft.ML.Trainers
             bool denseStdError = _coeffStdError.IsDense;
             ReadOnlySpan<int> stdErrorIndices = _coeffStdError.GetIndices();
             float[] zScores = new float[ParametersCount - 1];
-            for (int i = 1; i < ParametersCount; i++)
+            for (int i = 1; i < ParametersCount; i++) //skip the bias term
             {
                 int wi = denseStdError ? i - 1 : stdErrorIndices[i] - 1;
                 Env.Assert(0 <= wi && wi < _weights.Length);
@@ -409,7 +406,7 @@ namespace Microsoft.ML.Trainers
                 var stdError = stdErrorValues[i];
                 var zScore = zScores[i - 1] = weight / stdError;
                 var pValue = 1 - (float)ProbabilityFunctions.Erf(Math.Abs(zScore / sqrt2));
-                result.Add(new CoefficientStatistics(name, weight, stdError, zScore, pValue));
+                result.Add(new CoefficientStatistics(weight, stdError, zScore, pValue));
             }
             return result;
         }
@@ -417,16 +414,15 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Gets the coefficient statistics as an object.
         /// </summary>
-        public CoefficientStatistics[] GetCoefficientStatistics(DataViewSchema.Column featureColumn, int paramCountCap)
+        public CoefficientStatistics[] GetWeightsCoefficientStatistics(DataViewSchema.Column featureColumn, int paramCountCap)
         {
             Env.CheckParam(paramCountCap >= 0, nameof(paramCountCap));
 
             if (paramCountCap > ParametersCount)
                 paramCountCap = ParametersCount;
 
-            var biasStats = GetBiasStatistics();
             var order = GetUnorderedCoefficientStatistics(featureColumn).OrderByDescending(stat => stat.ZScore).Take(paramCountCap - 1);
-            return order.Prepend(biasStats).ToArray();
+            return order.ToArray();
         }
 
         /// <summary>
@@ -439,7 +435,8 @@ namespace Microsoft.ML.Trainers
         {
             base.SaveText(writer, featureColumn, paramCountCap);
 
-            var coeffStats = GetCoefficientStatistics(featureColumn, paramCountCap);
+            var biasStats = GetBiasStatistics();
+            var coeffStats = GetWeightsCoefficientStatistics(featureColumn, paramCountCap);
             if (coeffStats == null)
                 return;
 
@@ -463,10 +460,15 @@ namespace Microsoft.ML.Trainers
                 return probZ.ToString();
             };
 
+            writer.WriteLine("{1,-10:G7}\t{2,-10:G7}\t{3,-10:G7}\t{4}",
+                           biasStats.Estimate,
+                           biasStats.StandardError,
+                           biasStats.ZScore,
+                           decorateProbabilityString(biasStats.PValue));
+
             foreach (var coeffStat in coeffStats)
             {
-                writer.WriteLine("{0,-15}\t{1,-10:G7}\t{2,-10:G7}\t{3,-10:G7}\t{4}",
-                            coeffStat.Name,
+                writer.WriteLine("{1,-10:G7}\t{2,-10:G7}\t{3,-10:G7}\t{4}",
                             coeffStat.Estimate,
                             coeffStat.StandardError,
                             coeffStat.ZScore,
@@ -486,14 +488,19 @@ namespace Microsoft.ML.Trainers
 
             base.SaveSummaryInKeyValuePairs(featureColumn, paramCountCap, resultCollection);
 
-            var coeffStats = GetCoefficientStatistics(featureColumn, paramCountCap);
+            var biasStats = GetBiasStatistics();
+            var coeffStats = GetWeightsCoefficientStatistics(featureColumn, paramCountCap);
             if (coeffStats == null)
                 return;
+            int index = 0;
+            resultCollection.Add(new KeyValuePair<string, object>(
+                   (index++).ToString(),
+                   new float[] { biasStats.Estimate, biasStats.StandardError, biasStats.ZScore, biasStats.PValue }));
 
             foreach (var coeffStat in coeffStats)
             {
                 resultCollection.Add(new KeyValuePair<string, object>(
-                    coeffStat.Name,
+                    (index++).ToString(),
                     new float[] { coeffStat.Estimate, coeffStat.StandardError, coeffStat.ZScore, coeffStat.PValue }));
             }
         }

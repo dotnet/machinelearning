@@ -453,9 +453,18 @@ namespace Microsoft.ML.Trainers
             // *** Binary format ***
             // (Base class)
             // LinearModelParameterStatistics: model statistics (optional, in a separate stream)
-            LinearModelParameterStatistics stats;
-            ctx.LoadModelOrNull<LinearModelParameterStatistics, SignatureLoadModel>(Host, out stats, ModelStatsSubModelFilename);
-            Statistics = stats;
+            try
+            {
+                LinearModelParameterStatistics stats;
+                ctx.LoadModelOrNull<LinearModelParameterStatistics, SignatureLoadModel>(Host, out stats, ModelStatsSubModelFilename);
+                Statistics = stats;
+            }
+            catch (Exception)
+            {
+                ModelStatisticsBase stats;
+                ctx.LoadModelOrNull<ModelStatisticsBase, SignatureLoadModel>(Host, out stats, ModelStatsSubModelFilename);
+                Statistics = stats;
+            }
         }
 
         private static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
