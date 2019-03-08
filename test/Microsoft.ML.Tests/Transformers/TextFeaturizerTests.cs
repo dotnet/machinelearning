@@ -288,7 +288,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Load(sentimentDataPath);
 
             var est = new WordBagEstimator(env, "bag_of_words", "text").
-                Append(new LatentDirichletAllocationEstimator(env, "topics", "bag_of_words", 10, numIterations: 10,
+                Append(new LatentDirichletAllocationEstimator(env, "topics", "bag_of_words", 10, maximumNumberOfIterations: 10,
                     resetRandomGenerator: true));
 
             // The following call fails because of the following issue

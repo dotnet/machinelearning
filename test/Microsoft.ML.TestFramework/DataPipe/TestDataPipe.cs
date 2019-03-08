@@ -1318,7 +1318,7 @@ namespace Microsoft.ML.RunTests
             builder.AddColumn("F1V", NumberDataViewType.Single, data);
             var srcView = builder.GetDataView();
 
-            var est = ML.Transforms.Text.LatentDirichletAllocation("F1V", numTopic: 3, numSummaryTermPerTopic: 3, alphaSum: 3, numThreads: 1, resetRandomGenerator: true);
+            var est = ML.Transforms.Text.LatentDirichletAllocation("F1V", numberOfTopics: 3, numberOfSummaryTermsPerTopic: 3, alphaSum: 3, numberOfThreads: 1, resetRandomGenerator: true);
             var ldaTransformer = est.Fit(srcView);
             var transformedData = ldaTransformer.Transform(srcView);
 
