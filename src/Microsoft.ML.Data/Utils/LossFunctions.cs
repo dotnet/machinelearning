@@ -7,6 +7,8 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(LogLoss.Summary, typeof(LogLoss), null, typeof(SignatureClassificationLoss),
     "Log Loss", "LogLoss", "Logistic", "CrossEntropy")]
@@ -37,7 +39,7 @@ using Microsoft.ML.Internal.Utilities;
 [assembly: EntryPointModule(typeof(SquaredLossFactory))]
 [assembly: EntryPointModule(typeof(TweedieLoss.Options))]
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// The loss function may know the close-form solution to the optimal dual update

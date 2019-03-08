@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Samples.Dynamic
 {

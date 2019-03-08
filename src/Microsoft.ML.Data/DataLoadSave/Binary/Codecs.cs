@@ -10,6 +10,7 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data.IO
 {

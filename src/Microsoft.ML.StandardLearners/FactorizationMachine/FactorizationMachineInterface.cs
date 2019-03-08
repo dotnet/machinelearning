@@ -5,6 +5,7 @@
 using System.Runtime.InteropServices;
 using System.Security;
 using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers
 {

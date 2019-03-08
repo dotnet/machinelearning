@@ -15,6 +15,7 @@ using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.TreePredictor;
@@ -202,7 +203,6 @@ namespace Microsoft.ML.Data
 
                 private VBuffer<float> _src;
                 private ValueGetter<VBuffer<float>> _featureGetter;
-
                 private long _cachedPosition;
                 private readonly int[] _leafIds;
                 private readonly List<int>[] _pathIds;
@@ -697,7 +697,7 @@ namespace Microsoft.ML.Data
                             return;
                         }
                         converter(in src, ref temp);
-                        dst = (Single)(temp - 1);
+                        dst = (Single)temp - 1;
                     };
             }
             else

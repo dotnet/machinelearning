@@ -13,6 +13,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json;
 using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
@@ -141,7 +142,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         }
 
         internal static ModelProto ConvertTransformListToOnnxModel(OnnxContextImpl ctx, IChannel ch, IDataView inputData, IDataView outputData,
-            LinkedList<ITransformCanSaveOnnx> transforms, HashSet<string> inputColumnNamesToDrop=null, HashSet<string> outputColumnNamesToDrop=null)
+            LinkedList<ITransformCanSaveOnnx> transforms, HashSet<string> inputColumnNamesToDrop = null, HashSet<string> outputColumnNamesToDrop = null)
         {
             inputColumnNamesToDrop = inputColumnNamesToDrop ?? new HashSet<string>();
             outputColumnNamesToDrop = outputColumnNamesToDrop ?? new HashSet<string>();
@@ -150,7 +151,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             for (int i = 0; i < inputData.Schema.Count; i++)
             {
                 string colName = inputData.Schema[i].Name;
-                if(inputColumnNamesToDrop.Contains(colName))
+                if (inputColumnNamesToDrop.Contains(colName))
                     continue;
 
                 ctx.AddInputVariable(inputData.Schema[i].Type, colName);

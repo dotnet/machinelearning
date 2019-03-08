@@ -1,6 +1,4 @@
-﻿using Microsoft.ML;
-
-namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
+﻿namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
 {
     public class LightGbm
     {

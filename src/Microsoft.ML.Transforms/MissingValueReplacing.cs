@@ -14,10 +14,9 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(MissingValueReplacingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueReplacingTransformer), typeof(MissingValueReplacingTransformer.Options), typeof(SignatureDataTransform),
@@ -280,14 +279,14 @@ namespace Microsoft.ML.Transforms
             List<int> columnsToImpute = null;
             // REVIEW: Would like to get rid of the sourceColumns list but seems to be the best way to provide
             // the cursor with what columns to cursor through.
-           var sourceColumns = new List<DataViewSchema.Column>();
+            var sourceColumns = new List<DataViewSchema.Column>();
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)
             {
                 input.Schema.TryGetColumnIndex(columns[iinfo].InputColumnName, out int colSrc);
                 sources[iinfo] = colSrc;
                 var type = input.Schema[colSrc].Type;
                 if (type is VectorType vectorType)
-                     type = new VectorType(vectorType.ItemType, vectorType);
+                    type = new VectorType(vectorType.ItemType, vectorType);
                 Delegate isNa = GetIsNADelegate(type);
                 types[iinfo] = type;
                 var kind = (ReplacementKind)columns[iinfo].Replacement;

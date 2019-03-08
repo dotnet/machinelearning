@@ -17,6 +17,7 @@ namespace Microsoft.ML.RunTests
     using Microsoft.ML.EntryPoints;
     using Microsoft.ML.Internal.Utilities;
     using Microsoft.ML.LightGBM;
+    using Microsoft.ML.Runtime;
     using Microsoft.ML.TestFramework;
     using Microsoft.ML.Trainers;
     using Microsoft.ML.Trainers.FastTree;

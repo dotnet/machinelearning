@@ -6,6 +6,7 @@ using System;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
 [assembly: EntryPointModule(typeof(FastTreeBinaryClassificationTrainer.Options))]

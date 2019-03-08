@@ -14,6 +14,7 @@ using Microsoft.ML;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Tools;
 
 [assembly: LoadableClass(HelpCommand.Summary, typeof(HelpCommand), typeof(HelpCommand.Arguments), typeof(SignatureCommand),

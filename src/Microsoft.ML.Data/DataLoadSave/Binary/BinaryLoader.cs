@@ -19,7 +19,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(BinaryLoader.Summary, typeof(BinaryLoader), typeof(BinaryLoader.Arguments), typeof(SignatureDataLoader),
@@ -643,7 +643,7 @@ namespace Microsoft.ML.Data.IO
         {
             var schemaBuilder = new DataViewSchema.Builder();
 
-            for(int i = 0; i < _aliveColumns.Length; ++i)
+            for (int i = 0; i < _aliveColumns.Length; ++i)
             {
                 // Informaiton of a column loaded from a binary file.
                 var loadedColumn = _aliveColumns[i];
@@ -654,7 +654,7 @@ namespace Microsoft.ML.Data.IO
                 {
                     // We got some metadata fields here.
                     var metadataBuilder = new DataViewSchema.Annotations.Builder();
-                    foreach(var loadedMetadataColumn in metadataArray)
+                    foreach (var loadedMetadataColumn in metadataArray)
                     {
                         var metadataGetter = loadedMetadataColumn.GetGetter();
                         if (metadataGetter == null)

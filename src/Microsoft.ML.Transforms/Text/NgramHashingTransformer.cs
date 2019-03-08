@@ -13,7 +13,7 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(NgramHashingTransformer.Summary, typeof(IDataTransform), typeof(NgramHashingTransformer), typeof(NgramHashingTransformer.Options), typeof(SignatureDataTransform),
@@ -662,7 +662,7 @@ namespace Microsoft.ML.Transforms.Text
                 _srcTextGetters = new ValueMapper<uint, StringBuilder>[inputSchema.Count];
                 _invertHashMaxCounts = invertHashMaxCounts;
 
-                foreach(var col in columnsNeeded)
+                foreach (var col in columnsNeeded)
                 {
                     Contracts.Assert(col.Index < _srcTextGetters.Length);
                     _srcTextGetters[col.Index] = InvertHashUtils.GetSimpleMapper<uint>(inputSchema, col.Index);

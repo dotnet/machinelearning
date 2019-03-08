@@ -9,6 +9,7 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(PriorTrainer.Summary, typeof(PriorTrainer), typeof(PriorTrainer.Options),

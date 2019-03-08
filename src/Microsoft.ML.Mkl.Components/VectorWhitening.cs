@@ -14,6 +14,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(VectorWhiteningTransformer.Summary, typeof(IDataTransform), typeof(VectorWhiteningTransformer), typeof(VectorWhiteningTransformer.Options), typeof(SignatureDataTransform),
@@ -530,7 +531,7 @@ namespace Microsoft.ML.Transforms
 
             // See: https://software.intel.com/en-us/node/520750
             [DllImport(MklPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "cblas_sgemv"), SuppressUnmanagedCodeSecurity]
-            private static unsafe extern void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
+            private static extern unsafe void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
                 float* a, int lda, float* x, int incx, float beta, float* y, int incy);
 
             // See: https://software.intel.com/en-us/node/520775

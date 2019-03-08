@@ -9,6 +9,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Runtime;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Core.Tests.UnitTests

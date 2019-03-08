@@ -9,6 +9,7 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.EntryPoints

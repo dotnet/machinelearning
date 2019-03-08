@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Runtime
 {
     /// <summary>
     /// This is a factory interface for <see cref="IProgressChannel"/>.

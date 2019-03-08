@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.ML.Trainers;
+﻿using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic
 {

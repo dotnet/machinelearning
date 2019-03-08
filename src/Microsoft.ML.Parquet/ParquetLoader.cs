@@ -15,7 +15,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Parquet;
 using Parquet.Data;
 using Parquet.File.Values.Primitives;
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Data
         private const int _defaultColumnChunkReadSize = 1000000;
 
         private bool _disposed;
-        private long? _rowCount;
+        private readonly long? _rowCount;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -444,8 +444,8 @@ namespace Microsoft.ML.Data
             private int _curDataSetRow;
             private IEnumerator<int> _dataSetEnumerator;
             private IEnumerator<int> _blockEnumerator;
-            private IList[] _columnValues;
-            private Random _rand;
+            private readonly IList[] _columnValues;
+            private readonly Random _rand;
 
             public Cursor(ParquetLoader parent, IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand)
                : base(parent._host)

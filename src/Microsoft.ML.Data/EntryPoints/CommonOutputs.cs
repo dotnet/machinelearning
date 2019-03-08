@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Data;
 
 namespace Microsoft.ML.EntryPoints
 {

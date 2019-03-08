@@ -15,6 +15,7 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(RandomizedPrincipalComponentAnalyzer.Summary, typeof(RandomizedPrincipalComponentAnalyzer), typeof(RandomizedPrincipalComponentAnalyzer.Options),
@@ -29,7 +30,7 @@ using Microsoft.ML.Trainers;
 [assembly: LoadableClass(typeof(void), typeof(RandomizedPrincipalComponentAnalyzer), null, typeof(SignatureEntryPointModule), RandomizedPrincipalComponentAnalyzer.LoadNameValue)]
 
 namespace Microsoft.ML.Trainers
-    {
+{
     // REVIEW: make RFF transformer an option here.
 
     /// <summary>
@@ -108,7 +109,7 @@ namespace Microsoft.ML.Trainers
         }
 
         internal RandomizedPrincipalComponentAnalyzer(IHostEnvironment env, Options options)
-            :this(env, options, options.FeatureColumnName, options.ExampleWeightColumnName)
+            : this(env, options, options.FeatureColumnName, options.ExampleWeightColumnName)
         {
         }
 
@@ -327,8 +328,8 @@ namespace Microsoft.ML.Trainers
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
-             return new[]
-            {
+            return new[]
+           {
                 new SchemaShape.Column(DefaultColumnNames.Score,
                         SchemaShape.Column.VectorKind.Scalar,
                         NumberDataViewType.Single,

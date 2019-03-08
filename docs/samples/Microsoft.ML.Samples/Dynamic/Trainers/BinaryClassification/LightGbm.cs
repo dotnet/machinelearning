@@ -1,6 +1,4 @@
-﻿using Microsoft.ML.Transforms;
-
-namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
+﻿namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
     public class LightGbm
     {

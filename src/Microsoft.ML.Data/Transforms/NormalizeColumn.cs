@@ -11,10 +11,10 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
@@ -471,7 +471,7 @@ namespace Microsoft.ML.Transforms
                 }
 
                 public override NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
-                    => new NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<TFloat>> (ImmutableArray.Create(Scale), ImmutableArray.Create(Offset));
+                    => new NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<TFloat>>(ImmutableArray.Create(Scale), ImmutableArray.Create(Offset));
             }
         }
 

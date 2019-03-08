@@ -14,6 +14,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.FastTree
 {

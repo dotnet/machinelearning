@@ -13,6 +13,8 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(MultiOutputRegressionEvaluator), typeof(MultiOutputRegressionEvaluator), typeof(MultiOutputRegressionEvaluator.Arguments), typeof(SignatureEvaluator),
     "Multi Output Regression Evaluator", MultiOutputRegressionEvaluator.LoadName, "MultiOutputRegression", "MRE")]
@@ -176,11 +178,11 @@ namespace Microsoft.ML.Data
 
                 private readonly IRegressionLoss _lossFunction;
 
-                public Double L1 { get { return _sumWeights > 0 ? _sumL1 / _sumWeights : 0; } }
+                public Double L1 => _sumWeights > 0 ? _sumL1 / _sumWeights : 0;
 
-                public Double L2 { get { return _sumWeights > 0 ? _sumL2 / _sumWeights : 0; } }
+                public Double L2 => _sumWeights > 0 ? _sumL2 / _sumWeights : 0;
 
-                public Double Dist { get { return _sumWeights > 0 ? _sumEuclidean / _sumWeights : 0; } }
+                public Double Dist => _sumWeights > 0 ? _sumEuclidean / _sumWeights : 0;
 
                 public Double[] PerLabelL1
                 {

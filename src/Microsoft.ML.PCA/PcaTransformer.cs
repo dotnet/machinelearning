@@ -12,8 +12,8 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(PrincipalComponentAnalysisTransformer.Summary, typeof(IDataTransform), typeof(PrincipalComponentAnalysisTransformer), typeof(PrincipalComponentAnalysisTransformer.Options), typeof(SignatureDataTransform),
@@ -31,7 +31,7 @@ using Microsoft.ML.Transforms;
 [assembly: LoadableClass(typeof(void), typeof(PrincipalComponentAnalysisTransformer), null, typeof(SignatureEntryPointModule), PrincipalComponentAnalysisTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms
-    {
+{
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
     public sealed class PrincipalComponentAnalysisTransformer : OneToOneTransformerBase
     {

@@ -9,6 +9,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Newtonsoft.Json.Linq;
 using Xunit;

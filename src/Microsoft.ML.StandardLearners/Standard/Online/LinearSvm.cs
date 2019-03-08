@@ -13,6 +13,7 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(LinearSvmTrainer.Summary, typeof(LinearSvmTrainer), typeof(LinearSvmTrainer.Options),
@@ -231,7 +232,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column. </param>
         /// <param name="featureColumn">The name of the feature column.</param>
-         /// <param name="weightColumn">The optional name of the weight column.</param>
+        /// <param name="weightColumn">The optional name of the weight column.</param>
         /// <param name="numIterations">The number of training iteraitons.</param>
         [BestFriend]
         internal LinearSvmTrainer(IHostEnvironment env,

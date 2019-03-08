@@ -5,6 +5,7 @@
 using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Numeric
 {
@@ -131,7 +132,8 @@ namespace Microsoft.ML.Numeric
             private float _value;
             private float _deriv;
 
-            public float Step {
+            public float Step
+            {
                 get { return _step; }
                 set { _step = value; _value = _func(value, out _deriv); }
             }
@@ -272,9 +274,11 @@ namespace Microsoft.ML.Numeric
             private readonly Func<float, float> _func;
             private float _step;
 
-            public float Step {
+            public float Step
+            {
                 get { return _step; }
-                set {
+                set
+                {
                     _step = value;
                     Value = _func(value);
                 }
@@ -457,8 +461,8 @@ namespace Microsoft.ML.Numeric
 
         private static float QuadTest2D(in VBuffer<float> x, ref VBuffer<float> grad, IProgressChannelProvider progress = null)
         {
-            float d1 = VectorUtils.DotProduct(in x, in  _c1);
-            float d2 = VectorUtils.DotProduct(in x, in  _c2);
+            float d1 = VectorUtils.DotProduct(in x, in _c1);
+            float d2 = VectorUtils.DotProduct(in x, in _c2);
             float d3 = VectorUtils.DotProduct(in x, in _c3);
             _c3.CopyTo(ref grad);
             VectorUtils.AddMult(in _c1, d1, ref grad);

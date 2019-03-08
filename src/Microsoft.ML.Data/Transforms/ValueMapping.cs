@@ -13,6 +13,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ValueMappingTransformer.Summary, typeof(IDataTransform), typeof(ValueMappingTransformer),
@@ -67,7 +68,7 @@ namespace Microsoft.ML.Transforms
             if (Transformer.ValueColumnType is VectorType)
             {
                 vectorKind = SchemaShape.Column.VectorKind.Vector;
-                if(Transformer.ValueColumnType.GetVectorSize() == 0)
+                if (Transformer.ValueColumnType.GetVectorSize() == 0)
                     vectorKind = SchemaShape.Column.VectorKind.VariableVector;
             }
 
@@ -195,7 +196,7 @@ namespace Microsoft.ML.Transforms
         internal static void AddColumnWrapper<T>(ArrayDataViewBuilder builder, string columnName, PrimitiveDataViewType primitiveType, T[] values)
         {
             if (typeof(T) == typeof(string))
-                builder.AddColumn(columnName, values.Select(x=>x.ToString()).ToArray());
+                builder.AddColumn(columnName, values.Select(x => x.ToString()).ToArray());
             else
                 builder.AddColumn(columnName, primitiveType, values);
         }
@@ -208,7 +209,7 @@ namespace Microsoft.ML.Transforms
             if (typeof(T) == typeof(string))
             {
                 var convertedValues = new List<ReadOnlyMemory<char>[]>();
-                foreach(var value in values)
+                foreach (var value in values)
                 {
                     var converted = value.Select(x => x.ToString().AsMemory());
                     convertedValues.Add(converted.ToArray());
@@ -327,7 +328,7 @@ namespace Microsoft.ML.Transforms
         internal static string KeyColumnName = "Key";
         internal static string ValueColumnName = "Value";
         private ValueMap _valueMap;
-        private byte[] _dataView;
+        private readonly byte[] _dataView;
 
         internal DataViewType ValueColumnType => _valueMap.ValueType;
         internal DataViewSchema.Annotations ValueColumnMetadata { get; }
@@ -788,7 +789,7 @@ namespace Microsoft.ML.Transforms
         {
             private Dictionary<TKey, TValue> _mapping;
             private TValue _missingValue;
-            private DataViewSchema.Annotations _valueMetadata;
+            private readonly DataViewSchema.Annotations _valueMetadata;
 
             private Dictionary<TKey, TValue> CreateDictionary()
             {

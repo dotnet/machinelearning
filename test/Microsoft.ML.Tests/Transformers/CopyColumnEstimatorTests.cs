@@ -7,6 +7,7 @@ using System.IO;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;

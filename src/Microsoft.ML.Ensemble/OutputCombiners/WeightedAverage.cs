@@ -8,7 +8,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(WeightedAverage), typeof(WeightedAverage.Options), typeof(SignatureCombiner),
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         }
 
         [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
-        public sealed class Options: ISupportBinaryOutputCombinerFactory
+        public sealed class Options : ISupportBinaryOutputCombinerFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The metric type to be used to find the weights for each model", ShortName = "wn", SortOrder = 50)]
             [TGUI(Label = "Weightage Name", Description = "The weights are calculated according to the selected metric")]

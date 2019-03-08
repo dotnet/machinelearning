@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML

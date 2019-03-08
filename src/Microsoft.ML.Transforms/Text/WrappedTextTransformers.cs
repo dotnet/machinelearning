@@ -7,6 +7,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.DataLoadSave;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.Text
 {
@@ -269,7 +270,7 @@ namespace Microsoft.ML.Transforms.Text
             // Create arguments.
             var options = new WordHashBagProducingTransformer.Options
             {
-                Columns = _columns.Select(x => new WordHashBagProducingTransformer.Column { Name = x.outputColumnName  ,Source = x.inputColumnNames}).ToArray(),
+                Columns = _columns.Select(x => new WordHashBagProducingTransformer.Column { Name = x.outputColumnName, Source = x.inputColumnNames }).ToArray(),
                 HashBits = _hashBits,
                 NgramLength = _ngramLength,
                 SkipLength = _skipLength,

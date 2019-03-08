@@ -6,10 +6,9 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Model;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.Model;
 
 namespace Microsoft.ML.RunTests
 {

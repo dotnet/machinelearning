@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.StaticPipe;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators

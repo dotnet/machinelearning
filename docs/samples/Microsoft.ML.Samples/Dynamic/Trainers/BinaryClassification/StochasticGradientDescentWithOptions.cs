@@ -1,5 +1,4 @@
-﻿using Microsoft.ML;
-using Microsoft.ML.Trainers;
+﻿using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {

@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.ML.Calibrators;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.StaticPipe
