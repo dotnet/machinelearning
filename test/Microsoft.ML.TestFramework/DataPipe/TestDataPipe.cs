@@ -860,7 +860,7 @@ namespace Microsoft.ML.RunTests
                     CheckSameValues(view1, view2);
                 },
 
-                logCurs: true);
+                logCurs: false);
 
             Done();
         }

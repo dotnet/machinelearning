@@ -80,7 +80,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// The names of the output and input column pairs for the transformation.
         /// </summary>
-        public IReadOnlyList<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
+        internal IReadOnlyList<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
         /// Initializes a new instance of <see cref="MissingValueIndicatorTransformer"/>

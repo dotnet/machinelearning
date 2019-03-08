@@ -26,7 +26,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
                 // Make the convergence tolerance tighter.
                 ConvergenceTolerance = 0.02f,
                 // Increase the maximum number of passes over training data.
-                MaxIterations = 30,
+                NumberOfIterations = 30,
                 // Increase learning rate for bias
                 BiasLearningRate = 0.1f
             };

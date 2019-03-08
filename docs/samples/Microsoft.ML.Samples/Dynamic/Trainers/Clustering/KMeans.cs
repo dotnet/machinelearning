@@ -9,7 +9,7 @@ namespace Microsoft.ML.Samples.Dynamic
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
-            var ml = new MLContext(seed: 1, conc: 1);
+            var ml = new MLContext(seed: 1);
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             var data = SamplesUtils.DatasetUtils.GetInfertData();
@@ -41,8 +41,10 @@ namespace Microsoft.ML.Samples.Dynamic
             var centroid = centroids[0].GetValues();
             Console.WriteLine($"The coordinates of centroid 0 are: ({string.Join(", ", centroid.ToArray())})");
 
-            //  Expected Output:
+            //  Expected output similar to:
             //      The coordinates of centroid 0 are: (26, 6, 1)
+            //
+            // Note: use the advanced options constructor to set the number of threads to 1 for a deterministic behavior.
         }
     }
 }

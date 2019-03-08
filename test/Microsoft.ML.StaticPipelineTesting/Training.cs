@@ -31,7 +31,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SdcaRegression()
         {
-            var env = new MLContext(seed: 0, conc: 1);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -45,7 +45,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: catalog.Trainers.Sdca(r.label, r.features, null,
-                new SdcaRegressionTrainer.Options() { MaxIterations = 2, NumThreads = 1 },
+                new SdcaRegressionTrainer.Options() { NumberOfIterations = 2, NumberOfThreads = 1 },
                 onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -87,7 +87,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, r.Score, score: catalog.Trainers.Sdca(r.label, r.features, null,
-                new SdcaRegressionTrainer.Options() { MaxIterations = 2, NumThreads = 1 })));
+                new SdcaRegressionTrainer.Options() { NumberOfIterations = 2, NumberOfThreads = 1 })));
 
             var pipe = reader.Append(est);
 
@@ -118,7 +118,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.Sdca(r.label, r.features, null,
-                    new SdcaBinaryTrainer.Options { MaxIterations = 2, NumThreads = 1 },
+                    new SdcaBinaryTrainer.Options { NumberOfIterations = 2, NumberOfThreads = 1 },
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -198,7 +198,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.SdcaNonCalibrated(r.label, r.features, null, loss,
-                new SdcaNonCalibratedBinaryTrainer.Options { MaxIterations = 2, NumThreads = 1 },
+                new SdcaNonCalibratedBinaryTrainer.Options { NumberOfIterations = 2, NumberOfThreads = 1 },
                 onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -385,7 +385,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (r.label, preds: catalog.Trainers.Sdca(
                     r.label,
                     r.features,
-                    maxIterations: 2,
+                    numberOfIterations: 2,
                     loss: loss, onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -430,7 +430,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (r.label, preds: catalog.Trainers.Sdca(
                     r.label,
                     r.features,
-                    maxIterations: 2)));
+                    numberOfIterations: 2)));
 
             var results = catalog.CrossValidate(reader.Load(dataSource), est, r => r.label)
                 .Select(x => x.metrics).ToArray();
@@ -453,8 +453,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.FastTree(r.label, r.features,
-                    numTrees: 10,
-                    numLeaves: 5,
+                    numberOfTrees: 10,
+                    numberOfLeaves: 5,
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -494,8 +494,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: catalog.Trainers.FastTree(r.label, r.features,
-                    numTrees: 10,
-                    numLeaves: 5,
+                    numberOfTrees: 10,
+                    numberOfLeaves: 5,
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -765,7 +765,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void KMeans()
         {
-            var env = new MLContext(seed: 0, conc: 1);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -860,7 +860,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.groupId, r => r.score);
             Assert.NotNull(metrics);
 
-            Assert.True(metrics.NormalizedDiscountedCumulativeGains.Length == metrics.DiscountedCumulativeGains.Length && metrics.DiscountedCumulativeGains.Length == 3);
+            Assert.True(metrics.NormalizedDiscountedCumulativeGains.Count == metrics.DiscountedCumulativeGains.Count && metrics.DiscountedCumulativeGains.Count == 3);
 
             Assert.InRange(metrics.DiscountedCumulativeGains[0], 1.4, 1.6);
             Assert.InRange(metrics.DiscountedCumulativeGains[1], 1.4, 1.8);
@@ -901,7 +901,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.groupId, r => r.score);
             Assert.NotNull(metrics);
 
-            Assert.True(metrics.NormalizedDiscountedCumulativeGains.Length == metrics.DiscountedCumulativeGains.Length && metrics.DiscountedCumulativeGains.Length == 3);
+            Assert.True(metrics.NormalizedDiscountedCumulativeGains.Count == metrics.DiscountedCumulativeGains.Count && metrics.DiscountedCumulativeGains.Count == 3);
 
             Assert.InRange(metrics.DiscountedCumulativeGains[0], 1.4, 1.6);
             Assert.InRange(metrics.DiscountedCumulativeGains[1], 1.4, 1.8);
@@ -1009,7 +1009,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentClassificationTrainer(r.label, r.features, null,
-                    new SgdBinaryTrainer.Options { L2Weight = 0, NumThreads = 1 },
+                    new SgdBinaryTrainer.Options { L2Regularization = 0, NumberOfThreads = 1 },
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -1082,7 +1082,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, null,
-                    new SgdNonCalibratedBinaryTrainer.Options { L2Weight = 0, NumThreads = 1, Loss = new HingeLoss()},
+                    new SgdNonCalibratedBinaryTrainer.Options { L2Regularization = 0, NumberOfThreads = 1, Loss = new HingeLoss()},
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -1142,7 +1142,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Specify where to find data file
             var dataPath = GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename);
@@ -1193,7 +1193,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Create in-memory examples as C# native class.
             var examples = SamplesUtils.DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);

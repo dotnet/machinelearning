@@ -19,7 +19,7 @@ namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
             if (binaryPrediction)
             {
                 labelColumn = nameof(BinaryOutputRow.AboveAverage);
-                data = mlContext.Transforms.CustomMappingTransformer(GreaterThanAverage, null).Transform(data);
+                data = mlContext.Transforms.CustomMapping(GreaterThanAverage, null).Fit(data).Transform(data);
                 data = mlContext.Transforms.DropColumns("MedianHomeValue").Fit(data).Transform(data);
             }
 

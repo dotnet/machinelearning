@@ -4,16 +4,22 @@
 
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FastTree;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Functional.Tests
 {
-    public class ValidationScenarios
+    public class Validation : BaseTestClass
     {
+        public Validation(ITestOutputHelper output) : base(output)
+        {
+        }
+
         /// <summary>
         /// Cross-validation: Have a mechanism to do cross validation, that is, you come up with
         /// a data source (optionally with stratification column), come up with an instantiable transform
@@ -24,18 +30,13 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         void CrossValidation()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
-            // Get the dataset.
-            var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(),
-                hasHeader: TestDatasets.housing.fileHasHeader, separatorChar: TestDatasets.housing.fileSeparator)
-                .Load(BaseTestClass.GetDataPath(TestDatasets.housing.trainFilename));
+            // Get the dataset
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
 
-            // Create a pipeline to train on the sentiment data.
-            var pipeline = mlContext.Transforms.Concatenate("Features", new string[] {
-                    "CrimesPerCapita", "PercentResidental", "PercentNonRetail", "CharlesRiver", "NitricOxides", "RoomsPerDwelling",
-                    "PercentPre40s", "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio"})
-                .Append(mlContext.Transforms.CopyColumns("Label", "MedianHomeValue"))
+            // Create a pipeline to train on the housing data.
+            var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
                 .Append(mlContext.Regression.Trainers.OrdinaryLeastSquares());
 
             // Compute the CV result.
@@ -58,21 +59,18 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void TrainWithValidationSet()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
-            var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(),
-                hasHeader: TestDatasets.housing.fileHasHeader, separatorChar: TestDatasets.housing.fileSeparator)
-                .Load(BaseTestClass.GetDataPath(TestDatasets.housing.trainFilename));
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+
+            // Create the train and validation set.
             var dataSplit = mlContext.Regression.TrainTestSplit(data, testFraction: 0.2);
             var trainData = dataSplit.TrainSet;
             var validData = dataSplit.TestSet;
 
             // Create a pipeline to featurize the dataset.
-            var pipeline = mlContext.Transforms.Concatenate("Features", new string[] {
-                    "CrimesPerCapita", "PercentResidental", "PercentNonRetail", "CharlesRiver", "NitricOxides", "RoomsPerDwelling",
-                    "PercentPre40s", "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio"})
-                .Append(mlContext.Transforms.CopyColumns("Label", "MedianHomeValue"))
+            var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
                 .AppendCacheCheckpoint(mlContext) as IEstimator<ITransformer>;
 
             // Preprocess the datasets.
@@ -81,10 +79,10 @@ namespace Microsoft.ML.Functional.Tests
             var preprocessedValidData = preprocessor.Transform(validData);
 
             // Train the model with a validation set.
-            var trainedModel = mlContext.Regression.Trainers.FastTree(new Trainers.FastTree.FastTreeRegressionTrainer.Options {
-                    NumTrees = 2,
-                    EarlyStoppingMetrics = 2,
-                    EarlyStoppingRule = new GLEarlyStoppingCriterion.Options()
+            var trainedModel = mlContext.Regression.Trainers.FastTree(new FastTreeRegressionTrainer.Options {
+                    NumberOfTrees = 2,
+                    EarlyStoppingMetric = EarlyStoppingMetric.L2Norm,
+                    EarlyStoppingRule = new GeneralityLossRule()
                 })
                 .Fit(trainData: preprocessedTrainData, validationData: preprocessedValidData);
 

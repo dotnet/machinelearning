@@ -208,9 +208,6 @@ namespace Microsoft.ML.RunTests
                 using (_env.RedirectChannelOutput(writer, writer))
                 {
                     long count = 0;
-                    // Set the concurrency to 1 for this; restore later.
-                    int conc = _env.ConcurrencyFactor;
-                    _env.ConcurrencyFactor = 1;
                     using (var curs = pipe1.GetRowCursorForAllColumns())
                     {
                         while (curs.MoveNext())
@@ -219,7 +216,6 @@ namespace Microsoft.ML.RunTests
                         }
                     }
                     writer.WriteLine("Cursored through {0} rows", count);
-                    _env.ConcurrencyFactor = conc;
                 }
 
                 CheckEqualityNormalized("SavePipe", name, digitsOfPrecision: digitsOfPrecision);

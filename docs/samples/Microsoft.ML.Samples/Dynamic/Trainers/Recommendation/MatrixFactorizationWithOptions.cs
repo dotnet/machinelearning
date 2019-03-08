@@ -14,7 +14,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Recommendation
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext(seed: 0, conc: 1);
+            var mlContext = new MLContext(seed: 0);
 
             // Get a small in-memory dataset.
             var data = GetRecommendationData();
