@@ -1658,7 +1658,7 @@ namespace Microsoft.ML.Trainers
             /// <value>
             /// If unspecified, <see cref="LogLoss"/> will be used.
             /// </value>
-            public ISupportSdcaClassificationLoss LossFunction;
+            public ISupportSdcaClassificationLoss LossFunction { get; set; }
         }
 
         internal SdcaNonCalibratedBinaryTrainer(IHostEnvironment env,

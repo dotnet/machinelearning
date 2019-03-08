@@ -66,7 +66,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// A custom <a href="tmpurl_loss">loss</a>.
             /// </summary>
-            public IClassificationLoss LossFunction;
+            public IClassificationLoss LossFunction { get; set; }
 
             /// <summary>
             /// The <a href="tmpurl_calib">calibrator</a> for producing probabilities. Default is exponential (aka Platt) calibration.

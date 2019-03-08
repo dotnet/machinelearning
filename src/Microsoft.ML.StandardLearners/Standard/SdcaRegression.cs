@@ -52,7 +52,7 @@ namespace Microsoft.ML.Trainers
             /// <value>
             /// Defaults to <see cref="SquaredLoss"/>
             /// </value>
-            public ISupportSdcaRegressionLoss LossFunction;
+            public ISupportSdcaRegressionLoss LossFunction { get; set; }
 
             /// <summary>
             /// Create the <see cref="Options"/> object.

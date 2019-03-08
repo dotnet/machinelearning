@@ -55,7 +55,7 @@ namespace Microsoft.ML.Trainers
             /// <value>
             /// If unspecified, <see cref="LogLoss"/> will be used.
             /// </value>
-            public ISupportSdcaClassificationLoss LossFunction;
+            public ISupportSdcaClassificationLoss LossFunction { get; set; }
         }
 
         private readonly ISupportSdcaClassificationLoss _loss;

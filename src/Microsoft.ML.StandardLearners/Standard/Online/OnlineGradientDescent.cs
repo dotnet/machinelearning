@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers
             [TGUI(Label = "Loss Function")]
             internal ISupportRegressionLossFactory RegressionLossFunctionFactory = new SquaredLossFactory();
 
-            public IRegressionLoss LossFunction;
+            public IRegressionLoss LossFunction { get; set; }
 
             internal override IComponentFactory<IScalarLoss> LossFunctionFactory => RegressionLossFunctionFactory;
 
