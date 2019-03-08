@@ -61,7 +61,7 @@ namespace Microsoft.ML.Transforms.Text
             public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Pre-trained model used to create the vocabulary", ShortName = "model", SortOrder = 1)]
-            public WordEmbeddingsExtractingEstimator.PretrainedModelKind? ModelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe;
+            public WordEmbeddingsExtractingEstimator.PretrainedModelKind? ModelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Filename for custom word embedding model",
                 ShortName = "dataFile", SortOrder = 2)]
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// The names of the output and input column pairs on which the transformation is applied.
         /// </summary>
-        public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
+        private IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private sealed class Model
         {
@@ -162,7 +162,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="modelKind">The pretrained word embedding model.</param>
         internal WordEmbeddingsExtractingTransformer(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
-           WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe)
+           WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
            : this(env, modelKind, new WordEmbeddingsExtractingEstimator.ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(input, nameof(input));
 
             if (options.ModelKind == null)
-                options.ModelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe;
+                options.ModelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding;
             env.CheckUserArg(!options.ModelKind.HasValue || Enum.IsDefined(typeof(WordEmbeddingsExtractingEstimator.PretrainedModelKind), options.ModelKind), nameof(options.ModelKind));
 
             env.CheckValue(options.Columns, nameof(options.Columns));
@@ -614,7 +614,7 @@ namespace Microsoft.ML.Transforms.Text
              { WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVeTwitter100D, "glove.twitter.27B.100d.txt" },
              { WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVeTwitter200D, "glove.twitter.27B.200d.txt" },
              { WordEmbeddingsExtractingEstimator.PretrainedModelKind.FastTextWikipedia300D, "wiki.en.vec" },
-             { WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe, "sentiment.emd" }
+             { WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding, "sentiment.emd" }
         };
 
         private static Dictionary<WordEmbeddingsExtractingEstimator.PretrainedModelKind, int> _linesToSkipInModels = new Dictionary<WordEmbeddingsExtractingEstimator.PretrainedModelKind, int>()
@@ -630,7 +630,7 @@ namespace Microsoft.ML.Transforms.Text
                     linesToSkip = _linesToSkipInModels[kind];
                 using (var ch = Host.Start("Ensuring resources"))
                 {
-                    string dir = kind == WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe ? Path.Combine("Text", "Sswe") : "WordVectors";
+                    string dir = kind == WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding ? Path.Combine("Text", "Sswe") : "WordVectors";
                     var url = $"{dir}/{modelFileName}";
                     var ensureModel = ResourceManagerUtils.Instance.EnsureResource(Host, ch, url, modelFileName, dir, Timeout);
                     ensureModel.Wait();
@@ -747,7 +747,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="modelKind">The embeddings <see cref="PretrainedModelKind"/> to use. </param>
         internal WordEmbeddingsExtractingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
-           PretrainedModelKind modelKind = PretrainedModelKind.Sswe)
+           PretrainedModelKind modelKind = PretrainedModelKind.SentimentSpecificWordEmbedding)
             : this(env, modelKind, new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
@@ -777,7 +777,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="modelKind">The embeddings <see cref="PretrainedModelKind"/> to use. </param>
         /// <param name="columns">The array columns, and per-column configurations to extract embeedings from.</param>
         internal WordEmbeddingsExtractingEstimator(IHostEnvironment env,
-            PretrainedModelKind modelKind = PretrainedModelKind.Sswe,
+            PretrainedModelKind modelKind = PretrainedModelKind.SentimentSpecificWordEmbedding,
             params ColumnOptions[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -829,7 +829,7 @@ namespace Microsoft.ML.Transforms.Text
             FastTextWikipedia300D = 8,
 
             [TGUI(Label = "Sentiment-Specific Word Embedding")]
-            Sswe = 9
+            SentimentSpecificWordEmbedding = 9
         }
         /// <summary>
         /// Information for each column pair.

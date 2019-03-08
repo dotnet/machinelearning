@@ -14,7 +14,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="input">Vector of tokenized text.</param>
         /// <param name="modelKind">The pretrained word embedding model.</param>
         /// <returns></returns>
-        public static Vector<float> WordEmbeddings(this VarVector<string> input, WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe)
+        public static Vector<float> WordEmbeddings(this VarVector<string> input, WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutColumn(input, modelKind);
@@ -33,7 +33,7 @@ namespace Microsoft.ML.StaticPipe
         {
             public PipelineColumn Input { get; }
 
-            public OutColumn(VarVector<string> input, WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe)
+            public OutColumn(VarVector<string> input, WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
                 : base(new Reconciler(modelKind), input)
             {
                 Input = input;
@@ -51,7 +51,7 @@ namespace Microsoft.ML.StaticPipe
             private readonly WordEmbeddingsExtractingEstimator.PretrainedModelKind? _modelKind;
             private readonly string _customLookupTable;
 
-            public Reconciler(WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe)
+            public Reconciler(WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
             {
                 _modelKind = modelKind;
                 _customLookupTable = null;

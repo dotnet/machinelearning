@@ -112,7 +112,7 @@ namespace Microsoft.ML
         public static WordEmbeddingsExtractingEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
-            WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe)
+            WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
             => new WordEmbeddingsExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName, modelKind);
 
         /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
@@ -146,7 +146,7 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static WordEmbeddingsExtractingEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
-           WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe,
+           WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding,
            params WordEmbeddingsExtractingEstimator.ColumnOptions[] columns)
             => new WordEmbeddingsExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), modelKind, columns);
 

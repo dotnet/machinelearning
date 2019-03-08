@@ -3607,7 +3607,7 @@ namespace Microsoft.ML.RunTests
             {
                 Data = dataView,
                 Columns = new[] { new WordEmbeddingsExtractingTransformer.Column { Name = "Features", Source = "Text" } },
-                ModelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe
+                ModelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding
             });
             var result = embedding.OutputData;
             using (var cursor = result.GetRowCursorForAllColumns())

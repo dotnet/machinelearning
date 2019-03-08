@@ -104,7 +104,7 @@ namespace Microsoft.ML.Benchmarks
             }, "SentimentText").Fit(loader).Transform(loader);
 
             var trans = mlContext.Transforms.Text.ExtractWordEmbeddings("Features", "WordEmbeddings_TransformedText", 
-                WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe).Fit(text).Transform(text);
+                WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding).Fit(text).Transform(text);
 
             // Train
             var trainer = mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent();
