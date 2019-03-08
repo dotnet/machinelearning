@@ -20051,14 +20051,14 @@
               "Kind": "Struct",
               "Fields": [
                 {
-                  "Name": "NormKind",
+                  "Name": "Norm",
                   "Type": {
                     "Kind": "Enum",
                     "Values": [
-                      "L2Norm",
-                      "StdDev",
-                      "L1Norm",
-                      "LInf"
+                      "L2",
+                      "StandardDeviation",
+                      "L1",
+                      "Infinity"
                     ]
                   },
                   "Desc": "The norm to use to normalize each sample",
@@ -20115,14 +20115,14 @@
           "IsNullable": false
         },
         {
-          "Name": "NormKind",
+          "Name": "Norm",
           "Type": {
             "Kind": "Enum",
             "Values": [
-              "L2Norm",
-              "StdDev",
-              "L1Norm",
-              "LInf"
+              "L2",
+              "StandardDeviation",
+              "L1",
+              "Infinity"
             ]
           },
           "Desc": "The norm to use to normalize each sample",
@@ -20132,7 +20132,7 @@
           "Required": false,
           "SortOrder": 1.0,
           "IsNullable": false,
-          "Default": "L2Norm"
+          "Default": "L2"
         },
         {
           "Name": "Data",
@@ -21422,7 +21422,7 @@
           "IsNullable": false
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "The name of the weight column",
           "Aliases": [
@@ -22544,7 +22544,7 @@
               "None",
               "L1",
               "L2",
-              "LInf"
+              "Infinity"
             ]
           },
           "Desc": "Normalize vectors (rows) individually by rescaling them to unit norm.",
