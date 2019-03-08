@@ -26,6 +26,7 @@ Please feel free to search this page and use any code that suits your needs.
 ### List of recipes
 
 - [How do I load data from a text file?](#how-do-i-load-data-from-a-text-file)
+- [How can I read and write binary data?](#how-can-i-read-and-write-binary-data)
 - [How do I load data with many columns from a CSV?](#how-do-i-load-data-with-many-columns-from-a-csv)
 - [How do I debug my experiment or preview my pipeline?](#how-do-i-debug-my-experiment-or-preview-my-pipeline)
 - [How do I look at the intermediate data?](#how-do-i-look-at-the-intermediate-data)
@@ -41,7 +42,6 @@ Please feel free to search this page and use any code that suits your needs.
 - [How do I train using cross-validation?](#how-do-i-train-using-cross-validation)
 - [Can I mix and match static and dynamic pipelines?](#can-i-mix-and-match-static-and-dynamic-pipelines)
 - [How can I define my own transformation of data?](#how-can-i-define-my-own-transformation-of-data)
-- [How can I read and write binary data?](#how-can-i-read-and-write-binary-data)
 
 ### General questions about the samples
 
@@ -140,6 +140,52 @@ var data = mlContext.Data.LoadFromTextFile<InspectedRow>(dataPath,
     hasHeader: true
 )		
         
+```
+
+## How can I read and write binary data?
+Other than using text files, ML.NET will allow you to read and write binary data. This has a few advantages such as not having to specify a schema, can improve reading times, and are generally smaller than text files.
+
+To write binary data you need some data to be able to save. Specifically you need an instance of an `IDavaView`. Below is a code snippet that uses the iris data as an example.
+
+```csharp
+// Data model for the iris data
+public class IrisData
+{
+    public float Label { get; set; }
+    public float SepalLength { get; set; }
+    public float SepalWidth { get; set; }
+    public float PetalLength { get; set; }
+    public float PetalWidth { get; set; }
+}
+
+// An array of iris data points
+var dataArray = new[]
+{
+    new IrisData { Label=1, PetalLength=1, SepalLength=1, PetalWidth=1, SepalWidth=1 },
+    new IrisData { Label=0, PetalLength=2, SepalLength=2, PetalWidth=2, SepalWidth=2 }
+};
+
+// Create the ML.NET context.
+var context = new MLContext();
+
+// Create the data view from an IEnumerable.
+// This method will use the definition of IrisData to understand what columns there are 
+// in the data view. However, the objects in ML.NET are only "promises" of data since 
+// ML.NET operations are lazy. One way to get a look at the data is with Schema Comprehension.
+// Refer to this document for more information - https://github.com/dotnet/machinelearning/blob/master/docs/code/SchemaComprehension.md
+var data = context.Data.LoadFromEnumerable(dataArray);
+
+// Use a FileStream to create a file. Use the stream and the data view in the "SaveAsBinary" method.
+using(var stream = new FileStream("./iris.idv", FileMode.Create))
+{
+    context.Data.SaveAsBinary(data, stream);
+}
+```
+
+To read a binary file, simply use the `context.Data.ReadFromBinary` method and pass in the path of the binary file to read in. Notice that the schema of the data does not need to be defined here.
+
+```csharp
+var data = context.Data.ReadFromBinary("./iris.idv");
 ```
 
 ## How do I load data from multiple files?
@@ -1022,50 +1068,4 @@ newContext.ComponentCatalog.RegisterAssembly(typeof(CustomMappings).Assembly);
 ITransformer loadedModel;
 using (var fs = File.OpenRead(modelPath))
     loadedModel = newContext.Model.Load(fs);
-```
-
-## How can I read and write binary data?
-Other than using text files, ML.NET will allow you to read and write binary data. This has a few advantages such as not having to specify a schema, can improve reading times, and are generally smaller than text files.
-
-To write binary data you need some data to be able to save. Specifically you need an instance of an `IDavaView`. Below is a code snippet that uses the iris data as an example.
-
-```csharp
-// Data model for the iris data
-public class IrisData
-{
-    public float Label { get; set; }
-    public float SepalLength { get; set; }
-    public float SepalWidth { get; set; }
-    public float PetalLength { get; set; }
-    public float PetalWidth { get; set; }
-}
-
-// An array of iris data points
-var dataArray = new[]
-{
-    new IrisData { Label=1, PetalLength=1, SepalLength=1, PetalWidth=1, SepalWidth=1 },
-    new IrisData { Label=0, PetalLength=2, SepalLength=2, PetalWidth=2, SepalWidth=2 }
-};
-
-// Create the ML.NET context.
-var context = new MLContext();
-
-// Create the data view from an IEnumerable.
-// This method will use the definition of IrisData to understand what columns there are 
-// in the data view. However, the objects in ML.NET are only "promises" of data since 
-// ML.NET operations are lazy. One way to get a look at the data is with Schema Comprehension.
-// Refer to this document for more information - https://github.com/dotnet/machinelearning/blob/master/docs/code/SchemaComprehension.md
-var data = context.Data.LoadFromEnumerable(dataArray);
-
-// Use a FileStream to create a file. Use the stream and the data view in the "SaveAsBinary" method.
-using(var stream = new FileStream("./iris.idv", FileMode.Create))
-{
-    context.Data.SaveAsBinary(data, stream);
-}
-```
-
-To read a binary file, simply use the `context.Data.ReadFromBinary` method and pass in the path of the binary file to read in. Notice that the schema of the data does not need to be defined here.
-
-```csharp
-var data = context.Data.ReadFromBinary("./iris.idv");
 ```
