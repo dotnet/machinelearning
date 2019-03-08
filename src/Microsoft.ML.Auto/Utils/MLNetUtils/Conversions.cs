@@ -19,7 +19,13 @@ namespace Microsoft.ML.Auto
         public static bool TryParse(in TX src, out R4 dst)
         {
             var span = src.Span;
-            if (float.TryParse(span.ToString(), out dst))
+            var str = span.ToString();
+            if (string.IsNullOrWhiteSpace(str))
+            {
+                dst = R4.NaN;
+                return true;
+            }
+            if (float.TryParse(str, out dst))
             {
                 return true;
             }

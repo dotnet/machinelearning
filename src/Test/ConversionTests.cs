@@ -15,7 +15,8 @@ namespace Microsoft.ML.Auto.Test
         {
             var missingValues = new string[]
             {
-                "?",
+                "",
+                "?", " ",
                 "na", "n/a", "nan",
                 "NA", "N/A", "NaN", "NAN"
             };

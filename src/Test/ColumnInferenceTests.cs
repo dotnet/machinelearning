@@ -63,9 +63,9 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void DatasetWithEmptyColumn()
         {
-            var result = new MLContext().Auto().InferColumns(Path.Combine("TestData", "DatasetWithEmptyColumn.txt"), DefaultColumnNames.Label);
+            var result = new MLContext().Auto().InferColumns(Path.Combine("TestData", "DatasetWithEmptyColumn.txt"), DefaultColumnNames.Label, groupColumns: false);
             var emptyColumn = result.TextLoaderOptions.Columns.First(c => c.Name == "Empty");
-            Assert.AreEqual(DataKind.String, emptyColumn.DataKind);
+            Assert.AreEqual(DataKind.Single, emptyColumn.DataKind);
         }
 
         [TestMethod]
