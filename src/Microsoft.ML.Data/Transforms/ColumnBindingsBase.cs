@@ -15,7 +15,7 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Data
 {
-    internal abstract class SourceNameColumnBase
+    public abstract class SourceNameColumnBase
     {
         [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the new column", ShortName = "name")]
         public string Name;
@@ -104,8 +104,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    [BestFriend]
-    internal abstract class OneToOneColumn : SourceNameColumnBase
+    public abstract class OneToOneColumn : SourceNameColumnBase
     {
         [BestFriend]
         private protected OneToOneColumn() { }

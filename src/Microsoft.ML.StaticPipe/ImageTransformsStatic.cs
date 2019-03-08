@@ -187,10 +187,9 @@ namespace Microsoft.ML.StaticPipe
         internal sealed class OutPipelineColumn<T> : Vector<T>, IColInput
         {
             public Custom<Bitmap> Input { get; }
-            private static readonly ImagePixelExtractingTransformer.Options _defaultArgs = new ImagePixelExtractingTransformer.Options();
-            private readonly ImagePixelExtractingTransformer.Column _colParam;
+            private readonly ImagePixelExtractingEstimator.ColumnOptions _colParam;
 
-            public OutPipelineColumn(Custom<Bitmap> input, ImagePixelExtractingTransformer.Column col)
+            public OutPipelineColumn(Custom<Bitmap> input, ImagePixelExtractingEstimator.ColumnOptions col)
                 : base(Reconciler.Inst, input)
             {
                 Contracts.AssertValue(input);
@@ -207,7 +206,7 @@ namespace Microsoft.ML.StaticPipe
 
                 _colParam.Name = outputColumnName;
                 _colParam.Source = inputColumnName;
-                return new ImagePixelExtractingEstimator.ColumnOptions(_colParam, _defaultArgs);
+                return _colParam;
             }
         }
 

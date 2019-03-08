@@ -69,8 +69,21 @@ namespace Microsoft.ML
             bool interleave = false,
             float offset = ImagePixelExtractingEstimator.Defaults.Offset,
             float scale = ImagePixelExtractingEstimator.Defaults.Scale,
-            bool asFloat = ImagePixelExtractingEstimator.Defaults.Convert)
-            => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, colors, order, interleave, offset, scale, asFloat);
+            bool asFloat = ImagePixelExtractingEstimator.Defaults.AsFloat)
+        {
+            var column = new ImagePixelExtractingEstimator.ColumnOptions()
+            {
+                Name = outputColumnName,
+                Source = inputColumnName,
+                Colors = colors,
+                Order = order,
+                Interleave = interleave,
+                Offset = offset,
+                Scale = scale,
+                AsFloat = asFloat
+            };
+            return new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), column);
+        }
 
         /// <include file='doc.xml' path='doc/members/member[@name="ImagePixelExtractingEstimator"]/*' />
         /// <param name="catalog">The transform's catalog.</param>

@@ -26,10 +26,10 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestEstimatorChain()
         {
-            var env = new MLContext();
+            var mlContext = new MLContext();
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Options()
+            var data = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests
                         new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
-            var invalidData = TextLoader.Create(env, new TextLoader.Options()
+            var invalidData = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -45,10 +45,10 @@ namespace Microsoft.ML.Tests
                     }
             }, new MultiFileSource(dataFile));
 
-            var pipe = new ImageLoadingEstimator(env, imageFolder, ("ImageReal", "ImagePath"))
-                .Append(new ImageResizingEstimator(env, "ImageReal", 100, 100, "ImageReal"))
-                .Append(new ImagePixelExtractingEstimator(env, "ImagePixels", "ImageReal"))
-                .Append(new ImageGrayscalingEstimator(env, ("ImageGray", "ImageReal")));
+            var pipe = mlContext.Transforms.LoadImages(imageFolder, ("ImageReal", "ImagePath"))
+                .Append(mlContext.Transforms.ResizeImages("ImageReal", 100, 100, "ImageReal"))
+                .Append(mlContext.Transforms.ExtractPixels("ImagePixels", "ImageReal"))
+                .Append(mlContext.Transforms.ConvertToGrayscale(("ImageGray", "ImageReal")));
 
             TestEstimatorCore(pipe, data, null, invalidData);
             Done();
@@ -57,10 +57,10 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestEstimatorSaveLoad()
         {
-            IHostEnvironment env = new MLContext();
+            var mlContext = new MLContext();
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Options()
+            var data = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -69,20 +69,20 @@ namespace Microsoft.ML.Tests
                     }
             }, new MultiFileSource(dataFile));
 
-            var pipe = new ImageLoadingEstimator(env, imageFolder, ("ImageReal", "ImagePath"))
-                .Append(new ImageResizingEstimator(env, "ImageReal", 100, 100, "ImageReal"))
-                .Append(new ImagePixelExtractingEstimator(env, "ImagePixels", "ImageReal"))
-                .Append(new ImageGrayscalingEstimator(env, ("ImageGray", "ImageReal")));
+            var pipe = mlContext.Transforms.LoadImages(imageFolder, ("ImageReal", "ImagePath"))
+                .Append(mlContext.Transforms.ResizeImages("ImageReal", 100, 100, "ImageReal"))
+                .Append(mlContext.Transforms.ExtractPixels("ImagePixels", "ImageReal"))
+                .Append(mlContext.Transforms.ConvertToGrayscale(("ImageGray", "ImageReal")));
 
             pipe.GetOutputSchema(SchemaShape.Create(data.Schema));
             var model = pipe.Fit(data);
 
             var tempPath = Path.GetTempFileName();
-            using (var file = new SimpleFileHandle(env, tempPath, true, true))
+            using (var file = new SimpleFileHandle(mlContext, tempPath, true, true))
             {
                 using (var fs = file.CreateWriteStream())
-                    model.SaveTo(env, fs);
-                var model2 = TransformerChain.LoadFrom(env, file.OpenReadStream());
+                    model.SaveTo(mlContext, fs);
+                var model2 = TransformerChain.LoadFrom(mlContext, file.OpenReadStream());
 
                 var newCols = ((ImageLoadingTransformer)model2.First()).Columns;
                 var oldCols = ((ImageLoadingTransformer)model.First()).Columns;
@@ -96,10 +96,10 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSaveImages()
         {
-            var env = new MLContext();
+            var mlContext = new MLContext();
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Options()
+            var data = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -107,8 +107,8 @@ namespace Microsoft.ML.Tests
                         new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
-            var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizingTransformer(env, "ImageCropped", 100, 100, "ImageReal", ImageResizingEstimator.ResizingKind.IsoPad).Transform(images);
+            var images = new ImageLoadingTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
+            var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", 100, 100, "ImageReal", ImageResizingEstimator.ResizingKind.IsoPad).Transform(images);
 
             using (var cursor = cropped.GetRowCursorForAllColumns())
             {
@@ -131,12 +131,12 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestGreyscaleTransformImages()
         {
-            IHostEnvironment env = new MLContext();
+            var mlContext = new MLContext();
             var imageHeight = 150;
             var imageWidth = 100;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Options()
+            var data = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -144,18 +144,18 @@ namespace Microsoft.ML.Tests
                         new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
-            var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
+            var images = new ImageLoadingTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
 
-            var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
+            var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
-            IDataView grey = new ImageGrayscalingTransformer(env, ("ImageGrey", "ImageCropped")).Transform(cropped);
+            IDataView grey = new ImageGrayscalingTransformer(mlContext, ("ImageGrey", "ImageCropped")).Transform(cropped);
             var fname = nameof(TestGreyscaleTransformImages) + "_model.zip";
 
-            var fh = env.CreateOutputFile(fname);
-            using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(grey));
+            var fh = mlContext.CreateOutputFile(fname);
+            using (var ch = ((IHostEnvironment) mlContext).Start("save"))
+                TrainUtils.SaveModel(mlContext, ch, fh, null, new RoleMappedData(grey));
 
-            grey = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            grey = ModelFileUtils.LoadPipeline(mlContext, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
             grey.Schema.TryGetColumnIndex("ImageGrey", out int greyColumn);
@@ -182,12 +182,12 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithAlphaInterleave()
         {
-            IHostEnvironment env = new MLContext();
+            var mlContext = new MLContext();
             const int imageHeight = 100;
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Options()
+            var data = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -195,20 +195,20 @@ namespace Microsoft.ML.Tests
                         new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
-            var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
+            var images = new ImageLoadingTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
+            var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
-            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, interleave: true, scale: 2f/19, offset: 30).Transform(cropped);
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+            var pixels = mlContext.Transforms.ExtractPixels("ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, interleave: true, scale: 2f/19, offset: 30).Fit(cropped).Transform(cropped);
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(mlContext, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
                ImagePixelExtractingEstimator.ColorBits.All, interleave: true, scale: 19/2f, offset: -30).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithAlphaInterleave) + "_model.zip";
 
-            var fh = env.CreateOutputFile(fname);
-            using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+            var fh = mlContext.CreateOutputFile(fname);
+            using (var ch = ((IHostEnvironment) mlContext).Start("save"))
+                TrainUtils.SaveModel(mlContext, ch, fh, null, new RoleMappedData(backToBitmaps));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToBitmaps = ModelFileUtils.LoadPipeline(mlContext, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
@@ -239,12 +239,12 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithoutAlphaInterleave()
         {
-            IHostEnvironment env = new MLContext();
+            var mlContext = new MLContext();
             const int imageHeight = 100;
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Options()
+            var data = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -252,20 +252,20 @@ namespace Microsoft.ML.Tests
                         new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
-            var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
-            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", interleave: true, scale: 2f / 19, offset: 30).Transform(cropped);
+            var images = new ImageLoadingTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
+            var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
+            var pixels = mlContext.Transforms.ExtractPixels("ImagePixels", "ImageCropped", interleave: true, scale: 2f / 19, offset: 30).Fit(cropped).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(mlContext, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
                interleave: true, scale: 19 / 2f, offset: -30).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithoutAlphaInterleave) + "_model.zip";
 
-            var fh = env.CreateOutputFile(fname);
-            using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+            var fh = mlContext.CreateOutputFile(fname);
+            using (var ch = ((IHostEnvironment) mlContext).Start("save"))
+                TrainUtils.SaveModel(mlContext, ch, fh, null, new RoleMappedData(backToBitmaps));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToBitmaps = ModelFileUtils.LoadPipeline(mlContext, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
@@ -296,12 +296,12 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithDifferentOrder()
         {
-            IHostEnvironment env = new MLContext();
+            var mlContext = new MLContext();
             const int imageHeight = 100;
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Options()
+            var data = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -309,20 +309,20 @@ namespace Microsoft.ML.Tests
                         new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
-            var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
+            var images = new ImageLoadingTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
+            var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
-            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, order:ImagePixelExtractingEstimator.ColorsOrder.ABRG).Transform(cropped);
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+            var pixels = mlContext.Transforms.ExtractPixels("ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, order:ImagePixelExtractingEstimator.ColorsOrder.ABRG).Fit(cropped).Transform(cropped);
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(mlContext, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
                ImagePixelExtractingEstimator.ColorBits.All,order: ImagePixelExtractingEstimator.ColorsOrder.ABRG).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithDifferentOrder) + "_model.zip";
 
-            var fh = env.CreateOutputFile(fname);
-            using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+            var fh = mlContext.CreateOutputFile(fname);
+            using (var ch = ((IHostEnvironment) mlContext).Start("save"))
+                TrainUtils.SaveModel(mlContext, ch, fh, null, new RoleMappedData(backToBitmaps));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToBitmaps = ModelFileUtils.LoadPipeline(mlContext, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
@@ -355,12 +355,12 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithAlphaNoInterleave()
         {
-            IHostEnvironment env = new MLContext();
+            var mlContext = new MLContext();
             const int imageHeight = 100;
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Options()
+            var data = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -368,20 +368,20 @@ namespace Microsoft.ML.Tests
                         new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
-            var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
-            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, scale: 2f / 19, offset: 30).Transform(cropped);
+            var images = new ImageLoadingTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
+            var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
+            var pixels = mlContext.Transforms.ExtractPixels("ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, scale: 2f / 19, offset: 30).Fit(cropped).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(mlContext, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
                 ImagePixelExtractingEstimator.ColorBits.All, scale: 19 / 2f, offset: -30).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithAlphaNoInterleave) + "_model.zip";
 
-            var fh = env.CreateOutputFile(fname);
-            using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+            var fh = mlContext.CreateOutputFile(fname);
+            using (var ch = ((IHostEnvironment) mlContext).Start("save"))
+                TrainUtils.SaveModel(mlContext, ch, fh, null, new RoleMappedData(backToBitmaps));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToBitmaps = ModelFileUtils.LoadPipeline(mlContext, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
@@ -412,12 +412,12 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithoutAlphaNoInterleave()
         {
-            IHostEnvironment env = new MLContext();
+            var mlContext = new MLContext();
             const int imageHeight = 100;
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Options()
+            var data = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -425,20 +425,20 @@ namespace Microsoft.ML.Tests
                         new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
-            var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
-            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", scale: 2f / 19, offset: 30).Transform(cropped);
+            var images = new ImageLoadingTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
+            var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
+            var pixels = mlContext.Transforms.ExtractPixels("ImagePixels", "ImageCropped", scale: 2f / 19, offset: 30).Fit(cropped).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(mlContext, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
                 scale: 19 / 2f, offset: -30).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithoutAlphaNoInterleave) + "_model.zip";
 
-            var fh = env.CreateOutputFile(fname);
-            using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+            var fh = mlContext.CreateOutputFile(fname);
+            using (var ch = ((IHostEnvironment) mlContext).Start("save"))
+                TrainUtils.SaveModel(mlContext, ch, fh, null, new RoleMappedData(backToBitmaps));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToBitmaps = ModelFileUtils.LoadPipeline(mlContext, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
@@ -469,12 +469,12 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithAlphaInterleaveNoOffset()
         {
-            IHostEnvironment env = new MLContext();
+            var mlContext = new MLContext();
             const int imageHeight = 100;
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Options()
+            var data = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -482,21 +482,21 @@ namespace Microsoft.ML.Tests
                         new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
-            var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
+            var images = new ImageLoadingTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
+            var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
-            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, interleave: true).Transform(cropped);
+            var pixels = mlContext.Transforms.ExtractPixels("ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, interleave: true).Fit(cropped).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(mlContext, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
                 ImagePixelExtractingEstimator.ColorBits.All, interleave: true).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithAlphaInterleaveNoOffset) + "_model.zip";
 
-            var fh = env.CreateOutputFile(fname);
-            using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+            var fh = mlContext.CreateOutputFile(fname);
+            using (var ch = ((IHostEnvironment) mlContext).Start("save"))
+                TrainUtils.SaveModel(mlContext, ch, fh, null, new RoleMappedData(backToBitmaps));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToBitmaps = ModelFileUtils.LoadPipeline(mlContext, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
@@ -527,12 +527,12 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithoutAlphaInterleaveNoOffset()
         {
-            IHostEnvironment env = new MLContext();
+            var mlContext = new MLContext();
             const int imageHeight = 100;
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Options()
+            var data = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -540,20 +540,20 @@ namespace Microsoft.ML.Tests
                         new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
-            var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
+            var images = new ImageLoadingTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
+            var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
-            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", interleave: true).Transform(cropped);
+            var pixels = mlContext.Transforms.ExtractPixels("ImagePixels", "ImageCropped", interleave: true).Fit(cropped).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels", interleave: true).Transform(pixels);
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(mlContext, "ImageRestored", imageHeight, imageWidth, "ImagePixels", interleave: true).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithoutAlphaInterleaveNoOffset) + "_model.zip";
 
-            var fh = env.CreateOutputFile(fname);
-            using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+            var fh = mlContext.CreateOutputFile(fname);
+            using (var ch = ((IHostEnvironment) mlContext).Start("save"))
+                TrainUtils.SaveModel(mlContext, ch, fh, null, new RoleMappedData(backToBitmaps));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToBitmaps = ModelFileUtils.LoadPipeline(mlContext, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
@@ -584,12 +584,12 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithAlphaNoInterleaveNoOffset()
         {
-            IHostEnvironment env = new MLContext();
+            var mlContext = new MLContext();
             const int imageHeight = 100;
             var imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Options()
+            var data = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -597,21 +597,21 @@ namespace Microsoft.ML.Tests
                         new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
-            var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
+            var images = new ImageLoadingTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
+            var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
-            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All).Transform(cropped);
+            var pixels =  mlContext.Transforms.ExtractPixels("ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All).Fit(cropped).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(mlContext, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
                  ImagePixelExtractingEstimator.ColorBits.All).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithAlphaNoInterleaveNoOffset) + "_model.zip";
 
-            var fh = env.CreateOutputFile(fname);
-            using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+            var fh = mlContext.CreateOutputFile(fname);
+            using (var ch = ((IHostEnvironment) mlContext).Start("save"))
+                TrainUtils.SaveModel(mlContext, ch, fh, null, new RoleMappedData(backToBitmaps));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToBitmaps = ModelFileUtils.LoadPipeline(mlContext, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
@@ -642,12 +642,12 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithoutAlphaNoInterleaveNoOffset()
         {
-            IHostEnvironment env = new MLContext();
+            var mlContext = new MLContext();
             const int imageHeight = 100;
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Options()
+            var data = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -655,19 +655,19 @@ namespace Microsoft.ML.Tests
                         new TextLoader.Column("Name", DataKind.String, 1),
                 }
             }, new MultiFileSource(dataFile));
-            var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
-            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped").Transform(cropped);
+            var images = new ImageLoadingTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
+            var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
+            var pixels = mlContext.Transforms.ExtractPixels("ImagePixels", "ImageCropped").Fit(cropped).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels").Transform(pixels);
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(mlContext, "ImageRestored", imageHeight, imageWidth, "ImagePixels").Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithoutAlphaNoInterleaveNoOffset) + "_model.zip";
 
-            var fh = env.CreateOutputFile(fname);
-            using (var ch = env.Start("save"))
-                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+            var fh = mlContext.CreateOutputFile(fname);
+            using (var ch = ((IHostEnvironment) mlContext).Start("save"))
+                TrainUtils.SaveModel(mlContext, ch, fh, null, new RoleMappedData(backToBitmaps));
 
-            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            backToBitmaps = ModelFileUtils.LoadPipeline(mlContext, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
@@ -698,10 +698,10 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void ImageResizerTransformResizingModeFill()
         {
-            var env = new MLContext();
+            var mlContext = new MLContext();
             var dataFile = GetDataPath("images/fillmode.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Options()
+            var data = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -710,8 +710,8 @@ namespace Microsoft.ML.Tests
             }, new MultiFileSource(dataFile));
 
             const int targetDimension = 50;
-            var pipe = new ImageLoadingEstimator(env, imageFolder, ("ImageReal", "ImagePath"))
-                .Append(new ImageResizingEstimator(env, "ImageReal", targetDimension, targetDimension, "ImageReal",
+            var pipe = mlContext.Transforms.LoadImages(imageFolder, ("ImageReal", "ImagePath"))
+                .Append(mlContext.Transforms.ResizeImages("ImageReal", targetDimension, targetDimension, "ImageReal",
                     resizing: ImageResizingEstimator.ResizingKind.Fill));
 
             var rowView = pipe.Preview(data).RowView;
