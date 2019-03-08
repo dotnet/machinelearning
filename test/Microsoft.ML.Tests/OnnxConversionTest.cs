@@ -141,7 +141,7 @@ namespace Microsoft.ML.Tests
                 Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeansPlusPlusTrainer.Options
                 {
                     FeatureColumnName = DefaultColumnNames.Features,
-                    NumberOfIterations = 1,
+                    MaximumNumberOfIterations = 1,
                     NumberOfClusters = 4,
                     NumberOfThreads = 1,
                     InitializationAlgorithm = Trainers.KMeansPlusPlusTrainer.InitializationAlgorithm.Random

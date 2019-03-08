@@ -33,7 +33,7 @@ namespace Microsoft.ML.Samples.Dynamic
                     {
                         FeatureColumnName = outputColumnName,
                         NumberOfClusters = 2,
-                        NumberOfIterations = 100,
+                        MaximumNumberOfIterations = 100,
                         OptimizationTolerance = 1e-6f,
                         NumberOfThreads = 1
                     }

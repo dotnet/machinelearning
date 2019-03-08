@@ -11019,7 +11019,7 @@
           "Default": 1E-07
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations.",
           "Aliases": [
@@ -15221,7 +15221,7 @@
           }
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [
@@ -15494,7 +15494,7 @@
           }
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [
@@ -15767,7 +15767,7 @@
           }
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [

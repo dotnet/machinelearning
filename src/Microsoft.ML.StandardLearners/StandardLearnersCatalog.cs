@@ -133,7 +133,7 @@ namespace Microsoft.ML
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="l2Regularization">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
         /// <param name="l1Threshold">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
-        /// <param name="numberOfIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
         /// <param name="loss">The custom <a href="tmpurl_loss">loss</a>, if unspecified will be <see cref="SquaredLoss"/>.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -148,11 +148,11 @@ namespace Microsoft.ML
             ISupportSdcaRegressionLoss loss = null,
             float? l2Regularization = null,
             float? l1Threshold = null,
-            int? numberOfIterations = null)
+            int? maximumNumberOfIterations = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, numberOfIterations);
+            return new SdcaRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, maximumNumberOfIterations);
         }
 
         /// <summary>
@@ -185,7 +185,7 @@ namespace Microsoft.ML
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="l2Regularization">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
         /// <param name="l1Threshold">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
-        /// <param name="numberOfIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -199,11 +199,11 @@ namespace Microsoft.ML
                 string exampleWeightColumnName = null,
                 float? l2Regularization = null,
                 float? l1Threshold = null,
-                int? numberOfIterations = null)
+                int? maximumNumberOfIterations = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l2Regularization, l1Threshold, numberOfIterations);
+            return new SdcaBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l2Regularization, l1Threshold, maximumNumberOfIterations);
         }
 
         /// <summary>
@@ -238,7 +238,7 @@ namespace Microsoft.ML
         /// <param name="loss">The custom <a href="tmpurl_loss">loss</a>. Defaults to <see cref="LogLoss"/> if not specified.</param>
         /// <param name="l2Regularization">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
         /// <param name="l1Threshold">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
-        /// <param name="numberOfIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -253,11 +253,11 @@ namespace Microsoft.ML
                 ISupportSdcaClassificationLoss loss = null,
                 float? l2Regularization = null,
                 float? l1Threshold = null,
-                int? numberOfIterations = null)
+                int? maximumNumberOfIterations = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaNonCalibratedBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, numberOfIterations);
+            return new SdcaNonCalibratedBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, maximumNumberOfIterations);
         }
 
         /// <summary>
@@ -286,7 +286,7 @@ namespace Microsoft.ML
         /// <param name="loss">The custom <a href="tmpurl_loss">loss</a>. Defaults to <see cref="LogLoss"/> if not specified.</param>
         /// <param name="l2Regularization">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
         /// <param name="l1Threshold">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
-        /// <param name="numberOfIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -300,11 +300,11 @@ namespace Microsoft.ML
                     ISupportSdcaClassificationLoss loss = null,
                     float? l2Regularization = null,
                     float? l1Threshold = null,
-                    int? numberOfIterations = null)
+                    int? maximumNumberOfIterations = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaMultiClassTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, numberOfIterations);
+            return new SdcaMultiClassTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, maximumNumberOfIterations);
         }
 
         /// <summary>

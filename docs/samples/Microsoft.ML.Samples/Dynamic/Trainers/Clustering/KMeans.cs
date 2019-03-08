@@ -27,7 +27,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // A pipeline for concatenating the age, parity and induced columns together in the Features column and training a KMeans model on them.
             string outputColumnName = "Features";
             var pipeline = ml.Transforms.Concatenate(outputColumnName, new[] { "Age", "Parity", "Induced" })
-                .Append(ml.Clustering.Trainers.KMeans(outputColumnName, clustersCount: 2));
+                .Append(ml.Clustering.Trainers.KMeans(outputColumnName, numberOfClusters: 2));
 
             var model = pipeline.Fit(trainData);
 

@@ -19,7 +19,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The clustering catalog trainer object.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="clustersCount">The number of clusters to use for KMeans.</param>
+        /// <param name="numberOfClusters">The number of clusters to use for KMeans.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -29,7 +29,7 @@ namespace Microsoft.ML
         public static KMeansPlusPlusTrainer KMeans(this ClusteringCatalog.ClusteringTrainers catalog,
            string featureColumnName = DefaultColumnNames.Features,
            string exampleWeightColumnName = null,
-           int clustersCount = KMeansPlusPlusTrainer.Defaults.NumberOfClusters)
+           int numberOfClusters = KMeansPlusPlusTrainer.Defaults.NumberOfClusters)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -38,7 +38,7 @@ namespace Microsoft.ML
             {
                 FeatureColumnName = featureColumnName,
                 ExampleWeightColumnName = exampleWeightColumnName,
-                NumberOfClusters = clustersCount
+                NumberOfClusters = numberOfClusters
             };
             return new KMeansPlusPlusTrainer(env, options);
         }

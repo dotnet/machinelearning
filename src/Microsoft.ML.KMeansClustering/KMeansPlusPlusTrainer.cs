@@ -80,7 +80,7 @@ namespace Microsoft.ML.Trainers
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations.", ShortName = "maxiter")]
             [TGUI(Label = "Max Number of Iterations")]
-            public int NumberOfIterations = 1000;
+            public int MaximumNumberOfIterations = 1000;
 
             /// <summary>
             /// Memory budget (in MBs) to use for KMeans acceleration.
@@ -126,8 +126,8 @@ namespace Microsoft.ML.Trainers
 
             _k = options.NumberOfClusters;
 
-            Host.CheckUserArg(options.NumberOfIterations > 0, nameof(options.NumberOfIterations), "Must be positive");
-            _maxIterations = options.NumberOfIterations;
+            Host.CheckUserArg(options.MaximumNumberOfIterations > 0, nameof(options.MaximumNumberOfIterations), "Must be positive");
+            _maxIterations = options.MaximumNumberOfIterations;
 
             Host.CheckUserArg(options.OptimizationTolerance > 0, nameof(options.OptimizationTolerance), "Tolerance must be positive");
             _convergenceThreshold = options.OptimizationTolerance;
