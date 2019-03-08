@@ -34,9 +34,9 @@ namespace Microsoft.ML.Transforms
             public const bool FixZero = true;
             public const bool MeanVarCdf = false;
             public const bool LogMeanVarCdf = true;
-            public const int NumBins = 1024;
-            public const int MinBinSize = 10;
-            public const long MaxTrainingExamples = 1000000000;
+            public const int BinCount = 1024;
+            public const int MininimumBinSize = 10;
+            public const long MaximumExampleCount = 1000000000;
         }
 
         public enum NormalizationMode
@@ -67,17 +67,17 @@ namespace Microsoft.ML.Transforms
         {
             public readonly string Name;
             public readonly string InputColumnName;
-            public readonly long MaxTrainingExamples;
+            public readonly long MaximumExampleCount;
 
-            private protected ColumnOptionsBase(string name, string inputColumnName, long maxTrainingExamples)
+            private protected ColumnOptionsBase(string name, string inputColumnName, long maximumExampleCount)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 Contracts.CheckNonEmpty(inputColumnName, nameof(inputColumnName));
-                Contracts.CheckParam(maxTrainingExamples > 1, nameof(maxTrainingExamples), "Must be greater than 1");
+                Contracts.CheckParam(maximumExampleCount > 1, nameof(maximumExampleCount), "Must be greater than 1");
 
                 Name = name;
                 InputColumnName = inputColumnName;
-                MaxTrainingExamples = maxTrainingExamples;
+                MaximumExampleCount = maximumExampleCount;
             }
 
             internal abstract IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, DataViewType srcType, DataViewRowCursor cursor);
@@ -89,9 +89,9 @@ namespace Microsoft.ML.Transforms
                     case NormalizationMode.MinMax:
                         return new MinMaxColumnOptions(outputColumnName, inputColumnName);
                     case NormalizationMode.MeanVariance:
-                        return new MeanVarColumnOptions(outputColumnName, inputColumnName);
+                        return new MeanVarianceColumnOptions(outputColumnName, inputColumnName);
                     case NormalizationMode.LogMeanVariance:
-                        return new LogMeanVarColumnOptions(outputColumnName, inputColumnName);
+                        return new LogMeanVarianceColumnOptions(outputColumnName, inputColumnName);
                     case NormalizationMode.Binning:
                         return new BinningColumnOptions(outputColumnName, inputColumnName);
                     case NormalizationMode.SupervisedBinning:
@@ -102,21 +102,21 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public abstract class FixZeroColumnOptionsBase : ColumnOptionsBase
+        public abstract class ControlZeroColumnOptionsBase : ColumnOptionsBase
         {
             public readonly bool FixZero;
 
-            private protected FixZeroColumnOptionsBase(string outputColumnName, string inputColumnName, long maxTrainingExamples, bool fixZero)
-                : base(outputColumnName, inputColumnName, maxTrainingExamples)
+            private protected ControlZeroColumnOptionsBase(string outputColumnName, string inputColumnName, long maximumExampleCount, bool fixZero)
+                : base(outputColumnName, inputColumnName, maximumExampleCount)
             {
                 FixZero = fixZero;
             }
         }
 
-        public sealed class MinMaxColumnOptions : FixZeroColumnOptionsBase
+        public sealed class MinMaxColumnOptions : ControlZeroColumnOptionsBase
         {
-            public MinMaxColumnOptions(string outputColumnName, string inputColumnName = null, long maxTrainingExamples = Defaults.MaxTrainingExamples, bool fixZero = Defaults.FixZero)
-                : base(outputColumnName, inputColumnName ?? outputColumnName, maxTrainingExamples, fixZero)
+            public MinMaxColumnOptions(string outputColumnName, string inputColumnName = null, long maximumExampleCount = Defaults.MaximumExampleCount, bool fixZero = Defaults.FixZero)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, fixZero)
             {
             }
 
@@ -124,13 +124,13 @@ namespace Microsoft.ML.Transforms
                 => NormalizeTransform.MinMaxUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
-        public sealed class MeanVarColumnOptions : FixZeroColumnOptionsBase
+        public sealed class MeanVarianceColumnOptions : ControlZeroColumnOptionsBase
         {
             public readonly bool UseCdf;
 
-            public MeanVarColumnOptions(string outputColumnName, string inputColumnName = null,
-                long maxTrainingExamples = Defaults.MaxTrainingExamples, bool fixZero = Defaults.FixZero, bool useCdf = Defaults.MeanVarCdf)
-                : base(outputColumnName, inputColumnName ?? outputColumnName, maxTrainingExamples, fixZero)
+            public MeanVarianceColumnOptions(string outputColumnName, string inputColumnName = null,
+                long maximumExampleCount = Defaults.MaximumExampleCount, bool fixZero = Defaults.FixZero, bool useCdf = Defaults.MeanVarCdf)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, fixZero)
             {
                 UseCdf = useCdf;
             }
@@ -139,13 +139,13 @@ namespace Microsoft.ML.Transforms
                 => NormalizeTransform.MeanVarUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
-        public sealed class LogMeanVarColumnOptions : ColumnOptionsBase
+        public sealed class LogMeanVarianceColumnOptions : ColumnOptionsBase
         {
             public readonly bool UseCdf;
 
-            public LogMeanVarColumnOptions(string outputColumnName, string inputColumnName = null,
-                long maxTrainingExamples = Defaults.MaxTrainingExamples, bool useCdf = Defaults.LogMeanVarCdf)
-                : base(outputColumnName, inputColumnName ?? outputColumnName, maxTrainingExamples)
+            public LogMeanVarianceColumnOptions(string outputColumnName, string inputColumnName = null,
+                long maximumExampleCount = Defaults.MaximumExampleCount, bool useCdf = Defaults.LogMeanVarCdf)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount)
             {
                 UseCdf = useCdf;
             }
@@ -154,42 +154,42 @@ namespace Microsoft.ML.Transforms
                 => NormalizeTransform.LogMeanVarUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
-        public sealed class BinningColumnOptions : FixZeroColumnOptionsBase
+        public sealed class BinningColumnOptions : ControlZeroColumnOptionsBase
         {
-            public readonly int NumBins;
+            public readonly int MaximumBinCount;
 
             public BinningColumnOptions(string outputColumnName, string inputColumnName = null,
-                long maxTrainingExamples = Defaults.MaxTrainingExamples, bool fixZero = true, int numBins = Defaults.NumBins)
-                : base(outputColumnName, inputColumnName ?? outputColumnName, maxTrainingExamples, fixZero)
+                long maximumExampleCount = Defaults.MaximumExampleCount, bool fixZero = true, int maximumBinCount = Defaults.BinCount)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, fixZero)
             {
-                NumBins = numBins;
+                MaximumBinCount = maximumBinCount;
             }
 
             internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
                 => NormalizeTransform.BinUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
-        public sealed class SupervisedBinningColumOptions : FixZeroColumnOptionsBase
+        public sealed class SupervisedBinningColumOptions : ControlZeroColumnOptionsBase
         {
-            public readonly int NumBins;
-            public readonly string LabelColumn;
-            public readonly int MinBinSize;
+            public readonly int MaximumBinCount;
+            public readonly string LabelColumnName;
+            public readonly int MininimumBinSize;
 
             public SupervisedBinningColumOptions(string outputColumnName, string inputColumnName = null,
-                string labelColumn = DefaultColumnNames.Label,
-                long maxTrainingExamples = Defaults.MaxTrainingExamples,
+                string labelColumnName = DefaultColumnNames.Label,
+                long maximumExampleCount = Defaults.MaximumExampleCount,
                 bool fixZero = true,
-                int numBins = Defaults.NumBins,
-                int minBinSize = Defaults.MinBinSize)
-                : base(outputColumnName, inputColumnName ?? outputColumnName, maxTrainingExamples, fixZero)
+                int maximumBinCount = Defaults.BinCount,
+                int mininimumBinSize = Defaults.MininimumBinSize)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, fixZero)
             {
-                NumBins = numBins;
-                LabelColumn = labelColumn;
-                MinBinSize = minBinSize;
+                MaximumBinCount = maximumBinCount;
+                LabelColumnName = labelColumnName;
+                MininimumBinSize = mininimumBinSize;
             }
 
             internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
-                => NormalizeTransform.SupervisedBinUtils.CreateBuilder(this, host, LabelColumn, srcIndex, srcType, cursor);
+                => NormalizeTransform.SupervisedBinUtils.CreateBuilder(this, host, LabelColumnName, srcIndex, srcType, cursor);
         }
 
         private readonly IHost _host;
@@ -412,7 +412,7 @@ namespace Microsoft.ML.Transforms
 
                 var supervisedBinColumn = info as NormalizingEstimator.SupervisedBinningColumOptions;
                 if(supervisedBinColumn != null)
-                    activeCols.Add(data.Schema[supervisedBinColumn.LabelColumn]);
+                    activeCols.Add(data.Schema[supervisedBinColumn.LabelColumnName]);
             }
 
             var functionBuilders = new IColumnFunctionBuilder[columns.Length];

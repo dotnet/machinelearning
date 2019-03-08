@@ -11,7 +11,6 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
@@ -51,7 +50,7 @@ namespace Microsoft.ML.Transforms
         public abstract class ColumnBase : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of examples used to train the normalizer", ShortName = "maxtrain")]
-            public long? MaxTrainingExamples;
+            public long? MaximumExampleCount;
 
             private protected ColumnBase()
             {
@@ -60,7 +59,7 @@ namespace Microsoft.ML.Transforms
             private protected override bool TryUnparseCore(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (MaxTrainingExamples != null)
+                if (MaximumExampleCount != null)
                     return false;
                 return base.TryUnparseCore(sb);
             }
@@ -183,7 +182,7 @@ namespace Microsoft.ML.Transforms
         public abstract class ArgumentsBase : TransformInputBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of examples used to train the normalizer", ShortName = "maxtrain")]
-            public long MaxTrainingExamples = 1000000000;
+            public long MaximumExampleCount = 1000000000;
 
             public abstract OneToOneColumn[] GetColumns();
 
@@ -291,7 +290,7 @@ namespace Microsoft.ML.Transforms
                 .Select(col => new NormalizingEstimator.MinMaxColumnOptions(
                     col.Name,
                     col.Source ?? col.Name,
-                    col.MaxTrainingExamples ?? args.MaxTrainingExamples,
+                    col.MaximumExampleCount ?? args.MaximumExampleCount,
                     col.FixZero ?? args.FixZero))
                 .ToArray();
             var normalizer = new NormalizingEstimator(env, columns);
@@ -306,10 +305,10 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(args.Columns, nameof(args.Columns));
 
             var columns = args.Columns
-                .Select(col => new NormalizingEstimator.MeanVarColumnOptions(
+                .Select(col => new NormalizingEstimator.MeanVarianceColumnOptions(
                     col.Name,
                     col.Source ?? col.Name,
-                    col.MaxTrainingExamples ?? args.MaxTrainingExamples,
+                    col.MaximumExampleCount ?? args.MaximumExampleCount,
                     col.FixZero ?? args.FixZero))
                 .ToArray();
             var normalizer = new NormalizingEstimator(env, columns);
@@ -326,10 +325,10 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(args.Columns, nameof(args.Columns));
 
             var columns = args.Columns
-                .Select(col => new NormalizingEstimator.LogMeanVarColumnOptions(
+                .Select(col => new NormalizingEstimator.LogMeanVarianceColumnOptions(
                     col.Name,
                     col.Source ?? col.Name,
-                    col.MaxTrainingExamples ?? args.MaxTrainingExamples,
+                    col.MaximumExampleCount ?? args.MaximumExampleCount,
                     args.UseCdf))
                 .ToArray();
             var normalizer = new NormalizingEstimator(env, columns);
@@ -349,7 +348,7 @@ namespace Microsoft.ML.Transforms
                 .Select(col => new NormalizingEstimator.BinningColumnOptions(
                     col.Name,
                     col.Source ?? col.Name,
-                    col.MaxTrainingExamples ?? args.MaxTrainingExamples,
+                    col.MaximumExampleCount ?? args.MaximumExampleCount,
                     col.FixZero ?? args.FixZero,
                     col.NumBins ?? args.NumBins))
                 .ToArray();
@@ -926,7 +925,7 @@ namespace Microsoft.ML.Transforms
                 return CreateBuilder(new NormalizingEstimator.MinMaxColumnOptions(
                     args.Columns[icol].Name,
                     args.Columns[icol].Source ?? args.Columns[icol].Name,
-                    args.Columns[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
+                    args.Columns[icol].MaximumExampleCount ?? args.MaximumExampleCount,
                     args.Columns[icol].FixZero ?? args.FixZero), host, srcIndex, srcType, cursor);
             }
 
@@ -959,15 +958,15 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
 
-                return CreateBuilder(new NormalizingEstimator.MeanVarColumnOptions(
+                return CreateBuilder(new NormalizingEstimator.MeanVarianceColumnOptions(
                     args.Columns[icol].Name,
                     args.Columns[icol].Source ?? args.Columns[icol].Name,
-                    args.Columns[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
+                    args.Columns[icol].MaximumExampleCount ?? args.MaximumExampleCount,
                     args.Columns[icol].FixZero ?? args.FixZero,
                     args.UseCdf), host, srcIndex, srcType, cursor);
             }
 
-            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.MeanVarColumnOptions column, IHost host,
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.MeanVarianceColumnOptions column, IHost host,
                 int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
             {
                 Contracts.AssertValue(host);
@@ -999,14 +998,14 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
 
-                return CreateBuilder(new NormalizingEstimator.LogMeanVarColumnOptions(
+                return CreateBuilder(new NormalizingEstimator.LogMeanVarianceColumnOptions(
                     args.Columns[icol].Name,
                     args.Columns[icol].Source ?? args.Columns[icol].Name,
-                    args.Columns[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
+                    args.Columns[icol].MaximumExampleCount ?? args.MaximumExampleCount,
                     args.UseCdf), host, srcIndex, srcType, cursor);
             }
 
-            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.LogMeanVarColumnOptions column, IHost host,
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.LogMeanVarianceColumnOptions column, IHost host,
                 int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
             {
                 Contracts.AssertValue(host);
@@ -1041,7 +1040,7 @@ namespace Microsoft.ML.Transforms
                 return CreateBuilder(new NormalizingEstimator.BinningColumnOptions(
                     args.Columns[icol].Name,
                     args.Columns[icol].Source ?? args.Columns[icol].Name,
-                    args.Columns[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
+                    args.Columns[icol].MaximumExampleCount ?? args.MaximumExampleCount,
                     args.Columns[icol].FixZero ?? args.FixZero,
                     args.Columns[icol].NumBins ?? args.NumBins), host, srcIndex, srcType, cursor);
             }
@@ -1091,7 +1090,7 @@ namespace Microsoft.ML.Transforms
                         args.Columns[icol].Name,
                         args.Columns[icol].Source ?? args.Columns[icol].Name,
                         args.LabelColumn ?? DefaultColumnNames.Label,
-                        args.Columns[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
+                        args.Columns[icol].MaximumExampleCount ?? args.MaximumExampleCount,
                         args.Columns[icol].FixZero ?? args.FixZero,
                         args.Columns[icol].NumBins ?? args.NumBins,
                         args.MinBinSize),

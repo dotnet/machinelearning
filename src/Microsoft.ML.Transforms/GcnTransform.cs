@@ -224,13 +224,13 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(options.Columns, nameof(options.Columns));
-            var cols = new GlobalContrastNormalizingEstimator.GcnColumnOptions[options.Columns.Length];
+            var cols = new GlobalContrastNormalizingEstimator.ColumnOptions[options.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var item = options.Columns[i];
-                    cols[i] = new GlobalContrastNormalizingEstimator.GcnColumnOptions(
+                    cols[i] = new GlobalContrastNormalizingEstimator.ColumnOptions(
                         item.Name,
                         item.Source ?? item.Name,
                         item.SubMean ?? options.SubMean,
@@ -251,13 +251,13 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(options.Columns, nameof(options.Columns));
-            var cols = new LpNormalizingEstimator.LpNormColumnOptions[options.Columns.Length];
+            var cols = new LpNormalizingEstimator.ColumnOptions[options.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var item = options.Columns[i];
-                    cols[i] = new LpNormalizingEstimator.LpNormColumnOptions(
+                    cols[i] = new LpNormalizingEstimator.ColumnOptions(
                         item.Name,
                         item.Source ?? item.Name,
                         item.Norm ?? options.Norm,
@@ -812,19 +812,19 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class LpNormColumnOptions : ColumnOptionsBase
+        public sealed class ColumnOptions : ColumnOptionsBase
         {
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-            /// <param name="normKind">Type of norm to use to normalize each sample. The indicated norm of the resulted vector will be normalized to one.</param>
+            /// <param name="norm">Type of norm to use to normalize each sample. The indicated norm of the resulted vector will be normalized to one.</param>
             /// <param name="ensureZeroMean">If <see langword="true"/>, subtract mean from each value before normalizing and use the raw input otherwise.</param>
-            public LpNormColumnOptions(string name, string inputColumnName = null,
-                NormFunction normKind = Defaults.Norm,
+            public ColumnOptions(string name, string inputColumnName = null,
+                NormFunction norm = Defaults.Norm,
                 bool ensureZeroMean = Defaults.LpEnsureZeroMean)
-                : base(name, inputColumnName ?? name, normKind, ensureZeroMean, 1)
+                : base(name, inputColumnName ?? name, norm, ensureZeroMean, 1)
             {
             }
         }
@@ -832,29 +832,29 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The environment.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="normKind">Type of norm to use to normalize each sample. The indicated norm of the resulted vector will be normalized to one.</param>
+        /// <param name="norm">Type of norm to use to normalize each sample. The indicated norm of the resulted vector will be normalized to one.</param>
         /// <param name="ensureZeroMean">If <see langword="true"/>, subtract mean from each value before normalizing and use the raw input otherwise.</param>
         internal LpNormalizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
-            NormFunction normKind = Defaults.Norm, bool ensureZeroMean = Defaults.LpEnsureZeroMean)
-            : this(env, new[] { (outputColumnName, inputColumnName ?? outputColumnName) }, normKind, ensureZeroMean)
+            NormFunction norm = Defaults.Norm, bool ensureZeroMean = Defaults.LpEnsureZeroMean)
+            : this(env, new[] { (outputColumnName, inputColumnName ?? outputColumnName) }, norm, ensureZeroMean)
         {
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="LpNormalize"]/*'/>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to run the normalization on.</param>
-        /// <param name="normKind">Type of norm to use to normalize each sample. The indicated norm of the resulted vector will be normalized to one.</param>
+        /// <param name="norm">Type of norm to use to normalize each sample. The indicated norm of the resulted vector will be normalized to one.</param>
         /// <param name="ensureZeroMean">If <see langword="true"/>, subtract mean from each value before normalizing and use the raw input otherwise.</param>
         internal LpNormalizingEstimator(IHostEnvironment env, (string outputColumnName, string inputColumnName)[] columns,
-            NormFunction normKind = Defaults.Norm, bool ensureZeroMean = Defaults.LpEnsureZeroMean)
-             : this(env, columns.Select(x => new LpNormColumnOptions(x.outputColumnName, x.inputColumnName, normKind, ensureZeroMean)).ToArray())
+            NormFunction norm = Defaults.Norm, bool ensureZeroMean = Defaults.LpEnsureZeroMean)
+             : this(env, columns.Select(x => new ColumnOptions(x.outputColumnName, x.inputColumnName, norm, ensureZeroMean)).ToArray())
         {
         }
 
         /// <summary>
         /// Create a <see cref="LpNormalizingEstimator"/> that takes multiple pairs of columns.
         /// </summary>
-        internal LpNormalizingEstimator(IHostEnvironment env, params LpNormColumnOptions[] columns)
+        internal LpNormalizingEstimator(IHostEnvironment env, params ColumnOptions[] columns)
             : base(env, columns)
         {
         }
@@ -868,7 +868,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Describes how the transformer handles one Gcn column pair.
         /// </summary>
-        public sealed class GcnColumnOptions : ColumnOptionsBase
+        public sealed class ColumnOptions : ColumnOptionsBase
         {
             /// <summary>
             /// Describes how the transformer handles one Gcn column pair.
@@ -878,7 +878,7 @@ namespace Microsoft.ML.Transforms
             /// <param name="ensureZeroMean">If <see langword="true"/>, subtract mean from each value before normalizing and use the raw input otherwise.</param>
             /// <param name="ensureUnitStandardDeviation">If <see langword="true"/>, resulted vector's standard deviation would be one. Otherwise, resulted vector's L2-norm would be one.</param>
             /// <param name="scale">Scale features by this value.</param>
-            public GcnColumnOptions(string name, string inputColumnName = null,
+            public ColumnOptions(string name, string inputColumnName = null,
                 bool ensureZeroMean = Defaults.GcnEnsureZeroMean,
                 bool ensureUnitStandardDeviation = Defaults.EnsureUnitStdDev,
                 float scale = Defaults.Scale)
@@ -908,14 +908,14 @@ namespace Microsoft.ML.Transforms
         /// <param name="scale">Scale features by this value.</param>
         internal GlobalContrastNormalizingEstimator(IHostEnvironment env, (string outputColumnName, string inputColumnName)[] columns,
             bool ensureZeroMean = Defaults.GcnEnsureZeroMean, bool ensureUnitStandardDeviation = Defaults.EnsureUnitStdDev, float scale = Defaults.Scale)
-            : this(env, columns.Select(x => new GcnColumnOptions(x.outputColumnName, x.inputColumnName, ensureZeroMean, ensureUnitStandardDeviation, scale)).ToArray())
+            : this(env, columns.Select(x => new ColumnOptions(x.outputColumnName, x.inputColumnName, ensureZeroMean, ensureUnitStandardDeviation, scale)).ToArray())
         {
         }
 
         /// <summary>
         /// Create a <see cref="GlobalContrastNormalizingEstimator"/> that takes multiple pairs of columns.
         /// </summary>
-        internal GlobalContrastNormalizingEstimator(IHostEnvironment env, params GcnColumnOptions[] columns) :
+        internal GlobalContrastNormalizingEstimator(IHostEnvironment env, params ColumnOptions[] columns) :
             base(env, columns)
         {
         }

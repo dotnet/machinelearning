@@ -1550,18 +1550,18 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    public static class RffStaticExtenensions
+    public static class RandomFourierKernelMappingStaticExtenensions
     {
         private readonly struct Config
         {
-            public readonly int Dimension;
+            public readonly int Rank;
             public readonly bool UseCosAndSinBases;
             public readonly int? Seed;
             public readonly KernelBase Generator;
 
-            public Config(int dimension, bool useCosAndSinBases, KernelBase generator, int? seed = null)
+            public Config(int rank, bool useCosAndSinBases, KernelBase generator, int? seed = null)
             {
-                Dimension = dimension;
+                Rank = rank;
                 UseCosAndSinBases = useCosAndSinBases;
                 Generator = generator;
                 Seed = seed;
@@ -1595,7 +1595,7 @@ namespace Microsoft.ML.StaticPipe
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IColInput)toOutput[i];
-                    infos[i] = new RandomFourierKernelMappingEstimator.ColumnOptions(outputNames[toOutput[i]], tcol.Config.Dimension, tcol.Config.UseCosAndSinBases, inputNames[tcol.Input], tcol.Config.Generator, tcol.Config.Seed);
+                    infos[i] = new RandomFourierKernelMappingEstimator.ColumnOptions(outputNames[toOutput[i]], tcol.Config.Rank, tcol.Config.UseCosAndSinBases, inputNames[tcol.Input], tcol.Config.Generator, tcol.Config.Seed);
                 }
                 return new RandomFourierKernelMappingEstimator(env, infos);
             }
@@ -1607,21 +1607,21 @@ namespace Microsoft.ML.StaticPipe
         /// speciﬁed shift-invariant kernel. With this transform, we are able to use linear methods (which are scalable) to approximate more complex kernel SVM models.
         /// </summary>
         /// <param name="input">The column to apply Random Fourier transfomration.</param>
-        /// <param name="dimension">The number of random Fourier features to create.</param>
+        /// <param name="rank">The number of random Fourier features to create.</param>
         /// <param name="useCosAndSinBases">If <see langword="true"/>, use both of cos and sin basis functions to create two features for every random Fourier frequency.
         /// Otherwise, only cos bases would be used.</param>
         /// <param name="generator">Which kernel to use. (if it is null, <see cref="GaussianKernel"/> is used.)</param>
         /// <param name="seed">The seed of the random number generator for generating the new features. If not specified global random would be used.</param>
-        public static Vector<float> LowerVectorSizeWithRandomFourierTransformation(this Vector<float> input,
-            int dimension = RandomFourierKernelMappingEstimator.Defaults.Rank, bool useCosAndSinBases = RandomFourierKernelMappingEstimator.Defaults.UseCosAndSinBases,
+        public static Vector<float> RandomFourierKernelMapper(this Vector<float> input,
+            int rank = RandomFourierKernelMappingEstimator.Defaults.Rank, bool useCosAndSinBases = RandomFourierKernelMappingEstimator.Defaults.UseCosAndSinBases,
             KernelBase generator = null, int? seed = null)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new ImplVector<string>(input, new Config(dimension, useCosAndSinBases, generator, seed));
+            return new ImplVector<string>(input, new Config(rank, useCosAndSinBases, generator, seed));
         }
     }
 
-    public static class PcaEstimatorExtensions
+    public static class PrincipalComponentAnalyzerStaticExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {

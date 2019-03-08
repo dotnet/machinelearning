@@ -52,10 +52,10 @@ namespace Microsoft.ML.StaticPipe
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="LpNormalize"]/*'/>
         /// <param name="input">The column to apply to.</param>
-        /// <param name="normKind">Type of norm to use to normalize each sample.</param>
+        /// <param name="norm">Type of norm to use to normalize each sample.</param>
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
         public static Vector<float> LpNormalize(this Vector<float> input,
-            LpNormalizingEstimatorBase.NormFunction normKind = LpNormalizingEstimatorBase.Defaults.Norm,
-            bool subMean = LpNormalizingEstimatorBase.Defaults.LpEnsureZeroMean) => new OutPipelineColumn(input, normKind, subMean);
+            LpNormalizingEstimatorBase.NormFunction norm = LpNormalizingEstimatorBase.Defaults.Norm,
+            bool subMean = LpNormalizingEstimatorBase.Defaults.LpEnsureZeroMean) => new OutPipelineColumn(input, norm, subMean);
     }
 }

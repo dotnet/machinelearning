@@ -595,7 +595,7 @@ As a general rule, *if you use a parametric learner, you need to make sure your 
 
 ML.NET offers several built-in scaling algorithms, or 'normalizers':
 - MinMax normalizer: for each feature, we learn the minimum and maximum value of it, and then linearly rescale it so that the values fit between -1 and 1.
-- MeanVar normalizer: for each feature, compute the mean and variance, and then linearly rescale it to zero-mean, unit-variance.
+- MeanVariance normalizer: for each feature, compute the mean and variance, and then linearly rescale it to zero-mean, unit-variance.
 - CDF normalizer: for each feature, compute the mean and variance, and then replace each value `x` with `Cdf(x)`, where `Cdf` is the cumulative density function of normal distribution with these mean and variance. 
 - Binning normalizer: discretize the feature value into `N` 'buckets', and then replace each value with the index of the bucket, divided by `N-1`.
 
@@ -630,8 +630,8 @@ var trainData = mlContext.Data.LoadFromTextFile<IrisInputAllFeatures>(dataPath,
 var pipeline =
     mlContext.Transforms.Normalize(
         new NormalizingEstimator.MinMaxColumnOptions("MinMaxNormalized", "Features", fixZero: true),
-        new NormalizingEstimator.MeanVarColumnOptions("MeanVarNormalized", "Features", fixZero: true),
-        new NormalizingEstimator.BinningColumnOptions("BinNormalized", "Features", numBins: 256));
+        new NormalizingEstimator.MeanVarianceColumnOptions("MeanVarNormalized", "Features", fixZero: true),
+        new NormalizingEstimator.BinningColumnOptions("BinNormalized", "Features", maximumBinCount: 256));
 
 // Let's train our pipeline of normalizers, and then apply it to the same data.
 var normalizedData = pipeline.Fit(trainData).Transform(trainData);

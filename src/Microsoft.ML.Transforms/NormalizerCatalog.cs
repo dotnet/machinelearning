@@ -55,13 +55,13 @@ namespace Microsoft.ML
             => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
-        /// Takes column filled with a vector of floats and normazlize its <paramref name="normKind"/> to one. By setting <paramref name="ensureZeroMean"/> to <see langword="true"/>,
+        /// Takes column filled with a vector of floats and normazlize its <paramref name="norm"/> to one. By setting <paramref name="ensureZeroMean"/> to <see langword="true"/>,
         /// a pre-processing step would be applied to make the specified column's mean be a zero vector.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="normKind">Type of norm to use to normalize each sample. The indicated norm of the resulted vector will be normalized to one.</param>
+        /// <param name="norm">Type of norm to use to normalize each sample. The indicated norm of the resulted vector will be normalized to one.</param>
         /// <param name="ensureZeroMean">If <see langword="true"/>, subtract mean from each value before normalizing and use the raw input otherwise.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -71,15 +71,15 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static LpNormalizingEstimator LpNormalize(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null,
-            LpNormalizingEstimatorBase.NormFunction normKind = LpNormalizingEstimatorBase.Defaults.Norm, bool ensureZeroMean = LpNormalizingEstimatorBase.Defaults.LpEnsureZeroMean)
-            => new LpNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, normKind, ensureZeroMean);
+            LpNormalizingEstimatorBase.NormFunction norm = LpNormalizingEstimatorBase.Defaults.Norm, bool ensureZeroMean = LpNormalizingEstimatorBase.Defaults.LpEnsureZeroMean)
+            => new LpNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, norm, ensureZeroMean);
 
         /// <summary>
         /// Takes column filled with a vector of floats and normazlize its norm to one. Note that the allowed norm functions are defined in <see cref="LpNormalizingEstimatorBase.NormFunction"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of the lp-normalization process for each column pair.</param>
-        public static LpNormalizingEstimator LpNormalize(this TransformsCatalog catalog, params LpNormalizingEstimator.LpNormColumnOptions[] columns)
+        public static LpNormalizingEstimator LpNormalize(this TransformsCatalog catalog, params LpNormalizingEstimator.ColumnOptions[] columns)
             => new LpNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of the gcn-normaliztion process for each column pair.</param>
-        public static GlobalContrastNormalizingEstimator GlobalContrastNormalize(this TransformsCatalog catalog, params GlobalContrastNormalizingEstimator.GcnColumnOptions[] columns)
+        public static GlobalContrastNormalizingEstimator GlobalContrastNormalize(this TransformsCatalog catalog, params GlobalContrastNormalizingEstimator.ColumnOptions[] columns)
             => new GlobalContrastNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

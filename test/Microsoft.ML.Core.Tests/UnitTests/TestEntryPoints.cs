@@ -2414,7 +2414,7 @@ namespace Microsoft.ML.RunTests
                     new NormalizeTransform.AffineColumn() { Name = "B", Source = "B", FixZero = false },
                 },
                 FixZero = true, // Same as default, should not appear in the generated JSON.
-                MaxTrainingExamples = 1000
+                MaximumExampleCount = 1000
             };
 
             var inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
@@ -3853,13 +3853,13 @@ namespace Microsoft.ML.RunTests
                         'Inputs': {
                             'Column': [{
                                     'FixZero': null,
-                                    'MaxTrainingExamples': null,
+                                    'MaximumExampleCount': null,
                                     'Name': 'NumericFeatures',
                                     'Source': 'NumericFeatures'
                                 }
                             ],
                             'FixZero': true,
-                            'MaxTrainingExamples': 1000000000,
+                            'MaximumExampleCount': 1000000000,
                             'Data': '$Var_642faec2bf064255bc9a2b1044e9d116'
                         },
                         'Outputs': {

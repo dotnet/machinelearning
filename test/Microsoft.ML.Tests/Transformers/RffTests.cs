@@ -73,7 +73,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = data.MakeNewEstimator()
                 .Append(row => (
-                RffVectorFloat: row.VectorFloat.LowerVectorSizeWithRandomFourierTransformation(3, true), row.Label));
+                RffVectorFloat: row.VectorFloat.RandomFourierKernelMapper(3, true), row.Label));
 
             TestEstimatorCore(est.AsDynamic, data.AsDynamic);
 

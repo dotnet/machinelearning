@@ -52,18 +52,18 @@ namespace Microsoft.ML.Tests.Transformers
                 new NormalizingEstimator.BinningColumnOptions("float4bin", "float4"),
                 new NormalizingEstimator.BinningColumnOptions("double1bin", "double1"),
                 new NormalizingEstimator.BinningColumnOptions("double4bin", "double4"),
-                new NormalizingEstimator.SupervisedBinningColumOptions("float1supervisedbin", "float1", labelColumn: "int1"),
-                new NormalizingEstimator.SupervisedBinningColumOptions("float4supervisedbin", "float4", labelColumn: "int1"),
-                new NormalizingEstimator.SupervisedBinningColumOptions("double1supervisedbin", "double1", labelColumn: "int1"),
-                new NormalizingEstimator.SupervisedBinningColumOptions("double4supervisedbin", "double4", labelColumn: "int1"),
-                new NormalizingEstimator.MeanVarColumnOptions("float1mv", "float1"),
-                new NormalizingEstimator.MeanVarColumnOptions("float4mv", "float4"),
-                new NormalizingEstimator.MeanVarColumnOptions("double1mv", "double1"),
-                new NormalizingEstimator.MeanVarColumnOptions("double4mv", "double4"),
-                new NormalizingEstimator.LogMeanVarColumnOptions("float1lmv", "float1"),
-                new NormalizingEstimator.LogMeanVarColumnOptions("float4lmv", "float4"),
-                new NormalizingEstimator.LogMeanVarColumnOptions("double1lmv", "double1"),
-                new NormalizingEstimator.LogMeanVarColumnOptions("double4lmv", "double4"));
+                new NormalizingEstimator.SupervisedBinningColumOptions("float1supervisedbin", "float1", labelColumnName: "int1"),
+                new NormalizingEstimator.SupervisedBinningColumOptions("float4supervisedbin", "float4", labelColumnName: "int1"),
+                new NormalizingEstimator.SupervisedBinningColumOptions("double1supervisedbin", "double1", labelColumnName: "int1"),
+                new NormalizingEstimator.SupervisedBinningColumOptions("double4supervisedbin", "double4", labelColumnName: "int1"),
+                new NormalizingEstimator.MeanVarianceColumnOptions("float1mv", "float1"),
+                new NormalizingEstimator.MeanVarianceColumnOptions("float4mv", "float4"),
+                new NormalizingEstimator.MeanVarianceColumnOptions("double1mv", "double1"),
+                new NormalizingEstimator.MeanVarianceColumnOptions("double4mv", "double4"),
+                new NormalizingEstimator.LogMeanVarianceColumnOptions("float1lmv", "float1"),
+                new NormalizingEstimator.LogMeanVarianceColumnOptions("float4lmv", "float4"),
+                new NormalizingEstimator.LogMeanVarianceColumnOptions("double1lmv", "double1"),
+                new NormalizingEstimator.LogMeanVarianceColumnOptions("double4lmv", "double4"));
 
             var data = loader.Load(dataPath);
 
@@ -117,14 +117,14 @@ namespace Microsoft.ML.Tests.Transformers
                 new NormalizingEstimator.BinningColumnOptions("float4bin", "float4"),
                 new NormalizingEstimator.BinningColumnOptions("double1bin", "double1"),
                 new NormalizingEstimator.BinningColumnOptions("double4bin", "double4"),
-                new NormalizingEstimator.MeanVarColumnOptions("float1mv", "float1"),
-                new NormalizingEstimator.MeanVarColumnOptions("float4mv", "float4"),
-                new NormalizingEstimator.MeanVarColumnOptions("double1mv", "double1"),
-                new NormalizingEstimator.MeanVarColumnOptions("double4mv", "double4"),
-                new NormalizingEstimator.LogMeanVarColumnOptions("float1lmv", "float1"),
-                new NormalizingEstimator.LogMeanVarColumnOptions("float4lmv", "float4"),
-                new NormalizingEstimator.LogMeanVarColumnOptions("double1lmv", "double1"),
-                new NormalizingEstimator.LogMeanVarColumnOptions("double4lmv", "double4"));
+                new NormalizingEstimator.MeanVarianceColumnOptions("float1mv", "float1"),
+                new NormalizingEstimator.MeanVarianceColumnOptions("float4mv", "float4"),
+                new NormalizingEstimator.MeanVarianceColumnOptions("double1mv", "double1"),
+                new NormalizingEstimator.MeanVarianceColumnOptions("double4mv", "double4"),
+                new NormalizingEstimator.LogMeanVarianceColumnOptions("float1lmv", "float1"),
+                new NormalizingEstimator.LogMeanVarianceColumnOptions("float4lmv", "float4"),
+                new NormalizingEstimator.LogMeanVarianceColumnOptions("double1lmv", "double1"),
+                new NormalizingEstimator.LogMeanVarianceColumnOptions("double4lmv", "double4"));
 
             var data = loader.Load(dataPath);
 
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Load(dataSource);
 
             var est = ML.Transforms.LpNormalize("lpNorm1", "features")
-                .Append(ML.Transforms.LpNormalize("lpNorm2", "features", normKind: LpNormalizingEstimatorBase.NormFunction.L1, ensureZeroMean: true));
+                .Append(ML.Transforms.LpNormalize("lpNorm2", "features", norm: LpNormalizingEstimatorBase.NormFunction.L1, ensureZeroMean: true));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "lpNorm.tsv");

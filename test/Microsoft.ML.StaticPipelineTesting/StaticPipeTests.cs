@@ -404,7 +404,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = reader.MakeNewEstimator()
                 .Append(r => (r,
                     ncdf: r.NormalizeByCumulativeDistribution(onFit: (m, s) => mm = m),
-                    n: r.NormalizeByMeanVar(onFit: (s, o) => { ss = s; Assert.Empty(o); }),
+                    n: r.NormalizeByMeanVariance(onFit: (s, o) => { ss = s; Assert.Empty(o); }),
                     b: r.NormalizeByBinning(onFit: b => bb = b)));
             var tdata = est.Fit(data).Transform(data);
 

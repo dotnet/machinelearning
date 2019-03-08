@@ -15,17 +15,17 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(RandomFourierExpansionTransformer.Summary, typeof(IDataTransform), typeof(RandomFourierExpansionTransformer), typeof(RandomFourierExpansionTransformer.Options), typeof(SignatureDataTransform),
+[assembly: LoadableClass(RandomFourierKernelTransformer.Summary, typeof(IDataTransform), typeof(RandomFourierKernelTransformer), typeof(RandomFourierKernelTransformer.Options), typeof(SignatureDataTransform),
     "Random Fourier Features Transform", "RffTransform", "Rff")]
 
-[assembly: LoadableClass(RandomFourierExpansionTransformer.Summary, typeof(IDataTransform), typeof(RandomFourierExpansionTransformer), null, typeof(SignatureLoadDataTransform),
-    "Random Fourier Features Transform", RandomFourierExpansionTransformer.LoaderSignature)]
+[assembly: LoadableClass(RandomFourierKernelTransformer.Summary, typeof(IDataTransform), typeof(RandomFourierKernelTransformer), null, typeof(SignatureLoadDataTransform),
+    "Random Fourier Features Transform", RandomFourierKernelTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(RandomFourierExpansionTransformer.Summary, typeof(RandomFourierExpansionTransformer), null, typeof(SignatureLoadModel),
-    "Random Fourier Features Transform", RandomFourierExpansionTransformer.LoaderSignature)]
+[assembly: LoadableClass(RandomFourierKernelTransformer.Summary, typeof(RandomFourierKernelTransformer), null, typeof(SignatureLoadModel),
+    "Random Fourier Features Transform", RandomFourierKernelTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(RandomFourierExpansionTransformer), null, typeof(SignatureLoadRowMapper),
-    "Random Fourier Features Transform", RandomFourierExpansionTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(RandomFourierKernelTransformer), null, typeof(SignatureLoadRowMapper),
+    "Random Fourier Features Transform", RandomFourierKernelTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms
 {
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Transforms
     /// This transformation is based on this paper by
     /// <a href="http://pages.cs.wisc.edu/~brecht/papers/07.rah.rec.nips.pdf">Rahimi and Recht</a>.
     /// </summary>
-    public sealed class RandomFourierExpansionTransformer : OneToOneTransformerBase
+    public sealed class RandomFourierKernelTransformer : OneToOneTransformerBase
     {
         internal sealed class Options
         {
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(RandomFourierExpansionTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(RandomFourierKernelTransformer).Assembly.FullName);
         }
 
         private readonly TransformInfo[] _transformInfos;
@@ -255,8 +255,8 @@ namespace Microsoft.ML.Transforms
                     new VectorType(NumberDataViewType.Single, _transformInfos[col].SrcDim).ToString(), type.ToString());
         }
 
-        internal RandomFourierExpansionTransformer(IHostEnvironment env, IDataView input, RandomFourierKernelMappingEstimator.ColumnOptions[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RandomFourierExpansionTransformer)), GetColumnPairs(columns))
+        internal RandomFourierKernelTransformer(IHostEnvironment env, IDataView input, RandomFourierKernelMappingEstimator.ColumnOptions[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RandomFourierKernelTransformer)), GetColumnPairs(columns))
         {
             var avgDistances = GetAvgDistances(columns, input);
             _transformInfos = new TransformInfo[columns.Length];
@@ -395,7 +395,7 @@ namespace Microsoft.ML.Transforms
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private RandomFourierExpansionTransformer(IHost host, ModelLoadContext ctx)
+        private RandomFourierKernelTransformer(IHost host, ModelLoadContext ctx)
          : base(host, ctx)
         {
             // *** Binary format ***
@@ -436,14 +436,14 @@ namespace Microsoft.ML.Transforms
                         item.Seed ?? options.Seed);
                 };
             }
-            return new RandomFourierExpansionTransformer(env, input, cols).MakeDataTransform(input);
+            return new RandomFourierKernelTransformer(env, input, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
-        private static RandomFourierExpansionTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static RandomFourierKernelTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
-            var host = env.Register(nameof(RandomFourierExpansionTransformer));
+            var host = env.Register(nameof(RandomFourierKernelTransformer));
 
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Transforms
                 int cbFloat = ctx.Reader.ReadInt32();
                 env.CheckDecode(cbFloat == sizeof(float));
             }
-            return new RandomFourierExpansionTransformer(host, ctx);
+            return new RandomFourierKernelTransformer(host, ctx);
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -476,9 +476,9 @@ namespace Microsoft.ML.Transforms
             private readonly DataViewType[] _srcTypes;
             private readonly int[] _srcCols;
             private readonly DataViewType[] _types;
-            private readonly RandomFourierExpansionTransformer _parent;
+            private readonly RandomFourierKernelTransformer _parent;
 
-            public Mapper(RandomFourierExpansionTransformer parent, DataViewSchema inputSchema)
+            public Mapper(RandomFourierKernelTransformer parent, DataViewSchema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -606,7 +606,7 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// Maps vector columns to a low -dimensional feature space.
     /// </summary>
-    public sealed class RandomFourierKernelMappingEstimator : IEstimator<RandomFourierExpansionTransformer>
+    public sealed class RandomFourierKernelMappingEstimator : IEstimator<RandomFourierKernelTransformer>
     {
         [BestFriend]
         internal static class Defaults
@@ -692,9 +692,9 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Trains and returns a <see cref="RandomFourierExpansionTransformer"/>.
+        /// Trains and returns a <see cref="RandomFourierKernelTransformer"/>.
         /// </summary>
-        public RandomFourierExpansionTransformer Fit(IDataView input) => new RandomFourierExpansionTransformer(_host, input, _columns);
+        public RandomFourierKernelTransformer Fit(IDataView input) => new RandomFourierKernelTransformer(_host, input, _columns);
 
         /// <summary>
         /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
