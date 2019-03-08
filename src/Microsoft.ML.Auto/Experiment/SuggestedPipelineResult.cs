@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 
 namespace Microsoft.ML.Auto
 {
@@ -34,25 +35,25 @@ namespace Microsoft.ML.Auto
     {
         public readonly T EvaluatedMetrics;
         public IEstimator<ITransformer> Estimator { get; set; }
-        public ITransformer Model { get; set; }
+        public ModelContainer ModelContainer { get; set; }
         public Exception Exception { get; set; }
 
         public int RuntimeInSeconds { get; set; }
         public int PipelineInferenceTimeInSeconds { get; set; }
 
-        public SuggestedPipelineResult(T evaluatedMetrics, IEstimator<ITransformer> estimator, 
-            ITransformer model, SuggestedPipeline pipeline, double score, Exception exception)
+        public SuggestedPipelineResult(T evaluatedMetrics, IEstimator<ITransformer> estimator,
+            ModelContainer modelContainer, SuggestedPipeline pipeline, double score, Exception exception)
             : base(pipeline, score, exception == null)
         {
             EvaluatedMetrics = evaluatedMetrics;
             Estimator = estimator;
-            Model = model;
+            ModelContainer = modelContainer;
             Exception = exception;
         }
 
         public RunResult<T> ToIterationResult()
         {
-            return new RunResult<T>(Model, EvaluatedMetrics, Estimator, Pipeline.ToPipeline(), Exception, RuntimeInSeconds, PipelineInferenceTimeInSeconds);
+            return new RunResult<T>(ModelContainer, EvaluatedMetrics, Estimator, Pipeline.ToPipeline(), Exception, RuntimeInSeconds, PipelineInferenceTimeInSeconds);
         }
     }
 }

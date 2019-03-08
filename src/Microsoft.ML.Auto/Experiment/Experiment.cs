@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text;
 using Microsoft.Data.DataView;
 
@@ -22,9 +24,11 @@ namespace Microsoft.ML.Auto
         private readonly ExperimentSettings _experimentSettings;
         private readonly IMetricsAgent<T> _metricsAgent;
         private readonly IEnumerable<TrainerName> _trainerWhitelist;
+        private readonly DirectoryInfo _modelDirectory;
 
         private IDataView _trainData;
         private IDataView _validationData;
+        private ITransformer _preprocessorTransform;
 
         List<RunResult<T>> iterationResults = new List<RunResult<T>>();
 
@@ -57,17 +61,17 @@ namespace Microsoft.ML.Auto
             _experimentSettings = experimentSettings;
             _metricsAgent = metricsAgent;
             _trainerWhitelist = trainerWhitelist;
+            _modelDirectory = GetModelDirectory(_experimentSettings.ModelDirectory);
         }
 
         public List<RunResult<T>> Execute()
         {
-            ITransformer preprocessorTransform = null;
             if (_preFeaturizers != null)
             {
                 // preprocess train and validation data
-                preprocessorTransform = _preFeaturizers.Fit(_trainData);
-                _trainData = preprocessorTransform.Transform(_trainData);
-                _validationData = preprocessorTransform.Transform(_validationData);
+                _preprocessorTransform = _preFeaturizers.Fit(_trainData);
+                _trainData = _preprocessorTransform.Transform(_trainData);
+                _validationData = _preprocessorTransform.Transform(_validationData);
             }
 
             var stopwatch = Stopwatch.StartNew();
@@ -97,12 +101,6 @@ namespace Microsoft.ML.Auto
                     // evaluate pipeline
                     runResult = ProcessPipeline(pipeline);
 
-                    if (_preFeaturizers != null)
-                    {
-                        runResult.Estimator = _preFeaturizers.Append(runResult.Estimator);
-                        runResult.Model = preprocessorTransform.Append(runResult.Model);
-                    }
-
                     runResult.RuntimeInSeconds = (int)iterationStopwatch.Elapsed.TotalSeconds;
                     runResult.PipelineInferenceTimeInSeconds = (int)getPiplelineStopwatch.Elapsed.TotalSeconds;
                 }
@@ -129,6 +127,33 @@ namespace Microsoft.ML.Auto
             return iterationResults;
         }
 
+        private static DirectoryInfo GetModelDirectory(DirectoryInfo rootDir)
+        {
+            if (rootDir == null)
+            {
+                return null;
+            }
+            var subdirs = rootDir.Exists ?
+                new HashSet<string>(rootDir.EnumerateDirectories().Select(d => d.Name)) :
+                new HashSet<string>();
+            string experimentDir;
+            for (var i = 0; ; i++)
+            {
+                experimentDir = $"experiment{i}";
+                if (!subdirs.Contains(experimentDir))
+                {
+                    break;
+                }
+            }
+            var experimentDirFullPath = Path.Combine(rootDir.FullName, experimentDir);
+            var experimentDirInfo = new DirectoryInfo(experimentDirFullPath);
+            if (!experimentDirInfo.Exists)
+            {
+                experimentDirInfo.Create();
+            }
+            return experimentDirInfo;
+        }
+
         private void ReportProgress(RunResult<T> iterationResult)
         {
             try
@@ -141,6 +166,17 @@ namespace Microsoft.ML.Auto
             }
         }
 
+        private FileInfo GetNextModelFileInfo()
+        {
+            if (_experimentSettings.ModelDirectory == null)
+            {
+                return null;
+            }
+
+            return new FileInfo(Path.Combine(_modelDirectory.FullName, 
+                $"Model{_history.Count + 1}.zip"));
+        }
+
         private SuggestedPipelineResult<T> ProcessPipeline(SuggestedPipeline pipeline)
         {
             // run pipeline
@@ -150,22 +186,33 @@ namespace Microsoft.ML.Auto
 
             WriteDebugLog(DebugStream.RunResult, $"Processing pipeline {commandLineStr}.");
 
-            var pipelineEstimator = pipeline.ToEstimator();
-
             SuggestedPipelineResult<T> runResult;
 
             try
             {
-                var pipelineModel = pipelineEstimator.Fit(_trainData);
-                var scoredValidationData = pipelineModel.Transform(_validationData);
+                var model = pipeline.ToEstimator().Fit(_trainData);
+                var scoredValidationData = model.Transform(_validationData);
                 var metrics = GetEvaluatedMetrics(scoredValidationData);
                 var score = _metricsAgent.GetScore(metrics);
-                runResult = new SuggestedPipelineResult<T>(metrics, pipelineEstimator, pipelineModel, pipeline, score, null);
+
+                var estimator = pipeline.ToEstimator();
+                if (_preFeaturizers != null)
+                {
+                    estimator = _preFeaturizers.Append(estimator);
+                    model = _preprocessorTransform.Append(model);
+                }
+
+                var modelFileInfo = GetNextModelFileInfo();
+                var modelContainer = modelFileInfo == null ?
+                    new ModelContainer(_context, model) :
+                    new ModelContainer(_context, modelFileInfo, model);
+
+                runResult = new SuggestedPipelineResult<T>(metrics, estimator, modelContainer, pipeline, score, null);
             }
             catch(Exception ex)
             {
                 WriteDebugLog(DebugStream.Exception, $"{pipeline.Trainer} Crashed {ex}");
-                runResult = new SuggestedPipelineResult<T>(null, pipelineEstimator, null, pipeline, 0, ex);
+                runResult = new SuggestedPipelineResult<T>(null, pipeline.ToEstimator(), null, pipeline, 0, ex);
             }
 
             // save pipeline run

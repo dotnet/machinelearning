@@ -3,14 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Linq;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
     public sealed class RunResult<T>
     {
         public T ValidationMetrics { get; private set; }
-        public ITransformer Model { get; private set; }
+        public ITransformer Model { get { return _modelContainer.GetModel(); } }
         public Exception Exception { get; private set; }
         public string TrainerName { get; private set; }
         public int RuntimeInSeconds { get; private set; }
@@ -19,8 +21,9 @@ namespace Microsoft.ML.Auto
         internal Pipeline Pipeline { get; private set; }
         internal int PipelineInferenceTimeInSeconds { get; private set; }
 
-        internal RunResult(
-            ITransformer model,
+        private readonly ModelContainer _modelContainer;
+
+        internal RunResult(ModelContainer modelContainer,
             T metrics,
             IEstimator<ITransformer> estimator,
             Pipeline pipeline,
@@ -28,7 +31,7 @@ namespace Microsoft.ML.Auto
             int runtimeInSeconds,
             int pipelineInferenceTimeInSeconds)
         {
-            Model = model;
+            _modelContainer = modelContainer;
             ValidationMetrics = metrics;
             Pipeline = pipeline;
             Estimator = estimator;

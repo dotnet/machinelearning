@@ -41,7 +41,7 @@ namespace Microsoft.ML.Auto.Test
                 .CreateMulticlassClassificationExperiment(0)
                 .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = DatasetUtil.TrivialMulticlassDatasetLabel });
 
-            Assert.IsTrue(result.Max(i => i.ValidationMetrics.AccuracyMacro) > 0.80);
+            Assert.IsTrue(result.Max(i => i.ValidationMetrics.AccuracyMicro) >= 0.8);
         }
 
         [TestMethod]
