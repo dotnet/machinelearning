@@ -2440,7 +2440,7 @@ namespace Microsoft.ML.RunTests
       ""Source"": ""B""
     }
   ],
-  ""MaxTrainingExamples"": 1000,
+  ""MaximumExampleCount"": 1000,
   ""Data"": ""$data""
 }";
             expected = FixWhitespace(expected);
