@@ -370,7 +370,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Load(dataSource);
 
             var est = ML.Transforms.LpNormalize("lpNorm1", "features")
-                .Append(ML.Transforms.LpNormalize("lpNorm2", "features", normKind: LpNormalizingEstimatorBase.NormFunction.L1Norm, ensureZeroMean: true));
+                .Append(ML.Transforms.LpNormalize("lpNorm2", "features", normKind: LpNormalizingEstimatorBase.NormFunction.L1, ensureZeroMean: true));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "lpNorm.tsv");

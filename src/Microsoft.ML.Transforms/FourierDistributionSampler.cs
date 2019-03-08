@@ -34,7 +34,7 @@ namespace Microsoft.ML.Transforms
 
     /// <summary>
     /// This class indicates which kernel should be approximated by the <see cref="RandomFourierExpansionTransformer"/>.
-    /// <seealso cref="RandomFourierExpansionEstimator"/>.
+    /// <seealso cref="RandomFourierKernelMappingEstimator"/>.
     /// </summary>
     public abstract class KernelBase
     {

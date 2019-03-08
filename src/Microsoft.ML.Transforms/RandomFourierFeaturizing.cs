@@ -44,13 +44,13 @@ namespace Microsoft.ML.Transforms
             public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of random Fourier features to create", ShortName = "dim")]
-            public int NewDim = RandomFourierExpansionEstimator.Defaults.Rank;
+            public int NewDim = RandomFourierKernelMappingEstimator.Defaults.Rank;
 
             [Argument(ArgumentType.Multiple, HelpText = "Which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureKernelBase))]
             public IComponentFactory<KernelBase> MatrixGenerator = new GaussianKernel.Options();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Create two features for every random Fourier frequency? (one for cos and one for sin)")]
-            public bool UseSin = RandomFourierExpansionEstimator.Defaults.UseCosAndSinBases;
+            public bool UseSin = RandomFourierKernelMappingEstimator.Defaults.UseCosAndSinBases;
 
             [Argument(ArgumentType.LastOccurenceWins,
                 HelpText = "The seed of the random number generator for generating the new features (if unspecified, " +
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Transforms
             private readonly TauswortheHybrid _rand;
             private readonly TauswortheHybrid.State _state;
 
-            public TransformInfo(IHost host, RandomFourierExpansionEstimator.ColumnOptions column, int d, float avgDist)
+            public TransformInfo(IHost host, RandomFourierKernelMappingEstimator.ColumnOptions column, int d, float avgDist)
             {
                 Contracts.AssertValue(host);
 
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Transforms
             return "Expected vector of floats with known size";
         }
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(RandomFourierExpansionEstimator.ColumnOptions[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(RandomFourierKernelMappingEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
@@ -255,7 +255,7 @@ namespace Microsoft.ML.Transforms
                     new VectorType(NumberDataViewType.Single, _transformInfos[col].SrcDim).ToString(), type.ToString());
         }
 
-        internal RandomFourierExpansionTransformer(IHostEnvironment env, IDataView input, RandomFourierExpansionEstimator.ColumnOptions[] columns)
+        internal RandomFourierExpansionTransformer(IHostEnvironment env, IDataView input, RandomFourierKernelMappingEstimator.ColumnOptions[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RandomFourierExpansionTransformer)), GetColumnPairs(columns))
         {
             var avgDistances = GetAvgDistances(columns, input);
@@ -281,7 +281,7 @@ namespace Microsoft.ML.Transforms
             return cblob * cfltAlign;
         }
 
-        private float[] GetAvgDistances(RandomFourierExpansionEstimator.ColumnOptions[] columns, IDataView input)
+        private float[] GetAvgDistances(RandomFourierKernelMappingEstimator.ColumnOptions[] columns, IDataView input)
         {
             var avgDistances = new float[columns.Length];
             const int reservoirSize = 5000;
@@ -420,14 +420,14 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(options.Columns, nameof(options.Columns));
-            var cols = new RandomFourierExpansionEstimator.ColumnOptions[options.Columns.Length];
+            var cols = new RandomFourierKernelMappingEstimator.ColumnOptions[options.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
 
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var item = options.Columns[i];
-                    cols[i] = new RandomFourierExpansionEstimator.ColumnOptions(
+                    cols[i] = new RandomFourierKernelMappingEstimator.ColumnOptions(
                         item.Name,
                         item.NewDim ?? options.NewDim,
                         item.UseSin ?? options.UseSin,
@@ -606,7 +606,7 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// Maps vector columns to a low -dimensional feature space.
     /// </summary>
-    public sealed class RandomFourierExpansionEstimator : IEstimator<RandomFourierExpansionTransformer>
+    public sealed class RandomFourierKernelMappingEstimator : IEstimator<RandomFourierExpansionTransformer>
     {
         [BestFriend]
         internal static class Defaults
@@ -679,15 +679,15 @@ namespace Microsoft.ML.Transforms
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="rank">The number of random Fourier features to create.</param>
         /// <param name="useCosAndSinBases">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
-        internal RandomFourierExpansionEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int rank = Defaults.Rank, bool useCosAndSinBases = Defaults.UseCosAndSinBases)
+        internal RandomFourierKernelMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int rank = Defaults.Rank, bool useCosAndSinBases = Defaults.UseCosAndSinBases)
             : this(env, new ColumnOptions(outputColumnName, rank, useCosAndSinBases, inputColumnName ?? outputColumnName))
         {
         }
 
-        internal RandomFourierExpansionEstimator(IHostEnvironment env, params ColumnOptions[] columns)
+        internal RandomFourierKernelMappingEstimator(IHostEnvironment env, params ColumnOptions[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(RandomFourierExpansionEstimator));
+            _host = env.Register(nameof(RandomFourierKernelMappingEstimator));
             _columns = columns;
         }
 

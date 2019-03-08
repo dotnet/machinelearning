@@ -28,19 +28,19 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static RandomFourierExpansionEstimator RandomFourierExpand(this TransformsCatalog catalog,
+        public static RandomFourierKernelMappingEstimator RandomFourierKernelMap(this TransformsCatalog catalog,
             string outputColumnName,
             string inputColumnName = null,
-            int rank = RandomFourierExpansionEstimator.Defaults.Rank,
-            bool useCosAndSinBases = RandomFourierExpansionEstimator.Defaults.UseCosAndSinBases)
-            => new RandomFourierExpansionEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, rank, useCosAndSinBases);
+            int rank = RandomFourierKernelMappingEstimator.Defaults.Rank,
+            bool useCosAndSinBases = RandomFourierKernelMappingEstimator.Defaults.UseCosAndSinBases)
+            => new RandomFourierKernelMappingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, rank, useCosAndSinBases);
 
         /// <summary>
         /// Takes columns filled with a vector of floats and maps its to a random low-dimensional feature space.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">The input columns to use for the transformation.</param>
-        public static RandomFourierExpansionEstimator RandomFourierExpand(this TransformsCatalog catalog, params RandomFourierExpansionEstimator.ColumnOptions[] columns)
-            => new RandomFourierExpansionEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+        public static RandomFourierKernelMappingEstimator RandomFourierKernelMap(this TransformsCatalog catalog, params RandomFourierKernelMappingEstimator.ColumnOptions[] columns)
+            => new RandomFourierKernelMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }
