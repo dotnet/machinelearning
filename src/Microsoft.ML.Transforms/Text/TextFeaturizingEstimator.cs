@@ -48,12 +48,24 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Text vector normalizer kind.
         /// </summary>
-        public enum TextNormKind
+        public enum NormFunction
         {
+            /// <summary>
+            /// Use this to disable normalization.
+            /// </summary>
             None = 0,
+            /// <summary>
+            /// L1-norm.
+            /// </summary>
             L1 = 1,
+            /// <summary>
+            /// L2-norm.
+            /// </summary>
             L2 = 2,
-            LInf = 3
+            /// <summary>
+            /// Infinity-norm.
+            /// </summary>
+            Infinity = 3
         }
 
         internal sealed class Column : ManyToOneColumn
@@ -114,7 +126,7 @@ namespace Microsoft.ML.Transforms.Text
             public INgramExtractorFactoryFactory CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Normalize vectors (rows) individually by rescaling them to unit norm.", ShortName = "norm", SortOrder = 13)]
-            public TextNormKind VectorNormalizer = TextNormKind.L2;
+            public NormFunction VectorNormalizer = NormFunction.L2;
         }
 
         /// <summary>
@@ -150,7 +162,7 @@ namespace Microsoft.ML.Transforms.Text
             /// <summary>
             /// Vector Normalizer to use.
             /// </summary>
-            public TextNormKind VectorNormalizer { get; set; } = TextNormKind.L2;
+            public NormFunction VectorNormalizer { get; set; } = NormFunction.L2;
             /// <summary>
             /// Whether to use stop remover or not.
             /// </summary>
@@ -188,7 +200,7 @@ namespace Microsoft.ML.Transforms.Text
             public readonly INgramExtractorFactory WordExtractorFactory;
             public readonly INgramExtractorFactory CharExtractorFactory;
 
-            public readonly TextNormKind VectorNormalizer;
+            public readonly NormFunction VectorNormalizer;
             public readonly Language Language;
             public readonly bool UsePredefinedStopWordRemover;
             public readonly CaseNormalizationMode TextCase;
@@ -201,21 +213,21 @@ namespace Microsoft.ML.Transforms.Text
             public StopWordsRemovingEstimator.Language StopwordsLanguage
                 => (StopWordsRemovingEstimator.Language)Enum.Parse(typeof(StopWordsRemovingEstimator.Language), Language.ToString());
 
-            public LpNormalizingEstimatorBase.NormalizerKind LpNormalizerKind
+            public LpNormalizingEstimatorBase.NormFunction LpNormalizerKind
             {
                 get
                 {
                     switch (VectorNormalizer)
                     {
-                        case TextNormKind.L1:
-                            return LpNormalizingEstimatorBase.NormalizerKind.L1Norm;
-                        case TextNormKind.L2:
-                            return LpNormalizingEstimatorBase.NormalizerKind.L2Norm;
-                        case TextNormKind.LInf:
-                            return LpNormalizingEstimatorBase.NormalizerKind.LInf;
+                        case NormFunction.L1:
+                            return LpNormalizingEstimatorBase.NormFunction.L1;
+                        case NormFunction.L2:
+                            return LpNormalizingEstimatorBase.NormFunction.L2;
+                        case NormFunction.Infinity:
+                            return LpNormalizingEstimatorBase.NormFunction.Infinity;
                         default:
                             Contracts.Assert(false, "Unexpected normalizer type");
-                            return LpNormalizingEstimatorBase.NormalizerKind.L2Norm;
+                            return LpNormalizingEstimatorBase.NormFunction.L2;
                     }
                 }
             }
@@ -439,7 +451,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            if (tparams.VectorNormalizer != TextNormKind.None)
+            if (tparams.VectorNormalizer != NormFunction.None)
             {
                 var xfCols = new List<LpNormalizingEstimator.LpNormColumnOptions>(2);
 
@@ -447,7 +459,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var dstCol = GenerateColumnName(view.Schema, charFeatureCol, "LpCharNorm");
                     tempCols.Add(dstCol);
-                    xfCols.Add(new LpNormalizingEstimator.LpNormColumnOptions(dstCol, charFeatureCol, normalizerKind: tparams.LpNormalizerKind));
+                    xfCols.Add(new LpNormalizingEstimator.LpNormColumnOptions(dstCol, charFeatureCol, normKind: tparams.LpNormalizerKind));
                     charFeatureCol = dstCol;
                 }
 
@@ -455,7 +467,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var dstCol = GenerateColumnName(view.Schema, wordFeatureCol, "LpWordNorm");
                     tempCols.Add(dstCol);
-                    xfCols.Add(new LpNormalizingEstimator.LpNormColumnOptions(dstCol, wordFeatureCol, normalizerKind: tparams.LpNormalizerKind));
+                    xfCols.Add(new LpNormalizingEstimator.LpNormColumnOptions(dstCol, wordFeatureCol, normKind: tparams.LpNormalizerKind));
                     wordFeatureCol = dstCol;
                 }
 
@@ -521,7 +533,7 @@ namespace Microsoft.ML.Transforms.Text
 
             var metadata = new List<SchemaShape.Column>(2);
             metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
-            if (OptionalSettings.VectorNormalizer != TextNormKind.None)
+            if (OptionalSettings.VectorNormalizer != NormFunction.None)
                 metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
 
             result[OutputColumn] = new SchemaShape.Column(OutputColumn, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false,

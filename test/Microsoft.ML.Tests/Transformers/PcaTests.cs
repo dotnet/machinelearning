@@ -37,10 +37,10 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Load(_dataSource);
 
-            var est = ML.Transforms.Projection.ProjectToPrincipalComponents("pca", "features", rank: 4, seed: 10);
+            var est = ML.Transforms.ProjectToPrincipalComponents("pca", "features", rank: 4, seed: 10);
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
-            var estNonDefaultArgs = ML.Transforms.Projection.ProjectToPrincipalComponents("pca", "features", rank: 3, exampleWeightColumnName: "weight", overSampling: 2, center: false);
+            var estNonDefaultArgs = ML.Transforms.ProjectToPrincipalComponents("pca", "features", rank: 3, exampleWeightColumnName: "weight", overSampling: 2, ensureZeroMean: false);
             TestEstimatorCore(estNonDefaultArgs, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             Done();
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Load(_dataSource);
 
-            var est = ML.Transforms.Projection.ProjectToPrincipalComponents("pca", "features", rank: 5, seed: 1);
+            var est = ML.Transforms.ProjectToPrincipalComponents("pca", "features", rank: 5, seed: 1);
             var outputPath = GetOutputPath("PCA", "pca.tsv");
             var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
             savedData = ML.Transforms.SelectColumns("pca").Fit(savedData).Transform(savedData);

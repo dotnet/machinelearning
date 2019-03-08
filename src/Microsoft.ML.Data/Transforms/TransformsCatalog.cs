@@ -31,11 +31,6 @@ namespace Microsoft.ML
         public TextTransforms Text { get; }
 
         /// <summary>
-        /// The list of operations for data projection.
-        /// </summary>
-        public ProjectionTransforms Projection { get; }
-
-        /// <summary>
         /// The list of operations for selecting features based on some criteria.
         /// </summary>
         public FeatureSelectionTransforms FeatureSelection { get; }
@@ -48,7 +43,6 @@ namespace Microsoft.ML
             Categorical = new CategoricalTransforms(this);
             Conversion = new ConversionTransforms(this);
             Text = new TextTransforms(this);
-            Projection = new ProjectionTransforms(this);
             FeatureSelection = new FeatureSelectionTransforms(this);
         }
 
@@ -89,20 +83,6 @@ namespace Microsoft.ML
             private readonly IHostEnvironment _env;
 
             internal TextTransforms(TransformsCatalog owner)
-            {
-                _env = owner.GetEnvironment();
-            }
-        }
-
-        /// <summary>
-        /// The catalog of projection operations.
-        /// </summary>
-        public sealed class ProjectionTransforms : IInternalCatalog
-        {
-            IHostEnvironment IInternalCatalog.Environment => _env;
-            private readonly IHostEnvironment _env;
-
-            internal ProjectionTransforms(TransformsCatalog owner)
             {
                 _env = owner.GetEnvironment();
             }

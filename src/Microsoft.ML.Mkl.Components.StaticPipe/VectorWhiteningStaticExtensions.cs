@@ -61,18 +61,18 @@ namespace Microsoft.ML.Mkl.Components.StaticPipe
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
         /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
         public static Vector<float> PcaWhitening(this Vector<float> input,
-            float eps = VectorWhiteningEstimator.Defaults.Eps,
-            int maxRows = VectorWhiteningEstimator.Defaults.MaxRows,
-            int pcaNum = VectorWhiteningEstimator.Defaults.PcaNum)
-            => new OutPipelineColumn(input, WhiteningKind.Pca, eps, maxRows, pcaNum);
+            float eps = VectorWhiteningEstimator.Defaults.Epsilon,
+            int maxRows = VectorWhiteningEstimator.Defaults.MaximumNumberOfRows,
+            int pcaNum = VectorWhiteningEstimator.Defaults.Rank)
+            => new OutPipelineColumn(input, WhiteningKind.PrincipalComponentAnalysis, eps, maxRows, pcaNum);
 
         /// <include file='../Microsoft.ML.Mkl.Components/doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="input">The column to which the transform will be applied.</param>
         /// <param name="eps">Whitening constant, prevents division by zero.</param>
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
         public static Vector<float> ZcaWhitening(this Vector<float> input,
-            float eps = VectorWhiteningEstimator.Defaults.Eps,
-            int maxRows = VectorWhiteningEstimator.Defaults.MaxRows)
-            => new OutPipelineColumn(input, WhiteningKind.Zca, eps, maxRows, VectorWhiteningEstimator.Defaults.PcaNum);
+            float eps = VectorWhiteningEstimator.Defaults.Epsilon,
+            int maxRows = VectorWhiteningEstimator.Defaults.MaximumNumberOfRows)
+            => new OutPipelineColumn(input, WhiteningKind.ZeroPhaseComponentAnalysis, eps, maxRows, VectorWhiteningEstimator.Defaults.Rank);
     }
 }

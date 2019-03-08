@@ -16,8 +16,8 @@ namespace Microsoft.ML.StaticPipe
         {
             public readonly Vector<float> Input;
 
-            public OutPipelineColumn(Vector<float> input, LpNormalizingEstimatorBase.NormalizerKind normKind, bool subMean)
-                : base(new Reconciler(normKind, subMean), input)
+            public OutPipelineColumn(Vector<float> input, LpNormalizingEstimatorBase.NormFunction norm, bool ensureZeroMean)
+                : base(new Reconciler(norm, ensureZeroMean), input)
             {
                 Input = input;
             }
@@ -25,13 +25,13 @@ namespace Microsoft.ML.StaticPipe
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly LpNormalizingEstimatorBase.NormalizerKind _normKind;
-            private readonly bool _subMean;
+            private readonly LpNormalizingEstimatorBase.NormFunction _norm;
+            private readonly bool _ensureZeroMean;
 
-            public Reconciler(LpNormalizingEstimatorBase.NormalizerKind normKind, bool subMean)
+            public Reconciler(LpNormalizingEstimatorBase.NormFunction normKind, bool ensureZeroMean)
             {
-                _normKind = normKind;
-                _subMean = subMean;
+                _norm = normKind;
+                _ensureZeroMean = ensureZeroMean;
             }
 
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
@@ -46,7 +46,7 @@ namespace Microsoft.ML.StaticPipe
                 foreach (var outCol in toOutput)
                     pairs.Add((outputNames[outCol], inputNames[((OutPipelineColumn)outCol).Input]));
 
-                return new LpNormalizingEstimator(env, pairs.ToArray(), _normKind, _subMean);
+                return new LpNormalizingEstimator(env, pairs.ToArray(), _norm, _ensureZeroMean);
             }
         }
 
@@ -55,7 +55,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="normKind">Type of norm to use to normalize each sample.</param>
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
         public static Vector<float> LpNormalize(this Vector<float> input,
-            LpNormalizingEstimatorBase.NormalizerKind normKind = LpNormalizingEstimatorBase.Defaults.NormKind,
-            bool subMean = LpNormalizingEstimatorBase.Defaults.LpSubstractMean) => new OutPipelineColumn(input, normKind, subMean);
+            LpNormalizingEstimatorBase.NormFunction normKind = LpNormalizingEstimatorBase.Defaults.Norm,
+            bool subMean = LpNormalizingEstimatorBase.Defaults.LpEnsureZeroMean) => new OutPipelineColumn(input, normKind, subMean);
     }
 }

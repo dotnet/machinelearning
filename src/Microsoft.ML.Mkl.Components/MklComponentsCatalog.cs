@@ -128,9 +128,9 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="kind">Whitening kind (PCA/ZCA).</param>
-        /// <param name="eps">Whitening constant, prevents division by zero.</param>
-        /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
-        /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
+        /// <param name="epsilon">Whitening constant, prevents division by zero.</param>
+        /// <param name="maximumNumberOfRows">Maximum number of rows used to train the transform.</param>
+        /// <param name="rank">In case of PCA whitening, indicates the number of components to retain.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -138,12 +138,12 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, string outputColumnName, string inputColumnName = null,
+        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null,
             WhiteningKind kind = VectorWhiteningEstimator.Defaults.Kind,
-            float eps = VectorWhiteningEstimator.Defaults.Eps,
-            int maxRows = VectorWhiteningEstimator.Defaults.MaxRows,
-            int pcaNum = VectorWhiteningEstimator.Defaults.PcaNum)
-                => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, kind, eps, maxRows, pcaNum);
+            float epsilon = VectorWhiteningEstimator.Defaults.Epsilon,
+            int maximumNumberOfRows = VectorWhiteningEstimator.Defaults.MaximumNumberOfRows,
+            int rank = VectorWhiteningEstimator.Defaults.Rank)
+                => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, kind, epsilon, maximumNumberOfRows, rank);
 
         /// <summary>
         /// Takes columns filled with a vector of random variables with a known covariance matrix into a set of new variables whose
@@ -158,7 +158,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, params VectorWhiteningEstimator.ColumnOptions[] columns)
+        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog catalog, params VectorWhiteningEstimator.ColumnOptions[] columns)
             => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
     }

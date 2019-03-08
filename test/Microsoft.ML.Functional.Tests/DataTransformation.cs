@@ -141,7 +141,7 @@ namespace Microsoft.ML.Functional.Tests
                     {
                         UseCharExtractor = true,
                         UseWordExtractor = true,
-                        VectorNormalizer = TextFeaturizingEstimator.TextNormKind.L1
+                        VectorNormalizer = TextFeaturizingEstimator.NormFunction.L1
                     }, "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Compose the transformation.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
-                .Append(mlContext.Transforms.Normalize("Features", mode: NormalizingEstimator.NormalizerMode.MinMax));
+                .Append(mlContext.Transforms.Normalize("Features", mode: NormalizingEstimator.NormalizationMode.MinMax));
             
             // Transform the data.
             var transformedData = pipeline.Fit(data).Transform(data);

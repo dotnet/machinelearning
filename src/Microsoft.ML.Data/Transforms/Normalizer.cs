@@ -39,7 +39,7 @@ namespace Microsoft.ML.Transforms
             public const long MaxTrainingExamples = 1000000000;
         }
 
-        public enum NormalizerMode
+        public enum NormalizationMode
         {
             /// <summary>
             /// Linear rescale such that minimum and maximum values are mapped between -1 and 1.
@@ -82,19 +82,19 @@ namespace Microsoft.ML.Transforms
 
             internal abstract IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, DataViewType srcType, DataViewRowCursor cursor);
 
-            internal static ColumnOptionsBase Create(string outputColumnName, string inputColumnName, NormalizerMode mode)
+            internal static ColumnOptionsBase Create(string outputColumnName, string inputColumnName, NormalizationMode mode)
             {
                 switch (mode)
                 {
-                    case NormalizerMode.MinMax:
+                    case NormalizationMode.MinMax:
                         return new MinMaxColumnOptions(outputColumnName, inputColumnName);
-                    case NormalizerMode.MeanVariance:
+                    case NormalizationMode.MeanVariance:
                         return new MeanVarColumnOptions(outputColumnName, inputColumnName);
-                    case NormalizerMode.LogMeanVariance:
+                    case NormalizationMode.LogMeanVariance:
                         return new LogMeanVarColumnOptions(outputColumnName, inputColumnName);
-                    case NormalizerMode.Binning:
+                    case NormalizationMode.Binning:
                         return new BinningColumnOptions(outputColumnName, inputColumnName);
-                    case NormalizerMode.SupervisedBinning:
+                    case NormalizationMode.SupervisedBinning:
                         return new SupervisedBinningColumOptions(outputColumnName, inputColumnName);
                     default:
                         throw Contracts.ExceptParam(nameof(mode), "Unknown normalizer mode");
@@ -202,8 +202,8 @@ namespace Microsoft.ML.Transforms
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform.
         /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="mode">The <see cref="NormalizerMode"/> indicating how to the old values are mapped to the new values.</param>
-        internal NormalizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, NormalizerMode mode = NormalizerMode.MinMax)
+        /// <param name="mode">The <see cref="NormalizationMode"/> indicating how to the old values are mapped to the new values.</param>
+        internal NormalizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, NormalizationMode mode = NormalizationMode.MinMax)
             : this(env, mode, (outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
@@ -212,9 +212,9 @@ namespace Microsoft.ML.Transforms
         /// Initializes a new instance of <see cref="NormalizingEstimator"/>.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="mode">The <see cref="NormalizerMode"/> indicating how to the old values are mapped to the new values.</param>
+        /// <param name="mode">The <see cref="NormalizationMode"/> indicating how to the old values are mapped to the new values.</param>
         /// <param name="columns">An array of (outputColumnName, inputColumnName) tuples.</param>
-        internal NormalizingEstimator(IHostEnvironment env, NormalizerMode mode, params (string outputColumnName, string inputColumnName)[] columns)
+        internal NormalizingEstimator(IHostEnvironment env, NormalizationMode mode, params (string outputColumnName, string inputColumnName)[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(NormalizingEstimator));
