@@ -340,7 +340,7 @@ namespace Microsoft.ML
         /// <see langword="true" /> to decrease the <paramref name="learningRate"/> as iterations progress; otherwise, <see langword="false" />.
         /// Default is <see langword="false" />.
         /// </param>
-        /// <param name="l2RegularizerWeight">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <param name="numIterations">Number of passes through the training dataset.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -356,13 +356,13 @@ namespace Microsoft.ML
             IClassificationLoss lossFunction = null,
             float learningRate = AveragedLinearOptions.AveragedDefault.LearningRate,
             bool decreaseLearningRate = AveragedLinearOptions.AveragedDefault.DecreaseLearningRate,
-            float l2RegularizerWeight = AveragedLinearOptions.AveragedDefault.L2RegularizerWeight,
+            float l2Regularization = AveragedLinearOptions.AveragedDefault.L2Regularization,
             int numIterations = AveragedLinearOptions.AveragedDefault.NumIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new AveragedPerceptronTrainer(env, labelColumnName, featureColumnName, lossFunction ?? new LogLoss(), learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations);
+            return new AveragedPerceptronTrainer(env, labelColumnName, featureColumnName, lossFunction ?? new LogLoss(), learningRate, decreaseLearningRate, l2Regularization, numIterations);
         }
 
         /// <summary>
@@ -411,7 +411,7 @@ namespace Microsoft.ML
         /// <param name="lossFunction">The custom loss. Defaults to <see cref="SquaredLoss"/> if not provided.</param>
         /// <param name="learningRate">The learning Rate.</param>
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
-        /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
         public static OnlineGradientDescentTrainer OnlineGradientDescent(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
@@ -419,12 +419,12 @@ namespace Microsoft.ML
             IRegressionLoss lossFunction = null,
             float learningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.LearningRate,
             bool decreaseLearningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.DecreaseLearningRate,
-            float l2RegularizerWeight = AveragedLinearOptions.AveragedDefault.L2RegularizerWeight,
+            float l2Regularization = AveragedLinearOptions.AveragedDefault.L2Regularization,
             int numIterations = OnlineLinearOptions.OnlineDefault.NumIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new OnlineGradientDescentTrainer(env, labelColumnName, featureColumnName, learningRate, decreaseLearningRate, l2RegularizerWeight,
+            return new OnlineGradientDescentTrainer(env, labelColumnName, featureColumnName, learningRate, decreaseLearningRate, l2Regularization,
                 numIterations, lossFunction);
         }
 
