@@ -23348,7 +23348,7 @@
               "GloVeTwitter100D",
               "GloVeTwitter200D",
               "FastTextWikipedia300D",
-              "Sswe"
+              "SentimentSpecificWordEmbedding"
             ]
           },
           "Desc": "Pre-trained model used to create the vocabulary",
@@ -23358,7 +23358,7 @@
           "Required": false,
           "SortOrder": 1.0,
           "IsNullable": true,
-          "Default": "Sswe"
+          "Default": "SentimentSpecificWordEmbedding"
         },
         {
           "Name": "Data",
