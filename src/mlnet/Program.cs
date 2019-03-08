@@ -30,7 +30,7 @@ namespace Microsoft.ML.CLI
                  string outputBaseDir = string.Empty;
                  if (options.Name == null)
                  {
-                     
+
                      options.Name = "Sample" + Utils.GetTaskKind(options.MlTask).ToString();
                      outputBaseDir = Path.Combine(options.OutputPath.FullName, options.Name);
                  }
