@@ -136,7 +136,7 @@ namespace Microsoft.ML.LightGBM
         /// Gradient boosting decision tree.
         /// </summary>
         /// <remarks>
-        /// For details, please see <a href="https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting">here</a>.
+        /// For details, please see <a href="https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting">gradient tree boosting</a>.
         /// </remarks>
         public sealed class TreeBooster : BoosterParameter<TreeBooster.Options>
         {
