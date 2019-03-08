@@ -2466,7 +2466,7 @@ namespace Microsoft.ML.RunTests
             var options = new LegacySdcaBinaryTrainer.Options()
             {
                 NormalizeFeatures = NormalizeOption.Yes,
-                CheckFrequency = 42
+                ConvergenceCheckFrequency = 42
             };
 
             var inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
@@ -2481,7 +2481,7 @@ namespace Microsoft.ML.RunTests
 
             var expected =
                 @"{
-  ""CheckFrequency"": 42,
+  ""ConvergenceCheckFrequency"": 42,
   ""TrainingData"": ""$data"",
   ""NormalizeFeatures"": ""Yes""
 }";
@@ -2497,7 +2497,7 @@ namespace Microsoft.ML.RunTests
   ""LossFunction"": {
     ""Name"": ""HingeLoss""
   },
-  ""CheckFrequency"": 42,
+  ""ConvergenceCheckFrequency"": 42,
   ""TrainingData"": ""$data"",
   ""NormalizeFeatures"": ""Yes""
 }";
@@ -2516,7 +2516,7 @@ namespace Microsoft.ML.RunTests
       ""Margin"": 2.0
     }
   },
-  ""CheckFrequency"": 42,
+  ""ConvergenceCheckFrequency"": 42,
   ""TrainingData"": ""$data"",
   ""NormalizeFeatures"": ""Yes""
 }";

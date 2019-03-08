@@ -75,7 +75,7 @@ module SmokeTest1 =
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
-        let ml = MLContext(seed = new System.Nullable<int>(1), conc = 1)
+        let ml = MLContext(seed = new System.Nullable<int>(1))
         let data = ml.Data.LoadFromTextFile<SentimentData>(testDataPath, hasHeader = true, allowQuoting = true)
 
         let pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText") 
@@ -115,7 +115,7 @@ module SmokeTest2 =
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
         
-        let ml = MLContext(seed = new System.Nullable<int>(1), conc = 1)
+        let ml = MLContext(seed = new System.Nullable<int>(1))
         let data = ml.Data.LoadFromTextFile<SentimentData>(testDataPath, hasHeader = true, allowQuoting = true)
 
         let pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText") 
@@ -152,7 +152,7 @@ module SmokeTest3 =
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
-        let ml = MLContext(seed = new System.Nullable<int>(1), conc = 1)
+        let ml = MLContext(seed = new System.Nullable<int>(1))
         let data = ml.Data.LoadFromTextFile<SentimentData>(testDataPath, hasHeader = true, allowQuoting = true)
 
         let pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText") 

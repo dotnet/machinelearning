@@ -621,9 +621,29 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Early stopping rule. (Validation set (/valid) is required).
         /// </summary>
-        [Argument(ArgumentType.Multiple, HelpText = "Early stopping rule. (Validation set (/valid) is required.)", ShortName = "esr", NullName = "<Disable>")]
+        [BestFriend]
+        [Argument(ArgumentType.Multiple, HelpText = "Early stopping rule. (Validation set (/valid) is required.)", Name = "EarlyStoppingRule", ShortName = "esr", NullName = "<Disable>")]
         [TGUI(Label = "Early Stopping Rule", Description = "Early stopping rule. (Validation set (/valid) is required.)")]
-        public IEarlyStoppingCriterionFactory EarlyStoppingRule;
+        internal IEarlyStoppingCriterionFactory EarlyStoppingRuleFactory;
+
+        /// <summary>
+        /// The underlying state of <see cref="EarlyStoppingRuleFactory"/> and <see cref="EarlyStoppingRule"/>.
+        /// </summary>
+        private EarlyStoppingRuleBase _earlyStoppingRuleBase;
+
+        /// <summary>
+        /// Early stopping rule used to terminate training process once meeting a specified criterion. Possible choices are
+        /// <see cref="EarlyStoppingRuleBase"/>'s implementations such as <see cref="TolerantEarlyStoppingRule"/> and <see cref="GeneralityLossRule"/>.
+        /// </summary>
+        public EarlyStoppingRuleBase EarlyStoppingRule
+        {
+            get { return _earlyStoppingRuleBase;  }
+            set
+            {
+                _earlyStoppingRuleBase = value;
+                EarlyStoppingRuleFactory = _earlyStoppingRuleBase.BuildFactory();
+            }
+        }
 
         /// <summary>
         /// Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3).

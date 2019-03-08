@@ -49,7 +49,8 @@ namespace Microsoft.ML.Trainers.FastTree
             if (FastTreeTrainerOptions.EnablePruning && !HasValidSet)
                 throw ch.Except("Cannot perform pruning (pruning) without a validation set (valid).");
 
-            if (FastTreeTrainerOptions.EarlyStoppingRule != null && !HasValidSet)
+            bool doEarlyStop = FastTreeTrainerOptions.EarlyStoppingRuleFactory != null;
+            if (doEarlyStop && !HasValidSet)
                 throw ch.Except("Cannot perform early stopping without a validation set (valid).");
 
             if (FastTreeTrainerOptions.UseTolerantPruning && (!FastTreeTrainerOptions.EnablePruning || !HasValidSet))
@@ -113,9 +114,9 @@ namespace Microsoft.ML.Trainers.FastTree
                 return new BestStepRegressionGradientWrapper();
         }
 
-        private protected override bool ShouldStop(IChannel ch, ref IEarlyStoppingCriterion earlyStoppingRule, ref int bestIteration)
+        private protected override bool ShouldStop(IChannel ch, ref EarlyStoppingRuleBase earlyStoppingRule, ref int bestIteration)
         {
-            if (FastTreeTrainerOptions.EarlyStoppingRule == null)
+            if (FastTreeTrainerOptions.EarlyStoppingRuleFactory == null)
                 return false;
 
             ch.AssertValue(ValidTest);
@@ -128,12 +129,15 @@ namespace Microsoft.ML.Trainers.FastTree
             var trainingResult = TrainTest.ComputeTests().First();
             ch.Assert(trainingResult.FinalValue >= 0);
 
-            // Create early stopping rule.
+            // Create early stopping rule if it's null.
             if (earlyStoppingRule == null)
             {
-                earlyStoppingRule = FastTreeTrainerOptions.EarlyStoppingRule.CreateComponent(Host, lowerIsBetter);
-                ch.Assert(earlyStoppingRule != null);
+                if (FastTreeTrainerOptions.EarlyStoppingRuleFactory != null)
+                    earlyStoppingRule = FastTreeTrainerOptions.EarlyStoppingRuleFactory.CreateComponent(Host, lowerIsBetter);
             }
+
+            // Early stopping rule cannot be null!
+            ch.Assert(earlyStoppingRule != null);
 
             bool isBestCandidate;
             bool shouldStop = earlyStoppingRule.CheckScore((float)validationResult.FinalValue,

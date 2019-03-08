@@ -29,7 +29,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void GlobalFeatureImportanceWithPermutationFeatureImportance()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Get the dataset
             var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void GlobalFeatureImportanceForLinearModelThroughWeights()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Get the dataset.
             var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void GlobalFeatureImportanceForFastTreeThroughFeatureGain()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Get the dataset
             var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void GlobalFeatureImportanceForFastForestThroughFeatureGain()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Get the dataset
             var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void LocalFeatureImportanceForLinearModel()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Get the dataset
             var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void LocalFeatureImportanceForFastTreeModel()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Get the dataset
             var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void LocalFeatureImportanceForFastForestModel()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Get the dataset
             var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void LocalFeatureImportanceForGamModel()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Get the dataset
             var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);

@@ -63,14 +63,23 @@ namespace Microsoft.ML
         => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnNames, inputColumnNames, modelFile, gpuDeviceId, fallbackToCpu);
 
         /// <summary>
-        /// Creates a new instance of <see cref="DnnImageFeaturizerEstimator"/> which applies a pre-trained DNN model to featurize an image.
+        /// Creates a new instance of <see cref="DnnImageFeaturizerEstimator"/> which applies one of the pre-trained DNN models in
+        /// <see cref="DnnImageModelSelector"/>to featurize an image.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">The name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="modelFactory">An extension method on the <see cref="DnnImageModelSelector"/> that creates a chain of two
         /// <see cref="OnnxScoringEstimator"/> (one for preprocessing and one with a pretrained image DNN) with specific models
         /// included in a package together with that extension method.</param>
-        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="inputColumnName">Name of column to transform.
+        /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[DnnFeaturizeImage](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/DnnFeaturizeImage.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static DnnImageFeaturizerEstimator DnnFeaturizeImage(this TransformsCatalog catalog,
             string outputColumnName,
             Func<DnnImageFeaturizerInput, EstimatorChain<ColumnCopyingTransformer>> modelFactory,

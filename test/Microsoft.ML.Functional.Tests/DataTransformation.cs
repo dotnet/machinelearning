@@ -27,7 +27,7 @@ namespace Microsoft.ML.Functional.Tests
         void ExtensibilityAddAColumnAsAFunctionOfMultipleColumns()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Load the Iris dataset
             var data = mlContext.Data.LoadFromTextFile<Iris>(
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Functional.Tests
         void ExtensibilityAddingTwoColumns()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Load the Iris dataset
             var data = mlContext.Data.LoadFromTextFile<Iris>(
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Functional.Tests
         void ExtensibilityModifyTextFeaturization()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Functional.Tests
                     }, "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                    new SdcaBinaryTrainer.Options { NumThreads = 1 }));
+                    new SdcaBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Functional.Tests
         void ExtensibilityNormalizeColumns()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Load the Iris dataset.
             var data = mlContext.Data.LoadFromTextFile<Iris>(

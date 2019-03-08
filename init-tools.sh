@@ -6,15 +6,19 @@ __PACKAGES_DIR="$__scriptpath/packages"
 __TOOLRUNTIME_DIR="$__scriptpath/Tools"
 __DOTNET_PATH="$__TOOLRUNTIME_DIR/dotnetcli"
 __DOTNET_CMD="$__DOTNET_PATH/dotnet"
+__TARGET_FRAMEWORK="netcoreapp2.1"
 if [ -z "${__BUILDTOOLS_SOURCE:-}" ]; then __BUILDTOOLS_SOURCE=https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json; fi
 export __BUILDTOOLS_USE_CSPROJ=true
 __BUILD_TOOLS_PACKAGE_VERSION=$(cat "$__scriptpath/BuildToolsVersion.txt" | sed 's/\r$//') # remove CR if mounted repo on Windows drive
 
-if [[ $2 == *"Intrinsics"* ]]; then
-    DotNetCliFileName="DotnetCLIVersion.netcoreapp.latest.txt"
-else
-    DotNetCliFileName="DotnetCLIVersion.txt"
-fi
+DotNetCliFileName="DotnetCLIVersion.txt"
+
+for i do
+    if [[ "$i" == *"Intrinsics"* ]]; then
+        DotNetCliFileName="DotnetCLIVersion.netcoreapp.latest.txt"
+        __TARGET_FRAMEWORK="netcoreapp3.0"
+    fi
+done
 
 __DOTNET_TOOLS_VERSION=$(cat "$__scriptpath/$DotNetCliFileName" | sed 's/\r$//') # remove CR if mounted repo on Windows drive
 __BUILD_TOOLS_PATH="$__PACKAGES_DIR/microsoft.dotnet.buildtools/$__BUILD_TOOLS_PACKAGE_VERSION/lib"
@@ -180,7 +184,7 @@ echo "Making all .sh files executable under Tools."
 ls "$__scriptpath/Tools/"*.sh | xargs chmod +x
 ls "$__scriptpath/Tools/scripts/docker/"*.sh | xargs chmod +x
 
-"$__scriptpath/Tools/crossgen.sh" "$__scriptpath/Tools" $__PKG_RID
+"$__scriptpath/Tools/crossgen.sh" "$__scriptpath/Tools" $__PKG_RID $__TARGET_FRAMEWORK
 
 mkdir -p "$(dirname "$__BUILD_TOOLS_SEMAPHORE")" && touch "$__BUILD_TOOLS_SEMAPHORE"
 

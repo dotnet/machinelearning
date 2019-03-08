@@ -97,7 +97,7 @@ namespace Microsoft.ML
         /// that you don't want to save, you can use <see cref="DropColumns"/> to remove them from the schema.
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="columnsToDrop">The array of column names to drop.</param>
+        /// <param name="columnNames">The array of column names to drop.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -105,8 +105,8 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static ColumnSelectingEstimator DropColumns(this TransformsCatalog catalog, params string[] columnsToDrop)
-            => ColumnSelectingEstimator.DropColumns(CatalogUtils.GetEnvironment(catalog), columnsToDrop);
+        public static ColumnSelectingEstimator DropColumns(this TransformsCatalog catalog, params string[] columnNames)
+            => ColumnSelectingEstimator.DropColumns(CatalogUtils.GetEnvironment(catalog), columnNames);
 
         /// <summary>
         /// Select a list of columns to keep in a given <see cref="IDataView"/>.
@@ -121,7 +121,7 @@ namespace Microsoft.ML
         /// </format>
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="keepColumns">The array of column names to keep.</param>
+        /// <param name="columnNames">The array of column names to keep.</param>
         /// <param name="keepHidden">If <see langword="true"/> will keep hidden columns and <see langword="false"/> will remove hidden columns.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -131,10 +131,10 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static ColumnSelectingEstimator SelectColumns(this TransformsCatalog catalog,
-            string[] keepColumns,
+            string[] columnNames,
             bool keepHidden)
             => new ColumnSelectingEstimator(CatalogUtils.GetEnvironment(catalog),
-                keepColumns, null, keepHidden, ColumnSelectingEstimator.Defaults.IgnoreMissing);
+                columnNames, null, keepHidden, ColumnSelectingEstimator.Defaults.IgnoreMissing);
 
         /// <summary>
         /// Select a list of columns to keep in a given <see cref="IDataView"/>.
@@ -146,7 +146,7 @@ namespace Microsoft.ML
         /// ]]></format>
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="keepColumns">The array of column names to keep.</param>
+        /// <param name="columnNames">The array of column names to keep.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -155,6 +155,6 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static ColumnSelectingEstimator SelectColumns(this TransformsCatalog catalog,
-            params string[] keepColumns) => catalog.SelectColumns(keepColumns, false);
+            params string[] columnNames) => catalog.SelectColumns(columnNames, false);
     }
 }
