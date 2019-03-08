@@ -550,7 +550,7 @@ namespace Microsoft.ML.Data
             var t = schema[LabelIndex].Type as VectorType;
             if (t == null || !t.IsKnownSize || (t.ItemType != NumberDataViewType.Single && t.ItemType != NumberDataViewType.Double))
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "known-size vector of float or double", t.ToString());
-            labelType = new VectorType(t.ItemType, t.Size);
+            labelType = new VectorType((PrimitiveDataViewType)t.ItemType, t.Size);
             var slotNamesType = new VectorType(TextDataViewType.Instance, t.Size);
             var builder = new DataViewSchema.Annotations.Builder();
             builder.AddSlotNames(t.Size, CreateSlotNamesGetter(schema, LabelIndex, labelType.Size, "True"));
@@ -559,7 +559,7 @@ namespace Microsoft.ML.Data
             t = schema[ScoreIndex].Type as VectorType;
             if (t == null || !t.IsKnownSize || t.ItemType != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "known-size vector of float", t.ToString());
-            scoreType = new VectorType(t.ItemType, t.Size);
+            scoreType = new VectorType((PrimitiveDataViewType)t.ItemType, t.Size);
             builder = new DataViewSchema.Annotations.Builder();
             builder.AddSlotNames(t.Size, CreateSlotNamesGetter(schema, ScoreIndex, scoreType.Size, "Predicted"));
 

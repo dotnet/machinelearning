@@ -42,7 +42,7 @@ namespace Microsoft.ML.Internal.Utilities
             return result;
         }
 
-        private static readonly double _vScale = 2 * Math.Sqrt(2 / Math.E);
+        private static double _vScale = 2 * Math.Sqrt(2 / Math.E);
 
         /// <summary>
         /// Returns a number sampled from a zero-mean, unit variance Gaussian

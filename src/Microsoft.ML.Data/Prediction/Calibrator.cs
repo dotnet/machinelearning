@@ -472,7 +472,7 @@ namespace Microsoft.ML.Calibrators
             : base(env, RegistrationName, GetPredictor(env, ctx), GetCalibrator(env, ctx))
         {
             Host.Check(SubModel is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
-            _featureWeights = SubModel;
+            _featureWeights = (IPredictorWithFeatureWeights<float>)SubModel;
         }
 
         private static FeatureWeightsCalibratedModelParameters<TSubModel, TCalibrator> Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -1630,13 +1630,13 @@ namespace Microsoft.ML.Calibrators
 
             if (ctx.InRepository)
             {
-                ctx.SaveTextStream("Calibrator.txt", writer =>
+                ctx.SaveTextStream("Calibrator.txt", (Action<TextWriter>)(writer =>
                 {
                     writer.WriteLine("Platt calibrator");
                     writer.WriteLine("P(y=1|x) = 1/1+exp(A*x + B)");
-                    writer.WriteLine("A={0:R}", Slope);
+                    writer.WriteLine("A={0:R}", (object)Slope);
                     writer.WriteLine("B={0:R}", Offset);
-                });
+                }));
             }
         }
 

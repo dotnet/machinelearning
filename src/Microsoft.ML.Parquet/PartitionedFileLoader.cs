@@ -369,8 +369,8 @@ namespace Microsoft.ML.Data
 
             private readonly bool[] _active;
             private readonly bool[] _subActive; // Active columns of the sub-cursor.
-            private readonly Delegate[] _getters;
-            private readonly Delegate[] _subGetters; // Cached getters of the sub-cursor.
+            private Delegate[] _getters;
+            private Delegate[] _subGetters; // Cached getters of the sub-cursor.
 
             private readonly IEnumerable<DataViewSchema.Column> _columnsNeeded;
             private readonly IEnumerable<DataViewSchema.Column> _subActivecolumnsNeeded;

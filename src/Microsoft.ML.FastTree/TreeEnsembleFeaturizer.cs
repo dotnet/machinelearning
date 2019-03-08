@@ -697,7 +697,7 @@ namespace Microsoft.ML.Data
                             return;
                         }
                         converter(in src, ref temp);
-                        dst = temp - 1;
+                        dst = (Single)temp - 1;
                     };
             }
             else
@@ -713,7 +713,7 @@ namespace Microsoft.ML.Data
                             return;
                         }
                         converter(in src, ref temp);
-                        dst = permutation[(int)(temp - 1)];
+                        dst = (Single)permutation[(int)(temp - 1)];
                     };
             }
 
