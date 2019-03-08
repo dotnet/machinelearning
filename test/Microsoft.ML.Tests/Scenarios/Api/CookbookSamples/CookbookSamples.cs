@@ -470,7 +470,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf),
 
                     // NLP pipeline 4: word embeddings.
-                    Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVeTwitter25D)
+                    // PretrainedModelKind.Sswe is used here for performance of the test. In a real
+                    // scenario, it is best to use a different model for more accuracy.
+                    Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe)
                 ));
 
             // Let's train our pipeline, and then apply it to the same data.
@@ -482,7 +484,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var unigrams = transformedData.GetColumn(x => x.BagOfWords).Take(10).ToArray();
         }
 
-        [Fact(Skip = "This test is running for one minute")]
+        [Fact]
         public void TextFeaturization()
             => TextFeaturizationOn(GetDataPath("wikipedia-detox-250-line-data.tsv"));
 
