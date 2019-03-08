@@ -44,8 +44,11 @@ namespace Microsoft.ML.ImageAnalytics
     public sealed class ImagePixelExtractingTransformer : OneToOneTransformerBase
     {
         [BestFriend]
-        internal class Column : OneToOneColumn
+        internal class Options : TransformInputBase
         {
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public ImagePixelExtractingEstimator.ColumnOptions[] Columns;
+
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use alpha channel", ShortName = "alpha")]
             public bool? UseAlpha;
 
@@ -58,76 +61,173 @@ namespace Microsoft.ML.ImageAnalytics
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use blue channel", ShortName = "blue")]
             public bool? UseBlue;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Order of channels")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Order of colors.")]
             public ImagePixelExtractingEstimator.ColorsOrder? Order;
 
-            // REVIEW: Consider turning this into an enum that allows for pixel, line, or planar interleaving.
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to separate each channel or interleave in specified order")]
             public bool? Interleave;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to convert to floating point", ShortName = "conv")]
-            public bool? Convert;
+            public bool? AsFloat;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Offset (pre-scale)")]
-            public Single? Offset;
+            public float? Offset;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Scale factor")]
-            public Single? Scale;
-
-            internal static Column Parse(string str)
-            {
-                Contracts.AssertNonEmpty(str);
-
-                var res = new Column();
-                if (res.TryParse(str))
-                    return res;
-                return null;
-            }
-
-            internal bool TryUnparse(StringBuilder sb)
-            {
-                Contracts.AssertValue(sb);
-                if (UseAlpha != null || UseRed != null || UseGreen != null || UseBlue != null || Convert != null ||
-                    Offset != null || Scale != null || Interleave != null || Order != null)
-                {
-                    return false;
-                }
-                return TryUnparseCore(sb);
-            }
+            public float? Scale;
         }
 
-        [BestFriend]
-        internal class Options : TransformInputBase
+        /// <summary>
+        /// Immutable class holding the settings for the <see cref="ImagePixelExtractingTransformer"/> for one input output column pair.
+        /// </summary>
+        internal sealed class ColumnInfos
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
-            public Column[] Columns;
+            public readonly string Name;
+            public readonly string InputColumnName;
+            public readonly ImagePixelExtractingEstimator.ColorBits Colors;
+            public readonly ImagePixelExtractingEstimator.ColorsOrder Order;
+            public readonly float Offset;
+            public readonly float Scale;
+            public readonly bool Interleave;
+            public readonly bool AsFloat;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use alpha channel", ShortName = "alpha")]
-            public bool UseAlpha = false;
+            internal readonly byte Planes;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use red channel", ShortName = "red")]
-            public bool UseRed = true;
+            internal ColumnInfos(ImagePixelExtractingEstimator.ColumnOptions item, Options options)
+            {
+                Contracts.CheckValue(item, nameof(item));
+                Contracts.CheckValue(options, nameof(options));
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use green channel", ShortName = "green")]
-            public bool UseGreen = true;
+                Name = item.Name;
+                InputColumnName = item.Source ?? item.Name;
+                if (options.UseAlpha ?? item.UseAlpha) { Colors |= ImagePixelExtractingEstimator.ColorBits.Alpha; Planes++; }
+                if (options.UseRed ?? item.UseRed) { Colors |= ImagePixelExtractingEstimator.ColorBits.Red; Planes++; }
+                if (options.UseGreen ?? item.UseGreen) { Colors |= ImagePixelExtractingEstimator.ColorBits.Green; Planes++; }
+                if (options.UseBlue ?? item.UseBlue) { Colors |= ImagePixelExtractingEstimator.ColorBits.Blue; Planes++; }
+                Contracts.CheckUserArg(Planes > 0, nameof(item.UseRed), "Need to use at least one color plane");
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use blue channel", ShortName = "blue")]
-            public bool UseBlue = true;
+                Order = options.Order ?? item.Order;
+                Interleave = options.Interleave ?? item.Interleave;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Order of colors.")]
-            public ImagePixelExtractingEstimator.ColorsOrder Order = ImagePixelExtractingEstimator.Defaults.Order;
+                AsFloat = options.AsFloat ?? item.AsFloat;
+                if (!AsFloat)
+                {
+                    Offset = ImagePixelExtractingEstimator.Defaults.Offset;
+                    Scale = ImagePixelExtractingEstimator.Defaults.Scale;
+                }
+                else
+                {
+                    Offset = options.Offset ?? item.Offset;
+                    Scale = options.Scale ?? item.Scale ;
+                    Contracts.CheckUserArg(FloatUtils.IsFinite(Offset), nameof(item.Offset));
+                    Contracts.CheckUserArg(FloatUtils.IsFiniteNonZero(Scale), nameof(item.Scale));
+                }
+            }
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to separate each channel or interleave in specified order")]
-            public bool Interleave = ImagePixelExtractingEstimator.Defaults.Interleave;
+            public ColumnInfos(ImagePixelExtractingEstimator.ColumnOptions column)
+            {
+                Contracts.CheckNonWhiteSpace(column.Name, nameof(column.Name));
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to convert to floating point", ShortName = "conv")]
-            public bool Convert = ImagePixelExtractingEstimator.Defaults.Convert;
+                Name = column.Name;
+                InputColumnName = column.Source ?? column.Name;
+                Colors = column.Colors;
+                Order = column.Order;
+                if ((Colors & ImagePixelExtractingEstimator.ColorBits.Alpha) == ImagePixelExtractingEstimator.ColorBits.Alpha) Planes++;
+                if ((Colors & ImagePixelExtractingEstimator.ColorBits.Red) == ImagePixelExtractingEstimator.ColorBits.Red) Planes++;
+                if ((Colors & ImagePixelExtractingEstimator.ColorBits.Green) == ImagePixelExtractingEstimator.ColorBits.Green) Planes++;
+                if ((Colors & ImagePixelExtractingEstimator.ColorBits.Blue) == ImagePixelExtractingEstimator.ColorBits.Blue) Planes++;
+                Contracts.CheckParam(Planes > 0, nameof(Colors), "Need to use at least one color plane.");
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Offset (pre-scale)")]
-            public Single? Offset;
+                Interleave = column.Interleave;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Scale factor")]
-            public Single? Scale;
+                AsFloat = column.AsFloat;
+                if (!AsFloat)
+                {
+                    Offset = ImagePixelExtractingEstimator.Defaults.Offset;
+                    Scale = ImagePixelExtractingEstimator.Defaults.Scale;
+                }
+                else
+                {
+                    Offset = column.Offset;
+                    Scale = column.Scale;
+                }
+                Contracts.CheckParam(FloatUtils.IsFinite(Offset), nameof(column.Offset));
+                Contracts.CheckParam(FloatUtils.IsFiniteNonZero(Scale), nameof(column.Scale));
+            }
+
+            internal ColumnInfos(string name, string inputColumnName, ModelLoadContext ctx)
+            {
+                Contracts.AssertNonEmpty(name);
+                Contracts.AssertNonEmpty(inputColumnName);
+                Contracts.AssertValue(ctx);
+
+                Name = name;
+                InputColumnName = inputColumnName;
+
+                // *** Binary format ***
+                // byte: colors
+                // byte: order
+                // byte: convert
+                // Float: offset
+                // Float: scale
+                // byte: separateChannels
+                Colors = (ImagePixelExtractingEstimator.ColorBits)ctx.Reader.ReadByte();
+                Contracts.CheckDecode(Colors != 0);
+                Contracts.CheckDecode((Colors & ImagePixelExtractingEstimator.ColorBits.All) == Colors);
+                if (ctx.Header.ModelVerWritten <= ImagePixelExtractingTransformer.BeforeOrderVersion)
+                    Order = ImagePixelExtractingEstimator.ColorsOrder.ARGB;
+                else
+                {
+                    Order = (ImagePixelExtractingEstimator.ColorsOrder)ctx.Reader.ReadByte();
+                    Contracts.CheckDecode(Order != 0);
+                }
+
+                // Count the planes.
+                int planes = (int)Colors;
+                planes = (planes & 0x05) + ((planes >> 1) & 0x05);
+                planes = (planes & 0x03) + ((planes >> 2) & 0x03);
+                Planes = (byte)planes;
+                Contracts.Assert(0 < Planes & Planes <= 4);
+
+                AsFloat = ctx.Reader.ReadBoolByte();
+                Offset = ctx.Reader.ReadFloat();
+                Contracts.CheckDecode(FloatUtils.IsFinite(Offset));
+                Scale = ctx.Reader.ReadFloat();
+                Contracts.CheckDecode(FloatUtils.IsFiniteNonZero(Scale));
+                Contracts.CheckDecode(AsFloat || Offset == 0 && Scale == 1);
+                Interleave = ctx.Reader.ReadBoolByte();
+            }
+
+            internal void Save(ModelSaveContext ctx)
+            {
+                Contracts.AssertValue(ctx);
+#if DEBUG
+                // This code is used in deserialization - assert that it matches what we computed above.
+                int planes = (int)Colors;
+                planes = (planes & 0x05) + ((planes >> 1) & 0x05);
+                planes = (planes & 0x03) + ((planes >> 2) & 0x03);
+                Contracts.Assert(planes == Planes);
+#endif
+
+                // *** Binary format ***
+                // byte: colors
+                // byte: order
+                // byte: convert
+                // Float: offset
+                // Float: scale
+                // byte: separateChannels
+                Contracts.Assert(Colors != 0);
+                Contracts.Assert((Colors & ImagePixelExtractingEstimator.ColorBits.All) == Colors);
+                ctx.Writer.Write((byte)Colors);
+                ctx.Writer.Write((byte)Order);
+                ctx.Writer.WriteBoolByte(AsFloat);
+                Contracts.Assert(FloatUtils.IsFinite(Offset));
+                ctx.Writer.Write(Offset);
+                Contracts.Assert(FloatUtils.IsFiniteNonZero(Scale));
+                Contracts.Assert(AsFloat || Offset == 0 && Scale == 1);
+                ctx.Writer.Write(Scale);
+                ctx.Writer.WriteBoolByte(Interleave);
+            }
         }
 
         internal const string Summary = "Extract color plane(s) from an image. Options include scaling, offset and conversion to floating point.";
@@ -150,38 +250,12 @@ namespace Microsoft.ML.ImageAnalytics
 
         private const string RegistrationName = "ImagePixelExtractor";
 
-        private readonly ImagePixelExtractingEstimator.ColumnOptions[] _columns;
+        private readonly ColumnInfos[] _columns;
 
         /// <summary>
         /// The columns passed to this <see cref="ITransformer"/>.
         /// </summary>
-        public IReadOnlyCollection<ImagePixelExtractingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
-
-        ///<summary>
-        /// Extract pixels values from image and produce array of values.
-        ///</summary>
-        /// <param name="env">The host environment.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="colors">What colors to extract.</param>
-        /// <param name="order">In which order to extract colors from pixel.</param>
-        /// <param name="interleave">Whether to interleave the pixels colors, meaning keep them in the <paramref name="order"/> order, or leave them in the plannar form:
-        /// all the values for one color for all pixels, then all the values for another color and so on.</param>
-        /// <param name="offset">Offset pixel's color value by this amount. Applied to color value first.</param>
-        /// <param name="scale">Scale pixel's color value by this amount. Applied to color value second.</param>
-        /// <param name="asFloat">Output array as float array. If false, output as byte array and ignores <paramref name="offset"/> and <paramref name="scale"/>.</param>
-        internal ImagePixelExtractingTransformer(IHostEnvironment env,
-            string outputColumnName,
-            string inputColumnName = null,
-            ImagePixelExtractingEstimator.ColorBits colors = ImagePixelExtractingEstimator.Defaults.Colors,
-            ImagePixelExtractingEstimator.ColorsOrder order = ImagePixelExtractingEstimator.Defaults.Order,
-            bool interleave = ImagePixelExtractingEstimator.Defaults.Interleave,
-            float offset = ImagePixelExtractingEstimator.Defaults.Offset,
-            float scale = ImagePixelExtractingEstimator.Defaults.Scale,
-            bool asFloat = ImagePixelExtractingEstimator.Defaults.Convert)
-            : this(env, new ImagePixelExtractingEstimator.ColumnOptions(outputColumnName, inputColumnName, colors, order, interleave, offset, scale, asFloat))
-        {
-        }
+        internal IReadOnlyCollection<ColumnInfos> Columns => _columns.AsReadOnly();
 
         ///<summary>
         /// Extract pixels values from image and produce array of values.
@@ -191,32 +265,29 @@ namespace Microsoft.ML.ImageAnalytics
         internal ImagePixelExtractingTransformer(IHostEnvironment env, params ImagePixelExtractingEstimator.ColumnOptions[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
-            _columns = columns.ToArray();
+            _columns = columns.Select(column => new ColumnInfos(column)).ToArray();
+        }
+
+        private ImagePixelExtractingTransformer(IHostEnvironment env, Options options)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(options.Columns))
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(options, nameof(options));
+            env.CheckValue(options.Columns, nameof(options.Columns));
+            _columns = options.Columns.Select(column => new ColumnInfos(column, options)).ToArray();
         }
 
         private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ImagePixelExtractingEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
+            return columns.Select(x => (x.Name, x.Source)).ToArray();
         }
 
         // Factory method for SignatureDataTransform.
         internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
-
-            env.CheckValue(options.Columns, nameof(options.Columns));
-
-            var columns = new ImagePixelExtractingEstimator.ColumnOptions[options.Columns.Length];
-            for (int i = 0; i < columns.Length; i++)
-            {
-                var item = options.Columns[i];
-                columns[i] = new ImagePixelExtractingEstimator.ColumnOptions(item, options);
-            }
-
-            var transformer = new ImagePixelExtractingTransformer(env, columns);
+            var transformer = new ImagePixelExtractingTransformer(env, options);
             return new RowToRowMapperTransform(env, input, transformer.MakeRowMapper(input.Schema), transformer.MakeRowMapper);
         }
 
@@ -240,9 +311,9 @@ namespace Microsoft.ML.ImageAnalytics
             // for each added column
             //   ColumnOptions
 
-            _columns = new ImagePixelExtractingEstimator.ColumnOptions[ColumnPairs.Length];
+            _columns = new ColumnInfos[ColumnPairs.Length];
             for (int i = 0; i < _columns.Length; i++)
-                _columns[i] = new ImagePixelExtractingEstimator.ColumnOptions(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, ctx);
+                _columns[i] = new ColumnInfos(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, ctx);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -307,7 +378,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
 
                 if (_parent._columns[iinfo].AsFloat)
-                    return GetGetterCore<Single>(input, iinfo, out disposer);
+                    return GetGetterCore<float>(input, iinfo, out disposer);
                 return GetGetterCore<byte>(input, iinfo, out disposer);
             }
 
@@ -497,10 +568,69 @@ namespace Microsoft.ML.ImageAnalytics
             public const ColorsOrder Order = ColorsOrder.ARGB;
             public const ColorBits Colors = ColorBits.Rgb;
             public const bool Interleave = false;
-            public const bool Convert = true;
+            public const bool AsFloat = true;
             public const float Scale = 1f;
             public const float Offset = 0f;
         }
+
+        /// <summary>
+        /// Describes how the transformer handles one image pixel extraction column pair.
+        /// </summary>
+        public sealed class ColumnOptions : OneToOneColumn
+        {
+            /// <summary> What colors to extract.</summary>
+            [Argument(ArgumentType.AtMostOnce, Hide = true)]
+            public ColorBits Colors = Defaults.Colors;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Order of channels")]
+            public ColorsOrder Order = Defaults.Order;
+
+            // REVIEW: Consider turning this into an enum that allows for pixel, line, or planar interleaving.
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to separate each channel or interleave in specified order")]
+            public bool Interleave = Defaults.Interleave;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to convert to floating point", ShortName = "conv")]
+            public bool AsFloat = Defaults.AsFloat;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Offset (pre-scale)")]
+            public float Offset = Defaults.Offset;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Scale factor")]
+            public float Scale = Defaults.Scale;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use alpha channel", ShortName = "alpha")]
+            [BestFriend]
+            internal bool UseAlpha;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use red channel", ShortName = "red")]
+            [BestFriend]
+            internal bool UseRed;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use green channel", ShortName = "green")]
+            [BestFriend]
+            internal bool UseGreen;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use blue channel", ShortName = "blue")]
+            [BestFriend]
+            internal bool UseBlue;
+
+            internal static ColumnOptions Parse(string str)
+            {
+                Contracts.AssertNonEmpty(str);
+
+                var res = new ColumnOptions();
+                if (res.TryParse(str))
+                    return res;
+                return null;
+            }
+
+            internal bool TryUnparse(StringBuilder sb)
+            {
+                Contracts.AssertValue(sb);
+                return TryUnparseCore(sb);
+            }
+        }
+
         /// <summary>
         /// Which color channels are extracted. Note that these values are serialized so should not be modified.
         /// </summary>
@@ -559,224 +689,6 @@ namespace Microsoft.ML.ImageAnalytics
                         break;
                 }
             }
-        }
-
-        /// <summary>
-        /// Describes how the transformer handles one image pixel extraction column pair.
-        /// </summary>
-        public sealed class ColumnOptions
-        {
-            /// <summary>Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
-            public readonly string Name;
-
-            /// <summary> Name of column to transform.</summary>
-            public readonly string InputColumnName;
-
-            /// <summary> What colors to extract.</summary>
-            public readonly ColorBits Colors;
-
-            /// <summary> In which color order extract values from pixel.</summary>
-            public readonly ColorsOrder Order;
-
-            /// <summary>Offset pixel's color value by this amount. Applied to color value first.</summary>
-            public readonly float Offset;
-
-            /// <summary>Scale pixel's color value by this amount. Applied to color value second.</summary>
-            public readonly float Scale;
-
-            /// <summary>
-            /// Whether to interleave the pixels colors, meaning keep them in the <see cref="Order"/> order, or leave them in the plannar form:
-            /// all the values for one color for all pixels, then all the values for another color and so on.
-            /// </summary>
-            public readonly bool Interleave;
-
-            /// <summary> Output array as float array. If false, output as byte array and ignores <see cref="Offset"/> and <see cref="Scale"/> .</summary>
-            public readonly bool AsFloat;
-
-            internal readonly byte Planes;
-
-            internal ColumnOptions(ImagePixelExtractingTransformer.Column item, ImagePixelExtractingTransformer.Options options)
-            {
-                Contracts.CheckValue(item, nameof(item));
-                Contracts.CheckValue(options, nameof(options));
-
-                Name = item.Name;
-                InputColumnName = item.Source ?? item.Name;
-                if (item.UseAlpha ?? options.UseAlpha) { Colors |= ColorBits.Alpha; Planes++; }
-                if (item.UseRed ?? options.UseRed) { Colors |= ColorBits.Red; Planes++; }
-                if (item.UseGreen ?? options.UseGreen) { Colors |= ColorBits.Green; Planes++; }
-                if (item.UseBlue ?? options.UseBlue) { Colors |= ColorBits.Blue; Planes++; }
-                Contracts.CheckUserArg(Planes > 0, nameof(item.UseRed), "Need to use at least one color plane");
-
-                Order = item.Order ?? options.Order;
-                Interleave = item.Interleave ?? options.Interleave;
-
-                AsFloat = item.Convert ?? options.Convert;
-                if (!AsFloat)
-                {
-                    Offset = Defaults.Offset;
-                    Scale = Defaults.Scale;
-                }
-                else
-                {
-                    Offset = item.Offset ?? options.Offset ?? Defaults.Offset;
-                    Scale = item.Scale ?? options.Scale ?? Defaults.Scale;
-                    Contracts.CheckUserArg(FloatUtils.IsFinite(Offset), nameof(item.Offset));
-                    Contracts.CheckUserArg(FloatUtils.IsFiniteNonZero(Scale), nameof(item.Scale));
-                }
-            }
-
-            /// <summary>
-            /// Describes how the transformer handles one input-output column pair.
-            /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-            /// <param name="colors">What colors to extract.</param>
-            /// <param name="order">In which order to extract colors from pixel.</param>
-            /// <param name="interleave">Whether to interleave the pixels, meaning keep them in the <paramref name="order"/> order, or leave them in the plannar form:
-            /// all the values for one color for all pixels, then all the values for another color and so on.</param>
-            /// <param name="offset">Offset color pixel value by this amount. Applied to color value first.</param>
-            /// <param name="scale">Scale color pixel value by this amount. Applied to color value second.</param>
-            /// <param name="asFloat">Output array as float array. If false, output as byte array and ignores <paramref name="offset"/> and <paramref name="scale"/>.</param>
-            public ColumnOptions(string name,
-                string inputColumnName = null,
-                ColorBits colors = Defaults.Colors,
-                ColorsOrder order = Defaults.Order,
-                bool interleave = Defaults.Interleave,
-                float offset = Defaults.Offset,
-                float scale = Defaults.Scale,
-                bool asFloat = Defaults.Convert)
-            {
-                Contracts.CheckNonWhiteSpace(name, nameof(name));
-
-                Name = name;
-                InputColumnName = inputColumnName ?? name;
-                Colors = colors;
-                Order = order;
-                if ((Colors & ColorBits.Alpha) == ColorBits.Alpha) Planes++;
-                if ((Colors & ColorBits.Red) == ColorBits.Red) Planes++;
-                if ((Colors & ColorBits.Green) == ColorBits.Green) Planes++;
-                if ((Colors & ColorBits.Blue) == ColorBits.Blue) Planes++;
-                Contracts.CheckParam(Planes > 0, nameof(colors), "Need to use at least one color plane.");
-
-                Interleave = interleave;
-
-                AsFloat = asFloat;
-                if (!AsFloat)
-                {
-                    Offset = Defaults.Offset;
-                    Scale = Defaults.Scale;
-                }
-                else
-                {
-                    Offset = offset;
-                    Scale = scale;
-                }
-                Contracts.CheckParam(FloatUtils.IsFinite(Offset), nameof(offset));
-                Contracts.CheckParam(FloatUtils.IsFiniteNonZero(Scale), nameof(scale));
-            }
-
-            internal ColumnOptions(string name, string inputColumnName, ModelLoadContext ctx)
-            {
-                Contracts.AssertNonEmpty(name);
-                Contracts.AssertNonEmpty(inputColumnName);
-                Contracts.AssertValue(ctx);
-
-                Name = name;
-                InputColumnName = inputColumnName;
-
-                // *** Binary format ***
-                // byte: colors
-                // byte: order
-                // byte: convert
-                // Float: offset
-                // Float: scale
-                // byte: separateChannels
-                Colors = (ImagePixelExtractingEstimator.ColorBits)ctx.Reader.ReadByte();
-                Contracts.CheckDecode(Colors != 0);
-                Contracts.CheckDecode((Colors & ImagePixelExtractingEstimator.ColorBits.All) == Colors);
-                if (ctx.Header.ModelVerWritten <= ImagePixelExtractingTransformer.BeforeOrderVersion)
-                    Order = ColorsOrder.ARGB;
-                else
-                {
-                    Order = (ImagePixelExtractingEstimator.ColorsOrder)ctx.Reader.ReadByte();
-                    Contracts.CheckDecode(Order != 0);
-                }
-
-                // Count the planes.
-                int planes = (int)Colors;
-                planes = (planes & 0x05) + ((planes >> 1) & 0x05);
-                planes = (planes & 0x03) + ((planes >> 2) & 0x03);
-                Planes = (byte)planes;
-                Contracts.Assert(0 < Planes & Planes <= 4);
-
-                AsFloat = ctx.Reader.ReadBoolByte();
-                Offset = ctx.Reader.ReadFloat();
-                Contracts.CheckDecode(FloatUtils.IsFinite(Offset));
-                Scale = ctx.Reader.ReadFloat();
-                Contracts.CheckDecode(FloatUtils.IsFiniteNonZero(Scale));
-                Contracts.CheckDecode(AsFloat || Offset == 0 && Scale == 1);
-                Interleave = ctx.Reader.ReadBoolByte();
-            }
-
-            internal void Save(ModelSaveContext ctx)
-            {
-                Contracts.AssertValue(ctx);
-#if DEBUG
-                // This code is used in deserialization - assert that it matches what we computed above.
-                int planes = (int)Colors;
-                planes = (planes & 0x05) + ((planes >> 1) & 0x05);
-                planes = (planes & 0x03) + ((planes >> 2) & 0x03);
-                Contracts.Assert(planes == Planes);
-#endif
-
-                // *** Binary format ***
-                // byte: colors
-                // byte: order
-                // byte: convert
-                // Float: offset
-                // Float: scale
-                // byte: separateChannels
-                Contracts.Assert(Colors != 0);
-                Contracts.Assert((Colors & ImagePixelExtractingEstimator.ColorBits.All) == Colors);
-                ctx.Writer.Write((byte)Colors);
-                ctx.Writer.Write((byte)Order);
-                ctx.Writer.WriteBoolByte(AsFloat);
-                Contracts.Assert(FloatUtils.IsFinite(Offset));
-                ctx.Writer.Write(Offset);
-                Contracts.Assert(FloatUtils.IsFiniteNonZero(Scale));
-                Contracts.Assert(AsFloat || Offset == 0 && Scale == 1);
-                ctx.Writer.Write(Scale);
-                ctx.Writer.WriteBoolByte(Interleave);
-            }
-        }
-
-        ///<summary>
-        /// Extract pixels values from image and produce array of values.
-        ///</summary>
-        /// <param name="env">The host environment.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>. Null means <paramref name="inputColumnName"/> is replaced.</param>
-        /// <param name="inputColumnName">Name of the input column.</param>
-        /// <param name="colors">What colors to extract.</param>
-        /// <param name="order">In which order to extract colors from pixel.</param>
-        /// <param name="interleave">Whether to interleave the pixels, meaning keep them in the <paramref name="order"/> order, or leave them in the plannar form:
-        /// all the values for one color for all pixels, then all the values for another color and so on.</param>
-        /// <param name="offset">Offset color pixel value by this amount. Applied to color value first.</param>
-        /// <param name="scale">Scale color pixel value by this amount. Applied to color value second.</param>
-        /// <param name="asFloat">Output array as float array. If false, output as byte array.</param>
-        [BestFriend]
-        internal ImagePixelExtractingEstimator(IHostEnvironment env,
-            string outputColumnName,
-            string inputColumnName = null,
-            ColorBits colors = Defaults.Colors,
-            ColorsOrder order = Defaults.Order,
-            bool interleave = Defaults.Interleave,
-            float offset = Defaults.Offset,
-            float scale = Defaults.Scale,
-            bool asFloat = Defaults.Convert)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)),
-                  new ImagePixelExtractingTransformer(env, outputColumnName, inputColumnName, colors, order, interleave, offset, scale, asFloat))
-        {
         }
 
         ///<summary>
