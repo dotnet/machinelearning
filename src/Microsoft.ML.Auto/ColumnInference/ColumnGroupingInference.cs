@@ -83,7 +83,9 @@ namespace Microsoft.ML.Auto
 
         private static int GetPurposeGroupId(int columnIndex, ColumnPurpose purpose)
         {
-            if (purpose == ColumnPurpose.CategoricalFeature || purpose == ColumnPurpose.TextFeature)
+            if (purpose == ColumnPurpose.CategoricalFeature || 
+                purpose == ColumnPurpose.TextFeature ||
+                purpose == ColumnPurpose.Ignore)
                 return columnIndex;
             return 0;
         }
