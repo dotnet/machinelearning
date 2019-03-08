@@ -62,7 +62,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             pipe = pipe.Append(ML.BinaryClassification.Trainers.LogisticRegression(new LogisticRegressionBinaryTrainer.Options { ShowTrainingStatistics = true }));
             var transformerChain = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>>;
             var linearModel = transformerChain.LastTransformer.Model.SubModel as LinearBinaryModelParameters;
-            var stats = linearModel.Statistics as ModelStatistics;
+            var stats = linearModel.Statistics as ModelStatisticsBase;
 
             Assert.NotNull(stats);
 
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
             var trainer = ML.MulticlassClassification.Trainers.LogisticRegression(new MulticlassLogisticRegression.Options
             {
-                ShowTrainingStats = true
+                ShowTrainingStatistics = true
             });
             var pipeWithTrainer = pipe.Append(trainer);
 

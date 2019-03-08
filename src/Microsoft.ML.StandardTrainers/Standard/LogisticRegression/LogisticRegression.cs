@@ -250,7 +250,7 @@ namespace Microsoft.ML.Trainers
 
             // Compute the standard error of coefficients.
             long hessianDimension = (long)numParams * (numParams + 1) / 2;
-            if (hessianDimension > int.MaxValue || LbfgsTrainerOptions.StdComputer == null)
+            if (hessianDimension > int.MaxValue || LbfgsTrainerOptions.ComputeStandardDeviation == null)
             {
                 ch.Warning("The number of parameters is too large. Cannot hold the variance-covariance matrix in memory. " +
                     "Skipping computation of standard errors and z-statistics of coefficients. Consider choosing a larger L1 regularizer" +
