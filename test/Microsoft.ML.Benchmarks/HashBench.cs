@@ -27,16 +27,26 @@ namespace Microsoft.ML.Benchmarks
 
             private readonly Delegate _getter;
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                if (col != 0)
+                if (column.Index != 0)
                     throw new Exception();
                 return true;
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="column"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                if (col != 0)
+                if (column.Index != 0)
                     throw new Exception();
                 if (_getter is ValueGetter<TValue> typedGetter)
                     return typedGetter;
@@ -77,11 +87,11 @@ namespace Microsoft.ML.Benchmarks
             var xf = new HashingTransformer(_env, new[] { info });
             var mapper = ((ITransformer)xf).GetRowToRowMapper(_inRow.Schema);
             var column = mapper.OutputSchema["Bar"];
-            var outRow = mapper.GetRow(_inRow, c => c == column.Index);
+            var outRow = mapper.GetRow(_inRow, column);
             if (type is VectorType)
-                _vecGetter = outRow.GetGetter<VBuffer<uint>>(column.Index);
+                _vecGetter = outRow.GetGetter<VBuffer<uint>>(column);
             else
-                _getter = outRow.GetGetter<uint>(column.Index);
+                _getter = outRow.GetGetter<uint>(column);
         }
 
         /// <summary>

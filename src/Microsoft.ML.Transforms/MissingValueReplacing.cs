@@ -634,7 +634,7 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             private Delegate ComposeGetterOne<T>(DataViewRow input, int iinfo)
             {
-                var getSrc = input.GetGetter<T>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<T>(input.Schema[ColMapNewToOld[iinfo]]);
                 var src = default(T);
                 var isNA = (InPredicate<T>)_isNAs[iinfo];
                 Host.Assert(_parent._repValues[iinfo] is T);
@@ -660,7 +660,7 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             private Delegate ComposeGetterVec<T>(DataViewRow input, int iinfo)
             {
-                var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<VBuffer<T>>(input.Schema[ColMapNewToOld[iinfo]]);
                 var isNA = (InPredicate<T>)_isNAs[iinfo];
                 var isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(_infos[iinfo].TypeSrc.GetItemType());
 

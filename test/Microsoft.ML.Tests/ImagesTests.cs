@@ -110,13 +110,11 @@ namespace Microsoft.ML.Tests
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", 100, 100, "ImageReal", ImageResizingEstimator.ResizingKind.IsoPad).Transform(images);
 
-            cropped.Schema.TryGetColumnIndex("ImagePath", out int pathColumn);
-            cropped.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = cropped.GetRowCursorForAllColumns())
             {
-                var pathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(pathColumn);
+                var pathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cropped.Schema["ImagePath"]);
                 ReadOnlyMemory<char> path = default;
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropped.Schema["ImageCropped"]);
                 Bitmap bitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -163,7 +161,7 @@ namespace Microsoft.ML.Tests
             grey.Schema.TryGetColumnIndex("ImageGrey", out int greyColumn);
             using (var cursor = grey.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(greyColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(grey.Schema["ImageGrey"]);
                 Bitmap bitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -213,15 +211,12 @@ namespace Microsoft.ML.Tests
             backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-
-            backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
-            backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
                 Bitmap restoredBitmap = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
                 Bitmap croppedBitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -273,15 +268,12 @@ namespace Microsoft.ML.Tests
             backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-
-            backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
-            backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
                 Bitmap restoredBitmap = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
                 Bitmap croppedBitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -333,15 +325,12 @@ namespace Microsoft.ML.Tests
             backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-
-            backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
-            backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
                 Bitmap restoredBitmap = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
                 Bitmap croppedBitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -395,15 +384,12 @@ namespace Microsoft.ML.Tests
             backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-
-            backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
-            backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
                 Bitmap restoredBitmap = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
                 Bitmap croppedBitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -455,15 +441,12 @@ namespace Microsoft.ML.Tests
             backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-
-            backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
-            backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
                 Bitmap restoredBitmap = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
                 Bitmap croppedBitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -516,15 +499,12 @@ namespace Microsoft.ML.Tests
             backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-
-            backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
-            backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
                 Bitmap restoredBitmap = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
                 Bitmap croppedBitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -576,15 +556,12 @@ namespace Microsoft.ML.Tests
             backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-
-            backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
-            backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
                 Bitmap restoredBitmap = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
                 Bitmap croppedBitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -637,15 +614,12 @@ namespace Microsoft.ML.Tests
             backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-
-            backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
-            backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
                 Bitmap restoredBitmap = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
                 Bitmap croppedBitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -696,15 +670,12 @@ namespace Microsoft.ML.Tests
             backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-
-            backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
-            backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
                 Bitmap restoredBitmap = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
                 Bitmap croppedBitmap = default;
                 while (cursor.MoveNext())
                 {

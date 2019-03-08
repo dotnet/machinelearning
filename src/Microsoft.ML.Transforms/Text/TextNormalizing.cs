@@ -303,7 +303,7 @@ namespace Microsoft.ML.Transforms.Text
 
             private ValueGetter<ReadOnlyMemory<char>> MakeGetterOne(DataViewRow input, int iinfo)
             {
-                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[ColMapNewToOld[iinfo]]);
                 Host.AssertValue(getSrc);
                 var src = default(ReadOnlyMemory<char>);
                 var buffer = new StringBuilder();
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Transforms.Text
 
             private ValueGetter<VBuffer<ReadOnlyMemory<char>>> MakeGetterVec(DataViewRow input, int iinfo)
             {
-                var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(input.Schema[ColMapNewToOld[iinfo]]);
                 Host.AssertValue(getSrc);
                 var src = default(VBuffer<ReadOnlyMemory<char>>);
                 var buffer = new StringBuilder();

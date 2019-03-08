@@ -215,10 +215,10 @@ namespace Microsoft.ML.RunTests
                         var getters = new ValueGetter<VBuffer<float>>[cols.Length];
                         for (int i = 0; i < cols.Length; i++)
                         {
-                            int col;
-                            if (!Check(c.Schema.TryGetColumnIndex(cols[i], out col), "{0} not found!", cols[i]))
+                            var col = c.Schema.GetColumnOrNull(cols[i]);
+                            if (!Check(col.HasValue, "{0} not found!", cols[i]))
                                 return;
-                            getters[i] = c.GetGetter<VBuffer<float>>(col);
+                            getters[i] = c.GetGetter<VBuffer<float>>(col.Value);
                         }
 
                         Func<float, float, bool> fn = (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y);
@@ -571,17 +571,15 @@ namespace Microsoft.ML.RunTests
                     // slots in F13 as they were in column F23. We do this by checking that for every slot, F23 is >= F13.
                     using (var c = pipe.GetRowCursorForAllColumns())
                     {
-                        int col1;
-                        bool tmp1 = c.Schema.TryGetColumnIndex("F13", out col1);
-                        if (!Check(tmp1, "Column F13 not found!"))
+                        var col1 = c.Schema.GetColumnOrNull("F13");
+                        if (!Check(col1.HasValue, "Column F13 not found!"))
                             return;
-                        int col2;
-                        bool tmp2 = c.Schema.TryGetColumnIndex("F23", out col2);
-                        if (!Check(tmp2, "Column F23 not found!"))
+                        var col2 = c.Schema.GetColumnOrNull("F23");
+                        if (!Check(col2.HasValue, "Column F23 not found!"))
                             return;
 
-                        var get1 = c.GetGetter<VBuffer<float>>(col1);
-                        var get2 = c.GetGetter<VBuffer<float>>(col2);
+                        var get1 = c.GetGetter<VBuffer<float>>(col1.Value);
+                        var get2 = c.GetGetter<VBuffer<float>>(col2.Value);
                         VBuffer<float> bag1 = default;
                         VBuffer<float> bag2 = default;
                         while (c.MoveNext())
@@ -615,17 +613,15 @@ namespace Microsoft.ML.RunTests
                     // Verify that F2 = 2 * F1
                     using (var c = pipe.GetRowCursorForAllColumns())
                     {
-                        int col1;
-                        bool tmp1 = c.Schema.TryGetColumnIndex("F1", out col1);
-                        if (!Check(tmp1, "Column F1 not found!"))
+                        var col1 = c.Schema.GetColumnOrNull("F1");
+                        if (!Check(col1.HasValue, "Column F1 not found!"))
                             return;
-                        int col2;
-                        bool tmp2 = c.Schema.TryGetColumnIndex("F2", out col2);
-                        if (!Check(tmp2, "Column F2 not found!"))
+                        var col2 = c.Schema.GetColumnOrNull("F2");
+                        if (!Check(col2.HasValue, "Column F2 not found!"))
                             return;
 
-                        var get1 = c.GetGetter<VBuffer<float>>(col1);
-                        var get2 = c.GetGetter<VBuffer<float>>(col2);
+                        var get1 = c.GetGetter<VBuffer<float>>(col1.Value);
+                        var get2 = c.GetGetter<VBuffer<float>>(col2.Value);
                         VBuffer<float> bag1 = default;
                         VBuffer<float> bag2 = default;
                         while (c.MoveNext())
@@ -771,14 +767,15 @@ namespace Microsoft.ML.RunTests
                     {
                         var b1 = default(VBuffer<float>);
                         var b2 = default(VBuffer<float>);
-                        int col1, col2;
-                        if (!c.Schema.TryGetColumnIndex("WB1", out col1) || !c.Schema.TryGetColumnIndex("WB2", out col2))
+                        var col1 = c.Schema.GetColumnOrNull("WB1");
+                        var col2 = c.Schema.GetColumnOrNull("WB2");
+                        if (!col1.HasValue || !col2.HasValue)
                         {
                             Fail("Did not find expected columns");
                             return;
                         }
-                        var get1 = c.GetGetter<VBuffer<float>>(col1);
-                        var get2 = c.GetGetter<VBuffer<float>>(col2);
+                        var get1 = c.GetGetter<VBuffer<float>>(col1.Value);
+                        var get2 = c.GetGetter<VBuffer<float>>(col2.Value);
                         while (c.MoveNext())
                         {
                             get1(ref b1);
@@ -917,11 +914,10 @@ namespace Microsoft.ML.RunTests
 
                     using (var c = pipe.GetRowCursorForAllColumns())
                     {
-                        int col;
-                        bool res = c.Schema.TryGetColumnIndex("T", out col);
-                        if (!Check(res, "Column T not found!"))
+                        var col = c.Schema.GetColumnOrNull("T");
+                        if (!Check(col.HasValue, "Column T not found!"))
                             return;
-                        var getter = c.GetGetter<VBuffer<ReadOnlyMemory<char>>>(col);
+                        var getter = c.GetGetter<VBuffer<ReadOnlyMemory<char>>>(col.Value);
                         var buffer = default(VBuffer<ReadOnlyMemory<char>>);
                         int index = 0;
                         while (c.MoveNext())
@@ -1104,7 +1100,7 @@ namespace Microsoft.ML.RunTests
             var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnOptions("F1", "F1", 5, 42)).Transform(srcView);
             using (var cursor = hashTransform.GetRowCursorForAllColumns())
             {
-                var resultGetter = cursor.GetGetter<uint>(1);
+                var resultGetter = cursor.GetGetter<uint>(cursor.Schema[1]);
                 uint resultRow = 0;
                 foreach (var r in results)
                 {
@@ -1135,7 +1131,7 @@ namespace Microsoft.ML.RunTests
             var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnOptions("F1V", "F1V", 5, 42)).Transform(srcView);
             using (var cursor = hashTransform.GetRowCursorForAllColumns())
             {
-                var resultGetter = cursor.GetGetter<VBuffer<uint>>(1);
+                var resultGetter = cursor.GetGetter<VBuffer<uint>>(cursor.Schema[1]);
                 VBuffer<uint> resultRow = new VBuffer<uint>();
                 foreach (var r in results)
                 {
@@ -1195,9 +1191,9 @@ namespace Microsoft.ML.RunTests
 
             using (DataViewRowCursor cursor = view.GetRowCursorForAllColumns())
             {
-                var del = cursor.GetGetter<float>(0);
-                var del2 = cursor.GetGetter<VBuffer<int>>(1);
-                var del3 = cursor.GetGetter<bool>(2);
+                var del = cursor.GetGetter<float>(cursor.Schema[0]);
+                var del2 = cursor.GetGetter<VBuffer<int>>(cursor.Schema[1]);
+                var del3 = cursor.GetGetter<bool>(cursor.Schema[2]);
                 float value = 0;
                 VBuffer<int> value2 = default(VBuffer<int>);
                 bool value3 = default(bool);
@@ -1327,7 +1323,7 @@ namespace Microsoft.ML.RunTests
 
             using (var cursor = transformedData.GetRowCursorForAllColumns())
             {
-                var resultGetter = cursor.GetGetter<VBuffer<float>>(1);
+                var resultGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema[1]);
                 VBuffer<float> resultFirstRow = new VBuffer<float>();
                 VBuffer<float> resultSecondRow = new VBuffer<float>();
                 VBuffer<float> resultThirdRow = new VBuffer<float>();

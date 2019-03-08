@@ -95,9 +95,9 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValue(output);
             Contracts.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
-            Contracts.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
+            Contracts.Assert(output.IsColumnActive(output.Schema[Bindings.ScoreColumnIndex]));
 
-            ValueGetter<VBuffer<float>> mapperScoreGetter = output.GetGetter<VBuffer<float>>(Bindings.ScoreColumnIndex);
+            ValueGetter<VBuffer<float>> mapperScoreGetter = output.GetGetter<VBuffer<float>>(output.Schema[Bindings.ScoreColumnIndex]);
 
             long cachedPosition = -1;
             VBuffer<float> score = default(VBuffer<float>);

@@ -825,8 +825,8 @@ namespace Microsoft.ML.RunTests
             Func<bool>[] comps = new Func<bool>[colLim];
             for (int col = 0; col < colLim; col++)
             {
-                var f1 = curs1.IsColumnActive(col);
-                var f2 = curs2.IsColumnActive(col);
+                var f1 = curs1.IsColumnActive(curs1.Schema[col]);
+                var f2 = curs2.IsColumnActive(curs2.Schema[col]);
 
                 if (f1 && f2)
                 {
@@ -909,7 +909,7 @@ namespace Microsoft.ML.RunTests
                 for (int col = 0; col < colLim; col++)
                 {
                     // curs1 should have all columns active (for simplicity of the code here).
-                    Contracts.Assert(curs1.IsColumnActive(col));
+                    Contracts.Assert(curs1.IsColumnActive(curs1.Schema[col]));
                     cursors[col] = view2.GetRowCursorForAllColumns();
                 }
 
@@ -1112,8 +1112,8 @@ namespace Microsoft.ML.RunTests
 
         protected Func<bool> GetComparerOne<T>(DataViewRow r1, DataViewRow r2, int col, Func<T, T, bool> fn)
         {
-            var g1 = r1.GetGetter<T>(col);
-            var g2 = r2.GetGetter<T>(col);
+            var g1 = r1.GetGetter<T>(r1.Schema[col]);
+            var g2 = r2.GetGetter<T>(r2.Schema[col]);
             T v1 = default(T);
             T v2 = default(T);
             return
@@ -1129,8 +1129,8 @@ namespace Microsoft.ML.RunTests
 
         protected Func<bool> GetComparerVec<T>(DataViewRow r1, DataViewRow r2, int col, int size, Func<T, T, bool> fn)
         {
-            var g1 = r1.GetGetter<VBuffer<T>>(col);
-            var g2 = r2.GetGetter<VBuffer<T>>(col);
+            var g1 = r1.GetGetter<VBuffer<T>>(r1.Schema[col]);
+            var g2 = r2.GetGetter<VBuffer<T>>(r2.Schema[col]);
             var v1 = default(VBuffer<T>);
             var v2 = default(VBuffer<T>);
             return

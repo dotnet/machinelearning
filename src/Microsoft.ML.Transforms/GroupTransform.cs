@@ -400,7 +400,7 @@ namespace Microsoft.ML.Transforms
                     T oldValue = default(T);
                     T newValue = default(T);
                     bool first = true;
-                    ValueGetter<T> getter = row.GetGetter<T>(col);
+                    ValueGetter<T> getter = row.GetGetter<T>(row.Schema[col]);
                     return
                         () =>
                         {
@@ -467,7 +467,7 @@ namespace Microsoft.ML.Transforms
                     public ListAggregator(DataViewRow row, int col)
                     {
                         Contracts.AssertValue(row);
-                        _srcGetter = row.GetGetter<TValue>(col);
+                        _srcGetter = row.GetGetter<TValue>(row.Schema[col]);
                         _getter = (ValueGetter<VBuffer<TValue>>)Getter;
                     }
 
@@ -560,10 +560,14 @@ namespace Microsoft.ML.Transforms
                 return _trailingCursor.GetIdGetter();
             }
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                _parent._groupBinding.CheckColumnInRange(col);
-                return _active[col];
+                Ch.CheckParam(column.Index < _active.Length, nameof(column));
+                _parent._groupBinding.CheckColumnInRange(column.Index);
+                return _active[column.Index];
             }
 
             protected override bool MoveNextCore()
@@ -634,17 +638,27 @@ namespace Microsoft.ML.Transforms
                 base.Dispose(disposing);
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                _parent._groupBinding.CheckColumnInRange(col);
-                if (!_active[col])
-                    throw Ch.ExceptParam(nameof(col), "Column #{0} is not active", col);
+                _parent._groupBinding.CheckColumnInRange(column.Index);
+                if (!_active[column.Index])
+                    throw Ch.ExceptParam(nameof(column), "Column #{0} is not active", column);
 
-                if (col < _groupCount)
-                    return _trailingCursor.GetGetter<TValue>(_parent._groupBinding.GroupColumnIndexes[col]);
+                if (column.Index < _groupCount)
+                {
+                    var groupIndex = _parent._groupBinding.GroupColumnIndexes[column.Index];
+                    return _trailingCursor.GetGetter<TValue>(_parent._groupBinding.OutputSchema[groupIndex]);
+                }
 
-                Ch.AssertValue(_aggregators[col - _groupCount]);
-                return _aggregators[col - _groupCount].GetGetter<TValue>(Ch);
+                Ch.AssertValue(_aggregators[column.Index - _groupCount]);
+                return _aggregators[column.Index - _groupCount].GetGetter<TValue>(Ch);
             }
         }
     }

@@ -295,9 +295,10 @@ namespace Microsoft.ML.Transforms
                 int srcValueCount = srcType.GetValueCount();
 
                 VectorType typeNames = null;
-                int metaKeyValuesCol = 0;
-                if (inputMetadata.Schema.TryGetColumnIndex(AnnotationUtils.Kinds.KeyValues, out metaKeyValuesCol))
-                    typeNames = inputMetadata.Schema[metaKeyValuesCol].Type as VectorType;
+
+                var keyValuesColumn = inputMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues);
+                if (keyValuesColumn.HasValue)
+                    typeNames = keyValuesColumn.Value.Type as VectorType;
                 if (typeNames == null || !typeNames.IsKnownSize || !(typeNames.ItemType is TextDataViewType) ||
                     typeNames.Size != srcType.GetItemType().GetKeyCountAsInt32(Host))
                 {
@@ -308,7 +309,7 @@ namespace Microsoft.ML.Transforms
                 {
                     if (typeNames != null)
                     {
-                        var getter = inputMetadata.GetGetter<VBuffer<ReadOnlyMemory<char>>>(metaKeyValuesCol);
+                        var getter = inputMetadata.GetGetter<VBuffer<ReadOnlyMemory<char>>>(keyValuesColumn.Value);
                         var slotNamesType = new VectorType(TextDataViewType.Instance, _types[iinfo]);
                         builder.AddSlotNames(slotNamesType.Size, getter);
                     }

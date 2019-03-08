@@ -306,7 +306,7 @@ namespace Microsoft.ML.Transforms
                 if (autoConvert)
                     inputGetter = RowCursorUtils.GetGetterAs<T>(bldr.ItemType, row, col);
                 else
-                    inputGetter = row.GetGetter<T>(col);
+                    inputGetter = row.GetGetter<T>(row.Schema[col]);
 
                 return new ImplOne<T>(inputGetter, count, bldrT);
             }
@@ -318,7 +318,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(bldr is Builder<T>);
                 var bldrT = (Builder<T>)bldr;
 
-                var inputGetter = row.GetGetter<VBuffer<T>>(col);
+                var inputGetter = row.GetGetter<VBuffer<T>>(row.Schema[col]);
                 return new ImplVec<T>(inputGetter, count, bldrT);
             }
 
@@ -905,9 +905,9 @@ namespace Microsoft.ML.Transforms
                         var info = _infos[_iinfo];
                         T src = default(T);
                         Contracts.Assert(!(info.TypeSrc is VectorType));
-                        input.Schema.TryGetColumnIndex(info.InputColumnName, out int colIndex);
-                        _host.Assert(input.IsColumnActive(colIndex));
-                        var getSrc = input.GetGetter<T>(colIndex);
+                        var inputColumn = input.Schema[info.InputColumnName];
+                        _host.Assert(input.IsColumnActive(inputColumn));
+                        var getSrc = input.GetGetter<T>(inputColumn);
                         ValueGetter<uint> retVal =
                             (ref uint dst) =>
                             {
@@ -926,9 +926,9 @@ namespace Microsoft.ML.Transforms
                         ValueMapper<T, uint> map = TypedMap.GetKeyMapper();
                         var info = _infos[_iinfo];
                         // First test whether default maps to default. If so this is sparsity preserving.
-                        input.Schema.TryGetColumnIndex(info.InputColumnName, out int colIndex);
-                        _host.Assert(input.IsColumnActive(colIndex));
-                        var getSrc = input.GetGetter<VBuffer<T>>(colIndex);
+                        var inputColumn = input.Schema[info.InputColumnName];
+                        _host.Assert(input.IsColumnActive(inputColumn));
+                        var getSrc = input.GetGetter<VBuffer<T>>(inputColumn);
                         VBuffer<T> src = default(VBuffer<T>);
                         ValueGetter<VBuffer<uint>> retVal;
                         // REVIEW: Consider whether possible or reasonable to not use a builder here.

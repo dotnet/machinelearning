@@ -605,13 +605,23 @@ namespace Microsoft.ML.Transforms
 
             public override DataViewSchema Schema => _mapper.OutputSchema;
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                int index = _mapper.GetInputIndex(col);
-                return Input.GetGetter<TValue>(index);
+                int index = _mapper.GetInputIndex(column.Index);
+                return Input.GetGetter<TValue>(Input.Schema[index]);
             }
 
-            public override bool IsColumnActive(int col) => true;
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column) => true;
         }
 
         private sealed class SelectColumnsDataTransform : IDataTransform, IRowToRowMapper, ITransformTemplate
@@ -686,10 +696,8 @@ namespace Microsoft.ML.Transforms
                 return _mapper.InputSchema.Where(col => col.Index < active.Length && active[col.Index]);
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
-            {
-                return new RowImpl(input, _mapper);
-            }
+            DataViewRow IRowToRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
+                => new RowImpl(input, _mapper);
 
             IDataTransform ITransformTemplate.ApplyToData(IHostEnvironment env, IDataView newSource)
                 => new SelectColumnsDataTransform(env, _transform, new Mapper(_transform, newSource.Schema), newSource);
@@ -710,13 +718,23 @@ namespace Microsoft.ML.Transforms
 
             public override DataViewSchema Schema => _mapper.OutputSchema;
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                int index = _mapper.GetInputIndex(col);
-                return _inputCursor.GetGetter<TValue>(index);
+                int index = _mapper.GetInputIndex(column.Index);
+                return _inputCursor.GetGetter<TValue>(_inputCursor.Schema[index]);
             }
 
-            public override bool IsColumnActive(int col) => _active[col];
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column) => _active[column.Index];
         }
     }
 }

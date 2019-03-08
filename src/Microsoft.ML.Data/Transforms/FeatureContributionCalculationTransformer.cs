@@ -257,7 +257,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(_parent._predictor);
 
-                var featureGetter = input.GetGetter<TSrc>(colSrc);
+                var featureGetter = input.GetGetter<TSrc>(input.Schema[colSrc]);
 
                 var map = _parent._predictor.GetFeatureContributionMapper<TSrc, VBuffer<float>>(_parent.Top, _parent.Bottom, _parent.Normalize);
                 var features = default(TSrc);

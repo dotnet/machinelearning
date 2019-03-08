@@ -224,7 +224,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(Predictor);
 
-                var featureGetter = input.GetGetter<TSrc>(colSrc);
+                var featureGetter = input.GetGetter<TSrc>(input.Schema[colSrc]);
                 var map = Predictor.GetFeatureContributionMapper<TSrc, VBuffer<float>>(_topContributionsCount, _bottomContributionsCount, _normalize);
 
                 var features = default(TSrc);
@@ -263,7 +263,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(Predictor);
 
-                var featureGetter = input.GetGetter<TSrc>(colSrc);
+                var featureGetter = input.GetGetter<TSrc>(input.Schema[colSrc]);
 
                 // REVIEW: Scorer can call Sparsification\Norm routine.
 
@@ -360,33 +360,28 @@ namespace Microsoft.ML.Data
                 return Enumerable.Repeat(FeatureColumn, 1);
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 Contracts.AssertValue(input);
-                Contracts.AssertValue(active);
+                Contracts.AssertValue(activeColumns);
                 var totalColumnsCount = 1 + _outputGenericSchema.Count;
                 var getters = new Delegate[totalColumnsCount];
 
-                if (active(totalColumnsCount - 1))
+                if (activeColumns.Select(c => c.Index).Contains(_outputGenericSchema.Count))
                 {
                     getters[totalColumnsCount - 1] = _parent.Stringify
                         ? _parent.GetTextContributionGetter(input, FeatureColumn.Index, _slotNames)
                         : _parent.GetContributionGetter(input, FeatureColumn.Index);
                 }
 
-                var genericRow = _genericRowMapper.GetRow(input, GetGenericPredicate(active));
+                var genericRow = _genericRowMapper.GetRow(input, activeColumns);
                 for (var i = 0; i < _outputGenericSchema.Count; i++)
                 {
-                    if (genericRow.IsColumnActive(i))
+                    if (genericRow.IsColumnActive(genericRow.Schema[i]))
                         getters[i] = RowCursorUtils.GetGetterAsDelegate(genericRow, i);
                 }
 
                 return new SimpleRow(OutputSchema, genericRow, getters);
-            }
-
-            public Func<int, bool> GetGenericPredicate(Func<int, bool> predicate)
-            {
-                return col => predicate(col);
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()

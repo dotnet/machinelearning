@@ -370,7 +370,7 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(0 < ex.Scale && ex.Scale < float.PositiveInfinity);
                 Host.Assert(_srcTypes[iinfo] is VectorType);
 
-                var getSrc = input.GetGetter<VBuffer<float>>(_srcCols[iinfo]);
+                var getSrc = input.GetGetter<VBuffer<float>>(input.Schema[_srcCols[iinfo]]);
                 var src = default(VBuffer<float>);
                 ValueGetter<VBuffer<float>> del;
                 float scale = ex.Scale;

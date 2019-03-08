@@ -96,7 +96,7 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
+        DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
         {
             var latentSum = new AlignedArray(_pred.FieldCount * _pred.FieldCount * _pred.LatentDimAligned, 16);
             var featureBuffer = new VBuffer<float>();
@@ -105,14 +105,18 @@ namespace Microsoft.ML.Trainers
             var featureValueBuffer = new float[_pred.FeatureCount];
             var inputGetters = new ValueGetter<VBuffer<float>>[_pred.FieldCount];
 
-            if (predicate(0) || predicate(1))
+            var activeIndices = activeColumns.Select(c => c.Index).ToArray();
+            var active0 = activeIndices.Contains(0);
+            var active1 = activeIndices.Contains(1);
+
+            if (active0 || active1)
             {
                 for (int f = 0; f < _pred.FieldCount; f++)
-                    inputGetters[f] = input.GetGetter<VBuffer<float>>(_inputColumnIndexes[f]);
+                    inputGetters[f] = input.GetGetter<VBuffer<float>>(input.Schema[_inputColumnIndexes[f]]);
             }
 
             var getters = new Delegate[2];
-            if (predicate(0))
+            if (active0)
             {
                 ValueGetter<float> responseGetter = (ref float value) =>
                 {
@@ -120,7 +124,7 @@ namespace Microsoft.ML.Trainers
                 };
                 getters[0] = responseGetter;
             }
-            if (predicate(1))
+            if (active1)
             {
                 ValueGetter<float> probGetter = (ref float value) =>
                 {

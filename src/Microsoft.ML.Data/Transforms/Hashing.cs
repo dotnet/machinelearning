@@ -432,7 +432,7 @@ namespace Microsoft.ML.Transforms
         {
             Host.Assert(srcType.ItemType.RawType == typeof(T));
 
-            var getSrc = input.GetGetter<VBuffer<T>>(srcCol);
+            var getSrc = input.GetGetter<VBuffer<T>>(input.Schema[srcCol]);
             var ex = _columns[iinfo];
             var mask = (1U << ex.HashBits) - 1;
             var seed = ex.Seed;
@@ -638,7 +638,7 @@ namespace Microsoft.ML.Transforms
             Contracts.Assert(0 <= srcCol && srcCol < input.Schema.Count);
             Contracts.Assert(input.Schema[srcCol].Type.RawType == typeof(T));
 
-            var srcGetter = input.GetGetter<T>(srcCol);
+            var srcGetter = input.GetGetter<T>(input.Schema[srcCol]);
             T src = default;
             THash hasher = default;
             return (ref uint dst) =>
@@ -991,7 +991,7 @@ namespace Microsoft.ML.Transforms
                 public ImplOne(DataViewRow row, HashingEstimator.ColumnOptions ex, int invertHashMaxCount, Delegate dstGetter)
                     : base(row, ex, invertHashMaxCount)
                 {
-                    _srcGetter = Row.GetGetter<T>(_srcCol);
+                    _srcGetter = Row.GetGetter<T>(Row.Schema[_srcCol]);
                     _dstGetter = dstGetter as ValueGetter<uint>;
                     Contracts.AssertValue(_dstGetter);
                 }
@@ -1025,7 +1025,7 @@ namespace Microsoft.ML.Transforms
                 public ImplVec(DataViewRow row, HashingEstimator.ColumnOptions ex, int invertHashMaxCount, Delegate dstGetter)
                     : base(row, ex, invertHashMaxCount)
                 {
-                    _srcGetter = Row.GetGetter<VBuffer<T>>(_srcCol);
+                    _srcGetter = Row.GetGetter<VBuffer<T>>(Row.Schema[_srcCol]);
                     _dstGetter = dstGetter as ValueGetter<VBuffer<uint>>;
                     Contracts.AssertValue(_dstGetter);
                 }
@@ -1059,7 +1059,7 @@ namespace Microsoft.ML.Transforms
                 public ImplVecOrdered(DataViewRow row, HashingEstimator.ColumnOptions ex, int invertHashMaxCount, Delegate dstGetter)
                     : base(row, ex, invertHashMaxCount)
                 {
-                    _srcGetter = Row.GetGetter<VBuffer<T>>(_srcCol);
+                    _srcGetter = Row.GetGetter<VBuffer<T>>(Row.Schema[_srcCol]);
                     _dstGetter = dstGetter as ValueGetter<VBuffer<uint>>;
                     Contracts.AssertValue(_dstGetter);
                 }

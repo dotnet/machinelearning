@@ -617,7 +617,7 @@ namespace Microsoft.ML.Data
                 var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
                 _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
-                _scoreGetter = row.GetGetter<Single>(score.Index);
+                _scoreGetter = row.GetGetter<Single>(score);
                 Host.AssertValue(_labelGetter);
                 Host.AssertValue(_scoreGetter);
 
@@ -625,13 +625,13 @@ namespace Microsoft.ML.Data
                 Host.Assert(prob == null || prob.Count == 1);
 
                 if (prob != null)
-                    _probGetter = row.GetGetter<Single>(prob[0].Index);
+                    _probGetter = row.GetGetter<Single>(prob[0]);
                 else
                     _probGetter = (ref Single value) => value = Single.NaN;
 
                 Host.Assert((schema.Weight != null) == Weighted);
                 if (Weighted)
-                    _weightGetter = row.GetGetter<Single>(schema.Weight.Value.Index);
+                    _weightGetter = row.GetGetter<Single>(schema.Weight.Value);
             }
 
             public override void ProcessRow()
@@ -999,12 +999,12 @@ namespace Microsoft.ML.Data
                 RowCursorUtils.GetLabelGetter(input, LabelIndex) : nanGetter;
             ValueGetter<Single> probGetter;
             if (_probIndex >= 0 && activeCols(LogLossCol))
-                probGetter = input.GetGetter<Single>(_probIndex);
+                probGetter = input.GetGetter<Single>(input.Schema[_probIndex]);
             else
                 probGetter = nanGetter;
             ValueGetter<Single> scoreGetter;
             if (activeCols(AssignedCol) && ScoreIndex >= 0)
-                scoreGetter = input.GetGetter<Single>(ScoreIndex);
+                scoreGetter = input.GetGetter<Single>(input.Schema[ScoreIndex]);
             else
                 scoreGetter = nanGetter;
 

@@ -286,7 +286,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
 
                 var src = default(Bitmap);
-                var getSrc = input.GetGetter<Bitmap>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<Bitmap>(input.Schema[ColMapNewToOld[iinfo]]);
                 var info = _parent._columns[iinfo];
 
                 disposer =

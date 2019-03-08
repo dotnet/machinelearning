@@ -630,35 +630,30 @@ namespace Microsoft.ML.Calibrators
                 return _predictor.GetInputColumnRoles();
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
-                Func<int, bool> predictorPredicate = col => false;
-                for (int i = 0; i < OutputSchema.Count; i++)
-                {
-                    if (predicate(i))
-                    {
-                        predictorPredicate = col => true;
-                        break;
-                    }
-                }
-                var predictorRow = _predictor.GetRow(input, predictorPredicate);
+                var predictorRow = _predictor.GetRow(input, activeColumns.Count() > 0 ? OutputSchema : Enumerable.Empty<DataViewSchema.Column>());
                 var getters = new Delegate[OutputSchema.Count];
-                for (int i = 0; i < OutputSchema.Count - 1; i++)
+
+                bool hasProbabilityColumn = false;
+                foreach (var column in activeColumns)
                 {
-                    var type = predictorRow.Schema[i].Type;
-                    if (!predicate(i))
+                    if (column.Index == OutputSchema.Count - 1)
+                    {
+                        hasProbabilityColumn = true;
                         continue;
-                    getters[i] = Utils.MarshalInvoke(GetPredictorGetter<int>, type.RawType, predictorRow, i);
+                    }
+                    var type = predictorRow.Schema[column.Index].Type;
+                    getters[column.Index] = Utils.MarshalInvoke(GetPredictorGetter<int>, type.RawType, predictorRow, column.Index);
                 }
-                if (predicate(OutputSchema.Count - 1))
+
+                if (hasProbabilityColumn)
                     getters[OutputSchema.Count - 1] = GetProbGetter(predictorRow);
                 return new SimpleRow(OutputSchema, predictorRow, getters);
             }
 
             private Delegate GetPredictorGetter<T>(DataViewRow input, int col)
-            {
-                return input.GetGetter<T>(col);
-            }
+                =>input.GetGetter<T>(input.Schema[col]);
 
             private Delegate GetProbGetter(DataViewRow input)
             {

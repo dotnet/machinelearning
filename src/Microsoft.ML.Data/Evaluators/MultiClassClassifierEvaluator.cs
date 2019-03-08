@@ -394,12 +394,12 @@ namespace Microsoft.ML.Data
                 var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
                 Host.Assert(score.Type.GetVectorSize() == _scoresArr.Length);
                 _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
-                _scoreGetter = row.GetGetter<VBuffer<float>>(score.Index);
+                _scoreGetter = row.GetGetter<VBuffer<float>>(score);
                 Host.AssertValue(_labelGetter);
                 Host.AssertValue(_scoreGetter);
 
                 if (schema.Weight.HasValue)
-                    _weightGetter = row.GetGetter<float>(schema.Weight.Value.Index);
+                    _weightGetter = row.GetGetter<float>(schema.Weight.Value);
             }
 
             public override void ProcessRow()
@@ -678,7 +678,7 @@ namespace Microsoft.ML.Data
 
             var labelGetter = activeCols(LogLossCol) ? RowCursorUtils.GetLabelGetter(input, LabelIndex) :
                 (ref float dst) => dst = float.NaN;
-            var scoreGetter = input.GetGetter<VBuffer<float>>(ScoreIndex);
+            var scoreGetter = input.GetGetter<VBuffer<float>>(input.Schema[ScoreIndex]);
             Action updateCacheIfNeeded =
                 () =>
                 {

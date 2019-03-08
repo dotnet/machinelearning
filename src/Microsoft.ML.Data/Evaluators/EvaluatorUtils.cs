@@ -278,7 +278,7 @@ namespace Microsoft.ML.Data
                 bool isWeighted = false;
                 ValueGetter<bool> isWeightedGetter;
                 if (hasWeighted)
-                    isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol);
+                    isWeightedGetter = cursor.GetGetter<bool>(schema[isWeightedCol]);
                 else
                     isWeightedGetter = (ref bool dst) => dst = false;
 
@@ -298,7 +298,8 @@ namespace Microsoft.ML.Data
 
                 for (int i = 0; i < schema.Count; i++)
                 {
-                    if (schema[i].IsHidden || hasWeighted && i == isWeightedCol ||
+                    var column = schema[i];
+                    if (column.IsHidden || hasWeighted && i == isWeightedCol ||
                         hasStrats && (i == stratCol || i == stratVal))
                         continue;
 
@@ -309,7 +310,7 @@ namespace Microsoft.ML.Data
                         && vectorType.IsKnownSize
                         && vectorType.ItemType == NumberDataViewType.Double
                         && getVectorMetrics)
-                        vBufferGetters[i] = cursor.GetGetter<VBuffer<double>>(i);
+                        vBufferGetters[i] = cursor.GetGetter<VBuffer<double>>(column);
                 }
 
                 Double metricVal = 0;
@@ -1021,7 +1022,7 @@ namespace Microsoft.ML.Data
                         continue;
                     }
 
-                    vBufferGetters[i] = row.GetGetter<VBuffer<double>>(i);
+                    vBufferGetters[i] = row.GetGetter<VBuffer<double>>(schema[i]);
                     metricCount += vectorType.Size;
                     var slotNamesType = schema[i].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType;
                     if (slotNamesType != null && slotNamesType.Size == vectorType.Size && slotNamesType.ItemType is TextDataViewType)
@@ -1074,13 +1075,14 @@ namespace Microsoft.ML.Data
         internal static AggregatedMetric[] ComputeMetricsSum(IHostEnvironment env, IDataView data, int numFolds, out int isWeightedCol,
             out int stratCol, out int stratVal, out int foldCol, out AggregatedMetric[] weightedAgg)
         {
-            var hasWeighted = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.IsWeighted, out int wcol);
+            var isWeightedColumn = data.Schema.GetColumnOrNull(MetricKinds.ColumnNames.IsWeighted);
+            var hasWeighted = isWeightedColumn.HasValue;
             var hasStrats = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratCol, out int scol);
             var hasStratVals = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out int svalcol);
             env.Assert(hasStrats == hasStratVals);
             var hasFoldCol = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.FoldIndex, out int fcol);
 
-            isWeightedCol = hasWeighted ? wcol : -1;
+            isWeightedCol = hasWeighted ? isWeightedColumn.Value.Index : -1;
             stratCol = hasStrats ? scol : -1;
             stratVal = hasStratVals ? svalcol : -1;
             foldCol = hasFoldCol ? fcol : -1;
@@ -1097,7 +1099,7 @@ namespace Microsoft.ML.Data
                 bool isWeighted = false;
                 ValueGetter<bool> isWeightedGetter;
                 if (hasWeighted)
-                    isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol);
+                    isWeightedGetter = cursor.GetGetter<bool>(isWeightedColumn.Value);
                 else
                     isWeightedGetter = (ref bool dst) => dst = false;
 
@@ -1116,7 +1118,7 @@ namespace Microsoft.ML.Data
                 using (var ch = env.Register("GetMetricsAsString").Start("Get Metric Names"))
                 {
                     metricNames = GetMetricNames(ch, data.Schema, cursor,
-                        i => hasWeighted && i == wcol || hasStrats && (i == scol || i == svalcol) ||
+                        i => hasWeighted && i == isWeightedColumn.Value.Index || hasStrats && (i == scol || i == svalcol) ||
                             hasFoldCol && i == fcol, getters, vBufferGetters);
                 }
                 agg = new AggregatedMetric[metricNames.Count];
@@ -1440,7 +1442,7 @@ namespace Microsoft.ML.Data
             {
                 var type = cursor.Schema[countIndex].Type as VectorType;
                 Contracts.Check(type != null && type.IsKnownSize && type.ItemType == NumberDataViewType.Double);
-                var countGetter = cursor.GetGetter<VBuffer<double>>(countIndex);
+                var countGetter = cursor.GetGetter<VBuffer<double>>(cursor.Schema[countIndex]);
                 ValueGetter<uint> stratGetter = null;
                 if (hasStrat)
                 {
@@ -1698,13 +1700,13 @@ namespace Microsoft.ML.Data
             IDataView warnings;
             if (metrics.TryGetValue(MetricKinds.Warnings, out warnings))
             {
-                int col;
-                if (warnings.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.WarningText, out col) && warnings.Schema[col].Type is TextDataViewType)
+                var warningTextColumn = warnings.Schema.GetColumnOrNull(MetricKinds.ColumnNames.WarningText);
+                if (warningTextColumn !=null && warningTextColumn.HasValue && warningTextColumn.Value.Type is TextDataViewType)
                 {
                     using (var cursor = warnings.GetRowCursor(warnings.Schema[MetricKinds.ColumnNames.WarningText]))
                     {
                         var warning = default(ReadOnlyMemory<char>);
-                        var getter = cursor.GetGetter<ReadOnlyMemory<char>>(col);
+                        var getter = cursor.GetGetter<ReadOnlyMemory<char>>(warningTextColumn.Value);
                         while (cursor.MoveNext())
                         {
                             getter(ref warning);

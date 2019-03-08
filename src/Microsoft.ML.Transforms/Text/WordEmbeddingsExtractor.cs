@@ -555,11 +555,11 @@ namespace Microsoft.ML.Transforms.Text
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
-                var colType = input.Schema[ColMapNewToOld[iinfo]].Type;
-                Host.Assert(colType is VectorType);
-                Host.Assert(colType.GetItemType() is TextDataViewType);
+                var column = input.Schema[ColMapNewToOld[iinfo]];
+                Host.Assert(column.Type is VectorType);
+                Host.Assert(column.Type.GetItemType() is TextDataViewType);
 
-                var srcGetter = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);
+                var srcGetter = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(column);
                 var src = default(VBuffer<ReadOnlyMemory<char>>);
                 int dimension = _parent._currentVocab.Dimension;
                 float[] wordVector = new float[_parent._currentVocab.Dimension];

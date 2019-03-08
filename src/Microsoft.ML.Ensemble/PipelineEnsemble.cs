@@ -106,7 +106,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 yield break;
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 var scoreGetter = CreateScoreGetter(input, out Action disposer);
                 return new SimpleRow(OutputSchema, input, new[] { scoreGetter }, disposer);
@@ -140,12 +140,11 @@ namespace Microsoft.ML.Trainers.Ensemble
                         var mapperColumns = Mappers[i].OutputSchema.Where(col => col.Name == DefaultColumnNames.Score);
                         var inputColumns = Mappers[i].GetDependenciesForNewColumns(mapperColumns);
 
-                        Func<int, bool> inputPredicate = c => inputColumns.Any(col => col.Index == c);
-                        var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate);
+                        var pipelineRow = BoundPipelines[i].GetRow(input, inputColumns);
 
                         // Next we get the output row from the predictors. We activate the score column as output predicate.
-                        var predictorRow = Mappers[i].GetRow(pipelineRow, col => col == ScoreCols[i]);
-                        getters[i] = predictorRow.GetGetter<T>(ScoreCols[i]);
+                        var predictorRow = Mappers[i].GetRow(pipelineRow, Enumerable.Repeat(Mappers[i].InputSchema[ScoreCols[i]], 1));
+                        getters[i] = predictorRow.GetGetter<T>(predictorRow.Schema[ScoreCols[i]]);
                         disposer += predictorRow.Dispose;
                     }
 
@@ -168,7 +167,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     var labelCol = Mappers[i].InputRoleMappedSchema.Label.Value;
 
                     // The label should be in the output row of the i'th pipeline
-                    var pipelineRow = BoundPipelines[i].GetRow(input, col => col == labelCol.Index);
+                    var pipelineRow = BoundPipelines[i].GetRow(input, labelCol);
                     disposer = pipelineRow.Dispose;
                     return RowCursorUtils.GetLabelGetter(pipelineRow, labelCol.Index);
                 }
@@ -187,10 +186,9 @@ namespace Microsoft.ML.Trainers.Ensemble
                     // The weight should be in the output row of the i'th pipeline if it exists.
                     var inputColumns = Mappers[i].GetDependenciesForNewColumns(Enumerable.Repeat(weightCol, 1));
 
-                    Func<int, bool> inputPredicate = c => inputColumns.Any(col => col.Index == c);
-                    var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate);
+                    var pipelineRow = BoundPipelines[i].GetRow(input, inputColumns);
                     disposer = pipelineRow.Dispose;
-                    return pipelineRow.GetGetter<float>(weightCol.Index);
+                    return pipelineRow.GetGetter<float>(weightCol);
 
                 }
             }

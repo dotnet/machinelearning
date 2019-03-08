@@ -140,7 +140,7 @@ namespace Microsoft.ML
                  SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition, out Action disposer, out IRowReadableAs<TDst> outputRow)
         {
             var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.OutputSchema), ignoreMissingColumns, outputSchemaDefinition);
-            var outputRowLocal = mapper.GetRow(inputRow, col => true);
+            var outputRowLocal = mapper.GetRow(inputRow, mapper.OutputSchema);
             outputRow = cursorable.GetRow(outputRowLocal);
             disposer = inputRow.Dispose;
         }

@@ -242,7 +242,7 @@ namespace Microsoft.ML.Transforms
 
             private ValueGetter<bool> ComposeGetterOne<T>(DataViewRow input, int iinfo)
             {
-                var getSrc = input.GetGetter<T>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<T>(input.Schema[ColMapNewToOld[iinfo]]);
                 var src = default(T);
                 var isNA = (InPredicate<T>)_infos[iinfo].InputIsNA;
 
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Transforms
 
             private ValueGetter<VBuffer<bool>> ComposeGetterVec<T>(DataViewRow input, int iinfo)
             {
-                var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<VBuffer<T>>(input.Schema[ColMapNewToOld[iinfo]]);
                 var isNA = (InPredicate<T>)_infos[iinfo].InputIsNA;
                 var val = default(T);
                 var defaultIsNA = isNA(in val);

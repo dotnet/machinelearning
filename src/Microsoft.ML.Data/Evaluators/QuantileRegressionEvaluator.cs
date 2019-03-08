@@ -393,7 +393,7 @@ namespace Microsoft.ML.Data
             var labelGetter = activeCols(L1Col) || activeCols(L2Col) ? RowCursorUtils.GetLabelGetter(input, LabelIndex) : nanGetter;
             ValueGetter<VBuffer<float>> scoreGetter;
             if (activeCols(L1Col) || activeCols(L2Col))
-                scoreGetter = input.GetGetter<VBuffer<float>>(ScoreIndex);
+                scoreGetter = input.GetGetter<VBuffer<float>>(input.Schema[ScoreIndex]);
             else
                 scoreGetter = (ref VBuffer<float> dst) => dst = default(VBuffer<float>);
             Action updateCacheIfNeeded =

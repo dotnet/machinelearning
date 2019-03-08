@@ -141,7 +141,7 @@ namespace Microsoft.ML.Transforms
                 // In which case probably erroring out is probably the most useful thing.
                 using (var cursor = data.GetRowCursor(featuresColumn))
                 {
-                    var featuresGetter = cursor.GetGetter<VBuffer<float>>(featuresColumnIndex);
+                    var featuresGetter = cursor.GetGetter<VBuffer<float>>(featuresColumn);
                     var featuresBuffer = default(VBuffer<float>);
 
                     while (initialfeatureValuesList.Count < maxSize && cursor.MoveNext())

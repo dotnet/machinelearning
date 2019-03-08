@@ -334,9 +334,9 @@ namespace Microsoft.ML.Data
 
                 public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles() => _mapper.GetInputColumnRoles();
 
-                public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
+                DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
                 {
-                    var innerRow = _mapper.GetRow(input, predicate);
+                    var innerRow = _mapper.GetRow(input, activeColumns);
                     return new RowImpl(innerRow, OutputSchema);
                 }
 
@@ -356,9 +356,19 @@ namespace Microsoft.ML.Data
                         _schema = schema;
                     }
 
-                    public override bool IsColumnActive(int col) => Input.IsColumnActive(col);
+                    /// <summary>
+                    /// Returns whether the given column is active in this row.
+                    /// </summary>
+                    public override bool IsColumnActive(DataViewSchema.Column column) => Input.IsColumnActive(column);
 
-                    public override ValueGetter<TValue> GetGetter<TValue>(int col) => Input.GetGetter<TValue>(col);
+                    /// <summary>
+                    /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+                    /// This throws if the column is not active in this row, or if the type
+                    /// <typeparamref name="TValue"/> differs from this column's type.
+                    /// </summary>
+                    /// <typeparam name="TValue"> is the column's content type.</typeparam>
+                    /// <param name="column"> is the output column whose getter should be returned.</param>
+                    public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column) => Input.GetGetter<TValue>(column);
                 }
             }
         }
@@ -499,9 +509,9 @@ namespace Microsoft.ML.Data
         {
             Host.AssertValue(output);
             Host.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
-            Host.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
+            Host.Assert(output.IsColumnActive(output.Schema[Bindings.ScoreColumnIndex]));
 
-            ValueGetter<VBuffer<float>> mapperScoreGetter = output.GetGetter<VBuffer<float>>(Bindings.ScoreColumnIndex);
+            ValueGetter<VBuffer<float>> mapperScoreGetter = output.GetGetter<VBuffer<float>>(Bindings.RowMapper.OutputSchema[Bindings.ScoreColumnIndex]);
 
             long cachedPosition = -1;
             VBuffer<float> score = default;

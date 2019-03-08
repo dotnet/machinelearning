@@ -42,7 +42,7 @@ namespace Microsoft.ML.Benchmarks
             // First do one pass through.
             using (var cursor = cacheDv.GetRowCursor(col))
             {
-                var getter = cursor.GetGetter<int>(col.Index);
+                var getter = cursor.GetGetter<int>(col);
                 int val = 0;
                 int count = 0;
                 while (cursor.MoveNext())
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Benchmarks
 
             _col = _cacheDataView.Schema["A"];
             _seeker = ((IRowSeekable)_cacheDataView).GetSeeker(colIndex => colIndex == _col.Index);
-            _seekerGetter = _seeker.GetGetter<int>(_col.Index);
+            _seekerGetter = _seeker.GetGetter<int>(_col);
         }
 
         [Benchmark]
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Benchmarks
            // This setup takes very less time to execute as compared to the actual _cursorGetter.
             // The most preferable position for this setup will be in GlobalSetup.
             _cursor = _cacheDataView.GetRowCursor(_col);
-            _cursorGetter = _cursor.GetGetter<int>(_col.Index);
+            _cursorGetter = _cursor.GetGetter<int>(_col);
 
             int val = 0;
             while (_cursor.MoveNext())

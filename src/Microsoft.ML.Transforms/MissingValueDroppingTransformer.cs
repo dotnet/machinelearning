@@ -206,7 +206,7 @@ namespace Microsoft.ML.Transforms
 
             private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(DataViewRow input, int iinfo)
             {
-                var srcGetter = input.GetGetter<VBuffer<TDst>>(_srcCols[iinfo]);
+                var srcGetter = input.GetGetter<VBuffer<TDst>>(input.Schema[_srcCols[iinfo]]);
                 var buffer = default(VBuffer<TDst>);
                 var isNA = (InPredicate<TDst>)_isNAs[iinfo];
                 var def = default(TDst);

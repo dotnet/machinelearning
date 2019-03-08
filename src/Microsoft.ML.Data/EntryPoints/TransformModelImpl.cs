@@ -244,28 +244,28 @@ namespace Microsoft.ML.EntryPoints
 
             public DataViewSchema InputSchema => _rootSchema;
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
+            DataViewRow IRowToRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 _ectx.Assert(IsCompositeRowToRowMapper(_chain));
                 _ectx.AssertValue(input);
-                _ectx.AssertValue(active);
+                _ectx.AssertValue(activeColumns);
 
                 _ectx.Check(input.Schema == InputSchema, "Schema of input row must be the same as the schema the mapper is bound to");
 
                 var mappers = new List<IRowToRowMapper>();
-                var actives = new List<Func<int, bool>>();
+                var actives = new List<IEnumerable<DataViewSchema.Column>>();
                 var transform = _chain as IDataTransform;
-                var activeCur = active;
+                var activeCur = activeColumns;
                 while (transform != null)
                 {
                     var mapper = transform as IRowToRowMapper;
                     _ectx.AssertValue(mapper);
                     mappers.Add(mapper);
                     actives.Add(activeCur);
-                    var activeCurCol = mapper.GetDependencies(mapper.OutputSchema.Where(col => activeCur(col.Index)));
-                    activeCur = RowCursorUtils.FromColumnsToPredicate(activeCurCol, mapper.InputSchema);
+                    activeCur = mapper.GetDependencies(activeCur);
                     transform = transform.Source as IDataTransform;
                 }
+
                 mappers.Reverse();
                 actives.Reverse();
                 var row = input;

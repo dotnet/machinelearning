@@ -108,29 +108,30 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
         }
 
-        internal DataViewRow GetStatefulRows(DataViewRow input, IRowToRowMapper mapper, Func<int, bool> active, List<StatefulRow> rows)
+        internal DataViewRow GetStatefulRows(DataViewRow input, IRowToRowMapper mapper, IEnumerable<DataViewSchema.Column> activeColumns, List<StatefulRow> rows)
         {
             Contracts.CheckValue(input, nameof(input));
-            Contracts.CheckValue(active, nameof(active));
+            Contracts.CheckValue(activeColumns, nameof(activeColumns));
 
             IRowToRowMapper[] innerMappers = new IRowToRowMapper[0];
             if (mapper is CompositeRowToRowMapper compositeMapper)
                 innerMappers = compositeMapper.InnerMappers;
 
+            var activeIndices = new HashSet<int>(activeColumns.Select(c => c.Index));
             if (innerMappers.Length == 0)
             {
                 bool differentActive = false;
                 for (int c = 0; c < input.Schema.Count; ++c)
                 {
-                    bool wantsActive = active(c);
-                    bool isActive = input.IsColumnActive(c);
+                    bool wantsActive = activeIndices.Contains(c);
+                    bool isActive = input.IsColumnActive(input.Schema[c]);
                     differentActive |= wantsActive != isActive;
 
                     if (wantsActive && !isActive)
                         throw Contracts.ExceptParam(nameof(input), $"Mapper required column '{input.Schema[c].Name}' active but it was not.");
                 }
 
-                var row = mapper.GetRow(input, active);
+                var row = mapper.GetRow(input, activeColumns);
                 if (row is StatefulRow statefulRow)
                     rows.Add(statefulRow);
                 return row;
@@ -139,14 +140,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             // For each of the inner mappers, we will be calling their GetRow method, but to do so we need to know
             // what we need from them. The last one will just have the input, but the rest will need to be
             // computed based on the dependencies of the next one in the chain.
-            var deps = new Func<int, bool>[innerMappers.Length];
-            deps[deps.Length - 1] = active;
+            var deps = new IEnumerable<DataViewSchema.Column>[innerMappers.Length];
+            deps[deps.Length - 1] = activeColumns;
             for (int i = deps.Length - 1; i >= 1; --i)
-            {
-                var inputCols = innerMappers[i].OutputSchema.Where(c => deps[i](c.Index));
-                var cols = innerMappers[i].GetDependencies(inputCols).ToArray();
-                deps[i - 1] = c => cols.Length > 0 ? cols.Any(col => col.Index == c) : false;
-            }
+                deps[i - 1] = innerMappers[i].GetDependencies(deps[i]);
 
             DataViewRow result = input;
             for (int i = 0; i < innerMappers.Length; ++i)
@@ -172,7 +169,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                  SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition, out Action disposer, out IRowReadableAs<TDst> outputRow)
         {
             List<StatefulRow> rows = new List<StatefulRow>();
-            DataViewRow outputRowLocal = outputRowLocal = GetStatefulRows(inputRow, mapper, col => true, rows);
+            DataViewRow outputRowLocal = outputRowLocal = GetStatefulRows(inputRow, mapper, mapper.OutputSchema, rows);
             var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.OutputSchema), ignoreMissingColumns, outputSchemaDefinition);
             _pinger = CreatePinger(rows);
             disposer = outputRowLocal.Dispose;

@@ -36,7 +36,7 @@ namespace Microsoft.ML.RunTests
             {
                 if (type is VectorType)
                 {
-                    var getter = cursor.GetGetter<VBuffer<T>>(col);
+                    var getter = cursor.GetGetter<VBuffer<T>>(cursor.Schema[col]);
                     VBuffer<T> temp = default;
                     int offset = 0;
                     while (cursor.MoveNext())
@@ -52,7 +52,7 @@ namespace Microsoft.ML.RunTests
                 }
                 else
                 {
-                    var getter = cursor.GetGetter<T>(col);
+                    var getter = cursor.GetGetter<T>(cursor.Schema[col]);
                     while (cursor.MoveNext())
                     {
                         Assert.True(0 <= cursor.Position && cursor.Position < rc);

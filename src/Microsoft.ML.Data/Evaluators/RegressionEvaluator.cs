@@ -273,7 +273,7 @@ namespace Microsoft.ML.Data
             var labelGetter = activeCols(L1Col) || activeCols(L2Col) ? RowCursorUtils.GetLabelGetter(input, LabelIndex) : nan;
             ValueGetter<float> scoreGetter;
             if (activeCols(L1Col) || activeCols(L2Col))
-                scoreGetter = input.GetGetter<float>(ScoreIndex);
+                scoreGetter = input.GetGetter<float>(input.Schema[ScoreIndex]);
             else
                 scoreGetter = nan;
             Action updateCacheIfNeeded =

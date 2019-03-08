@@ -168,7 +168,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(input);
             Contracts.Assert(ValueMapper != null);
 
-            var featureGetter = input.GetGetter<TSrc>(colSrc);
+            var featureGetter = input.GetGetter<TSrc>(input.Schema[colSrc]);
             var map = ValueMapper.GetMapper<TSrc, TDst>();
             var features = default(TSrc);
             return
@@ -232,13 +232,13 @@ namespace Microsoft.ML.Data
 
             public DataViewSchema InputSchema => InputRoleMappedSchema.Schema;
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 Contracts.AssertValue(input);
-                Contracts.AssertValue(predicate);
+                Contracts.AssertValue(activeColumns);
 
                 var getters = new Delegate[1];
-                if (predicate(0))
+                if (activeColumns.Select(c => c.Index).Contains(0))
                     getters[0] = _parent.GetPredictionGetter(input, InputRoleMappedSchema.Feature.Value.Index);
                 return new SimpleRow(OutputSchema, input, getters);
             }
@@ -524,7 +524,7 @@ namespace Microsoft.ML.Data
                 if (active[0] || active[1])
                 {
                     // Put all captured locals at this scope.
-                    var featureGetter = InputRoleMappedSchema.Feature?.Index is int idx ? input.GetGetter<VBuffer<float>>(idx) : null;
+                    var featureGetter = InputRoleMappedSchema.Feature.HasValue ? input.GetGetter<VBuffer<float>>(InputRoleMappedSchema.Feature.Value) : null;
                     float prob = 0;
                     float score = 0;
                     long cachedPosition = -1;
@@ -571,10 +571,10 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 Contracts.AssertValue(input);
-                var active = Utils.BuildArray(OutputSchema.Count, predicate);
+                var active = Utils.BuildArray(OutputSchema.Count, activeColumns);
                 var getters = CreateGetters(input, active);
                 return new SimpleRow(OutputSchema, input, getters);
             }
@@ -665,13 +665,14 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(input);
             Contracts.Assert(0 <= colSrc && colSrc < input.Schema.Count);
 
-            var typeSrc = input.Schema[colSrc].Type as VectorType;
+            var column = input.Schema[colSrc];
+            var typeSrc = column.Type as VectorType;
             Contracts.Assert(typeSrc != null && typeSrc.ItemType == NumberDataViewType.Single);
             Contracts.Assert(ValueMapper == null ||
                 typeSrc.Size == ValueMapper.InputType.GetVectorSize() || ValueMapper.InputType.GetVectorSize() == 0);
             Contracts.Assert(Utils.Size(_quantiles) > 0);
 
-            var featureGetter = input.GetGetter<VBuffer<float>>(colSrc);
+            var featureGetter = input.GetGetter<VBuffer<float>>(column);
             var featureCount = ValueMapper != null ? ValueMapper.InputType.GetVectorSize() : 0;
 
             var quantiles = new float[_quantiles.Length];

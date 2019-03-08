@@ -488,16 +488,16 @@ namespace Microsoft.ML.Tests
 
         private void CompareSelectedR4VectorColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
         {
-            var leftColumnIndex = left.Schema[leftColumnName].Index;
-            var rightColumnIndex = right.Schema[rightColumnName].Index;
+            var leftColumn = left.Schema[leftColumnName];
+            var rightColumn = right.Schema[rightColumnName];
 
-            using (var expectedCursor = left.GetRowCursor(left.Schema[leftColumnIndex]))
-            using (var actualCursor = right.GetRowCursor(right.Schema[rightColumnIndex]))
+            using (var expectedCursor = left.GetRowCursor(leftColumn))
+            using (var actualCursor = right.GetRowCursor(rightColumn))
             {
                 VBuffer<float> expected = default;
                 VBuffer<float> actual = default;
-                var expectedGetter = expectedCursor.GetGetter<VBuffer<float>>(leftColumnIndex);
-                var actualGetter = actualCursor.GetGetter<VBuffer<float>>(rightColumnIndex);
+                var expectedGetter = expectedCursor.GetGetter<VBuffer<float>>(leftColumn);
+                var actualGetter = actualCursor.GetGetter<VBuffer<float>>(rightColumn);
                 while (expectedCursor.MoveNext() && actualCursor.MoveNext())
                 {
                     expectedGetter(ref expected);
@@ -512,16 +512,16 @@ namespace Microsoft.ML.Tests
 
         private void CompareSelectedR4ScalarColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
         {
-            var leftColumnIndex = left.Schema[leftColumnName].Index;
-            var rightColumnIndex = right.Schema[rightColumnName].Index;
+            var leftColumn = left.Schema[leftColumnName];
+            var rightColumn = right.Schema[rightColumnName];
 
-            using (var expectedCursor = left.GetRowCursor(left.Schema[leftColumnIndex]))
-            using (var actualCursor = right.GetRowCursor(right.Schema[rightColumnIndex]))
+            using (var expectedCursor = left.GetRowCursor(leftColumn))
+            using (var actualCursor = right.GetRowCursor(rightColumn))
             {
                 float expected = default;
                 VBuffer<float> actual = default;
-                var expectedGetter = expectedCursor.GetGetter<float>(leftColumnIndex);
-                var actualGetter = actualCursor.GetGetter<VBuffer<float>>(rightColumnIndex);
+                var expectedGetter = expectedCursor.GetGetter<float>(leftColumn);
+                var actualGetter = actualCursor.GetGetter<VBuffer<float>>(rightColumn);
                 while (expectedCursor.MoveNext() && actualCursor.MoveNext())
                 {
                     expectedGetter(ref expected);

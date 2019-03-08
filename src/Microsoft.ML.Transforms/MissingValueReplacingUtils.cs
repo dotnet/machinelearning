@@ -166,7 +166,7 @@ namespace Microsoft.ML.Transforms
             {
                 Ch.AssertValue(cursor);
                 Ch.Assert(0 <= col);
-                _getter = cursor.GetGetter<TValue>(col);
+                _getter = cursor.GetGetter<TValue>(cursor.Schema[col]);
             }
 
             public sealed override void ProcessRow()

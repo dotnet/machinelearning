@@ -331,7 +331,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.Assert(size == planes * height * width);
                 int cpix = height * width;
 
-                var getSrc = input.GetGetter<Bitmap>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<Bitmap>(input.Schema[ColMapNewToOld[iinfo]]);
                 var src = default(Bitmap);
 
                 disposer =

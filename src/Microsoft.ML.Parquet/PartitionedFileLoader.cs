@@ -404,11 +404,18 @@ namespace Microsoft.ML.Data
 
             public override DataViewSchema Schema => _parent.Schema;
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(col));
+                Ch.Check(IsColumnActive(column));
 
-                var getter = _getters[col] as ValueGetter<TValue>;
+                var getter = _getters[column.Index] as ValueGetter<TValue>;
                 if (getter == null)
                 {
                     throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
@@ -428,10 +435,13 @@ namespace Microsoft.ML.Data
                     };
             }
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= col && col < Schema.Count);
-                return _active[col];
+                Ch.Check(column.Index < Schema.Count);
+                return _active[column.Index];
             }
 
             protected override bool MoveNextCore()
@@ -532,7 +542,7 @@ namespace Microsoft.ML.Data
                     if (_subActive[i])
                     {
                         var type = _subCursor.Schema[i].Type;
-                        _subGetters[i] = MarshalGetter(_subCursor.GetGetter<int>, type.RawType, i);
+                        _subGetters[i] = MarshalGetter(_subCursor.GetGetter<DataViewSchema.Column>, type.RawType, _subCursor.Schema[i]);
                     }
                 }
             }
@@ -662,13 +672,13 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            private Delegate MarshalGetter(Func<int, ValueGetter<int>> func, Type type, int col)
+            private Delegate MarshalGetter(Func<DataViewSchema.Column, ValueGetter<DataViewSchema.Column>> func, Type type, DataViewSchema.Column column)
             {
                 var returnType = typeof(ValueGetter<>).MakeGenericType(type);
                 var meth = func.Method;
 
                 var typedMeth = meth.GetGenericMethodDefinition().MakeGenericMethod(type);
-                return (Delegate)typedMeth.Invoke(func.Target, new object[] { col });
+                return (Delegate)typedMeth.Invoke(func.Target, new object[] { column });
             }
 
             /// <summary>

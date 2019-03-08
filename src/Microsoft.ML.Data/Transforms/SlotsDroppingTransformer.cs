@@ -800,7 +800,7 @@ namespace Microsoft.ML.Transforms
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                int src = _cols[iinfo];
+                var src = input.Schema[_cols[iinfo]];
                 Host.Assert(input.IsColumnActive(src));
                 return input.GetGetter<T>(src);
             }

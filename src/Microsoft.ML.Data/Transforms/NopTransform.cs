@@ -130,10 +130,10 @@ namespace Microsoft.ML.Data
         IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
             => dependingColumns;
 
-        public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
+        DataViewRow IRowToRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
         {
             Contracts.CheckValue(input, nameof(input));
-            Contracts.CheckValue(active, nameof(active));
+            Contracts.CheckValue(activeColumns, nameof(activeColumns));
             Contracts.CheckParam(input.Schema == Source.Schema, nameof(input), "Schema of input row must be the same as the schema the mapper is bound to");
             return input;
         }

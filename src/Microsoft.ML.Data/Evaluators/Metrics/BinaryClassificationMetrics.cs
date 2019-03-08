@@ -76,10 +76,11 @@ namespace Microsoft.ML.Data
 
         private protected static T Fetch<T>(IExceptionContext ectx, DataViewRow row, string name)
         {
-            if (!row.Schema.TryGetColumnIndex(name, out int col))
+            var column = row.Schema.GetColumnOrNull(name);
+            if (!column.HasValue)
                 throw ectx.Except($"Could not find column '{name}'");
             T val = default;
-            row.GetGetter<T>(col)(ref val);
+            row.GetGetter<T>(column.Value)(ref val);
             return val;
         }
 

@@ -40,10 +40,10 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             using (var cursor = data.GetRowCursorForAllColumns())
             {
-                var col1 = cursor.GetGetter<sbyte>(0);
-                var col2 = cursor.GetGetter<short>(1);
-                var col3 = cursor.GetGetter<int>(2);
-                var col4 = cursor.GetGetter<long>(3);
+                var col1 = cursor.GetGetter<sbyte>(cursor.Schema[0]);
+                var col2 = cursor.GetGetter<short>(cursor.Schema[1]);
+                var col3 = cursor.GetGetter<int>(cursor.Schema[2]);
+                var col4 = cursor.GetGetter<long>(cursor.Schema[3]);
 
                 Assert.True(cursor.MoveNext());
 
@@ -297,8 +297,8 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             using (var cursor = data.GetRowCursorForAllColumns())
             {
-                var IDGetter = cursor.GetGetter<float>(0);
-                var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
+                var IDGetter = cursor.GetGetter<float>(cursor.Schema[0]);
+                var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema[1]);
 
                 Assert.True(cursor.MoveNext());
 
@@ -445,11 +445,11 @@ namespace Microsoft.ML.EntryPoints.Tests
             using (var cursor = data.GetRowCursorForAllColumns())
             {
                 var getters = new ValueGetter<float>[]{
-                        cursor.GetGetter<float>(0),
-                        cursor.GetGetter<float>(1),
-                        cursor.GetGetter<float>(2),
-                        cursor.GetGetter<float>(3),
-                        cursor.GetGetter<float>(4)
+                        cursor.GetGetter<float>(cursor.Schema[0]),
+                        cursor.GetGetter<float>(cursor.Schema[1]),
+                        cursor.GetGetter<float>(cursor.Schema[2]),
+                        cursor.GetGetter<float>(cursor.Schema[3]),
+                        cursor.GetGetter<float>(cursor.Schema[4])
                     };
 
 
@@ -558,8 +558,8 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             using (var cursor = data.GetRowCursorForAllColumns())
             {
-                var IDGetter = cursor.GetGetter<float>(0);
-                var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
+                var IDGetter = cursor.GetGetter<float>(cursor.Schema[0]);
+                var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema[1]);
 
                 Assert.True(cursor.MoveNext());
 

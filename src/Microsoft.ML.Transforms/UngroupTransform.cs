@@ -579,7 +579,7 @@ namespace Microsoft.ML.Transforms
             {
                 Contracts.Assert(0 <= col && col < _ungroupBinding.InputColumnCount);
 
-                var srcGetter = GetGetter<T>(col);
+                var srcGetter = GetGetter<T>(Schema[col]);
                 var cur = default(T);
 
                 return
@@ -593,38 +593,40 @@ namespace Microsoft.ML.Transforms
 
             public override DataViewSchema Schema => _ungroupBinding.OutputSchema;
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= col && col < _ungroupBinding.InputColumnCount);
-                return _active[col];
+                Ch.Check(column.Index < _ungroupBinding.InputColumnCount);
+                return _active[column.Index];
             }
 
             /// <summary>
-            /// Returns getter to an output column.
+            /// Returns the getter of an output column.
             /// </summary>
-            /// <typeparam name="TValue">Output column's content type, for example, <see cref="VBuffer{T}"/>.</typeparam>
-            /// <param name="col">Index of a output column whose getter will be returned.</param>
-            /// <returns></returns>
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <typeparam name="TValue"> is the output column's content type, for example, <see cref="VBuffer{T}"/>.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
                 // Although the input argument, col, is a output index, we check its range as if it's an input column index.
                 // It makes sense because the i-th output column is produced by either expanding or copying the i-th input column.
-                Ch.CheckParam(0 <= col && col < _ungroupBinding.InputColumnCount, nameof(col));
+                Ch.CheckParam(column.Index < _ungroupBinding.InputColumnCount, nameof(column));
 
-                if (!_ungroupBinding.IsPivot(col))
-                    return Input.GetGetter<TValue>(col);
+                if (!_ungroupBinding.IsPivot(column.Index))
+                    return Input.GetGetter<TValue>(column);
 
-                if (_cachedGetters[col] == null)
-                    _cachedGetters[col] = MakeGetter<TValue>(col, _ungroupBinding.GetPivotColumnOptionsByCol(col).ItemType);
+                if (_cachedGetters[column.Index] == null)
+                    _cachedGetters[column.Index] = MakeGetter<TValue>(column.Index, _ungroupBinding.GetPivotColumnOptionsByCol(column.Index).ItemType);
 
-                var result = _cachedGetters[col] as ValueGetter<TValue>;
+                var result = _cachedGetters[column.Index] as ValueGetter<TValue>;
                 Ch.Check(result != null, "Unexpected getter type requested");
                 return result;
             }
 
             private ValueGetter<T> MakeGetter<T>(int col, PrimitiveDataViewType itemType)
             {
-                var srcGetter = Input.GetGetter<VBuffer<T>>(col);
+                var srcGetter = Input.GetGetter<VBuffer<T>>(Input.Schema[col]);
                 // The position of the source cursor. Used to extract the source row once.
                 long cachedPosition = -1;
                 // The position inside the sparse row. If the row is sparse, the invariant is

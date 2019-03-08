@@ -85,11 +85,9 @@ namespace Microsoft.ML.Data
             private static DataViewSchema.Annotations KeyValueMetadataFromMetadata<T>(DataViewSchema.Annotations meta, DataViewSchema.Column metaCol)
             {
                 Contracts.AssertValue(meta);
-                Contracts.Assert(0 <= metaCol.Index && metaCol.Index < meta.Schema.Count);
                 Contracts.Assert(metaCol.Type.RawType == typeof(T));
-                var getter = meta.GetGetter<T>(metaCol.Index);
                 var builder = new DataViewSchema.Annotations.Builder();
-                builder.Add(AnnotationUtils.Kinds.KeyValues, metaCol.Type, meta.GetGetter<T>(metaCol.Index));
+                builder.Add(AnnotationUtils.Kinds.KeyValues, metaCol.Type, meta.GetGetter<T>(metaCol));
                 return builder.ToAnnotations();
             }
 
@@ -233,13 +231,13 @@ namespace Microsoft.ML.Data
                 }
                 if (iinfo < DerivedColumnCount && _predColMetadata != null)
                 {
-                    int mcol;
-                    if (_predColMetadata.Schema.TryGetColumnIndex(kind, out mcol))
+                    var mcol = _predColMetadata.Schema.GetColumnOrNull(kind);
+                    if (mcol.HasValue)
                     {
                         // REVIEW: In the event that TValue is not the right type, it won't really be
                         // the "right" type of exception. However considering that I consider the metadata
                         // schema as it stands right now to be temporary, let's suppose we don't really care.
-                        _predColMetadata.GetGetter<TValue>(mcol)(ref value);
+                        _predColMetadata.GetGetter<TValue>(mcol.Value)(ref value);
                         return;
                     }
                 }
@@ -419,7 +417,7 @@ namespace Microsoft.ML.Data
             Delegate delScore = null;
             if (predicate(0))
             {
-                Host.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
+                Host.Assert(output.IsColumnActive(output.Schema[Bindings.ScoreColumnIndex]));
                 getters[0] = GetPredictedLabelGetter(output, out delScore);
             }
 

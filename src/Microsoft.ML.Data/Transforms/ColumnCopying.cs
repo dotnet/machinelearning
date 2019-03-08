@@ -195,7 +195,7 @@ namespace Microsoft.ML.Transforms
                 disposer = null;
 
                 Delegate MakeGetter<T>(DataViewRow row, int index)
-                    => input.GetGetter<T>(index);
+                    => input.GetGetter<T>(input.Schema[index]);
 
                 input.Schema.TryGetColumnIndex(_columns[iinfo].inputColumnName, out int colIndex);
                 var type = input.Schema[colIndex].Type;

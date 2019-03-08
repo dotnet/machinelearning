@@ -328,10 +328,13 @@ namespace Microsoft.ML.Data
 
             protected abstract TRow GetCurrentRowObject();
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                CheckColumnInRange(col);
-                return _getters[col] != null;
+                CheckColumnInRange(column.Index);
+                return _getters[column.Index] != null;
             }
 
             private void CheckColumnInRange(int columnIndex)
@@ -340,15 +343,22 @@ namespace Microsoft.ML.Data
                     throw Host.Except("Column index must be between 0 and {0}", _colCount);
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                if (!IsColumnActive(col))
-                    throw Host.Except("Column {0} is not active in the cursor", col);
-                var getter = _getters[col];
+                Host.CheckParam(column.Index <= _getters.Length && IsColumnActive(column), nameof(column), "requested column not active");
+
+                var getter = _getters[column.Index];
                 Contracts.AssertValue(getter);
                 var fn = getter as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Host.Except("Invalid TValue in GetGetter for column #{0}: '{1}'", col, typeof(TValue));
+                    throw Host.Except("Invalid TValue in GetGetter for column #{0}: '{1}'", column, typeof(TValue));
                 return fn;
             }
         }
@@ -417,10 +427,22 @@ namespace Microsoft.ML.Data
                         _toWrap.Dispose();
                 }
 
-                public override ValueGetter<TValue> GetGetter<TValue>(int col)
-                    => _toWrap.GetGetter<TValue>(col);
+                /// <summary>
+                /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+                /// This throws if the column is not active in this row, or if the type
+                /// <typeparamref name="TValue"/> differs from this column's type.
+                /// </summary>
+                /// <typeparam name="TValue"> is the column's content type.</typeparam>
+                /// <param name="column"> is the output column whose getter should be returned.</param>
+                public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
+                    => _toWrap.GetGetter<TValue>(column);
+
                 public override ValueGetter<DataViewRowId> GetIdGetter() => _toWrap.GetIdGetter();
-                public override bool IsColumnActive(int col) => _toWrap.IsColumnActive(col);
+
+                /// <summary>
+                /// Returns whether the given column is active in this row.
+                /// </summary>
+                public override bool IsColumnActive(DataViewSchema.Column column) => _toWrap.IsColumnActive(column);
                 public override bool MoveNext() => _toWrap.MoveNext();
             }
 

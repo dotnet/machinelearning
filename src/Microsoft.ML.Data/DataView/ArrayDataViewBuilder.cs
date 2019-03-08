@@ -304,25 +304,36 @@ namespace Microsoft.ML.Data
                     }
                 }
 
-                public override bool IsColumnActive(int col)
+                /// <summary>
+                /// Returns whether the given column is active in this row.
+                /// </summary>
+                public override bool IsColumnActive(DataViewSchema.Column column)
                 {
-                    Ch.Check(0 <= col & col < Schema.Count);
-                    return _active[col];
+                    Ch.Check(column.Index < Schema.Count);
+                    return _active[column.Index];
                 }
 
-                public override ValueGetter<TValue> GetGetter<TValue>(int col)
+                /// <summary>
+                /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+                /// This throws if the column is not active in this row, or if the type
+                /// <typeparamref name="TValue"/> differs from this column's type.
+                /// </summary>
+                /// <typeparam name="TValue"> is the column's content type.</typeparam>
+                /// <param name="column"> is the output column whose getter should be returned.</param>
+                public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
-                    Ch.Check(0 <= col & col < Schema.Count);
-                    Ch.Check(_active[col], "column is not active");
-                    var column = _view._columns[col] as Column<TValue>;
-                    if (column == null)
+                    Ch.Check(column.Index < Schema.Count);
+                    Ch.Check(column.Index < _active.Length && _active[column.Index], "the requested column is not active");
+
+                    var columnValue = _view._columns[column.Index] as Column<TValue>;
+                    if (columnValue == null)
                         throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
 
                     return
                         (ref TValue value) =>
                         {
                             Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
-                            column.CopyOut(MappedIndex(), ref value);
+                            columnValue.CopyOut(MappedIndex(), ref value);
                         };
                 }
 

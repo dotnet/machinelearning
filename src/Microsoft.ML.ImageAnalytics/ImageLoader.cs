@@ -184,7 +184,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
                 disposer = null;
-                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[ColMapNewToOld[iinfo]]);
                 ReadOnlyMemory<char> src = default;
                 ValueGetter<Bitmap> del =
                     (ref Bitmap dst) =>

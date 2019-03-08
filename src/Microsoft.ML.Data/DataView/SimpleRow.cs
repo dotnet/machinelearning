@@ -54,19 +54,22 @@ namespace Microsoft.ML.Data
                 _disposer?.Invoke();
         }
 
-        public override ValueGetter<T> GetGetter<T>(int col)
+        public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
         {
-            Contracts.CheckParam(0 <= col && col < _getters.Length, nameof(col), "Invalid col value in GetGetter");
-            Contracts.Check(IsColumnActive(col));
-            if (_getters[col] is ValueGetter<T> fn)
+            Contracts.CheckParam(column.Index < _getters.Length, nameof(column), "Invalid col value in GetGetter");
+            Contracts.Check(IsColumnActive(column));
+            if (_getters[column.Index] is ValueGetter<TValue> fn)
                 return fn;
             throw Contracts.Except("Unexpected TValue in GetGetter");
         }
 
-        public override bool IsColumnActive(int col)
+        /// <summary>
+        /// Returns whether the given column is active in this row.
+        /// </summary>
+        public override bool IsColumnActive(DataViewSchema.Column column)
         {
-            Contracts.Check(0 <= col && col < _getters.Length);
-            return _getters[col] != null;
+            Contracts.Check(column.Index < _getters.Length);
+            return _getters[column.Index] != null;
         }
     }
 }
