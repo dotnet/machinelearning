@@ -26,7 +26,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Regularization">Weight of L1 regularization term.</param>
         /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="iterationsToRemember">Memory size for <see cref="Microsoft.ML.Trainers.LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
@@ -41,17 +41,17 @@ namespace Microsoft.ML.StaticPipe
             float l1Regularization = Options.Defaults.L1Regularization,
             float l2Regularization = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int iterationsToRemember = Options.Defaults.IterationsToRemember,
+            int historySize = Options.Defaults.HistorySize,
             bool enforceNonNegativity = Options.Defaults.EnforceNonNegativity,
             Action<CalibratedModelParametersBase<LinearBinaryModelParameters,PlattCalibrator>> onFit = null)
         {
-            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Regularization, l2Regularization, optimizationTolerance, iterationsToRemember, enforceNonNegativity, onFit);
+            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity, onFit);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new LogisticRegression(env, labelName, featuresName, weightsName,
-                        l1Regularization, l2Regularization, optimizationTolerance, iterationsToRemember, enforceNonNegativity);
+                        l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -122,7 +122,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Regularization">Weight of L1 regularization term.</param>
         /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="iterationsToRemember">Memory size for <see cref="Microsoft.ML.Trainers.LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
@@ -137,17 +137,17 @@ namespace Microsoft.ML.StaticPipe
             float l1Regularization = Options.Defaults.L1Regularization,
             float l2Regularization = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int iterationsToRemember = Options.Defaults.IterationsToRemember,
+            int historySize = Options.Defaults.HistorySize,
             bool enforceNonNegativity = Options.Defaults.EnforceNonNegativity,
             Action<PoissonRegressionModelParameters> onFit = null)
         {
-            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Regularization, l2Regularization, optimizationTolerance, iterationsToRemember, enforceNonNegativity, onFit);
+            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity, onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new PoissonRegression(env, labelName, featuresName, weightsName,
-                        l1Regularization, l2Regularization, optimizationTolerance, iterationsToRemember, enforceNonNegativity);
+                        l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -218,7 +218,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Regularization">Weight of L1 regularization term.</param>
         /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="iterationsToRemember">Memory size for <see cref="Microsoft.ML.Trainers.LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
@@ -234,17 +234,17 @@ namespace Microsoft.ML.StaticPipe
             float l1Regularization = Options.Defaults.L1Regularization,
             float l2Regularization = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int iterationsToRemember = Options.Defaults.IterationsToRemember,
+            int historySize = Options.Defaults.HistorySize,
             bool enforceNonNegativity = Options.Defaults.EnforceNonNegativity,
             Action<MulticlassLogisticRegressionModelParameters> onFit = null)
         {
-            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Regularization, l2Regularization, optimizationTolerance, iterationsToRemember, enforceNonNegativity, onFit);
+            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity, onFit);
 
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new MulticlassLogisticRegression(env, labelName, featuresName, weightsName,
-                         l1Regularization, l2Regularization, optimizationTolerance, iterationsToRemember, enforceNonNegativity);
+                         l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -307,7 +307,7 @@ namespace Microsoft.ML.StaticPipe
             float l1Regularization = Options.Defaults.L1Regularization,
             float l2Regularization = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int iterationsToRemember = Options.Defaults.IterationsToRemember,
+            int historySize = Options.Defaults.HistorySize,
             bool enforceNonNegativity = Options.Defaults.EnforceNonNegativity,
             Delegate onFit = null)
         {
@@ -316,7 +316,7 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckParam(l2Regularization >= 0, nameof(l2Regularization), "Must be non-negative");
             Contracts.CheckParam(l1Regularization >= 0, nameof(l1Regularization), "Must be non-negative");
             Contracts.CheckParam(optimizationTolerance > 0, nameof(optimizationTolerance), "Must be positive");
-            Contracts.CheckParam(iterationsToRemember > 0, nameof(iterationsToRemember), "Must be positive");
+            Contracts.CheckParam(historySize > 0, nameof(historySize), "Must be positive");
             Contracts.CheckValueOrNull(onFit);
         }
     }
