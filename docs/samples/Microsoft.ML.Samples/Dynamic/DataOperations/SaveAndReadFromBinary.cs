@@ -9,7 +9,7 @@ namespace Microsoft.ML.Samples.Dynamic.DataOperations
     {
         public static void Example()
         {
-            var mlContext = new MLContext();
+            MLContext mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
             IEnumerable<DatasetUtils.SampleTemperatureData> enumerableOfData = DatasetUtils.GetSampleTemperatureData(5);
@@ -19,13 +19,13 @@ namespace Microsoft.ML.Samples.Dynamic.DataOperations
 
             // Creating a FileStream object to create a file and use             
             // the stream to create a binary file.
-            using (var stream = new FileStream("./sample-temp-data.idv", FileMode.Create))
+            using (FileStream stream = new FileStream("./sample-temp-data.idv", FileMode.Create))
             {
                 mlContext.Data.SaveAsBinary(data, stream);
             }
 
             // Load a binary file by file path.
-            var binaryData = mlContext.Data.LoadFromBinary("./sample-temp-data.idv");
+            IDataView binaryData = mlContext.Data.LoadFromBinary("./sample-temp-data.idv");
         }
     }
 }
