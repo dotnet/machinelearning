@@ -144,14 +144,14 @@ namespace Microsoft.ML.Tests.Transformers
             };
 
             // First do an unordered hash.
-            var info = new HashingEstimator.ColumnOptions("Bar", "Foo", hashBits: bits);
+            var info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfHashBits: bits);
             var getter = hashGetter<uint>(info);
             uint result = 0;
             getter(ref result);
             Assert.Equal(expected, result);
 
             // Next do an ordered hash.
-            info = new HashingEstimator.ColumnOptions("Bar", "Foo", hashBits: bits, ordered: true);
+            info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfHashBits: bits, useOrderedHashing: true);
             getter = hashGetter<uint>(info);
             getter(ref result);
             Assert.Equal(expectedOrdered, result);
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Tests.Transformers
             builder.Add("Foo", new VectorType(type, vecLen), (ref VBuffer<T> dst) => denseVec.CopyTo(ref dst));
             inRow = AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
 
-            info = new HashingEstimator.ColumnOptions("Bar", "Foo", hashBits: bits, ordered: false);
+            info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfHashBits: bits, useOrderedHashing: false);
             var vecGetter = hashGetter<VBuffer<uint>>(info);
             VBuffer<uint> vecResult = default;
             vecGetter(ref vecResult);
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.All(vecResult.DenseValues(), v => Assert.Equal(expected, v));
 
             // Now do ordered with the dense vector.
-            info = new HashingEstimator.ColumnOptions("Bar", "Foo", hashBits: bits, ordered: true);
+            info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfHashBits: bits, useOrderedHashing: true);
             vecGetter = hashGetter<VBuffer<uint>>(info);
             vecGetter(ref vecResult);
 
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Tests.Transformers
             builder.Add("Foo", new VectorType(type, vecLen), (ref VBuffer<T> dst) => sparseVec.CopyTo(ref dst));
             inRow = AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
 
-            info = new HashingEstimator.ColumnOptions("Bar", "Foo", hashBits: bits, ordered: false);
+            info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfHashBits: bits, useOrderedHashing: false);
             vecGetter = hashGetter<VBuffer<uint>>(info);
             vecGetter(ref vecResult);
 
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expected, vecResult.GetItemOrDefault(3));
             Assert.Equal(expected, vecResult.GetItemOrDefault(7));
 
-            info = new HashingEstimator.ColumnOptions("Bar", "Foo", hashBits: bits, ordered: true);
+            info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfHashBits: bits, useOrderedHashing: true);
             vecGetter = hashGetter<VBuffer<uint>>(info);
             vecGetter(ref vecResult);
 

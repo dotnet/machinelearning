@@ -532,7 +532,7 @@ namespace Microsoft.ML.Transforms
             {
                 // First check whether we have a terms argument, and handle it appropriately.
                 var terms = columns[iinfo].Key.AsMemory();
-                var termsArray = columns[iinfo].KeysArray;
+                var termsArray = columns[iinfo].Keys;
 
                 terms = ReadOnlyMemoryUtils.TrimSpaces(terms);
                 if (!terms.IsEmpty || (termsArray != null && termsArray.Length > 0))
