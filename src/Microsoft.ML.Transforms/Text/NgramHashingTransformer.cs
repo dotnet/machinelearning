@@ -52,8 +52,8 @@ namespace Microsoft.ML.Transforms.Text
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Number of bits to hash into. Must be between 1 and 30, inclusive.",
-                ShortName = "bits")]
-            public int? HashBits;
+                Name = "HashBits", ShortName = "bits")]
+            public int? NumberOfBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
             public uint? Seed;
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 if (!int.TryParse(extra, out int bits))
                     return false;
-                HashBits = bits;
+                NumberOfBits = bits;
                 return true;
             }
 
@@ -103,10 +103,10 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     return false;
                 }
-                if (HashBits == null)
+                if (NumberOfBits == null)
                     return TryUnparseCore(sb);
 
-                string extra = HashBits.Value.ToString();
+                string extra = NumberOfBits.Value.ToString();
                 return TryUnparseCore(sb, extra);
             }
         }
@@ -133,8 +133,8 @@ namespace Microsoft.ML.Transforms.Text
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Number of bits to hash into. Must be between 1 and 30, inclusive.",
-                ShortName = "bits", SortOrder = 2)]
-            public int HashBits = NgramHashingEstimator.Defaults.HashBits;
+                Name = "HashBits", ShortName = "bits", SortOrder = 2)]
+            public int NumberOfBits = NgramHashingEstimator.Defaults.NumberOfBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
             public uint Seed = NgramHashingEstimator.Defaults.Seed;
@@ -353,7 +353,7 @@ namespace Microsoft.ML.Transforms.Text
                         item.NgramLength ?? options.NgramLength,
                         item.SkipLength ?? options.SkipLength,
                         item.AllLengths ?? options.AllLengths,
-                        item.HashBits ?? options.HashBits,
+                        item.NumberOfBits ?? options.NumberOfBits,
                         item.Seed ?? options.Seed,
                         item.Ordered ?? options.Ordered,
                         item.InvertHash ?? options.InvertHash,
@@ -408,13 +408,13 @@ namespace Microsoft.ML.Transforms.Text
                         _srcTypes[i][j] = srcType;
                     }
 
-                    _types[i] = new VectorType(NumberDataViewType.Single, 1 << _parent._columns[i].HashBits);
+                    _types[i] = new VectorType(NumberDataViewType.Single, 1 << _parent._columns[i].NumberOfBits);
                 }
             }
 
             private NgramIdFinder GetNgramIdFinder(int iinfo)
             {
-                uint mask = (1U << _parent._columns[iinfo].HashBits) - 1;
+                uint mask = (1U << _parent._columns[iinfo].NumberOfBits) - 1;
                 int ngramLength = _parent._columns[iinfo].NgramLength;
                 bool rehash = _parent._columns[iinfo].RehashUnigrams;
                 bool ordered = _parent._columns[iinfo].Ordered;
@@ -819,7 +819,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
 
                 var collector = _iinfoToCollector[iinfo] = new InvertHashCollector<NGram>(
-                    1 << _parent._columns[iinfo].HashBits, _invertHashMaxCounts[iinfo],
+                    1 << _parent._columns[iinfo].NumberOfBits, _invertHashMaxCounts[iinfo],
                     stringMapper, EqualityComparer<NGram>.Default, (in NGram src, ref NGram dst) => dst = src.Clone());
 
                 return
@@ -852,7 +852,7 @@ namespace Microsoft.ML.Transforms.Text
                     if (_iinfoToCollector[iinfo] != null)
                     {
                         var vec = values[iinfo] = _iinfoToCollector[iinfo].GetMetadata();
-                        Contracts.Assert(vec.Length == 1 << _parent._columns[iinfo].HashBits);
+                        Contracts.Assert(vec.Length == 1 << _parent._columns[iinfo].NumberOfBits);
                         types[iinfo] = new VectorType(TextDataViewType.Instance, vec.Length);
                     }
                 }
@@ -887,7 +887,7 @@ namespace Microsoft.ML.Transforms.Text
             /// <summary>Whether to store all ngram lengths up to <see cref="NgramLength"/>, or only <see cref="NgramLength"/>.</summary>
             public readonly bool AllLengths;
             /// <summary>Number of bits to hash into. Must be between 1 and 31, inclusive.</summary>
-            public readonly int HashBits;
+            public readonly int NumberOfBits;
             /// <summary>Hashing seed.</summary>
             public readonly uint Seed;
             /// <summary>Whether the position of each term should be included in the hash.</summary>
@@ -907,14 +907,14 @@ namespace Microsoft.ML.Transforms.Text
             internal string[] FriendlyNames;
 
             /// <summary>
-            /// Describes how the transformer handles one column pair.
+            /// Describes how the transformer maps several input columns, <paramref name="inputColumnNames"/>, to a output column, <paramref name="name"/>.
             /// </summary>
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.</param>
             /// <param name="inputColumnNames">Names of the columns to transform. </param>
             /// <param name="ngramLength">Maximum ngram length.</param>
             /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
             /// <param name="allLengths">Whether to store all ngram lengths up to <paramref name="ngramLength"/>, or only <paramref name="ngramLength"/>.</param>
-            /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
+            /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
             /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
             /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
@@ -928,7 +928,7 @@ namespace Microsoft.ML.Transforms.Text
                 int ngramLength = NgramHashingEstimator.Defaults.NgramLength,
                 int skipLength = NgramHashingEstimator.Defaults.SkipLength,
                 bool allLengths = NgramHashingEstimator.Defaults.AllLengths,
-                int hashBits = NgramHashingEstimator.Defaults.HashBits,
+                int numberOfBits = NgramHashingEstimator.Defaults.NumberOfBits,
                 uint seed = NgramHashingEstimator.Defaults.Seed,
                 bool ordered = NgramHashingEstimator.Defaults.Ordered,
                 int invertHash = NgramHashingEstimator.Defaults.InvertHash,
@@ -942,8 +942,8 @@ namespace Microsoft.ML.Transforms.Text
                     throw Contracts.ExceptParam(nameof(invertHash), "Value too small, must be -1 or larger");
                 // If the bits is 31 or higher, we can't declare a KeyValues of the appropriate length,
                 // this requiring a VBuffer of length 1u << 31 which exceeds int.MaxValue.
-                if (invertHash != 0 && hashBits >= 31)
-                    throw Contracts.ExceptParam(nameof(hashBits), $"Cannot support invertHash for a {0} bit hash. 30 is the maximum possible.", hashBits);
+                if (invertHash != 0 && numberOfBits >= 31)
+                    throw Contracts.ExceptParam(nameof(numberOfBits), $"Cannot support invertHash for a {0} bit hash. 30 is the maximum possible.", numberOfBits);
 
                 if (NgramLength + SkipLength > NgramBufferBuilder.MaxSkipNgramLength)
                 {
@@ -956,7 +956,7 @@ namespace Microsoft.ML.Transforms.Text
                 NgramLength = ngramLength;
                 SkipLength = skipLength;
                 AllLengths = allLengths;
-                HashBits = hashBits;
+                NumberOfBits = numberOfBits;
                 Seed = seed;
                 Ordered = ordered;
                 InvertHash = invertHash;
@@ -988,8 +988,8 @@ namespace Microsoft.ML.Transforms.Text
                 SkipLength = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(0 <= SkipLength && SkipLength <= NgramBufferBuilder.MaxSkipNgramLength);
                 Contracts.CheckDecode(SkipLength <= NgramBufferBuilder.MaxSkipNgramLength - NgramLength);
-                HashBits = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(1 <= HashBits && HashBits <= 30);
+                NumberOfBits = ctx.Reader.ReadInt32();
+                Contracts.CheckDecode(1 <= NumberOfBits && NumberOfBits <= 30);
                 Seed = ctx.Reader.ReadUInt32();
                 RehashUnigrams = ctx.Reader.ReadBoolByte();
                 Ordered = ctx.Reader.ReadBoolByte();
@@ -1018,8 +1018,8 @@ namespace Microsoft.ML.Transforms.Text
                 SkipLength = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(0 <= SkipLength && SkipLength <= NgramBufferBuilder.MaxSkipNgramLength);
                 Contracts.CheckDecode(SkipLength <= NgramBufferBuilder.MaxSkipNgramLength - NgramLength);
-                HashBits = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(1 <= HashBits && HashBits <= 30);
+                NumberOfBits = ctx.Reader.ReadInt32();
+                Contracts.CheckDecode(1 <= NumberOfBits && NumberOfBits <= 30);
                 Seed = ctx.Reader.ReadUInt32();
                 RehashUnigrams = ctx.Reader.ReadBoolByte();
                 Ordered = ctx.Reader.ReadBoolByte();
@@ -1052,8 +1052,8 @@ namespace Microsoft.ML.Transforms.Text
                 Contracts.Assert(0 <= SkipLength && SkipLength <= NgramBufferBuilder.MaxSkipNgramLength);
                 Contracts.Assert(NgramLength + SkipLength <= NgramBufferBuilder.MaxSkipNgramLength);
                 ctx.Writer.Write(SkipLength);
-                Contracts.Assert(1 <= HashBits && HashBits <= 30);
-                ctx.Writer.Write(HashBits);
+                Contracts.Assert(1 <= NumberOfBits && NumberOfBits <= 30);
+                ctx.Writer.Write(NumberOfBits);
                 ctx.Writer.Write(Seed);
                 ctx.Writer.WriteBoolByte(RehashUnigrams);
                 ctx.Writer.WriteBoolByte(Ordered);
@@ -1066,7 +1066,7 @@ namespace Microsoft.ML.Transforms.Text
             internal const int NgramLength = 2;
             internal const bool AllLengths = true;
             internal const int SkipLength = 0;
-            internal const int HashBits = 16;
+            internal const int NumberOfBits = 16;
             internal const uint Seed = 314489979;
             internal const bool RehashUnigrams = false;
             internal const bool Ordered = true;
@@ -1086,7 +1086,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="env">The environment.</param>
         /// <param name="outputColumnName">Name of output column, will contain the ngram vector. Null means <paramref name="inputColumnName"/> is replaced.</param>
         /// <param name="inputColumnName">Name of input column containing tokenized text.</param>
-        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
+        /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
@@ -1099,82 +1099,15 @@ namespace Microsoft.ML.Transforms.Text
         internal NgramHashingEstimator(IHostEnvironment env,
             string outputColumnName,
             string inputColumnName = null,
-            int hashBits = 16,
+            int numberOfBits = 16,
             int ngramLength = 2,
             int skipLength = 0,
             bool allLengths = true,
             uint seed = 314489979,
             bool ordered = true,
             int invertHash = 0)
-            : this(env, new[] { (outputColumnName, new[] { inputColumnName ?? outputColumnName }) }, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash)
+            : this(env, new ColumnOptions(outputColumnName, new[] { inputColumnName ?? outputColumnName }, ngramLength, skipLength, allLengths, numberOfBits, seed, ordered, invertHash))
         {
-        }
-
-        /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnNames"/>
-        /// and outputs ngram vector as <paramref name="outputColumnName"/>
-        ///
-        /// <see cref="NgramHashingEstimator"/> is different from <see cref="WordHashBagEstimator"/> in a way that <see cref="NgramHashingEstimator"/>
-        /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.
-        /// </summary>
-        /// <param name="env">The environment.</param>
-        /// <param name="outputColumnName">Name of output column, will contain the ngram vector.</param>
-        /// <param name="inputColumnNames">Name of input columns containing tokenized text.</param>
-        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
-        /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="seed">Hashing seed.</param>
-        /// <param name="ordered">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
-        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
-        /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        internal NgramHashingEstimator(IHostEnvironment env,
-            string outputColumnName,
-            string[] inputColumnNames,
-            int hashBits = 16,
-            int ngramLength = 2,
-            int skipLength = 0,
-            bool allLengths = true,
-            uint seed = 314489979,
-            bool ordered = true,
-            int invertHash = 0)
-            : this(env, new[] { (outputColumnName, inputColumnNames) }, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash)
-        {
-        }
-
-        /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="columns.inputs"/>
-        /// and outputs ngram vector for each output in <paramref name="columns.output"/>
-        ///
-        /// <see cref="NgramHashingEstimator"/> is different from <see cref="WordHashBagEstimator"/> in a way that <see cref="NgramHashingEstimator"/>
-        /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.
-        /// </summary>
-        /// <param name="env">The environment.</param>
-        /// <param name="columns">Pairs of input columns to output column mappings on which to compute ngram vector.</param>
-        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
-        /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="seed">Hashing seed.</param>
-        /// <param name="ordered">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
-        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
-        /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        internal NgramHashingEstimator(IHostEnvironment env,
-            (string outputColumnName, string[] inputColumnName)[] columns,
-            int hashBits = 16,
-            int ngramLength = 2,
-            int skipLength = 0,
-            bool allLengths = true,
-            uint seed = 314489979,
-            bool ordered = true,
-            int invertHash = 0)
-             : this(env, columns.Select(x => new ColumnOptions(x.outputColumnName, x.inputColumnName, ngramLength, skipLength, allLengths, hashBits, seed, ordered, invertHash)).ToArray())
-        {
-
         }
 
         /// <summary>
