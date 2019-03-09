@@ -28,7 +28,7 @@ namespace Microsoft.ML.Functional.Tests
         public void DetermineNugetVersionFromModel()
         {
             var modelFile = GetDataPath(@"backcompat" + Path.DirectorySeparatorChar + @"keep-model.zip");
-            var versionFileName = @"TrainingInfo" + Path.DirectorySeparatorChar + @"Version.txt";
+            var versionFileName = @"TrainingInfo\Version.txt"; // Can't find this cross plat.
             using (ZipArchive archive = ZipFile.OpenRead(modelFile))
             {
                 // The version of the entire model is kept in the version file.
