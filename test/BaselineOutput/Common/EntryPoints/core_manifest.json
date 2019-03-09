@@ -13503,7 +13503,7 @@
           }
         },
         {
-          "Name": "IterationsToRemember",
+          "Name": "HistorySize",
           "Type": "Int",
           "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
@@ -13823,7 +13823,7 @@
           }
         },
         {
-          "Name": "IterationsToRemember",
+          "Name": "HistorySize",
           "Type": "Int",
           "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
@@ -14848,7 +14848,7 @@
           }
         },
         {
-          "Name": "IterationsToRemember",
+          "Name": "HistorySize",
           "Type": "Int",
           "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
