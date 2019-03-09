@@ -57,7 +57,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new MLContext().Transforms.IidChangePointEstimator(
+                return new MLContext().Transforms.DetectIndependentIdenticallyDistributedChangePoint(
                     outputNames[outCol],
                     inputNames[outCol.Input],
                     _confidence,
@@ -121,7 +121,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new MLContext().Transforms.IidSpikeEstimator(
+                return new MLContext().Transforms.DetectIndependentIdenticallyDistributedSpike(
                     outputNames[outCol],
                     inputNames[outCol.Input],
                     _confidence,
@@ -200,7 +200,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new MLContext().Transforms.SsaChangePointEstimator(
+                return new MLContext().Transforms.SingularSpectrumAnalysisDetectChangePoint(
                     outputNames[outCol],
                     inputNames[outCol.Input],
                     _confidence,
@@ -282,7 +282,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new MLContext().Transforms.SsaSpikeEstimator(
+                return new MLContext().Transforms.SingularSpectrumAnalysisDetectSpike(
                     outputNames[outCol],
                     inputNames[outCol.Input],
                     _confidence,

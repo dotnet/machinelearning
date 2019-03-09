@@ -10,7 +10,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public static partial class TransformSamples
+    public static class DetectIndependentIdenticallyDistributedChangePoint
     {
         class ChangePointPrediction
         {
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
         // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
         // IidChangePointDetector is applied then to identify points where data distribution changed.
-        public static void IidChangePointDetectorTransform()
+        public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Samples.Dynamic
             string inputColumnName = nameof(IidChangePointData.Value);
 
             // The transformed data.
-            var transformedData = ml.Transforms.IidChangePointEstimator(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms.DetectIndependentIdenticallyDistributedChangePoint(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of ChangePointPrediction.
             var predictionColumn = ml.Data.CreateEnumerable<ChangePointPrediction>(transformedData, reuseRowObject: false);
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Samples.Dynamic
             string inputColumnName = nameof(IidChangePointData.Value);
 
             // Time Series model.
-            ITransformer model = ml.Transforms.IidChangePointEstimator(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView);
+            ITransformer model = ml.Transforms.DetectIndependentIdenticallyDistributedChangePoint(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView);
 
             // Create a time series prediction engine from the model.
             var engine = model.CreateTimeSeriesPredictionFunction<IidChangePointData, ChangePointPrediction>(ml);

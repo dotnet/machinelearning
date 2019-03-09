@@ -27,7 +27,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
-    /// This class implements the change point detector transform for an i.i.d. sequence based on adaptive kernel density estimation and martingales.
+    /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="IidChangePointEstimator" />.
     /// </summary>
     public sealed class IidChangePointDetector : IidAnomalyDetectionBaseWrapper, IStatefulTransformer
     {
@@ -192,16 +192,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
-    /// Estimator for <see cref="IidChangePointDetector"/>
+    /// The <see cref="IEstimator{ITransformer}"/> for detecting a signal change on an Independent Identically Distributed time series.
+    /// Detection is based on adaptive kernel density estimation and martingales.
     /// </summary>
-    /// <p>Example code can be found by searching for <i>IidChangePointDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
-    /// <example>
-    /// <format type="text/markdown">
-    /// <![CDATA[
-    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/IidChangePointDetectorTransform.cs)]
-    /// ]]>
-    /// </format>
-    /// </example>
     public sealed class IidChangePointEstimator : TrivialEstimator<IidChangePointDetector>
     {
         /// <summary>

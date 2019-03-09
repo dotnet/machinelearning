@@ -6,7 +6,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public static partial class TransformSamples
+    public static class DetectIndependentIdenticallyDistributedSpike
     {
         class IidSpikeData
         {
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
         // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
         // IidSpikeDetector is applied then to identify spiking points in the series.
-        public static void IidSpikeDetectorTransform()
+        public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Samples.Dynamic
             string inputColumnName = nameof(IidSpikeData.Value);
 
             // The transformed data.
-            var transformedData = ml.Transforms.IidSpikeEstimator(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms.DetectIndependentIdenticallyDistributedSpike(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of IidSpikePrediction.
             var predictionColumn = ml.Data.CreateEnumerable<IidSpikePrediction>(transformedData, reuseRowObject: false);
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Samples.Dynamic
             string outputColumnName = nameof(IidSpikePrediction.Prediction);
             string inputColumnName = nameof(IidSpikeData.Value);
             // The transformed model.
-            ITransformer model = ml.Transforms.IidChangePointEstimator(outputColumnName, inputColumnName, 95, Size).Fit(dataView);
+            ITransformer model = ml.Transforms.DetectIndependentIdenticallyDistributedSpike(outputColumnName, inputColumnName, 95, Size).Fit(dataView);
 
             // Create a time series prediction engine from the model.
             var engine = model.CreateTimeSeriesPredictionFunction<IidSpikeData, IidSpikePrediction>(ml);
