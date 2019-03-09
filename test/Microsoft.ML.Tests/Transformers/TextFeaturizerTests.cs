@@ -10,6 +10,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
@@ -184,7 +185,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var cursor = xf.GetRowCursorForAllColumns())
             {
                 VBuffer<ReadOnlyMemory<char>> text = default;
-                var getter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(cursor.Schema["Text"].Index);
+                var getter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(cursor.Schema["Text"]);
                 while (cursor.MoveNext())
                     getter(ref text);
             }
@@ -274,7 +275,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void LdaWorkout()
         {
-            IHostEnvironment env = new MLContext(seed: 42, conc: 1);
+            IHostEnvironment env = new MLContext(seed: 42);
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
             var data = TextLoaderStatic.CreateLoader(env, ctx => (
                     label: ctx.LoadBool(0),

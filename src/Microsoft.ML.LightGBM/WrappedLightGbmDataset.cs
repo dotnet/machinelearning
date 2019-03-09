@@ -4,6 +4,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.LightGBM
 {
@@ -54,7 +55,7 @@ namespace Microsoft.ML.LightGBM
             {
                 double*[] ptrArrayValues = new double*[numCol];
                 int*[] ptrArrayIndices = new int*[numCol];
-                for(int i = 0; i < numCol; i++)
+                for (int i = 0; i < numCol; i++)
                 {
                     gcValues[i] = GCHandle.Alloc(sampleValuePerColumn[i], GCHandleType.Pinned);
                     ptrArrayValues[i] = (double*)gcValues[i].AddrOfPinnedObject().ToPointer();

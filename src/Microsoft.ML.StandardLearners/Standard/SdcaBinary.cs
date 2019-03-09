@@ -19,6 +19,7 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
@@ -137,13 +138,7 @@ namespace Microsoft.ML.Trainers
         }
 
         private protected virtual int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
-        {
-            int maxThreads = Math.Min(8, Math.Max(1, Environment.ProcessorCount / 2));
-            if (0 < Host.ConcurrencyFactor && Host.ConcurrencyFactor < maxThreads)
-                maxThreads = Host.ConcurrencyFactor;
-
-            return maxThreads;
-        }
+            =>  Math.Min(8, Math.Max(1, Environment.ProcessorCount / 2));
     }
 
     public abstract class SdcaTrainerBase<TOptions, TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
@@ -206,7 +201,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.", NullName = "<Auto>", ShortName = "iter, MaxIterations")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "<Auto>,10,20,100")]
             [TlcModule.SweepableDiscreteParam("MaxIterations", new object[] { "<Auto>", 10, 20, 100 })]
-            public int? NumberOfIterations;
+            public int? MaximumNumberOfIterations;
 
             /// <summary>
             /// Determines whether to shuffle data for each training iteration.
@@ -241,7 +236,7 @@ namespace Microsoft.ML.Trainers
                 Contracts.AssertValue(env);
                 env.CheckUserArg(L2Regularization == null || L2Regularization >= 0, nameof(L2Regularization), "L2 constant must be non-negative.");
                 env.CheckUserArg(L1Threshold == null || L1Threshold >= 0, nameof(L1Threshold), "L1 threshold must be non-negative.");
-                env.CheckUserArg(NumberOfIterations == null || NumberOfIterations > 0, nameof(NumberOfIterations), "Max number of iterations must be positive.");
+                env.CheckUserArg(MaximumNumberOfIterations == null || MaximumNumberOfIterations > 0, nameof(MaximumNumberOfIterations), "Max number of iterations must be positive.");
                 env.CheckUserArg(ConvergenceTolerance > 0 && ConvergenceTolerance <= 1, nameof(ConvergenceTolerance), "Convergence tolerance must be positive and no larger than 1.");
 
                 if (L2Regularization < L2LowerBound)
@@ -309,7 +304,7 @@ namespace Microsoft.ML.Trainers
             SdcaTrainerOptions = options;
             SdcaTrainerOptions.L2Regularization = l2Const ?? options.L2Regularization;
             SdcaTrainerOptions.L1Threshold = l1Threshold ?? options.L1Threshold;
-            SdcaTrainerOptions.NumberOfIterations = maxIterations ?? options.NumberOfIterations;
+            SdcaTrainerOptions.MaximumNumberOfIterations = maxIterations ?? options.MaximumNumberOfIterations;
             SdcaTrainerOptions.Check(env);
         }
 
@@ -336,12 +331,6 @@ namespace Microsoft.ML.Trainers
             {
                 numThreads = SdcaTrainerOptions.NumberOfThreads.Value;
                 Host.CheckUserArg(numThreads > 0, nameof(OptionsBase.NumberOfThreads), "The number of threads must be either null or a positive integer.");
-                if (0 < Host.ConcurrencyFactor && Host.ConcurrencyFactor < numThreads)
-                {
-                    numThreads = Host.ConcurrencyFactor;
-                    ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
-                        + "setting of the environment. Using {0} training thread(s) instead.", numThreads);
-                }
             }
             else
                 numThreads = ComputeNumThreads(cursorFactory);
@@ -454,12 +443,12 @@ namespace Microsoft.ML.Trainers
 
             ch.Check(count > 0, "Training set has 0 instances, aborting training.");
             // Tune the default hyperparameters based on dataset size.
-            if (SdcaTrainerOptions.NumberOfIterations == null)
-                SdcaTrainerOptions.NumberOfIterations = TuneDefaultMaxIterations(ch, count, numThreads);
+            if (SdcaTrainerOptions.MaximumNumberOfIterations == null)
+                SdcaTrainerOptions.MaximumNumberOfIterations = TuneDefaultMaxIterations(ch, count, numThreads);
 
-            Contracts.Assert(SdcaTrainerOptions.NumberOfIterations.HasValue);
+            Contracts.Assert(SdcaTrainerOptions.MaximumNumberOfIterations.HasValue);
             if (SdcaTrainerOptions.L2Regularization == null)
-                SdcaTrainerOptions.L2Regularization = TuneDefaultL2(ch, SdcaTrainerOptions.NumberOfIterations.Value, count, numThreads);
+                SdcaTrainerOptions.L2Regularization = TuneDefaultL2(ch, SdcaTrainerOptions.MaximumNumberOfIterations.Value, count, numThreads);
 
             Contracts.Assert(SdcaTrainerOptions.L2Regularization.HasValue);
             if (SdcaTrainerOptions.L1Threshold == null)
@@ -559,8 +548,8 @@ namespace Microsoft.ML.Trainers
             ch.AssertValue(metricNames);
             ch.AssertValue(metrics);
             ch.Assert(metricNames.Length == metrics.Length);
-            ch.Assert(SdcaTrainerOptions.NumberOfIterations.HasValue);
-            var maxIterations = SdcaTrainerOptions.NumberOfIterations.Value;
+            ch.Assert(SdcaTrainerOptions.MaximumNumberOfIterations.HasValue);
+            var maxIterations = SdcaTrainerOptions.MaximumNumberOfIterations.Value;
 
             var rands = new Random[maxIterations];
             for (int i = 0; i < maxIterations; i++)

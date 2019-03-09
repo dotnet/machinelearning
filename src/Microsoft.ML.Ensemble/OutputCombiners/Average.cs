@@ -4,7 +4,7 @@
 
 using System;
 using Microsoft.ML;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(Average), null, typeof(SignatureCombiner), Average.UserName)]
@@ -56,8 +56,8 @@ namespace Microsoft.ML.Trainers.Ensemble
         public override Combiner<Single> GetCombiner()
         {
             // Force the weights to null.
-            return(ref Single dst, Single[] src, Single[] weights) =>
-                    CombineCore(ref dst, src, null);
+            return (ref Single dst, Single[] src, Single[] weights) =>
+                     CombineCore(ref dst, src, null);
         }
     }
 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Text;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.CommandLine
 {
@@ -39,50 +40,50 @@ namespace Microsoft.ML.CommandLine
                 char ch = _curs.ChCur;
                 switch (ch)
                 {
-                case '{':
-                    if (bldr.Length == ichDst)
-                        GatherCurlyGroup(bldr);
-                    return;
-
-                case '}':
-                    if (bldr.Length == ichDst)
-                    {
-                        bldr.Append(ch);
-                        _curs.ChNext();
-                        // Naked } is an error.
-                        _error = true;
-                    }
-                    return;
-
-                case '=':
-                    if (bldr.Length == ichDst)
-                    {
-                        bldr.Append(ch);
-                        _curs.ChNext();
-                    }
-                    return;
-
-                case '\\':
-                    if (_escapes)
-                    {
-                        GatherSlash(bldr, true);
-                        continue;
-                    }
-                    break;
-
-                case '"':
-                    GatherString(bldr, true);
-                    continue;
-
-                case '#':
-                    // Since we skipped comments, we should only get here if we've collected something.
-                    Contracts.Assert(bldr.Length > ichDst);
-                    return;
-
-                default:
-                    if (char.IsWhiteSpace(ch))
+                    case '{':
+                        if (bldr.Length == ichDst)
+                            GatherCurlyGroup(bldr);
                         return;
-                    break;
+
+                    case '}':
+                        if (bldr.Length == ichDst)
+                        {
+                            bldr.Append(ch);
+                            _curs.ChNext();
+                            // Naked } is an error.
+                            _error = true;
+                        }
+                        return;
+
+                    case '=':
+                        if (bldr.Length == ichDst)
+                        {
+                            bldr.Append(ch);
+                            _curs.ChNext();
+                        }
+                        return;
+
+                    case '\\':
+                        if (_escapes)
+                        {
+                            GatherSlash(bldr, true);
+                            continue;
+                        }
+                        break;
+
+                    case '"':
+                        GatherString(bldr, true);
+                        continue;
+
+                    case '#':
+                        // Since we skipped comments, we should only get here if we've collected something.
+                        Contracts.Assert(bldr.Length > ichDst);
+                        return;
+
+                    default:
+                        if (char.IsWhiteSpace(ch))
+                            return;
+                        break;
                 }
 
                 bldr.Append(ch);
@@ -93,7 +94,7 @@ namespace Microsoft.ML.CommandLine
         public void SkipWhiteSpace()
         {
             // Skip comments and whitespace
-            for (;;)
+            for (; ; )
             {
                 if (char.IsWhiteSpace(_curs.ChCur))
                 {
@@ -124,32 +125,32 @@ namespace Microsoft.ML.CommandLine
                 char ch = _curs.ChCur;
                 switch (ch)
                 {
-                case '{':
-                    count++;
-                    break;
+                    case '{':
+                        count++;
+                        break;
 
-                case '}':
-                    Contracts.Assert(count > 0);
-                    bldr.Append(ch);
-                    _curs.ChNext();
-                    if (--count <= 0)
-                        return;
-                    continue;
-
-                case '"':
-                    GatherString(bldr, false);
-                    continue;
-
-                case '\\':
-                    if (_escapes)
-                    {
-                        GatherSlash(bldr, false);
+                    case '}':
+                        Contracts.Assert(count > 0);
+                        bldr.Append(ch);
+                        _curs.ChNext();
+                        if (--count <= 0)
+                            return;
                         continue;
-                    }
-                    break;
 
-                default:
-                    break;
+                    case '"':
+                        GatherString(bldr, false);
+                        continue;
+
+                    case '\\':
+                        if (_escapes)
+                        {
+                            GatherSlash(bldr, false);
+                            continue;
+                        }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 bldr.Append(ch);
@@ -173,32 +174,32 @@ namespace Microsoft.ML.CommandLine
                 char ch = _curs.ChCur;
                 switch (ch)
                 {
-                case '{':
-                    count++;
-                    break;
+                    case '{':
+                        count++;
+                        break;
 
-                case '}':
-                    Contracts.Assert(count >= 0);
-                    _curs.ChNext();
-                    if (--count < 0)
-                        return;
-                    bldr.Append(ch);
-                    continue;
-
-                case '"':
-                    GatherString(bldr, false);
-                    continue;
-
-                case '\\':
-                    if (_escapes)
-                    {
-                        GatherSlash(bldr, count == 0);
+                    case '}':
+                        Contracts.Assert(count >= 0);
+                        _curs.ChNext();
+                        if (--count < 0)
+                            return;
+                        bldr.Append(ch);
                         continue;
-                    }
-                    break;
 
-                default:
-                    break;
+                    case '"':
+                        GatherString(bldr, false);
+                        continue;
+
+                    case '\\':
+                        if (_escapes)
+                        {
+                            GatherSlash(bldr, count == 0);
+                            continue;
+                        }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 bldr.Append(ch);
@@ -222,24 +223,24 @@ namespace Microsoft.ML.CommandLine
             // This assumes that slash is escaped iff it preceeds a special character
             switch (_curs.ChCur)
             {
-            case '"':
-            case '{':
-            case '}':
-            case '#':
-                // The escape case. Only keep half the slashes if we're reducing.
-                bldr.Append('\\', reduce ? cv / 2 : cv);
+                case '"':
+                case '{':
+                case '}':
+                case '#':
+                    // The escape case. Only keep half the slashes if we're reducing.
+                    bldr.Append('\\', reduce ? cv / 2 : cv);
 
-                // If there are an odd number of slashes, keep the next char.
-                if ((cv & 1) != 0)
-                {
-                    bldr.Append(_curs.ChCur);
-                    _curs.ChNext();
-                }
-                break;
+                    // If there are an odd number of slashes, keep the next char.
+                    if ((cv & 1) != 0)
+                    {
+                        bldr.Append(_curs.ChCur);
+                        _curs.ChNext();
+                    }
+                    break;
 
-            default:
-                bldr.Append('\\', cv);
-                break;
+                default:
+                    bldr.Append('\\', cv);
+                    break;
             }
         }
 
@@ -255,25 +256,25 @@ namespace Microsoft.ML.CommandLine
                 char ch = _curs.ChCur;
                 switch (ch)
                 {
-                case '"':
-                    if (!reduce)
-                        bldr.Append(_curs.ChCur);
-                    _curs.ChNext();
-                    return;
+                    case '"':
+                        if (!reduce)
+                            bldr.Append(_curs.ChCur);
+                        _curs.ChNext();
+                        return;
 
-                case '\\':
-                    if (_escapes)
-                    {
-                        GatherSlash(bldr, reduce);
-                        continue;
-                    }
-                    break;
+                    case '\\':
+                        if (_escapes)
+                        {
+                            GatherSlash(bldr, reduce);
+                            continue;
+                        }
+                        break;
 
-                case '\x0D':
-                case '\x0A':
-                    // Hitting end of line is an error.
-                    _error = true;
-                    return;
+                    case '\x0D':
+                    case '\x0A':
+                        // Hitting end of line is an error.
+                        _error = true;
+                        return;
                 }
 
                 bldr.Append(ch);
@@ -488,22 +489,22 @@ namespace Microsoft.ML.CommandLine
                 char ch = _str[_ich++];
                 switch (ch)
                 {
-                default:
-                    _sb.Append(ch);
-                    break;
+                    default:
+                        _sb.Append(ch);
+                        break;
 
-                // REVIEW: We need a proper grammar for quoting/unquoting!
-                case '{':
-                case '}':
-                case '"':
-                case '#':
-                    _sb.Append('\\');
-                    _sb.Append(ch);
-                    break;
+                    // REVIEW: We need a proper grammar for quoting/unquoting!
+                    case '{':
+                    case '}':
+                    case '"':
+                    case '#':
+                        _sb.Append('\\');
+                        _sb.Append(ch);
+                        break;
 
-                case '\\':
-                    HandleSlash();
-                    break;
+                    case '\\':
+                        HandleSlash();
+                        break;
                 }
             }
             _sb.Append("}");
@@ -530,19 +531,19 @@ namespace Microsoft.ML.CommandLine
 
             switch (_str[_ich])
             {
-            case '{':
-            case '}':
-            case '"':
-            case '#':
-                // Double the slashes, add one, and digest the special character.
-                _sb.Append('\\', 2 * count + 1);
-                _sb.Append(_str[_ich++]);
-                break;
+                case '{':
+                case '}':
+                case '"':
+                case '#':
+                    // Double the slashes, add one, and digest the special character.
+                    _sb.Append('\\', 2 * count + 1);
+                    _sb.Append(_str[_ich++]);
+                    break;
 
-            default:
-                // Just preserve the slashes.
-                _sb.Append('\\', count);
-                break;
+                default:
+                    // Just preserve the slashes.
+                    _sb.Append('\\', count);
+                    break;
             }
         }
     }

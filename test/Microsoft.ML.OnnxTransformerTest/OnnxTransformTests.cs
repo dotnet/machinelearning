@@ -10,6 +10,7 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
@@ -146,12 +147,12 @@ namespace Microsoft.ML.Tests
                 ms.Position = 0;
                 var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
 
-                loadedView.Schema.TryGetColumnIndex(outputNames[0], out int softMaxOut1);
+                var sofMaxOut1Col = loadedView.Schema[outputNames[0]];
 
-                using (var cursor = loadedView.GetRowCursor(loadedView.Schema[softMaxOut1]))
+                using (var cursor = loadedView.GetRowCursor(sofMaxOut1Col))
                 {
                     VBuffer<float> softMaxValue = default;
-                    var softMaxGetter = cursor.GetGetter<VBuffer<float>>(softMaxOut1);
+                    var softMaxGetter = cursor.GetGetter<VBuffer<float>>(sofMaxOut1Col);
                     float sum = 0f;
                     int i = 0;
                     while (cursor.MoveNext())
@@ -180,7 +181,7 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "squeezenet", "00000001", "model.onnx");
 
-            var env = new MLContext(conc: 1);
+            var env = new MLContext();
             var imageHeight = 224;
             var imageWidth = 224;
             var dataFile = GetDataPath("images/images.tsv");
@@ -201,12 +202,12 @@ namespace Microsoft.ML.Tests
             TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
 
             var result = pipe.Fit(data).Transform(data).AsDynamic;
-            result.Schema.TryGetColumnIndex("softmaxout_1", out int output);
+            var softmaxOutCol = result.Schema["softmaxout_1"];
 
-            using (var cursor = result.GetRowCursor(result.Schema["softmaxout_1"]))
+            using (var cursor = result.GetRowCursor(softmaxOutCol))
             {
                 var buffer = default(VBuffer<float>);
-                var getter = cursor.GetGetter<VBuffer<float>>(output);
+                var getter = cursor.GetGetter<VBuffer<float>>(softmaxOutCol);
                 var numRows = 0;
                 while (cursor.MoveNext())
                 {
@@ -229,7 +230,7 @@ namespace Microsoft.ML.Tests
         public void OnnxModelScenario()
         {
             var modelFile = "squeezenet/00000001/model.onnx";
-            var env = new ConsoleEnvironment(seed: 1, conc: 1);
+            var env = new ConsoleEnvironment(seed: 1);
             var samplevector = GetSampleArrayData();
 
             var dataView = ML.Data.LoadFromEnumerable(
@@ -241,12 +242,11 @@ namespace Microsoft.ML.Tests
                 });
 
             var onnx = ML.Transforms.ApplyOnnxModel(modelFile, "softmaxout_1", "data_0").Fit(dataView).Transform(dataView);
+            var scoreCol = onnx.Schema["softmaxout_1"];
 
-            onnx.Schema.TryGetColumnIndex("softmaxout_1", out int score);
-
-            using (var curs = onnx.GetRowCursor(onnx.Schema["softmaxout_1"]))
+            using (var curs = onnx.GetRowCursor(scoreCol))
             {
-                var getScores = curs.GetGetter<VBuffer<float>>(score);
+                var getScores = curs.GetGetter<VBuffer<float>>(scoreCol);
                 var buffer = default(VBuffer<float>);
                 while (curs.MoveNext())
                 {
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Tests
         public void OnnxModelMultiInput()
         {
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "twoinput", "twoinput.onnx");
-            var env = new ConsoleEnvironment(seed: 1, conc: 1);
+            var env = new ConsoleEnvironment(seed: 1);
             var samplevector = GetSampleArrayData();
 
             var dataView = ML.Data.LoadFromEnumerable(
@@ -273,12 +273,12 @@ namespace Microsoft.ML.Tests
                 });
             var onnx = ML.Transforms.ApplyOnnxModel(modelFile, new[] { "outa", "outb" }, new[] { "ina", "inb" }).Fit(dataView).Transform(dataView);
 
-            onnx.Schema.TryGetColumnIndex("outa", out int scoresa);
-            onnx.Schema.TryGetColumnIndex("outb", out int scoresb);
-            using (var curs = onnx.GetRowCursor(onnx.Schema["outa"], onnx.Schema["outb"]))
+            var outaCol = onnx.Schema["outa"];
+            var outbCol = onnx.Schema["outb"];
+            using (var curs = onnx.GetRowCursor(outaCol, onnx.Schema["outb"]))
             {
-                var getScoresa = curs.GetGetter<VBuffer<float>>(scoresa);
-                var getScoresb = curs.GetGetter<VBuffer<float>>(scoresb);
+                var getScoresa = curs.GetGetter<VBuffer<float>>(outaCol);
+                var getScoresb = curs.GetGetter<VBuffer<float>>(outbCol);
                 var buffera = default(VBuffer<float>);
                 var bufferb = default(VBuffer<float>);
 

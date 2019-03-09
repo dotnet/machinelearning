@@ -11,6 +11,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(WordHashBagProducingTransformer.Summary, typeof(IDataTransform), typeof(WordHashBagProducingTransformer), typeof(WordHashBagProducingTransformer.Options), typeof(SignatureDataTransform),
@@ -330,7 +331,7 @@ namespace Microsoft.ML.Transforms.Text
             if (termLoaderArgs != null)
                 termCols = new List<ValueToKeyMappingTransformer.Column>();
 
-	    var hashColumns = new List<HashingEstimator.ColumnOptions>();
+            var hashColumns = new List<HashingEstimator.ColumnOptions>();
             var ngramHashColumns = new NgramHashingEstimator.ColumnOptions[options.Columns.Length];
 
             var colCount = options.Columns.Length;

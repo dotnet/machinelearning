@@ -158,18 +158,15 @@ namespace Microsoft.ML.Tests
 
         private void ValidateTermTransformer(IDataView result)
         {
-            result.Schema.TryGetColumnIndex("TermA", out int ColA);
-            result.Schema.TryGetColumnIndex("TermB", out int ColB);
-            result.Schema.TryGetColumnIndex("TermC", out int ColC);
             using (var cursor = result.GetRowCursorForAllColumns())
             {
                 uint avalue = 0;
                 uint bvalue = 0;
                 uint cvalue = 0;
 
-                var aGetter = cursor.GetGetter<uint>(ColA);
-                var bGetter = cursor.GetGetter<uint>(ColB);
-                var cGetter = cursor.GetGetter<uint>(ColC);
+                var aGetter = cursor.GetGetter<uint>(result.Schema["TermA"]);
+                var bGetter = cursor.GetGetter<uint>(result.Schema["TermB"]);
+                var cGetter = cursor.GetGetter<uint>(result.Schema["TermC"]);
                 uint i = 1;
                 while (cursor.MoveNext())
                 {

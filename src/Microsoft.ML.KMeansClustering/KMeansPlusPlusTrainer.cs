@@ -14,6 +14,7 @@ using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(KMeansPlusPlusTrainer.Summary, typeof(KMeansPlusPlusTrainer), typeof(KMeansPlusPlusTrainer.Options),
@@ -25,7 +26,7 @@ using Microsoft.ML.Trainers;
 [assembly: LoadableClass(typeof(void), typeof(KMeansPlusPlusTrainer), null, typeof(SignatureEntryPointModule), "KMeans")]
 
 namespace Microsoft.ML.Trainers
-    {
+{
     /// <include file='./doc.xml' path='doc/members/member[@name="KMeans++"]/*' />
     public class KMeansPlusPlusTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansModelParameters>, KMeansModelParameters>
     {
@@ -79,7 +80,7 @@ namespace Microsoft.ML.Trainers
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations.", ShortName = "maxiter")]
             [TGUI(Label = "Max Number of Iterations")]
-            public int NumberOfIterations = 1000;
+            public int MaximumNumberOfIterations = 1000;
 
             /// <summary>
             /// Memory budget (in MBs) to use for KMeans acceleration.
@@ -125,8 +126,8 @@ namespace Microsoft.ML.Trainers
 
             _k = options.NumberOfClusters;
 
-            Host.CheckUserArg(options.NumberOfIterations > 0, nameof(options.NumberOfIterations), "Must be positive");
-            _maxIterations = options.NumberOfIterations;
+            Host.CheckUserArg(options.MaximumNumberOfIterations > 0, nameof(options.MaximumNumberOfIterations), "Must be positive");
+            _maxIterations = options.MaximumNumberOfIterations;
 
             Host.CheckUserArg(options.OptimizationTolerance > 0, nameof(options.OptimizationTolerance), "Tolerance must be positive");
             _convergenceThreshold = options.OptimizationTolerance;
@@ -138,7 +139,7 @@ namespace Microsoft.ML.Trainers
 
             Host.CheckUserArg(!options.NumberOfThreads.HasValue || options.NumberOfThreads > 0, nameof(options.NumberOfThreads),
                 "Must be either null or a positive integer.");
-            _numThreads = ComputeNumThreads(Host, options.NumberOfThreads);
+            _numThreads = ComputeNumThreads(options.NumberOfThreads);
             Info = new TrainerInfo();
         }
 
@@ -219,18 +220,13 @@ namespace Microsoft.ML.Trainers
             return new KMeansModelParameters(Host, _k, centroids, copyIn: true);
         }
 
-        private static int ComputeNumThreads(IHost host, int? argNumThreads)
+        private static int ComputeNumThreads(int? argNumThreads)
         {
             // REVIEW: For small data sets it would be nice to clamp down on concurrency, it
             // isn't going to get us a performance improvement.
-            int maxThreads;
-            if (host.ConcurrencyFactor < 1)
-                maxThreads = Environment.ProcessorCount / 2;
-            else
-                maxThreads = host.ConcurrencyFactor;
+            int maxThreads = Environment.ProcessorCount / 2;
 
-            // If we specified a number of threads that's fine, but it must be below the
-            // host-set concurrency factor.
+            // If we specified a number of threads that's fine, but it must be below maxThreads.
             if (argNumThreads.HasValue)
                 maxThreads = Math.Min(maxThreads, argNumThreads.Value);
 

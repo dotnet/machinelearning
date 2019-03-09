@@ -12,6 +12,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(FeatureContributionCalculatingTransformer.Summary, typeof(FeatureContributionCalculatingTransformer), null, typeof(SignatureLoadModel),
@@ -257,7 +258,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(_parent._predictor);
 
-                var featureGetter = input.GetGetter<TSrc>(colSrc);
+                var featureGetter = input.GetGetter<TSrc>(input.Schema[colSrc]);
 
                 var map = _parent._predictor.GetFeatureContributionMapper<TSrc, VBuffer<float>>(_parent.Top, _parent.Bottom, _parent.Normalize);
                 var features = default(TSrc);

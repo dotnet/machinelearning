@@ -12,6 +12,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
 [assembly: LoadableClass(typeof(void), typeof(Gam), null, typeof(SignatureEntryPointModule), "GAM")]
@@ -49,7 +50,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// </format>
     /// </example>
     public abstract partial class GamTrainerBase<TOptions, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
-        where TTransformer: ISingleFeaturePredictionTransformer<TPredictor>
+        where TTransformer : ISingleFeaturePredictionTransformer<TPredictor>
         where TOptions : GamTrainerBase<TOptions, TTransformer, TPredictor>.OptionsBase, new()
         where TPredictor : class
     {
@@ -510,7 +511,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 // Shift the mean from the bins into the intercept
                 MeanEffect += meanEffects[featureIndex];
-                for (int bin=0; bin < BinEffects[featureIndex].Length; ++bin)
+                for (int bin = 0; bin < BinEffects[featureIndex].Length; ++bin)
                     BinEffects[featureIndex][bin] -= meanEffects[featureIndex];
             }
         }
@@ -581,17 +582,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private void InitializeThreads()
         {
             ParallelTraining = new SingleTrainer();
-
-            int numThreads = GamTrainerOptions.NumberOfThreads ?? Environment.ProcessorCount;
-            if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
-                using (var ch = Host.Start("GamTrainer"))
-                {
-                    numThreads = Host.ConcurrencyFactor;
-                    ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
-                        + "setting of the environment. Using {0} training threads instead.", numThreads);
-                }
-
-            ThreadTaskManager.Initialize(numThreads);
+            ThreadTaskManager.Initialize(GamTrainerOptions.NumberOfThreads ?? Environment.ProcessorCount);
         }
 
         private protected abstract ObjectiveFunctionBase CreateObjectiveFunction();
@@ -646,7 +637,7 @@ namespace Microsoft.ML.Trainers.FastTree
             public SubGraph(int numFeatures, int numIterations)
             {
                 Splits = new Stump[numFeatures][];
-                for (int i =0; i < numFeatures; ++i)
+                for (int i = 0; i < numFeatures; ++i)
                 {
                     Splits[i] = new Stump[numIterations];
                     for (int j = 0; j < numIterations; j++)

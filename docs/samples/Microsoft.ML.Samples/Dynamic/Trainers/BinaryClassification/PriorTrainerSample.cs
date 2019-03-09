@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.ML.Data;
+﻿using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {

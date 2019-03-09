@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Data.DataView;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.TensorFlow;
 
 namespace Microsoft.ML.Transforms
@@ -107,7 +108,7 @@ namespace Microsoft.ML.Transforms
             string optimizationOperation,
             int epoch = 10,
             int batchSize = 20,
-            string lossOperation= null,
+            string lossOperation = null,
             string metricOperation = null,
             string learningRateOperation = null,
             float learningRate = 0.01f)

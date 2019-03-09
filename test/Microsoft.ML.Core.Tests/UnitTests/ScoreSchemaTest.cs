@@ -67,18 +67,18 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(TextDataViewType.Instance, scoreColumn.Annotations.Schema[2].Type);
 
             // Check metadata columns' values.
-            var keyNamesGetter = scoreMetadata.GetGetter<VBuffer<ReadOnlyMemory<char>>>(0);
+            var keyNamesGetter = scoreMetadata.GetGetter<VBuffer<ReadOnlyMemory<char>>>(scoreMetadata.Schema[0]);
             var actualKeyNames = new VBuffer<ReadOnlyMemory<char>>();
             keyNamesGetter(ref actualKeyNames);
             Assert.Equal(keyNames.Length, actualKeyNames.Length);
             Assert.Equal(keyNames.DenseValues(), actualKeyNames.DenseValues());
 
-            var scoreColumnKindGetter = scoreMetadata.GetGetter<ReadOnlyMemory<char>>(1);
+            var scoreColumnKindGetter = scoreMetadata.GetGetter<ReadOnlyMemory<char>>(scoreMetadata.Schema[1]);
             ReadOnlyMemory<char> scoreColumnKindValue = null;
             scoreColumnKindGetter(ref scoreColumnKindValue);
             Assert.Equal(AnnotationUtils.Const.ScoreColumnKind.SequenceClassification, scoreColumnKindValue.ToString());
 
-            var scoreValueKindGetter = scoreMetadata.GetGetter<ReadOnlyMemory<char>>(2);
+            var scoreValueKindGetter = scoreMetadata.GetGetter<ReadOnlyMemory<char>>(scoreMetadata.Schema[2]);
             ReadOnlyMemory<char> scoreValueKindValue = null;
             scoreValueKindGetter(ref scoreValueKindValue);
             Assert.Equal(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, scoreValueKindValue.ToString());
@@ -120,12 +120,12 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(TextDataViewType.Instance, scoreColumn.Annotations.Schema[1].Type);
 
             // Check metadata columns' values.
-            var scoreColumnKindGetter = scoreMetadata.GetGetter<ReadOnlyMemory<char>>(0);
+            var scoreColumnKindGetter = scoreMetadata.GetGetter<ReadOnlyMemory<char>>(scoreMetadata.Schema[0]);
             ReadOnlyMemory<char> scoreColumnKindValue = null;
             scoreColumnKindGetter(ref scoreColumnKindValue);
             Assert.Equal(AnnotationUtils.Const.ScoreColumnKind.SequenceClassification, scoreColumnKindValue.ToString());
 
-            var scoreValueKindGetter = scoreMetadata.GetGetter<ReadOnlyMemory<char>>(1);
+            var scoreValueKindGetter = scoreMetadata.GetGetter<ReadOnlyMemory<char>>(scoreMetadata.Schema[1]);
             ReadOnlyMemory<char> scoreValueKindValue = null;
             scoreValueKindGetter(ref scoreValueKindValue);
             Assert.Equal(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, scoreValueKindValue.ToString());

@@ -5,6 +5,7 @@
 using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Numeric
 {
@@ -25,9 +26,11 @@ namespace Microsoft.ML.Numeric
         /// <summary>
         /// Size of minibatches
         /// </summary>
-        public int BatchSize {
+        public int BatchSize
+        {
             get { return _batchSize; }
-            set {
+            set
+            {
                 Contracts.Check(value > 0);
                 _batchSize = value;
             }
@@ -38,9 +41,11 @@ namespace Microsoft.ML.Numeric
         /// <summary>
         /// Momentum parameter
         /// </summary>
-        public float Momentum {
+        public float Momentum
+        {
             get { return _momentum; }
-            set {
+            set
+            {
                 Contracts.Check(0 <= value && value < 1);
                 _momentum = value;
             }
@@ -51,9 +56,11 @@ namespace Microsoft.ML.Numeric
         /// <summary>
         /// Base of step size schedule s_t = 1 / (t0 + f(t))
         /// </summary>
-        public float T0 {
+        public float T0
+        {
             get { return _t0; }
-            set {
+            set
+            {
                 Contracts.Check(value >= 0);
                 _t0 = value;
             }
@@ -69,7 +76,8 @@ namespace Microsoft.ML.Numeric
         /// <summary>
         /// If true, iterates are averaged
         /// </summary>
-        public bool Averaging {
+        public bool Averaging
+        {
             get { return _averaging; }
             set { _averaging = value; }
         }
@@ -79,7 +87,8 @@ namespace Microsoft.ML.Numeric
         /// <summary>
         /// Gets/Sets rate schedule type
         /// </summary>
-        public RateScheduleType RateSchedule {
+        public RateScheduleType RateSchedule
+        {
             get { return _rateSchedule; }
             set { _rateSchedule = value; }
         }
@@ -89,9 +98,11 @@ namespace Microsoft.ML.Numeric
         /// <summary>
         /// Gets/Sets maximum number of steps. Set to 0 for no max
         /// </summary>
-        public int MaxSteps {
+        public int MaxSteps
+        {
             get { return _maxSteps; }
-            set {
+            set
+            {
                 Contracts.Check(value >= 0);
                 _maxSteps = value;
             }
@@ -238,9 +249,11 @@ namespace Microsoft.ML.Numeric
         /// <summary>
         /// Gets/Sets maximum number of steps. Set to 0 for no max.
         /// </summary>
-        public int MaxSteps {
+        public int MaxSteps
+        {
             get { return _maxSteps; }
-            set {
+            set
+            {
                 Contracts.Check(value >= 0);
                 _maxSteps = value;
             }

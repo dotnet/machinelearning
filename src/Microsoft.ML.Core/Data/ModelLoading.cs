@@ -7,6 +7,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
 {

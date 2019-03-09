@@ -10,7 +10,8 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(QuantileRegressionEvaluator), typeof(QuantileRegressionEvaluator), typeof(QuantileRegressionEvaluator.Arguments), typeof(SignatureEvaluator),
     "Quantile Regression Evaluator", QuantileRegressionEvaluator.LoadName, "QuantileRegression")]
@@ -393,7 +394,7 @@ namespace Microsoft.ML.Data
             var labelGetter = activeCols(L1Col) || activeCols(L2Col) ? RowCursorUtils.GetLabelGetter(input, LabelIndex) : nanGetter;
             ValueGetter<VBuffer<float>> scoreGetter;
             if (activeCols(L1Col) || activeCols(L2Col))
-                scoreGetter = input.GetGetter<VBuffer<float>>(ScoreIndex);
+                scoreGetter = input.GetGetter<VBuffer<float>>(input.Schema[ScoreIndex]);
             else
                 scoreGetter = (ref VBuffer<float> dst) => dst = default(VBuffer<float>);
             Action updateCacheIfNeeded =

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe;
 
 // Holds some classes that superficially represent classes, at least sufficiently to give the idea of the

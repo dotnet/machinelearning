@@ -11,14 +11,14 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
-using Microsoft.ML.Trainers;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers
 {
     public abstract class LbfgsTrainerBase<TOptions, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
       where TTransformer : ISingleFeaturePredictionTransformer<TModel>
       where TModel : class
-      where TOptions : LbfgsTrainerBase<TOptions, TTransformer, TModel>.OptionsBase, new ()
+      where TOptions : LbfgsTrainerBase<TOptions, TTransformer, TModel>.OptionsBase, new()
     {
         public abstract class OptionsBase : TrainerInputBaseWithWeight
         {
@@ -435,12 +435,6 @@ namespace Microsoft.ML.Trainers
             // Compute the number of threads to use. The ctor should have verified that this will
             // produce a positive value.
             int numThreads = !UseThreads ? 1 : (NumThreads ?? Environment.ProcessorCount);
-            if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
-            {
-                numThreads = Host.ConcurrencyFactor;
-                ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
-                        + "setting of the environment. Using {0} training threads instead.", numThreads);
-            }
 
             ch.Assert(numThreads > 0);
 

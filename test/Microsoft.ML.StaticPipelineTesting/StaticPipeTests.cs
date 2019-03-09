@@ -16,7 +16,6 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -51,9 +50,6 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
         }
 
-        private void CheckSchemaHasColumn(DataViewSchema schema, string name, out int idx)
-            => Assert.True(schema.TryGetColumnIndex(name, out idx), "Could not find column '" + name + "'");
-
         [Fact]
         public void SimpleTextLoaderCopyColumnsTest()
         {
@@ -74,22 +70,27 @@ namespace Microsoft.ML.StaticPipelineTesting
             // For now, just operate over the actual `IDataView`.
             var textData = text.Load(dataSource).AsDynamic;
 
+            Action<DataViewSchema, string> CheckSchemaHasColumn = (dataSchema, name) =>
+            {
+                Assert.True(dataSchema.GetColumnOrNull(name).HasValue, "Could not find column '" + name + "'");
+            };
+
             var schema = textData.Schema;
             // First verify that the columns are there. There ought to be at least one column corresponding to the identifiers in the tuple.
-            CheckSchemaHasColumn(schema, "label", out int labelIdx);
-            CheckSchemaHasColumn(schema, "text", out int textIdx);
-            CheckSchemaHasColumn(schema, "numericFeatures", out int numericFeaturesIdx);
+            CheckSchemaHasColumn(schema, "label");
+            CheckSchemaHasColumn(schema, "text");
+            CheckSchemaHasColumn(schema, "numericFeatures");
             // Next verify they have the expected types.
-            Assert.Equal(BooleanDataViewType.Instance, schema[labelIdx].Type);
-            Assert.Equal(TextDataViewType.Instance, schema[textIdx].Type);
-            Assert.Equal(new VectorType(NumberDataViewType.Single, 3), schema[numericFeaturesIdx].Type);
+            Assert.Equal(BooleanDataViewType.Instance, schema["label"].Type);
+            Assert.Equal(TextDataViewType.Instance, schema["text"].Type);
+            Assert.Equal(new VectorType(NumberDataViewType.Single, 3), schema["numericFeatures"].Type);
             // Next actually inspect the data.
             using (var cursor = textData.GetRowCursorForAllColumns())
             {
-                var textGetter = cursor.GetGetter<ReadOnlyMemory<char>>(textIdx);
-                var numericFeaturesGetter = cursor.GetGetter<VBuffer<float>>(numericFeaturesIdx);
+                var textGetter = cursor.GetGetter<ReadOnlyMemory<char>>(schema["text"]);
+                var numericFeaturesGetter = cursor.GetGetter<VBuffer<float>>(schema["numericFeatures"]);
                 ReadOnlyMemory<char> textVal = default;
-                var labelGetter = cursor.GetGetter<bool>(labelIdx);
+                var labelGetter = cursor.GetGetter<bool>(schema["label"]);
                 bool labelVal = default;
                 VBuffer<float> numVal = default;
 
@@ -122,11 +123,11 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             schema = newTextData.AsDynamic.Schema;
             // First verify that the columns are there. There ought to be at least one column corresponding to the identifiers in the tuple.
-            CheckSchemaHasColumn(schema, "label", out labelIdx);
-            CheckSchemaHasColumn(schema, "text", out textIdx);
+            CheckSchemaHasColumn(schema, "label");
+            CheckSchemaHasColumn(schema, "text");
             // Next verify they have the expected types.
-            Assert.Equal(BooleanDataViewType.Instance, schema[textIdx].Type);
-            Assert.Equal(new VectorType(NumberDataViewType.Single, 3), schema[labelIdx].Type);
+            Assert.Equal(BooleanDataViewType.Instance, schema["text"].Type);
+            Assert.Equal(new VectorType(NumberDataViewType.Single, 3), schema["label"].Type);
         }
 
         private sealed class Obnoxious1

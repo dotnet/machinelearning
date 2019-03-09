@@ -6,6 +6,7 @@
 using System;
 using Microsoft.ML;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace TestNamespace
 {
@@ -59,7 +60,7 @@ namespace TestNamespace
 }
 
 // Dummy declarations so that the independent compilation of contracts works as expected.
-namespace Microsoft.ML
+namespace Microsoft.ML.Runtime
 {
     [Flags]
     internal enum MessageSensitivity
@@ -75,7 +76,7 @@ namespace Microsoft.ML
     }
 }
 
-namespace Microsoft.ML.Model
+namespace Microsoft.ML
 {
     public sealed class ModelLoadContext { }
 }
