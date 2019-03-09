@@ -945,10 +945,10 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
         /// <param name="samplingStepCount">Number of Metropolis Hasting step.</param>
         /// <param name="maximumNumberOfIterations">Number of iterations.</param>
-        /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
         /// <param name="numberOfThreads">The number of training threads. Default value depends on number of logical processors.</param>
         /// <param name="maximumTokenCountPerDocument">The threshold of maximum count of tokens per doc.</param>
         /// <param name="numberOfSummaryTermsPerTopic">The number of words to summarize the topic.</param>
+        /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
         /// <param name="numberOfBurninIterations">The number of burn-in iterations.</param>
         /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
         internal LatentDirichletAllocationEstimator(IHostEnvironment env,
@@ -958,10 +958,10 @@ namespace Microsoft.ML.Transforms.Text
             float beta = Defaults.Beta,
             int samplingStepCount = Defaults.SamplingStepCount,
             int maximumNumberOfIterations = Defaults.MaximumNumberOfIterations,
-            int likelihoodInterval = Defaults.LikelihoodInterval,
             int numberOfThreads = Defaults.NumberOfThreads,
             int maximumTokenCountPerDocument = Defaults.MaximumTokenCountPerDocument,
             int numberOfSummaryTermsPerTopic = Defaults.NumberOfSummaryTermsPerTopic,
+            int likelihoodInterval = Defaults.LikelihoodInterval,
             int numberOfBurninIterations = Defaults.NumberOfBurninIterations,
             bool resetRandomGenerator = Defaults.ResetRandomGenerator)
             : this(env, new[] { new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName,

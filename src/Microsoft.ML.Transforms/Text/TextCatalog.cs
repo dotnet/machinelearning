@@ -580,16 +580,9 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="numberOfTopics">The number of topics.</param>
-        /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
-        /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
-        /// <param name="samplingStepCount">Number of Metropolis Hasting step.</param>
         /// <param name="maximumNumberOfIterations">Number of iterations.</param>
-        /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
-        /// <param name="numberOfThreads">The number of training threads. Default value depends on number of logical processors.</param>
         /// <param name="maximumTokenCountPerDocument">The threshold of maximum count of tokens per doc.</param>
         /// <param name="numberOfSummaryTermsPerTopic">The number of words to summarize the topic.</param>
-        /// <param name="numberOfBurninIterations">The number of burn-in iterations.</param>
-        /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -601,19 +594,21 @@ namespace Microsoft.ML
             string outputColumnName,
             string inputColumnName = null,
             int numberOfTopics = LatentDirichletAllocationEstimator.Defaults.NumberOfTopics,
-            float alphaSum = LatentDirichletAllocationEstimator.Defaults.AlphaSum,
-            float beta = LatentDirichletAllocationEstimator.Defaults.Beta,
-            int samplingStepCount = LatentDirichletAllocationEstimator.Defaults.SamplingStepCount,
             int maximumNumberOfIterations = LatentDirichletAllocationEstimator.Defaults.MaximumNumberOfIterations,
-            int likelihoodInterval = LatentDirichletAllocationEstimator.Defaults.LikelihoodInterval,
-            int numberOfThreads = LatentDirichletAllocationEstimator.Defaults.NumberOfThreads,
             int maximumTokenCountPerDocument = LatentDirichletAllocationEstimator.Defaults.MaximumTokenCountPerDocument,
-            int numberOfSummaryTermsPerTopic = LatentDirichletAllocationEstimator.Defaults.NumberOfSummaryTermsPerTopic,
-            int numberOfBurninIterations = LatentDirichletAllocationEstimator.Defaults.NumberOfBurninIterations,
-            bool resetRandomGenerator = LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator)
+            int numberOfSummaryTermsPerTopic = LatentDirichletAllocationEstimator.Defaults.NumberOfSummaryTermsPerTopic)
             => new LatentDirichletAllocationEstimator(CatalogUtils.GetEnvironment(catalog),
-                outputColumnName, inputColumnName, numberOfTopics, alphaSum, beta, samplingStepCount, maximumNumberOfIterations, likelihoodInterval, numberOfThreads,
-                maximumTokenCountPerDocument, numberOfSummaryTermsPerTopic, numberOfBurninIterations, resetRandomGenerator);
+                outputColumnName, inputColumnName, numberOfTopics,
+                LatentDirichletAllocationEstimator.Defaults.AlphaSum,
+                LatentDirichletAllocationEstimator.Defaults.Beta,
+                LatentDirichletAllocationEstimator.Defaults.SamplingStepCount,
+                maximumNumberOfIterations,
+                LatentDirichletAllocationEstimator.Defaults.NumberOfThreads,
+                maximumTokenCountPerDocument,
+                numberOfSummaryTermsPerTopic,
+                LatentDirichletAllocationEstimator.Defaults.LikelihoodInterval,
+                LatentDirichletAllocationEstimator.Defaults.NumberOfBurninIterations,
+                LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator);
 
         /// <summary>
         /// Uses <a href="https://arxiv.org/abs/1412.1576">LightLDA</a> to transform a document (represented as a vector of floats)

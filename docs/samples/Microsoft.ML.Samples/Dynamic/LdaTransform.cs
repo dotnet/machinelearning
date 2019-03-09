@@ -30,7 +30,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // A pipeline for featurizing the "Review" column
             var pipeline = ml.Transforms.Text.ProduceWordBags(review).
-                Append(ml.Transforms.Text.LatentDirichletAllocation(review, ldaFeatures, numberOfTopics:3));
+                Append(ml.Transforms.Text.LatentDirichletAllocation(review, ldaFeatures, numberOfTopics: 3));
 
             // The transformed data
             var transformer = pipeline.Fit(trainData);
