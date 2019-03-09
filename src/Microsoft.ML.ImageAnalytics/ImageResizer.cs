@@ -14,6 +14,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ImageResizingTransformer.Summary, typeof(IDataTransform), typeof(ImageResizingTransformer), typeof(ImageResizingTransformer.Arguments),

@@ -11,15 +11,15 @@ namespace Microsoft.ML
     {
         /// <include file='doc.xml' path='doc/members/member[@name="ImageGrayscalingEstimator"]/*' />
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputInputColumnPair">Names of the resulting output column (first item of the tuple), and the column containing the paths of the images to work on (second item of the tuple).</param>
+        /// <param name="columns">Specifies the names of the input columns for the transformation, and their respective output column names.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
         ///  [!code-csharp[ConvertToGrayscale](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/ConvertToGrayscale.cs)]
         /// ]]></format>
         /// </example>
-        public static ImageGrayscalingEstimator ConvertToGrayscale(this TransformsCatalog catalog, params ColumnOptions[] outputInputColumnPair)
-            => new ImageGrayscalingEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(outputInputColumnPair));
+        public static ImageGrayscalingEstimator ConvertToGrayscale(this TransformsCatalog catalog, params ColumnOptions[] columns)
+            => new ImageGrayscalingEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columns));
 
         /// <summary>
         /// Loads the images from the <see cref="ImageLoadingTransformer.ImageFolder" /> into memory.
@@ -34,15 +34,15 @@ namespace Microsoft.ML
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="imageFolder">The images folder.</param>
-        /// <param name="outputInputColumnPair">Names of the resulting output column (first item of the tuple), and the column containing the image paths (second item of the tuple).</param>
+        /// <param name="columns">Specifies the names of the input columns for the transformation, and their respective output column names.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
         ///  [!code-csharp[LoadImages](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/LoadImages.cs)]
         /// ]]></format>
         /// </example>
-        public static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string imageFolder, params ColumnOptions[] outputInputColumnPair)
-           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, ColumnOptions.ConvertToValueTuples(outputInputColumnPair));
+        public static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string imageFolder, params ColumnOptions[] columns)
+           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, ColumnOptions.ConvertToValueTuples(columns));
 
         /// <include file='doc.xml' path='doc/members/member[@name="ImagePixelExtractingEstimator"]/*' />
         /// <param name="catalog">The transform's catalog.</param>
