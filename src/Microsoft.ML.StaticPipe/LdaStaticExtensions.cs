@@ -149,7 +149,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="numberOfBurninIterations">The number of burn-in iterations.</param>
         /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
-        public static Vector<float> ToLatentDirichletAllocationTopicVector(this Vector<float> input,
+        public static Vector<float> LatentDirichletAllocation(this Vector<float> input,
             int numberOfTopics = LatentDirichletAllocationEstimator.Defaults.NumberOfTopics,
             Single alphaSum = LatentDirichletAllocationEstimator.Defaults.AlphaSum,
             Single beta = LatentDirichletAllocationEstimator.Defaults.Beta,
