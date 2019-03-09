@@ -239,7 +239,7 @@ namespace Microsoft.ML.Trainers
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int numIterations = Options.OnlineDefault.NumIterations)
+            int numIterations = Options.OnlineDefault.NumberOfIterations)
             : this(env, new Options
             {
                 LabelColumnName = labelColumn,

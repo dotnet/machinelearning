@@ -135,7 +135,7 @@ namespace Microsoft.ML.Trainers
             float learningRate = Options.AveragedDefault.LearningRate,
             bool decreaseLearningRate = Options.AveragedDefault.DecreaseLearningRate,
             float l2Regularization = Options.AveragedDefault.L2Regularization,
-            int numIterations = Options.AveragedDefault.NumIterations)
+            int numIterations = Options.AveragedDefault.NumberOfIterations)
             : this(env, new Options
             {
                 LabelColumnName = labelColumnName,

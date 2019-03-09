@@ -341,7 +341,7 @@ namespace Microsoft.ML
         /// Default is <see langword="false" />.
         /// </param>
         /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
-        /// <param name="numIterations">Number of passes through the training dataset.</param>
+        /// <param name="numberOfIterations">Number of passes through the training dataset.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -357,12 +357,12 @@ namespace Microsoft.ML
             float learningRate = AveragedLinearOptions.AveragedDefault.LearningRate,
             bool decreaseLearningRate = AveragedLinearOptions.AveragedDefault.DecreaseLearningRate,
             float l2Regularization = AveragedLinearOptions.AveragedDefault.L2Regularization,
-            int numIterations = AveragedLinearOptions.AveragedDefault.NumIterations)
+            int numberOfIterations = AveragedLinearOptions.AveragedDefault.NumberOfIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new AveragedPerceptronTrainer(env, labelColumnName, featureColumnName, lossFunction ?? new LogLoss(), learningRate, decreaseLearningRate, l2Regularization, numIterations);
+            return new AveragedPerceptronTrainer(env, labelColumnName, featureColumnName, lossFunction ?? new LogLoss(), learningRate, decreaseLearningRate, l2Regularization, numberOfIterations);
         }
 
         /// <summary>
@@ -412,7 +412,7 @@ namespace Microsoft.ML
         /// <param name="learningRate">The learning Rate.</param>
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
-        /// <param name="numIterations">Number of training iterations through the data.</param>
+        /// <param name="numberOfIterations">Number of training iterations through the data.</param>
         public static OnlineGradientDescentTrainer OnlineGradientDescent(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
@@ -420,12 +420,12 @@ namespace Microsoft.ML
             float learningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.LearningRate,
             bool decreaseLearningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.DecreaseLearningRate,
             float l2Regularization = AveragedLinearOptions.AveragedDefault.L2Regularization,
-            int numIterations = OnlineLinearOptions.OnlineDefault.NumIterations)
+            int numberOfIterations = OnlineLinearOptions.OnlineDefault.NumberOfIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
             return new OnlineGradientDescentTrainer(env, labelColumnName, featureColumnName, learningRate, decreaseLearningRate, l2Regularization,
-                numIterations, lossFunction);
+                numberOfIterations, lossFunction);
         }
 
         /// <summary>
@@ -694,15 +694,15 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column. </param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="numIterations">The number of training iteraitons.</param>
+        /// <param name="numberOfIterations">The number of training iteraitons.</param>
         public static LinearSvmTrainer LinearSupportVectorMachines(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int numIterations = OnlineLinearOptions.OnlineDefault.NumIterations)
+            int numberOfIterations = OnlineLinearOptions.OnlineDefault.NumberOfIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
-            return new LinearSvmTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, featureColumnName, exampleWeightColumnName, numIterations);
+            return new LinearSvmTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, featureColumnName, exampleWeightColumnName, numberOfIterations);
         }
 
         /// <summary>

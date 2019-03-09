@@ -104,7 +104,7 @@ namespace Microsoft.ML.Trainers
             float learningRate = Options.OgdDefaultArgs.LearningRate,
             bool decreaseLearningRate = Options.OgdDefaultArgs.DecreaseLearningRate,
             float l2Regularization = Options.OgdDefaultArgs.L2Regularization,
-            int numIterations = Options.OgdDefaultArgs.NumIterations,
+            int numIterations = Options.OgdDefaultArgs.NumberOfIterations,
             IRegressionLoss lossFunction = null)
             : this(env, new Options
             {

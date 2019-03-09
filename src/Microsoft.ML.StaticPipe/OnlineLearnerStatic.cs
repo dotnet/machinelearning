@@ -48,7 +48,7 @@ namespace Microsoft.ML.StaticPipe
                 float learningRate = AveragedLinearOptions.AveragedDefault.LearningRate,
                 bool decreaseLearningRate = AveragedLinearOptions.AveragedDefault.DecreaseLearningRate,
                 float l2Regularization = AveragedLinearOptions.AveragedDefault.L2Regularization,
-                int numIterations = AveragedLinearOptions.AveragedDefault.NumIterations,
+                int numIterations = AveragedLinearOptions.AveragedDefault.NumberOfIterations,
                 Action<LinearBinaryModelParameters> onFit = null
             )
         {
@@ -167,7 +167,7 @@ namespace Microsoft.ML.StaticPipe
             float learningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.LearningRate,
             bool decreaseLearningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.DecreaseLearningRate,
             float l2Regularization = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.L2Regularization,
-            int numIterations = OnlineLinearOptions.OnlineDefault.NumIterations,
+            int numIterations = OnlineLinearOptions.OnlineDefault.NumberOfIterations,
             Action<LinearRegressionModelParameters> onFit = null)
         {
             OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2Regularization, numIterations, onFit);

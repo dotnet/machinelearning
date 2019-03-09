@@ -27,7 +27,7 @@ namespace Microsoft.ML.Trainers
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter,numIterations", SortOrder = 50)]
         [TGUI(Label = "Number of Iterations", Description = "Number of training iterations through data", SuggestedSweeps = "1,10,100")]
         [TlcModule.SweepableLongParamAttribute("NumIterations", 1, 100, stepSize: 10, isLogScale: true)]
-        public int NumberOfIterations = OnlineDefault.NumIterations;
+        public int NumberOfIterations = OnlineDefault.NumberOfIterations;
 
         /// <summary>
         /// Initial weights and bias, comma-separated.
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Trainers
         [BestFriend]
         internal class OnlineDefault
         {
-            public const int NumIterations = 1;
+            public const int NumberOfIterations = 1;
         }
     }
 
