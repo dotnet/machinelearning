@@ -27,13 +27,14 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void DetermineNugetVersionFromModel()
         {
-            var modelFile = GetDataPath(@"backcompat\keep-model.zip");
+            var modelFile = GetDataPath(@"backcompat" + Path.DirectorySeparatorChar + @"keep-model.zip");
+            var versionFileName = @"TrainingInfo" + Path.DirectorySeparatorChar + @"Version.txt";
             using (ZipArchive archive = ZipFile.OpenRead(modelFile))
             {
                 // The version of the entire model is kept in the version file.
-                var version = archive.Entries.First(x => x.FullName == @"TrainingInfo\Version.txt");
-                Assert.NotNull(version);
-                using (var stream = version.Open())
+                var versionPath = archive.Entries.First(x => x.FullName == versionFileName);
+                Assert.NotNull(versionPath);
+                using (var stream = versionPath.Open())
                 using (var reader = new StreamReader(stream))
                 {
                     // The only line in the file is the version of the model.
