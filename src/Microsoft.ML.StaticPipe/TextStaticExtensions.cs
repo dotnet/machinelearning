@@ -512,8 +512,8 @@ namespace Microsoft.ML.StaticPipe
         {
             public readonly VarVector<Key<uint, string>> Input;
 
-            public OutPipelineColumn(VarVector<Key<uint, string>> input, int hashBits, int ngramLength, int skipLength, bool allLengths, uint seed, bool ordered, int invertHash)
-                : base(new Reconciler(hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash), input)
+            public OutPipelineColumn(VarVector<Key<uint, string>> input, int numberOfBits, int ngramLength, int skipLength, bool allLengths, uint seed, bool ordered, int invertHash)
+                : base(new Reconciler(numberOfBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash), input)
             {
                 Input = input;
             }
@@ -521,7 +521,7 @@ namespace Microsoft.ML.StaticPipe
 
         private sealed class Reconciler : EstimatorReconciler, IEquatable<Reconciler>
         {
-            private readonly int _hashBits;
+            private readonly int _numberOfBits;
             private readonly int _ngramLength;
             private readonly int _skipLength;
             private readonly bool _allLengths;
@@ -529,9 +529,9 @@ namespace Microsoft.ML.StaticPipe
             private readonly bool _ordered;
             private readonly int _invertHash;
 
-            public Reconciler(int hashBits, int ngramLength, int skipLength, bool allLengths, uint seed, bool ordered, int invertHash)
+            public Reconciler(int numberOfBits, int ngramLength, int skipLength, bool allLengths, uint seed, bool ordered, int invertHash)
             {
-                _hashBits = hashBits;
+                _numberOfBits = numberOfBits;
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
                 _allLengths = allLengths;
@@ -542,7 +542,7 @@ namespace Microsoft.ML.StaticPipe
 
             public bool Equals(Reconciler other)
             {
-                return _hashBits == other._hashBits &&
+                return _numberOfBits == other._numberOfBits &&
                     _ngramLength == other._ngramLength &&
                     _skipLength == other._skipLength &&
                     _allLengths == other._allLengths &&
@@ -561,7 +561,7 @@ namespace Microsoft.ML.StaticPipe
                 var columns = new List<NgramHashingEstimator.ColumnOptions>();
                 foreach (var outCol in toOutput)
                     columns.Add(new NgramHashingEstimator.ColumnOptions(outputNames[outCol], new[] { inputNames[((OutPipelineColumn)outCol).Input] },
-                          _ngramLength, _skipLength, _allLengths, _hashBits, _seed, _ordered, _invertHash));
+                          _ngramLength, _skipLength, _allLengths, _numberOfBits, _seed, _ordered, _invertHash));
 
                 return new NgramHashingEstimator(env, columns.ToArray());
             }
@@ -571,11 +571,11 @@ namespace Microsoft.ML.StaticPipe
         /// Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given tokenized text.
         /// It does so by hashing each ngram and using the hash value as the index in the bag.
         ///
-        /// <see cref="ToNgramsHash"/> is different from <see cref="WordHashBagEstimatorStaticExtensions.ToBagofHashedWords"/>
-        /// in a way that <see cref="ToNgramsHash"/> takes tokenized text as input while <see cref="WordHashBagEstimatorStaticExtensions.ToBagofHashedWords"/> tokenizes text internally.
+        /// <see cref="ApplyNgramHashing"/> is different from <see cref="WordHashBagEstimatorStaticExtensions.ToBagofHashedWords"/>
+        /// in a way that <see cref="ApplyNgramHashing"/> takes tokenized text as input while <see cref="WordHashBagEstimatorStaticExtensions.ToBagofHashedWords"/> tokenizes text internally.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
-        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
+        /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
@@ -585,13 +585,13 @@ namespace Microsoft.ML.StaticPipe
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        public static Vector<float> ToNgramsHash(this VarVector<Key<uint, string>> input,
-            int hashBits = 16,
+        public static Vector<float> ApplyNgramHashing(this VarVector<Key<uint, string>> input,
+            int numberOfBits = 16,
             int ngramLength = 2,
             int skipLength = 0,
             bool allLengths = true,
             uint seed = 314489979,
             bool ordered = true,
-            int invertHash = 0) => new OutPipelineColumn(input, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash);
+            int invertHash = 0) => new OutPipelineColumn(input, numberOfBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash);
     }
 }
