@@ -1136,7 +1136,7 @@ namespace Microsoft.ML.Transforms
             public readonly int NumberOfHashBits;
             /// <summary> Hashing seed.</summary>
             public readonly uint Seed;
-            /// <summary> Whether the position of each term should be included in the hash.</summary>
+            /// <summary> Whether the position of each term should be included in the hash, only applies to inputs of vector type.</summary>
             public readonly bool UseOrderedHashing;
             /// <summary>
             /// During hashing we constuct mappings between original values and the produced hash values.
@@ -1153,7 +1153,7 @@ namespace Microsoft.ML.Transforms
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="numberOfHashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
-            /// <param name="useOrderedHashing">Whether the position of each term should be included in the hash.</param>
+            /// <param name="useOrderedHashing">Whether the position of each term should be included in the hash, only applies to inputs of vector type..</param>
             /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
             /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
             /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.

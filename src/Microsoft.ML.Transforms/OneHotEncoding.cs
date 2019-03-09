@@ -106,9 +106,8 @@ namespace Microsoft.ML.Transforms
                     column.Source ?? column.Name,
                     column.OutputKind ?? options.OutputKind,
                     column.MaxNumTerms ?? options.MaxNumTerms,
-                    column.Sort ?? options.Sort,
-                    column.Terms ?? options.Terms);
-                col.SetTerms(column.Term ?? options.Term);
+                    column.Sort ?? options.Sort);
+                col.SetKeys(column.Terms ?? options.Terms, column.Term ?? options.Term);
                 columns.Add(col);
             }
             IDataView keyData = null;
@@ -195,19 +194,18 @@ namespace Microsoft.ML.Transforms
             /// <param name="maxNumberOfKeys">Maximum number of terms to keep per column when auto-training.</param>
             /// <param name="mappingOrder">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.MappingOrder.ByOccurrence"/> choosen they will be in the order encountered.
             /// If <see cref="ValueToKeyMappingEstimator.MappingOrder.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
-            /// <param name="keys">List of terms.</param>
             public ColumnOptions(string name, string inputColumnName = null,
                 OutputKind outputKind = Defaults.OutKind,
-                int maxNumberOfKeys = ValueToKeyMappingEstimator.Defaults.MaximumNumberOfKeys, ValueToKeyMappingEstimator.MappingOrder mappingOrder = ValueToKeyMappingEstimator.Defaults.Order,
-                string[] keys = null)
-                : base(name, inputColumnName ?? name, maxNumberOfKeys, mappingOrder, keys, true)
+                int maxNumberOfKeys = ValueToKeyMappingEstimator.Defaults.MaximumNumberOfKeys, ValueToKeyMappingEstimator.MappingOrder mappingOrder = ValueToKeyMappingEstimator.Defaults.Order)
+                : base(name, inputColumnName ?? name, maxNumberOfKeys, mappingOrder, true)
             {
                 OutputKind = outputKind;
             }
 
-            internal void SetTerms(string terms)
+            internal void SetKeys(string[] keys, string key)
             {
-                Key = terms;
+                Keys = keys;
+                Key = key;
             }
 
         }

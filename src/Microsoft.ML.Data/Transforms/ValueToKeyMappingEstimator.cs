@@ -40,24 +40,24 @@ namespace Microsoft.ML.Transforms
             public readonly string InputColumnName;
             public readonly MappingOrder MappingOrder;
             public readonly int MaximumNumberOfKeys;
-            public IReadOnlyList<string> Keys => KeysArray;
-            internal readonly string[] KeysArray;
-            public readonly bool KeyValuesAnnotationsAsText;
+            public readonly bool AddKeyValueAnnotationsAsText;
+
+            [BestFriend]
+            internal string[] Keys { get; set; }
 
             [BestFriend]
             internal string Key { get; set; }
 
             [BestFriend]
             private protected ColumnOptionsBase(string outputColumnName, string inputColumnName,
-                int maxNumberOfKeys, MappingOrder mappingOrder, string[] keys, bool keyValuesAnnotationsAsText)
+                int maxNumberOfKeys, MappingOrder mappingOrder, bool addKeyValueAnnotationsAsText)
             {
                 Contracts.CheckNonWhiteSpace(outputColumnName, nameof(outputColumnName));
                 OutputColumnName = outputColumnName;
                 InputColumnName = inputColumnName ?? outputColumnName;
                 MappingOrder = mappingOrder;
                 MaximumNumberOfKeys = maxNumberOfKeys;
-                Keys = keys;
-                KeyValuesAnnotationsAsText = keyValuesAnnotationsAsText;
+                AddKeyValueAnnotationsAsText = addKeyValueAnnotationsAsText;
             }
         }
 
@@ -74,14 +74,12 @@ namespace Microsoft.ML.Transforms
             /// <param name="maximumNumberOfKeys">Maximum number of keys to keep per column when auto-training.</param>
             /// <param name="mappingOrder">How items should be ordered when vectorized. If <see cref="MappingOrder.ByOccurrence"/> choosen they will be in the order encountered.
             /// If <see cref="MappingOrder.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
-            /// <param name="keys">List of terms.</param>
-            /// <param name="keyValuesAnnotationsAsText">Whether key value annotations should be text, regardless of the actual input type.</param>
+            /// <param name="addKeyValueAnnotationsAsText">Whether key value annotations should be text, regardless of the actual input type.</param>
             public ColumnOptions(string outputColumnName, string inputColumnName = null,
                 int maximumNumberOfKeys = Defaults.MaximumNumberOfKeys,
                 MappingOrder mappingOrder = Defaults.Order,
-                string[] keys = null,
-                bool keyValuesAnnotationsAsText = false)
-                : base(outputColumnName, inputColumnName, maximumNumberOfKeys, mappingOrder, keys, keyValuesAnnotationsAsText)
+                bool addKeyValueAnnotationsAsText = false)
+                : base(outputColumnName, inputColumnName, maximumNumberOfKeys, mappingOrder, addKeyValueAnnotationsAsText)
             {
             }
         }
@@ -148,7 +146,7 @@ namespace Microsoft.ML.Transforms
                 if (!col.IsKey || !col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var kv) || kv.Kind != SchemaShape.Column.VectorKind.Vector)
                 {
                     kv = new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector,
-                        colInfo.KeyValuesAnnotationsAsText ? TextDataViewType.Instance : col.ItemType, col.IsKey);
+                        colInfo.AddKeyValueAnnotationsAsText ? TextDataViewType.Instance : col.ItemType, col.IsKey);
                 }
                 Contracts.Assert(kv.IsValid);
 

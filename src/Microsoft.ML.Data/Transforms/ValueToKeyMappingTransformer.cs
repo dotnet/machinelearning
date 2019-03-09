@@ -262,7 +262,7 @@ namespace Microsoft.ML.Transforms
                 _unboundMaps = Train(Host, ch, infos, keyData, columns, input, autoConvert);
                 _textMetadata = new bool[_unboundMaps.Length];
                 for (int iinfo = 0; iinfo < columns.Length; ++iinfo)
-                    _textMetadata[iinfo] = columns[iinfo].KeyValuesAnnotationsAsText;
+                    _textMetadata[iinfo] = columns[iinfo].AddKeyValueAnnotationsAsText;
                 ch.Assert(_unboundMaps.Length == columns.Length);
             }
         }
@@ -300,8 +300,8 @@ namespace Microsoft.ML.Transforms
                         item.Source ?? item.Name,
                         item.MaxNumTerms ?? options.MaxNumTerms,
                         sortOrder,
-                        item.Terms,
                         item.TextKeyValues ?? options.TextKeyValues);
+                    cols[i].Keys = item.Terms;
                     cols[i].Key = item.Term ?? options.Term;
                 };
                 var keyData = GetKeyDataViewOrNull(env, ch, options.DataFile, options.TermsColumn, options.Loader, out bool autoLoaded);
