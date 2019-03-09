@@ -492,15 +492,15 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="maximumTermCount">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public static Vector<float> ToNgrams<TKey>(this VarVector<Key<TKey, string>> input,
             int ngramLength = 1,
             int skipLength = 0,
             bool allLengths = true,
-            int maxNumTerms = 10000000,
+            int maximumTermCount = 10000000,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
-                => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
+                => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maximumTermCount, weighting);
     }
 
     /// <summary>

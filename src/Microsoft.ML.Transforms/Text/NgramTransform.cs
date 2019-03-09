@@ -93,7 +93,7 @@ namespace Microsoft.ML.Transforms.Text
             public int SkipLength = NgramExtractingEstimator.Defaults.SkipLength;
 
             [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
-            public int[] MaxNumTerms = new int[] { NgramExtractingEstimator.Defaults.MaxNumTerms };
+            public int[] MaxNumTerms = new int[] { NgramExtractingEstimator.Defaults.MaximumTermCount };
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
             public NgramExtractingEstimator.WeightingCriteria Weighting = NgramExtractingEstimator.Defaults.Weighting;
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Transforms.Text
                     // Note: GetNgramIdFinderAdd will control how many ngrams of a specific length will
                     // be added (using lims[iinfo]), therefore we set slotLim to the maximum
                     helpers[iinfo] = new NgramBufferBuilder(ngramLength, skipLength, Utils.ArrayMaxSize,
-                        GetNgramIdFinderAdd(env, counts[iinfo], columns[iinfo].Limits, ngramMaps[iinfo], transformInfos[iinfo].RequireIdf));
+                        GetNgramIdFinderAdd(env, counts[iinfo], columns[iinfo].MaximumTermCounts, ngramMaps[iinfo], transformInfos[iinfo].RequireIdf));
                 }
 
                 int cInfoFull = 0;
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Transforms.Text
                                 }
                             }
                         }
-                        AssertValid(env, counts[iinfo], columns[iinfo].Limits, ngramMaps[iinfo]);
+                        AssertValid(env, counts[iinfo], columns[iinfo].MaximumTermCounts, ngramMaps[iinfo]);
                     }
                 }
 
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 for (int iinfo = 0; iinfo < columns.Length; iinfo++)
                 {
-                    AssertValid(env, counts[iinfo], columns[iinfo].Limits, ngramMaps[iinfo]);
+                    AssertValid(env, counts[iinfo], columns[iinfo].MaximumTermCounts, ngramMaps[iinfo]);
 
                     int ngramLength = transformInfos[iinfo].NgramLength;
                     for (int i = 0; i < ngramLength; i++)
@@ -319,11 +319,11 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [Conditional("DEBUG")]
-        private static void AssertValid(IHostEnvironment env, int[] counts, ImmutableArray<int> lims, SequencePool pool)
+        private static void AssertValid(IHostEnvironment env, int[] counts, IReadOnlyList<int> lims, SequencePool pool)
         {
             int count = 0;
             int countFull = 0;
-            for (int i = 0; i < lims.Length; i++)
+            for (int i = 0; i < lims.Count; i++)
             {
                 env.Assert(counts[i] >= 0);
                 env.Assert(counts[i] <= lims[i]);
@@ -334,20 +334,20 @@ namespace Microsoft.ML.Transforms.Text
             env.Assert(count == pool.Count);
         }
 
-        private static NgramIdFinder GetNgramIdFinderAdd(IHostEnvironment env, int[] counts, ImmutableArray<int> lims, SequencePool pool, bool requireIdf)
+        private static NgramIdFinder GetNgramIdFinderAdd(IHostEnvironment env, int[] counts, IReadOnlyList<int> lims, SequencePool pool, bool requireIdf)
         {
             Contracts.AssertValue(env);
-            env.Assert(lims.Length > 0);
-            env.Assert(lims.Length == Utils.Size(counts));
+            env.Assert(lims.Count > 0);
+            env.Assert(lims.Count == Utils.Size(counts));
 
             int numFull = lims.Count(l => l <= 0);
-            int ngramLength = lims.Length;
+            int ngramLength = lims.Count;
             return
                 (uint[] ngram, int lim, int icol, ref bool more) =>
                 {
                     env.Assert(0 < lim && lim <= Utils.Size(ngram));
                     env.Assert(lim <= Utils.Size(counts));
-                    env.Assert(lim <= lims.Length);
+                    env.Assert(lim <= lims.Count);
                     env.Assert(icol == 0);
 
                     var max = lim - 1;
@@ -695,7 +695,7 @@ namespace Microsoft.ML.Transforms.Text
             public const int NgramLength = 2;
             public const bool AllLengths = true;
             public const int SkipLength = 0;
-            public const int MaxNumTerms = 10000000;
+            public const int MaximumTermCount = 10000000;
             public const WeightingCriteria Weighting = WeightingCriteria.Tf;
         }
 
@@ -712,16 +712,16 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="maximumTermCount">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         internal NgramExtractingEstimator(IHostEnvironment env,
             string outputColumnName, string inputColumnName = null,
             int ngramLength = Defaults.NgramLength,
             int skipLength = Defaults.SkipLength,
             bool allLengths = Defaults.AllLengths,
-            int maxNumTerms = Defaults.MaxNumTerms,
+            int maximumTermCount = Defaults.MaximumTermCount,
             WeightingCriteria weighting = Defaults.Weighting)
-            : this(env, new[] { (outputColumnName, inputColumnName ?? outputColumnName) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
+            : this(env, new[] { (outputColumnName, inputColumnName ?? outputColumnName) }, ngramLength, skipLength, allLengths, maximumTermCount, weighting)
         {
         }
 
@@ -734,16 +734,16 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="maximumTermCount">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         internal NgramExtractingEstimator(IHostEnvironment env,
             (string outputColumnName, string inputColumnName)[] columns,
             int ngramLength = Defaults.NgramLength,
             int skipLength = Defaults.SkipLength,
             bool allLengths = Defaults.AllLengths,
-            int maxNumTerms = Defaults.MaxNumTerms,
+            int maximumTermCount = Defaults.MaximumTermCount,
             WeightingCriteria weighting = Defaults.Weighting)
-            : this(env, columns.Select(x => new ColumnOptions(x.outputColumnName, x.inputColumnName, ngramLength, skipLength, allLengths, weighting, maxNumTerms)).ToArray())
+            : this(env, columns.Select(x => new ColumnOptions(x.outputColumnName, x.inputColumnName, ngramLength, skipLength, allLengths, weighting, maximumTermCount)).ToArray())
         {
         }
 
@@ -809,10 +809,14 @@ namespace Microsoft.ML.Transforms.Text
             /// <summary>The weighting criteria.</summary>
             public readonly WeightingCriteria Weighting;
             /// <summary>
+            /// Underlying state of <see cref="MaximumTermCounts"/>.
+            /// </summary>
+            private readonly ImmutableArray<int> _maximumTermCounts;
+            /// <summary>
             /// Contains the maximum number of grams to store in the dictionary, for each level of ngrams,
             /// from 1 (in position 0) up to ngramLength (in position ngramLength-1)
             /// </summary>
-            public readonly ImmutableArray<int> Limits;
+            public IReadOnlyList<int> MaximumTermCounts => _maximumTermCounts;
 
             /// <summary>
             /// Describes how the transformer handles one Gcn column pair.
@@ -823,14 +827,14 @@ namespace Microsoft.ML.Transforms.Text
             /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
             /// <param name="allLengths">Whether to store all ngram lengths up to ngramLength, or only ngramLength.</param>
             /// <param name="weighting">The weighting criteria.</param>
-            /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
+            /// <param name="maximumTermCount">Maximum number of ngrams to store in the dictionary.</param>
             public ColumnOptions(string name, string inputColumnName = null,
                 int ngramLength = Defaults.NgramLength,
                 int skipLength = Defaults.SkipLength,
                 bool allLengths = Defaults.AllLengths,
                 WeightingCriteria weighting = Defaults.Weighting,
-                int maxNumTerms = Defaults.MaxNumTerms)
-                : this(name, ngramLength, skipLength, allLengths, weighting, new int[] { maxNumTerms }, inputColumnName ?? name)
+                int maximumTermCount = Defaults.MaximumTermCount)
+                : this(name, ngramLength, skipLength, allLengths, weighting, new int[] { maximumTermCount }, inputColumnName ?? name)
             {
             }
 
@@ -839,7 +843,7 @@ namespace Microsoft.ML.Transforms.Text
                 int skipLength,
                 bool allLengths,
                 WeightingCriteria weighting,
-                int[] maxNumTerms,
+                int[] maximumTermCounts,
                 string inputColumnName = null)
             {
                 Name = name;
@@ -857,18 +861,18 @@ namespace Microsoft.ML.Transforms.Text
                 var limits = new int[ngramLength];
                 if (!AllLengths)
                 {
-                    Contracts.CheckUserArg(Utils.Size(maxNumTerms) == 0 ||
-                        Utils.Size(maxNumTerms) == 1 && maxNumTerms[0] > 0, nameof(maxNumTerms));
-                    limits[ngramLength - 1] = Utils.Size(maxNumTerms) == 0 ? Defaults.MaxNumTerms : maxNumTerms[0];
+                    Contracts.CheckUserArg(Utils.Size(maximumTermCounts) == 0 ||
+                        Utils.Size(maximumTermCounts) == 1 && maximumTermCounts[0] > 0, nameof(maximumTermCounts));
+                    limits[ngramLength - 1] = Utils.Size(maximumTermCounts) == 0 ? Defaults.MaximumTermCount : maximumTermCounts[0];
                 }
                 else
                 {
-                    Contracts.CheckUserArg(Utils.Size(maxNumTerms) <= ngramLength, nameof(maxNumTerms));
-                    Contracts.CheckUserArg(Utils.Size(maxNumTerms) == 0 || maxNumTerms.All(i => i >= 0) && maxNumTerms[maxNumTerms.Length - 1] > 0, nameof(maxNumTerms));
-                    var extend = Utils.Size(maxNumTerms) == 0 ? Defaults.MaxNumTerms : maxNumTerms[maxNumTerms.Length - 1];
-                    limits = Utils.BuildArray(ngramLength, i => i < Utils.Size(maxNumTerms) ? maxNumTerms[i] : extend);
+                    Contracts.CheckUserArg(Utils.Size(maximumTermCounts) <= ngramLength, nameof(maximumTermCounts));
+                    Contracts.CheckUserArg(Utils.Size(maximumTermCounts) == 0 || maximumTermCounts.All(i => i >= 0) && maximumTermCounts[maximumTermCounts.Length - 1] > 0, nameof(maximumTermCounts));
+                    var extend = Utils.Size(maximumTermCounts) == 0 ? Defaults.MaximumTermCount : maximumTermCounts[maximumTermCounts.Length - 1];
+                    limits = Utils.BuildArray(ngramLength, i => i < Utils.Size(maximumTermCounts) ? maximumTermCounts[i] : extend);
                 }
-                Limits = ImmutableArray.Create(limits);
+                _maximumTermCounts = ImmutableArray.Create(limits);
             }
         }
 

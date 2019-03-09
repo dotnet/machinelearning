@@ -229,7 +229,7 @@ namespace Microsoft.ML.Transforms.Text
             public bool AllLengths = NgramExtractingEstimator.Defaults.AllLengths;
 
             [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
-            public int[] MaxNumTerms = new int[] { NgramExtractingEstimator.Defaults.MaxNumTerms };
+            public int[] MaxNumTerms = new int[] { NgramExtractingEstimator.Defaults.MaximumTermCount };
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
             public NgramExtractingEstimator.WeightingCriteria Weighting = NgramExtractingEstimator.Defaults.Weighting;
@@ -315,7 +315,7 @@ namespace Microsoft.ML.Transforms.Text
                     termArgs =
                         new ValueToKeyMappingTransformer.Options()
                         {
-                            MaxNumTerms = Utils.Size(options.MaxNumTerms) > 0 ? options.MaxNumTerms[0] : NgramExtractingEstimator.Defaults.MaxNumTerms,
+                            MaxNumTerms = Utils.Size(options.MaxNumTerms) > 0 ? options.MaxNumTerms[0] : NgramExtractingEstimator.Defaults.MaximumTermCount,
                             Columns = new ValueToKeyMappingTransformer.Column[termCols.Count]
                         };
                 }
