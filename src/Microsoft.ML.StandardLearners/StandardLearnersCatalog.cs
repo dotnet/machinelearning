@@ -453,7 +453,7 @@ namespace Microsoft.ML
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Regularization">Weight of L1 regularization term.</param>
         /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="iterationsToRemember">Memory size for <see cref="Trainers.LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Memory size for <see cref="Trainers.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -469,12 +469,12 @@ namespace Microsoft.ML
             float l1Regularization = LROptions.Defaults.L1Regularization,
             float l2Regularization = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int iterationsToRemember = LROptions.Defaults.IterationsToRemember,
+            int historySize = LROptions.Defaults.HistorySize,
             bool enforceNonNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LogisticRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, iterationsToRemember, enforceNonNegativity);
+            return new LogisticRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
         }
 
         /// <summary>
@@ -501,7 +501,7 @@ namespace Microsoft.ML
         /// <param name="l1Regularization">Weight of L1 regularization term.</param>
         /// <param name="l2Regularization">Weight of L2 regularization term.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="iterationsToRemember">Memory size for <see cref="Microsoft.ML.Trainers.PoissonRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.PoissonRegression"/>. Low=faster, less accurate.</param>
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         public static PoissonRegression PoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
@@ -510,12 +510,12 @@ namespace Microsoft.ML
             float l1Regularization = LROptions.Defaults.L1Regularization,
             float l2Regularization = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int iterationsToRemember = LROptions.Defaults.IterationsToRemember,
+            int historySize = LROptions.Defaults.HistorySize,
             bool enforceNonNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new PoissonRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, iterationsToRemember, enforceNonNegativity);
+            return new PoissonRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
         }
 
         /// <summary>
@@ -542,7 +542,7 @@ namespace Microsoft.ML
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Regularization">Weight of L1 regularization term.</param>
         /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="iterationsToRemember">Memory size for <see cref="Microsoft.ML.Trainers.MulticlassLogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.MulticlassLogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         public static MulticlassLogisticRegression LogisticRegression(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
@@ -551,12 +551,12 @@ namespace Microsoft.ML
             float l1Regularization = LROptions.Defaults.L1Regularization,
             float l2Regularization = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int iterationsToRemember = LROptions.Defaults.IterationsToRemember,
+            int historySize = LROptions.Defaults.HistorySize,
             bool enforceNonNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new MulticlassLogisticRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, iterationsToRemember, enforceNonNegativity);
+            return new MulticlassLogisticRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
         }
 
         /// <summary>
