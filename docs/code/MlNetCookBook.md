@@ -578,6 +578,7 @@ var biases = modelParameters.GetBiases();
 // 		[2]	-9.709775	float
 
 ```
+For more explainability samples, refer to the [Explainability CookBook](./ExplainabilityCookBook.md)
 
 ## What is normalization and why do I need to care?
 
