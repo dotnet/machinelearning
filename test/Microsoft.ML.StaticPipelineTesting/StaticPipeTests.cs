@@ -604,7 +604,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    ngrams: r.text.TokenizeText().ToKey().ToNgrams(),
+                    ngrams: r.text.TokenizeText().ToKey().ProduceNgrams(),
                     ngramshash: r.text.TokenizeText().ToKey().ApplyNgramHashing()));
 
             var tdata = est.Fit(data).Transform(data);
