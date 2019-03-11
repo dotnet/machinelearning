@@ -200,7 +200,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new MLContext().Transforms.SingularSpectrumAnalysisDetectChangePoint(
+                return new MLContext().Transforms.SsaDetectChangePoint(
                     outputNames[outCol],
                     inputNames[outCol.Input],
                     _confidence,
@@ -282,7 +282,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new MLContext().Transforms.SingularSpectrumAnalysisDetectSpike(
+                return new MLContext().Transforms.SsaDetectSpike(
                     outputNames[outCol],
                     inputNames[outCol.Input],
                     _confidence,

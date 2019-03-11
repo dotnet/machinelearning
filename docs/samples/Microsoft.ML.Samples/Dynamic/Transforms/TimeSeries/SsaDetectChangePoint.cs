@@ -6,7 +6,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public static class SingularSpectrumAnalysisDetectChangePoint
+    public static class SsaDetectChangePoint
     {
         class ChangePointPrediction
         {
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var outputColumnName = nameof(ChangePointPrediction.Prediction);
 
             // The transformed data.
-            var transformedData = ml.Transforms.SingularSpectrumAnalysisDetectChangePoint(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms.SsaDetectChangePoint(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of ChangePointPrediction.
             var predictionColumn = ml.Data.CreateEnumerable<ChangePointPrediction>(transformedData, reuseRowObject: false);
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var outputColumnName = nameof(ChangePointPrediction.Prediction);
 
             // Train the change point detector.
-            ITransformer model = ml.Transforms.SingularSpectrumAnalysisDetectChangePoint(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView);
+            ITransformer model = ml.Transforms.SsaDetectChangePoint(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView);
 
             // Create a prediction engine from the model for feeding new data.
             var engine = model.CreateTimeSeriesPredictionFunction<SsaChangePointData, ChangePointPrediction>(ml);

@@ -24,7 +24,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[DetectIidChangePoint](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectIndependentIdenticallyDistributedChangePoint.cs)]
+        /// [!code-csharp[DetectIidChangePoint](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectIidChangePoint.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -45,7 +45,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[DetectIidSpike](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectIndependentIdenticallyDistributedSpike.cs)]
+        /// [!code-csharp[DetectIidSpike](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectIidSpike.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -70,11 +70,11 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[SsaChangePointEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/SsaChangePointEstimator.cs)]
+        /// [!code-csharp[SsaChangePointEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/SsaDetectChangePoint.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public static SsaChangePointEstimator SingularSpectrumAnalysisDetectChangePoint(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
+        public static SsaChangePointEstimator SsaDetectChangePoint(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
             int confidence, int changeHistoryLength, int trainingWindowSize, int seasonalityWindowSize, ErrorFunction errorFunction = ErrorFunction.SignedDifference,
             MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
             => new SsaChangePointEstimator(CatalogUtils.GetEnvironment(catalog), new SsaChangePointDetector.Options
@@ -106,11 +106,11 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[SingularSpectrumAnalysisDetectSpike](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/SingularSpectrumAnalysisDetectSpike.cs)]
+        /// [!code-csharp[SingularSpectrumAnalysisDetectSpike](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/SsaDetectSpike.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public static SsaSpikeEstimator SingularSpectrumAnalysisDetectSpike(this TransformsCatalog catalog, string outputColumnName, string inputColumnName, int confidence, int pvalueHistoryLength,
+        public static SsaSpikeEstimator SsaDetectSpike(this TransformsCatalog catalog, string outputColumnName, string inputColumnName, int confidence, int pvalueHistoryLength,
             int trainingWindowSize, int seasonalityWindowSize, AnomalySide side = AnomalySide.TwoSided, ErrorFunction errorFunction = ErrorFunction.SignedDifference)
             => new SsaSpikeEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, confidence, pvalueHistoryLength, trainingWindowSize, seasonalityWindowSize, inputColumnName, side, errorFunction);
     }

@@ -6,7 +6,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public static class SingularSpectrumAnalysisDetectSpike
+    public static class SsaDetectSpike
     {
         class SsaSpikeData
         {
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var outputColumnName = nameof(SsaSpikePrediction.Prediction);
 
             // The transformed data.
-            var transformedData = ml.Transforms.SingularSpectrumAnalysisDetectSpike(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms.SsaDetectSpike(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of SsaSpikePrediction.
             var predictionColumn = ml.Data.CreateEnumerable<SsaSpikePrediction>(transformedData, reuseRowObject: false);
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var outputColumnName = nameof(SsaSpikePrediction.Prediction);
 
             // Train the change point detector.
-            ITransformer model = ml.Transforms.SingularSpectrumAnalysisDetectSpike(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView);
+            ITransformer model = ml.Transforms.SsaDetectSpike(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView);
 
             // Create a prediction engine from the model for feeding new data.
             var engine = model.CreateTimeSeriesPredictionFunction<SsaSpikeData, SsaSpikePrediction>(ml);
