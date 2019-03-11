@@ -36,9 +36,13 @@ namespace Microsoft.ML.Trainers
 
         public sealed class Options : AveragedLinearOptions
         {
-            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
+            [Argument(ArgumentType.Multiple, Name = "LossFunction", HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             [TGUI(Label = "Loss Function")]
-            public ISupportRegressionLossFactory LossFunction = new SquaredLossFactory();
+            internal ISupportRegressionLossFactory RegressionLossFunctionFactory = new SquaredLossFactory();
+
+            public IRegressionLoss LossFunction { get; set; }
+
+            internal override IComponentFactory<IScalarLoss> LossFunctionFactory => RegressionLossFunctionFactory;
 
             /// <summary>
             /// Set defaults that vary from the base type.
@@ -48,8 +52,6 @@ namespace Microsoft.ML.Trainers
                 LearningRate = OgdDefaultArgs.LearningRate;
                 DecreaseLearningRate = OgdDefaultArgs.DecreaseLearningRate;
             }
-
-            internal override IComponentFactory<IScalarOutputLoss> LossFunctionFactory => LossFunction;
 
             [BestFriend]
             internal class OgdDefaultArgs : AveragedDefault
@@ -114,27 +116,15 @@ namespace Microsoft.ML.Trainers
                 NumberOfIterations = numIterations,
                 LabelColumnName = labelColumn,
                 FeatureColumnName = featureColumn,
-                LossFunction = new TrivialFactory(lossFunction ?? new SquaredLoss())
+                LossFunction = lossFunction ?? new SquaredLoss()
             })
         {
-        }
-
-        private sealed class TrivialFactory : ISupportRegressionLossFactory
-        {
-            private IRegressionLoss _loss;
-
-            public TrivialFactory(IRegressionLoss loss)
-            {
-                _loss = loss;
-            }
-
-            IRegressionLoss IComponentFactory<IRegressionLoss>.CreateComponent(IHostEnvironment env) => _loss;
         }
 
         internal OnlineGradientDescentTrainer(IHostEnvironment env, Options options)
         : base(options, env, UserNameValue, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName))
         {
-            LossFunction = options.LossFunction.CreateComponent(env);
+            LossFunction = options.LossFunction ?? options.LossFunctionFactory.CreateComponent(env);
         }
 
         private protected override PredictionKind PredictionKind => PredictionKind.Regression;

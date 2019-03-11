@@ -112,7 +112,7 @@ namespace Microsoft.ML.Trainers
             public const float L2RegularizerWeight = 0;
         }
 
-        internal abstract IComponentFactory<IScalarOutputLoss> LossFunctionFactory { get; }
+        internal abstract IComponentFactory<IScalarLoss> LossFunctionFactory { get; }
     }
 
     public abstract class AveragedLinearTrainer<TTransformer, TModel> : OnlineLinearTrainer<TTransformer, TModel>
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Trainers
         where TModel : class
     {
         private protected readonly AveragedLinearOptions AveragedLinearTrainerOptions;
-        private protected IScalarOutputLoss LossFunction;
+        private protected IScalarLoss LossFunction;
 
         private protected abstract class AveragedTrainStateBase : TrainStateBase
         {
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Trainers
             protected readonly bool Averaged;
             private readonly long _resetWeightsAfterXExamples;
             private readonly AveragedLinearOptions _args;
-            private readonly IScalarOutputLoss _loss;
+            private readonly IScalarLoss _loss;
 
             private protected AveragedTrainStateBase(IChannel ch, int numFeatures, LinearModelParameters predictor, AveragedLinearTrainer<TTransformer, TModel> parent)
                 : base(ch, numFeatures, predictor, parent)

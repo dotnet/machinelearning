@@ -44,8 +44,16 @@ namespace Microsoft.ML.Trainers
             /// <value>
             /// Defaults to <see cref="SquaredLoss"/>
             /// </value>
-            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
-            public ISupportSdcaRegressionLossFactory LossFunction = new SquaredLossFactory();
+            [Argument(ArgumentType.Multiple, Name = "LossFunction", HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
+            internal ISupportSdcaRegressionLossFactory LossFunctionFactory = new SquaredLossFactory();
+
+            /// <summary>
+            /// A custom <a href="tmpurl_loss">loss</a>.
+            /// </summary>
+            /// <value>
+            /// Defaults to <see cref="SquaredLoss"/>
+            /// </value>
+            public ISupportSdcaRegressionLoss LossFunction { get; set; }
 
             /// <summary>
             /// Create the <see cref="Options"/> object.
@@ -88,7 +96,7 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            _loss = loss ?? SdcaTrainerOptions.LossFunction.CreateComponent(env);
+            _loss = loss ?? SdcaTrainerOptions.LossFunction ?? SdcaTrainerOptions.LossFunctionFactory.CreateComponent(env);
             Loss = _loss;
         }
 
@@ -98,7 +106,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(labelColumn, nameof(labelColumn));
             Host.CheckValue(featureColumn, nameof(featureColumn));
 
-            _loss = options.LossFunction.CreateComponent(env);
+            _loss = options.LossFunction ?? options.LossFunctionFactory.CreateComponent(env);
             Loss = _loss;
         }
 
