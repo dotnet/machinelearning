@@ -294,7 +294,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var mlContext = new MLContext(seed: 0);
             var dataView = mlContext.Data.LoadFromEnumerable(dataList);
             int numberOfTrainingIterations = 3;
-            var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, new Options
+            var gbmTrainer = new LightGbmMulticlassClassificationTrainer(mlContext, new Options
             {
                 NumberOfIterations = numberOfTrainingIterations,
                 MinimumExampleCountPerGroup = 1,

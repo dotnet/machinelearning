@@ -63,14 +63,14 @@ namespace Microsoft.ML
             ///  [!code-csharp[MatrixFactorization](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Recommendation/MatrixFactorization.cs)]
             /// ]]></format>
             /// </example>
-            public MatrixFactorizationRecommenderTrainer MatrixFactorization(
+            public MatrixFactorizationRecommendationTrainer MatrixFactorization(
                 string labelColumn,
                 string matrixColumnIndexColumnName,
                 string matrixRowIndexColumnName,
-                int approximationRank = MatrixFactorizationRecommenderTrainer.Defaults.ApproximationRank,
-                double learningRate = MatrixFactorizationRecommenderTrainer.Defaults.LearningRate,
-                int numberOfIterations = MatrixFactorizationRecommenderTrainer.Defaults.NumIterations)
-                    => new MatrixFactorizationRecommenderTrainer(Owner.GetEnvironment(), labelColumn, matrixColumnIndexColumnName, matrixRowIndexColumnName,
+                int approximationRank = MatrixFactorizationRecommendationTrainer.Defaults.ApproximationRank,
+                double learningRate = MatrixFactorizationRecommendationTrainer.Defaults.LearningRate,
+                int numberOfIterations = MatrixFactorizationRecommendationTrainer.Defaults.NumIterations)
+                    => new MatrixFactorizationRecommendationTrainer(Owner.GetEnvironment(), labelColumn, matrixColumnIndexColumnName, matrixRowIndexColumnName,
                         approximationRank, learningRate, numberOfIterations);
 
             /// <summary>
@@ -79,7 +79,7 @@ namespace Microsoft.ML
             /// <remarks>
             /// <para>The basic idea of matrix factorization is finding two low-rank factor matrices to apporimate the training matrix.</para>
             /// <para>In this module, the expected training data is a list of tuples. Every tuple consists of a column index, a row index,
-            /// and the value at the location specified by the two indexes. The training configuration is encoded in <see cref="MatrixFactorizationRecommenderTrainer.Options"/>.
+            /// and the value at the location specified by the two indexes. The training configuration is encoded in <see cref="MatrixFactorizationRecommendationTrainer.Options"/>.
             /// </para>
             /// </remarks>
             /// <param name="options">Advanced arguments to the algorithm.</param>
@@ -89,9 +89,9 @@ namespace Microsoft.ML
             ///  [!code-csharp[MatrixFactorization](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Recommendation/MatrixFactorizationWithOptions.cs)]
             /// ]]></format>
             /// </example>
-            public MatrixFactorizationRecommenderTrainer MatrixFactorization(
-                MatrixFactorizationRecommenderTrainer.Options options)
-                    => new MatrixFactorizationRecommenderTrainer(Owner.GetEnvironment(), options);
+            public MatrixFactorizationRecommendationTrainer MatrixFactorization(
+                MatrixFactorizationRecommendationTrainer.Options options)
+                    => new MatrixFactorizationRecommendationTrainer(Owner.GetEnvironment(), options);
         }
 
         /// <summary>

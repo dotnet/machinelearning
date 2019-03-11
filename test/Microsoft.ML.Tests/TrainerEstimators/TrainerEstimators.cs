@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
             // Pipeline.
-            var pipeline = new RandomizedPrincipalComponentAnalyzer(Env, featureColumn, rank: 10);
+            var pipeline = new RandomizedPcaAnomalyDetectionTrainer(Env, featureColumn, rank: 10);
 
             TestEstimatorCore(pipeline, data);
             Done();

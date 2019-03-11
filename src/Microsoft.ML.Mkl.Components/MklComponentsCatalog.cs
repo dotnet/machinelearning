@@ -10,7 +10,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// The trainer catalog extensions for the <see cref="OrdinaryLeastSquaresRegressionTrainer"/> and <see cref="SymbolicStochasticGradientDescentClassificationTrainer"/>.
+    /// The trainer catalog extensions for the <see cref="OrdinaryLeastSquaresRegressionTrainer"/> and <see cref="SymbolicSgdBinaryClassificationTrainer"/>.
     /// </summary>
     public static class MklComponentsCatalog
     {
@@ -69,7 +69,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="SymbolicStochasticGradientDescentClassificationTrainer"/>.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="SymbolicSgdBinaryClassificationTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -82,28 +82,28 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static SymbolicStochasticGradientDescentClassificationTrainer SymbolicStochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static SymbolicSgdBinaryClassificationTrainer SymbolicSgd(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
-            int numberOfIterations = SymbolicStochasticGradientDescentClassificationTrainer.Defaults.NumberOfIterations)
+            int numberOfIterations = SymbolicSgdBinaryClassificationTrainer.Defaults.NumberOfIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
 
-            var options = new SymbolicStochasticGradientDescentClassificationTrainer.Options
+            var options = new SymbolicSgdBinaryClassificationTrainer.Options
             {
                 LabelColumnName = labelColumnName,
                 FeatureColumnName = featureColumnName,
             };
 
-            return new SymbolicStochasticGradientDescentClassificationTrainer(env, options);
+            return new SymbolicSgdBinaryClassificationTrainer(env, options);
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="SymbolicStochasticGradientDescentClassificationTrainer"/>.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="SymbolicSgdBinaryClassificationTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="options">Algorithm advanced options. See <see cref="SymbolicStochasticGradientDescentClassificationTrainer.Options"/>.</param>
+        /// <param name="options">Algorithm advanced options. See <see cref="SymbolicSgdBinaryClassificationTrainer.Options"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -111,14 +111,14 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static SymbolicStochasticGradientDescentClassificationTrainer SymbolicStochasticGradientDescent(
+        public static SymbolicSgdBinaryClassificationTrainer SymbolicSgd(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            SymbolicStochasticGradientDescentClassificationTrainer.Options options)
+            SymbolicSgdBinaryClassificationTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SymbolicStochasticGradientDescentClassificationTrainer(env, options);
+            return new SymbolicSgdBinaryClassificationTrainer(env, options);
         }
 
         /// <summary>

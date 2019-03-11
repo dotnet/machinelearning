@@ -327,7 +327,7 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoadingTransformer).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(SymbolicStochasticGradientDescentClassificationTrainer).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(SymbolicSgdBinaryClassificationTrainer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
@@ -3391,11 +3391,11 @@ namespace Microsoft.ML.RunTests
                     InputFile = inputFile,
                 }).Data;
 
-                var pcaInput = new RandomizedPrincipalComponentAnalyzer.Options
+                var pcaInput = new RandomizedPcaAnomalyDetectionTrainer.Options
                 {
                     TrainingData = dataView,
                 };
-                var model = RandomizedPrincipalComponentAnalyzer.TrainPcaAnomaly(Env, pcaInput).PredictorModel;
+                var model = RandomizedPcaAnomalyDetectionTrainer.TrainPcaAnomaly(Env, pcaInput).PredictorModel;
 
                 var output = SummarizePredictor.Summarize(Env,
                     new SummarizePredictor.Input() { PredictorModel = model });

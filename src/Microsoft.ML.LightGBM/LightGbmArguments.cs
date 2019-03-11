@@ -371,7 +371,7 @@ namespace Microsoft.ML.LightGBM
         [TGUI(Label = "Ranking Label Gain")]
         public string CustomGains = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function. Used only in " + nameof(LightGbmBinaryTrainer) + ", " + nameof(LightGbmMulticlassTrainer) +
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function. Used only in " + nameof(LightGbmBinaryClassificationTrainer) + ", " + nameof(LightGbmMulticlassClassificationTrainer) +
             " and in " + nameof(LightGbmRankingTrainer) + ".", ShortName = "sigmoid")]
         [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
         public double Sigmoid = 0.5;

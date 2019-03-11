@@ -35,7 +35,7 @@ namespace Microsoft.ML.Functional.Tests
                 .Load(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
             // Create a training pipeline.
-            var pipeline = mlContext.AnomalyDetection.Trainers.AnalyzeRandomizedPrincipalComponents();
+            var pipeline = mlContext.AnomalyDetection.Trainers.RandomizedPca();
 
             // Train the model.
             var model = pipeline.Fit(trainData);
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Functional.Tests
             // Create a training pipeline.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Clustering.Trainers.KMeans(new KMeansPlusPlusClusteringTrainer.Options { NumberOfThreads = 1 }));
+                .Append(mlContext.Clustering.Trainers.KMeansPlusPlus(new KMeansPlusPlusClusteringTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a pipeline to train on the sentiment data.
             var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(
-                new MatrixFactorizationRecommenderTrainer.Options{
+                new MatrixFactorizationRecommendationTrainer.Options{
                     MatrixColumnIndexColumnName = "MatrixColumnIndex",
                     MatrixRowIndexColumnName = "MatrixRowIndex",
                     LabelColumnName = "Label",

@@ -120,7 +120,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSVMBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.LinearSupportVectorMachines(), GetSparseDataset(TaskType.BinaryClassification, 100), "SVMBinary");
+            TestFeatureContribution(ML.BinaryClassification.Trainers.LinearSvm(), GetSparseDataset(TaskType.BinaryClassification, 100), "SVMBinary");
         }
 
         [Fact]
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSSGDBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(), GetSparseDataset(TaskType.BinaryClassification, 100), "SSGDBinary", 4);
+            TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicSgd(), GetSparseDataset(TaskType.BinaryClassification, 100), "SSGDBinary", 4);
         }
 
         [Fact]

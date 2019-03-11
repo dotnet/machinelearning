@@ -677,7 +677,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear binary classification model trained with the <see cref="LinearSvmTrainer"/> trainer.
+        /// Predict a target using a linear binary classification model trained with the <see cref="LinearSvmBinaryClassificationTrainer"/> trainer.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -695,18 +695,18 @@ namespace Microsoft.ML
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numIterations">The number of training iteraitons.</param>
-        public static LinearSvmTrainer LinearSupportVectorMachines(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static LinearSvmBinaryClassificationTrainer LinearSvm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
             int numIterations = OnlineLinearOptions.OnlineDefault.NumIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
-            return new LinearSvmTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, featureColumnName, exampleWeightColumnName, numIterations);
+            return new LinearSvmBinaryClassificationTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, featureColumnName, exampleWeightColumnName, numIterations);
         }
 
         /// <summary>
-        /// Predict a target using a linear binary classification model trained with the <see cref="LinearSvmTrainer"/> trainer.
+        /// Predict a target using a linear binary classification model trained with the <see cref="LinearSvmBinaryClassificationTrainer"/> trainer.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -721,13 +721,13 @@ namespace Microsoft.ML
         /// </remarks>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        public static LinearSvmTrainer LinearSupportVectorMachines(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            LinearSvmTrainer.Options options)
+        public static LinearSvmBinaryClassificationTrainer LinearSvm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            LinearSvmBinaryClassificationTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
-            return new LinearSvmTrainer(CatalogUtils.GetEnvironment(catalog), options);
+            return new LinearSvmBinaryClassificationTrainer(CatalogUtils.GetEnvironment(catalog), options);
         }
 
         /// <summary>

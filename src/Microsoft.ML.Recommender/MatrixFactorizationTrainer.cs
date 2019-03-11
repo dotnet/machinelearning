@@ -17,9 +17,9 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Recommender;
 
-[assembly: LoadableClass(MatrixFactorizationRecommenderTrainer.Summary, typeof(MatrixFactorizationRecommenderTrainer), typeof(MatrixFactorizationRecommenderTrainer.Options),
+[assembly: LoadableClass(MatrixFactorizationRecommendationTrainer.Summary, typeof(MatrixFactorizationRecommendationTrainer), typeof(MatrixFactorizationRecommendationTrainer.Options),
     new Type[] { typeof(SignatureTrainer), typeof(SignatureMatrixRecommendingTrainer) },
-    "Matrix Factorization", MatrixFactorizationRecommenderTrainer.LoadNameValue, "libmf", "mf")]
+    "Matrix Factorization", MatrixFactorizationRecommendationTrainer.LoadNameValue, "libmf", "mf")]
 
 namespace Microsoft.ML.Trainers
 {
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </example>
-    public sealed class MatrixFactorizationRecommenderTrainer : ITrainer<MatrixFactorizationModelParameters>,
+    public sealed class MatrixFactorizationRecommendationTrainer : ITrainer<MatrixFactorizationModelParameters>,
         IEstimator<MatrixFactorizationPredictionTransformer>
     {
         /// <summary>
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Trainers
         };
 
         /// <summary>
-        /// Advanced options for the <see cref="MatrixFactorizationRecommenderTrainer"/>.
+        /// Advanced options for the <see cref="MatrixFactorizationRecommendationTrainer"/>.
         /// </summary>
         public sealed class Options
         {
@@ -310,12 +310,12 @@ namespace Microsoft.ML.Trainers
         private readonly TrainerInfo _info;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="MatrixFactorizationRecommenderTrainer"/> through the <see cref="Options"/> class.
+        /// Initializes a new instance of <see cref="MatrixFactorizationRecommendationTrainer"/> through the <see cref="Options"/> class.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="options">An instance of <see cref="Options"/> to apply advanced parameters to the algorithm.</param>
         [BestFriend]
-        internal MatrixFactorizationRecommenderTrainer(IHostEnvironment env, Options options)
+        internal MatrixFactorizationRecommendationTrainer(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoadNameValue);
@@ -348,7 +348,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="MatrixFactorizationRecommenderTrainer"/>.
+        /// Initializes a new instance of <see cref="MatrixFactorizationRecommendationTrainer"/>.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -358,7 +358,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="learningRate">Initial learning rate. It specifies the speed of the training algorithm.</param>
         /// <param name="numIterations">Number of training iterations.</param>
         [BestFriend]
-        internal MatrixFactorizationRecommenderTrainer(IHostEnvironment env,
+        internal MatrixFactorizationRecommendationTrainer(IHostEnvironment env,
             string labelColumnName,
             string matrixColumnIndexColumnName,
             string matrixRowIndexColumnName,
@@ -491,7 +491,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Trains a <see cref="MatrixFactorizationRecommenderTrainer"/> using both training and validation data, returns a <see cref="MatrixFactorizationPredictionTransformer"/>.
+        /// Trains a <see cref="MatrixFactorizationRecommendationTrainer"/> using both training and validation data, returns a <see cref="MatrixFactorizationPredictionTransformer"/>.
         /// </summary>
         /// <param name="trainData">The training data set.</param>
         /// <param name="validationData">The validation data set.</param>

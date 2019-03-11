@@ -54,7 +54,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[KMeans](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Clustering/KMeansWithOptions.cs)]
         /// ]]></format>
         /// </example>
-        public static KMeansPlusPlusClusteringTrainer KMeans(this ClusteringCatalog.ClusteringTrainers catalog, KMeansPlusPlusClusteringTrainer.Options options)
+        public static KMeansPlusPlusClusteringTrainer KMeansPlusPlus(this ClusteringCatalog.ClusteringTrainers catalog, KMeansPlusPlusClusteringTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));

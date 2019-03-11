@@ -87,7 +87,7 @@ namespace Microsoft.ML.Trainers
         {
             return Args.PredictorType != null ?
                 Args.PredictorType.CreateComponent(Host) :
-                new LinearSvmTrainer(Host, new LinearSvmTrainer.Options());
+                new LinearSvmBinaryClassificationTrainer(Host, new LinearSvmBinaryClassificationTrainer.Options());
         }
 
         private protected IDataView MapLabelsCore<T>(DataViewType type, InPredicate<T> equalsTarget, RoleMappedData data)

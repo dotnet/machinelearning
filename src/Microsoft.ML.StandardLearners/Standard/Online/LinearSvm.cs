@@ -16,20 +16,20 @@ using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
-[assembly: LoadableClass(LinearSvmTrainer.Summary, typeof(LinearSvmTrainer), typeof(LinearSvmTrainer.Options),
+[assembly: LoadableClass(LinearSvmBinaryClassificationTrainer.Summary, typeof(LinearSvmBinaryClassificationTrainer), typeof(LinearSvmBinaryClassificationTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    LinearSvmTrainer.UserNameValue,
-    LinearSvmTrainer.LoadNameValue,
-    LinearSvmTrainer.ShortName)]
+    LinearSvmBinaryClassificationTrainer.UserNameValue,
+    LinearSvmBinaryClassificationTrainer.LoadNameValue,
+    LinearSvmBinaryClassificationTrainer.ShortName)]
 
-[assembly: LoadableClass(typeof(void), typeof(LinearSvmTrainer), null, typeof(SignatureEntryPointModule), "LinearSvm")]
+[assembly: LoadableClass(typeof(void), typeof(LinearSvmBinaryClassificationTrainer), null, typeof(SignatureEntryPointModule), "LinearSvm")]
 
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// Linear SVM that implements PEGASOS for training. See: http://ttic.uchicago.edu/~shai/papers/ShalevSiSr07.pdf
     /// </summary>
-    public sealed class LinearSvmTrainer : OnlineLinearTrainer<BinaryPredictionTransformer<LinearBinaryModelParameters>, LinearBinaryModelParameters>
+    public sealed class LinearSvmBinaryClassificationTrainer : OnlineLinearTrainer<BinaryPredictionTransformer<LinearBinaryModelParameters>, LinearBinaryModelParameters>
     {
         internal const string LoadNameValue = "LinearSVM";
         internal const string ShortName = "svm";
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Trainers
             private readonly bool _performProjection;
             private readonly float _lambda;
 
-            public TrainState(IChannel ch, int numFeatures, LinearModelParameters predictor, LinearSvmTrainer parent)
+            public TrainState(IChannel ch, int numFeatures, LinearModelParameters predictor, LinearSvmBinaryClassificationTrainer parent)
                 : base(ch, numFeatures, predictor, parent)
             {
                 _batchSize = parent.Opts.BatchSize;
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Trainers
         private protected override bool NeedCalibration => true;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LinearSvmTrainer"/>.
+        /// Initializes a new instance of <see cref="LinearSvmBinaryClassificationTrainer"/>.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column. </param>
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="weightColumn">The optional name of the weight column.</param>
         /// <param name="numIterations">The number of training iteraitons.</param>
         [BestFriend]
-        internal LinearSvmTrainer(IHostEnvironment env,
+        internal LinearSvmBinaryClassificationTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
@@ -250,7 +250,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        internal LinearSvmTrainer(IHostEnvironment env, Options options)
+        internal LinearSvmBinaryClassificationTrainer(IHostEnvironment env, Options options)
             : base(options, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             Contracts.CheckUserArg(options.Lambda > 0, nameof(options.Lambda), UserErrorPositive);
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Trainers
             EntryPointUtils.CheckInputArgs(host, input);
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new LinearSvmTrainer(host, input),
+                () => new LinearSvmBinaryClassificationTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }

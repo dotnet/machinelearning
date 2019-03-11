@@ -53,7 +53,7 @@ namespace Microsoft.ML.Benchmarks
                     " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
                     " tr=LightGBMMulticlass{iter=10}";
 
-            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, LightGbmMulticlassTrainer, OneVersusAllModelParameters>();
+            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, LightGbmMulticlassClassificationTrainer, OneVersusAllModelParameters>();
             cmd.ExecuteMamlCommand(environment);
         }
 

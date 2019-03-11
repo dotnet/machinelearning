@@ -420,7 +420,7 @@ namespace Microsoft.ML.Functional.Tests
         private IEstimator<TransformerChain<ClusteringPredictionTransformer<KMeansModelParameters>>> StepOne(MLContext mlContext)
         {
             return mlContext.Transforms.Concatenate("LabelAndFeatures", "Label", "Features")
-                .Append(mlContext.Clustering.Trainers.KMeans(
+                .Append(mlContext.Clustering.Trainers.KMeansPlusPlus(
                     new KMeansPlusPlusClusteringTrainer.Options
                     {
                         InitializationAlgorithm = KMeansPlusPlusClusteringTrainer.InitializationAlgorithm.Random,
