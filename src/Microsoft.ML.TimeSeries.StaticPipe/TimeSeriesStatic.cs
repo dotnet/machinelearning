@@ -57,7 +57,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new MLContext().Transforms.DetectIndependentIdenticallyDistributedChangePoint(
+                return new MLContext().Transforms.DetectIidChangePoint(
                     outputNames[outCol],
                     inputNames[outCol.Input],
                     _confidence,
@@ -121,7 +121,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new MLContext().Transforms.DetectIndependentIdenticallyDistributedSpike(
+                return new MLContext().Transforms.DetectIidSpike(
                     outputNames[outCol],
                     inputNames[outCol.Input],
                     _confidence,

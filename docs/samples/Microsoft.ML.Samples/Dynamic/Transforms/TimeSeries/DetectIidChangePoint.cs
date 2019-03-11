@@ -10,7 +10,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public static class DetectIndependentIdenticallyDistributedChangePoint
+    public static class DetectIidChangePoint
     {
         class ChangePointPrediction
         {
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Samples.Dynamic
             string inputColumnName = nameof(IidChangePointData.Value);
 
             // The transformed data.
-            var transformedData = ml.Transforms.DetectIndependentIdenticallyDistributedChangePoint(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms.DetectIidChangePoint(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of ChangePointPrediction.
             var predictionColumn = ml.Data.CreateEnumerable<ChangePointPrediction>(transformedData, reuseRowObject: false);
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Samples.Dynamic
             string inputColumnName = nameof(IidChangePointData.Value);
 
             // Time Series model.
-            ITransformer model = ml.Transforms.DetectIndependentIdenticallyDistributedChangePoint(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView);
+            ITransformer model = ml.Transforms.DetectIidChangePoint(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView);
 
             // Create a time series prediction engine from the model.
             var engine = model.CreateTimeSeriesPredictionFunction<IidChangePointData, ChangePointPrediction>(ml);

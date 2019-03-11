@@ -24,11 +24,11 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[DetectIndependentIdenticallyDistributedChangePoint](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectIndependentIdenticallyDistributedChangePoint.cs)]
+        /// [!code-csharp[DetectIidChangePoint](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectIndependentIdenticallyDistributedChangePoint.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public static IidChangePointEstimator DetectIndependentIdenticallyDistributedChangePoint(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
+        public static IidChangePointEstimator DetectIidChangePoint(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
             int confidence, int changeHistoryLength, MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
             => new IidChangePointEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, confidence, changeHistoryLength, inputColumnName, martingale, eps);
 
@@ -45,11 +45,11 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[DetectIndependentIdenticallyDistributedSpike](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectIndependentIdenticallyDistributedSpike.cs)]
+        /// [!code-csharp[DetectIidSpike](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectIndependentIdenticallyDistributedSpike.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public static IidSpikeEstimator DetectIndependentIdenticallyDistributedSpike(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
+        public static IidSpikeEstimator DetectIidSpike(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
              int confidence, int pvalueHistoryLength, AnomalySide side = AnomalySide.TwoSided)
             => new IidSpikeEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, confidence, pvalueHistoryLength, inputColumnName, side);
 

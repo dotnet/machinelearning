@@ -6,7 +6,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public static class DetectIndependentIdenticallyDistributedSpike
+    public static class DetectIidSpike
     {
         class IidSpikeData
         {
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Samples.Dynamic
             string inputColumnName = nameof(IidSpikeData.Value);
 
             // The transformed data.
-            var transformedData = ml.Transforms.DetectIndependentIdenticallyDistributedSpike(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms.DetectIidSpike(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of IidSpikePrediction.
             var predictionColumn = ml.Data.CreateEnumerable<IidSpikePrediction>(transformedData, reuseRowObject: false);
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Samples.Dynamic
             string outputColumnName = nameof(IidSpikePrediction.Prediction);
             string inputColumnName = nameof(IidSpikeData.Value);
             // The transformed model.
-            ITransformer model = ml.Transforms.DetectIndependentIdenticallyDistributedSpike(outputColumnName, inputColumnName, 95, Size).Fit(dataView);
+            ITransformer model = ml.Transforms.DetectIidSpike(outputColumnName, inputColumnName, 95, Size).Fit(dataView);
 
             // Create a time series prediction engine from the model.
             var engine = model.CreateTimeSeriesPredictionFunction<IidSpikeData, IidSpikePrediction>(ml);
