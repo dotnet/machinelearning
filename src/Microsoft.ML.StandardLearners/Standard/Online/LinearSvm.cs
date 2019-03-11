@@ -69,7 +69,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Column to use for example weight.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight,WeightColumn", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public string ExampleWeightColumnName = null;
         }
 
