@@ -14,7 +14,7 @@ namespace Microsoft.ML
     /// <summary>
     /// TrainerEstimator extension methods.
     /// </summary>
-    public static class StandardLearnersCatalog
+    public static class StandardTrainersCatalog
     {
         /// <summary>
         /// Predict a target using a linear classification model trained with <see cref="SgdBinaryTrainer"/>.
