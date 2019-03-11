@@ -169,12 +169,12 @@ namespace Microsoft.ML.LightGBM
             }
         }
 
-        private protected override void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
+        private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
-            base.GetDefaultParameters(ch, numRow, hasCategorical, totalCats, true);
-            LightGbmTrainerOptions.EvaluationMetric = Options.EvaluateMetricType.Logloss;
-            var internalOptions = (InternalOptions)LightGbmTrainerOptions;
-            internalOptions.Objective = "binary";
+            Options["objective"] = "binary";
+            // Add default metric.
+            if (!Options.ContainsKey("metric"))
+                Options["metric"] = "binary_logloss";
         }
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

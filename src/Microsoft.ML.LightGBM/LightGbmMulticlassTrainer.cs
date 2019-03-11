@@ -185,11 +185,19 @@ namespace Microsoft.ML.LightGBM
         private protected override void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
         {
             base.GetDefaultParameters(ch, numRow, hasCategorical, totalCats, true);
+            int numberOfLeaves = (int)_options["num_leaves"];
+            int minimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow, numberOfLeaves, _numClass);
+            _options["min_data_per_leaf"] = minimumExampleCountPerLeaf;
             LightGbmTrainerOptions.MinimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow,
                                                                                                                                             LightGbmTrainerOptions.NumberOfLeaves.Value,
                                                                                                                                             _numClass);
             if (!hiddenMsg)
             {
+                if (!LightGbmTrainerOptions.LearningRate.HasValue)
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.LearningRate) + " = " + _options["learning_rate"]);
+                if (!LightGbmTrainerOptions.NumberOfLeaves.HasValue)
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.NumberOfLeaves) + " = " + numberOfLeaves);
+
                 if (!LightGbmTrainerOptions.MinimumExampleCountPerLeaf.HasValue)
                     ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.MinimumExampleCountPerLeaf) + " = " + LightGbmTrainerOptions.MinimumExampleCountPerLeaf.Value);
             }

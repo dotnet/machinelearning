@@ -34,13 +34,7 @@ namespace Microsoft.ML.LightGBM
         where TOptions : LightGbmTrainerBase<TOptions, TOutput, TTransformer, TModel>.OptionsBase, new()
     {
 
-        protected interface InternalOptions
-        {
-            string Objective { get; set; }
-            int NumberOfClasses { get; set; }
-        }
-
-        public class OptionsBase : TrainerInputBaseWithGroupId, InternalOptions
+        public class OptionsBase : TrainerInputBaseWithGroupId
         {
             private protected OptionsBase() { }
 
@@ -129,7 +123,7 @@ namespace Microsoft.ML.LightGBM
 
             [Argument(ArgumentType.Multiple, HelpText = "Parallel LightGBM Learning Algorithm", ShortName = "parag")]
             internal ISupportParallel ParallelTrainer = new SingleTrainerFactory();
-            
+
             internal string Objective;
 
             internal int NumberOfClasses;
@@ -146,6 +140,7 @@ namespace Microsoft.ML.LightGBM
         }
 
         private protected readonly TOptions LightGbmTrainerOptions;
+        private Dictionary<string, object> _options;
 
         /// <summary>
         /// Stores argumments as objects to convert them to invariant string type in the end so that
@@ -187,8 +182,6 @@ namespace Microsoft.ML.LightGBM
                 ExampleWeightColumnName = exampleWeightColumnName,
                 RowGroupColumnName = rowGroupColumnName
             };
-
-            ((InternalOptions)LightGbmTrainerOptions).Objective
 
             InitParallelTraining();
         }
@@ -242,13 +235,16 @@ namespace Microsoft.ML.LightGBM
 
             if (ParallelTraining.ParallelType() != "serial" && ParallelTraining.NumMachines() > 1)
             {
+                LightGbmTrainerOptions.TreeLearner = ParallelTraining.ParallelType;
+                LightGbmTrainerOptions.
+                /*
                 Options["tree_learner"] = ParallelTraining.ParallelType();
                 var otherParams = ParallelTraining.AdditionalParams();
                 if (otherParams != null)
                 {
                     foreach (var pair in otherParams)
                         Options[pair.Key] = pair.Value;
-                }
+                }*/
 
                 Contracts.CheckValue(ParallelTraining.GetReduceScatterFunction(), nameof(ParallelTraining.GetReduceScatterFunction));
                 Contracts.CheckValue(ParallelTraining.GetAllgatherFunction(), nameof(ParallelTraining.GetAllgatherFunction));
@@ -275,17 +271,20 @@ namespace Microsoft.ML.LightGBM
 
         private protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
         {
-            LightGbmTrainerOptions.LearningRate = LightGbmTrainerOptions.LearningRate ?? DefaultLearningRate(numRow, hasCategorical, totalCats);
-            LightGbmTrainerOptions.NumberOfLeaves = LightGbmTrainerOptions.NumberOfLeaves ?? DefaultNumLeaves(numRow, hasCategorical, totalCats);
-            LightGbmTrainerOptions.MinimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow, LightGbmTrainerOptions.NumberOfLeaves.Value, 1);
+            double learningRate = LightGbmTrainerOptions.LearningRate ?? DefaultLearningRate(numRow, hasCategorical, totalCats);
+            int numberOfLeaves = LightGbmTrainerOptions.NumberOfLeaves ?? DefaultNumLeaves(numRow, hasCategorical, totalCats);
+            int minimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow, numberOfLeaves, 1);
+            _options["learning_rate"] = learningRate;
+            _options["num_leaves"] = numberOfLeaves;
+            _options["min_data_per_leaf"] = minimumExampleCountPerLeaf;
             if (!hiddenMsg)
             {
                 if (!LightGbmTrainerOptions.LearningRate.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.LearningRate) + " = " + LightGbmTrainerOptions.LearningRate.Value);
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.LearningRate) + " = " + learningRate);
                 if (!LightGbmTrainerOptions.NumberOfLeaves.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.NumberOfLeaves) + " = " + LightGbmTrainerOptions.LearningRate.Value);
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.NumberOfLeaves) + " = " + numberOfLeaves);
                 if (!LightGbmTrainerOptions.MinimumExampleCountPerLeaf.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.MinimumExampleCountPerLeaf) + " = " + LightGbmTrainerOptions.MinimumExampleCountPerLeaf.Value);
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.MinimumExampleCountPerLeaf) + " = " + minimumExampleCountPerLeaf);
             }
         }
 
@@ -420,8 +419,7 @@ namespace Microsoft.ML.LightGBM
             catMetaData = GetCategoricalMetaData(ch, trainData, numRow);
             GetDefaultParameters(ch, numRow, catMetaData.CategoricalBoudaries != null, catMetaData.TotalCats);
 
-            UpdateOptionsFromDataset(ch, trainData, labels, groups);
-            string param = LightGbmInterfaceUtils.JoinParameters(Options);
+            string param = LightGbmInterfaceUtils.JoinParameters(_options);
 
             Dataset dtrain;
             // To reduce peak memory usage, only enable one sampling task at any given time.
@@ -433,6 +431,9 @@ namespace Microsoft.ML.LightGBM
 
             // Push rows into dataset.
             LoadDataset(ch, factory, dtrain, numRow, LightGbmTrainerOptions.BatchSize, catMetaData);
+
+            // Some checks.
+            CheckAndUpdateParametersBeforeTraining(ch, trainData, labels, groups);
             return dtrain;
         }
 
@@ -1008,7 +1009,7 @@ namespace Microsoft.ML.LightGBM
         /// <summary>
         /// This function will be called before training. It will check the label/group and add parameters for specific applications.
         /// </summary>
-        private protected abstract void UpdateParameters(IChannel ch,
+        private protected abstract void CheckAndUpdateParametersBeforeTraining(IChannel ch,
             RoleMappedData data, float[] labels, int[] groups);
     }
 }

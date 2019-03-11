@@ -136,9 +136,8 @@ namespace Microsoft.ML.LightGBM
             }
         }
 
-        private protected override void UpdateOptionsFromDataset(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
+        private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
-            LightGbmTrainerOptions
             Options["objective"] = "regression";
             // Add default metric.
             if (!Options.ContainsKey("metric"))
