@@ -353,6 +353,11 @@ namespace Microsoft.ML
             _beta = options.Beta;
         }
 
+        public ExpLoss(float beta = 1)
+        {
+            _beta = beta;
+        }
+
         public Double Loss(float output, float label)
         {
             float truth = label > 0 ? 1 : -1;
