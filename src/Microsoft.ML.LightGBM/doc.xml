@@ -7,8 +7,9 @@
     -->
     <member name="LightGBM_remarks">
       <remarks>
-        LightGBM is an open source implementation of boosted trees. For implementation details, please see 
-        <a href='https://lightgbm.readthedocs.io/en/latest/index.html'>LightGBM's official documentation</a>.
+        LightGBM is an open source implementation of gradient boosting decision tree. For implementation details, please see 
+        <a href='https://lightgbm.readthedocs.io/en/latest/index.html'>LightGBM's official documentation</a> or
+        <a href='https://papers.nips.cc/paper/6907-lightgbm-a-highly-efficient-gradient-boosting-decision-tree.pdf'>this paper</a>.
        </remarks>
     </member>
   </members>

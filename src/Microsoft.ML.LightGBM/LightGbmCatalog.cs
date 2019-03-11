@@ -14,7 +14,7 @@ namespace Microsoft.ML
     public static class LightGbmExtensions
     {
         /// <summary>
-        /// Predict a target using a boosted decision tree regression model trained with the <see cref="LightGbmRegressorTrainer"/>.
+        /// Predict a target using a gradient boosting decision tree regression model trained with the <see cref="LightGbmRegressorTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -46,7 +46,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a boosted decision tree regression model trained with the <see cref="LightGbmRegressorTrainer"/> and advanced options.
+        /// Predict a target using a gradient boosting decision tree regression model trained with the <see cref="LightGbmRegressorTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
@@ -66,7 +66,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a boosted decision tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/>.
+        /// Predict a target using a gradient boosting decision tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -98,7 +98,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a boosted decision tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/> and advanced options.
+        /// Predict a target using a gradient boosting decision tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
@@ -118,7 +118,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a boosted decision tree ranking model trained with the <see cref="LightGbmRankingTrainer"/>.
+        /// Predict a target using a gradient boosting decision tree ranking model trained with the <see cref="LightGbmRankingTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -152,7 +152,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a boosted decision tree ranking model trained with the <see cref="LightGbmRankingTrainer"/> and advanced options.
+        /// Predict a target using a gradient boosting decision tree ranking model trained with the <see cref="LightGbmRankingTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
@@ -172,7 +172,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a boosted decision tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/>.
+        /// Predict a target using a gradient boosting decision tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -204,7 +204,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a boosted decision tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/> and advanced options.
+        /// Predict a target using a gradient boosting decision tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>

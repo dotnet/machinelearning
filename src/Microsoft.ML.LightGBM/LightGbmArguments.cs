@@ -194,7 +194,7 @@ namespace Microsoft.ML.LightGBM
                 public double MinimumChildWeight = 0.1;
 
                 /// <summary>
-                /// The frequency of performing subsamplig (bagging).
+                /// The frequency of performing subsampling (bagging).
                 /// </summary>
                 /// <value>
                 /// 0 means disable bagging. N means perform bagging at every N iterations.
@@ -535,7 +535,7 @@ namespace Microsoft.ML.LightGBM
         public int EarlyStoppingRound = 0;
 
         /// <summary>
-        /// Comma separated list of gains associated with each relevance label. Used only by <see cref="LightGbmRankingTrainer"/>.
+        /// Comma-separated list of gains associated with each relevance label. Used only by <see cref="LightGbmRankingTrainer"/>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of gains associated to each relevance label.", ShortName = "gains")]
         [TGUI(Label = "Ranking Label Gain")]
@@ -609,6 +609,9 @@ namespace Microsoft.ML.LightGBM
         /// <summary>
         /// The random seed for LightGBM to use.
         /// </summary>
+        /// <value>
+        /// If not specified, <see cref="MLContext"/> will generate a random seed to be used.
+        /// </value>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Sets the random seed for LightGBM to use.")]
         public int? Seed;
 
