@@ -36,7 +36,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         internal WordBagEstimator(IHostEnvironment env,
             string outputColumnName,
@@ -44,9 +44,9 @@ namespace Microsoft.ML.Transforms.Text
             int ngramLength = 1,
             int skipLength = 0,
             bool allLengths = true,
-            int maxNumTerms = 10000000,
+            int maximumNgramsCount = 10000000,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
-            : this(env, outputColumnName, new[] { inputColumnName ?? outputColumnName }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
+            : this(env, outputColumnName, new[] { inputColumnName ?? outputColumnName }, ngramLength, skipLength, allLengths, maximumNgramsCount, weighting)
         {
         }
 
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         internal WordBagEstimator(IHostEnvironment env,
             string outputColumnName,
@@ -68,9 +68,9 @@ namespace Microsoft.ML.Transforms.Text
             int ngramLength = 1,
             int skipLength = 0,
             bool allLengths = true,
-            int maxNumTerms = 10000000,
+            int maximumNgramsCount = 10000000,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
-            : this(env, new[] { (outputColumnName, inputColumnNames) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
+            : this(env, new[] { (outputColumnName, inputColumnNames) }, ngramLength, skipLength, allLengths, maximumNgramsCount, weighting)
         {
         }
 
@@ -83,14 +83,14 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         internal WordBagEstimator(IHostEnvironment env,
             (string outputColumnName, string[] inputColumnNames)[] columns,
             int ngramLength = 1,
             int skipLength = 0,
             bool allLengths = true,
-            int maxNumTerms = 10000000,
+            int maximumNgramsCount = 10000000,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Transforms.Text
             _ngramLength = ngramLength;
             _skipLength = skipLength;
             _allLengths = allLengths;
-            _maxNumTerms = maxNumTerms;
+            _maxNumTerms = maximumNgramsCount;
             _weighting = weighting;
         }
 

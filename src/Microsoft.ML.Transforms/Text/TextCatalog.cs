@@ -310,7 +310,7 @@ namespace Microsoft.ML
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public static WordBagEstimator ProduceWordBags(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
@@ -318,10 +318,10 @@ namespace Microsoft.ML
             int ngramLength = NgramExtractingEstimator.Defaults.NgramLength,
             int skipLength = NgramExtractingEstimator.Defaults.SkipLength,
             bool allLengths = NgramExtractingEstimator.Defaults.AllLengths,
-            int maxNumTerms = NgramExtractingEstimator.Defaults.MaximumNgramsCount,
+            int maximumNgramsCount = NgramExtractingEstimator.Defaults.MaximumNgramsCount,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
             => new WordBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnName, ngramLength, skipLength, allLengths, maxNumTerms);
+                outputColumnName, inputColumnName, ngramLength, skipLength, allLengths, maximumNgramsCount);
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumnNames"/>
@@ -333,7 +333,7 @@ namespace Microsoft.ML
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public static WordBagEstimator ProduceWordBags(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
@@ -341,30 +341,10 @@ namespace Microsoft.ML
             int ngramLength = NgramExtractingEstimator.Defaults.NgramLength,
             int skipLength = NgramExtractingEstimator.Defaults.SkipLength,
             bool allLengths = NgramExtractingEstimator.Defaults.AllLengths,
-            int maxNumTerms = NgramExtractingEstimator.Defaults.MaximumNgramsCount,
+            int maximumNgramsCount = NgramExtractingEstimator.Defaults.MaximumNgramsCount,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
             => new WordBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnNames, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
-
-        /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="columns.inputs"/>
-        /// and outputs bag of word vector for each output in <paramref name="columns.output"/>
-        /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="columns">Pairs of columns to compute bag of word vector.</param>
-        /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
-        /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
-        public static WordBagEstimator ProduceWordBags(this TransformsCatalog.TextTransforms catalog,
-            (string outputColumnName, string[] inputColumnNames)[] columns,
-            int ngramLength = NgramExtractingEstimator.Defaults.NgramLength,
-            int skipLength = NgramExtractingEstimator.Defaults.SkipLength,
-            bool allLengths = NgramExtractingEstimator.Defaults.AllLengths,
-            int maxNumTerms = NgramExtractingEstimator.Defaults.MaximumNgramsCount,
-            NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
-            => new WordBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
+                outputColumnName, inputColumnNames, ngramLength, skipLength, allLengths, maximumNgramsCount, weighting);
 
         /// <summary>
         /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnName"/>
@@ -427,34 +407,6 @@ namespace Microsoft.ML
                 outputColumnName, inputColumnNames, numberOfBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash);
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="columns.inputs"/>
-        /// and outputs bag of word vector for each output in <paramref name="columns.output"/>
-        /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="columns">Pairs of columns to compute bag of word vector.</param>
-        /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
-        /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="seed">Hashing seed.</param>
-        /// <param name="ordered">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
-        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
-        /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        public static WordHashBagEstimator ProduceHashedWordBags(this TransformsCatalog.TextTransforms catalog,
-            (string outputColumnName, string[] inputColumnNames)[] columns,
-            int numberOfBits = NgramHashExtractingTransformer.DefaultArguments.HashBits,
-            int ngramLength = NgramHashExtractingTransformer.DefaultArguments.NgramLength,
-            int skipLength = NgramHashExtractingTransformer.DefaultArguments.SkipLength,
-            bool allLengths = NgramHashExtractingTransformer.DefaultArguments.AllLengths,
-            uint seed = NgramHashExtractingTransformer.DefaultArguments.Seed,
-            bool ordered = NgramHashExtractingTransformer.DefaultArguments.Ordered,
-            int invertHash = NgramHashExtractingTransformer.DefaultArguments.InvertHash)
-            => new WordHashBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-               columns, numberOfBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash);
-
-        /// <summary>
         /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnName"/>
         /// and outputs ngram vector as <paramref name="outputColumnName"/>
         ///
@@ -474,7 +426,7 @@ namespace Microsoft.ML
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        public static NgramHashingEstimator ApplyNgramHashing(this TransformsCatalog.TextTransforms catalog,
+        public static NgramHashingEstimator ProduceHashedNgrams(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
             int numberOfBits = NgramHashingEstimator.Defaults.NumberOfBits,
@@ -496,7 +448,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="columns">Pairs of columns to compute n-grams. Note that gram indices are generated by hashing.</param>
-        public static NgramHashingEstimator ApplyNgramHashing(this TransformsCatalog.TextTransforms catalog,
+        public static NgramHashingEstimator ProduceHashedNgrams(this TransformsCatalog.TextTransforms catalog,
             NgramHashingEstimator.ColumnOptions[] columns)
              => new NgramHashingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 

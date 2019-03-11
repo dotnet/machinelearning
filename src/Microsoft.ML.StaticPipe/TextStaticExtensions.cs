@@ -310,15 +310,15 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
-        public static Vector<float> ToBagofWords(this Scalar<string> input,
+        public static Vector<float> ProduceWordBags(this Scalar<string> input,
             int ngramLength = 1,
             int skipLength = 0,
             bool allLengths = true,
-            int maxNumTerms = 10000000,
+            int maximumNgramsCount = 10000000,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
-                => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
+                => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maximumNgramsCount, weighting);
     }
 
     /// <summary>
@@ -397,7 +397,7 @@ namespace Microsoft.ML.StaticPipe
         /// It does so by hashing each ngram and using the hash value as the index in the bag.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
-        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
+        /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
@@ -407,14 +407,14 @@ namespace Microsoft.ML.StaticPipe
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        public static Vector<float> ToBagofHashedWords(this Scalar<string> input,
-            int hashBits = 16,
+        public static Vector<float> ProduceHashedWordBags(this Scalar<string> input,
+            int numberOfBits = 16,
             int ngramLength = 1,
             int skipLength = 0,
             bool allLengths = true,
             uint seed = 314489979,
             bool ordered = true,
-            int invertHash = 0) => new OutPipelineColumn(input, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash);
+            int invertHash = 0) => new OutPipelineColumn(input, numberOfBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash);
     }
 
     /// <summary>
@@ -485,8 +485,8 @@ namespace Microsoft.ML.StaticPipe
         /// Produces a bag of counts of ngrams (sequences of consecutive words ) in a given tokenized text.
         /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
         ///
-        /// /// <see cref="ProduceNgrams"/> is different from <see cref="WordBagEstimatorStaticExtensions.ToBagofWords"/>
-        /// in a way that <see cref="ProduceNgrams"/> takes tokenized text as input while <see cref="WordBagEstimatorStaticExtensions.ToBagofWords"/> tokenizes text internally.
+        /// /// <see cref="ProduceNgrams"/> is different from <see cref="WordBagEstimatorStaticExtensions.ProduceWordBags"/>
+        /// in a way that <see cref="ProduceNgrams"/> takes tokenized text as input while <see cref="WordBagEstimatorStaticExtensions.ProduceWordBags"/> tokenizes text internally.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
         /// <param name="ngramLength">Ngram length.</param>
@@ -571,8 +571,8 @@ namespace Microsoft.ML.StaticPipe
         /// Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given tokenized text.
         /// It does so by hashing each ngram and using the hash value as the index in the bag.
         ///
-        /// <see cref="ProduceHashedNgrams"/> is different from <see cref="WordHashBagEstimatorStaticExtensions.ToBagofHashedWords"/>
-        /// in a way that <see cref="ProduceHashedNgrams"/> takes tokenized text as input while <see cref="WordHashBagEstimatorStaticExtensions.ToBagofHashedWords"/> tokenizes text internally.
+        /// <see cref="ProduceHashedNgrams"/> is different from <see cref="WordHashBagEstimatorStaticExtensions.ProduceHashedWordBags"/>
+        /// in a way that <see cref="ProduceHashedNgrams"/> takes tokenized text as input while <see cref="WordHashBagEstimatorStaticExtensions.ProduceHashedWordBags"/> tokenizes text internally.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>

@@ -945,11 +945,14 @@ namespace Microsoft.ML.Transforms.Text
                 if (invertHash != 0 && numberOfBits >= 31)
                     throw Contracts.ExceptParam(nameof(numberOfBits), $"Cannot support invertHash for a {0} bit hash. 30 is the maximum possible.", numberOfBits);
 
-                if (NgramLength + SkipLength > NgramBufferBuilder.MaxSkipNgramLength)
+                if (ngramLength == 1 && skipLength != 0)
+                    throw Contracts.ExceptUserArg(nameof(skipLength), $"Number of skips can only be zero when the maximum n-gram's length is one.");
+                if (ngramLength + skipLength > NgramBufferBuilder.MaxSkipNgramLength)
                 {
                     throw Contracts.ExceptUserArg(nameof(skipLength),
                         $"The sum of skipLength and ngramLength must be less than or equal to {NgramBufferBuilder.MaxSkipNgramLength}");
                 }
+
                 FriendlyNames = null;
                 Name = name;
                 InputColumnNamesArray = inputColumnNames;

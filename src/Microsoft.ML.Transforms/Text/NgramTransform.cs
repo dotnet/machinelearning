@@ -846,20 +846,15 @@ namespace Microsoft.ML.Transforms.Text
                 int[] maximumNgramsCounts,
                 string inputColumnName = null)
             {
-                Name = name;
-                InputColumnName = inputColumnName ?? name;
-                NgramLength = ngramLength;
-                Contracts.CheckUserArg(0 < NgramLength && NgramLength <= NgramBufferBuilder.MaxSkipNgramLength, nameof(ngramLength));
-                SkipLength = skipLength;
-                if (NgramLength + SkipLength > NgramBufferBuilder.MaxSkipNgramLength)
-                {
+                if (ngramLength == 1 && skipLength != 0)
+                    throw Contracts.ExceptUserArg(nameof(skipLength), $"Number of skips can only be zero when the maximum n-gram's length is one.");
+                if (ngramLength + skipLength > NgramBufferBuilder.MaxSkipNgramLength)
                     throw Contracts.ExceptUserArg(nameof(skipLength),
                         $"The sum of skipLength and ngramLength must be less than or equal to {NgramBufferBuilder.MaxSkipNgramLength}");
-                }
-                AllLengths = allLengths;
-                Weighting = weighting;
+                Contracts.CheckUserArg(0 < ngramLength && ngramLength <= NgramBufferBuilder.MaxSkipNgramLength, nameof(ngramLength));
+
                 var limits = new int[ngramLength];
-                if (!AllLengths)
+                if (!allLengths)
                 {
                     Contracts.CheckUserArg(Utils.Size(maximumNgramsCounts) == 0 ||
                         Utils.Size(maximumNgramsCounts) == 1 && maximumNgramsCounts[0] > 0, nameof(maximumNgramsCounts));
@@ -873,6 +868,13 @@ namespace Microsoft.ML.Transforms.Text
                     limits = Utils.BuildArray(ngramLength, i => i < Utils.Size(maximumNgramsCounts) ? maximumNgramsCounts[i] : extend);
                 }
                 _maximumNgramsCounts = ImmutableArray.Create(limits);
+
+                Name = name;
+                InputColumnName = inputColumnName ?? name;
+                NgramLength = ngramLength;
+                SkipLength = skipLength;
+                AllLengths = allLengths;
+                Weighting = weighting;
             }
         }
 
