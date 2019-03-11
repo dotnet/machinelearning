@@ -159,29 +159,18 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
-        public static WordTokenizingEstimator TokenizeWords(this TransformsCatalog.TextTransforms catalog,
+        public static WordTokenizingEstimator ProduceWordTokens(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
             char[] separators = null)
             => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName, separators);
 
         /// <summary>
-        /// Tokenizes incoming text in input columns and outputs the tokens using <paramref name="separators"/> as separators.
-        /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        /// <param name="separators">The separators to use (uses space character by default).</param>
-        public static WordTokenizingEstimator TokenizeWords(this TransformsCatalog.TextTransforms catalog,
-            (string outputColumnName, string inputColumnName)[] columns,
-            char[] separators = null)
-            => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns, separators);
-
-        /// <summary>
         ///  Tokenizes incoming text in input columns, using per-column configurations, and outputs the tokens.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        public static WordTokenizingEstimator TokenizeWords(this TransformsCatalog.TextTransforms catalog,
+        public static WordTokenizingEstimator ProduceWordTokens(this TransformsCatalog.TextTransforms catalog,
             params WordTokenizingEstimator.ColumnOptions[] columns)
           => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 

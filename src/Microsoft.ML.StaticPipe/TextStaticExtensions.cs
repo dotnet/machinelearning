@@ -55,7 +55,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">The column to apply to.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
-        public static VarVector<string> TokenizeText(this Scalar<string> input, char[] separators = null) => new OutPipelineColumn(input, separators);
+        public static VarVector<string> ProduceWordTokens(this Scalar<string> input, char[] separators = null) => new OutPipelineColumn(input, separators);
     }
 
     /// <summary>
