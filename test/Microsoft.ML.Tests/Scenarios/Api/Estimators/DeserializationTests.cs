@@ -28,7 +28,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void LoadModelAndExtractPredictor()
         {
-            var ml = new MLContext(seed: 1, conc: 1);
+            var ml = new MLContext(seed: 1);
             var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
             var loader = ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
             var data = loader.Load(file);
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void SaveAndLoadModelWithLoader()
         {
-            var ml = new MLContext(seed: 1, conc: 1);
+            var ml = new MLContext(seed: 1);
             var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
             var loader = ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
             var data = loader.Load(file);
