@@ -11,12 +11,12 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
 
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Trainers
             float l1Weight = Options.Defaults.L1Regularization,
             float l2Weight = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int memorySize = Options.Defaults.IterationsToRemember,
+            int memorySize = Options.Defaults.HistorySize,
             bool enforceNoNegativity = Options.Defaults.EnforceNonNegativity)
             : base(env, featureColumn, TrainerUtils.MakeU4ScalarColumn(labelColumn), weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
         {

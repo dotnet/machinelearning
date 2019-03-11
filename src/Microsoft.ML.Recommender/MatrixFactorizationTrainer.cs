@@ -13,6 +13,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Recommender;
 using Microsoft.ML.Recommender.Internal;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Recommender;
 

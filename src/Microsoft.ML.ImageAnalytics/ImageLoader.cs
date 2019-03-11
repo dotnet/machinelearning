@@ -14,7 +14,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ImageLoadingTransformer.Summary, typeof(IDataTransform), typeof(ImageLoadingTransformer), typeof(ImageLoadingTransformer.Options), typeof(SignatureDataTransform),
@@ -184,7 +184,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
                 disposer = null;
-                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[ColMapNewToOld[iinfo]]);
                 ReadOnlyMemory<char> src = default;
                 ValueGetter<Bitmap> del =
                     (ref Bitmap dst) =>

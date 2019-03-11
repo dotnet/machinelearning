@@ -12,6 +12,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -74,24 +75,18 @@ namespace Microsoft.ML.Data
                 return _serverFactory?.CreateComponent(Host, ch);
             }
 
-            /// <summary>
-            /// The degree of concurrency is passed in the conc parameter. If it is null, the value
-            /// of args.parralel is used. If that is null, zero is used (which means "automatic").
-            /// </summary>
-            protected ImplBase(IHostEnvironment env, TOptions options, string name, int? conc = null)
+            protected ImplBase(IHostEnvironment env, TOptions options, string name)
             {
                 Contracts.CheckValue(env, nameof(env));
 
                 // Note that env may be null here, which is OK since the CheckXxx methods are extension
                 // methods designed to allow null.
                 env.CheckValue(options, nameof(options));
-                env.CheckParam(conc == null || conc >= 0, nameof(conc), "Degree of concurrency must be non-negative (or null)");
 
-                conc = conc ?? options.Parallel;
-                env.CheckUserArg(!(conc < 0), nameof(options.Parallel), "Degree of parallelism must be non-negative (or null)");
+                env.CheckUserArg(!(options.Parallel < 0), nameof(options.Parallel), "Degree of parallelism must be non-negative (or null)");
 
                 // Capture the environment options from args.
-                env = env.Register(name, options.RandomSeed, options.Verbose, conc);
+                env = env.Register(name, options.RandomSeed, options.Verbose);
 
                 env.CheckNonWhiteSpace(name, nameof(name));
                 Host = env.Register(name);

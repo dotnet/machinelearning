@@ -310,9 +310,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                             ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf))
 
                 // NLP pipeline 4: word embeddings.
+                // PretrainedModelKind.Sswe is used here for performance of the test. In a real
+                // scenario, it is best to use a different model for more accuracy.
                 .Append(mlContext.Transforms.Text.TokenizeWords("TokenizedMessage", "NormalizedMessage"))
                 .Append(mlContext.Transforms.Text.ExtractWordEmbeddings("Embeddings", "TokenizedMessage",
-                            WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVeTwitter25D));
+                            WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe));
 
             // Let's train our pipeline, and then apply it to the same data.
             // Note that even on a small dataset of 70KB the pipeline above can take up to a minute to completely train.
@@ -323,7 +325,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var unigrams = transformedData.GetColumn<float[]>(transformedData.Schema["BagOfWords"]).Take(10).ToArray();
         }
 
-        [Fact(Skip = "This test is running for one minute")]
+        [Fact]
         public void TextFeaturization()
             => TextFeaturizationOn(GetDataPath("wikipedia-detox-250-line-data.tsv"));
 
@@ -388,7 +390,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // reading them from disk multiple times.
                 .AppendCacheCheckpoint(mlContext)
                 // Now we're ready to train. We chose our FastTree trainer for this classification task.
-                .Append(mlContext.BinaryClassification.Trainers.FastTree(numTrees: 50));
+                .Append(mlContext.BinaryClassification.Trainers.FastTree(numberOfTrees: 50));
 
             // Train the model.
             var model = fullLearningPipeline.Fit(data);
@@ -541,9 +543,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         {
             // Define the operation code.
             Action<InputRow, OutputRow> mapping = (input, output) => output.Label = input.Income > 50000;
-            // Make a custom transformer and transform the data.
-            var transformer = mlContext.Transforms.CustomMappingTransformer(mapping, null);
-            return transformer.Transform(data);
+            // Make a custom estimator and transform the data.
+            var estimator = mlContext.Transforms.CustomMapping(mapping, null);
+            return estimator.Fit(data).Transform(data);
         }
 
         public static ITransformer TrainModel(MLContext mlContext, IDataView trainData)

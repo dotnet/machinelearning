@@ -4,6 +4,7 @@
 
 using System.Text;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers.FastTree;
 
@@ -47,13 +48,6 @@ namespace Microsoft.ML.RunTests
         {
             Trainer = new SubComponent("PriorPredictor"),
             Tag = "BinaryPrior"
-        };
-
-        // New.
-        public static PredictorAndArgs binaryRandom = new PredictorAndArgs
-        {
-            Trainer = new SubComponent("RandomPredictor"),
-            Tag = "BinaryRandom"
         };
 
         // New.

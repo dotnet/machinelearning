@@ -41,16 +41,16 @@ namespace Microsoft.Data.DataView
             foreach (var column in annotations.Schema)
             {
                 var name = column.Name;
-                var value = Utils.MarshalInvoke(GetValue<int>, column.Type.RawType, annotations, column.Index);
+                var value = Utils.MarshalInvoke(GetValue<DataViewSchema.Column>, column.Type.RawType, annotations, column);
                 result.Add(new KeyValuePair<string, object>(name, value));
             }
             return result;
         }
 
-        private static object GetValue<T>(DataViewSchema.Annotations annotations, int columnIndex)
+        private static object GetValue<T>(DataViewSchema.Annotations annotations, DataViewSchema.Column column)
         {
             T value = default;
-            annotations.GetGetter<T>(columnIndex)(ref value);
+            annotations.GetGetter<T>(column)(ref value);
             return value;
         }
     }

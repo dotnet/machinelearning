@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Numeric
 {
@@ -403,7 +404,7 @@ namespace Microsoft.ML.Numeric
                     VectorUtils.AddMultInto(in _x, alpha, in _dir, ref _newX);
                     if (EnforceNonNegativity)
                     {
-                        VBufferUtils.Apply(ref _newX, delegate(int ind, ref float newXval)
+                        VBufferUtils.Apply(ref _newX, delegate (int ind, ref float newXval)
                         {
                             if (newXval < 0.0)
                                 newXval = 0;
@@ -484,7 +485,7 @@ namespace Microsoft.ML.Numeric
                     VectorUtils.AddMultInto(in _x, alpha, in _dir, ref _newX);
                     if (EnforceNonNegativity)
                     {
-                        VBufferUtils.Apply(ref _newX, delegate(int ind, ref float newXval)
+                        VBufferUtils.Apply(ref _newX, delegate (int ind, ref float newXval)
                         {
                             if (newXval < 0.0)
                                 newXval = 0;
@@ -612,11 +613,11 @@ namespace Microsoft.ML.Numeric
 
                 var header = new ProgressHeader(new[] { "Loss", "Improvement" }, new[] { "iterations", "gradients" });
                 pch.SetHeader(header,
-(Action<IProgressEntry>)(                    e =>
-                    {
-                        e.SetProgress(0, (double)(state.Iter - 1));
-                        e.SetProgress(1, state.GradientCalculations);
-                    }));
+                (Action<IProgressEntry>)(e =>
+                {
+                    e.SetProgress(0, (double)(state.Iter - 1));
+                    e.SetProgress(1, state.GradientCalculations);
+                }));
 
                 bool finished = false;
                 pch.Checkpoint(state.Value, null, 0);

@@ -16,6 +16,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
@@ -402,6 +403,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// The model parameters class for linear binary trainer estimators.
+    /// </summary>
     public sealed partial class LinearBinaryModelParameters : LinearModelParameters,
         ICanGetSummaryInKeyValuePairs,
         IParameterMixer<float>
@@ -577,6 +581,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// The model parameters class for linear regression.
+    /// </summary>
     public sealed class LinearRegressionModelParameters : RegressionModelParameters,
         IParameterMixer<float>,
         ICanGetSummaryInKeyValuePairs

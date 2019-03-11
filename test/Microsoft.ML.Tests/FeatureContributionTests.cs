@@ -7,7 +7,6 @@ using System.IO;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -76,7 +75,7 @@ namespace Microsoft.ML.Tests
         public void TestSDCARegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.StochasticDualCoordinateAscent(
-                new SdcaRegressionTrainer.Options { NumThreads = 1, }), GetSparseDataset(numberOfInstances: 100), "SDCARegression");
+                new SdcaRegressionTrainer.Options { NumberOfThreads = 1, }), GetSparseDataset(numberOfInstances: 100), "SDCARegression");
         }
 
         [Fact]
@@ -152,14 +151,14 @@ namespace Microsoft.ML.Tests
         public void TestSDCABinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options { NumThreads = 1, }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary", precision: 5);
+                new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary", precision: 5);
         }
 
         [Fact]
         public void TestSGDBinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticGradientDescent(
-                new SgdBinaryTrainer.Options { NumThreads = 1}),
+                new SgdBinaryTrainer.Options { NumberOfThreads = 1}),
                 GetSparseDataset(TaskType.BinaryClassification, 100), "SGDBinary");
         }
 

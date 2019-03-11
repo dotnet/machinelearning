@@ -1,13 +1,17 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public static class ConvertToGrayscale
+    public static class DnnFeaturizeImage
     {
-        // Sample that loads images from the file system, and converts them to grayscale. 
         public static void Example()
         {
+            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
+            // as well as the source of randomness.
             var mlContext = new MLContext();
 
             // Downloading a few images, and an images.tsv file, which contains a list of the files from the dotnet/machinelearning/test/data/images/.
@@ -15,7 +19,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // enumerating the images. 
             var imagesDataFile = SamplesUtils.DatasetUtils.DownloadImages();
 
-            // Preview of the content of the images.tsv file
+            // Preview of the content of the images.tsv file, which lists the images to operate on
             //
             // imagePath    imageType
             // tomato.bmp   tomato
@@ -29,28 +33,34 @@ namespace Microsoft.ML.Samples.Dynamic
                 {
                         new TextLoader.Column("ImagePath", DataKind.String, 0),
                         new TextLoader.Column("Name", DataKind.String, 1),
-                 }
+                }
             }).Load(imagesDataFile);
 
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
+
+            // Installing the Microsoft.ML.DNNImageFeaturizer packages copies the models in the
+            // `DnnImageModels` folder. 
             // Image loading pipeline. 
             var pipeline = mlContext.Transforms.LoadImages(imagesFolder, ("ImageObject", "ImagePath"))
-                           .Append(mlContext.Transforms.ConvertToGrayscale(("Grayscale", "ImageObject")));
+                          .Append(mlContext.Transforms.ResizeImages("ImageObject", imageWidth: 224, imageHeight: 224))
+                          .Append(mlContext.Transforms.ExtractPixels("Pixels", "ImageObject"))
+                          .Append(mlContext.Transforms.DnnFeaturizeImage("FeaturizedImage", m => m.ModelSelector.ResNet18(mlContext, m.OutputColumn, m.InputColumn), "Pixels"));
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
-            // The transformedData IDataView contains the loaded images column, and the grayscaled column.
-            // Preview of the transformedData
-            var transformedDataPreview = transformedData.Preview();
+            var FeaturizedImageColumnsPerRow = transformedData.GetColumn<float[]>("FeaturizedImage").ToArray();
 
-            // Preview of the content of the images.tsv file
-            // The actual images, in the Grayscale column are of type System.Drawing.Bitmap.
+            // Preview of FeaturizedImageColumnsPerRow for the first row, FeaturizedImageColumnsPerRow[0]
             //
-            // ImagePath    Name        ImageObject                   Grayscale
-            // tomato.bmp   tomato      {System.Drawing.Bitmap}     {System.Drawing.Bitmap}
-            // banana.jpg   banana      {System.Drawing.Bitmap}     {System.Drawing.Bitmap}
-            // hotdog.jpg   hotdog      {System.Drawing.Bitmap}     {System.Drawing.Bitmap}
-            // tomato.jpg   tomato      {System.Drawing.Bitmap}     {System.Drawing.Bitmap}
+            // 0.696136236
+            // 0.2661711
+            // 0.440882325
+            // 0.157903448
+            // 0.0339231342
+            // 0
+            // 0.0936501548
+            // 0.159010679
+            // 0.394427955
 
         }
     }

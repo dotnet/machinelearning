@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Runtime
 {
     /// <summary>
     /// A channel provider can create new channels and generic information pipes.
@@ -59,14 +60,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Create a host with the given registration name.
         /// </summary>
-        IHost Register(string name, int? seed = null, bool? verbose = null, int? conc = null);
-
-        /// <summary>
-        /// How much concurrency the component should use. A value of 1 means
-        /// single-threaded. Higher values generally mean number of threads. Less
-        /// than 1 means whatever the component views as ideal.
-        /// </summary>
-        int ConcurrencyFactor { get; }
+        IHost Register(string name, int? seed = null, bool? verbose = null);
 
         /// <summary>
         /// Flag which indicate should we stop any code execution in this host.

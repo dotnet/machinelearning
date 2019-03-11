@@ -1,10 +1,9 @@
-﻿using Microsoft.ML.Data;
+﻿using System;
+using System.Linq;
+using Microsoft.ML.Data;
 using Microsoft.ML.LightGBM.StaticPipe;
 using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.StaticPipe;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Microsoft.ML.Samples.Static
 {

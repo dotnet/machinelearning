@@ -14,7 +14,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TextAnalytics;
 using Microsoft.ML.Transforms.Text;
 

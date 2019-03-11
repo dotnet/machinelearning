@@ -10,6 +10,7 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Sweeper;
 using Microsoft.ML.Sweeper.Algorithms;
 using Microsoft.ML.Trainers.FastTree;
@@ -137,8 +138,8 @@ namespace Microsoft.ML.Sweeper
                     new FastForestRegression.Options
                     {
                         FeatureFraction = _args.SplitRatio,
-                        NumTrees = _args.NumOfTrees,
-                        MinDocumentsInLeafs = _args.NMinForSplit,
+                        NumberOfTrees = _args.NumOfTrees,
+                        MinimumExampleCountPerLeaf = _args.NMinForSplit,
                         LabelColumnName = DefaultColumnNames.Label,
                         FeatureColumnName = DefaultColumnNames.Features,
                     });

@@ -11,6 +11,7 @@ using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(FieldAwareFactorizationMachineModelParameters), null, typeof(SignatureLoadModel), "Field Aware Factorization Machine", FieldAwareFactorizationMachineModelParameters.LoaderSignature)]

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -93,17 +94,11 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Get the target number of threads to use, given a host and another indicator of thread count.
-        /// When num > 0, this uses num limited to twice what the host says. Otherwise, if preferOne
-        /// is true, it returns 1. Otherwise, it returns what the host says.
+        /// Get the target number of threads to use, given an indicator of thread count.
         /// </summary>
-        public static int GetThreadCount(IHost host, int num = 0, bool preferOne = false)
+        public static int GetThreadCount(int num = 0, bool preferOne = false)
         {
-            Contracts.CheckValue(host, nameof(host));
-
-            int conc = host.ConcurrencyFactor;
-            if (conc <= 0)
-                conc = Math.Max(2, Environment.ProcessorCount - 1);
+            int conc = Math.Max(2, Environment.ProcessorCount - 1);
 
             if (num > 0)
                 return Math.Min(num, 2 * conc);
@@ -122,7 +117,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(host, nameof(host));
             host.CheckValue(view, nameof(view));
 
-            int cthd = GetThreadCount(host);
+            int cthd = GetThreadCount();
             host.Assert(cthd > 0);
             if (cthd == 1 || !AllCacheable(columnsNeeded))
             {
@@ -179,14 +174,14 @@ namespace Microsoft.ML.Data
         /// Return whether all the active columns, as determined by the predicate, are
         /// cachable - either primitive types or vector types.
         /// </summary>
-        public static bool AllCacheable(DataViewSchema schema, Func<int, bool> predicate)
+        public static bool AllCacheable(DataViewSchema schema, Func<DataViewSchema.Column, bool> predicate)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(predicate, nameof(predicate));
 
             for (int col = 0; col < schema.Count; col++)
             {
-                if (!predicate(col))
+                if (!predicate(schema[col]))
                     continue;
                 var type = schema[col].Type;
                 if (!IsCacheable(type))
@@ -245,10 +240,10 @@ namespace Microsoft.ML.Data
             // All cursors must have the same columns active.
             for (int c = 0; c < schema.Count; ++c)
             {
-                bool active = firstCursor.IsColumnActive(c);
+                bool active = firstCursor.IsColumnActive(schema[c]);
                 for (int i = 1; i < cursors.Length; ++i)
                 {
-                    if (cursors[i].IsColumnActive(c) != active)
+                    if (cursors[i].IsColumnActive(schema[c]) != active)
                         return false;
                 }
             }
@@ -340,7 +335,7 @@ namespace Microsoft.ML.Data
 
                 int[] activeToCol;
                 int[] colToActive;
-                Utils.BuildSubsetMaps(schema.Count, cursor.IsColumnActive, out activeToCol, out colToActive);
+                Utils.BuildSubsetMaps(schema, cursor.IsColumnActive, out activeToCol, out colToActive);
 
                 // Because the schema of the consolidator is not necessary fixed, we are merely
                 // opportunistic about buffer sharing, from cursoring to cursoring. If we can do
@@ -523,7 +518,7 @@ namespace Microsoft.ML.Data
                 // Create the mappings between active column index, and column index.
                 int[] activeToCol;
                 int[] colToActive;
-                Utils.BuildSubsetMaps(_schema.Count, input.IsColumnActive, out activeToCol, out colToActive);
+                Utils.BuildSubsetMaps(_schema, input.IsColumnActive, out activeToCol, out colToActive);
 
                 Func<DataViewRowCursor, int, InPipe> createFunc = CreateInPipe<int>;
                 var inGenMethod = createFunc.GetMethodInfo().GetGenericMethodDefinition();
@@ -540,14 +535,14 @@ namespace Microsoft.ML.Data
                 {
                     ch.Assert(0 <= activeToCol[c] && activeToCol[c] < _schema.Count);
                     ch.Assert(c == 0 || activeToCol[c - 1] < activeToCol[c]);
-                    ch.Assert(input.IsColumnActive(activeToCol[c]));
-                    var type = input.Schema[activeToCol[c]].Type;
-                    ch.Assert(type.IsCacheable());
+                    var column = input.Schema[activeToCol[c]];
+                    ch.Assert(input.IsColumnActive(column));
+                    ch.Assert(column.Type.IsCacheable());
                     arguments[1] = activeToCol[c];
                     var inPipe = inPipes[c] =
-                        (InPipe)inGenMethod.MakeGenericMethod(type.RawType).Invoke(this, arguments);
+                        (InPipe)inGenMethod.MakeGenericMethod(column.Type.RawType).Invoke(this, arguments);
                     for (int i = 0; i < cthd; ++i)
-                        outPipes[i][c] = inPipe.CreateOutPipe(type);
+                        outPipes[i][c] = inPipe.CreateOutPipe(column.Type);
                 }
                 // Beyond the InPipes corresponding to column values, we have extra side info pipes.
                 int idIdx = activeToCol.Length + (int)ExtraIndex.Id;
@@ -647,7 +642,7 @@ namespace Microsoft.ML.Data
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= col && col < _schema.Count);
-                return CreateInPipeCore(col, input.GetGetter<T>(col));
+                return CreateInPipeCore(col, input.GetGetter<T>(_schema[col]));
             }
 
             /// <summary>
@@ -848,7 +843,7 @@ namespace Microsoft.ML.Data
 
             /// <summary>
             /// This helps a cursor present the results of a <see cref="BatchColumn"/>. Practically its role
-            /// really is to just provide a stable delegate for the <see cref="DataViewRow.GetGetter{T}(int)"/>.
+            /// really is to just provide a stable delegate for the <see cref="DataViewRow.GetGetter{T}(DataViewSchema.Column)"/>.
             /// There is one of these created per column, per output cursor, i.e., in splitting
             /// there are <c>n</c> of these created per column, and when consolidating only one of these
             /// is created per column.
@@ -1108,16 +1103,28 @@ namespace Microsoft.ML.Data
                     return true;
                 }
 
-                public override bool IsColumnActive(int col)
+                /// <summary>
+                /// Returns whether the given column is active in this row.
+                /// </summary>
+                public override bool IsColumnActive(DataViewSchema.Column column)
                 {
-                    Ch.CheckParam(0 <= col && col < _colToActive.Length, nameof(col));
-                    return _colToActive[col] >= 0;
+                    Ch.CheckParam(column.Index < _colToActive.Length, nameof(column));
+                    return _colToActive[column.Index] >= 0;
                 }
 
-                public override ValueGetter<TValue> GetGetter<TValue>(int col)
+                /// <summary>
+                /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+                /// This throws if the column is not active in this row, or if the type
+                /// <typeparamref name="TValue"/> differs from this column's type.
+                /// </summary>
+                /// <typeparam name="TValue"> is the column's content type.</typeparam>
+                /// <param name="column"> is the output column whose getter should be returned.</param>
+                public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
-                    Ch.CheckParam(IsColumnActive(col), nameof(col), "requested column not active");
-                    var getter = _getters[_colToActive[col]] as ValueGetter<TValue>;
+                    Ch.CheckParam(IsColumnActive(column), nameof(column), "requested column not active.");
+                    Ch.CheckParam(column.Index < _colToActive.Length, nameof(column), "requested column is not active or valid for the Schema.");
+
+                    var getter = _getters[_colToActive[column.Index]] as ValueGetter<TValue>;
                     if (getter == null)
                         throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
                     return getter;
@@ -1174,7 +1181,7 @@ namespace Microsoft.ML.Data
                 _cursors = cursors;
                 _schema = _cursors[0].Schema;
 
-                Utils.BuildSubsetMaps(_schema.Count, _cursors[0].IsColumnActive, out _activeToCol, out _colToActive);
+                Utils.BuildSubsetMaps(_schema, _cursors[0].IsColumnActive, out _activeToCol, out _colToActive);
 
                 Func<int, Delegate> func = CreateGetter<int>;
                 _methInfo = func.GetMethodInfo().GetGenericMethodDefinition();
@@ -1245,9 +1252,9 @@ namespace Microsoft.ML.Data
                     var cursor = _cursors[i];
                     Ch.AssertValue(cursor);
                     Ch.Assert(col < cursor.Schema.Count);
-                    Ch.Assert(cursor.IsColumnActive(col));
+                    Ch.Assert(cursor.IsColumnActive(Schema[col]));
                     Ch.Assert(type.Equals(cursor.Schema[col].Type));
-                    getters[i] = _cursors[i].GetGetter<T>(col);
+                    getters[i] = _cursors[i].GetGetter<T>(cursor.Schema[col]);
                 }
                 ValueGetter<T> mine =
                     (ref T value) =>
@@ -1287,16 +1294,28 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.CheckParam(0 <= col && col < _colToActive.Length, nameof(col));
-                return _colToActive[col] >= 0;
+                Ch.CheckParam(column.Index < _colToActive.Length, nameof(column));
+                return _colToActive[column.Index] >= 0;
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(IsColumnActive(col), nameof(col), "requested column not active");
-                var getter = _getters[_colToActive[col]] as ValueGetter<TValue>;
+                Ch.CheckParam(IsColumnActive(column), nameof(column), "requested column not active");
+                Ch.CheckParam(column.Index < _colToActive.Length, nameof(column), "requested column not active or is invalid for the schema. ");
+
+                var getter = _getters[_colToActive[column.Index]] as ValueGetter<TValue>;
                 if (getter == null)
                     throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
                 return getter;
@@ -1333,7 +1352,7 @@ namespace Microsoft.ML.Data
 
         public static ValueGetter<ReadOnlyMemory<char>> GetSingleValueGetter<T>(DataViewRow cursor, int i, DataViewType colType)
         {
-            var floatGetter = cursor.GetGetter<T>(i);
+            var floatGetter = cursor.GetGetter<T>(cursor.Schema[i]);
             T v = default(T);
             ValueMapper<T, StringBuilder> conversion;
             if (!Conversions.Instance.TryGetStringConversion<T>(colType, out conversion))
@@ -1363,7 +1382,7 @@ namespace Microsoft.ML.Data
 
         public static ValueGetter<ReadOnlyMemory<char>> GetVectorFlatteningGetter<T>(DataViewRow cursor, int colIndex, DataViewType colType)
         {
-            var vecGetter = cursor.GetGetter<VBuffer<T>>(colIndex);
+            var vecGetter = cursor.GetGetter<VBuffer<T>>(cursor.Schema[colIndex]);
             var vbuf = default(VBuffer<T>);
             const int previewValues = 100;
             ValueMapper<T, StringBuilder> conversion;

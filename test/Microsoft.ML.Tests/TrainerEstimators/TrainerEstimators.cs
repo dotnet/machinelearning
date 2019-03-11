@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
             // Pipeline.
-            var pipeline = new RandomizedPcaTrainer(Env, featureColumn, rank: 10);
+            var pipeline = new RandomizedPrincipalComponentAnalyzer(Env, featureColumn, rank: 10);
 
             TestEstimatorCore(pipeline, data);
             Done();
@@ -89,8 +89,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void TestEstimatorHogwildSGD()
         {
-            var trainers = new[] { ML.BinaryClassification.Trainers.StochasticGradientDescent(l2Weight: 0, maxIterations: 80),
-                ML.BinaryClassification.Trainers.StochasticGradientDescent(new Trainers.SgdBinaryTrainer.Options(){ L2Weight = 0, MaxIterations = 80})};
+            var trainers = new[] { ML.BinaryClassification.Trainers.StochasticGradientDescent(l2Regularization: 0, numberOfIterations: 80),
+                ML.BinaryClassification.Trainers.StochasticGradientDescent(new Trainers.SgdBinaryTrainer.Options(){ L2Regularization = 0, NumberOfIterations = 80})};
 
             foreach (var trainer in trainers)
             {

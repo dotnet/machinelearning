@@ -13,7 +13,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(VectorToImageConvertingTransformer.Summary, typeof(IDataTransform), typeof(VectorToImageConvertingTransformer), typeof(VectorToImageConvertingTransformer.Options), typeof(SignatureDataTransform),

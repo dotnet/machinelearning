@@ -5,6 +5,7 @@
 using System;
 using System.Drawing;
 using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.StaticPipe
 {

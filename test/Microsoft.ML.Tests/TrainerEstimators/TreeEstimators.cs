@@ -10,6 +10,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
@@ -30,9 +31,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var trainer = ML.BinaryClassification.Trainers.FastTree(
                 new FastTreeBinaryClassificationTrainer.Options
                 {
-                    NumThreads = 1,
-                    NumTrees = 10,
-                    NumLeaves = 5,
+                    NumberOfThreads = 1,
+                    NumberOfTrees = 10,
+                    NumberOfLeaves = 5,
                 });
 
             var pipeWithTrainer = pipe.Append(trainer);
@@ -72,7 +73,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var trainer = new BinaryClassificationGamTrainer(Env, new BinaryClassificationGamTrainer.Options
             {
                 GainConfidenceLevel = 0,
-                NumIterations = 15,
+                NumberOfIterations = 15,
             });
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
@@ -91,8 +92,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var trainer = ML.BinaryClassification.Trainers.FastForest(
                 new FastForestClassification.Options
                 {
-                    NumLeaves = 10,
-                    NumTrees = 20,
+                    NumberOfLeaves = 10,
+                    NumberOfTrees = 20,
                 });
 
             var pipeWithTrainer = pipe.Append(trainer);
@@ -115,7 +116,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 new FastTreeRankingTrainer.Options
                 {
                     FeatureColumnName = "NumericFeatures",
-                    NumTrees = 10,
+                    NumberOfTrees = 10,
                     RowGroupColumnName = "Group"
                 });
 
@@ -153,7 +154,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataView = GetRegressionPipeline();
             var trainer = ML.Regression.Trainers.FastTree(
-                new FastTreeRegressionTrainer.Options { NumTrees = 10, NumThreads = 1, NumLeaves = 5 });
+                new FastTreeRegressionTrainer.Options { NumberOfTrees = 10, NumberOfThreads = 1, NumberOfLeaves = 5 });
 
             TestEstimatorCore(trainer, dataView);
             var model = trainer.Fit(dataView, dataView);
@@ -190,7 +191,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var trainer = new RegressionGamTrainer(Env, new RegressionGamTrainer.Options
             {
                 EnablePruning = false,
-                NumIterations = 15,
+                NumberOfIterations = 15,
             });
 
             TestEstimatorCore(trainer, dataView);
@@ -228,7 +229,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 new FastForestRegression.Options
                 {
                     BaggingSize = 2,
-                    NumTrees = 10,
+                    NumberOfTrees = 10,
                 });
 
             TestEstimatorCore(trainer, dataView);
@@ -290,7 +291,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 dataList.Add(new GbmExample { Features = featureVector, Label = labels[i], Score = new float[_classNumber] });
             }
 
-            var mlContext = new MLContext(seed: 0, conc: 1);
+            var mlContext = new MLContext(seed: 0);
             var dataView = mlContext.Data.LoadFromEnumerable(dataList);
             int numberOfTrainingIterations = 3;
             var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, new Options

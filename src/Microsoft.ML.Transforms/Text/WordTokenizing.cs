@@ -10,11 +10,10 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
 using Newtonsoft.Json.Linq;
 
@@ -161,7 +160,7 @@ namespace Microsoft.ML.Transforms.Text
             //   charArray: Separators
             SaveColumns(ctx);
             foreach (var column in _columns)
-                ctx.Writer.WriteCharArray(column.Separators);
+                ctx.Writer.WriteCharArray(column.SeparatorsArray);
         }
 
         // Factory method for SignatureLoadModel.
@@ -251,10 +250,10 @@ namespace Microsoft.ML.Transforms.Text
             private ValueGetter<VBuffer<ReadOnlyMemory<char>>> MakeGetterOne(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
-                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[ColMapNewToOld[iinfo]]);
                 var src = default(ReadOnlyMemory<char>);
                 var terms = new List<ReadOnlyMemory<char>>();
-                var separators = _parent._columns[iinfo].Separators;
+                var separators = _parent._columns[iinfo].SeparatorsArray;
 
                 return
                     (ref VBuffer<ReadOnlyMemory<char>> dst) =>
@@ -280,10 +279,10 @@ namespace Microsoft.ML.Transforms.Text
 
                 int cv = input.Schema[ColMapNewToOld[iinfo]].Type.GetVectorSize();
                 Contracts.Assert(cv >= 0);
-                var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(input.Schema[ColMapNewToOld[iinfo]]);
                 var src = default(VBuffer<ReadOnlyMemory<char>>);
                 var terms = new List<ReadOnlyMemory<char>>();
-                var separators = _parent._columns[iinfo].Separators;
+                var separators = _parent._columns[iinfo].SeparatorsArray;
 
                 return
                     (ref VBuffer<ReadOnlyMemory<char>> dst) =>
@@ -368,22 +367,22 @@ namespace Microsoft.ML.Transforms.Text
                 Contracts.Assert(CanSavePfa);
 
                 var exInfo = _parent._columns[iinfo];
-                var sep = PfaUtils.String("" + exInfo.Separators[0]);
+                var sep = PfaUtils.String("" + exInfo.SeparatorsArray[0]);
                 if (_isSourceVector[iinfo])
                 {
                     // If it's a vector, we'll concatenate them together.
                     srcToken = PfaUtils.Call("s.join", srcToken, sep);
                 }
 
-                if (exInfo.Separators.Length > 1)
+                if (exInfo.SeparatorsArray.Length > 1)
                 {
                     // Due to the intrinsics in PFA, it is much easier if we can do
                     // one split, rather than multiple splits. So, if there are multiple
                     // separators, we first replace them with the first separator, then
                     // split once on that one. This could also have been done with a.flatMap.
-                    for (int i = 1; i < exInfo.Separators.Length; ++i)
+                    for (int i = 1; i < exInfo.SeparatorsArray.Length; ++i)
                     {
-                        var postSep = PfaUtils.String("" + exInfo.Separators[i]);
+                        var postSep = PfaUtils.String("" + exInfo.SeparatorsArray[i]);
                         srcToken = PfaUtils.Call("s.replaceall", srcToken, postSep, sep);
                     }
                 }
@@ -444,7 +443,8 @@ namespace Microsoft.ML.Transforms.Text
         {
             public readonly string Name;
             public readonly string InputColumnName;
-            public readonly char[] Separators;
+            public IReadOnlyList<char> Separators => SeparatorsArray;
+            internal readonly char[] SeparatorsArray;
 
             /// <summary>
             /// Describes how the transformer handles one column pair.
@@ -456,7 +456,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Name = name;
                 InputColumnName = inputColumnName ?? name;
-                Separators = separators ?? new[] { ' ' };
+                SeparatorsArray = separators ?? new[] { ' ' };
             }
         }
 
@@ -480,5 +480,4 @@ namespace Microsoft.ML.Transforms.Text
             return new SchemaShape(result.Values);
         }
     }
-
 }

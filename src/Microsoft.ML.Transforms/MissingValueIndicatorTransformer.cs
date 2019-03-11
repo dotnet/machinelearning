@@ -10,9 +10,8 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(MissingValueIndicatorTransformer.Summary, typeof(IDataTransform), typeof(MissingValueIndicatorTransformer), typeof(MissingValueIndicatorTransformer.Options), typeof(SignatureDataTransform),
@@ -80,7 +79,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// The names of the output and input column pairs for the transformation.
         /// </summary>
-        public IReadOnlyList<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
+        internal IReadOnlyList<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
         /// Initializes a new instance of <see cref="MissingValueIndicatorTransformer"/>
@@ -242,7 +241,7 @@ namespace Microsoft.ML.Transforms
 
             private ValueGetter<bool> ComposeGetterOne<T>(DataViewRow input, int iinfo)
             {
-                var getSrc = input.GetGetter<T>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<T>(input.Schema[ColMapNewToOld[iinfo]]);
                 var src = default(T);
                 var isNA = (InPredicate<T>)_infos[iinfo].InputIsNA;
 
@@ -264,7 +263,7 @@ namespace Microsoft.ML.Transforms
 
             private ValueGetter<VBuffer<bool>> ComposeGetterVec<T>(DataViewRow input, int iinfo)
             {
-                var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<VBuffer<T>>(input.Schema[ColMapNewToOld[iinfo]]);
                 var isNA = (InPredicate<T>)_infos[iinfo].InputIsNA;
                 var val = default(T);
                 var defaultIsNA = isNA(in val);

@@ -14,6 +14,7 @@ using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(SdcaMultiClassTrainer.Summary, typeof(SdcaMultiClassTrainer), typeof(SdcaMultiClassTrainer.Options),
@@ -28,7 +29,7 @@ namespace Microsoft.ML.Trainers
     /// The <see cref="IEstimator{TTransformer}"/> for training a multiclass logistic regression classification model using the stochastic dual coordinate ascent method.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
-    public class SdcaMultiClassTrainer : SdcaTrainerBase<SdcaMultiClassTrainer.Options, MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
+    public sealed class SdcaMultiClassTrainer : SdcaTrainerBase<SdcaMultiClassTrainer.Options, MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
     {
         internal const string LoadNameValue = "SDCAMC";
         internal const string UserNameValue = "Fast Linear Multi-class Classification (SA-SDCA)";
@@ -142,7 +143,7 @@ namespace Microsoft.ML.Trainers
             int maxUpdateTrials = 2 * numThreads;
             var l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
             bool l1ThresholdZero = l1Threshold == 0;
-            var lr = SdcaTrainerOptions.BiasLearningRate * SdcaTrainerOptions.L2Const.Value;
+            var lr = SdcaTrainerOptions.BiasLearningRate * SdcaTrainerOptions.L2Regularization.Value;
 
             var pch = progress != null ? progress.StartProgressChannel("Dual update") : null;
             using (pch)
@@ -361,9 +362,9 @@ namespace Microsoft.ML.Trainers
                 Host.Assert(idToIdx == null || row * numClasses == duals.Length);
             }
 
-            Contracts.Assert(SdcaTrainerOptions.L2Const.HasValue);
+            Contracts.Assert(SdcaTrainerOptions.L2Regularization.HasValue);
             Contracts.Assert(SdcaTrainerOptions.L1Threshold.HasValue);
-            Double l2Const = SdcaTrainerOptions.L2Const.Value;
+            Double l2Const = SdcaTrainerOptions.L2Regularization.Value;
             Double l1Threshold = SdcaTrainerOptions.L1Threshold.Value;
 
             Double weightsL1Norm = 0;

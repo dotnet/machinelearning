@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.ML.Trainers;
+﻿using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -28,9 +25,9 @@ namespace Microsoft.ML.Samples.Dynamic
                 .Trainers.StochasticGradientDescentNonCalibrated(
                         new SgdNonCalibratedBinaryTrainer.Options
                         {
-                            InitLearningRate = 0.01,
-                            MaxIterations = 10,
-                            L2Weight = 1e-7f
+                            InitialLearningRate = 0.01,
+                            NumberOfIterations = 10,
+                            L2Regularization = 1e-7f
                         }
                        );
 

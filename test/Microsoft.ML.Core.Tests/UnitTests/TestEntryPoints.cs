@@ -18,6 +18,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Ensemble;
@@ -470,21 +471,21 @@ namespace Microsoft.ML.RunTests
             {
                 var scoreColumn = curs1.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var avgScoreGetter = curs1.GetGetter<Single>(scoreColumn.Value.Index);
+                var avgScoreGetter = curs1.GetGetter<Single>(scoreColumn.Value);
 
                 scoreColumn = curs2.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var medScoreGetter = curs2.GetGetter<Single>(scoreColumn.Value.Index);
+                var medScoreGetter = curs2.GetGetter<Single>(scoreColumn.Value);
 
                 scoreColumn = curs3.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var regScoreGetter = curs3.GetGetter<Single>(scoreColumn.Value.Index);
+                var regScoreGetter = curs3.GetGetter<Single>(scoreColumn.Value);
 
                 var individualScoreGetters = new ValueGetter<Single>[nModels];
                 for (int i = 0; i < nModels; i++)
                 {
                     scoreColumn = curs4.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score + i);
-                    individualScoreGetters[i] = curs4.GetGetter<Single>(scoreColumn.Value.Index);
+                    individualScoreGetters[i] = curs4.GetGetter<Single>(scoreColumn.Value);
                 }
 
                 var scoreBuffer = new Single[nModels];
@@ -717,9 +718,9 @@ namespace Microsoft.ML.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features1", 10, false, "Features"),
-                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features2", 10, false, "Features"),
+                data = new RandomFourierKernelMappingEstimator(Env, new[] {
+                    new RandomFourierKernelMappingEstimator.ColumnOptions("Features1", 10, false, "Features"),
+                    new RandomFourierKernelMappingEstimator.ColumnOptions("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
 
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
@@ -852,34 +853,34 @@ namespace Microsoft.ML.RunTests
             {
                 var scoreColumn = curs0.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getter0 = curs0.GetGetter<Single>(scoreColumn.Value.Index);
+                var getter0 = curs0.GetGetter<Single>(scoreColumn.Value);
                 scoreColumn = curs1.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getter1 = curs1.GetGetter<Single>(scoreColumn.Value.Index);
+                var getter1 = curs1.GetGetter<Single>(scoreColumn.Value);
                 scoreColumn = curs2.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getter2 = curs2.GetGetter<Single>(scoreColumn.Value.Index);
+                var getter2 = curs2.GetGetter<Single>(scoreColumn.Value);
                 scoreColumn = curs3.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getter3 = curs3.GetGetter<Single>(scoreColumn.Value.Index);
+                var getter3 = curs3.GetGetter<Single>(scoreColumn.Value);
                 scoreColumn = curs4.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getter4 = curs4.GetGetter<Single>(scoreColumn.Value.Index);
+                var getter4 = curs4.GetGetter<Single>(scoreColumn.Value);
                 scoreColumn = cursReg.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getterReg = cursReg.GetGetter<Single>(scoreColumn.Value.Index);
+                var getterReg = cursReg.GetGetter<Single>(scoreColumn.Value);
                 scoreColumn = cursBin.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getterBin = cursBin.GetGetter<Single>(scoreColumn.Value.Index);
+                var getterBin = cursBin.GetGetter<Single>(scoreColumn.Value);
                 scoreColumn = cursBinCali.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getterBinCali = cursBinCali.GetGetter<Single>(scoreColumn.Value.Index);
+                var getterBinCali = cursBinCali.GetGetter<Single>(scoreColumn.Value);
                 scoreColumn = cursSaved.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getterSaved = cursSaved.GetGetter<Single>(scoreColumn.Value.Index);
+                var getterSaved = cursSaved.GetGetter<Single>(scoreColumn.Value);
                 scoreColumn = cursAnom.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getterAnom = cursAnom.GetGetter<Single>(scoreColumn.Value.Index);
+                var getterAnom = cursAnom.GetGetter<Single>(scoreColumn.Value);
 
                 var c = new Average(Env).GetCombiner();
                 while (cursReg.MoveNext())
@@ -1073,31 +1074,31 @@ namespace Microsoft.ML.RunTests
             {
                 var scoreColumn = curs0.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getter0 = curs0.GetGetter<Single>(scoreColumn.Value.Index);
+                var getter0 = curs0.GetGetter<Single>(scoreColumn.Value);
                 scoreColumn = curs1.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getter1 = curs1.GetGetter<Single>(scoreColumn.Value.Index);
+                var getter1 = curs1.GetGetter<Single>(scoreColumn.Value);
                 scoreColumn = curs2.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getter2 = curs2.GetGetter<Single>(scoreColumn.Value.Index);
+                var getter2 = curs2.GetGetter<Single>(scoreColumn.Value);
                 scoreColumn = curs3.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getter3 = curs3.GetGetter<Single>(scoreColumn.Value.Index);
+                var getter3 = curs3.GetGetter<Single>(scoreColumn.Value);
                 scoreColumn = curs4.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getter4 = curs4.GetGetter<Single>(scoreColumn.Value.Index);
+                var getter4 = curs4.GetGetter<Single>(scoreColumn.Value);
                 scoreColumn = cursReg.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getterReg = cursReg.GetGetter<Single>(scoreColumn.Value.Index);
+                var getterReg = cursReg.GetGetter<Single>(scoreColumn.Value);
                 scoreColumn = cursBin.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getterBin = cursBin.GetGetter<Single>(scoreColumn.Value.Index);
+                var getterBin = cursBin.GetGetter<Single>(scoreColumn.Value);
                 scoreColumn = cursBinCali.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getterBinCali = cursBinCali.GetGetter<Single>(scoreColumn.Value.Index);
+                var getterBinCali = cursBinCali.GetGetter<Single>(scoreColumn.Value);
                 scoreColumn = cursSaved.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getterSaved = cursSaved.GetGetter<Single>(scoreColumn.Value.Index);
+                var getterSaved = cursSaved.GetGetter<Single>(scoreColumn.Value);
 
                 var c = new Average(Env).GetCombiner();
                 while (cursReg.MoveNext())
@@ -1169,9 +1170,9 @@ namespace Microsoft.ML.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features1", 10, false, "Features"),
-                    new RandomFourierFeaturizingEstimator.ColumnOptions("Features2", 10, false, "Features"),
+                data = new RandomFourierKernelMappingEstimator(Env, new[] {
+                    new RandomFourierKernelMappingEstimator.ColumnOptions("Features1", 10, false, "Features"),
+                    new RandomFourierKernelMappingEstimator.ColumnOptions("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
 
@@ -1231,25 +1232,25 @@ namespace Microsoft.ML.RunTests
             {
                 var scoreColumn = curs0.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getter0 = curs0.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
+                var getter0 = curs0.GetGetter<VBuffer<Single>>(scoreColumn.Value);
                 scoreColumn = curs1.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getter1 = curs1.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
+                var getter1 = curs1.GetGetter<VBuffer<Single>>(scoreColumn.Value);
                 scoreColumn = curs2.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getter2 = curs2.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
+                var getter2 = curs2.GetGetter<VBuffer<Single>>(scoreColumn.Value);
                 scoreColumn = curs3.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getter3 = curs3.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
+                var getter3 = curs3.GetGetter<VBuffer<Single>>(scoreColumn.Value);
                 scoreColumn = curs4.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getter4 = curs4.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
+                var getter4 = curs4.GetGetter<VBuffer<Single>>(scoreColumn.Value);
                 scoreColumn = curs.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getter = curs.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
+                var getter = curs.GetGetter<VBuffer<Single>>(scoreColumn.Value);
                 scoreColumn = cursSaved.Schema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
-                var getterSaved = cursSaved.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
+                var getterSaved = cursSaved.GetGetter<VBuffer<Single>>(scoreColumn.Value);
 
                 var c = new MultiAverage(Env, new MultiAverage.Options()).GetCombiner();
                 VBuffer<Single> score = default(VBuffer<Single>);
@@ -1640,13 +1641,13 @@ namespace Microsoft.ML.RunTests
 
                     var catColumn = loader.Schema.GetColumnOrNull("Cat");
                     Assert.True(catColumn.HasValue);
-                    var catGetter = cursor.GetGetter<ReadOnlyMemory<char>>(catColumn.Value.Index);
+                    var catGetter = cursor.GetGetter<ReadOnlyMemory<char>>(catColumn.Value);
                     var catValueCol = loader.Schema.GetColumnOrNull("CatValue");
                     Assert.True(catValueCol.HasValue);
-                    var catValueGetter = cursor.GetGetter<ReadOnlyMemory<char>>(catValueCol.Value.Index);
+                    var catValueGetter = cursor.GetGetter<ReadOnlyMemory<char>>(catValueCol.Value);
                     var keyColumn = loader.Schema.GetColumnOrNull("Key");
                     Assert.True(keyColumn.HasValue);
-                    var keyGetter = cursor.GetGetter<uint>(keyColumn.Value.Index);
+                    var keyGetter = cursor.GetGetter<uint>(keyColumn.Value);
 
                     while (cursor.MoveNext())
                     {
@@ -2466,7 +2467,7 @@ namespace Microsoft.ML.RunTests
             var options = new LegacySdcaBinaryTrainer.Options()
             {
                 NormalizeFeatures = NormalizeOption.Yes,
-                CheckFrequency = 42
+                ConvergenceCheckFrequency = 42
             };
 
             var inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
@@ -2481,7 +2482,7 @@ namespace Microsoft.ML.RunTests
 
             var expected =
                 @"{
-  ""CheckFrequency"": 42,
+  ""ConvergenceCheckFrequency"": 42,
   ""TrainingData"": ""$data"",
   ""NormalizeFeatures"": ""Yes""
 }";
@@ -2497,7 +2498,7 @@ namespace Microsoft.ML.RunTests
   ""LossFunction"": {
     ""Name"": ""HingeLoss""
   },
-  ""CheckFrequency"": 42,
+  ""ConvergenceCheckFrequency"": 42,
   ""TrainingData"": ""$data"",
   ""NormalizeFeatures"": ""Yes""
 }";
@@ -2516,7 +2517,7 @@ namespace Microsoft.ML.RunTests
       ""Margin"": 2.0
     }
   },
-  ""CheckFrequency"": 42,
+  ""ConvergenceCheckFrequency"": 42,
   ""TrainingData"": ""$data"",
   ""NormalizeFeatures"": ""Yes""
 }";
@@ -2686,7 +2687,7 @@ namespace Microsoft.ML.RunTests
             {
                 var aucCol = cursor.Schema.GetColumnOrNull("AUC");
                 Assert.True(aucCol.HasValue);
-                var aucGetter = cursor.GetGetter<double>(aucCol.Value.Index);
+                var aucGetter = cursor.GetGetter<double>(aucCol.Value);
                 Assert.True(cursor.MoveNext());
                 double auc = 0;
                 aucGetter(ref auc);
@@ -2791,7 +2792,7 @@ namespace Microsoft.ML.RunTests
             {
                 var aucCol = cursor.Schema.GetColumnOrNull("AUC");
                 Assert.True(aucCol.HasValue);
-                var aucGetter = cursor.GetGetter<double>(aucCol.Value.Index);
+                var aucGetter = cursor.GetGetter<double>(aucCol.Value);
                 Assert.True(cursor.MoveNext());
                 double auc = 0;
                 aucGetter(ref auc);
@@ -2957,7 +2958,7 @@ namespace Microsoft.ML.RunTests
                 using (var cursor = metricsIdv.GetRowCursorForAllColumns())
                 {
                     var aucCol = cursor.Schema.GetColumnOrNull("AUC");
-                    var aucGetter = cursor.GetGetter<double>(aucCol.Value.Index);
+                    var aucGetter = cursor.GetGetter<double>(aucCol.Value);
                     Assert.True(cursor.MoveNext());
                     double auc = 0;
                     aucGetter(ref auc);
@@ -3149,7 +3150,7 @@ namespace Microsoft.ML.RunTests
                 {
                     var aucColumn = cursor.Schema.GetColumnOrNull("AUC");
                     Assert.True(aucColumn.HasValue);
-                    var aucGetter = cursor.GetGetter<double>(aucColumn.Value.Index);
+                    var aucGetter = cursor.GetGetter<double>(aucColumn.Value);
                     Assert.True(cursor.MoveNext());
                     double auc = 0;
                     aucGetter(ref auc);
@@ -3390,11 +3391,11 @@ namespace Microsoft.ML.RunTests
                     InputFile = inputFile,
                 }).Data;
 
-                var pcaInput = new RandomizedPcaTrainer.Options
+                var pcaInput = new RandomizedPrincipalComponentAnalyzer.Options
                 {
                     TrainingData = dataView,
                 };
-                var model = RandomizedPcaTrainer.TrainPcaAnomaly(Env, pcaInput).PredictorModel;
+                var model = RandomizedPrincipalComponentAnalyzer.TrainPcaAnomaly(Env, pcaInput).PredictorModel;
 
                 var output = SummarizePredictor.Summarize(Env,
                     new SummarizePredictor.Input() { PredictorModel = model });
@@ -3493,7 +3494,7 @@ namespace Microsoft.ML.RunTests
 
                     var predictedLabelCol = loader.Schema.GetColumnOrNull("PredictedLabel");
                     Assert.True(predictedLabelCol.HasValue);
-                    var predictedLabelGetter = cursor.GetGetter<ReadOnlyMemory<char>>(predictedLabelCol.Value.Index);
+                    var predictedLabelGetter = cursor.GetGetter<ReadOnlyMemory<char>>(predictedLabelCol.Value);
 
                     while (cursor.MoveNext())
                     {
@@ -3528,8 +3529,8 @@ namespace Microsoft.ML.RunTests
             var fastTree = Trainers.FastTree.FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Options
             {
                 FeatureColumnName = "Features",
-                NumTrees = 5,
-                NumLeaves = 4,
+                NumberOfTrees = 5,
+                NumberOfLeaves = 4,
                 LabelColumnName = DefaultColumnNames.Label,
                 TrainingData = concat.OutputData
             });
@@ -3562,9 +3563,9 @@ namespace Microsoft.ML.RunTests
             VBuffer<float> pathIndicators = default(VBuffer<float>);
             using (var curs = view.GetRowCursor(treesCol.Value, leavesCol.Value, pathsCol.Value))
             {
-                var treesGetter = curs.GetGetter<VBuffer<float>>(treesCol.Value.Index);
-                var leavesGetter = curs.GetGetter<VBuffer<float>>(leavesCol.Value.Index);
-                var pathsGetter = curs.GetGetter<VBuffer<float>>(pathsCol.Value.Index);
+                var treesGetter = curs.GetGetter<VBuffer<float>>(treesCol.Value);
+                var leavesGetter = curs.GetGetter<VBuffer<float>>(leavesCol.Value);
+                var pathsGetter = curs.GetGetter<VBuffer<float>>(pathsCol.Value);
                 while (curs.MoveNext())
                 {
                     treesGetter(ref treeValues);
@@ -3613,7 +3614,7 @@ namespace Microsoft.ML.RunTests
             {
                 var featColumn = result.Schema.GetColumnOrNull("Features");
                 Assert.True(featColumn.HasValue);
-                var featGetter = cursor.GetGetter<VBuffer<float>>(featColumn.Value.Index);
+                var featGetter = cursor.GetGetter<VBuffer<float>>(featColumn.Value);
                 VBuffer<float> feat = default;
                 while (cursor.MoveNext())
                 {
@@ -4033,7 +4034,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(aucCol.HasValue);
             using (var cursor = data.GetRowCursor(aucCol.Value))
             {
-                var getter = cursor.GetGetter<double>(aucCol.Value.Index);
+                var getter = cursor.GetGetter<double>(aucCol.Value);
                 var b = cursor.MoveNext();
                 Assert.True(b);
                 double auc = 0;
@@ -4211,10 +4212,10 @@ namespace Microsoft.ML.RunTests
             Assert.True(isWeightedCol.HasValue);
             using (var cursor = data.GetRowCursor(metricCol.Value, foldCol.Value, isWeightedCol.Value))
             {
-                var getter = cursor.GetGetter<double>(metricCol.Value.Index);
-                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol.Value.Index);
+                var getter = cursor.GetGetter<double>(metricCol.Value);
+                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol.Value);
                 ReadOnlyMemory<char> fold = default;
-                var isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol.Value.Index);
+                var isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol.Value);
                 bool isWeighted = default;
                 double avg = 0;
                 double weightedAvg = 0;
@@ -4393,8 +4394,8 @@ namespace Microsoft.ML.RunTests
             Assert.True(foldCol.HasValue);
             using (var cursor = data.GetRowCursor(metricCol.Value, foldCol.Value))
             {
-                var getter = cursor.GetGetter<double>(metricCol.Value.Index);
-                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol.Value.Index);
+                var getter = cursor.GetGetter<double>(metricCol.Value);
+                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol.Value);
                 ReadOnlyMemory<char> fold = default;
 
                 // Get the average.
@@ -4447,8 +4448,8 @@ namespace Microsoft.ML.RunTests
             }
             using (var curs = confusion.GetRowCursorForAllColumns())
             {
-                var countGetter = curs.GetGetter<VBuffer<double>>(countCol.Value.Index);
-                var foldGetter = curs.GetGetter<ReadOnlyMemory<char>>(foldCol.Value.Index);
+                var countGetter = curs.GetGetter<VBuffer<double>>(countCol.Value);
+                var foldGetter = curs.GetGetter<ReadOnlyMemory<char>>(foldCol.Value);
                 var confCount = default(VBuffer<double>);
                 var foldIndex = default(ReadOnlyMemory<char>);
                 int rowCount = 0;
@@ -4619,7 +4620,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(warningCol.HasValue);
             using (var cursor = warnings.GetRowCursor(warningCol.Value))
             {
-                var getter = cursor.GetGetter<ReadOnlyMemory<char>>(warningCol.Value.Index);
+                var getter = cursor.GetGetter<ReadOnlyMemory<char>>(warningCol.Value);
 
                 var b = cursor.MoveNext();
                 Assert.True(b);
@@ -4802,8 +4803,8 @@ namespace Microsoft.ML.RunTests
             bool b;
             using (var cursor = data.GetRowCursor(metricCol.Value, foldCol.Value))
             {
-                var getter = cursor.GetGetter<double>(metricCol.Value.Index);
-                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol.Value.Index);
+                var getter = cursor.GetGetter<double>(metricCol.Value);
+                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol.Value);
                 ReadOnlyMemory<char> fold = default;
 
                 // Get the verage.
@@ -4961,18 +4962,18 @@ namespace Microsoft.ML.RunTests
                             }, {
                                 'Name': 'Trainers.FastTreeRanker',
                                 'Inputs': {
-                                    'CustomGains': '0,3,7,15,31',
-                                    'TrainDcg': false,
+                                    'CustomGains': [0,3,7,15,31],
+                                    'UseDcg': false,
                                     'SortingAlgorithm': 'DescendingStablePessimistic',
-                                    'LambdaMartMaxTruncation': 100,
+                                    'NdcgTruncationLevel': 100,
                                     'ShiftedNdcg': false,
                                     'CostFunctionParam': 'w',
                                     'DistanceWeight2': false,
                                     'NormalizeQueryLambdas': false,
                                     'BestStepRankingRegressionTrees': false,
                                     'UseLineSearch': false,
-                                    'NumPostBracketSteps': 0,
-                                    'MinStepSize': 0.0,
+                                    'MaximumNumberOfLineSearchSteps': 0,
+                                    'MinimumStepSize': 0.0,
                                     'OptimizationAlgorithm': 'GradientDescent',
                                     'EarlyStoppingRule': null,
                                     'EarlyStoppingMetrics': 1,
@@ -4980,12 +4981,12 @@ namespace Microsoft.ML.RunTests
                                     'UseTolerantPruning': false,
                                     'PruningThreshold': 0.004,
                                     'PruningWindowSize': 5,
-                                    'LearningRates': 0.2,
+                                    'LearningRate': 0.2,
                                     'Shrinkage': 1.0,
                                     'DropoutRate': 0.0,
                                     'GetDerivativesSampleRate': 1,
                                     'WriteLastEnsemble': false,
-                                    'MaxTreeOutput': 100.0,
+                                    'MaximumTreeOutput': 100.0,
                                     'RandomStart': false,
                                     'FilterZeroLambdas': false,
                                     'BaselineScoresFormula': null,
@@ -4995,39 +4996,38 @@ namespace Microsoft.ML.RunTests
                                         'Name': 'Single',
                                         'Settings': {}
                                     },
-                                    'NumThreads': 1,
-                                    'RngSeed': 123,
-                                    'FeatureSelectSeed': 123,
+                                    'NumberOfThreads': 1,
+                                    'Seed': 123,
+                                    'FeatureSelectionSeed': 123,
                                     'EntropyCoefficient': 0.0,
                                     'HistogramPoolSize': -1,
                                     'DiskTranspose': null,
                                     'FeatureFlocks': true,
                                     'CategoricalSplit': false,
-                                    'MaxCategoricalGroupsPerNode': 64,
-                                    'MaxCategoricalSplitPoints': 64,
-                                    'MinDocsPercentageForCategoricalSplit': 0.001,
-                                    'MinDocsForCategoricalSplit': 100,
+                                    'MaximumCategoricalGroupCountPerNode': 64,
+                                    'MaximumCategoricalSplitPointCount': 64,
+                                    'MinimumExampleFractionForCategoricalSplit': 0.001,
+                                    'MinimumExamplesForCategoricalSplit': 100,
                                     'Bias': 0.0,
                                     'Bundling': 'None',
-                                    'MaxBins': 255,
+                                    'MaximumBinCountPerFeature': 255,
                                     'SparsifyThreshold': 0.7,
                                     'FeatureFirstUsePenalty': 0.0,
                                     'FeatureReusePenalty': 0.0,
                                     'GainConfidenceLevel': 0.0,
                                     'SoftmaxTemperature': 0.0,
-                                    'ExecutionTimes': false,
-                                    'NumLeaves': 20,
-                                    'MinDocumentsInLeafs': 10,
-                                    'NumTrees': 100,
+                                    'ExecutionTime': false,
+                                    'NumberOfLeaves': 20,
+                                    'MinimumExampleCountPerLeaf': 10,
+                                    'NumberOfTrees': 100,
                                     'FeatureFraction': 1.0,
                                     'BaggingSize': 0,
-                                    'BaggingTrainFraction': 0.7,
-                                    'SplitFraction': 1.0,
+                                    'BaggingExampleFraction': 0.7,
+                                    'FeatureFractionPerSplit': 1.0,
                                     'Smoothing': 0.0,
                                     'AllowEmptyTrees': true,
                                     'FeatureCompressionLevel': 1,
                                     'CompressEnsemble': false,
-                                    'MaxTreesAfterCompression': -1,
                                     'PrintTestGraph': false,
                                     'PrintTrainValidGraph': false,
                                     'TestFrequency': 2147483647,
@@ -5103,8 +5103,8 @@ namespace Microsoft.ML.RunTests
             bool b;
             using (var cursor = data.GetRowCursor(metricCol.Value, foldCol.Value))
             {
-                var getter = cursor.GetGetter<VBuffer<double>>(metricCol.Value.Index);
-                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol.Value.Index);
+                var getter = cursor.GetGetter<VBuffer<double>>(metricCol.Value);
+                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol.Value);
                 ReadOnlyMemory<char> fold = default;
 
                 // Get the verage.
@@ -5155,7 +5155,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(nameCol.HasValue);
             using (var cursor = data.GetRowCursor(nameCol.Value))
             {
-                var getter = cursor.GetGetter<ReadOnlyMemory<char>>(nameCol.Value.Index);
+                var getter = cursor.GetGetter<ReadOnlyMemory<char>>(nameCol.Value);
                 while (cursor.MoveNext())
                 {
                     ReadOnlyMemory<char> name = default;
@@ -5320,7 +5320,7 @@ namespace Microsoft.ML.RunTests
             bool b;
             using (var cursor = data.GetRowCursor(accCol.Value))
             {
-                var getter = cursor.GetGetter<double>(accCol.Value.Index);
+                var getter = cursor.GetGetter<double>(accCol.Value);
                 b = cursor.MoveNext();
                 Assert.True(b);
                 double acc = 0;
@@ -5491,7 +5491,7 @@ namespace Microsoft.ML.RunTests
             bool b;
             using (var cursor = data.GetRowCursor(accCol.Value))
             {
-                var getter = cursor.GetGetter<double>(accCol.Value.Index);
+                var getter = cursor.GetGetter<double>(accCol.Value);
                 b = cursor.MoveNext();
                 Assert.True(b);
                 double acc = 0;

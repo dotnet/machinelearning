@@ -5,6 +5,7 @@
 using Microsoft.ML;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(typeof(void), typeof(ImageAnalyticsEntryPoints), null, typeof(SignatureEntryPointModule), "ImageAnalytics")]
 namespace Microsoft.ML.ImageAnalytics

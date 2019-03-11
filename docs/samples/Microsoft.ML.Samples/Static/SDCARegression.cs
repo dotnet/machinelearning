@@ -1,5 +1,4 @@
 using System;
-using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
 
@@ -37,7 +36,7 @@ namespace Microsoft.ML.Samples.Static
                                             r.label,
                                             r.features,
                                             l1Threshold: 0f,
-                                            maxIterations: 100,
+                                            numberOfIterations: 100,
                                         onFit: p => pred = p)
                                 )
                         );

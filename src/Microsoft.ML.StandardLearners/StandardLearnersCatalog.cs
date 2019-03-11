@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML
@@ -22,9 +23,9 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column, or dependent variable.</param>
         /// <param name="featureColumnName">The features, or independent variables.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="maxIterations">The maximum number of passes through the training dataset; set to 1 to simulate online learning.</param>
-        /// <param name="initLearningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
-        /// <param name="l2Weight">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="numberOfIterations">The maximum number of passes through the training dataset; set to 1 to simulate online learning.</param>
+        /// <param name="initialLearningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -36,14 +37,14 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int maxIterations = SgdBinaryTrainer.Options.Defaults.MaxIterations,
-            double initLearningRate = SgdBinaryTrainer.Options.Defaults.InitLearningRate,
-            float l2Weight = SgdBinaryTrainer.Options.Defaults.L2Weight)
+            int numberOfIterations = SgdBinaryTrainer.Options.Defaults.NumberOfIterations,
+            double initialLearningRate = SgdBinaryTrainer.Options.Defaults.InitialLearningRate,
+            float l2Regularization = SgdBinaryTrainer.Options.Defaults.L2Regularization)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
             return new SgdBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName,
-                maxIterations, initLearningRate, l2Weight);
+                numberOfIterations, initialLearningRate, l2Regularization);
         }
 
         /// <summary>
@@ -76,9 +77,9 @@ namespace Microsoft.ML
         /// <param name="featureColumnName">The features, or independent variables.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="loss">The loss function minimized in the training process. Using, for example, <see cref="HingeLoss"/> leads to a support vector machine trainer.</param>
-        /// <param name="maxIterations">The maximum number of passes through the training dataset; set to 1 to simulate online learning.</param>
-        /// <param name="initLearningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
-        /// <param name="l2Weight">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="numberOfIterations">The maximum number of passes through the training dataset; set to 1 to simulate online learning.</param>
+        /// <param name="initialLearningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -91,14 +92,14 @@ namespace Microsoft.ML
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
             IClassificationLoss loss = null,
-            int maxIterations = SgdNonCalibratedBinaryTrainer.Options.Defaults.MaxIterations,
-            double initLearningRate = SgdNonCalibratedBinaryTrainer.Options.Defaults.InitLearningRate,
-            float l2Weight = SgdNonCalibratedBinaryTrainer.Options.Defaults.L2Weight)
+            int numberOfIterations = SgdNonCalibratedBinaryTrainer.Options.Defaults.NumberOfIterations,
+            double initialLearningRate = SgdNonCalibratedBinaryTrainer.Options.Defaults.InitialLearningRate,
+            float l2Regularization = SgdNonCalibratedBinaryTrainer.Options.Defaults.L2Regularization)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
             return new SgdNonCalibratedBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName,
-                maxIterations, initLearningRate, l2Weight, loss);
+                numberOfIterations, initialLearningRate, l2Regularization, loss);
         }
 
         /// <summary>
@@ -130,9 +131,9 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="l2Const">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
+        /// <param name="l2Regularization">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
         /// <param name="l1Threshold">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
-        /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
         /// <param name="loss">The custom <a href="tmpurl_loss">loss</a>, if unspecified will be <see cref="SquaredLoss"/>.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -145,13 +146,13 @@ namespace Microsoft.ML
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
             ISupportSdcaRegressionLoss loss = null,
-            float? l2Const = null,
+            float? l2Regularization = null,
             float? l1Threshold = null,
-            int? maxIterations = null)
+            int? maximumNumberOfIterations = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Const, l1Threshold, maxIterations);
+            return new SdcaRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, maximumNumberOfIterations);
         }
 
         /// <summary>
@@ -182,9 +183,9 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="l2Const">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
+        /// <param name="l2Regularization">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
         /// <param name="l1Threshold">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
-        /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -196,13 +197,13 @@ namespace Microsoft.ML
                 string labelColumnName = DefaultColumnNames.Label,
                 string featureColumnName = DefaultColumnNames.Features,
                 string exampleWeightColumnName = null,
-                float? l2Const = null,
+                float? l2Regularization = null,
                 float? l1Threshold = null,
-                int? maxIterations = null)
+                int? maximumNumberOfIterations = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l2Const, l1Threshold, maxIterations);
+            return new SdcaBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l2Regularization, l1Threshold, maximumNumberOfIterations);
         }
 
         /// <summary>
@@ -235,9 +236,9 @@ namespace Microsoft.ML
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="loss">The custom <a href="tmpurl_loss">loss</a>. Defaults to <see cref="LogLoss"/> if not specified.</param>
-        /// <param name="l2Const">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
+        /// <param name="l2Regularization">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
         /// <param name="l1Threshold">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
-        /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -250,13 +251,13 @@ namespace Microsoft.ML
                 string featureColumnName = DefaultColumnNames.Features,
                 string exampleWeightColumnName = null,
                 ISupportSdcaClassificationLoss loss = null,
-                float? l2Const = null,
+                float? l2Regularization = null,
                 float? l1Threshold = null,
-                int? maxIterations = null)
+                int? maximumNumberOfIterations = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaNonCalibratedBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Const, l1Threshold, maxIterations);
+            return new SdcaNonCalibratedBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, maximumNumberOfIterations);
         }
 
         /// <summary>
@@ -283,9 +284,9 @@ namespace Microsoft.ML
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="loss">The custom <a href="tmpurl_loss">loss</a>. Defaults to <see cref="LogLoss"/> if not specified.</param>
-        /// <param name="l2Const">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
+        /// <param name="l2Regularization">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
         /// <param name="l1Threshold">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
-        /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -297,13 +298,13 @@ namespace Microsoft.ML
                     string featureColumnName = DefaultColumnNames.Features,
                     string exampleWeightColumnName = null,
                     ISupportSdcaClassificationLoss loss = null,
-                    float? l2Const = null,
+                    float? l2Regularization = null,
                     float? l1Threshold = null,
-                    int? maxIterations = null)
+                    int? maximumNumberOfIterations = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaMultiClassTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Const, l1Threshold, maxIterations);
+            return new SdcaMultiClassTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, maximumNumberOfIterations);
         }
 
         /// <summary>
@@ -452,7 +453,7 @@ namespace Microsoft.ML
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Regularization">Weight of L1 regularization term.</param>
         /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="iterationsToRemember">Memory size for <see cref="Trainers.LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Memory size for <see cref="Trainers.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -468,12 +469,12 @@ namespace Microsoft.ML
             float l1Regularization = LROptions.Defaults.L1Regularization,
             float l2Regularization = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int iterationsToRemember = LROptions.Defaults.IterationsToRemember,
+            int historySize = LROptions.Defaults.HistorySize,
             bool enforceNonNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LogisticRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, iterationsToRemember, enforceNonNegativity);
+            return new LogisticRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
         }
 
         /// <summary>
@@ -500,7 +501,7 @@ namespace Microsoft.ML
         /// <param name="l1Regularization">Weight of L1 regularization term.</param>
         /// <param name="l2Regularization">Weight of L2 regularization term.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="iterationsToRemember">Memory size for <see cref="Microsoft.ML.Trainers.PoissonRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.PoissonRegression"/>. Low=faster, less accurate.</param>
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         public static PoissonRegression PoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
@@ -509,12 +510,12 @@ namespace Microsoft.ML
             float l1Regularization = LROptions.Defaults.L1Regularization,
             float l2Regularization = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int iterationsToRemember = LROptions.Defaults.IterationsToRemember,
+            int historySize = LROptions.Defaults.HistorySize,
             bool enforceNonNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new PoissonRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, iterationsToRemember, enforceNonNegativity);
+            return new PoissonRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
         }
 
         /// <summary>
@@ -541,7 +542,7 @@ namespace Microsoft.ML
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Regularization">Weight of L1 regularization term.</param>
         /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="iterationsToRemember">Memory size for <see cref="Microsoft.ML.Trainers.MulticlassLogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.MulticlassLogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         public static MulticlassLogisticRegression LogisticRegression(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
@@ -550,12 +551,12 @@ namespace Microsoft.ML
             float l1Regularization = LROptions.Defaults.L1Regularization,
             float l2Regularization = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int iterationsToRemember = LROptions.Defaults.IterationsToRemember,
+            int historySize = LROptions.Defaults.HistorySize,
             bool enforceNonNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new MulticlassLogisticRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, iterationsToRemember, enforceNonNegativity);
+            return new MulticlassLogisticRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
         }
 
         /// <summary>
@@ -727,25 +728,6 @@ namespace Microsoft.ML
             Contracts.CheckValue(options, nameof(options));
 
             return new LinearSvmTrainer(CatalogUtils.GetEnvironment(catalog), options);
-        }
-
-        /// <summary>
-        /// Predict a target using the random binary classification model <see cref="RandomTrainer"/>.
-        /// </summary>
-        /// <remarks>
-        /// This trainer can be used as a baseline for other more sophisticated mdels.
-        /// </remarks>
-        /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/RandomTrainerSample.cs)]
-        /// ]]></format>
-        /// </example>
-        public static RandomTrainer Random(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog)
-        {
-            Contracts.CheckValue(catalog, nameof(catalog));
-            return new RandomTrainer(CatalogUtils.GetEnvironment(catalog), new RandomTrainer.Options());
         }
 
         /// <summary>

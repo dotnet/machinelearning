@@ -9,7 +9,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -38,7 +37,7 @@ namespace Microsoft.ML.Benchmarks
 
             string _irisDataPath = BaseTestClass.GetDataPath("iris.txt");
 
-            var env = new MLContext(seed: 1, conc: 1);
+            var env = new MLContext(seed: 1);
 
             // Create text loader.
             var options = new TextLoader.Options()
@@ -59,7 +58,7 @@ namespace Microsoft.ML.Benchmarks
 
             var pipeline = new ColumnConcatenatingEstimator(env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
                 .Append(env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
-                    new SdcaMultiClassTrainer.Options {NumThreads = 1, ConvergenceTolerance = 1e-2f, }));
+                    new SdcaMultiClassTrainer.Options {NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, }));
 
             var model = pipeline.Fit(data);
 
@@ -76,7 +75,7 @@ namespace Microsoft.ML.Benchmarks
 
             string _sentimentDataPath = BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv");
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Create text loader.
             var options = new TextLoader.Options()
@@ -94,7 +93,7 @@ namespace Microsoft.ML.Benchmarks
 
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                    new SdcaNonCalibratedBinaryTrainer.Options {NumThreads = 1, ConvergenceTolerance = 1e-2f, }));
+                    new SdcaNonCalibratedBinaryTrainer.Options {NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, }));
 
             var model = pipeline.Fit(data);
 
@@ -111,7 +110,7 @@ namespace Microsoft.ML.Benchmarks
 
             string _breastCancerDataPath = BaseTestClass.GetDataPath("breast-cancer.txt");
 
-            var env = new MLContext(seed: 1, conc: 1);
+            var env = new MLContext(seed: 1);
 
             // Create text loader.
             var options = new TextLoader.Options()
@@ -128,7 +127,7 @@ namespace Microsoft.ML.Benchmarks
             IDataView data = loader.Load(_breastCancerDataPath);
 
             var pipeline = env.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options { NumThreads = 1, ConvergenceTolerance = 1e-2f, });
+                new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, });
 
             var model = pipeline.Fit(data);
 

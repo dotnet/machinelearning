@@ -10,6 +10,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.LightGBM;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(Options.TreeBooster), typeof(Options.TreeBooster.Options),

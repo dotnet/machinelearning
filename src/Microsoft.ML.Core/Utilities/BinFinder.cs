@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {
@@ -598,7 +599,7 @@ namespace Microsoft.ML.Internal.Utilities
 
             // Row zero is special.
             EnergyType bestWorst = EnergyType.MaxValue;
-            for (int col = width; --col >= 0; )
+            for (int col = width; --col >= 0;)
             {
                 _energies[col] = Square(_accum[1 + col]);
                 EnergyType worst;
@@ -625,7 +626,7 @@ namespace Microsoft.ML.Internal.Utilities
             for (int row = 1; row < height; row++)
             {
                 Contracts.Assert(ivBase == (row - 1) * width);
-                for (int col = width; --col >= colMin; )
+                for (int col = width; --col >= colMin;)
                 {
                     int accum = _accum[row + 1 + col];
                     eBest = EnergyType.MaxValue;
@@ -696,7 +697,7 @@ namespace Microsoft.ML.Internal.Utilities
 
             // Fill in the rest of the path.
             ivBase = (height - 1) * width;
-            for (int row = height; --row > 0; )
+            for (int row = height; --row > 0;)
             {
                 // Recall that the _pathInfo table doesn't have row zero.
                 ivBase -= width;

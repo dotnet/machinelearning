@@ -16,7 +16,7 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public void TrainAndPredictIrisModelTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var reader = mlContext.Data.CreateTextLoader(columns: new[]
                 {
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Scenarios
                             .Append(mlContext.Transforms.Normalize("Features"))
                             .AppendCacheCheckpoint(mlContext)
                             .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
-                                new SdcaMultiClassTrainer.Options { NumThreads = 1 }));
+                                new SdcaMultiClassTrainer.Options { NumberOfThreads = 1 }));
 
             // Read training and test data sets
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(.06, metrics.LogLoss, 2);
             Assert.Equal(1, metrics.TopKAccuracy);
 
-            Assert.Equal(3, metrics.PerClassLogLoss.Length);
+            Assert.Equal(3, metrics.PerClassLogLoss.Count);
             Assert.Equal(0, metrics.PerClassLogLoss[0], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[1], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[2], 1);

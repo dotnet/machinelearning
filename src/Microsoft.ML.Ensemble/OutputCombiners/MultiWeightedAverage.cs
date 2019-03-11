@@ -8,7 +8,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(MultiWeightedAverage), typeof(MultiWeightedAverage.Options), typeof(SignatureCombiner),

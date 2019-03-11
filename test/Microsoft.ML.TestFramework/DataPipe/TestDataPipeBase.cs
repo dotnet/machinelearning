@@ -12,7 +12,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Xunit;
 
@@ -208,9 +208,6 @@ namespace Microsoft.ML.RunTests
                 using (_env.RedirectChannelOutput(writer, writer))
                 {
                     long count = 0;
-                    // Set the concurrency to 1 for this; restore later.
-                    int conc = _env.ConcurrencyFactor;
-                    _env.ConcurrencyFactor = 1;
                     using (var curs = pipe1.GetRowCursorForAllColumns())
                     {
                         while (curs.MoveNext())
@@ -219,7 +216,6 @@ namespace Microsoft.ML.RunTests
                         }
                     }
                     writer.WriteLine("Cursored through {0} rows", count);
-                    _env.ConcurrencyFactor = conc;
                 }
 
                 CheckEqualityNormalized("SavePipe", name, digitsOfPrecision: digitsOfPrecision);
@@ -829,8 +825,8 @@ namespace Microsoft.ML.RunTests
             Func<bool>[] comps = new Func<bool>[colLim];
             for (int col = 0; col < colLim; col++)
             {
-                var f1 = curs1.IsColumnActive(col);
-                var f2 = curs2.IsColumnActive(col);
+                var f1 = curs1.IsColumnActive(curs1.Schema[col]);
+                var f2 = curs2.IsColumnActive(curs2.Schema[col]);
 
                 if (f1 && f2)
                 {
@@ -913,7 +909,7 @@ namespace Microsoft.ML.RunTests
                 for (int col = 0; col < colLim; col++)
                 {
                     // curs1 should have all columns active (for simplicity of the code here).
-                    Contracts.Assert(curs1.IsColumnActive(col));
+                    Contracts.Assert(curs1.IsColumnActive(curs1.Schema[col]));
                     cursors[col] = view2.GetRowCursorForAllColumns();
                 }
 
@@ -1116,8 +1112,8 @@ namespace Microsoft.ML.RunTests
 
         protected Func<bool> GetComparerOne<T>(DataViewRow r1, DataViewRow r2, int col, Func<T, T, bool> fn)
         {
-            var g1 = r1.GetGetter<T>(col);
-            var g2 = r2.GetGetter<T>(col);
+            var g1 = r1.GetGetter<T>(r1.Schema[col]);
+            var g2 = r2.GetGetter<T>(r2.Schema[col]);
             T v1 = default(T);
             T v2 = default(T);
             return
@@ -1133,8 +1129,8 @@ namespace Microsoft.ML.RunTests
 
         protected Func<bool> GetComparerVec<T>(DataViewRow r1, DataViewRow r2, int col, int size, Func<T, T, bool> fn)
         {
-            var g1 = r1.GetGetter<VBuffer<T>>(col);
-            var g2 = r2.GetGetter<VBuffer<T>>(col);
+            var g1 = r1.GetGetter<VBuffer<T>>(r1.Schema[col]);
+            var g2 = r2.GetGetter<VBuffer<T>>(r2.Schema[col]);
             var v1 = default(VBuffer<T>);
             var v2 = default(VBuffer<T>);
             return

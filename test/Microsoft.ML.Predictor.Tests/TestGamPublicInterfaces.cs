@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
@@ -33,20 +34,20 @@ namespace Microsoft.ML.RunTests
             var gam = new RegressionGamModelParameters(mlContext, binUpperBounds, binEffects, intercept);
 
             // Check that the model has the right number of shape functions
-            Assert.Equal(binUpperBounds.Length, gam.NumShapeFunctions);
+            Assert.Equal(binUpperBounds.Length, gam.NumberOfShapeFunctions);
 
             // Check the intercept
-            Assert.Equal(intercept, gam.Intercept, 6);
+            Assert.Equal(intercept, gam.Bias, 6);
 
             // Check that the binUpperBounds were made correctly
             CheckArrayOfArrayEquality(binUpperBounds, gam.GetBinUpperBounds());
-            for (int i = 0; i < gam.NumShapeFunctions; i++)
-                Utils.AreEqual(binUpperBounds[i], gam.GetBinUpperBounds(i));
+            for (int i = 0; i < gam.NumberOfShapeFunctions; i++)
+                Utils.AreEqual(binUpperBounds[i], gam.GetBinUpperBounds(i).ToArray());
 
             // Check that the bin effects were made correctly
             CheckArrayOfArrayEquality(binEffects, gam.GetBinEffects());
-            for (int i = 0; i < gam.NumShapeFunctions; i++)
-                Utils.AreEqual(binEffects[i], gam.GetBinEffects(i));
+            for (int i = 0; i < gam.NumberOfShapeFunctions; i++)
+                Utils.AreEqual(binEffects[i], gam.GetBinEffects(i).ToArray());
 
             // Check that the constructor handles null inputs properly
             Assert.Throws<System.ArgumentNullException>(() => new RegressionGamModelParameters(mlContext, binUpperBounds, null, intercept));

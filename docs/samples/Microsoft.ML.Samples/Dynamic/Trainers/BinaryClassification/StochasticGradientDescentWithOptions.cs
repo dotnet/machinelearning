@@ -1,5 +1,4 @@
-﻿using Microsoft.ML;
-using Microsoft.ML.Trainers;
+﻿using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
@@ -27,7 +26,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
                 // Make the convergence tolerance tighter.
                 ConvergenceTolerance = 5e-5,
                 // Increase the maximum number of passes over training data.
-                MaxIterations = 30,
+                NumberOfIterations = 30,
                 // Give the instances of the positive class slightly more weight.
                 PositiveInstanceWeight = 1.2f,
             };

@@ -944,9 +944,9 @@ public static IDataView PrepareData(MLContext mlContext, IDataView data)
 {
     // Define the operation code.
     Action<InputRow, OutputRow> mapping = (input, output) => output.Label = input.Income > 50000;
-    // Make a custom transformer and transform the data.
-    var transformer = mlContext.Transforms.CustomMappingTransformer(mapping, null);
-    return transformer.Transform(data);
+    // Make a custom estimator and transform the data.
+    var estimator = mlContext.Transforms.CustomMapping(mapping, null);
+    return estimator.Fit(data).Transform(data);
 }
 ```
 

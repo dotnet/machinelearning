@@ -18,6 +18,7 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
 
@@ -257,7 +258,7 @@ namespace Microsoft.ML.Trainers
         bool ICanSavePfa.CanSavePfa => _impl.CanSavePfa;
 
         [BestFriend]
-        internal static OneVersusAllModelParameters Create(IHost host,  OutputFormula outputFormula, TScalarPredictor[] predictors)
+        internal static OneVersusAllModelParameters Create(IHost host, OutputFormula outputFormula, TScalarPredictor[] predictors)
         {
             ImplBase impl;
 
@@ -465,7 +466,7 @@ namespace Microsoft.ML.Trainers
                     return false;
                 if (mapper.OutputType != NumberDataViewType.Single)
                     return false;
-                if (!(mapper.InputType is VectorType mapperVectorType)|| mapperVectorType.ItemType != NumberDataViewType.Single)
+                if (!(mapper.InputType is VectorType mapperVectorType) || mapperVectorType.ItemType != NumberDataViewType.Single)
                     return false;
                 if (inputType == null)
                     inputType = mapperVectorType;
