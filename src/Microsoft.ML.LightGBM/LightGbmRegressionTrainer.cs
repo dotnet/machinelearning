@@ -72,7 +72,10 @@ namespace Microsoft.ML.LightGBM
         }
     }
 
-    public sealed class LightGbmRegressorTrainer : LightGbmTrainerBase<float, RegressionPredictionTransformer<LightGbmRegressionModelParameters>, LightGbmRegressionModelParameters>
+    public sealed class LightGbmRegressorTrainer : LightGbmTrainerBase<LightGbmRegressorTrainer.Options,
+                                                        float,
+                                                        RegressionPredictionTransformer<LightGbmRegressionModelParameters>,
+                                                        LightGbmRegressionModelParameters>
     {
         internal const string Summary = "LightGBM Regression";
         internal const string LoadNameValue = "LightGBMRegression";
@@ -80,6 +83,10 @@ namespace Microsoft.ML.LightGBM
         internal const string UserNameValue = "LightGBM Regressor";
 
         private protected override PredictionKind PredictionKind => PredictionKind.Regression;
+
+        public sealed class Options : OptionsBase
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of <see cref="LightGbmRegressorTrainer"/>
@@ -99,7 +106,7 @@ namespace Microsoft.ML.LightGBM
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = LightGBM.Options.Defaults.NumberOfIterations)
+            int numberOfIterations = Options.Defaults.NumberOfIterations)
             : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(labelColumnName), featureColumnName, exampleWeightColumnName, null, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations)
         {
         }
@@ -129,8 +136,9 @@ namespace Microsoft.ML.LightGBM
             }
         }
 
-        private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
+        private protected override void UpdateOptionsFromDataset(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
+            LightGbmTrainerOptions
             Options["objective"] = "regression";
             // Add default metric.
             if (!Options.ContainsKey("metric"))
@@ -165,14 +173,14 @@ namespace Microsoft.ML.LightGBM
             Desc = LightGbmRegressorTrainer.Summary,
             UserName = LightGbmRegressorTrainer.UserNameValue,
             ShortName = LightGbmRegressorTrainer.ShortName)]
-        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Options input)
+        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, LightGbmRegressorTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLightGBM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<LightGbmRegressorTrainer.Options, CommonOutputs.RegressionOutput>(host, input,
                 () => new LightGbmRegressorTrainer(host, input),
                 getLabel: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));

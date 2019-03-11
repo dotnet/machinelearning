@@ -5,8 +5,10 @@
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
@@ -86,7 +88,7 @@ namespace Microsoft.ML.LightGBM
     /// Light GBM is an open source implementation of boosted trees.
     /// <a href = 'https://github.com/Microsoft/LightGBM/wiki' > GitHub: LightGBM</a>
     /// </remarks>
-    public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<float,
+    public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<LightGbmBinaryTrainer.Options,float,
         BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>
     {
@@ -96,6 +98,27 @@ namespace Microsoft.ML.LightGBM
         internal const string Summary = "Train a LightGBM binary classification model.";
 
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+
+        public sealed class Options : OptionsBase
+        {
+            public enum EvaluateMetricType
+            {
+                Default,
+                Logloss,
+                Error,
+                Auc,
+            };
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function." + nameof(LightGbmBinaryTrainer) + ", " + nameof(LightGbmMulticlassTrainer) +
+                " and in " + nameof(LightGbmRankingTrainer) + ".", ShortName = "sigmoid")]
+            [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
+            public double Sigmoid = 0.5;
+
+            [Argument(ArgumentType.AtMostOnce,
+                HelpText = "Evaluation metrics.",
+                ShortName = "em")]
+            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Default;
+        }
 
         internal LightGbmBinaryTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
@@ -120,7 +143,7 @@ namespace Microsoft.ML.LightGBM
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = LightGBM.Options.Defaults.NumberOfIterations)
+            int numberOfIterations = Options.Defaults.NumberOfIterations)
             : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumnName), featureColumnName, exampleWeightColumnName, null, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations)
         {
         }
@@ -146,12 +169,12 @@ namespace Microsoft.ML.LightGBM
             }
         }
 
-        private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
+        private protected override void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
         {
-            Options["objective"] = "binary";
-            // Add default metric.
-            if (!Options.ContainsKey("metric"))
-                Options["metric"] = "binary_logloss";
+            base.GetDefaultParameters(ch, numRow, hasCategorical, totalCats, true);
+            LightGbmTrainerOptions.EvaluationMetric = Options.EvaluateMetricType.Logloss;
+            var internalOptions = (InternalOptions)LightGbmTrainerOptions;
+            internalOptions.Objective = "binary";
         }
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
@@ -186,14 +209,14 @@ namespace Microsoft.ML.LightGBM
             Desc = LightGbmBinaryTrainer.Summary,
             UserName = LightGbmBinaryTrainer.UserName,
             ShortName = LightGbmBinaryTrainer.ShortName)]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Options input)
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LightGbmBinaryTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLightGBM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<LightGbmBinaryTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new LightGbmBinaryTrainer(host, input),
                 getLabel: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));

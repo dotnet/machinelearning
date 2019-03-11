@@ -5,8 +5,10 @@
 using System;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers;
@@ -47,7 +49,6 @@ namespace Microsoft.ML.LightGBM
         private protected override uint VerDefaultValueSerialized => 0x00010004;
         private protected override uint VerCategoricalSplitSerialized => 0x00010005;
         private protected override PredictionKind PredictionKind => PredictionKind.Ranking;
-
         internal LightGbmRankingModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
@@ -70,13 +71,23 @@ namespace Microsoft.ML.LightGBM
         }
     }
 
-    public sealed class LightGbmRankingTrainer : LightGbmTrainerBase<float, RankingPredictionTransformer<LightGbmRankingModelParameters>, LightGbmRankingModelParameters>
+    public sealed class LightGbmRankingTrainer : LightGbmTrainerBase<LightGbmRankingTrainer.Options,
+                                                    float,
+                                                    RankingPredictionTransformer<LightGbmRankingModelParameters>,
+                                                    LightGbmRankingModelParameters>
     {
         internal const string UserName = "LightGBM Ranking";
         internal const string LoadNameValue = "LightGBMRanking";
         internal const string ShortName = "LightGBMRank";
 
         private protected override PredictionKind PredictionKind => PredictionKind.Ranking;
+
+        public sealed class Options : OptionsBase
+        {
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma seperated list of gains associated to each relevance label.", ShortName = "gains")]
+            [TGUI(Label = "Ranking Label Gain")]
+            public string CustomGains = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
+        }
 
         internal LightGbmRankingTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName))
@@ -103,7 +114,7 @@ namespace Microsoft.ML.LightGBM
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = LightGBM.Options.Defaults.NumberOfIterations)
+            int numberOfIterations = Options.Defaults.NumberOfIterations)
             : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(labelColumnName),
                     featureColumnName, weightsColumnName, rowGroupdColumnName, numberOfLeaves,
                     minimumExampleCountPerLeaf, learningRate, numberOfIterations)
@@ -194,14 +205,14 @@ namespace Microsoft.ML.LightGBM
             Desc = "Train a LightGBM ranking model.",
             UserName = LightGbmRankingTrainer.UserName,
             ShortName = LightGbmRankingTrainer.ShortName)]
-        public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, Options input)
+        public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, LightGbmRankingTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLightGBM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.RankingOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<LightGbmRankingTrainer.Options, CommonOutputs.RankingOutput>(host, input,
                 () => new LightGbmRankingTrainer(host, input),
                 getLabel: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName),

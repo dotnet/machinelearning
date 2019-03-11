@@ -4,7 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
@@ -28,7 +31,110 @@ namespace Microsoft.ML.LightGBM
     public abstract class LightGbmTrainerBase<TOptions, TOutput, TTransformer, TModel> : TrainerEstimatorBaseWithGroupId<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
+        where TOptions : LightGbmTrainerBase<TOptions, TOutput, TTransformer, TModel>.OptionsBase, new()
     {
+
+        protected interface InternalOptions
+        {
+            string Objective { get; set; }
+            int NumberOfClasses { get; set; }
+        }
+
+        public class OptionsBase : TrainerInputBaseWithGroupId, InternalOptions
+        {
+            private protected OptionsBase() { }
+
+            [BestFriend]
+            internal static class Defaults
+            {
+                public const int NumberOfIterations = 100;
+            }
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations.", SortOrder = 1, ShortName = "iter")]
+            [TGUI(Label = "Number of boosting iterations", SuggestedSweeps = "10,20,50,100,150,200")]
+            [TlcModule.SweepableDiscreteParam("NumBoostRound", new object[] { 10, 20, 50, 100, 150, 200 })]
+            public int NumberOfIterations = Defaults.NumberOfIterations;
+
+            [Argument(ArgumentType.AtMostOnce,
+                HelpText = "Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].",
+                SortOrder = 2, ShortName = "lr", NullName = "<Auto>")]
+            [TGUI(Label = "Learning Rate", SuggestedSweeps = "0.025-0.4;log")]
+            [TlcModule.SweepableFloatParamAttribute("LearningRate", 0.025f, 0.4f, isLogScale: true)]
+            public double? LearningRate;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum leaves for trees.",
+                SortOrder = 2, ShortName = "nl", NullName = "<Auto>")]
+            [TGUI(Description = "The maximum number of leaves per tree", SuggestedSweeps = "2-128;log;inc:4")]
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, isLogScale: true, stepSize: 4)]
+            public int? NumberOfLeaves;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Minimum number of instances needed in a child.",
+                SortOrder = 2, ShortName = "mil", NullName = "<Auto>")]
+            [TGUI(Label = "Min Documents In Leaves", SuggestedSweeps = "1,10,20,50 ")]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerLeaf", new object[] { 1, 10, 20, 50 })]
+            public int? MinimumExampleCountPerLeaf;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of bucket bin for features.", ShortName = "mb")]
+            public int MaximumBinCountPerFeature = 255;
+
+            [Argument(ArgumentType.Multiple, HelpText = "Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.", SortOrder = 3)]
+            public ISupportBoosterParameterFactory Booster = new TreeBooster.Options();
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Verbose", ShortName = "v")]
+            public bool Verbose = false;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Printing running messages.")]
+            public bool Silent = true;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of parallel threads used to run LightGBM.", ShortName = "nt")]
+            public int? NumberOfThreads;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Rounds of early stopping, 0 will disable it.",
+                ShortName = "es")]
+            public int EarlyStoppingRound = 0;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of entries in a batch when loading data.", Hide = true)]
+            public int BatchSize = 1 << 20;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable categorical split or not.", ShortName = "cat")]
+            [TlcModule.SweepableDiscreteParam("UseCat", new object[] { true, false })]
+            public bool? UseCategoricalSplit;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable special handling of missing value or not.")]
+            [TlcModule.SweepableDiscreteParam("UseMissing", new object[] { true, false })]
+            public bool HandleMissingValue = false;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Minimum number of instances per categorical group.", ShortName = "mdpg")]
+            [TlcModule.Range(Inf = 0, Max = int.MaxValue)]
+            [TlcModule.SweepableDiscreteParam("MinDataPerGroup", new object[] { 10, 50, 100, 200 })]
+            public int MinimumExampleCountPerGroup = 100;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of categorical thresholds.", ShortName = "maxcat")]
+            [TlcModule.Range(Inf = 0, Max = int.MaxValue)]
+            [TlcModule.SweepableDiscreteParam("MaxCatThreshold", new object[] { 8, 16, 32, 64 })]
+            public int MaximumCategoricalSplitPointCount = 32;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.")]
+            [TlcModule.Range(Min = 0.0)]
+            [TlcModule.SweepableDiscreteParam("CatSmooth", new object[] { 1, 10, 20 })]
+            public double CategoricalSmoothing = 10;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization for categorical split.")]
+            [TlcModule.Range(Min = 0.0)]
+            [TlcModule.SweepableDiscreteParam("CatL2", new object[] { 0.1, 0.5, 1, 5, 10 })]
+            public double L2CategoricalRegularization = 10;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Sets the random seed for LightGBM to use.")]
+            public int? Seed;
+
+            [Argument(ArgumentType.Multiple, HelpText = "Parallel LightGBM Learning Algorithm", ShortName = "parag")]
+            internal ISupportParallel ParallelTrainer = new SingleTrainerFactory();
+            
+            internal string Objective;
+
+            internal int NumberOfClasses;
+        }
+
         private sealed class CategoricalMetaData
         {
             public int NumCol;
@@ -39,14 +145,14 @@ namespace Microsoft.ML.LightGBM
             public bool[] IsCategoricalFeature;
         }
 
-        private protected readonly Options LightGbmTrainerOptions;
+        private protected readonly TOptions LightGbmTrainerOptions;
 
         /// <summary>
         /// Stores argumments as objects to convert them to invariant string type in the end so that
         /// the code is culture agnostic. When retrieving key value from this dictionary as string
         /// please convert to string invariant by string.Format(CultureInfo.InvariantCulture, "{0}", Option[key]).
         /// </summary>
-        private protected Dictionary<string, object> Options;
+        //private protected Dictionary<string, object> Options;
         private protected IParallel ParallelTraining;
 
         // Store _featureCount and _trainedEnsemble to construct predictor.
@@ -69,22 +175,25 @@ namespace Microsoft.ML.LightGBM
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumnName),
                   labelColumn, TrainerUtils.MakeR4ScalarWeightColumn(exampleWeightColumnName), TrainerUtils.MakeU4ScalarColumn(rowGroupColumnName))
         {
-            LightGbmTrainerOptions = new Options();
+            LightGbmTrainerOptions = new TOptions
+            {
+                NumberOfLeaves = numberOfLeaves,
+                MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
+                LearningRate = learningRate,
+                NumberOfIterations = numberOfIterations,
 
-            LightGbmTrainerOptions.NumberOfLeaves = numberOfLeaves;
-            LightGbmTrainerOptions.MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf;
-            LightGbmTrainerOptions.LearningRate = learningRate;
-            LightGbmTrainerOptions.NumberOfIterations = numberOfIterations;
+                LabelColumnName = labelColumn.Name,
+                FeatureColumnName = featureColumnName,
+                ExampleWeightColumnName = exampleWeightColumnName,
+                RowGroupColumnName = rowGroupColumnName
+            };
 
-            LightGbmTrainerOptions.LabelColumnName = labelColumn.Name;
-            LightGbmTrainerOptions.FeatureColumnName = featureColumnName;
-            LightGbmTrainerOptions.ExampleWeightColumnName = exampleWeightColumnName;
-            LightGbmTrainerOptions.RowGroupColumnName = rowGroupColumnName;
+            ((InternalOptions)LightGbmTrainerOptions).Objective
 
             InitParallelTraining();
         }
 
-        private protected LightGbmTrainerBase(IHostEnvironment env, string name, Options options, SchemaShape.Column label)
+        private protected LightGbmTrainerBase(IHostEnvironment env, string name, TOptions options, SchemaShape.Column label)
            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), label,
                  TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName), TrainerUtils.MakeU4ScalarColumn(options.RowGroupColumnName))
         {
@@ -129,7 +238,6 @@ namespace Microsoft.ML.LightGBM
 
         private void InitParallelTraining()
         {
-            Options = LightGbmTrainerOptions.ToDictionary(Host);
             ParallelTraining = LightGbmTrainerOptions.ParallelTrainer != null ? LightGbmTrainerOptions.ParallelTrainer.CreateComponent(Host) : new SingleTrainer();
 
             if (ParallelTraining.ParallelType() != "serial" && ParallelTraining.NumMachines() > 1)
@@ -165,22 +273,19 @@ namespace Microsoft.ML.LightGBM
             ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "Need a label column");
         }
 
-        private protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategarical, int totalCats, bool hiddenMsg = false)
+        private protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
         {
-            double learningRate = LightGbmTrainerOptions.LearningRate ?? DefaultLearningRate(numRow, hasCategarical, totalCats);
-            int numberOfLeaves = LightGbmTrainerOptions.NumberOfLeaves ?? DefaultNumLeaves(numRow, hasCategarical, totalCats);
-            int minimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow, numberOfLeaves, 1);
-            Options["learning_rate"] = learningRate;
-            Options["num_leaves"] = numberOfLeaves;
-            Options["min_data_per_leaf"] = minimumExampleCountPerLeaf;
+            LightGbmTrainerOptions.LearningRate = LightGbmTrainerOptions.LearningRate ?? DefaultLearningRate(numRow, hasCategorical, totalCats);
+            LightGbmTrainerOptions.NumberOfLeaves = LightGbmTrainerOptions.NumberOfLeaves ?? DefaultNumLeaves(numRow, hasCategorical, totalCats);
+            LightGbmTrainerOptions.MinimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow, LightGbmTrainerOptions.NumberOfLeaves.Value, 1);
             if (!hiddenMsg)
             {
                 if (!LightGbmTrainerOptions.LearningRate.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.LearningRate) + " = " + learningRate);
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.LearningRate) + " = " + LightGbmTrainerOptions.LearningRate.Value);
                 if (!LightGbmTrainerOptions.NumberOfLeaves.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.NumberOfLeaves) + " = " + numberOfLeaves);
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.NumberOfLeaves) + " = " + LightGbmTrainerOptions.LearningRate.Value);
                 if (!LightGbmTrainerOptions.MinimumExampleCountPerLeaf.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.MinimumExampleCountPerLeaf) + " = " + minimumExampleCountPerLeaf);
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.MinimumExampleCountPerLeaf) + " = " + LightGbmTrainerOptions.MinimumExampleCountPerLeaf.Value);
             }
         }
 
@@ -315,9 +420,10 @@ namespace Microsoft.ML.LightGBM
             catMetaData = GetCategoricalMetaData(ch, trainData, numRow);
             GetDefaultParameters(ch, numRow, catMetaData.CategoricalBoudaries != null, catMetaData.TotalCats);
 
-            Dataset dtrain;
+            UpdateOptionsFromDataset(ch, trainData, labels, groups);
             string param = LightGbmInterfaceUtils.JoinParameters(Options);
 
+            Dataset dtrain;
             // To reduce peak memory usage, only enable one sampling task at any given time.
             lock (LightGbmShared.SampleLock)
             {
@@ -327,9 +433,6 @@ namespace Microsoft.ML.LightGBM
 
             // Push rows into dataset.
             LoadDataset(ch, factory, dtrain, numRow, LightGbmTrainerOptions.BatchSize, catMetaData);
-
-            // Some checks.
-            CheckAndUpdateParametersBeforeTraining(ch, trainData, labels, groups);
             return dtrain;
         }
 
@@ -361,8 +464,9 @@ namespace Microsoft.ML.LightGBM
             Host.AssertValue(pch);
             Host.AssertValue(dtrain);
             Host.AssertValueOrNull(dvalid);
+
             // For multi class, the number of labels is required.
-            ch.Assert(((ITrainer)this).PredictionKind != PredictionKind.MultiClassClassification || Options.ContainsKey("num_class"),
+            ch.Assert(((ITrainer)this).PredictionKind != PredictionKind.MultiClassClassification || LightGbmTrainerOptions.Options.ContainsKey("num_class"),
                 "LightGBM requires the number of classes to be specified in the parameters.");
 
             // Only enable one trainer to run at one time.
@@ -904,7 +1008,7 @@ namespace Microsoft.ML.LightGBM
         /// <summary>
         /// This function will be called before training. It will check the label/group and add parameters for specific applications.
         /// </summary>
-        private protected abstract void CheckAndUpdateParametersBeforeTraining(IChannel ch,
+        private protected abstract void UpdateParameters(IChannel ch,
             RoleMappedData data, float[] labels, int[] groups);
     }
 }
