@@ -9,17 +9,23 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
+using Xunit.Abstractions;
 
-namespace Microsoft.ML.Tests.Scenarios.Api
+namespace Microsoft.ML.Functional.Tests
 {
-    public partial class ApiScenariosTests
+    public partial class ModelLoadingTests : BaseTestClass
     {
+        public ModelLoadingTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         private class InputData
         {
             [LoadColumn(0)]
-            public float Label { get; set; }
+            public bool Label { get; set; }
             [LoadColumn(9, 14)]
             [VectorType(6)]
             public float[] Features { get; set; }
@@ -35,20 +41,35 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             // Pipeline.
             var pipeline = ml.BinaryClassification.Trainers.GeneralizedAdditiveModels();
-
+            // Define the same pipeline starting with the loader.
+            var pipeline1 = loader.Append(ml.BinaryClassification.Trainers.GeneralizedAdditiveModels());
+            
             // Train.
             var model = pipeline.Fit(data);
+            var model1 = pipeline1.Fit(file);
 
             // Save and reload.
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
             using (var fs = File.Create(modelPath))
                 ml.Model.Save(data.Schema, model, fs);
+            string modelPath1 = GetOutputPath(FullTestName + "-model1.zip");
+            using (var fs = File.Create(modelPath1))
+                ml.Model.Save(model1, fs);
 
             ITransformer loadedModel;
+            IDataLoader<IMultiStreamSource> loadedModel1;
             using (var fs = File.OpenRead(modelPath))
                 loadedModel = ml.Model.Load(fs, out var loadedSchema);
+            using (var fs = File.OpenRead(modelPath1))
+                loadedModel1 = ml.Model.Load(fs);
 
             var gam = ((loadedModel as ISingleFeaturePredictionTransformer<object>).Model
+                as CalibratedModelParametersBase).SubModel
+                as BinaryClassificationGamModelParameters;
+            Assert.NotNull(gam);
+
+            gam = (((loadedModel1 as CompositeDataLoader<IMultiStreamSource, ITransformer>).Transformer.LastTransformer
+                as ISingleFeaturePredictionTransformer<object>).Model
                 as CalibratedModelParametersBase).SubModel
                 as BinaryClassificationGamModelParameters;
             Assert.NotNull(gam);
