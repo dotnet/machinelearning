@@ -96,7 +96,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="learningRate">The learning Rate.</param>
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="numIterations">Number of training iterations through the data.</param>
+        /// <param name="numberOfIterations">Number of training iterations through the data.</param>
         /// <param name="lossFunction">The custom loss functions. Defaults to <see cref="SquaredLoss"/> if not provided.</param>
         internal OnlineGradientDescentTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
@@ -104,14 +104,14 @@ namespace Microsoft.ML.Trainers
             float learningRate = Options.OgdDefaultArgs.LearningRate,
             bool decreaseLearningRate = Options.OgdDefaultArgs.DecreaseLearningRate,
             float l2Regularization = Options.OgdDefaultArgs.L2Regularization,
-            int numIterations = Options.OgdDefaultArgs.NumberOfIterations,
+            int numberOfIterations = Options.OgdDefaultArgs.NumberOfIterations,
             IRegressionLoss lossFunction = null)
             : this(env, new Options
             {
                 LearningRate = learningRate,
                 DecreaseLearningRate = decreaseLearningRate,
                 L2Regularization= l2Regularization,
-                NumberOfIterations = numIterations,
+                NumberOfIterations = numberOfIterations,
                 LabelColumnName = labelColumn,
                 FeatureColumnName = featureColumn,
                 LossFunction = new TrivialFactory(lossFunction ?? new SquaredLoss())

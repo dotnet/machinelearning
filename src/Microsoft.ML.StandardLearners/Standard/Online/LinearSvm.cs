@@ -233,19 +233,19 @@ namespace Microsoft.ML.Trainers
         /// <param name="labelColumn">The name of the label column. </param>
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="numIterations">The number of training iteraitons.</param>
+        /// <param name="numberOfIterations">The number of training iteraitons.</param>
         [BestFriend]
         internal LinearSvmTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int numIterations = Options.OnlineDefault.NumberOfIterations)
+            int numberOfIterations = Options.OnlineDefault.NumberOfIterations)
             : this(env, new Options
             {
                 LabelColumnName = labelColumn,
                 FeatureColumnName = featureColumn,
                 ExampleWeightColumnName = exampleWeightColumnName,
-                NumberOfIterations = numIterations,
+                NumberOfIterations = numberOfIterations,
             })
         {
         }
