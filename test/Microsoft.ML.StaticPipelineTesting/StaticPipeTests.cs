@@ -605,7 +605,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (
                     r.label,
                     ngrams: r.text.TokenizeText().ToKey().ProduceNgrams(),
-                    ngramshash: r.text.TokenizeText().ToKey().ApplyNgramHashing()));
+                    ngramshash: r.text.TokenizeText().ToKey().ProduceHashedNgrams()));
 
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;

@@ -571,8 +571,8 @@ namespace Microsoft.ML.StaticPipe
         /// Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given tokenized text.
         /// It does so by hashing each ngram and using the hash value as the index in the bag.
         ///
-        /// <see cref="ApplyNgramHashing"/> is different from <see cref="WordHashBagEstimatorStaticExtensions.ToBagofHashedWords"/>
-        /// in a way that <see cref="ApplyNgramHashing"/> takes tokenized text as input while <see cref="WordHashBagEstimatorStaticExtensions.ToBagofHashedWords"/> tokenizes text internally.
+        /// <see cref="ProduceHashedNgrams"/> is different from <see cref="WordHashBagEstimatorStaticExtensions.ToBagofHashedWords"/>
+        /// in a way that <see cref="ProduceHashedNgrams"/> takes tokenized text as input while <see cref="WordHashBagEstimatorStaticExtensions.ToBagofHashedWords"/> tokenizes text internally.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
@@ -585,7 +585,7 @@ namespace Microsoft.ML.StaticPipe
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        public static Vector<float> ApplyNgramHashing(this VarVector<Key<uint, string>> input,
+        public static Vector<float> ProduceHashedNgrams(this VarVector<Key<uint, string>> input,
             int numberOfBits = 16,
             int ngramLength = 2,
             int skipLength = 0,
