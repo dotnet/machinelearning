@@ -428,9 +428,6 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Saves the statistics in Text format.
         /// </summary>
-        /// <param name="writer"></param>
-        /// <param name="featureColumn"></param>
-        /// <param name="paramCountCap"></param>
         internal override void SaveText(TextWriter writer, DataViewSchema.Column featureColumn, int paramCountCap)
         {
             base.SaveText(writer, featureColumn, paramCountCap);
@@ -460,7 +457,7 @@ namespace Microsoft.ML.Trainers
                 return probZ.ToString();
             };
 
-            writer.WriteLine("{1,-10:G7}\t{2,-10:G7}\t{3,-10:G7}\t{4}",
+            writer.WriteLine("{0,-10:G7}\t{1,-10:G7}\t{2,-10:G7}\t{3}",
                            biasStats.Estimate,
                            biasStats.StandardError,
                            biasStats.ZScore,
@@ -468,7 +465,7 @@ namespace Microsoft.ML.Trainers
 
             foreach (var coeffStat in coeffStats)
             {
-                writer.WriteLine("{1,-10:G7}\t{2,-10:G7}\t{3,-10:G7}\t{4}",
+                writer.WriteLine("{0,-10:G7}\t{1,-10:G7}\t{2,-10:G7}\t{3}",
                             coeffStat.Estimate,
                             coeffStat.StandardError,
                             coeffStat.ZScore,
@@ -511,6 +508,13 @@ namespace Microsoft.ML.Trainers
 
             var builder = new DataViewSchema.Annotations.Builder();
             builder.Add(base.MakeStatisticsMetadata(schema, names), c => true);
+
+            //bias statistics
+            var biasStats = GetBiasStatistics();
+            builder.AddPrimitiveValue("BiasEstimate", NumberDataViewType.Single, biasStats.Estimate);
+            builder.AddPrimitiveValue("BiasStandardError", NumberDataViewType.Single, biasStats.StandardError);
+            builder.AddPrimitiveValue("BiasZScore", NumberDataViewType.Single, biasStats.ZScore);
+            builder.AddPrimitiveValue("BiasPValue", NumberDataViewType.Single, biasStats.PValue);
 
             var estimate = default(VBuffer<float>);
             var stdErr = default(VBuffer<float>);
