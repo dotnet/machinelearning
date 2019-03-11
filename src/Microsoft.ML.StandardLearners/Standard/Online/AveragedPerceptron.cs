@@ -61,8 +61,13 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// A custom <a href="tmpurl_loss">loss</a>.
             /// </summary>
-            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
-            public ISupportClassificationLossFactory LossFunction = new HingeLoss.Options();
+            [Argument(ArgumentType.Multiple, Name = "LossFunction", HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
+            internal ISupportClassificationLossFactory ClassificationLossFunctionFactory = new HingeLoss.Options();
+
+            /// <summary>
+            /// A custom <a href="tmpurl_loss">loss</a>.
+            /// </summary>
+            public IClassificationLoss LossFunction { get; set; }
 
             /// <summary>
             /// The <a href="tmpurl_calib">calibrator</a> for producing probabilities. Default is exponential (aka Platt) calibration.
@@ -76,7 +81,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             internal int MaxCalibrationExamples = 1000000;
 
-            internal override IComponentFactory<IScalarOutputLoss> LossFunctionFactory => LossFunction;
+            internal override IComponentFactory<IScalarLoss> LossFunctionFactory => ClassificationLossFunctionFactory;
         }
 
         private sealed class TrainState : AveragedTrainStateBase
@@ -113,7 +118,7 @@ namespace Microsoft.ML.Trainers
             : base(options, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             _args = options;
-            LossFunction = _args.LossFunction.CreateComponent(env);
+            LossFunction = _args.LossFunction ?? _args.LossFunctionFactory.CreateComponent(env);
         }
 
         /// <summary>
@@ -144,21 +149,9 @@ namespace Microsoft.ML.Trainers
                 DecreaseLearningRate = decreaseLearningRate,
                 L2RegularizerWeight = l2RegularizerWeight,
                 NumberOfIterations = numIterations,
-                LossFunction = new TrivialFactory(lossFunction ?? new HingeLoss())
+                LossFunction = lossFunction ?? new HingeLoss()
             })
         {
-        }
-
-        private sealed class TrivialFactory : ISupportClassificationLossFactory
-        {
-            private IClassificationLoss _loss;
-
-            public TrivialFactory(IClassificationLoss loss)
-            {
-                _loss = loss;
-            }
-
-            IClassificationLoss IComponentFactory<IClassificationLoss>.CreateComponent(IHostEnvironment env) => _loss;
         }
 
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
