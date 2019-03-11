@@ -101,7 +101,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractingEstimator.PretrainedModelKind"/> to use. </param>
+        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingEstimator.PretrainedModelKind"/> to use. </param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -109,11 +109,11 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static WordEmbeddingsExtractingEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
+        public static WordEmbeddingEstimator ApplyWordEmbedding(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
-            WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe)
-            => new WordEmbeddingsExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName, modelKind);
+            WordEmbeddingEstimator.PretrainedModelKind modelKind = WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
+            => new WordEmbeddingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName, modelKind);
 
         /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
         /// <param name="catalog">The text-related transform's catalog.</param>
@@ -127,16 +127,16 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static WordEmbeddingsExtractingEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
+        public static WordEmbeddingEstimator ApplyWordEmbedding(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string customModelFile,
             string inputColumnName = null)
-            => new WordEmbeddingsExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
+            => new WordEmbeddingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
                 outputColumnName, customModelFile, inputColumnName ?? outputColumnName);
 
         /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractingEstimator.PretrainedModelKind"/> to use. </param>
+        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingEstimator.PretrainedModelKind"/> to use. </param>
         /// <param name="columns">The array columns, and per-column configurations to extract embeedings from.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -145,10 +145,10 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static WordEmbeddingsExtractingEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
-           WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe,
-           params WordEmbeddingsExtractingEstimator.ColumnOptions[] columns)
-            => new WordEmbeddingsExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), modelKind, columns);
+        public static WordEmbeddingEstimator ApplyWordEmbedding(this TransformsCatalog.TextTransforms catalog,
+           WordEmbeddingEstimator.PretrainedModelKind modelKind = WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding,
+           params WordEmbeddingEstimator.ColumnOptions[] columns)
+            => new WordEmbeddingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), modelKind, columns);
 
         /// <summary>
         /// Tokenizes incoming text in <paramref name="inputColumnName"/>, using <paramref name="separators"/> as separators,

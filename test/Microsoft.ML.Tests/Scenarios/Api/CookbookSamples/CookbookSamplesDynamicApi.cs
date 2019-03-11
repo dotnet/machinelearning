@@ -313,8 +313,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // PretrainedModelKind.Sswe is used here for performance of the test. In a real
                 // scenario, it is best to use a different model for more accuracy.
                 .Append(mlContext.Transforms.Text.TokenizeWords("TokenizedMessage", "NormalizedMessage"))
-                .Append(mlContext.Transforms.Text.ExtractWordEmbeddings("Embeddings", "TokenizedMessage",
-                            WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe));
+                .Append(mlContext.Transforms.Text.ApplyWordEmbedding("Embeddings", "TokenizedMessage",
+                            WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding));
 
             // Let's train our pipeline, and then apply it to the same data.
             // Note that even on a small dataset of 70KB the pipeline above can take up to a minute to completely train.

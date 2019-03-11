@@ -3603,11 +3603,11 @@ namespace Microsoft.ML.RunTests
                 },
                 InputFile = inputFile,
             }).Data;
-            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsExtractingTransformer.Options()
+            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingTransformer.Options()
             {
                 Data = dataView,
-                Columns = new[] { new WordEmbeddingsExtractingTransformer.Column { Name = "Features", Source = "Text" } },
-                ModelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe
+                Columns = new[] { new WordEmbeddingTransformer.Column { Name = "Features", Source = "Text" } },
+                ModelKind = WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding
             });
             var result = embedding.OutputData;
             using (var cursor = result.GetRowCursorForAllColumns())

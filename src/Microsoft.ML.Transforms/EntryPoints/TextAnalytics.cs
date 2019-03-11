@@ -132,16 +132,16 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.WordEmbeddings",
-            Desc = WordEmbeddingsExtractingTransformer.Summary,
-            UserName = WordEmbeddingsExtractingTransformer.UserName,
-            ShortName = WordEmbeddingsExtractingTransformer.ShortName)]
-        public static CommonOutputs.TransformOutput WordEmbeddings(IHostEnvironment env, WordEmbeddingsExtractingTransformer.Options input)
+            Desc = WordEmbeddingTransformer.Summary,
+            UserName = WordEmbeddingTransformer.UserName,
+            ShortName = WordEmbeddingTransformer.ShortName)]
+        public static CommonOutputs.TransformOutput WordEmbeddings(IHostEnvironment env, WordEmbeddingTransformer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "WordEmbeddings", input);
-            var view = WordEmbeddingsExtractingTransformer.Create(h, input, input.Data);
+            var view = WordEmbeddingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModelImpl(h, view, input.Data),

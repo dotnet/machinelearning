@@ -472,7 +472,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     // NLP pipeline 4: word embeddings.
                     // PretrainedModelKind.Sswe is used here for performance of the test. In a real
                     // scenario, it is best to use a different model for more accuracy.
-                    Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe)
+                    Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
                 ));
 
             // Let's train our pipeline, and then apply it to the same data.
