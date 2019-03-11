@@ -16,8 +16,8 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
 
             // Leave out 10% of the dataset for testing. Since this is a ranking problem, we must ensure that the split
             // respects the GroupId column, i.e. rows with the same GroupId are either all in the train split or all in
-            // the test split. The samplingKeyColumn parameter in Ranking.TrainTestSplit is used for this purpose.
-            var split = mlContext.Ranking.TrainTestSplit(dataview, testFraction: 0.1, samplingKeyColumn: "GroupId");
+            // the test split. The samplingKeyColumn parameter in Data.TrainTestSplit is used for this purpose.
+            var split = mlContext.Data.TrainTestSplit(dataview, testFraction: 0.1, samplingKeyColumn: "GroupId");
 
             // Create the Estimator pipeline. For simplicity, we will train a small tree with 4 leaves and 2 boosting iterations.
             var pipeline = mlContext.Ranking.Trainers.LightGbm(

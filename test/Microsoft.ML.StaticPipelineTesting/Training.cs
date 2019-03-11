@@ -1232,7 +1232,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Split the static-typed data into training and test sets. Only training set is used in fitting
             // the created pipeline. Metrics are computed on the test.
-            var (trainingData, testingData) = mlContext.MulticlassClassification.TrainTestSplit(staticDataView, testFraction: 0.5);
+            var (trainingData, testingData) = mlContext.Data.TrainTestSplit(staticDataView, testFraction: 0.5);
 
             // Train the model.
             var model = pipe.Fit(trainingData);

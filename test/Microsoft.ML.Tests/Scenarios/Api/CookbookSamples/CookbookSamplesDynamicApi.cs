@@ -426,7 +426,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
             // Split the data 90:10 into train and test sets, train and evaluate.
-            var split = mlContext.MulticlassClassification.TrainTestSplit(data, testFraction: 0.1);
+            var split = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Train the model.
             var model = pipeline.Fit(split.TrainSet);

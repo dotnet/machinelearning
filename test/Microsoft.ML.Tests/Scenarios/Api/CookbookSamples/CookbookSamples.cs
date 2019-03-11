@@ -601,7 +601,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     Predictions: mlContext.MulticlassClassification.Trainers.Sdca(r.Label, r.Features)));
 
             // Split the data 90:10 into train and test sets, train and evaluate.
-            var (trainData, testData) = mlContext.MulticlassClassification.TrainTestSplit(data, testFraction: 0.1);
+            var (trainData, testData) = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Train the model.
             var model = pipeline.Fit(trainData);
