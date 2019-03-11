@@ -15,7 +15,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification.Calibrators
             // Download and featurize the dataset.
             var data = SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
             // Leave out 10% of data for testing.
-            var trainTestData = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.3);
+            var trainTestData = mlContext.Data.TrainTestSplit(data, testFraction: 0.3);
 
             // Create data training pipeline for non calibrated trainer and train Naive calibrator on top of it.
             var pipeline = mlContext.BinaryClassification.Trainers.AveragedPerceptron();
