@@ -139,8 +139,8 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features",
                     new TextFeaturizingEstimator.Options
                     {
-                        UseCharExtractor = true,
-                        UseWordExtractor = true,
+                        CharFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 3, AllLengths = false },
+                        WordFeatureExtractor = new WordBagEstimator.Options(),
                         VectorNormalizer = TextFeaturizingEstimator.TextNormKind.L1
                     }, "SentimentText")
                 .AppendCacheCheckpoint(mlContext)

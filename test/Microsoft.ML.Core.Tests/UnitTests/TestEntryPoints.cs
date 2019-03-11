@@ -973,7 +973,7 @@ namespace Microsoft.ML.RunTests
                 {
                     data = new TextFeaturizingEstimator(Env, "Features", new List<string> { "Text" }, 
                         new TextFeaturizingEstimator.Options { 
-                            UseStopRemover = true,
+                            UsePredefinedStopWordRemover = true,
                         }).Fit(data).Transform(data);
                 }
                 else
