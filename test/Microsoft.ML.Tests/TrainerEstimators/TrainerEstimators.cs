@@ -71,11 +71,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
             // Pipeline.
-            var pipeline = new KMeansPlusPlusTrainer(Env, new KMeansPlusPlusTrainer.Options
+            var pipeline = new KMeansPlusPlusClusteringTrainer(Env, new KMeansPlusPlusClusteringTrainer.Options
             {
                 FeatureColumnName = featureColumn,
                 ExampleWeightColumnName = weights,
-                InitializationAlgorithm = KMeansPlusPlusTrainer.InitializationAlgorithm.KMeansYinyang,
+                InitializationAlgorithm = KMeansPlusPlusClusteringTrainer.InitializationAlgorithm.KMeansYinyang,
             });
 
             TestEstimatorCore(pipeline, data);
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorHogwildSGD()
         {
             var trainers = new[] { ML.BinaryClassification.Trainers.StochasticGradientDescent(l2Regularization: 0, numberOfIterations: 80),
-                ML.BinaryClassification.Trainers.StochasticGradientDescent(new Trainers.SgdBinaryTrainer.Options(){ L2Regularization = 0, NumberOfIterations = 80})};
+                ML.BinaryClassification.Trainers.StochasticGradientDescent(new Trainers.StochasticGradientDescentBinaryClassificationTrainer.Options(){ L2Regularization = 0, NumberOfIterations = 80})};
 
             foreach (var trainer in trainers)
             {
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorHogwildSGDNonCalibrated()
         {
             var trainers = new[] { ML.BinaryClassification.Trainers.StochasticGradientDescentNonCalibrated(loss : new SmoothedHingeLoss()),
-                ML.BinaryClassification.Trainers.StochasticGradientDescentNonCalibrated(new Trainers.SgdNonCalibratedBinaryTrainer.Options() { Loss = new HingeLoss() }) };
+                ML.BinaryClassification.Trainers.StochasticGradientDescentNonCalibrated(new Trainers.StochasticGradientDescentNonCalibratedBinaryClassificationTrainer.Options() { Loss = new HingeLoss() }) };
 
             foreach (var trainer in trainers)
             {

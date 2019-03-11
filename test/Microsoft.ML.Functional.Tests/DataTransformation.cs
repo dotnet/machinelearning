@@ -145,7 +145,7 @@ namespace Microsoft.ML.Functional.Tests
                     }, "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                    new SdcaBinaryTrainer.Options { NumberOfThreads = 1 }));
+                    new StochasticDualCoordinateAscentBinaryClassificationTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);

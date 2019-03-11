@@ -14,9 +14,9 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
-[assembly: LoadableClass(PairwiseCouplingTrainer.Summary, typeof(PairwiseCouplingTrainer), typeof(PairwiseCouplingTrainer.Options),
+[assembly: LoadableClass(PairwiseCouplingMulticlassClassificationTrainer.Summary, typeof(PairwiseCouplingMulticlassClassificationTrainer), typeof(PairwiseCouplingMulticlassClassificationTrainer.Options),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
-    PairwiseCouplingTrainer.UserNameValue, PairwiseCouplingTrainer.LoadNameValue, DocName = "trainer/OvaPkpd.md")]
+    PairwiseCouplingMulticlassClassificationTrainer.UserNameValue, PairwiseCouplingMulticlassClassificationTrainer.LoadNameValue, DocName = "trainer/OvaPkpd.md")]
 
 [assembly: LoadableClass(typeof(PairwiseCouplingModelParameters), null, typeof(SignatureLoadModel),
     "PKPD Executor",
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Trainers
     /// L-BFGS history for all classes *simultaneously*, rather than just one-by-one
     /// as would be needed for a one-versus-all classification model.
     /// </summary>
-    public sealed class PairwiseCouplingTrainer : MetaMulticlassTrainer<MulticlassPredictionTransformer<PairwiseCouplingModelParameters>, PairwiseCouplingModelParameters>
+    public sealed class PairwiseCouplingMulticlassClassificationTrainer : MetaMulticlassTrainer<MulticlassPredictionTransformer<PairwiseCouplingModelParameters>, PairwiseCouplingModelParameters>
     {
         internal const string LoadNameValue = "PKPD";
         internal const string UserNameValue = "Pairwise coupling (PKPD)";
@@ -61,23 +61,23 @@ namespace Microsoft.ML.Trainers
             + "classifiers predicted it. The prediction is the class with the highest score.";
 
         /// <summary>
-        /// Options passed to <see cref="Microsoft.ML.Trainers.PairwiseCouplingTrainer"/>.
+        /// Options passed to <see cref="Microsoft.ML.Trainers.PairwiseCouplingMulticlassClassificationTrainer"/>.
         /// </summary>
         internal sealed class Options : OptionsBase
         {
         }
 
         /// <summary>
-        /// Constructs a <see cref="PairwiseCouplingTrainer"/> trainer supplying the base trainer to use, for the classification task
+        /// Constructs a <see cref="PairwiseCouplingMulticlassClassificationTrainer"/> trainer supplying the base trainer to use, for the classification task
         /// through the <see cref="Options"/>Options.
         /// </summary>
-        internal PairwiseCouplingTrainer(IHostEnvironment env, Options options)
+        internal PairwiseCouplingMulticlassClassificationTrainer(IHostEnvironment env, Options options)
             : base(env, options, LoadNameValue)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PairwiseCouplingTrainer"/>
+        /// Initializes a new instance of the <see cref="PairwiseCouplingMulticlassClassificationTrainer"/>
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="calibrator">The calibrator to use for each model instance. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
         /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
-        internal PairwiseCouplingTrainer(IHostEnvironment env,
+        internal PairwiseCouplingMulticlassClassificationTrainer(IHostEnvironment env,
             TScalarTrainer binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,

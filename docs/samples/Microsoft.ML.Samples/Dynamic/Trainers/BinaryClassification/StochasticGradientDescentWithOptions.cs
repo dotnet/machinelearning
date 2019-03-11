@@ -21,7 +21,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var trainTestData = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
 
             // Define the trainer options.
-            var options = new SgdBinaryTrainer.Options()
+            var options = new StochasticGradientDescentBinaryClassificationTrainer.Options()
             {
                 // Make the convergence tolerance tighter.
                 ConvergenceTolerance = 5e-5,

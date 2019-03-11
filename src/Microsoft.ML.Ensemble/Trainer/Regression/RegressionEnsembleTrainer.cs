@@ -52,8 +52,8 @@ namespace Microsoft.ML.Trainers.Ensemble
                 {
                     ComponentFactoryUtils.CreateFromFunction(
                         env => {
-                            var trainerEstimator = new OnlineGradientDescentTrainer(env);
-                            return TrainerUtils.MapTrainerEstimatorToTrainer<OnlineGradientDescentTrainer,
+                            var trainerEstimator = new OnlineGradientDescentRegressionTrainer(env);
+                            return TrainerUtils.MapTrainerEstimatorToTrainer<OnlineGradientDescentRegressionTrainer,
                                 LinearRegressionModelParameters, LinearRegressionModelParameters>(env, trainerEstimator);
                         })
                 };

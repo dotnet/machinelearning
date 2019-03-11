@@ -32,7 +32,7 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), and the predicted label.</returns>
-        /// <seealso cref="AveragedPerceptronTrainer"/>.
+        /// <seealso cref="AveragedPerceptronBinaryClassificationTrainer"/>.
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -60,7 +60,7 @@ namespace Microsoft.ML.StaticPipe
                 (env, labelName, featuresName, weightsName) =>
                 {
 
-                    var trainer = new AveragedPerceptronTrainer(env, labelName, featuresName, lossFunction,
+                    var trainer = new AveragedPerceptronBinaryClassificationTrainer(env, labelName, featuresName, lossFunction,
                         learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations);
 
                     if (onFit != null)
@@ -89,7 +89,7 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), and the predicted label.</returns>
-        /// <seealso cref="AveragedPerceptronTrainer"/>.
+        /// <seealso cref="AveragedPerceptronBinaryClassificationTrainer"/>.
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -102,7 +102,7 @@ namespace Microsoft.ML.StaticPipe
                 Vector<float> features,
                 Scalar<float> weights,
                 IClassificationLoss lossFunction,
-                AveragedPerceptronTrainer.Options options,
+                AveragedPerceptronBinaryClassificationTrainer.Options options,
                 Action<LinearBinaryModelParameters> onFit = null
             )
         {
@@ -120,7 +120,7 @@ namespace Microsoft.ML.StaticPipe
                     options.LabelColumnName = labelName;
                     options.FeatureColumnName = featuresName;
 
-                    var trainer = new AveragedPerceptronTrainer(env, options);
+                    var trainer = new AveragedPerceptronBinaryClassificationTrainer(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -139,7 +139,7 @@ namespace Microsoft.ML.StaticPipe
     public static class OnlineGradientDescentExtensions
     {
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentRegressionTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -157,16 +157,16 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), and the predicted label.</returns>
-        /// <seealso cref="OnlineGradientDescentTrainer"/>.
+        /// <seealso cref="OnlineGradientDescentRegressionTrainer"/>.
         /// <returns>The predicted output.</returns>
         public static Scalar<float> OnlineGradientDescent(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label,
             Vector<float> features,
             Scalar<float> weights = null,
             IRegressionLoss lossFunction = null,
-            float learningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.LearningRate,
-            bool decreaseLearningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.DecreaseLearningRate,
-            float l2RegularizerWeight = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.L2RegularizerWeight,
+            float learningRate = OnlineGradientDescentRegressionTrainer.Options.OgdDefaultArgs.LearningRate,
+            bool decreaseLearningRate = OnlineGradientDescentRegressionTrainer.Options.OgdDefaultArgs.DecreaseLearningRate,
+            float l2RegularizerWeight = OnlineGradientDescentRegressionTrainer.Options.OgdDefaultArgs.L2RegularizerWeight,
             int numIterations = OnlineLinearOptions.OnlineDefault.NumIterations,
             Action<LinearRegressionModelParameters> onFit = null)
         {
@@ -176,7 +176,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new OnlineGradientDescentTrainer(env, labelName, featuresName, learningRate,
+                    var trainer = new OnlineGradientDescentRegressionTrainer(env, labelName, featuresName, learningRate,
                         decreaseLearningRate, l2RegularizerWeight, numIterations, lossFunction);
 
                     if (onFit != null)
@@ -189,7 +189,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentRegressionTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -203,13 +203,13 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), and the predicted label.</returns>
-        /// <seealso cref="OnlineGradientDescentTrainer"/>.
+        /// <seealso cref="OnlineGradientDescentRegressionTrainer"/>.
         /// <returns>The predicted output.</returns>
         public static Scalar<float> OnlineGradientDescent(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label,
             Vector<float> features,
             Scalar<float> weights,
-            OnlineGradientDescentTrainer.Options options,
+            OnlineGradientDescentRegressionTrainer.Options options,
             Action<LinearRegressionModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -224,7 +224,7 @@ namespace Microsoft.ML.StaticPipe
                     options.LabelColumnName = labelName;
                     options.FeatureColumnName = featuresName;
 
-                    var trainer = new OnlineGradientDescentTrainer(env, options);
+                    var trainer = new OnlineGradientDescentRegressionTrainer(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

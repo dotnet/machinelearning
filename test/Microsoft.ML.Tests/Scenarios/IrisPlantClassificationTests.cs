@@ -32,7 +32,7 @@ namespace Microsoft.ML.Scenarios
                             .Append(mlContext.Transforms.Normalize("Features"))
                             .AppendCacheCheckpoint(mlContext)
                             .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
-                                new SdcaMultiClassTrainer.Options { NumberOfThreads = 1 }));
+                                new StochasticDualCoordinateAscentMulticlassClassificationTrainer.Options { NumberOfThreads = 1 }));
 
             // Read training and test data sets
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);

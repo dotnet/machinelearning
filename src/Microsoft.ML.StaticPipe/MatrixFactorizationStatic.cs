@@ -30,7 +30,7 @@ namespace Microsoft.ML.StaticPipe
         /// <returns>The predicted output.</returns>
         public static Scalar<float> MatrixFactorization<T>(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label, Key<T> matrixColumnIndex, Key<T> matrixRowIndex,
-            MatrixFactorizationTrainer.Options options,
+            MatrixFactorizationRecommenderTrainer.Options options,
             Action<MatrixFactorizationModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -45,7 +45,7 @@ namespace Microsoft.ML.StaticPipe
                 options.MatrixRowIndexColumnName = matrixRowIndexColName;
                 options.LabelColumnName = labelColName;
 
-                var trainer = new MatrixFactorizationTrainer(env, options);
+                var trainer = new MatrixFactorizationRecommenderTrainer(env, options);
 
                 if (onFit != null)
                     return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

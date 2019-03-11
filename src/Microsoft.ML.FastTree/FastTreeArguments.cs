@@ -11,7 +11,7 @@ using Microsoft.ML.Trainers.FastTree;
 
 [assembly: EntryPointModule(typeof(FastTreeBinaryClassificationTrainer.Options))]
 [assembly: EntryPointModule(typeof(FastTreeRegressionTrainer.Options))]
-[assembly: EntryPointModule(typeof(FastTreeTweedieTrainer.Options))]
+[assembly: EntryPointModule(typeof(FastTreeTweedieRegressionTrainer.Options))]
 [assembly: EntryPointModule(typeof(FastTreeRankingTrainer.Options))]
 
 namespace Microsoft.ML.Trainers.FastTree
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public sealed partial class FastTreeTweedieTrainer
+    public sealed partial class FastTreeTweedieRegressionTrainer
     {
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 EarlyStoppingMetric = EarlyStoppingMetric.L1Norm; // Use L1 by default.
             }
 
-            ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeTweedieTrainer(env, this);
+            ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeTweedieRegressionTrainer(env, this);
         }
     }
 

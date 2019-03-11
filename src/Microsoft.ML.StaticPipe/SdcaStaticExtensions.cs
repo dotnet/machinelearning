@@ -57,7 +57,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaRegressionTrainer(env, labelName, featuresName, weightsName, loss, l2Regularization, l1Threshold, numberOfIterations);
+                    var trainer = new StochasticDualCoordinateAscentRegressionTrainer(env, labelName, featuresName, weightsName, loss, l2Regularization, l1Threshold, numberOfIterations);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                     return trainer;
@@ -88,7 +88,7 @@ namespace Microsoft.ML.StaticPipe
         /// </example>
         public static Scalar<float> Sdca(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label, Vector<float> features, Scalar<float> weights,
-            SdcaRegressionTrainer.Options options,
+            StochasticDualCoordinateAscentRegressionTrainer.Options options,
             Action<LinearRegressionModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -103,7 +103,7 @@ namespace Microsoft.ML.StaticPipe
                     options.LabelColumnName = labelName;
                     options.FeatureColumnName = featuresName;
 
-                    var trainer = new SdcaRegressionTrainer(env, options);
+                    var trainer = new StochasticDualCoordinateAscentRegressionTrainer(env, options);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                     return trainer;
@@ -154,7 +154,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaBinaryTrainer(env, labelName, featuresName, weightsName, l2Regularization, l1Threshold, numberOfIterations);
+                    var trainer = new StochasticDualCoordinateAscentBinaryClassificationTrainer(env, labelName, featuresName, weightsName, l2Regularization, l1Threshold, numberOfIterations);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -192,7 +192,7 @@ namespace Microsoft.ML.StaticPipe
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) Sdca(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
-            SdcaBinaryTrainer.Options options,
+            StochasticDualCoordinateAscentBinaryClassificationTrainer.Options options,
             Action<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -207,7 +207,7 @@ namespace Microsoft.ML.StaticPipe
                     options.LabelColumnName = labelName;
                     options.FeatureColumnName = featuresName;
 
-                    var trainer = new SdcaBinaryTrainer(env, options);
+                    var trainer = new StochasticDualCoordinateAscentBinaryClassificationTrainer(env, options);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -263,7 +263,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaNonCalibratedBinaryTrainer(env, labelName, featuresName, weightsName, loss, l2Regularization, l1Threshold, numberOfIterations);
+                    var trainer = new StochasticDualCoordinateAscentNonCalibratedBinaryClassificationTrainer(env, labelName, featuresName, weightsName, loss, l2Regularization, l1Threshold, numberOfIterations);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -299,7 +299,7 @@ namespace Microsoft.ML.StaticPipe
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
             ISupportSdcaClassificationLoss loss,
-            SdcaNonCalibratedBinaryTrainer.Options options,
+            StochasticDualCoordinateAscentNonCalibratedBinaryClassificationTrainer.Options options,
             Action<LinearBinaryModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -314,7 +314,7 @@ namespace Microsoft.ML.StaticPipe
                     options.FeatureColumnName = featuresName;
                     options.LabelColumnName = labelName;
 
-                    var trainer = new SdcaNonCalibratedBinaryTrainer(env, options);
+                    var trainer = new StochasticDualCoordinateAscentNonCalibratedBinaryClassificationTrainer(env, options);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -368,7 +368,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaMultiClassTrainer(env, labelName, featuresName, weightsName, loss, l2Regularization, l1Threshold, numberOfIterations);
+                    var trainer = new StochasticDualCoordinateAscentMulticlassClassificationTrainer(env, labelName, featuresName, weightsName, loss, l2Regularization, l1Threshold, numberOfIterations);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                     return trainer;
@@ -396,7 +396,7 @@ namespace Microsoft.ML.StaticPipe
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights,
-            SdcaMultiClassTrainer.Options options,
+            StochasticDualCoordinateAscentMulticlassClassificationTrainer.Options options,
             Action<MulticlassLogisticRegressionModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -411,7 +411,7 @@ namespace Microsoft.ML.StaticPipe
                     options.LabelColumnName = labelName;
                     options.FeatureColumnName = featuresName;
 
-                    var trainer = new SdcaMultiClassTrainer(env, options);
+                    var trainer = new StochasticDualCoordinateAscentMulticlassClassificationTrainer(env, options);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                     return trainer;

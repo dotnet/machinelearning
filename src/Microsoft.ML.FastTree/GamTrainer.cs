@@ -49,9 +49,9 @@ namespace Microsoft.ML.Trainers.FastTree
     /// ]]>
     /// </format>
     /// </example>
-    public abstract partial class GamTrainerBase<TOptions, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
+    public abstract partial class GeneralizedAdditiveModeTrainerBase<TOptions, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
         where TTransformer : ISingleFeaturePredictionTransformer<TPredictor>
-        where TOptions : GamTrainerBase<TOptions, TTransformer, TPredictor>.OptionsBase, new()
+        where TOptions : GeneralizedAdditiveModeTrainerBase<TOptions, TTransformer, TPredictor>.OptionsBase, new()
         where TPredictor : class
     {
         public abstract class OptionsBase : TrainerInputBaseWithWeight
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private protected IParallelTraining ParallelTraining;
 
-        private protected GamTrainerBase(IHostEnvironment env,
+        private protected GeneralizedAdditiveModeTrainerBase(IHostEnvironment env,
             string name,
             SchemaShape.Column label,
             string featureColumnName,
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Trainers.FastTree
             InitializeThreads();
         }
 
-        private protected GamTrainerBase(IHostEnvironment env, TOptions options, string name, SchemaShape.Column label)
+        private protected GeneralizedAdditiveModeTrainerBase(IHostEnvironment env, TOptions options, string name, SchemaShape.Column label)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName),
                   label, TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName))
         {
@@ -663,30 +663,30 @@ namespace Microsoft.ML.Trainers.FastTree
 
     internal static class Gam
     {
-        [TlcModule.EntryPoint(Name = "Trainers.GeneralizedAdditiveModelRegressor", Desc = RegressionGamTrainer.Summary, UserName = RegressionGamTrainer.UserNameValue, ShortName = RegressionGamTrainer.ShortName)]
-        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, RegressionGamTrainer.Options input)
+        [TlcModule.EntryPoint(Name = "Trainers.GeneralizedAdditiveModelRegressor", Desc = GeneralizedAdditiveModelRegressionTrainer.Summary, UserName = GeneralizedAdditiveModelRegressionTrainer.UserNameValue, ShortName = GeneralizedAdditiveModelRegressionTrainer.ShortName)]
+        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, GeneralizedAdditiveModelRegressionTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainGAM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<RegressionGamTrainer.Options, CommonOutputs.RegressionOutput>(host, input,
-                () => new RegressionGamTrainer(host, input),
+            return TrainerEntryPointsUtils.Train<GeneralizedAdditiveModelRegressionTrainer.Options, CommonOutputs.RegressionOutput>(host, input,
+                () => new GeneralizedAdditiveModelRegressionTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.GeneralizedAdditiveModelBinaryClassifier", Desc = BinaryClassificationGamTrainer.Summary, UserName = BinaryClassificationGamTrainer.UserNameValue, ShortName = BinaryClassificationGamTrainer.ShortName)]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, BinaryClassificationGamTrainer.Options input)
+        [TlcModule.EntryPoint(Name = "Trainers.GeneralizedAdditiveModelBinaryClassifier", Desc = GeneralizedAdditiveModelBinaryClassificationTrainer.Summary, UserName = GeneralizedAdditiveModelBinaryClassificationTrainer.UserNameValue, ShortName = GeneralizedAdditiveModelBinaryClassificationTrainer.ShortName)]
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, GeneralizedAdditiveModelBinaryClassificationTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainGAM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<BinaryClassificationGamTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new BinaryClassificationGamTrainer(host, input),
+            return TrainerEntryPointsUtils.Train<GeneralizedAdditiveModelBinaryClassificationTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
+                () => new GeneralizedAdditiveModelBinaryClassificationTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }

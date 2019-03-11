@@ -70,7 +70,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = new BinaryClassificationGamTrainer(Env, new BinaryClassificationGamTrainer.Options
+            var trainer = new GeneralizedAdditiveModelBinaryClassificationTrainer(Env, new GeneralizedAdditiveModelBinaryClassificationTrainer.Options
             {
                 GainConfidenceLevel = 0,
                 NumberOfIterations = 15,
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void GAMRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = new RegressionGamTrainer(Env, new RegressionGamTrainer.Options
+            var trainer = new GeneralizedAdditiveModelRegressionTrainer(Env, new GeneralizedAdditiveModelRegressionTrainer.Options
             {
                 EnablePruning = false,
                 NumberOfIterations = 15,
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataView = GetRegressionPipeline();
             var trainer = ML.Regression.Trainers.FastTreeTweedie(
-                new FastTreeTweedieTrainer.Options
+                new FastTreeTweedieRegressionTrainer.Options
                 {
                     EntropyCoefficient = 0.3,
                     OptimizationAlgorithm = BoostedTreeOptions.OptimizationAlgorithmType.AcceleratedGradientDescent,
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataView = GetRegressionPipeline();
             var trainer = ML.Regression.Trainers.FastForest(
-                new FastForestRegression.Options
+                new FastForestRegressionTrainer.Options
                 {
                     BaggingSize = 2,
                     NumberOfTrees = 10,

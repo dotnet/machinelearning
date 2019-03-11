@@ -14,11 +14,11 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
-[assembly: LoadableClass(SdcaRegressionTrainer.Summary, typeof(SdcaRegressionTrainer), typeof(SdcaRegressionTrainer.Options),
+[assembly: LoadableClass(StochasticDualCoordinateAscentRegressionTrainer.Summary, typeof(StochasticDualCoordinateAscentRegressionTrainer), typeof(StochasticDualCoordinateAscentRegressionTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    SdcaRegressionTrainer.UserNameValue,
-    SdcaRegressionTrainer.LoadNameValue,
-    SdcaRegressionTrainer.ShortName)]
+    StochasticDualCoordinateAscentRegressionTrainer.UserNameValue,
+    StochasticDualCoordinateAscentRegressionTrainer.LoadNameValue,
+    StochasticDualCoordinateAscentRegressionTrainer.ShortName)]
 
 namespace Microsoft.ML.Trainers
 {
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Trainers
     /// The <see cref="IEstimator{TTransformer}"/> for training a regression model using the stochastic dual coordinate ascent method.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
-    public sealed class SdcaRegressionTrainer : SdcaTrainerBase<SdcaRegressionTrainer.Options, RegressionPredictionTransformer<LinearRegressionModelParameters>, LinearRegressionModelParameters>
+    public sealed class StochasticDualCoordinateAscentRegressionTrainer : StochasticDualCoordinateAscentTrainerBase<StochasticDualCoordinateAscentRegressionTrainer.Options, RegressionPredictionTransformer<LinearRegressionModelParameters>, LinearRegressionModelParameters>
     {
         internal const string LoadNameValue = "SDCAR";
         internal const string UserNameValue = "Fast Linear Regression (SA-SDCA)";
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Trainers
         internal const string Summary = "The SDCA linear regression trainer.";
 
         /// <summary>
-        /// Options for the <see cref="SdcaRegressionTrainer"/>.
+        /// Options for the <see cref="StochasticDualCoordinateAscentRegressionTrainer"/>.
         /// </summary>
         public sealed class Options : OptionsBase
         {
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Trainers
         private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SdcaRegressionTrainer"/>
+        /// Initializes a new instance of <see cref="StochasticDualCoordinateAscentRegressionTrainer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The label, or dependent variable.</param>
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
-        internal SdcaRegressionTrainer(IHostEnvironment env,
+        internal StochasticDualCoordinateAscentRegressionTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Trainers
             Loss = _loss;
         }
 
-        internal SdcaRegressionTrainer(IHostEnvironment env, Options options, string featureColumn, string labelColumn, string weightColumn = null)
+        internal StochasticDualCoordinateAscentRegressionTrainer(IHostEnvironment env, Options options, string featureColumn, string labelColumn, string weightColumn = null)
             : base(env, options, TrainerUtils.MakeR4ScalarColumn(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             Host.CheckValue(labelColumn, nameof(labelColumn));
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Trainers
             Loss = _loss;
         }
 
-        internal SdcaRegressionTrainer(IHostEnvironment env, Options options)
+        internal StochasticDualCoordinateAscentRegressionTrainer(IHostEnvironment env, Options options)
             : this(env, options, options.FeatureColumnName, options.LabelColumnName)
         {
         }
@@ -174,18 +174,18 @@ namespace Microsoft.ML.Trainers
     internal static partial class Sdca
     {
         [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentRegressor",
-            Desc = SdcaRegressionTrainer.Summary,
-            UserName = SdcaRegressionTrainer.UserNameValue,
-            ShortName = SdcaRegressionTrainer.ShortName)]
-        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, SdcaRegressionTrainer.Options input)
+            Desc = StochasticDualCoordinateAscentRegressionTrainer.Summary,
+            UserName = StochasticDualCoordinateAscentRegressionTrainer.UserNameValue,
+            ShortName = StochasticDualCoordinateAscentRegressionTrainer.ShortName)]
+        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, StochasticDualCoordinateAscentRegressionTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainSDCA");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<SdcaRegressionTrainer.Options, CommonOutputs.RegressionOutput>(host, input,
-                () => new SdcaRegressionTrainer(host, input),
+            return TrainerEntryPointsUtils.Train<StochasticDualCoordinateAscentRegressionTrainer.Options, CommonOutputs.RegressionOutput>(host, input,
+                () => new StochasticDualCoordinateAscentRegressionTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName));
         }
     }

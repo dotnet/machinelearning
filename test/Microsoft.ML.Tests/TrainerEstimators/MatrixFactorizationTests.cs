@@ -33,7 +33,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var invalidData = new TextLoader(Env, GetLoaderArgs(labelColumnName, matrixColumnIndexColumnName + "Renamed", matrixRowIndexColumnName + "Renamed"))
                     .Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
 
-            var options = new MatrixFactorizationTrainer.Options
+            var options = new MatrixFactorizationRecommenderTrainer.Options
             {
                 MatrixColumnIndexColumnName = matrixColumnIndexColumnName,
                 MatrixRowIndexColumnName = matrixRowIndexColumnName,
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
 
             // Create a pipeline with a single operator.
-            var options = new MatrixFactorizationTrainer.Options
+            var options = new MatrixFactorizationRecommenderTrainer.Options
             {
                 MatrixColumnIndexColumnName = userColumnName,
                 MatrixRowIndexColumnName = itemColumnName,
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1);
 
-            var options = new MatrixFactorizationTrainer.Options
+            var options = new MatrixFactorizationRecommenderTrainer.Options
             {
                 MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1);
 
-            var options = new MatrixFactorizationTrainer.Options
+            var options = new MatrixFactorizationRecommenderTrainer.Options
             {
                 MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
@@ -415,12 +415,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1);
 
-            var options = new MatrixFactorizationTrainer.Options
+            var options = new MatrixFactorizationRecommenderTrainer.Options
             {
                 MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 LabelColumnName = nameof(MatrixElement.Value),
-                LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass,
+                LossFunction = MatrixFactorizationRecommenderTrainer.LossFunctionType.SquareLossOneClass,
                 NumberOfIterations = 100,
                 NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 Lambda = 0.025, // Let's test non-default regularization coefficient.
@@ -551,12 +551,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1);
 
-            var options = new MatrixFactorizationTrainer.Options
+            var options = new MatrixFactorizationRecommenderTrainer.Options
             {
                 MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 LabelColumnName = nameof(MatrixElement.Value),
-                LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass,
+                LossFunction = MatrixFactorizationRecommenderTrainer.LossFunctionType.SquareLossOneClass,
                 NumberOfIterations = 100,
                 NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 Lambda = 0.025, // Let's test non-default regularization coefficient.

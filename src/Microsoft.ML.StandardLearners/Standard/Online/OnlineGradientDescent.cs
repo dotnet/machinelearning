@@ -13,20 +13,20 @@ using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
-[assembly: LoadableClass(OnlineGradientDescentTrainer.Summary, typeof(OnlineGradientDescentTrainer), typeof(OnlineGradientDescentTrainer.Options),
+[assembly: LoadableClass(OnlineGradientDescentRegressionTrainer.Summary, typeof(OnlineGradientDescentRegressionTrainer), typeof(OnlineGradientDescentRegressionTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    OnlineGradientDescentTrainer.UserNameValue,
-    OnlineGradientDescentTrainer.LoadNameValue,
-    OnlineGradientDescentTrainer.ShortName,
+    OnlineGradientDescentRegressionTrainer.UserNameValue,
+    OnlineGradientDescentRegressionTrainer.LoadNameValue,
+    OnlineGradientDescentRegressionTrainer.ShortName,
     "sgdr",
     "stochasticgradientdescentregression")]
-[assembly: LoadableClass(typeof(void), typeof(OnlineGradientDescentTrainer), null, typeof(SignatureEntryPointModule), "OGD")]
+[assembly: LoadableClass(typeof(void), typeof(OnlineGradientDescentRegressionTrainer), null, typeof(SignatureEntryPointModule), "OGD")]
 
 namespace Microsoft.ML.Trainers
 {
 
     /// <include file='doc.xml' path='doc/members/member[@name="OGD"]/*' />
-    public sealed class OnlineGradientDescentTrainer : AveragedLinearTrainer<RegressionPredictionTransformer<LinearRegressionModelParameters>, LinearRegressionModelParameters>
+    public sealed class OnlineGradientDescentRegressionTrainer : AveragedLinearTrainer<RegressionPredictionTransformer<LinearRegressionModelParameters>, LinearRegressionModelParameters>
     {
         internal const string LoadNameValue = "OnlineGradientDescent";
         internal const string UserNameValue = "Stochastic Gradient Descent (Regression)";
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Trainers
 
         private sealed class TrainState : AveragedTrainStateBase
         {
-            public TrainState(IChannel ch, int numFeatures, LinearModelParameters predictor, OnlineGradientDescentTrainer parent)
+            public TrainState(IChannel ch, int numFeatures, LinearModelParameters predictor, OnlineGradientDescentRegressionTrainer parent)
                 : base(ch, numFeatures, predictor, parent)
             {
             }
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="l2RegularizerWeight">L2 Regularization Weight.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
         /// <param name="lossFunction">The custom loss functions. Defaults to <see cref="SquaredLoss"/> if not provided.</param>
-        internal OnlineGradientDescentTrainer(IHostEnvironment env,
+        internal OnlineGradientDescentRegressionTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             float learningRate = Options.OgdDefaultArgs.LearningRate,
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Trainers
             IRegressionLoss IComponentFactory<IRegressionLoss>.CreateComponent(IHostEnvironment env) => _loss;
         }
 
-        internal OnlineGradientDescentTrainer(IHostEnvironment env, Options options)
+        internal OnlineGradientDescentRegressionTrainer(IHostEnvironment env, Options options)
         : base(options, env, UserNameValue, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName))
         {
             LossFunction = options.LossFunction.CreateComponent(env);
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Trainers
             EntryPointUtils.CheckInputArgs(host, input);
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, input,
-                () => new OnlineGradientDescentTrainer(host, input),
+                () => new OnlineGradientDescentRegressionTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName));
         }
 
