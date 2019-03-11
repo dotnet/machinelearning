@@ -120,18 +120,6 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        private sealed class TrivialFactory : ISupportRegressionLossFactory
-        {
-            private IRegressionLoss _loss;
-
-            public TrivialFactory(IRegressionLoss loss)
-            {
-                _loss = loss;
-            }
-
-            IRegressionLoss IComponentFactory<IRegressionLoss>.CreateComponent(IHostEnvironment env) => _loss;
-        }
-
         internal OnlineGradientDescentTrainer(IHostEnvironment env, Options options)
         : base(options, env, UserNameValue, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName))
         {
