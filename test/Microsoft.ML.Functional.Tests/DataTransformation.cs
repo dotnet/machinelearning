@@ -141,7 +141,7 @@ namespace Microsoft.ML.Functional.Tests
                     {
                         CharFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 3, AllLengths = false },
                         WordFeatureExtractor = new WordBagEstimator.Options(),
-                        VectorNormalizer = TextFeaturizingEstimator.TextNormKind.L1
+                        VectorNormalizer = TextFeaturizingEstimator.NormFunction.L1
                     }, "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
