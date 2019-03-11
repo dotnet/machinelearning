@@ -8,10 +8,10 @@ using System.IO;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.Transforms.TensorFlow;
 using Xunit;
 

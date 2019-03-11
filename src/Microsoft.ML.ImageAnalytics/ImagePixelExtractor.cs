@@ -12,10 +12,9 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Image;
 
 [assembly: LoadableClass(ImagePixelExtractingTransformer.Summary, typeof(IDataTransform), typeof(ImagePixelExtractingTransformer), typeof(ImagePixelExtractingTransformer.Options), typeof(SignatureDataTransform),
     ImagePixelExtractingTransformer.UserName, "ImagePixelExtractorTransform", "ImagePixelExtractor")]
@@ -29,7 +28,7 @@ using Microsoft.ML.Transforms;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(ImagePixelExtractingTransformer), null, typeof(SignatureLoadRowMapper),
     ImagePixelExtractingTransformer.UserName, ImagePixelExtractingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.ImageAnalytics
+namespace Microsoft.ML.Transforms.Image
 {
     /// <summary>
     /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="ImagePixelExtractingEstimator" /> .
