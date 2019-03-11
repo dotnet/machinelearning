@@ -443,7 +443,7 @@ namespace Microsoft.ML.StaticPipe
             private readonly int _ngramLength;
             private readonly int _skipLength;
             private readonly bool _allLengths;
-            private readonly int _maxNumTerms;
+            private readonly int _maxNgramsCount;
             private readonly NgramExtractingEstimator.WeightingCriteria _weighting;
 
             public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramExtractingEstimator.WeightingCriteria weighting)
@@ -451,7 +451,7 @@ namespace Microsoft.ML.StaticPipe
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
                 _allLengths = allLengths;
-                _maxNumTerms = maxNumTerms;
+                _maxNgramsCount = maxNumTerms;
                 _weighting = weighting;
 
             }
@@ -461,7 +461,7 @@ namespace Microsoft.ML.StaticPipe
                 return _ngramLength == other._ngramLength &&
                 _skipLength == other._skipLength &&
                 _allLengths == other._allLengths &&
-                _maxNumTerms == other._maxNumTerms &&
+                _maxNgramsCount == other._maxNgramsCount &&
                 _weighting == other._weighting;
             }
 
@@ -477,7 +477,7 @@ namespace Microsoft.ML.StaticPipe
                 foreach (var outCol in toOutput)
                     pairs.Add((outputNames[outCol], inputNames[((OutPipelineColumn)outCol).Input]));
 
-                return new NgramExtractingEstimator(env, pairs.ToArray(), _ngramLength, _skipLength, _allLengths, _maxNumTerms, _weighting);
+                return new NgramExtractingEstimator(env, pairs.ToArray(), _ngramLength, _skipLength, _allLengths, _maxNgramsCount, _weighting);
             }
         }
 
@@ -492,15 +492,15 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maximumTermCount">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public static Vector<float> ToNgrams<TKey>(this VarVector<Key<TKey, string>> input,
             int ngramLength = 1,
             int skipLength = 0,
             bool allLengths = true,
-            int maximumTermCount = 10000000,
+            int maximumNgramsCount = 10000000,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
-                => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maximumTermCount, weighting);
+                => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maximumNgramsCount, weighting);
     }
 
     /// <summary>
