@@ -29,7 +29,7 @@ namespace Microsoft.ML.RunTests
         /// step, given <c>label</c> and <c>output</c></param>
         /// <param name="differentiable">Whether the loss function is differentiable
         /// w.r.t. the output in the vicinity of the output value</param>
-        private void TestHelper(IScalarOutputLoss lossFunc, double label, double output, double expectedLoss, double expectedUpdate, bool differentiable = true)
+        private void TestHelper(IScalarLoss lossFunc, double label, double output, double expectedLoss, double expectedUpdate, bool differentiable = true)
         {
             Double loss = lossFunc.Loss((float)output, (float)label);
             float derivative = lossFunc.Derivative((float)output, (float)label);
