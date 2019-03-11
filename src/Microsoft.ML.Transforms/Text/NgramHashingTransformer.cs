@@ -946,7 +946,8 @@ namespace Microsoft.ML.Transforms.Text
                     throw Contracts.ExceptParam(nameof(numberOfBits), $"Cannot support invertHash for a {0} bit hash. 30 is the maximum possible.", numberOfBits);
 
                 if (ngramLength == 1 && skipLength != 0)
-                    throw Contracts.ExceptUserArg(nameof(skipLength), $"Number of skips can only be zero when the maximum n-gram's length is one.");
+                    throw Contracts.ExceptUserArg(nameof(skipLength), string.Format(
+                        "{0} (actual value: {1}) can only be zero when {2} set to one.", nameof(skipLength), skipLength, nameof(ngramLength)));
                 if (ngramLength + skipLength > NgramBufferBuilder.MaxSkipNgramLength)
                 {
                     throw Contracts.ExceptUserArg(nameof(skipLength),
