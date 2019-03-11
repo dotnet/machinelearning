@@ -20,6 +20,31 @@ namespace Microsoft.ML
         IHostEnvironment IInternalCatalog.Environment => _env;
         private readonly IHostEnvironment _env;
 
+        /// <summary>
+        /// A pair of datasets, for the train and test set.
+        /// </summary>
+        public struct TrainTestData
+        {
+            /// <summary>
+            /// Training set.
+            /// </summary>
+            public readonly IDataView TrainSet;
+            /// <summary>
+            /// Testing set.
+            /// </summary>
+            public readonly IDataView TestSet;
+            /// <summary>
+            /// Create pair of datasets.
+            /// </summary>
+            /// <param name="trainSet">Training set.</param>
+            /// <param name="testSet">Testing set.</param>
+            internal TrainTestData(IDataView trainSet, IDataView testSet)
+            {
+                TrainSet = trainSet;
+                TestSet = testSet;
+            }
+        }
+
         internal DataOperationsCatalog(IHostEnvironment env)
         {
             Contracts.AssertValue(env);
@@ -337,6 +362,84 @@ namespace Microsoft.ML
             };
 
             return new SkipTakeFilter(_env, options, input);
+        }
+
+        /// <summary>
+        /// Split the dataset into the train set and test set according to the given fraction.
+        /// Respects the <paramref name="samplingKeyColumn"/> if provided.
+        /// </summary>
+        /// <param name="data">The dataset to split.</param>
+        /// <param name="testFraction">The fraction of data to go into the test set.</param>
+        /// <param name="samplingKeyColumn">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumn"/>,
+        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
+        /// If <see langword="null"/> no row grouping will be performed.</param>
+        /// <param name="seed">Seed for the random number generator used to select rows for the train-test split.</param>
+        public TrainTestData TrainTestSplit(IDataView data, double testFraction = 0.1, string samplingKeyColumn = null, uint? seed = null)
+        {
+            _env.CheckValue(data, nameof(data));
+            _env.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1 exclusive");
+            _env.CheckValueOrNull(samplingKeyColumn);
+
+            EnsureGroupPreservationColumn(_env, ref data, ref samplingKeyColumn, seed);
+
+            var trainFilter = new RangeFilter(_env, new RangeFilter.Options()
+            {
+                Column = samplingKeyColumn,
+                Min = 0,
+                Max = testFraction,
+                Complement = true
+            }, data);
+            var testFilter = new RangeFilter(_env, new RangeFilter.Options()
+            {
+                Column = samplingKeyColumn,
+                Min = 0,
+                Max = testFraction,
+                Complement = false
+            }, data);
+
+            return new TrainTestData(trainFilter, testFilter);
+        }
+
+        /// <summary>
+        /// Ensures the provided <paramref name="samplingKeyColumn"/> is valid for <see cref="RangeFilter"/>, hashing it if necessary, or creates a new column <paramref name="samplingKeyColumn"/> is null.
+        /// </summary>
+        internal static void EnsureGroupPreservationColumn(IHostEnvironment env, ref IDataView data, ref string samplingKeyColumn, uint? seed = null)
+        {
+            // We need to handle two cases: if samplingKeyColumn is provided, we use hashJoin to
+            // build a single hash of it. If it is not, we generate a random number.
+
+            if (samplingKeyColumn == null)
+            {
+                samplingKeyColumn = data.Schema.GetTempColumnName("SamplingKeyColumn");
+                data = new GenerateNumberTransform(env, data, samplingKeyColumn, seed);
+            }
+            else
+            {
+                if (!data.Schema.TryGetColumnIndex(samplingKeyColumn, out int stratCol))
+                    throw env.ExceptSchemaMismatch(nameof(samplingKeyColumn), "SamplingKeyColumn", samplingKeyColumn);
+
+                var type = data.Schema[stratCol].Type;
+                if (!RangeFilter.IsValidRangeFilterColumnType(env, type))
+                {
+                    // Hash the samplingKeyColumn.
+                    // REVIEW: this could currently crash, since Hash only accepts a limited set
+                    // of column types. It used to be HashJoin, but we should probably extend Hash
+                    // instead of having two hash transformations.
+                    var origStratCol = samplingKeyColumn;
+                    int tmp;
+                    int inc = 0;
+
+                    // Generate a new column with the hashed samplingKeyColumn.
+                    while (data.Schema.TryGetColumnIndex(samplingKeyColumn, out tmp))
+                        samplingKeyColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
+                    HashingEstimator.ColumnOptions columnOptions;
+                    if (seed.HasValue)
+                        columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, seed.Value);
+                    else
+                        columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30);
+                    data = new HashingEstimator(env, columnOptions).Fit(data).Transform(data);
+                }
+            }
         }
     }
 }

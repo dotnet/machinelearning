@@ -16,7 +16,7 @@
             var data = SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
 
             // Leave out 10% of data for testing.
-            var trainTestData = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
+            var trainTestData = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Create data training pipeline.
             var pipeline = mlContext.BinaryClassification.Trainers.StochasticGradientDescentNonCalibrated();

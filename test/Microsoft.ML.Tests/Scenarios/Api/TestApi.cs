@@ -313,8 +313,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Let's test what train test properly works with seed.
             // In order to do that, let's split same dataset, but in one case we will use default seed value,
             // and in other case we set seed to be specific value.
-            var simpleSplit = mlContext.BinaryClassification.TrainTestSplit(input);
-            var splitWithSeed = mlContext.BinaryClassification.TrainTestSplit(input, seed: 10);
+            var simpleSplit = mlContext.Data.TrainTestSplit(input);
+            var splitWithSeed = mlContext.Data.TrainTestSplit(input, seed: 10);
 
             // Since test fraction is 0.1, it's much faster to compare test subsets of split.
             var simpleTestWorkClass = getWorkclass(simpleSplit.TestSet);
@@ -326,7 +326,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Now let's do same thing but with presence of stratificationColumn.
             // Rows with same values in this stratificationColumn should end up in same subset (train or test).
             // So let's break dataset by "Workclass" column.
-            var stratSplit = mlContext.BinaryClassification.TrainTestSplit(input, samplingKeyColumn: "Workclass");
+            var stratSplit = mlContext.Data.TrainTestSplit(input, samplingKeyColumn: "Workclass");
             var stratTrainWorkclass = getWorkclass(stratSplit.TrainSet);
             var stratTestWorkClass = getWorkclass(stratSplit.TestSet);
             // Let's get unique values for "Workclass" column from train subset.
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             // Let's do same thing, but this time we will choose different seed.
             // Stratification column should still break dataset properly without same values in both subsets.
-            var stratSeed = mlContext.BinaryClassification.TrainTestSplit(input, samplingKeyColumn:"Workclass", seed: 1000000);
+            var stratSeed = mlContext.Data.TrainTestSplit(input, samplingKeyColumn:"Workclass", seed: 1000000);
             var stratTrainWithSeedWorkclass = getWorkclass(stratSeed.TrainSet);
             var stratTestWithSeedWorkClass = getWorkclass(stratSeed.TestSet);
             // Let's get unique values for "Workclass" column from train subset.
