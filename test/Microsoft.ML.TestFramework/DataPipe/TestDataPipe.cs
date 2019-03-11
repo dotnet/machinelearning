@@ -11,6 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 
 namespace Microsoft.ML.RunTests
@@ -1318,7 +1319,9 @@ namespace Microsoft.ML.RunTests
             builder.AddColumn("F1V", NumberDataViewType.Single, data);
             var srcView = builder.GetDataView();
 
-            var est = ML.Transforms.Text.LatentDirichletAllocation("F1V", numTopic: 3, numSummaryTermPerTopic: 3, alphaSum: 3, numThreads: 1, resetRandomGenerator: true);
+            var opt = new LatentDirichletAllocationEstimator.ColumnOptions(name: "F1V", numberOfTopics: 3,
+                numberOfSummaryTermsPerTopic: 3, alphaSum: 3, numberOfThreads: 1, resetRandomGenerator: true);
+            var est = ML.Transforms.Text.LatentDirichletAllocation(opt);
             var ldaTransformer = est.Fit(srcView);
             var transformedData = ldaTransformer.Transform(srcView);
 

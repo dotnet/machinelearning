@@ -782,7 +782,7 @@ var pipeline =
     // NLP pipeline 4: word embeddings.
     .Append(mlContext.Transforms.Text.TokenizeWords("TokenizedMessage", "NormalizedMessage"))
     .Append(mlContext.Transforms.Text.ExtractWordEmbeddings("Embeddings", "TokenizedMessage",
-                WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVeTwitter25D));
+                WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding));
 
 // Let's train our pipeline, and then apply it to the same data.
 // Note that even on a small dataset of 70KB the pipeline above can take up to a minute to completely train.
@@ -825,7 +825,7 @@ var pipeline =
     .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
 // Split the data 90:10 into train and test sets, train and evaluate.
-var split = mlContext.MulticlassClassification.TrainTestSplit(data, testFraction: 0.1);
+var split = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
 // Train the model.
 var model = pipeline.Fit(split.TrainSet);

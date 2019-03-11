@@ -25,7 +25,7 @@ namespace Microsoft.ML.Functional.Tests
             var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(),
                 hasHeader: TestDatasets.housing.fileHasHeader, separatorChar: TestDatasets.housing.fileSeparator)
                 .Load(BaseTestClass.GetDataPath(TestDatasets.housing.trainFilename));
-            var split = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.2);
+            var split = mlContext.Data.TrainTestSplit(data, testFraction: 0.2);
 
             // Create a pipeline to train on the housing data
             var pipeline = mlContext.Transforms.Concatenate("Features", new string[] {
