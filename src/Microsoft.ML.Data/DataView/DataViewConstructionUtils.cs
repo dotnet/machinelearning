@@ -56,30 +56,37 @@ namespace Microsoft.ML.Data
             return new StreamingDataView<TRow>(env, data, GetInternalSchemaDefinition<TRow>(env, schema));
         }
 
-        private static InternalSchemaDefinition GetInternalSchemaDefinition<TRow>(IHostEnvironment env, DataViewSchema schema)
-            where TRow : class
+        internal static SchemaDefinition GetSchemaDefinition<TRow>(IHostEnvironment env, DataViewSchema schema)
         {
             Contracts.AssertValue(env);
             env.AssertValue(schema);
 
-            var isd = InternalSchemaDefinition.Create(typeof(TRow), SchemaDefinition.Direction.Read);
+            var schemaDefinition = SchemaDefinition.Create(typeof(TRow), SchemaDefinition.Direction.Read);
             foreach (var col in schema)
             {
                 var name = col.Name;
-                var isdCol = isd.Columns.FirstOrDefault(c => c.ColumnName == name);
-                if (isdCol == null)
-                    throw env.Except($"Type should contain a member named {isdCol.ColumnName}");
+                var schemaDefinitionCol = schemaDefinition.FirstOrDefault(c => c.ColumnName == name);
+                if (schemaDefinitionCol == null)
+                    throw env.Except($"Type should contain a member named {name}");
                 var annotations = col.Annotations;
                 if (annotations != null)
                 {
                     foreach (var annotation in annotations.Schema)
                     {
                         var info = Utils.MarshalInvoke(GetAnnotationInfo<int>, annotation.Type.RawType, annotation.Name, annotations);
-                        isdCol.Annotations.Add(annotation.Name, info);
+                        schemaDefinitionCol.Annotations.Add(annotation.Name, info);
                     }
                 }
             }
-            return isd;
+            return schemaDefinition;
+        }
+
+        private static InternalSchemaDefinition GetInternalSchemaDefinition<TRow>(IHostEnvironment env, DataViewSchema schema)
+            where TRow : class
+        {
+            Contracts.AssertValue(env);
+            env.AssertValue(schema);
+            return InternalSchemaDefinition.Create(typeof(TRow), GetSchemaDefinition<TRow>(env, schema));
         }
 
         private static AnnotationInfo GetAnnotationInfo<T>(string kind, DataViewSchema.Annotations annotations)
