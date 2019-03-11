@@ -200,7 +200,7 @@ namespace Microsoft.ML.Data
                 LastTransformer = null;
         }
 
-        public void SaveTo(IHostEnvironment env, Stream outputStream)
+        internal void SaveTo(IHostEnvironment env, Stream outputStream)
         {
             using (var ch = env.Start("Saving pipeline"))
             {
