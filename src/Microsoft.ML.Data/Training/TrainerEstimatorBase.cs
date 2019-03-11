@@ -144,8 +144,8 @@ namespace Microsoft.ML.Trainers
         private protected TTransformer TrainTransformer(IDataView trainSet,
             IDataView validationSet = null, IPredictor initPredictor = null)
         {
-            var trainRoleMapped = MakeRoles(trainSet);
             CheckInputSchema(SchemaShape.Create(trainSet.Schema));
+            var trainRoleMapped = MakeRoles(trainSet);
             RoleMappedData validRoleMapped = null;
 
             if (validationSet != null)

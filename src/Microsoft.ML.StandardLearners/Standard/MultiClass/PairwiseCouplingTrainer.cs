@@ -142,11 +142,11 @@ namespace Microsoft.ML.Trainers
 
         private IDataView MapLabels(RoleMappedData data, int cls1, int cls2)
         {
-            var lab = data.Schema.Label.Value;
-            Host.Assert(!lab.IsHidden);
-            Host.Assert(lab.Type.GetKeyCount() > 0 || lab.Type == NumberDataViewType.Single || lab.Type == NumberDataViewType.Double);
+            var label = data.Schema.Label.Value;
+            Host.Assert(!label.IsHidden);
+            Host.Assert(label.Type.GetKeyCount() > 0 || label.Type == NumberDataViewType.Single || label.Type == NumberDataViewType.Double);
 
-            if (lab.Type.GetKeyCount() > 0)
+            if (label.Type.GetKeyCount() > 0)
             {
                 // Key values are 1-based.
                 uint key1 = (uint)(cls1 + 1);
@@ -154,7 +154,7 @@ namespace Microsoft.ML.Trainers
                 return MapLabelsCore(NumberDataViewType.UInt32, (in uint val) => val == key1 || val == key2, data);
             }
 
-            throw Host.ExceptNotSupp($"Label column type is not supported by nameof(PairwiseCouplingTrainer): {lab.Type.RawType}");
+            throw Host.ExceptNotSupp($"Label column type is not supported by nameof(PairwiseCouplingTrainer): {label.Type.RawType}");
         }
 
         /// <summary>

@@ -97,13 +97,13 @@ namespace Microsoft.ML.Trainers
             Host.AssertValue(data);
             Host.Assert(data.Schema.Label.HasValue);
 
-            var lab = data.Schema.Label.Value;
+            var label = data.Schema.Label.Value;
             IDataView dataView = data.Data;
             if (!Args.ImputeMissingLabelsAsNegative)
-                dataView = new NAFilter(Host, data.Data, false, lab.Name);
+                dataView = new NAFilter(Host, data.Data, false, label.Name);
 
             return LambdaColumnMapper.Create(Host, "Label mapper", data.Data,
-                lab.Name, lab.Name, type, BooleanDataViewType.Instance,
+                label.Name, label.Name, type, BooleanDataViewType.Instance,
                 (in T src, ref bool dst) =>
                     dst = equalsTarget(in src) ? true : false);
         }
