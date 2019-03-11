@@ -183,7 +183,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Define the pipeline.
             var pipeline = mlContext.Transforms.Text.ProduceWordBags("SentimentBag", "SentimentText")
-                .Append(mlContext.Transforms.Text.LatentDirichletAllocation("Features", "SentimentBag", numTopic: numTopics, numIterations: 10));
+                .Append(mlContext.Transforms.Text.LatentDirichletAllocation("Features", "SentimentBag", numberOfTopics: numTopics, maximumNumberOfIterations: 10));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
