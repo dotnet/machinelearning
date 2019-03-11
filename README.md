@@ -71,7 +71,7 @@ Here's an example of code to train a model to predict sentiment from text sample
 // Path to your training tsv file. You can use machinelearning/test/data/wikipedia-detox-250-line-data.tsv
 var dataPath = "wikipedia-detox-250-line-data.tsv";
 var mlContext = new MLContext();
-var reader = mlContext.Data.CreateTextLoader(new TextLoader.Options
+var loader = mlContext.Data.CreateTextLoader(new TextLoader.Options
 {
 	Columns = new[] {
 		new TextLoader.Column("SentimentText", DataKind.String, 1),
@@ -80,7 +80,7 @@ var reader = mlContext.Data.CreateTextLoader(new TextLoader.Options
 	HasHeader = true,
 	Separators = new[] { ',' }
 });
-var data = reader.Load(dataPath);
+var data = loader.Load(dataPath);
 var learningPipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
 		.Append(mlContext.BinaryClassification.Trainers.FastTree());
 var model = learningPipeline.Fit(data);
