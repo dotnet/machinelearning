@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.LightGBM;
 using Microsoft.ML.SamplesUtils;
-using static Microsoft.ML.LightGBM.Options;
+using Microsoft.ML.Trainers.LightGBM;
+using static Microsoft.ML.Trainers.LightGBM.Options;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
 {

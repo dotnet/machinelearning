@@ -1,5 +1,5 @@
 using System;
-using Microsoft.ML.LightGBM.StaticPipe;
+using Microsoft.ML.Trainers.LightGBM.StaticPipe;
 using Microsoft.ML.StaticPipe;
 
 namespace Microsoft.ML.Samples.Static

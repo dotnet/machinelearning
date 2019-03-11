@@ -9,7 +9,7 @@ using System.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
-namespace Microsoft.ML.LightGBM
+namespace Microsoft.ML.Trainers.LightGBM
 {
     /// <summary>
     /// Wrapper of Booster object of LightGBM.

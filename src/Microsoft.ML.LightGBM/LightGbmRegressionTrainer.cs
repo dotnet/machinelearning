@@ -6,10 +6,9 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.LightGBM;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.LightGBM;
 
 [assembly: LoadableClass(LightGbmRegressorTrainer.Summary, typeof(LightGbmRegressorTrainer), typeof(Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
@@ -19,7 +18,7 @@ using Microsoft.ML.Trainers.FastTree;
     "LightGBM Regression Executor",
     LightGbmRegressionModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.LightGBM
+namespace Microsoft.ML.Trainers.LightGBM
 {
     public sealed class LightGbmRegressionModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {

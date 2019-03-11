@@ -7,10 +7,9 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.LightGBM;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.LightGBM;
 
 [assembly: LoadableClass(LightGbmRankingTrainer.UserName, typeof(LightGbmRankingTrainer), typeof(Options),
     new[] { typeof(SignatureRankerTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
@@ -20,7 +19,7 @@ using Microsoft.ML.Trainers.FastTree;
     "LightGBM Ranking Executor",
     LightGbmRankingModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.LightGBM
+namespace Microsoft.ML.Trainers.LightGBM
 {
     public sealed class LightGbmRankingModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
