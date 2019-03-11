@@ -281,25 +281,30 @@ namespace Microsoft.ML.Transforms.Text
 
             OptionalSettings = new Options();
             if (options != null)
-            {
                 OptionalSettings = options;
+
+            NgramExtractorTransform.NgramExtractorArguments extractor = null;
+            if (OptionalSettings.WordFeatureExtractor != null)
+            {
+                extractor = new NgramExtractorTransform.NgramExtractorArguments();
+                extractor.NgramLength = OptionalSettings.WordFeatureExtractor.NgramLength;
+                extractor.SkipLength = OptionalSettings.WordFeatureExtractor.SkipLength;
+                extractor.AllLengths = OptionalSettings.WordFeatureExtractor.AllLengths;
+                extractor.MaxNumTerms = OptionalSettings.WordFeatureExtractor.MaximumNgramsCount;
+                extractor.Weighting = OptionalSettings.WordFeatureExtractor.Weighting;
             }
-
-            var extractor = new NgramExtractorTransform.NgramExtractorArguments();
-            extractor.NgramLength = OptionalSettings.WordFeatureExtractor.NgramLength;
-            extractor.SkipLength = OptionalSettings.WordFeatureExtractor.SkipLength;
-            extractor.AllLengths = OptionalSettings.WordFeatureExtractor.AllLengths;
-            extractor.MaxNumTerms = OptionalSettings.WordFeatureExtractor.MaxNumTerms;
-            extractor.Weighting = OptionalSettings.WordFeatureExtractor.Weighting;
-
             _wordFeatureExtractor = extractor;
 
-            extractor = new NgramExtractorTransform.NgramExtractorArguments();
-            extractor.NgramLength = OptionalSettings.CharFeatureExtractor.NgramLength;
-            extractor.SkipLength = OptionalSettings.CharFeatureExtractor.SkipLength;
-            extractor.AllLengths = OptionalSettings.CharFeatureExtractor.AllLengths;
-            extractor.MaxNumTerms = OptionalSettings.CharFeatureExtractor.MaxNumTerms;
-            extractor.Weighting = OptionalSettings.CharFeatureExtractor.Weighting;
+            extractor = null;
+            if (OptionalSettings.CharFeatureExtractor != null)
+            {
+                extractor = new NgramExtractorTransform.NgramExtractorArguments();
+                extractor.NgramLength = OptionalSettings.CharFeatureExtractor.NgramLength;
+                extractor.SkipLength = OptionalSettings.CharFeatureExtractor.SkipLength;
+                extractor.AllLengths = OptionalSettings.CharFeatureExtractor.AllLengths;
+                extractor.MaxNumTerms = OptionalSettings.CharFeatureExtractor.MaximumNgramsCount;
+                extractor.Weighting = OptionalSettings.CharFeatureExtractor.Weighting;
+            }
             _charFeatureExtractor = extractor;
 
             _dictionary = null;

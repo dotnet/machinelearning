@@ -50,7 +50,7 @@ namespace Microsoft.ML.Transforms.Text
             /// The maximum number of grams to store in the dictionary, for each level of ngrams,
             /// from 1 (in position 0) up to ngramLength (in position ngramLength-1)
             /// </summary>
-            public int[] MaxNumTerms;
+            public int[] MaximumNgramsCount;
 
             /// <summary>
             /// The weighting criteria.
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Transforms.Text
                 NgramLength = 1;
                 SkipLength = NgramExtractingEstimator.Defaults.SkipLength;
                 AllLengths = NgramExtractingEstimator.Defaults.AllLengths;
-                MaxNumTerms = new int[] { NgramExtractingEstimator.Defaults.MaxNumTerms };
+                MaximumNgramsCount = new int[] { NgramExtractingEstimator.Defaults.MaxNumTerms };
                 Weighting = NgramExtractingEstimator.Defaults.Weighting;
             }
         }
