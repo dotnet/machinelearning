@@ -63,7 +63,7 @@ namespace Microsoft.ML.Transforms
         /// </format>
         /// </example>
         public TensorFlowEstimator ScoreTensorFlowModel(string outputColumnName, string inputColumnName)
-            => new TensorFlowEstimator(_env, new[] { outputColumnName }, new[] { inputColumnName }, ModelPath);
+            => new TensorFlowEstimator(_env, new[] { outputColumnName }, new[] { inputColumnName }, this);
 
         /// <summary>
         /// Scores a dataset using a pre-traiend TensorFlow model.
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Transforms
         /// </format>
         /// </example>
         public TensorFlowEstimator ScoreTensorFlowModel(string[] outputColumnNames, string[] inputColumnNames)
-            => new TensorFlowEstimator(_env, outputColumnNames, inputColumnNames, ModelPath);
+            => new TensorFlowEstimator(_env, outputColumnNames, inputColumnNames, this);
 
         /// <summary>
         /// Retrain the TensorFlow model on new data.

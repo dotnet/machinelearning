@@ -374,17 +374,32 @@ namespace Microsoft.ML.Scenarios
         [Fact(Skip = "Model files are not available yet")]
         public void TensorFlowTransformInceptionTest()
         {
-            var modelLocation = @"C:\models\TensorFlow\tensorflow_inception_graph.pb";
+            string inputName = "input";
+            string outputName = "softmax2_pre_activation";
+            var modelLocation = @"inception5h\tensorflow_inception_graph.pb";
             var mlContext = new MLContext(seed: 1);
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = mlContext.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+            var reader = mlContext.Data.CreateTextLoader(
+                   columns: new[]
+                   {
+                        new TextLoader.Column("ImagePath", DataKind.String , 0),
+                        new TextLoader.Column("Name", DataKind.String, 1)
+
+                   },
+               hasHeader: false,
+               allowSparse: false
+               );
+
+            var data = reader.Load(new MultiFileSource(dataFile));
             var images = mlContext.Transforms.LoadImages(imageFolder, ("ImageReal", "ImagePath")).Fit(data).Transform(data);
             var cropped = mlContext.Transforms.ResizeImages("ImageCropped", 224, 224, "ImageReal").Fit(images).Transform(images);
-            var pixels = mlContext.Transforms.ExtractPixels("input", "ImageCropped").Fit(cropped).Transform(cropped);
-            var tf = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("softmax2_pre_activation", "input").Fit(pixels).Transform(pixels);
+            var pixels = mlContext.Transforms.ExtractPixels(inputName, "ImageCropped").Fit(cropped).Transform(cropped);
+            var tf = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(outputName, inputName).Fit(pixels).Transform(pixels);
 
-            using (var curs = tf.GetRowCursor(tf.Schema["input"], tf.Schema["softmax2_pre_activation"]))
+            tf.Schema.TryGetColumnIndex(inputName, out int input);
+            tf.Schema.TryGetColumnIndex(outputName, out int b);
+            using (var curs = tf.GetRowCursor(tf.Schema[inputName], tf.Schema[outputName]))
             {
                 var get = curs.GetGetter<VBuffer<float>>(tf.Schema["softmax2_pre_activation"]);
                 var getInput = curs.GetGetter<VBuffer<float>>(tf.Schema["input"]);
