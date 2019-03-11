@@ -46,7 +46,8 @@ namespace Microsoft.ML.Data
             public bool? Verbose;
 
             [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "The web server to publish the RESTful API", Hide = true)]
-            public ServerChannel.IServerFactory Server;
+            [BestFriend]
+            internal ServerChannel.IServerFactory Server;
 
             // This is actually an advisory value. The implementations themselves are responsible for
             // determining what they consider appropriate, and the actual heuristics is a bit more
