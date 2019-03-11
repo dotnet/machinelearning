@@ -37,7 +37,7 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             // A pipeline to project Features column into Random fourier space.
-            var rffPipeline = ml.Transforms.Projection.CreateRandomFourierFeatures(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), newDim: 4);
+            var rffPipeline = ml.Transforms.RandomFourierKernelMap(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), rank: 4);
             // The transformed (projected) data.
             var transformedData = rffPipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //0.165 0.117 -0.547  0.014
 
             // A pipeline to project Features column into L-p normalized vector.
-            var lpNormalizePipeline = ml.Transforms.Projection.LpNormalize(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), normKind: Transforms.LpNormalizingEstimatorBase.NormalizerKind.L1Norm);
+            var lpNormalizePipeline = ml.Transforms.LpNormalize(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), normKind: Transforms.LpNormalizingEstimatorBase.NormFunction.L1);
             // The transformed (projected) data.
             transformedData = lpNormalizePipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // 0.133 0.156 0.178 0.200 0.000 0.022 0.044 0.067 0.089 0.111
 
             // A pipeline to project Features column into L-p normalized vector.
-            var gcNormalizePipeline = ml.Transforms.Projection.GlobalContrastNormalize(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), substractMean:false);
+            var gcNormalizePipeline = ml.Transforms.GlobalContrastNormalize(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), ensureZeroMean:false);
             // The transformed (projected) data.
             transformedData = gcNormalizePipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.

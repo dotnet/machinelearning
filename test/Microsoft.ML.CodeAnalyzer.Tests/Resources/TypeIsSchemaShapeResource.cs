@@ -2,6 +2,7 @@
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe;
 
 namespace Bubba

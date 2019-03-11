@@ -6,6 +6,7 @@ using System.Globalization;
 using Microsoft.ML;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Tools;
 
 [assembly: LoadableClass(ChainCommand.Summary, typeof(ChainCommand), typeof(ChainCommand.Arguments), typeof(SignatureCommand),

@@ -1,5 +1,4 @@
 using System;
-using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
 
@@ -26,7 +25,7 @@ namespace Microsoft.ML.Samples.Static
 
             // Load the data, and leave 10% out, so we can use them for testing
             var data = loader.Load(dataFile);
-            var (trainData, testData) = mlContext.Regression.TrainTestSplit(data, testFraction: 0.1);
+            var (trainData, testData) = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // The predictor that gets produced out of training
             LinearRegressionModelParameters pred = null;
@@ -37,7 +36,7 @@ namespace Microsoft.ML.Samples.Static
                                             r.label,
                                             r.features,
                                             l1Threshold: 0f,
-                                            maxIterations: 100,
+                                            numberOfIterations: 100,
                                         onFit: p => pred = p)
                                 )
                         );

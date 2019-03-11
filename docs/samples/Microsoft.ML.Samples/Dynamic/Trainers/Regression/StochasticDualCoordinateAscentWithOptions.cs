@@ -18,7 +18,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 
             // Split the data into training and test sets. Only training set is used in fitting
             // the created pipeline. Metrics are computed on the test.
-            var split = mlContext.MulticlassClassification.TrainTestSplit(dataView, testFraction: 0.1);
+            var split = mlContext.Data.TrainTestSplit(dataView, testFraction: 0.1);
 
             // Create trainer options.
             var options = new SdcaRegressionTrainer.Options
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
                 // Make the convergence tolerance tighter.
                 ConvergenceTolerance = 0.02f,
                 // Increase the maximum number of passes over training data.
-                MaxIterations = 30,
+                MaximumNumberOfIterations = 30,
                 // Increase learning rate for bias
                 BiasLearningRate = 0.1f
             };

@@ -55,7 +55,7 @@ namespace Microsoft.ML.Samples.Static
 
             // Load the data, and leave 10% out, so we can use them for testing
             var data = loader.Load(dataFilePath);
-            var (trainData, testData) = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
+            var (trainData, testData) = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Create the Estimator
             var learningPipeline = loader.MakeNewEstimator()
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Samples.Static
                             row.Label,
                             row.Features,
                             l1Threshold: 0.25f,
-                            maxIterations: 100)))
+                            numberOfIterations: 100)))
                 .Append(row => (
                     Label: row.Label,
                     Score: row.Score,

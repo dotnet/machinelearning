@@ -13,11 +13,10 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(WordEmbeddingsExtractingTransformer.Summary, typeof(IDataTransform), typeof(WordEmbeddingsExtractingTransformer), typeof(WordEmbeddingsExtractingTransformer.Options),
@@ -555,11 +554,11 @@ namespace Microsoft.ML.Transforms.Text
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
-                var colType = input.Schema[ColMapNewToOld[iinfo]].Type;
-                Host.Assert(colType is VectorType);
-                Host.Assert(colType.GetItemType() is TextDataViewType);
+                var column = input.Schema[ColMapNewToOld[iinfo]];
+                Host.Assert(column.Type is VectorType);
+                Host.Assert(column.Type.GetItemType() is TextDataViewType);
 
-                var srcGetter = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);
+                var srcGetter = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(column);
                 var src = default(VBuffer<ReadOnlyMemory<char>>);
                 int dimension = _parent._currentVocab.Dimension;
                 float[] wordVector = new float[_parent._currentVocab.Dimension];
@@ -726,13 +725,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         private static ParallelOptions GetParallelOptions(IHostEnvironment hostEnvironment)
-        {
-            //  "Less than 1 means whatever the component views as ideal." (about ConcurrencyFactor)
-            if (hostEnvironment.ConcurrencyFactor < 1)
-                return new ParallelOptions(); // we provide default options and let the Parallel decide
-            else
-                return new ParallelOptions() { MaxDegreeOfParallelism = hostEnvironment.ConcurrencyFactor };
-        }
+            => new ParallelOptions(); // we provide default options and let the Parallel decide
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />

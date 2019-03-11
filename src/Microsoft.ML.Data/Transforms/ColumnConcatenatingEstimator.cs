@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms
 {
@@ -28,7 +29,7 @@ namespace Microsoft.ML.Transforms
         internal ColumnConcatenatingEstimator(IHostEnvironment env, string outputColumnName, params string[] inputColumnNames)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register("ColumnConcatenatingEstimator ");
+            _host = env.Register(nameof(ColumnConcatenatingEstimator));
 
             _host.CheckNonEmpty(outputColumnName, nameof(outputColumnName));
             _host.CheckValue(inputColumnNames, nameof(inputColumnNames));

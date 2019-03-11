@@ -11,9 +11,8 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(MissingValueDroppingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueDroppingTransformer), typeof(MissingValueDroppingTransformer.Options), typeof(SignatureDataTransform),
@@ -206,7 +205,7 @@ namespace Microsoft.ML.Transforms
 
             private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(DataViewRow input, int iinfo)
             {
-                var srcGetter = input.GetGetter<VBuffer<TDst>>(_srcCols[iinfo]);
+                var srcGetter = input.GetGetter<VBuffer<TDst>>(input.Schema[_srcCols[iinfo]]);
                 var buffer = default(VBuffer<TDst>);
                 var isNA = (InPredicate<TDst>)_isNAs[iinfo];
                 var def = default(TDst);

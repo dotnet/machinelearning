@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms.TensorFlow;
 
 namespace Microsoft.ML.Samples.Dynamic
 {

@@ -20,9 +20,9 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="label">The name of the label column.</param>
         /// <param name="features">The name of the feature column.</param>
         /// <param name="weights">The name for the example weight column.</param>
-        /// <param name="maxIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
-        /// <param name="initLearningRate">The initial learning rate used by SGD.</param>
-        /// <param name="l2Weight">The L2 regularization constant.</param>
+        /// <param name="numberOfIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
+        /// <param name="initialLearningRate">The initial learning rate used by SGD.</param>
+        /// <param name="l2Regularization">The L2 regularization constant.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -34,15 +34,15 @@ namespace Microsoft.ML.StaticPipe
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            int maxIterations = SgdBinaryTrainer.Options.Defaults.MaxIterations,
-            double initLearningRate = SgdBinaryTrainer.Options.Defaults.InitLearningRate,
-            float l2Weight = SgdBinaryTrainer.Options.Defaults.L2Weight,
+            int numberOfIterations = SgdBinaryTrainer.Options.Defaults.NumberOfIterations,
+            double initialLearningRate = SgdBinaryTrainer.Options.Defaults.InitialLearningRate,
+            float l2Regularization = SgdBinaryTrainer.Options.Defaults.L2Regularization,
             Action<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SgdBinaryTrainer(env, labelName, featuresName, weightsName, maxIterations, initLearningRate, l2Weight);
+                    var trainer = new SgdBinaryTrainer(env, labelName, featuresName, weightsName, numberOfIterations, initialLearningRate, l2Regularization);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -100,9 +100,9 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="label">The name of the label column.</param>
         /// <param name="features">The name of the feature column.</param>
         /// <param name="weights">The name for the example weight column.</param>
-        /// <param name="maxIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
-        /// <param name="initLearningRate">The initial learning rate used by SGD.</param>
-        /// <param name="l2Weight">The L2 regularization constant.</param>
+        /// <param name="numberOfIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
+        /// <param name="initialLearningRate">The initial learning rate used by SGD.</param>
+        /// <param name="l2Regularization">The L2 regularization constant.</param>
         /// <param name="loss">The loss function to use.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
@@ -115,9 +115,9 @@ namespace Microsoft.ML.StaticPipe
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            int maxIterations = SgdNonCalibratedBinaryTrainer.Options.Defaults.MaxIterations,
-            double initLearningRate = SgdNonCalibratedBinaryTrainer.Options.Defaults.InitLearningRate,
-            float l2Weight = SgdNonCalibratedBinaryTrainer.Options.Defaults.L2Weight,
+            int numberOfIterations = SgdNonCalibratedBinaryTrainer.Options.Defaults.NumberOfIterations,
+            double initialLearningRate = SgdNonCalibratedBinaryTrainer.Options.Defaults.InitialLearningRate,
+            float l2Regularization = SgdNonCalibratedBinaryTrainer.Options.Defaults.L2Regularization,
             IClassificationLoss loss = null,
             Action<LinearBinaryModelParameters> onFit = null)
         {
@@ -125,7 +125,7 @@ namespace Microsoft.ML.StaticPipe
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new SgdNonCalibratedBinaryTrainer(env, labelName, featuresName, weightsName,
-                        maxIterations, initLearningRate, l2Weight, loss);
+                        numberOfIterations, initialLearningRate, l2Regularization, loss);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

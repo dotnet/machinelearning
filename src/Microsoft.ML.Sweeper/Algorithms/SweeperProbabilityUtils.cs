@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Sweeper.Algorithms
 {

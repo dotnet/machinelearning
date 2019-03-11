@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.LightGBM
 {

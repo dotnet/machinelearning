@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.ML.Trainers;
+﻿using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -21,16 +18,16 @@ namespace Microsoft.ML.Samples.Dynamic
             var data = SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
 
             // Leave out 10% of data for testing.
-            var trainTestData = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
+            var trainTestData = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Create data training pipeline.
             var pipeline = mlContext.BinaryClassification
                 .Trainers.StochasticGradientDescentNonCalibrated(
                         new SgdNonCalibratedBinaryTrainer.Options
                         {
-                            InitLearningRate = 0.01,
-                            MaxIterations = 10,
-                            L2Weight = 1e-7f
+                            InitialLearningRate = 0.01,
+                            NumberOfIterations = 10,
+                            L2Regularization = 1e-7f
                         }
                        );
 

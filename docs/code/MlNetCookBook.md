@@ -825,7 +825,7 @@ var pipeline =
     .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
 // Split the data 90:10 into train and test sets, train and evaluate.
-var split = mlContext.MulticlassClassification.TrainTestSplit(data, testFraction: 0.1);
+var split = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
 // Train the model.
 var model = pipeline.Fit(split.TrainSet);
@@ -944,9 +944,9 @@ public static IDataView PrepareData(MLContext mlContext, IDataView data)
 {
     // Define the operation code.
     Action<InputRow, OutputRow> mapping = (input, output) => output.Label = input.Income > 50000;
-    // Make a custom transformer and transform the data.
-    var transformer = mlContext.Transforms.CustomMappingTransformer(mapping, null);
-    return transformer.Transform(data);
+    // Make a custom estimator and transform the data.
+    var estimator = mlContext.Transforms.CustomMapping(mapping, null);
+    return estimator.Fit(data).Transform(data);
 }
 ```
 

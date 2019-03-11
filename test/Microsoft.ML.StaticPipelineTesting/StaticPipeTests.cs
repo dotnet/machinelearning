@@ -16,7 +16,6 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -51,9 +50,6 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
         }
 
-        private void CheckSchemaHasColumn(DataViewSchema schema, string name, out int idx)
-            => Assert.True(schema.TryGetColumnIndex(name, out idx), "Could not find column '" + name + "'");
-
         [Fact]
         public void SimpleTextLoaderCopyColumnsTest()
         {
@@ -74,22 +70,27 @@ namespace Microsoft.ML.StaticPipelineTesting
             // For now, just operate over the actual `IDataView`.
             var textData = text.Load(dataSource).AsDynamic;
 
+            Action<DataViewSchema, string> CheckSchemaHasColumn = (dataSchema, name) =>
+            {
+                Assert.True(dataSchema.GetColumnOrNull(name).HasValue, "Could not find column '" + name + "'");
+            };
+
             var schema = textData.Schema;
             // First verify that the columns are there. There ought to be at least one column corresponding to the identifiers in the tuple.
-            CheckSchemaHasColumn(schema, "label", out int labelIdx);
-            CheckSchemaHasColumn(schema, "text", out int textIdx);
-            CheckSchemaHasColumn(schema, "numericFeatures", out int numericFeaturesIdx);
+            CheckSchemaHasColumn(schema, "label");
+            CheckSchemaHasColumn(schema, "text");
+            CheckSchemaHasColumn(schema, "numericFeatures");
             // Next verify they have the expected types.
-            Assert.Equal(BooleanDataViewType.Instance, schema[labelIdx].Type);
-            Assert.Equal(TextDataViewType.Instance, schema[textIdx].Type);
-            Assert.Equal(new VectorType(NumberDataViewType.Single, 3), schema[numericFeaturesIdx].Type);
+            Assert.Equal(BooleanDataViewType.Instance, schema["label"].Type);
+            Assert.Equal(TextDataViewType.Instance, schema["text"].Type);
+            Assert.Equal(new VectorType(NumberDataViewType.Single, 3), schema["numericFeatures"].Type);
             // Next actually inspect the data.
             using (var cursor = textData.GetRowCursorForAllColumns())
             {
-                var textGetter = cursor.GetGetter<ReadOnlyMemory<char>>(textIdx);
-                var numericFeaturesGetter = cursor.GetGetter<VBuffer<float>>(numericFeaturesIdx);
+                var textGetter = cursor.GetGetter<ReadOnlyMemory<char>>(schema["text"]);
+                var numericFeaturesGetter = cursor.GetGetter<VBuffer<float>>(schema["numericFeatures"]);
                 ReadOnlyMemory<char> textVal = default;
-                var labelGetter = cursor.GetGetter<bool>(labelIdx);
+                var labelGetter = cursor.GetGetter<bool>(schema["label"]);
                 bool labelVal = default;
                 VBuffer<float> numVal = default;
 
@@ -122,11 +123,11 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             schema = newTextData.AsDynamic.Schema;
             // First verify that the columns are there. There ought to be at least one column corresponding to the identifiers in the tuple.
-            CheckSchemaHasColumn(schema, "label", out labelIdx);
-            CheckSchemaHasColumn(schema, "text", out textIdx);
+            CheckSchemaHasColumn(schema, "label");
+            CheckSchemaHasColumn(schema, "text");
             // Next verify they have the expected types.
-            Assert.Equal(BooleanDataViewType.Instance, schema[textIdx].Type);
-            Assert.Equal(new VectorType(NumberDataViewType.Single, 3), schema[labelIdx].Type);
+            Assert.Equal(BooleanDataViewType.Instance, schema["text"].Type);
+            Assert.Equal(new VectorType(NumberDataViewType.Single, 3), schema["label"].Type);
         }
 
         private sealed class Obnoxious1
@@ -674,7 +675,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 3, numSummaryTermPerTopic:5, alphaSum: 10, onFit: m => ldaSummary = m.LdaTopicSummary)));
+                    topics: r.text.ToBagofWords().LatentDirichletAllocation(numberOfTopics: 3, numberOfSummaryTermsPerTopic:5, alphaSum: 10, onFit: m => ldaSummary = m.LdaTopicSummary)));
 
             var transformer = est.Fit(data);
             var tdata = transformer.Transform(data);
@@ -721,13 +722,11 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new BinaryClassificationCatalog(env);
-
             var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(1, 4)));
             var data = reader.Load(dataSource);
 
-            var (train, test) = ctx.TrainTestSplit(data, 0.5);
+            var (train, test) = env.Data.TrainTestSplit(data, 0.5);
 
             // Just make sure that the train is about the same size as the test set.
             var trainCount = train.GetColumn(r => r.label).Count();
@@ -736,7 +735,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(trainCount * 1.0 / testCount, 0.8, 1.2);
 
             // Now stratify by label. Silly thing to do.
-            (train, test) = ctx.TrainTestSplit(data, 0.5, stratificationColumn: r => r.label);
+            (train, test) = env.Data.TrainTestSplit(data, 0.5, stratificationColumn: r => r.label);
             var trainLabels = train.GetColumn(r => r.label).Distinct();
             var testLabels = test.GetColumn(r => r.label).Distinct();
             Assert.True(trainLabels.Count() > 0);

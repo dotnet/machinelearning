@@ -10,8 +10,8 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.FeatureSelection;
 
 [assembly: LoadableClass(CountFeatureSelectingEstimator.Summary, typeof(IDataTransform), typeof(CountFeatureSelectingEstimator), typeof(CountFeatureSelectingEstimator.Options), typeof(SignatureDataTransform),
@@ -54,23 +54,25 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             public readonly string Name;
             /// <summary> Name of the column to transform.</summary>
             public readonly string InputColumnName;
-            /// <summary> If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</summary>
-            public readonly long MinCount;
+            /// <summary>If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</summary>
+            public readonly long Count;
 
             /// <summary>
             /// Describes the parameters of the feature selection process for a column pair.
             /// </summary>
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-            /// <param name="minCount">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
-            public ColumnOptions(string name, string inputColumnName = null, long minCount = Defaults.Count)
+            /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
+
+            public ColumnOptions(string name, string inputColumnName = null, long count = Defaults.Count)
             {
                 Name = name;
                 Contracts.CheckValue(Name, nameof(Name));
 
                 InputColumnName = inputColumnName ?? name;
                 Contracts.CheckValue(InputColumnName, nameof(InputColumnName));
-                MinCount = minCount;
+                Contracts.CheckParam(count >= 0, nameof(count), "Must be non-negative.");
+                Count = count;
             }
         }
 
@@ -183,7 +185,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             host.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns));
             host.CheckUserArg(options.Count > 0, nameof(options.Count));
 
-            var columnOptions = options.Columns.Select(inColName => new ColumnOptions(inColName, minCount: options.Count)).ToArray();
+            var columnOptions = options.Columns.Select(inColName => new ColumnOptions(inColName, count: options.Count)).ToArray();
 
             return new CountFeatureSelectingEstimator(env, columnOptions).Fit(input).Transform(input) as IDataTransform;
         }
@@ -206,11 +208,11 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 selectedCount[i] = 0;
                 for (int j = 0; j < score.Length; j++)
                 {
-                    if (score[j] < columnOptions[i].MinCount)
+                    if (score[j] < columnOptions[i].Count)
                     {
                         // Adjacent slots are combined into a single range.
                         int min = j;
-                        while (j < score.Length && score[j] < columnOptions[i].MinCount)
+                        while (j < score.Length && score[j] < columnOptions[i].Count)
                             j++;
                         int max = j - 1;
                         slots.Add((min, max));
@@ -308,7 +310,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         private static CountAggregator GetOneAggregator<T>(DataViewRow row, DataViewType colType, int colSrc)
         {
-            return new CountAggregator<T>(colType, row.GetGetter<T>(colSrc));
+            return new CountAggregator<T>(colType, row.GetGetter<T>(row.Schema[colSrc]));
         }
 
         private static CountAggregator GetVecAggregator(DataViewRow row, VectorType colType, int colSrc)
@@ -320,7 +322,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         private static CountAggregator GetVecAggregator<T>(DataViewRow row, VectorType colType, int colSrc)
         {
-            return new CountAggregator<T>(colType, row.GetGetter<VBuffer<T>>(colSrc));
+            return new CountAggregator<T>(colType, row.GetGetter<VBuffer<T>>(row.Schema[colSrc]));
         }
 
         private abstract class CountAggregator

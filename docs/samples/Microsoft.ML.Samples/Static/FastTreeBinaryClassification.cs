@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 
 namespace Microsoft.ML.Samples.Static
@@ -57,7 +56,7 @@ namespace Microsoft.ML.Samples.Static
 
             // Loader the data, and leave 10% out, so we can use them for testing
             var data = loader.Load(dataFilePath);
-            var (trainData, testData) = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
+            var (trainData, testData) = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Create the Estimator
             var learningPipeline = loader.MakeNewEstimator()
@@ -78,9 +77,9 @@ namespace Microsoft.ML.Samples.Static
                         Score: mlContext.BinaryClassification.Trainers.FastTree(
                             row.Label,
                             row.Features,
-                            numTrees: 100, // try: (int) 20-2000
-                            numLeaves: 20, // try: (int) 2-128
-                            minDatapointsInLeaves: 10, // try: (int) 1-100
+                            numberOfTrees: 100, // try: (int) 20-2000
+                            numberOfLeaves: 20, // try: (int) 2-128
+                            minimumExampleCountPerLeaf: 10, // try: (int) 1-100
                             learningRate: 0.2))) // try: (float) 0.025-0.4
                 .Append(row => (
                     Label: row.Label,

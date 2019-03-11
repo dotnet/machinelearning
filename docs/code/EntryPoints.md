@@ -220,11 +220,11 @@ parameter.
 
 ## How to create an entry point for an existing ML.NET component
 
-1. Add a `LoadableClass` assembly attribute with the `SignatureEntryPointModule` signature as shown [here](https://github.com/dotnet/machinelearning/blob/9db16c85888e7163c671543faee6ba1f47015d68/src/Microsoft.ML.StandardLearners/Standard/LogisticRegression/LogisticRegression.cs#L27).  
+1. Add a `LoadableClass` assembly attribute with the `SignatureEntryPointModule` signature as shown [here](https://github.com/dotnet/machinelearning/blob/005fe05ebd8b0ffe66fe7e3d5b10983d363a4c35/src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LogisticRegression.cs#L26).  
 2. Create a public static method, that:
-    1. Takes an object representing the arguments of the component you want to expose as shown [here](https://github.com/dotnet/machinelearning/blob/9db16c85888e7163c671543faee6ba1f47015d68/src/Microsoft.ML.StandardLearners/Standard/LogisticRegression/LogisticRegression.cs#L414)
+    1. Takes an object representing the arguments of the component you want to expose as shown [here](https://github.com/dotnet/machinelearning/blob/005fe05ebd8b0ffe66fe7e3d5b10983d363a4c35/src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LogisticRegression.cs#L416)
     2. Initializes and runs the component, returning one of the nested classes of  [`Microsoft.ML.EntryPoints.CommonOutputs`](https://github.com/dotnet/machinelearning/blob/master/src/Microsoft.ML.Data/EntryPoints/CommonOutputs.cs)
-    3. Is annotated with the [`TlcModule.EntryPoint`](https://github.com/dotnet/machinelearning/blob/9db16c85888e7163c671543faee6ba1f47015d68/src/Microsoft.ML.StandardLearners/Standard/LogisticRegression/LogisticRegression.cs#L407) attribute
+    3. Is annotated with the [`TlcModule.EntryPoint`](https://github.com/dotnet/machinelearning/blob/005fe05ebd8b0ffe66fe7e3d5b10983d363a4c35/src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LogisticRegression.cs#L411) attribute
 
 For an example of a transformer as an entrypoint, see [OneHotVectorizer](https://github.com/dotnet/machinelearning/blob/9db16c85888e7163c671543faee6ba1f47015d68/src/Microsoft.ML.Transforms/OneHotEncoding.cs#L283). 
-For a trainer-estimator, see [LogisticRegression](https://github.com/dotnet/machinelearning/blob/9db16c85888e7163c671543faee6ba1f47015d68/src/Microsoft.ML.StandardLearners/Standard/LogisticRegression/LogisticRegression.cs#L407).
+For a trainer-estimator, see [LogisticRegression](https://github.com/dotnet/machinelearning/blob/005fe05ebd8b0ffe66fe7e3d5b10983d363a4c35/src/Microsoft.ML.StandardTrainers/Standard/LogisticRegression/LogisticRegression.cs#L411).
