@@ -68,19 +68,22 @@ For more information, see the [.NET Foundation Code of Conduct](https://dotnetfo
 Here's an example of code to train a model to predict sentiment from text samples.
 
 ```C#
+// Path to your training tsv file. You can use machinelearning/test/data/wikipedia-detox-250-line-data.tsv
+var dataPath = "wikipedia-detox-250-line-data.tsv";
 var mlContext = new MLContext();
-var loader = mlContext.Data.CreateTextLoader(new[]
-    {
-        new TextLoader.Column("SentimentText", DataKind.String, 1),
-        new TextLoader.Column("Label", DataKind.Boolean, 0),
-    },
-    hasHeader: true,
-    separatorChar: ',');
+var loader = mlContext.Data.CreateTextLoader(new TextLoader.Options
+{
+	Columns = new[] {
+		new TextLoader.Column("SentimentText", DataKind.String, 1),
+		new TextLoader.Column("Label", DataKind.Boolean, 0),
+	},
+	HasHeader = true,
+	Separators = new[] { ',' }
+});
 var data = loader.Load(dataPath);
 var learningPipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
-        .Append(mlContext.BinaryClassification.Trainers.FastTree());
+		.Append(mlContext.BinaryClassification.Trainers.FastTree());
 var model = learningPipeline.Fit(data);
-
 ```
 
 Now from the model we can make inferences (predictions):
