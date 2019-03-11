@@ -10,7 +10,7 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.TimeSeries;
 
 [assembly: LoadableClass(typeof(AdaptiveSingularSpectrumSequenceModeler), typeof(AdaptiveSingularSpectrumSequenceModeler), null, typeof(SignatureLoadModel),
@@ -1236,7 +1236,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             int count = 0;
             using (var cursor = data.Data.GetRowCursor(featureCol))
             {
-                var getVal = cursor.GetGetter<Single>(featureCol.Index);
+                var getVal = cursor.GetGetter<Single>(featureCol);
                 Single val = default;
                 while (cursor.MoveNext() && count < _trainSize)
                 {

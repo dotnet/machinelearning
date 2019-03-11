@@ -13,6 +13,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(TextSaver.Summary, typeof(TextSaver), typeof(TextSaver.Arguments), typeof(SignatureDataSaver),
     "Text Saver", "TextSaver", "Text", DocName = "saver/TextSaver.md")]
@@ -161,7 +162,7 @@ namespace Microsoft.ML.Data.IO
             public VecValueWriter(DataViewRowCursor cursor, VectorType type, int source, char sep)
                 : base(type.ItemType, source, sep)
             {
-                _getSrc = cursor.GetGetter<VBuffer<T>>(source);
+                _getSrc = cursor.GetGetter<VBuffer<T>>(cursor.Schema[source]);
                 VectorType typeNames;
                 if (type.IsKnownSize
                     && (typeNames = cursor.Schema[source].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType) != null
@@ -226,8 +227,9 @@ namespace Microsoft.ML.Data.IO
             public ValueWriter(DataViewRowCursor cursor, PrimitiveDataViewType type, int source, char sep)
                 : base(type, source, sep)
             {
-                _getSrc = cursor.GetGetter<T>(source);
-                _columnName = cursor.Schema[source].Name;
+                var column = cursor.Schema[source];
+                _getSrc = cursor.GetGetter<T>(column);
+                _columnName = column.Name;
             }
 
             public override void WriteData(Action<StringBuilder, int> appendItem, out int length)

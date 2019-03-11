@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Runtime
 {
     /// <summary>
     /// This is a factory interface for <see cref="IProgressChannel"/>.
@@ -77,13 +78,13 @@ namespace Microsoft.ML
         /// For example, neural network might have {'epoch', 'example'} and FastTree might have {'tree', 'split', 'feature'}.
         /// Will never be null, but can be empty.
         /// </summary>
-        public readonly string[] UnitNames;
+        public readonly IReadOnlyList<string> UnitNames;
 
         /// <summary>
         /// These are the names of the reported metrics. For example, this could be the 'loss', 'weight updates/sec' etc.
         /// Will never be null, but can be empty.
         /// </summary>
-        public readonly string[] MetricNames;
+        public readonly IReadOnlyList<string> MetricNames;
 
         /// <summary>
         /// Initialize the header. This will take ownership of the arrays.

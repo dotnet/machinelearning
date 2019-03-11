@@ -65,24 +65,25 @@ static void Main(string[] args)
     };
 
     // Create the ML.NET environment.
-    var env = new Microsoft.ML.Data.TlcEnvironment();
+    var context = new MLContext();
 
     // Create the data view.
-    // This method will use the definition of IrisData to understand what columns there are in the 
+    // This method will use the definition of IrisData to understand what columns there are in the
     // data view.
-    var dv = env.CreateDataView<IrisData>(dataArray);
+    var dv = context.Data.ReadFromEnumerable(dataArray);
 
     // Now let's do something to the data view. For example, concatenate all four non-label columns
     // into 'Features' column.
-    dv = new Microsoft.ML.Data.ConcatTransform(env, dv, "Features", 
+    var pipeline = context.Transforms.Concatenate("Features",
         "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
 
-    // Read the data into an another array, this time we read the 'Features' and 'Label' columns
-    // of the data, and ignore the rest.
-    // This method will use the definition of IrisVectorData to understand which columns and of which types
+    // Next, let's fit and transform the data so the concatenation goes through the data view.
+    var transformedData = pipeline.Fit(dv).Transform(dv);
+
+    // Read the data into an IEnumerable.
+    // This method will use the definition of IrisData to understand which columns and of which types
     // are expected to be present in the input data.
-    var arr = dv.AsEnumerable<IrisVectorData>(env, reuseRowObject: false)
-        .ToArray();
+    var data = context.CreateEnumerable<IrisData>(transformedData, reuseRowObject: false);
 }
 ```
 After this code runs, `arr` will contain two `IrisVectorData` objects, each having `Features` filled with the actual values of the features (the 4 concatenated columns).

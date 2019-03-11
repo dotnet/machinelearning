@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms
 {
@@ -38,7 +40,8 @@ namespace Microsoft.ML.Transforms
             public readonly string InputColumnName;
             public readonly SortOrder Sort;
             public readonly int MaxNumKeys;
-            public readonly string[] Term;
+            public IReadOnlyList<string> Term => TermArray;
+            internal readonly string[] TermArray;
             public readonly bool TextKeyValues;
 
             [BestFriend]
@@ -53,7 +56,7 @@ namespace Microsoft.ML.Transforms
                 InputColumnName = inputColumnName ?? outputColumnName;
                 Sort = sort;
                 MaxNumKeys = maxNumKeys;
-                Term = term;
+                TermArray = term;
                 TextKeyValues = textKeyValues;
             }
         }
@@ -97,7 +100,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="sort">How items should be ordered when vectorized. If <see cref="SortOrder.Occurrence"/> choosen they will be in the order encountered.
         /// If <see cref="SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         internal ValueToKeyMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int maxNumKeys = Defaults.MaxNumKeys, SortOrder sort = Defaults.Sort) :
-           this(env, new [] { new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, maxNumKeys, sort) })
+           this(env, new[] { new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, maxNumKeys, sort) })
         {
         }
 

@@ -470,7 +470,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf),
 
                     // NLP pipeline 4: word embeddings.
-                    Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVeTwitter25D)
+                    // PretrainedModelKind.Sswe is used here for performance of the test. In a real
+                    // scenario, it is best to use a different model for more accuracy.
+                    Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
                 ));
 
             // Let's train our pipeline, and then apply it to the same data.
@@ -482,7 +484,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var unigrams = transformedData.GetColumn(x => x.BagOfWords).Take(10).ToArray();
         }
 
-        [Fact(Skip = "This test is running for one minute")]
+        [Fact]
         public void TextFeaturization()
             => TextFeaturizationOn(GetDataPath("wikipedia-detox-250-line-data.tsv"));
 
@@ -599,7 +601,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     Predictions: mlContext.MulticlassClassification.Trainers.Sdca(r.Label, r.Features)));
 
             // Split the data 90:10 into train and test sets, train and evaluate.
-            var (trainData, testData) = mlContext.MulticlassClassification.TrainTestSplit(data, testFraction: 0.1);
+            var (trainData, testData) = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Train the model.
             var model = pipeline.Fit(trainData);

@@ -144,7 +144,7 @@ namespace Microsoft.ML.Tests
         {
             var modelLocation = "cifar_model/frozen_model.pb";
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var imageHeight = 32;
             var imageWidth = 32;
             var dataFile = GetDataPath("images/images.tsv");
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Tests
             using (var cursor = result.GetRowCursor(result.Schema["Output"]))
             {
                 var buffer = default(VBuffer<float>);
-                var getter = cursor.GetGetter<VBuffer<float>>(output);
+                var getter = cursor.GetGetter<VBuffer<float>>(result.Schema["Output"]);
                 var numRows = 0;
                 while (cursor.MoveNext())
                 {
@@ -186,7 +186,7 @@ namespace Microsoft.ML.Tests
         {
             const string modelLocation = "cifar_model/frozen_model.pb";
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Tests
             using (var cursor = result.GetRowCursor(result.Schema["Output"]))
             {
                 var buffer = default(VBuffer<float>);
-                var getter = cursor.GetGetter<VBuffer<float>>(output);
+                var getter = cursor.GetGetter<VBuffer<float>>(result.Schema["Output"]);
                 var numRows = 0;
                 while (cursor.MoveNext())
                 {
@@ -230,18 +230,15 @@ namespace Microsoft.ML.Tests
 
         private void ValidateTensorFlowTransformer(IDataView result)
         {
-            result.Schema.TryGetColumnIndex("a", out int ColA);
-            result.Schema.TryGetColumnIndex("b", out int ColB);
-            result.Schema.TryGetColumnIndex("c", out int ColC);
             using (var cursor = result.GetRowCursorForAllColumns())
             {
                 VBuffer<float> avalue = default;
                 VBuffer<float> bvalue = default;
                 VBuffer<float> cvalue = default;
 
-                var aGetter = cursor.GetGetter<VBuffer<float>>(ColA);
-                var bGetter = cursor.GetGetter<VBuffer<float>>(ColB);
-                var cGetter = cursor.GetGetter<VBuffer<float>>(ColC);
+                var aGetter = cursor.GetGetter<VBuffer<float>>(result.Schema["a"]);
+                var bGetter = cursor.GetGetter<VBuffer<float>>(result.Schema["b"]);
+                var cGetter = cursor.GetGetter<VBuffer<float>>(result.Schema["c"]);
                 while (cursor.MoveNext())
                 {
                     aGetter(ref avalue);

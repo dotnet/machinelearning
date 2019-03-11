@@ -253,7 +253,7 @@ namespace Microsoft.ML.Tests
             //  Because they are _negative_, the difference will be positive for worse classifiers.
             Assert.Equal(1, MaxDeltaIndex(pfi, m => m.LogLoss.Mean));
             Assert.Equal(3, MinDeltaIndex(pfi, m => m.LogLoss.Mean));
-            for (int i = 0; i < pfi[0].PerClassLogLoss.Length; i++)
+            for (int i = 0; i < pfi[0].PerClassLogLoss.Count; i++)
             {
                 Assert.True(MaxDeltaIndex(pfi, m => m.PerClassLogLoss[i].Mean) == 1);
                 Assert.True(MinDeltaIndex(pfi, m => m.PerClassLogLoss[i].Mean) == 3);
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Tests
             //  Because they are negative metrics, the _difference_ will be positive for worse classifiers.
             Assert.Equal(5, MaxDeltaIndex(pfi, m => m.LogLoss.Mean));
             Assert.Equal(2, MinDeltaIndex(pfi, m => m.LogLoss.Mean));
-            for (int i = 0; i < pfi[0].PerClassLogLoss.Length; i++)
+            for (int i = 0; i < pfi[0].PerClassLogLoss.Count; i++)
             {
                 Assert.Equal(5, MaxDeltaIndex(pfi, m => m.PerClassLogLoss[i].Mean));
                 Assert.Equal(2, MinDeltaIndex(pfi, m => m.PerClassLogLoss[i].Mean));
@@ -321,12 +321,12 @@ namespace Microsoft.ML.Tests
             // X4Rand: 3
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            for (int i = 0; i < pfi[0].DiscountedCumulativeGains.Length; i++)
+            for (int i = 0; i < pfi[0].DiscountedCumulativeGains.Count; i++)
             {
                 Assert.Equal(0, MaxDeltaIndex(pfi, m => m.DiscountedCumulativeGains[i].Mean));
                 Assert.Equal(1, MinDeltaIndex(pfi, m => m.DiscountedCumulativeGains[i].Mean));
             }
-            for (int i = 0; i < pfi[0].NormalizedDiscountedCumulativeGains.Length; i++)
+            for (int i = 0; i < pfi[0].NormalizedDiscountedCumulativeGains.Count; i++)
             {
                 Assert.Equal(0, MaxDeltaIndex(pfi, m => m.NormalizedDiscountedCumulativeGains[i].Mean));
                 Assert.Equal(1, MinDeltaIndex(pfi, m => m.NormalizedDiscountedCumulativeGains[i].Mean));
@@ -354,12 +354,12 @@ namespace Microsoft.ML.Tests
             // X3Important: 5 // Most important
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            for (int i = 0; i < pfi[0].DiscountedCumulativeGains.Length; i++)
+            for (int i = 0; i < pfi[0].DiscountedCumulativeGains.Count; i++)
             {
                 Assert.Equal(2, MaxDeltaIndex(pfi, m => m.DiscountedCumulativeGains[i].Mean));
                 Assert.Equal(5, MinDeltaIndex(pfi, m => m.DiscountedCumulativeGains[i].Mean));
             }
-            for (int i = 0; i < pfi[0].NormalizedDiscountedCumulativeGains.Length; i++)
+            for (int i = 0; i < pfi[0].NormalizedDiscountedCumulativeGains.Count; i++)
             {
                 Assert.Equal(2, MaxDeltaIndex(pfi, m => m.NormalizedDiscountedCumulativeGains[i].Mean));
                 Assert.Equal(5, MinDeltaIndex(pfi, m => m.NormalizedDiscountedCumulativeGains[i].Mean));

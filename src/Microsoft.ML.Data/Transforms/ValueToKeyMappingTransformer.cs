@@ -13,10 +13,10 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
@@ -532,7 +532,7 @@ namespace Microsoft.ML.Transforms
             {
                 // First check whether we have a terms argument, and handle it appropriately.
                 var terms = columns[iinfo].Terms.AsMemory();
-                var termsArray = columns[iinfo].Term;
+                var termsArray = columns[iinfo].TermArray;
 
                 terms = ReadOnlyMemoryUtils.TrimSpaces(terms);
                 if (!terms.IsEmpty || (termsArray != null && termsArray.Length > 0))

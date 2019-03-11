@@ -6,8 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Data;
-
+using Microsoft.ML.Runtime;
 namespace Microsoft.ML.Internal.Utilities
 {
     /// <summary>
@@ -204,7 +203,7 @@ namespace Microsoft.ML.Internal.Utilities
                         _counts[_reservoir[ind]]++;
                     _getter(ref _cache[_reservoir[ind]]);
 
-                    for (int j = 1; j < k; )
+                    for (int j = 1; j < k;)
                     {
                         var next = _rnd.Next(_reservoir.Length);
                         if (_reservoir[next] == _reservoir[ind])

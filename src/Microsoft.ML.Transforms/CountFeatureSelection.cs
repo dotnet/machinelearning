@@ -11,6 +11,7 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.FeatureSelection;
 
 [assembly: LoadableClass(CountFeatureSelectingEstimator.Summary, typeof(IDataTransform), typeof(CountFeatureSelectingEstimator), typeof(CountFeatureSelectingEstimator.Options), typeof(SignatureDataTransform),
@@ -309,7 +310,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         private static CountAggregator GetOneAggregator<T>(DataViewRow row, DataViewType colType, int colSrc)
         {
-            return new CountAggregator<T>(colType, row.GetGetter<T>(colSrc));
+            return new CountAggregator<T>(colType, row.GetGetter<T>(row.Schema[colSrc]));
         }
 
         private static CountAggregator GetVecAggregator(DataViewRow row, VectorType colType, int colSrc)
@@ -321,7 +322,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         private static CountAggregator GetVecAggregator<T>(DataViewRow row, VectorType colType, int colSrc)
         {
-            return new CountAggregator<T>(colType, row.GetGetter<VBuffer<T>>(colSrc));
+            return new CountAggregator<T>(colType, row.GetGetter<VBuffer<T>>(row.Schema[colSrc]));
         }
 
         private abstract class CountAggregator

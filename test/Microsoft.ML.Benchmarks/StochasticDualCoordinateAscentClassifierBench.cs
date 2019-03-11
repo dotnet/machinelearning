@@ -99,13 +99,13 @@ namespace Microsoft.ML.Benchmarks
                 OutputTokens = true,
                 KeepPunctuations = false,
                 UseStopRemover = true,
-                VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
+                VectorNormalizer = TextFeaturizingEstimator.NormFunction.None,
                 UseCharExtractor = false,
                 UseWordExtractor = false,
             }, "SentimentText").Fit(loader).Transform(loader);
 
-            var trans = mlContext.Transforms.Text.ExtractWordEmbeddings("Features", "WordEmbeddings_TransformedText",
-                WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe)
+            var trans = mlContext.Transforms.Text.ApplyWordEmbedding("Features", "WordEmbeddings_TransformedText",
+                WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .Fit(text).Transform(text);
 

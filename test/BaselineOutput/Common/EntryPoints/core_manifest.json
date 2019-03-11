@@ -11019,7 +11019,7 @@
           "Default": 1E-07
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations.",
           "Aliases": [
@@ -11360,7 +11360,7 @@
         {
           "Name": "CustomGains",
           "Type": "String",
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
+          "Desc": "Comma separated list of gains associated to each relevance label.",
           "Aliases": [
             "gains"
           ],
@@ -11478,7 +11478,7 @@
         {
           "Name": "CategoricalSmoothing",
           "Type": "Float",
-          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
+          "Desc": "Laplace smooth term in categorical feature split. Avoid the bias of small categories.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -11863,7 +11863,7 @@
         {
           "Name": "CustomGains",
           "Type": "String",
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
+          "Desc": "Comma separated list of gains associated to each relevance label.",
           "Aliases": [
             "gains"
           ],
@@ -11981,7 +11981,7 @@
         {
           "Name": "CategoricalSmoothing",
           "Type": "Float",
-          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
+          "Desc": "Laplace smooth term in categorical feature split. Avoid the bias of small categories.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -12366,7 +12366,7 @@
         {
           "Name": "CustomGains",
           "Type": "String",
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
+          "Desc": "Comma separated list of gains associated to each relevance label.",
           "Aliases": [
             "gains"
           ],
@@ -12484,7 +12484,7 @@
         {
           "Name": "CategoricalSmoothing",
           "Type": "Float",
-          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
+          "Desc": "Laplace smooth term in categorical feature split. Avoid the bias of small categories.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -12869,7 +12869,7 @@
         {
           "Name": "CustomGains",
           "Type": "String",
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
+          "Desc": "Comma separated list of gains associated to each relevance label.",
           "Aliases": [
             "gains"
           ],
@@ -12987,7 +12987,7 @@
         {
           "Name": "CategoricalSmoothing",
           "Type": "Float",
-          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
+          "Desc": "Laplace smooth term in categorical feature split. Avoid the bias of small categories.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -13503,7 +13503,7 @@
           }
         },
         {
-          "Name": "IterationsToRemember",
+          "Name": "HistorySize",
           "Type": "Int",
           "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
@@ -13823,7 +13823,7 @@
           }
         },
         {
-          "Name": "IterationsToRemember",
+          "Name": "HistorySize",
           "Type": "Int",
           "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
@@ -14848,7 +14848,7 @@
           }
         },
         {
-          "Name": "IterationsToRemember",
+          "Name": "HistorySize",
           "Type": "Int",
           "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
@@ -15221,7 +15221,7 @@
           }
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [
@@ -15494,7 +15494,7 @@
           }
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [
@@ -15767,7 +15767,7 @@
           }
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [
@@ -20051,14 +20051,14 @@
               "Kind": "Struct",
               "Fields": [
                 {
-                  "Name": "NormKind",
+                  "Name": "Norm",
                   "Type": {
                     "Kind": "Enum",
                     "Values": [
-                      "L2Norm",
-                      "StdDev",
-                      "L1Norm",
-                      "LInf"
+                      "L2",
+                      "StandardDeviation",
+                      "L1",
+                      "Infinity"
                     ]
                   },
                   "Desc": "The norm to use to normalize each sample",
@@ -20115,14 +20115,14 @@
           "IsNullable": false
         },
         {
-          "Name": "NormKind",
+          "Name": "Norm",
           "Type": {
             "Kind": "Enum",
             "Values": [
-              "L2Norm",
-              "StdDev",
-              "L1Norm",
-              "LInf"
+              "L2",
+              "StandardDeviation",
+              "L1",
+              "Infinity"
             ]
           },
           "Desc": "The norm to use to normalize each sample",
@@ -20132,7 +20132,7 @@
           "Required": false,
           "SortOrder": 1.0,
           "IsNullable": false,
-          "Default": "L2Norm"
+          "Default": "L2"
         },
         {
           "Name": "Data",
@@ -21422,7 +21422,7 @@
           "IsNullable": false
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "The name of the weight column",
           "Aliases": [
@@ -22544,7 +22544,7 @@
               "None",
               "L1",
               "L2",
-              "LInf"
+              "Infinity"
             ]
           },
           "Desc": "Normalize vectors (rows) individually by rescaling them to unit norm.",
@@ -23348,7 +23348,7 @@
               "GloVeTwitter100D",
               "GloVeTwitter200D",
               "FastTextWikipedia300D",
-              "Sswe"
+              "SentimentSpecificWordEmbedding"
             ]
           },
           "Desc": "Pre-trained model used to create the vocabulary",
@@ -23358,7 +23358,7 @@
           "Required": false,
           "SortOrder": 1.0,
           "IsNullable": true,
-          "Default": "Sswe"
+          "Default": "SentimentSpecificWordEmbedding"
         },
         {
           "Name": "Data",
@@ -23511,13 +23511,13 @@
       "Components": [
         {
           "Name": "dart",
-          "Desc": "Dropouts meet Multiple Additive Regresion Trees. See https://arxiv.org/abs/1505.01866",
+          "Desc": "Dropouts meet Multiple Additive Regression Trees. See https://arxiv.org/abs/1505.01866",
           "FriendlyName": "Tree Dropout Tree Booster",
           "Settings": [
             {
               "Name": "TreeDropFraction",
               "Type": "Float",
-              "Desc": "The drop ratio for trees. Range:(0,1).",
+              "Desc": "The drop ratio for trees. Range:[0,1].",
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,

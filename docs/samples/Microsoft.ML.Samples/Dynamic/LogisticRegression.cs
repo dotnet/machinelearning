@@ -57,7 +57,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             IDataView data = loader.Load(dataFilePath);
 
-            var split = ml.BinaryClassification.TrainTestSplit(data, testFraction: 0.2);
+            var split = ml.Data.TrainTestSplit(data, testFraction: 0.2);
 
             var pipeline = ml.Transforms.Concatenate("Text", "workclass", "education", "marital-status",
                     "relationship", "ethnicity", "sex", "native-country")

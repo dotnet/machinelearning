@@ -11,8 +11,8 @@ using System.Threading.Tasks;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Trainers.FastTree
@@ -419,16 +419,16 @@ namespace Microsoft.ML.Trainers.FastTree
             TreeType code = (TreeType)ctx.Reader.ReadByte();
             switch (code)
             {
-            case TreeType.Regression:
-                return new InternalRegressionTree(ctx, usingDefaultValues, categoricalSplits);
-            case TreeType.Affine:
-                // Affine regression trees do not actually work, nor is it clear how they ever
-                // could have worked within TLC, so the chance of this happening seems remote.
-                throw Contracts.ExceptNotSupp("Affine regression trees unsupported");
-            case TreeType.FastForest:
-                return new InternalQuantileRegressionTree(ctx, usingDefaultValues, categoricalSplits);
-            default:
-                throw Contracts.ExceptDecode();
+                case TreeType.Regression:
+                    return new InternalRegressionTree(ctx, usingDefaultValues, categoricalSplits);
+                case TreeType.Affine:
+                    // Affine regression trees do not actually work, nor is it clear how they ever
+                    // could have worked within TLC, so the chance of this happening seems remote.
+                    throw Contracts.ExceptNotSupp("Affine regression trees unsupported");
+                case TreeType.FastForest:
+                    return new InternalQuantileRegressionTree(ctx, usingDefaultValues, categoricalSplits);
+                default:
+                    throw Contracts.ExceptDecode();
             }
         }
 

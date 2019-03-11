@@ -14,7 +14,7 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public void TrainAndPredictIrisModelUsingDirectInstantiationTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var reader = mlContext.Data.CreateTextLoader(columns: new[]
                 {
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Scenarios
             Assert.InRange(metrics.LogLoss, .05, .06);
             Assert.InRange(metrics.LogLossReduction, 94, 96);
 
-            Assert.Equal(3, metrics.PerClassLogLoss.Length);
+            Assert.Equal(3, metrics.PerClassLogLoss.Count);
             Assert.Equal(0, metrics.PerClassLogLoss[0], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[1], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[2], 1);

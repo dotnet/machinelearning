@@ -14,7 +14,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(typeof(RankingEvaluator), typeof(RankingEvaluator), typeof(RankingEvaluator.Arguments), typeof(SignatureEvaluator),
     "Ranking Evaluator", RankingEvaluator.LoadName, "Ranking", "rank")]
@@ -448,10 +448,10 @@ namespace Microsoft.ML.Data
                 var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
                 _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
-                _scoreGetter = row.GetGetter<Single>(score.Index);
+                _scoreGetter = row.GetGetter<Single>(score);
                 _newGroupDel = RowCursorUtils.GetIsNewGroupDelegate(row, schema.Group.Value.Index);
                 if (schema.Weight.HasValue)
-                    _weightGetter = row.GetGetter<Single>(schema.Weight.Value.Index);
+                    _weightGetter = row.GetGetter<Single>(schema.Weight.Value);
 
                 if (UnweightedCounters.GroupSummary)
                 {
@@ -784,7 +784,7 @@ namespace Microsoft.ML.Data
 
             protected override ValueGetter<Single> GetScoreGetter(DataViewRow row)
             {
-                return row.GetGetter<Single>(_bindings.ScoreIndex);
+                return row.GetGetter<Single>(row.Schema[_bindings.ScoreIndex]);
             }
 
             protected override RowCursorState InitializeState(DataViewRow input)

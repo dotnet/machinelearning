@@ -59,21 +59,21 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 0);
 
             // Create an anomaly detector. Its underlying algorithm is randomized PCA.
-            var trainer1 = mlContext.AnomalyDetection.Trainers.RandomizedPca(featureColumnName: nameof(DataPoint.Features), rank: 1, center: false);
+            var trainer1 = mlContext.AnomalyDetection.Trainers.AnalyzeRandomizedPrincipalComponents(featureColumnName: nameof(DataPoint.Features), rank: 1, ensureZeroMean: false);
 
             // Test the first detector.
             ExecutePipelineWithGivenRandomizedPcaTrainer(mlContext, trainer1);
 
             // Object required in the creation of another detector.
-            var options = new Trainers.RandomizedPcaTrainer.Options()
+            var options = new Trainers.RandomizedPrincipalComponentAnalyzer.Options()
             {
                 FeatureColumnName = nameof(DataPoint.Features),
                 Rank = 1,
-                Center = false
+                EnsureZeroMean = false
             };
 
             // Create anther anomaly detector. Its underlying algorithm is randomized PCA.
-            var trainer2 = mlContext.AnomalyDetection.Trainers.RandomizedPca(options);
+            var trainer2 = mlContext.AnomalyDetection.Trainers.AnalyzeRandomizedPrincipalComponents(options);
 
             // Test the second detector.
             ExecutePipelineWithGivenRandomizedPcaTrainer(mlContext, trainer2);
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Help function used to execute trainers defined in <see cref="RandomizedPcaInMemory"/>.
         /// </summary>
-        private static void ExecutePipelineWithGivenRandomizedPcaTrainer(MLContext mlContext, Trainers.RandomizedPcaTrainer trainer)
+        private static void ExecutePipelineWithGivenRandomizedPcaTrainer(MLContext mlContext, Trainers.RandomizedPrincipalComponentAnalyzer trainer)
         {
             var samples = new List<DataPoint>()
             {
@@ -152,7 +152,7 @@ namespace Microsoft.ML.Tests
             var trainData = loader.Load(trainPath);
             var testData = loader.Load(testPath);
 
-            var trainer = ML.AnomalyDetection.Trainers.RandomizedPca();
+            var trainer = ML.AnomalyDetection.Trainers.AnalyzeRandomizedPrincipalComponents();
 
             var model = trainer.Fit(trainData);
             return model.Transform(testData);

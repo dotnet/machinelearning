@@ -19,7 +19,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var data = SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
 
             // Leave out 10% of data for testing.
-            var trainTestData = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
+            var trainTestData = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Define the trainer options.
             var options = new SdcaBinaryTrainer.Options()
@@ -27,7 +27,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
                 // Make the convergence tolerance tighter.
                 ConvergenceTolerance = 0.05f,
                 // Increase the maximum number of passes over training data.
-                NumberOfIterations = 30,
+                MaximumNumberOfIterations = 30,
                 // Give the instances of the positive class slightly more weight.
                 PositiveInstanceWeight = 1.2f,
             };

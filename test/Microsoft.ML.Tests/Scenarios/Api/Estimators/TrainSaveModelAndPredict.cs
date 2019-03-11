@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void TrainSaveModelAndPredict()
         {
-            var ml = new MLContext(seed: 1, conc: 1);
+            var ml = new MLContext(seed: 1);
             var data = ml.Data.LoadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
 
             // Pipeline.

@@ -28,7 +28,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.AnomalyDetection
             // Convert the List<DataPoint> to IDataView, a consumble format to ML.NET functions.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
-            var options = new ML.Trainers.RandomizedPcaTrainer.Options()
+            var options = new ML.Trainers.RandomizedPrincipalComponentAnalyzer.Options()
             {
                 FeatureColumnName = nameof(DataPoint.Features),
                 Rank = 1,
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.AnomalyDetection
             };
 
             // Create an anomaly detector. Its underlying algorithm is randomized PCA.
-            var pipeline = mlContext.AnomalyDetection.Trainers.RandomizedPca(options);
+            var pipeline = mlContext.AnomalyDetection.Trainers.AnalyzeRandomizedPrincipalComponents(options);
 
             // Train the anomaly detector.
             var model = pipeline.Fit(data);

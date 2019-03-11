@@ -10,6 +10,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
@@ -290,7 +291,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 dataList.Add(new GbmExample { Features = featureVector, Label = labels[i], Score = new float[_classNumber] });
             }
 
-            var mlContext = new MLContext(seed: 0, conc: 1);
+            var mlContext = new MLContext(seed: 0);
             var dataView = mlContext.Data.LoadFromEnumerable(dataList);
             int numberOfTrainingIterations = 3;
             var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, new Options

@@ -23,7 +23,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             // 21.60              0.02731            00.00                7.070               0               0.4690          6.4210              78.90             ...
             // 34.70              0.02729            00.00                7.070               0               0.4690          7.1850              61.10             ...
 
-            var split = mlContext.Regression.TrainTestSplit(dataView, testFraction: 0.1);
+            var split = mlContext.Data.TrainTestSplit(dataView, testFraction: 0.1);
 
             // Create the estimator, here we only need LightGbm trainer
             // as data is already processed in a form consumable by the trainer.
