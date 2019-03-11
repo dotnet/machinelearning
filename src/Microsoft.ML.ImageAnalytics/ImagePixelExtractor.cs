@@ -163,23 +163,23 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="env">The host environment.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="colors">What colors to extract.</param>
-        /// <param name="order">In which order to extract colors from pixel.</param>
-        /// <param name="interleave">Whether to interleave the pixels colors, meaning keep them in the <paramref name="order"/> order, or leave them in the plannar form:
+        /// <param name="colorsToExtract">What colors to extract.</param>
+        /// <param name="orderOfExtraction">In which order to extract colors from pixel.</param>
+        /// <param name="interleavePixelColors">Whether to interleave the pixels colors, meaning keep them in the <paramref name="orderOfExtraction"/> order, or leave them in the plannar form:
         /// all the values for one color for all pixels, then all the values for another color and so on.</param>
-        /// <param name="offset">Offset pixel's color value by this amount. Applied to color value first.</param>
-        /// <param name="scale">Scale pixel's color value by this amount. Applied to color value second.</param>
-        /// <param name="asFloat">Output array as float array. If false, output as byte array and ignores <paramref name="offset"/> and <paramref name="scale"/>.</param>
+        /// <param name="offsetImage">Offset each pixel's color value by this amount. Applied to color value first.</param>
+        /// <param name="scaleImage">Scale each pixel's color value by this amount. Applied to color value second.</param>
+        /// <param name="outputAsFloatArray">Output array as float array. If false, output as byte array and ignores <paramref name="offsetImage"/> and <paramref name="scaleImage"/>.</param>
         internal ImagePixelExtractingTransformer(IHostEnvironment env,
             string outputColumnName,
             string inputColumnName = null,
-            ImagePixelExtractingEstimator.ColorBits colors = ImagePixelExtractingEstimator.Defaults.Colors,
-            ImagePixelExtractingEstimator.ColorsOrder order = ImagePixelExtractingEstimator.Defaults.Order,
-            bool interleave = ImagePixelExtractingEstimator.Defaults.Interleave,
-            float offset = ImagePixelExtractingEstimator.Defaults.Offset,
-            float scale = ImagePixelExtractingEstimator.Defaults.Scale,
-            bool asFloat = ImagePixelExtractingEstimator.Defaults.Convert)
-            : this(env, new ImagePixelExtractingEstimator.ColumnOptions(outputColumnName, inputColumnName, colors, order, interleave, offset, scale, asFloat))
+            ImagePixelExtractingEstimator.ColorBits colorsToExtract = ImagePixelExtractingEstimator.Defaults.Colors,
+            ImagePixelExtractingEstimator.ColorsOrder orderOfExtraction = ImagePixelExtractingEstimator.Defaults.Order,
+            bool interleavePixelColors = ImagePixelExtractingEstimator.Defaults.Interleave,
+            float offsetImage = ImagePixelExtractingEstimator.Defaults.Offset,
+            float scaleImage = ImagePixelExtractingEstimator.Defaults.Scale,
+            bool outputAsFloatArray = ImagePixelExtractingEstimator.Defaults.Convert)
+            : this(env, new ImagePixelExtractingEstimator.ColumnOptions(outputColumnName, inputColumnName, colorsToExtract, orderOfExtraction, interleavePixelColors, offsetImage, scaleImage, outputAsFloatArray))
         {
         }
 
@@ -363,8 +363,8 @@ namespace Microsoft.ML.ImageAnalytics
                         var editor = VBufferEditor.Create(ref dst, size);
                         var values = editor.Values;
 
-                        float offset = ex.OffsetPixelColor;
-                        float scale = ex.ScalePixelColor;
+                        float offset = ex.OffsetImage;
+                        float scale = ex.ScaleImage;
                         Contracts.Assert(scale != 0);
 
                         // REVIEW: split the getter into 2 specialized getters, one for float case and one for byte case.
@@ -579,10 +579,10 @@ namespace Microsoft.ML.ImageAnalytics
             public readonly ColorsOrder OrderOfExtraction;
 
             /// <summary>Offset pixel's color value by this amount. Applied to color value first.</summary>
-            public readonly float OffsetPixelColor;
+            public readonly float OffsetImage;
 
             /// <summary>Scale pixel's color value by this amount. Applied to color value second.</summary>
-            public readonly float ScalePixelColor;
+            public readonly float ScaleImage;
 
             /// <summary>
             /// Whether to interleave the pixels colors, meaning keep them in the <see cref="OrderOfExtraction"/> order, or leave them in the plannar form:
@@ -590,7 +590,7 @@ namespace Microsoft.ML.ImageAnalytics
             /// </summary>
             public readonly bool InterleavePixelColors;
 
-            /// <summary>Output array as float array. If false, output as byte array and ignores <see cref="OffsetPixelColor"/> and <see cref="ScalePixelColor"/> .</summary>
+            /// <summary>Output array as float array. If false, output as byte array and ignores <see cref="OffsetImage"/> and <see cref="ScaleImage"/> .</summary>
             public readonly bool OutputAsFloatArray;
 
             internal readonly byte Planes;
@@ -614,15 +614,15 @@ namespace Microsoft.ML.ImageAnalytics
                 OutputAsFloatArray = item.Convert ?? options.Convert;
                 if (!OutputAsFloatArray)
                 {
-                    OffsetPixelColor = Defaults.Offset;
-                    ScalePixelColor = Defaults.Scale;
+                    OffsetImage = Defaults.Offset;
+                    ScaleImage = Defaults.Scale;
                 }
                 else
                 {
-                    OffsetPixelColor = item.Offset ?? options.Offset ?? Defaults.Offset;
-                    ScalePixelColor = item.Scale ?? options.Scale ?? Defaults.Scale;
-                    Contracts.CheckUserArg(FloatUtils.IsFinite(OffsetPixelColor), nameof(item.Offset));
-                    Contracts.CheckUserArg(FloatUtils.IsFiniteNonZero(ScalePixelColor), nameof(item.Scale));
+                    OffsetImage = item.Offset ?? options.Offset ?? Defaults.Offset;
+                    ScaleImage = item.Scale ?? options.Scale ?? Defaults.Scale;
+                    Contracts.CheckUserArg(FloatUtils.IsFinite(OffsetImage), nameof(item.Offset));
+                    Contracts.CheckUserArg(FloatUtils.IsFiniteNonZero(ScaleImage), nameof(item.Scale));
                 }
             }
 
@@ -635,16 +635,16 @@ namespace Microsoft.ML.ImageAnalytics
             /// <param name="orderOfExtraction">In which order to extract colors from pixel.</param>
             /// <param name="interleavePixelColors">Whether to interleave the pixels, meaning keep them in the <paramref name="orderOfExtraction"/> order, or leave them in the plannar form:
             /// all the values for one color for all pixels, then all the values for another color and so on.</param>
-            /// <param name="offsetPixelColor">Offset color pixel value by this amount. Applied to color value first.</param>
-            /// <param name="scalePixelColor">Scale color pixel value by this amount. Applied to color value second.</param>
-            /// <param name="outputAsFloatArray">Output array as float array. If false, output as byte array and ignores <paramref name="offsetPixelColor"/> and <paramref name="scalePixelColor"/>.</param>
+            /// <param name="offsetImage">Offset each pixel's color value by this amount. Applied to color value before <paramref name="scaleImage"/>.</param>
+            /// <param name="scaleImage">Scale each pixel's color value by this amount. Applied to color value after <paramref name="offsetImage"/>.</param>
+            /// <param name="outputAsFloatArray">Output array as float array. If false, output as byte array and ignores <paramref name="offsetImage"/> and <paramref name="scaleImage"/>.</param>
             public ColumnOptions(string name,
                 string inputColumnName = null,
                 ColorBits colorsToExtract = Defaults.Colors,
                 ColorsOrder orderOfExtraction = Defaults.Order,
                 bool interleavePixelColors = Defaults.Interleave,
-                float offsetPixelColor = Defaults.Offset,
-                float scalePixelColor = Defaults.Scale,
+                float offsetImage = Defaults.Offset,
+                float scaleImage = Defaults.Scale,
                 bool outputAsFloatArray = Defaults.Convert)
             {
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
@@ -664,16 +664,16 @@ namespace Microsoft.ML.ImageAnalytics
                 OutputAsFloatArray = outputAsFloatArray;
                 if (!OutputAsFloatArray)
                 {
-                    OffsetPixelColor = Defaults.Offset;
-                    ScalePixelColor = Defaults.Scale;
+                    OffsetImage = Defaults.Offset;
+                    ScaleImage = Defaults.Scale;
                 }
                 else
                 {
-                    OffsetPixelColor = offsetPixelColor;
-                    ScalePixelColor = scalePixelColor;
+                    OffsetImage = offsetImage;
+                    ScaleImage = scaleImage;
                 }
-                Contracts.CheckParam(FloatUtils.IsFinite(OffsetPixelColor), nameof(offsetPixelColor));
-                Contracts.CheckParam(FloatUtils.IsFiniteNonZero(ScalePixelColor), nameof(scalePixelColor));
+                Contracts.CheckParam(FloatUtils.IsFinite(OffsetImage), nameof(offsetImage));
+                Contracts.CheckParam(FloatUtils.IsFiniteNonZero(ScaleImage), nameof(scaleImage));
             }
 
             internal ColumnOptions(string name, string inputColumnName, ModelLoadContext ctx)
@@ -711,11 +711,11 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.Assert(0 < Planes & Planes <= 4);
 
                 OutputAsFloatArray = ctx.Reader.ReadBoolByte();
-                OffsetPixelColor = ctx.Reader.ReadFloat();
-                Contracts.CheckDecode(FloatUtils.IsFinite(OffsetPixelColor));
-                ScalePixelColor = ctx.Reader.ReadFloat();
-                Contracts.CheckDecode(FloatUtils.IsFiniteNonZero(ScalePixelColor));
-                Contracts.CheckDecode(OutputAsFloatArray || OffsetPixelColor == 0 && ScalePixelColor == 1);
+                OffsetImage = ctx.Reader.ReadFloat();
+                Contracts.CheckDecode(FloatUtils.IsFinite(OffsetImage));
+                ScaleImage = ctx.Reader.ReadFloat();
+                Contracts.CheckDecode(FloatUtils.IsFiniteNonZero(ScaleImage));
+                Contracts.CheckDecode(OutputAsFloatArray || OffsetImage == 0 && ScaleImage == 1);
                 InterleavePixelColors = ctx.Reader.ReadBoolByte();
             }
 
@@ -742,11 +742,11 @@ namespace Microsoft.ML.ImageAnalytics
                 ctx.Writer.Write((byte)ColorsToExtract);
                 ctx.Writer.Write((byte)OrderOfExtraction);
                 ctx.Writer.WriteBoolByte(OutputAsFloatArray);
-                Contracts.Assert(FloatUtils.IsFinite(OffsetPixelColor));
-                ctx.Writer.Write(OffsetPixelColor);
-                Contracts.Assert(FloatUtils.IsFiniteNonZero(ScalePixelColor));
-                Contracts.Assert(OutputAsFloatArray || OffsetPixelColor == 0 && ScalePixelColor == 1);
-                ctx.Writer.Write(ScalePixelColor);
+                Contracts.Assert(FloatUtils.IsFinite(OffsetImage));
+                ctx.Writer.Write(OffsetImage);
+                Contracts.Assert(FloatUtils.IsFiniteNonZero(ScaleImage));
+                Contracts.Assert(OutputAsFloatArray || OffsetImage == 0 && ScaleImage == 1);
+                ctx.Writer.Write(ScaleImage);
                 ctx.Writer.WriteBoolByte(InterleavePixelColors);
             }
         }
@@ -761,8 +761,8 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="orderOfExtraction">In which order to extract colors from pixel.</param>
         /// <param name="interleavePixelColors">Whether to interleave the pixels, meaning keep them in the <paramref name="orderOfExtraction"/> order, or leave them in the plannar form:
         /// all the values for one color for all pixels, then all the values for another color and so on.</param>
-        /// <param name="offsetPixelColor">Offset color pixel value by this amount. Applied to color value first.</param>
-        /// <param name="scalePixelColor">Scale color pixel value by this amount. Applied to color value second.</param>
+        /// <param name="offsetImage">Offset each pixel's color value by this amount. Applied to color value before <paramref name="scaleImage"/>.</param>
+        /// <param name="scaleImage">Scale each pixel's color value by this amount. Applied to color value after <paramref name="offsetImage"/>.</param>
         /// <param name="outputAsFloatArray">Output array as float array. If false, output as byte array.</param>
         [BestFriend]
         internal ImagePixelExtractingEstimator(IHostEnvironment env,
@@ -771,11 +771,11 @@ namespace Microsoft.ML.ImageAnalytics
             ColorBits colorsToExtract = Defaults.Colors,
             ColorsOrder orderOfExtraction = Defaults.Order,
             bool interleavePixelColors = Defaults.Interleave,
-            float offsetPixelColor = Defaults.Offset,
-            float scalePixelColor = Defaults.Scale,
+            float offsetImage = Defaults.Offset,
+            float scaleImage = Defaults.Scale,
             bool outputAsFloatArray = Defaults.Convert)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)),
-                  new ImagePixelExtractingTransformer(env, outputColumnName, inputColumnName, colorsToExtract, orderOfExtraction, interleavePixelColors, offsetPixelColor, scalePixelColor, outputAsFloatArray))
+                  new ImagePixelExtractingTransformer(env, outputColumnName, inputColumnName, colorsToExtract, orderOfExtraction, interleavePixelColors, offsetImage, scaleImage, outputAsFloatArray))
         {
         }
 

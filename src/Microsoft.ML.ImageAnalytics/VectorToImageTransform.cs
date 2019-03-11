@@ -199,8 +199,8 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="orderOfColors">The order in which colors are presented in the input vector.</param>
         /// <param name="interleavedColors">Whether the pixels are interleaved, meaning whether they are in <paramref name="orderOfColors"/> order, or separated in the planar form, where the colors are specified one by one
         /// for all the pixels of the image. </param>
-        /// <param name="scalePixelColor">Scale color pixel value by this amount.</param>
-        /// <param name="offsetPixelCOlor">Offset color pixel value by this amount.</param>
+        /// <param name="scaleImage">Scale each pixel's color value by this amount.</param>
+        /// <param name="offsetImage">Offset each pixel's color value by this amount.</param>
         /// <param name="defaultAlpha">Default value for alpha color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Alpha"/>.</param>
         /// <param name="defaultRed">Default value for red color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Red"/>.</param>
         /// <param name="defaultGreen">Default value for grenn color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Green"/>.</param>
@@ -211,13 +211,13 @@ namespace Microsoft.ML.ImageAnalytics
             ImagePixelExtractingEstimator.ColorBits colorsPresent = ImagePixelExtractingEstimator.Defaults.Colors,
             ImagePixelExtractingEstimator.ColorsOrder orderOfColors = ImagePixelExtractingEstimator.Defaults.Order,
             bool interleavedColors = ImagePixelExtractingEstimator.Defaults.Interleave,
-            float scalePixelColor = VectorToImageConvertingEstimator.Defaults.Scale,
-            float offsetPixelCOlor = VectorToImageConvertingEstimator.Defaults.Offset,
+            float scaleImage = VectorToImageConvertingEstimator.Defaults.Scale,
+            float offsetImage = VectorToImageConvertingEstimator.Defaults.Offset,
             int defaultAlpha = VectorToImageConvertingEstimator.Defaults.DefaultAlpha,
             int defaultRed = VectorToImageConvertingEstimator.Defaults.DefaultRed,
             int defaultGreen = VectorToImageConvertingEstimator.Defaults.DefaultGreen,
             int defaultBlue = VectorToImageConvertingEstimator.Defaults.DefaultBlue)
-            : this(env, new VectorToImageConvertingEstimator.ColumnOptions(outputColumnName, imageHeight, imageWidth, inputColumnName, colorsPresent, orderOfColors, interleavedColors, scalePixelColor, offsetPixelCOlor, defaultAlpha, defaultRed, defaultGreen, defaultBlue))
+            : this(env, new VectorToImageConvertingEstimator.ColumnOptions(outputColumnName, imageHeight, imageWidth, inputColumnName, colorsPresent, orderOfColors, interleavedColors, scaleImage, offsetImage, defaultAlpha, defaultRed, defaultGreen, defaultBlue))
         {
         }
 
@@ -336,7 +336,7 @@ namespace Microsoft.ML.ImageAnalytics
 
                 var type = _types[iinfo];
                 var ex = _parent._columns[iinfo];
-                bool needScale = ex.OffsetPixelColor != 0 || ex.ScalePixelColor != 1;
+                bool needScale = ex.OffsetImage != 0 || ex.ScaleImage != 1;
                 disposer = null;
                 var sourceType = InputSchema[ColMapNewToOld[iinfo]].Type;
                 var sourceItemType = sourceType.GetItemType();
@@ -357,8 +357,8 @@ namespace Microsoft.ML.ImageAnalytics
                 var src = default(VBuffer<TValue>);
                 int width = ex.ImageWidth;
                 int height = ex.ImageHeight;
-                float offset = ex.OffsetPixelColor;
-                float scale = ex.ScalePixelColor;
+                float offset = ex.OffsetImage;
+                float scale = ex.ScaleImage;
 
                 return
                     (ref Bitmap dst) =>
@@ -466,8 +466,8 @@ namespace Microsoft.ML.ImageAnalytics
 
             public readonly int ImageWidth;
             public readonly int ImageHeight;
-            public readonly float OffsetPixelColor;
-            public readonly float ScalePixelColor;
+            public readonly float OffsetImage;
+            public readonly float ScaleImage;
 
             public readonly int DefaultAlpha;
             public readonly int DefaultRed;
@@ -502,10 +502,10 @@ namespace Microsoft.ML.ImageAnalytics
 
                 ImageWidth = item.ImageWidth ?? args.ImageWidth;
                 ImageHeight = item.ImageHeight ?? args.ImageHeight;
-                OffsetPixelColor = item.Offset ?? args.Offset;
-                ScalePixelColor = item.Scale ?? args.Scale;
-                Contracts.CheckUserArg(FloatUtils.IsFinite(OffsetPixelColor), nameof(item.Offset));
-                Contracts.CheckUserArg(FloatUtils.IsFiniteNonZero(ScalePixelColor), nameof(item.Scale));
+                OffsetImage = item.Offset ?? args.Offset;
+                ScaleImage = item.Scale ?? args.Scale;
+                Contracts.CheckUserArg(FloatUtils.IsFinite(OffsetImage), nameof(item.Offset));
+                Contracts.CheckUserArg(FloatUtils.IsFiniteNonZero(ScaleImage), nameof(item.Scale));
             }
 
             internal ColumnOptions(string outputColumnName, string inputColumnName, ModelLoadContext ctx)
@@ -552,10 +552,10 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.CheckDecode(ImageWidth > 0);
                 ImageHeight = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(ImageHeight > 0);
-                OffsetPixelColor = ctx.Reader.ReadFloat();
-                Contracts.CheckDecode(FloatUtils.IsFinite(OffsetPixelColor));
-                ScalePixelColor = ctx.Reader.ReadFloat();
-                Contracts.CheckDecode(FloatUtils.IsFiniteNonZero(ScalePixelColor));
+                OffsetImage = ctx.Reader.ReadFloat();
+                Contracts.CheckDecode(FloatUtils.IsFinite(OffsetImage));
+                ScaleImage = ctx.Reader.ReadFloat();
+                Contracts.CheckDecode(FloatUtils.IsFiniteNonZero(ScaleImage));
                 InterleavedColors = ctx.Reader.ReadBoolByte();
 
                 if (ctx.Header.ModelVerWritten <= VectorToImageConvertingTransformer.BeforeOrderVersion)
@@ -582,8 +582,8 @@ namespace Microsoft.ML.ImageAnalytics
             /// <param name="orderOfColors">The order in which colors are presented in the input vector.</param>
             /// <param name="interleavedColors">Whether the pixels are interleaved, meaning whether they are in <paramref name="orderOfColors"/> order, or separated in the planar form, where the colors are specified one by one
             /// alpha, red, green, blue for all the pixels of the image. </param>
-            /// <param name="scalePixelColor">The values are scaled by this value before being converted to pixels. Applied to vector value before <paramref name="offsetPixelColor"/></param>
-            /// <param name="offsetPixelColor">The offset is subtracted before converting the values to pixels. Applied to vector value <paramref name="scalePixelColor"/>.</param>
+            /// <param name="scaleImage">The values are scaled by this value before being converted to pixels. Applied to vector value before <paramref name="offsetImage"/></param>
+            /// <param name="offsetImage">The offset is subtracted before converting the values to pixels. Applied to vector value after <paramref name="scaleImage"/>.</param>
             /// <param name="defaultAlpha">Default value for alpha color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Alpha"/>.</param>
             /// <param name="defaultRed">Default value for red color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Red"/>.</param>
             /// <param name="defaultGreen">Default value for grenn color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Green"/>.</param>
@@ -594,8 +594,8 @@ namespace Microsoft.ML.ImageAnalytics
                 ImagePixelExtractingEstimator.ColorBits colorsPresent = ImagePixelExtractingEstimator.Defaults.Colors,
                 ImagePixelExtractingEstimator.ColorsOrder orderOfColors = ImagePixelExtractingEstimator.Defaults.Order,
                 bool interleavedColors = ImagePixelExtractingEstimator.Defaults.Interleave,
-                float scalePixelColor = VectorToImageConvertingEstimator.Defaults.Scale,
-                float offsetPixelColor = VectorToImageConvertingEstimator.Defaults.Offset,
+                float scaleImage = VectorToImageConvertingEstimator.Defaults.Scale,
+                float offsetImage = VectorToImageConvertingEstimator.Defaults.Offset,
                 int defaultAlpha = VectorToImageConvertingEstimator.Defaults.DefaultAlpha,
                 int defaultRed = VectorToImageConvertingEstimator.Defaults.DefaultRed,
                 int defaultGreen = VectorToImageConvertingEstimator.Defaults.DefaultGreen,
@@ -621,12 +621,12 @@ namespace Microsoft.ML.ImageAnalytics
 
                 Contracts.CheckParam(imageWidth > 0, nameof(imageWidth), "Image width must be greater than zero");
                 Contracts.CheckParam(imageHeight > 0, nameof(imageHeight), "Image height must be greater than zero");
-                Contracts.CheckParam(FloatUtils.IsFinite(offsetPixelColor), nameof(offsetPixelColor));
-                Contracts.CheckParam(FloatUtils.IsFiniteNonZero(scalePixelColor), nameof(scalePixelColor));
+                Contracts.CheckParam(FloatUtils.IsFinite(offsetImage), nameof(offsetImage));
+                Contracts.CheckParam(FloatUtils.IsFiniteNonZero(scaleImage), nameof(scaleImage));
                 ImageWidth = imageWidth;
                 ImageHeight = imageHeight;
-                OffsetPixelColor = offsetPixelColor;
-                ScalePixelColor = scalePixelColor;
+                OffsetImage = offsetImage;
+                ScaleImage = scaleImage;
                 DefaultAlpha = defaultAlpha;
                 DefaultRed = defaultRed;
                 DefaultGreen = defaultGreen;
@@ -662,10 +662,10 @@ namespace Microsoft.ML.ImageAnalytics
                 ctx.Writer.Write((byte)Order);
                 ctx.Writer.Write(ImageWidth);
                 ctx.Writer.Write(ImageHeight);
-                Contracts.Assert(FloatUtils.IsFinite(OffsetPixelColor));
-                ctx.Writer.Write(OffsetPixelColor);
-                Contracts.Assert(FloatUtils.IsFiniteNonZero(ScalePixelColor));
-                ctx.Writer.Write(ScalePixelColor);
+                Contracts.Assert(FloatUtils.IsFinite(OffsetImage));
+                ctx.Writer.Write(OffsetImage);
+                Contracts.Assert(FloatUtils.IsFiniteNonZero(ScaleImage));
+                ctx.Writer.Write(ScaleImage);
                 ctx.Writer.WriteBoolByte(InterleavedColors);
                 ctx.Writer.Write(DefaultAlpha);
                 ctx.Writer.Write(DefaultRed);
@@ -686,8 +686,8 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="orderOfColors">The order in which colors are presented in the input vector.</param>
         /// <param name="interleavedColors">Whether the pixels are interleaved, meaning whether they are in <paramref name="orderOfColors"/> order, or separated in the planar form, where the colors are specified one by one
         /// alpha, red, green, blue for all the pixels of the image. </param>
-        /// <param name="scalePixelColor">The values are scaled by this value before being converted to pixels. Applied to vector value before <paramref name="offsetPixelColor"/>.</param>
-        /// <param name="offsetPixelColor">The offset is subtracted before converting the values to pixels. Applied to vector value <paramref name="scalePixelColor"/>.</param>
+        /// <param name="scaleImage">The values are scaled by this value before being converted to pixels. Applied to vector value before <paramref name="offsetImage"/>.</param>
+        /// <param name="offsetImage">The offset is subtracted before converting the values to pixels. Applied to vector value after <paramref name="scaleImage"/>.</param>
         /// <param name="defaultAlpha">Default value for alpha color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Alpha"/>.</param>
         /// <param name="defaultRed">Default value for red color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Red"/>.</param>
         /// <param name="defaultGreen">Default value for grenn color, would be overriden if <paramref name="colorsPresent"/> contains <see cref="ImagePixelExtractingEstimator.ColorBits.Green"/>.</param>
@@ -701,14 +701,14 @@ namespace Microsoft.ML.ImageAnalytics
             ImagePixelExtractingEstimator.ColorBits colorsPresent = ImagePixelExtractingEstimator.Defaults.Colors,
             ImagePixelExtractingEstimator.ColorsOrder orderOfColors = ImagePixelExtractingEstimator.Defaults.Order,
             bool interleavedColors = ImagePixelExtractingEstimator.Defaults.Interleave,
-            float scalePixelColor = VectorToImageConvertingEstimator.Defaults.Scale,
-            float offsetPixelColor = VectorToImageConvertingEstimator.Defaults.Offset,
+            float scaleImage = VectorToImageConvertingEstimator.Defaults.Scale,
+            float offsetImage = VectorToImageConvertingEstimator.Defaults.Offset,
             int defaultAlpha = VectorToImageConvertingEstimator.Defaults.DefaultAlpha,
             int defaultRed = VectorToImageConvertingEstimator.Defaults.DefaultRed,
             int defaultGreen = VectorToImageConvertingEstimator.Defaults.DefaultGreen,
             int defaultBlue = VectorToImageConvertingEstimator.Defaults.DefaultBlue)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorToImageConvertingEstimator)),
-                  new VectorToImageConvertingTransformer(env, outputColumnName, imageHeight, imageWidth, inputColumnName, colorsPresent, orderOfColors, interleavedColors, scalePixelColor, offsetPixelColor, defaultAlpha, defaultRed, defaultGreen, defaultBlue))
+                  new VectorToImageConvertingTransformer(env, outputColumnName, imageHeight, imageWidth, inputColumnName, colorsPresent, orderOfColors, interleavedColors, scaleImage, offsetImage, defaultAlpha, defaultRed, defaultGreen, defaultBlue))
         {
         }
 
