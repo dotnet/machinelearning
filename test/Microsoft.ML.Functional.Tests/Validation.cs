@@ -65,7 +65,7 @@ namespace Microsoft.ML.Functional.Tests
             var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create the train and validation set.
-            var dataSplit = mlContext.Regression.TrainTestSplit(data, testFraction: 0.2);
+            var dataSplit = mlContext.Data.TrainTestSplit(data, testFraction: 0.2);
             var trainData = dataSplit.TrainSet;
             var validData = dataSplit.TestSet;
 

@@ -20,6 +20,10 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.LightGBM
 {
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree multi-class classification model using LightGBM.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM_remarks"]/*' />
     public sealed class LightGbmMulticlassTrainer : LightGbmTrainerBase<VBuffer<float>, MulticlassPredictionTransformer<OneVersusAllModelParameters>, OneVersusAllModelParameters>
     {
         internal const string Summary = "LightGBM Multi Class Classifier";
