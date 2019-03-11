@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime
         /// to provide their own host class that derives from this class.
         /// This encapsulates the random number generator and name information.
         /// </summary>
-        public abstract class HostBase : HostEnvironmentBase<TEnv>, IHost
+        public abstract class HostBase : HostEnvironmentBase<TEnv>, IHost, ICancellableEnvironment, ICancellableHost
         {
             public override int Depth { get; }
 
@@ -110,10 +110,28 @@ namespace Microsoft.ML.Runtime
             // We don't have dispose mechanism for hosts, so to let GC collect children hosts we make them WeakReference.
             private readonly List<WeakReference<IHost>> _children;
 
+            public bool IsCancelled { get; set; }
+
             public HostBase(HostEnvironmentBase<TEnv> source, string shortName, string parentFullName, Random rand, bool verbose)
                 : base(source, rand, verbose, shortName, parentFullName)
             {
                 Depth = source.Depth + 1;
+                _children = new List<WeakReference<IHost>>();
+            }
+
+            public void StopExecution()
+            {
+                lock (_cancelLock)
+                {
+                    IsCancelled = true;
+                    foreach (var child in _children)
+                    {
+                        if (child.TryGetTarget(out IHost host))
+                            if (host is ICancellableHost)
+                                ((ICancellableHost)host).StopExecution();
+                    }
+                    _children.Clear();
+                }
             }
 
             public new IHost Register(string name, int? seed = null, bool? verbose = null)
@@ -124,7 +142,7 @@ namespace Microsoft.ML.Runtime
                 {
                     Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
                     host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
-                    if (!IsCancelled)
+                    if (host is ICancellableEnvironment && !((ICancellableEnvironment)host).IsCancelled)
                         _children.Add(new WeakReference<IHost>(host));
                 }
                 return host;
