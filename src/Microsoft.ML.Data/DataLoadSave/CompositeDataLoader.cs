@@ -19,10 +19,6 @@ namespace Microsoft.ML.Data
     public sealed class CompositeDataLoader<TSource, TLastTransformer> : IDataLoader<TSource>
         where TLastTransformer : class, ITransformer
     {
-        private const string LoaderDirectory = "Loader";
-        private const string LegacyLoaderDirectory = "Reader";
-        private const string TransformerDirectory = TransformerChain.LoaderSignature;
-
         /// <summary>
         /// The underlying data loader.
         /// </summary>
@@ -43,9 +39,9 @@ namespace Microsoft.ML.Data
 
         private CompositeDataLoader(IHost host, ModelLoadContext ctx)
         {
-            if (!ctx.LoadModelOrNull<IDataLoader<TSource>, SignatureLoadModel>(host, out Loader, LegacyLoaderDirectory))
-                ctx.LoadModel<IDataLoader<TSource>, SignatureLoadModel>(host, out Loader, LoaderDirectory);
-            ctx.LoadModel<TransformerChain<TLastTransformer>, SignatureLoadModel>(host, out Transformer, TransformerDirectory);
+            if (!ctx.LoadModelOrNull<IDataLoader<TSource>, SignatureLoadModel>(host, out Loader, ModelOperationsCatalog.LegacyLoaderDirectory))
+                ctx.LoadModel<IDataLoader<TSource>, SignatureLoadModel>(host, out Loader, ModelOperationsCatalog.LoaderDirectory);
+            ctx.LoadModel<TransformerChain<TLastTransformer>, SignatureLoadModel>(host, out Transformer, ModelOperationsCatalog.TransformerDirectory);
         }
 
         private static CompositeDataLoader<TSource, TLastTransformer> Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -94,8 +90,8 @@ namespace Microsoft.ML.Data
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            ctx.SaveModel(Loader, LoaderDirectory);
-            ctx.SaveModel(Transformer, TransformerDirectory);
+            ctx.SaveModel(Loader, ModelOperationsCatalog.LoaderDirectory);
+            ctx.SaveModel(Transformer, ModelOperationsCatalog.TransformerDirectory);
         }
 
         internal const string Summary = "A loader that encapsulates a loader and a transformer chain.";

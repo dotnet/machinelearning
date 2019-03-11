@@ -83,7 +83,10 @@ namespace Microsoft.ML.Tests
                     model.SaveTo(env, fs);
                 var model2 = TransformerChain.LoadFrom(env, file.OpenReadStream());
 
-                var newCols = ((ImageLoadingTransformer)model2.First()).Columns;
+                var transformerChain = model2 as TransformerChain<ITransformer>;
+                Assert.NotNull(transformerChain);
+
+                var newCols = ((ImageLoadingTransformer)transformerChain.First()).Columns;
                 var oldCols = ((ImageLoadingTransformer)model.First()).Columns;
                 Assert.True(newCols
                     .Zip(oldCols, (x, y) => x == y)

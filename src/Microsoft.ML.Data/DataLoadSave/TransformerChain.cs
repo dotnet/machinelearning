@@ -250,15 +250,15 @@ namespace Microsoft.ML.Data
         public static void SaveTo(this ITransformer transformer, IHostEnvironment env, Stream outputStream)
             => new TransformerChain<ITransformer>(transformer).SaveTo(env, outputStream);
 
-        public static TransformerChain<ITransformer> LoadFrom(IHostEnvironment env, Stream stream)
+        public static ITransformer LoadFrom(IHostEnvironment env, Stream stream)
         {
             using (var rep = RepositoryReader.Open(stream, env))
             {
                 try
                 {
-                    ModelLoadContext.LoadModelOrNull<TransformerChain<ITransformer>, SignatureLoadModel>(env, out var transformerChain, rep, LoaderSignature);
+                    ModelLoadContext.LoadModelOrNull<ITransformer, SignatureLoadModel>(env, out var transformerChain, rep, LoaderSignature);
                     if (transformerChain == null)
-                        ModelLoadContext.LoadModel<TransformerChain<ITransformer>, SignatureLoadModel>(env, out transformerChain, rep, $@"Model\{LoaderSignature}");
+                        ModelLoadContext.LoadModel<ITransformer, SignatureLoadModel>(env, out transformerChain, rep, $@"Model\{LoaderSignature}");
                     return transformerChain;
                 }
                 catch (FormatException ex)

@@ -45,6 +45,50 @@ namespace Microsoft.ML.Data
             return new StreamingDataView<TRow>(env, data, internalSchemaDefn);
         }
 
+        public static StreamingDataView<TRow> CreateFromEnumerable<TRow>(IHostEnvironment env, IEnumerable<TRow> data,
+            DataViewSchema schema)
+            where TRow : class
+        {
+            Contracts.AssertValue(env);
+            env.AssertValue(data);
+            env.AssertValueOrNull(schema);
+            schema = schema ?? new DataViewSchema.Builder().ToSchema();
+            return new StreamingDataView<TRow>(env, data, GetInternalSchemaDefinition<TRow>(env, schema));
+        }
+
+        private static InternalSchemaDefinition GetInternalSchemaDefinition<TRow>(IHostEnvironment env, DataViewSchema schema)
+            where TRow : class
+        {
+            Contracts.AssertValue(env);
+            env.AssertValue(schema);
+
+            var isd = InternalSchemaDefinition.Create(typeof(TRow), SchemaDefinition.Direction.Read);
+            foreach (var col in schema)
+            {
+                var name = col.Name;
+                var isdCol = isd.Columns.FirstOrDefault(c => c.ColumnName == name);
+                if (isdCol == null)
+                    throw env.Except($"Type should contain a member named {isdCol.ColumnName}");
+                var annotations = col.Annotations;
+                if (annotations != null)
+                {
+                    foreach (var annotation in annotations.Schema)
+                    {
+                        var info = Utils.MarshalInvoke(GetAnnotationInfo<int>, annotation.Type.RawType, annotation.Name, annotations);
+                        isdCol.Annotations.Add(annotation.Name, info);
+                    }
+                }
+            }
+            return isd;
+        }
+
+        private static AnnotationInfo GetAnnotationInfo<T>(string kind, DataViewSchema.Annotations annotations)
+        {
+            T value = default;
+            annotations.GetValue(kind, ref value);
+            return new AnnotationInfo<T>(kind, value);
+        }
+
         public static InputRow<TRow> CreateInputRow<TRow>(IHostEnvironment env, SchemaDefinition schemaDefinition = null)
             where TRow : class
         {
@@ -626,7 +670,7 @@ namespace Microsoft.ML.Data
             public override DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
-                return new WrappedCursor (new Cursor(Host, this, predicate));
+                return new WrappedCursor(new Cursor(Host, this, predicate));
             }
 
             private sealed class Cursor : DataViewCursorBase
@@ -696,7 +740,7 @@ namespace Microsoft.ML.Data
             {
                 Contracts.Assert(_current != null, "The current object must be set prior to cursoring");
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
-                return new WrappedCursor (new Cursor(Host, this, predicate));
+                return new WrappedCursor(new Cursor(Host, this, predicate));
             }
 
             private sealed class Cursor : DataViewCursorBase

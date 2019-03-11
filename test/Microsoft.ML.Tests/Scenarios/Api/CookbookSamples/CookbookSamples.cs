@@ -149,7 +149,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             using (var stream = File.Create(modelPath))
             {
                 // Saving and loading happens to 'dynamic' models, so the static typing is lost in the process.
-                mlContext.Model.Save(model.AsDynamic, stream);
+                mlContext.Model.Save(trainData.AsDynamic.Schema, model.AsDynamic, stream);
             }
 
             // Potentially, the lines below can be in a different process altogether.
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // When you load the model, it's a 'dynamic' transformer. 
             ITransformer loadedModel;
             using (var stream = File.OpenRead(modelPath))
-                loadedModel = mlContext.Model.Load(stream);
+                loadedModel = mlContext.Model.Load(stream, out var schema);
         }
 
         [Fact]

@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
@@ -41,14 +42,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Save and reload.
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
             using (var fs = File.Create(modelPath))
-                ml.Model.Save(model, fs);
+                ml.Model.Save(data.Schema, model, fs);
 
             ITransformer loadedModel;
             using (var fs = File.OpenRead(modelPath))
-                loadedModel = ml.Model.Load(fs);
+                loadedModel = ml.Model.Load(fs, out var loadedSchema);
 
-            var gam = (((loadedModel as TransformerChain<ITransformer>).LastTransformer
-                as ISingleFeaturePredictionTransformer<object>).Model
+            var gam = ((loadedModel as ISingleFeaturePredictionTransformer<object>).Model
                 as CalibratedModelParametersBase).SubModel
                 as BinaryClassificationGamModelParameters;
             Assert.NotNull(gam);
@@ -75,10 +75,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             IDataLoader<IMultiStreamSource> loadedModel;
             ITransformer loadedModelWithoutLoader;
+            DataViewSchema loadedSchema;
             using (var fs = File.OpenRead(modelPath))
             {
-                loadedModel = ml.Model.LoadAsCompositeDataLoader(fs);
-                loadedModelWithoutLoader = ml.Model.Load(fs);
+                loadedModel = ml.Model.Load(fs);
+                loadedModelWithoutLoader = ml.Model.Load(fs, out loadedSchema);
             }
 
             // Without deserializing the loader from the model we lose the slot names.
