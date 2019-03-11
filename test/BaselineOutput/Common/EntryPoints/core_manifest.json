@@ -11360,7 +11360,7 @@
         {
           "Name": "CustomGains",
           "Type": "String",
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
+          "Desc": "Comma separated list of gains associated to each relevance label.",
           "Aliases": [
             "gains"
           ],
@@ -11478,7 +11478,7 @@
         {
           "Name": "CategoricalSmoothing",
           "Type": "Float",
-          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
+          "Desc": "Laplace smooth term in categorical feature split. Avoid the bias of small categories.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -11863,7 +11863,7 @@
         {
           "Name": "CustomGains",
           "Type": "String",
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
+          "Desc": "Comma separated list of gains associated to each relevance label.",
           "Aliases": [
             "gains"
           ],
@@ -11981,7 +11981,7 @@
         {
           "Name": "CategoricalSmoothing",
           "Type": "Float",
-          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
+          "Desc": "Laplace smooth term in categorical feature split. Avoid the bias of small categories.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -12366,7 +12366,7 @@
         {
           "Name": "CustomGains",
           "Type": "String",
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
+          "Desc": "Comma separated list of gains associated to each relevance label.",
           "Aliases": [
             "gains"
           ],
@@ -12484,7 +12484,7 @@
         {
           "Name": "CategoricalSmoothing",
           "Type": "Float",
-          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
+          "Desc": "Laplace smooth term in categorical feature split. Avoid the bias of small categories.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -12869,7 +12869,7 @@
         {
           "Name": "CustomGains",
           "Type": "String",
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
+          "Desc": "Comma separated list of gains associated to each relevance label.",
           "Aliases": [
             "gains"
           ],
@@ -12987,7 +12987,7 @@
         {
           "Name": "CategoricalSmoothing",
           "Type": "Float",
-          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
+          "Desc": "Laplace smooth term in categorical feature split. Avoid the bias of small categories.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -23511,13 +23511,13 @@
       "Components": [
         {
           "Name": "dart",
-          "Desc": "Dropouts meet Multiple Additive Regresion Trees. See https://arxiv.org/abs/1505.01866",
+          "Desc": "Dropouts meet Multiple Additive Regression Trees. See https://arxiv.org/abs/1505.01866",
           "FriendlyName": "Tree Dropout Tree Booster",
           "Settings": [
             {
               "Name": "TreeDropFraction",
               "Type": "Float",
-              "Desc": "The drop ratio for trees. Range:(0,1).",
+              "Desc": "The drop ratio for trees. Range:[0,1].",
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
