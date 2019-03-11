@@ -32,7 +32,7 @@ namespace Microsoft.ML.Functional.Tests
                     "CrimesPerCapita", "PercentResidental", "PercentNonRetail", "CharlesRiver", "NitricOxides", "RoomsPerDwelling",
                     "PercentPre40s", "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio"})
                 .Append(mlContext.Transforms.CopyColumns("Label", "MedianHomeValue"))
-                .Append(mlContext.Regression.Trainers.OrdinaryLeastSquares());
+                .Append(mlContext.Regression.Trainers.Ols());
 
             var model = pipeline.Fit(split.TrainSet);
 

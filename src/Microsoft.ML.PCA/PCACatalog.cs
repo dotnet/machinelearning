@@ -6,7 +6,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
-using static Microsoft.ML.Trainers.RandomizedPcaAnomalyDetectionTrainer;
+using static Microsoft.ML.Trainers.RandomizedPcaTrainer;
 
 namespace Microsoft.ML
 {
@@ -54,7 +54,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/AnomalyDetection/RandomizedPcaSample.cs)]
         /// ]]></format>
         /// </example>
-        public static RandomizedPcaAnomalyDetectionTrainer RandomizedPca(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog,
+        public static RandomizedPcaTrainer RandomizedPca(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
             int rank = Options.Defaults.NumComponents,
@@ -64,7 +64,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new RandomizedPcaAnomalyDetectionTrainer(env, featureColumnName, exampleWeightColumnName, rank, oversampling, ensureZeroMean, seed);
+            return new RandomizedPcaTrainer(env, featureColumnName, exampleWeightColumnName, rank, oversampling, ensureZeroMean, seed);
         }
 
         /// <summary>
@@ -78,11 +78,11 @@ namespace Microsoft.ML
         ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/AnomalyDetection/RandomizedPcaSampleWithOptions.cs)]
         /// ]]></format>
         /// </example>
-        public static RandomizedPcaAnomalyDetectionTrainer RandomizedPca(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog, Options options)
+        public static RandomizedPcaTrainer RandomizedPca(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog, Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new RandomizedPcaAnomalyDetectionTrainer(env, options);
+            return new RandomizedPcaTrainer(env, options);
         }
     }
 }

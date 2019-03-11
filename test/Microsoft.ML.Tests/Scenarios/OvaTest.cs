@@ -65,7 +65,7 @@ namespace Microsoft.ML.Scenarios
 
             // Pipeline
             var ap = mlContext.BinaryClassification.Trainers.AveragedPerceptron(
-                    new AveragedPerceptronBinaryClassificationTrainer.Options { Shuffle = true });
+                    new AveragedPerceptronTrainer.Options { Shuffle = true });
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(ap, useProbabilities: false);
 
             var model = pipeline.Fit(data);
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Scenarios
 
             // Pipeline
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(
-                mlContext.BinaryClassification.Trainers.LinearSvm(new LinearSvmBinaryClassificationTrainer.Options { NumberOfIterations = 100 }),
+                mlContext.BinaryClassification.Trainers.LinearSvm(new LinearSvmTrainer.Options { NumberOfIterations = 100 }),
                 useProbabilities: false);
 
             var model = pipeline.Fit(data);

@@ -18,22 +18,22 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
-[assembly: LoadableClass(OrdinaryLeastSquaresRegressionTrainer.Summary, typeof(OrdinaryLeastSquaresRegressionTrainer), typeof(OrdinaryLeastSquaresRegressionTrainer.Options),
+[assembly: LoadableClass(OlsTrainer.Summary, typeof(OlsTrainer), typeof(OlsTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    OrdinaryLeastSquaresRegressionTrainer.UserNameValue,
-    OrdinaryLeastSquaresRegressionTrainer.LoadNameValue,
-    OrdinaryLeastSquaresRegressionTrainer.ShortName)]
+    OlsTrainer.UserNameValue,
+    OlsTrainer.LoadNameValue,
+    OlsTrainer.ShortName)]
 
 [assembly: LoadableClass(typeof(OrdinaryLeastSquaresRegressionModelParameters), null, typeof(SignatureLoadModel),
     "OLS Linear Regression Executor",
     OrdinaryLeastSquaresRegressionModelParameters.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(void), typeof(OrdinaryLeastSquaresRegressionTrainer), null, typeof(SignatureEntryPointModule), OrdinaryLeastSquaresRegressionTrainer.LoadNameValue)]
+[assembly: LoadableClass(typeof(void), typeof(OlsTrainer), null, typeof(SignatureEntryPointModule), OlsTrainer.LoadNameValue)]
 
 namespace Microsoft.ML.Trainers
 {
     /// <include file='doc.xml' path='doc/members/member[@name="OLS"]/*' />
-    public sealed class OrdinaryLeastSquaresRegressionTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OrdinaryLeastSquaresRegressionModelParameters>, OrdinaryLeastSquaresRegressionModelParameters>
+    public sealed class OlsTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OrdinaryLeastSquaresRegressionModelParameters>, OrdinaryLeastSquaresRegressionModelParameters>
     {
         ///<summary> Advanced options for trainer.</summary>
         public sealed class Options : TrainerInputBaseWithWeight
@@ -74,9 +74,9 @@ namespace Microsoft.ML.Trainers
         public override TrainerInfo Info => _info;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="OrdinaryLeastSquaresRegressionTrainer"/>
+        /// Initializes a new instance of <see cref="OlsTrainer"/>
         /// </summary>
-        internal OrdinaryLeastSquaresRegressionTrainer(IHostEnvironment env, Options options)
+        internal OlsTrainer(IHostEnvironment env, Options options)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName),
                   TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName), TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName))
         {
@@ -501,7 +501,7 @@ namespace Microsoft.ML.Trainers
             EntryPointUtils.CheckInputArgs(host, options);
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, options,
-                () => new OrdinaryLeastSquaresRegressionTrainer(host, options),
+                () => new OlsTrainer(host, options),
                 () => TrainerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.LabelColumnName),
                 () => TrainerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.ExampleWeightColumnName));
         }
@@ -546,7 +546,7 @@ namespace Microsoft.ML.Trainers
         /// are all null. A model may not have per parameter statistics because either
         /// there were not more examples than parameters in the model, or because they
         /// were explicitly suppressed in training by setting
-        /// <see cref="OrdinaryLeastSquaresRegressionTrainer.Options.CalculateStatistics"/>
+        /// <see cref="OlsTrainer.Options.CalculateStatistics"/>
         /// to false.
         /// </summary>
         public bool HasStatistics => StandardErrors != null;

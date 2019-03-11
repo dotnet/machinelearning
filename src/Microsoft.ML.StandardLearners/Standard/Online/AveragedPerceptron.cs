@@ -14,12 +14,12 @@ using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
-[assembly: LoadableClass(AveragedPerceptronBinaryClassificationTrainer.Summary, typeof(AveragedPerceptronBinaryClassificationTrainer), typeof(AveragedPerceptronBinaryClassificationTrainer.Options),
+[assembly: LoadableClass(AveragedPerceptronTrainer.Summary, typeof(AveragedPerceptronTrainer), typeof(AveragedPerceptronTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    AveragedPerceptronBinaryClassificationTrainer.UserNameValue,
-    AveragedPerceptronBinaryClassificationTrainer.LoadNameValue, "avgper", AveragedPerceptronBinaryClassificationTrainer.ShortName)]
+    AveragedPerceptronTrainer.UserNameValue,
+    AveragedPerceptronTrainer.LoadNameValue, "avgper", AveragedPerceptronTrainer.ShortName)]
 
-[assembly: LoadableClass(typeof(void), typeof(AveragedPerceptronBinaryClassificationTrainer), null, typeof(SignatureEntryPointModule), "AP")]
+[assembly: LoadableClass(typeof(void), typeof(AveragedPerceptronTrainer), null, typeof(SignatureEntryPointModule), "AP")]
 
 namespace Microsoft.ML.Trainers
 {
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Trainers
     /// For more information see <a href="https://en.wikipedia.org/wiki/Perceptron">Wikipedia entry for Perceptron</a>
     /// or <a href="https://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.48.8200">Large Margin Classification Using the Perceptron Algorithm</a>
     /// </remarks>
-    public sealed class AveragedPerceptronBinaryClassificationTrainer : AveragedLinearTrainer<BinaryPredictionTransformer<LinearBinaryModelParameters>, LinearBinaryModelParameters>
+    public sealed class AveragedPerceptronTrainer : AveragedLinearTrainer<BinaryPredictionTransformer<LinearBinaryModelParameters>, LinearBinaryModelParameters>
     {
         internal const string LoadNameValue = "AveragedPerceptron";
         internal const string UserNameValue = "Averaged Perceptron";
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Trainers
         private readonly Options _args;
 
         /// <summary>
-        /// Options for the <see cref="AveragedPerceptronBinaryClassificationTrainer"/>.
+        /// Options for the <see cref="AveragedPerceptronTrainer"/>.
         /// </summary>
         public sealed class Options : AveragedLinearOptions
         {
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Trainers
 
         private sealed class TrainState : AveragedTrainStateBase
         {
-            public TrainState(IChannel ch, int numFeatures, LinearModelParameters predictor, AveragedPerceptronBinaryClassificationTrainer parent)
+            public TrainState(IChannel ch, int numFeatures, LinearModelParameters predictor, AveragedPerceptronTrainer parent)
                 : base(ch, numFeatures, predictor, parent)
             {
             }
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        internal AveragedPerceptronBinaryClassificationTrainer(IHostEnvironment env, Options options)
+        internal AveragedPerceptronTrainer(IHostEnvironment env, Options options)
             : base(options, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             _args = options;
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="decreaseLearningRate">Whether to decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 Regularization Weight.</param>
         /// <param name="numIterations">The number of training iterations.</param>
-        internal AveragedPerceptronBinaryClassificationTrainer(IHostEnvironment env,
+        internal AveragedPerceptronTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             IClassificationLoss lossFunction = null,
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Trainers
             EntryPointUtils.CheckInputArgs(host, input);
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new AveragedPerceptronBinaryClassificationTrainer(host, input),
+                () => new AveragedPerceptronTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }

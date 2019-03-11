@@ -20,20 +20,20 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = TextLoaderStatic.CreateLoader(Env, ctx => (Label: ctx.LoadFloat(0), Features: ctx.LoadFloat(1, 10)))
                 .Load(dataPath).Cache();
 
-            var binaryTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                new StochasticDualCoordinateAscentBinaryClassificationTrainer.Options { ConvergenceTolerance = 1e-2f });
+            var binaryTrainer = ML.BinaryClassification.Trainers.SdcaCalibrated(
+                new SdcaCalibratedBinaryClassificationTrainer.Options { ConvergenceTolerance = 1e-2f });
             TestEstimatorCore(binaryTrainer, data.AsDynamic);
 
-            var nonCalibratedBinaryTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                new StochasticDualCoordinateAscentNonCalibratedBinaryClassificationTrainer.Options { ConvergenceTolerance = 1e-2f });
+            var nonCalibratedBinaryTrainer = ML.BinaryClassification.Trainers.SdcaNonCalibrated(
+                new SdcaNonCalibratedBinaryClassificationTrainer.Options { ConvergenceTolerance = 1e-2f });
             TestEstimatorCore(nonCalibratedBinaryTrainer, data.AsDynamic);
 
-            var regressionTrainer = ML.Regression.Trainers.StochasticDualCoordinateAscent(
-                new StochasticDualCoordinateAscentRegressionTrainer.Options { ConvergenceTolerance = 1e-2f });
+            var regressionTrainer = ML.Regression.Trainers.Sdca(
+                new SdcaRegressionTrainer.Options { ConvergenceTolerance = 1e-2f });
             TestEstimatorCore(regressionTrainer, data.AsDynamic);
 
-            var mcTrainer = ML.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
-                new StochasticDualCoordinateAscentMulticlassClassificationTrainer.Options { ConvergenceTolerance = 1e-2f });
+            var mcTrainer = ML.MulticlassClassification.Trainers.Sdca(
+                new SdcaMulticlassClassificationTrainer.Options { ConvergenceTolerance = 1e-2f });
             TestEstimatorCore(mcTrainer, data.AsDynamic);
 
             Done();
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Step 2: Create a binary classifier.
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
-            var pipeline = mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(labelColumnName: "Label", featureColumnName: "Features", l2Regularization: 0.001f);
+            var pipeline = mlContext.BinaryClassification.Trainers.SdcaCalibrated(labelColumnName: "Label", featureColumnName: "Features", l2Regularization: 0.001f);
 
             // Step 3: Train the pipeline created.
             var model = pipeline.Fit(data);
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Step 2: Create a binary classifier.
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
-            var pipeline = mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+            var pipeline = mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(
                 labelColumnName: "Label", featureColumnName: "Features", loss: new HingeLoss(), l2Regularization: 0.001f);
 
             // Step 3: Train the pipeline created.

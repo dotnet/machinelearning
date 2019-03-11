@@ -10,12 +10,12 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// The trainer catalog extensions for the <see cref="OrdinaryLeastSquaresRegressionTrainer"/> and <see cref="SymbolicSgdBinaryClassificationTrainer"/>.
+    /// The trainer catalog extensions for the <see cref="OlsTrainer"/> and <see cref="SymbolicSgdTrainer"/>.
     /// </summary>
     public static class MklComponentsCatalog
     {
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="OrdinaryLeastSquaresRegressionTrainer"/>.
+        /// Predict a target using a linear regression model trained with the <see cref="OlsTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -28,28 +28,28 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static OrdinaryLeastSquaresRegressionTrainer OrdinaryLeastSquares(this RegressionCatalog.RegressionTrainers catalog,
+        public static OlsTrainer Ols(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            var options = new OrdinaryLeastSquaresRegressionTrainer.Options
+            var options = new OlsTrainer.Options
             {
                 LabelColumnName = labelColumnName,
                 FeatureColumnName = featureColumnName,
                 ExampleWeightColumnName = exampleWeightColumnName
             };
 
-            return new OrdinaryLeastSquaresRegressionTrainer(env, options);
+            return new OlsTrainer(env, options);
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="OrdinaryLeastSquaresRegressionTrainer"/>.
+        /// Predict a target using a linear regression model trained with the <see cref="OlsTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="options">Algorithm advanced options. See <see cref="OrdinaryLeastSquaresRegressionTrainer.Options"/>.</param>
+        /// <param name="options">Algorithm advanced options. See <see cref="OlsTrainer.Options"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -57,19 +57,19 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static OrdinaryLeastSquaresRegressionTrainer OrdinaryLeastSquares(
+        public static OlsTrainer Ols(
             this RegressionCatalog.RegressionTrainers catalog,
-            OrdinaryLeastSquaresRegressionTrainer.Options options)
+            OlsTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new OrdinaryLeastSquaresRegressionTrainer(env, options);
+            return new OlsTrainer(env, options);
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="SymbolicSgdBinaryClassificationTrainer"/>.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="SymbolicSgdTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -82,28 +82,28 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static SymbolicSgdBinaryClassificationTrainer SymbolicSgd(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static SymbolicSgdTrainer SymbolicSgd(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
-            int numberOfIterations = SymbolicSgdBinaryClassificationTrainer.Defaults.NumberOfIterations)
+            int numberOfIterations = SymbolicSgdTrainer.Defaults.NumberOfIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
 
-            var options = new SymbolicSgdBinaryClassificationTrainer.Options
+            var options = new SymbolicSgdTrainer.Options
             {
                 LabelColumnName = labelColumnName,
                 FeatureColumnName = featureColumnName,
             };
 
-            return new SymbolicSgdBinaryClassificationTrainer(env, options);
+            return new SymbolicSgdTrainer(env, options);
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="SymbolicSgdBinaryClassificationTrainer"/>.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="SymbolicSgdTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="options">Algorithm advanced options. See <see cref="SymbolicSgdBinaryClassificationTrainer.Options"/>.</param>
+        /// <param name="options">Algorithm advanced options. See <see cref="SymbolicSgdTrainer.Options"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -111,14 +111,14 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static SymbolicSgdBinaryClassificationTrainer SymbolicSgd(
+        public static SymbolicSgdTrainer SymbolicSgd(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            SymbolicSgdBinaryClassificationTrainer.Options options)
+            SymbolicSgdTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SymbolicSgdBinaryClassificationTrainer(env, options);
+            return new SymbolicSgdTrainer(env, options);
         }
 
         /// <summary>

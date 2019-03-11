@@ -20,7 +20,7 @@
             var split = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
             // Create data training pipeline
             var pipeline = mlContext.BinaryClassification.Trainers.SymbolicSgd(
-                    new ML.Trainers.SymbolicSgdBinaryClassificationTrainer.Options()
+                    new ML.Trainers.SymbolicSgdTrainer.Options()
                     {
                         LearningRate = 0.2f,
                         NumberOfIterations = 10,

@@ -65,7 +65,7 @@ namespace Microsoft.ML.Tests
             ExecutePipelineWithGivenRandomizedPcaTrainer(mlContext, trainer1);
 
             // Object required in the creation of another detector.
-            var options = new Trainers.RandomizedPcaAnomalyDetectionTrainer.Options()
+            var options = new Trainers.RandomizedPcaTrainer.Options()
             {
                 FeatureColumnName = nameof(DataPoint.Features),
                 Rank = 1,
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Help function used to execute trainers defined in <see cref="RandomizedPcaInMemory"/>.
         /// </summary>
-        private static void ExecutePipelineWithGivenRandomizedPcaTrainer(MLContext mlContext, Trainers.RandomizedPcaAnomalyDetectionTrainer trainer)
+        private static void ExecutePipelineWithGivenRandomizedPcaTrainer(MLContext mlContext, Trainers.RandomizedPcaTrainer trainer)
         {
             var samples = new List<DataPoint>()
             {

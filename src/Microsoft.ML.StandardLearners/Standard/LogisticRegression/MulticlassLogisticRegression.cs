@@ -430,7 +430,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MulticlassLogisticRegressionModelParameters"/> class.
-        /// This constructor is called by <see cref="StochasticDualCoordinateAscentMulticlassClassificationTrainer"/> to create the predictor.
+        /// This constructor is called by <see cref="SdcaMulticlassClassificationTrainer"/> to create the predictor.
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="weights">The array of weights vectors. It should contain <paramref name="numClasses"/> weights.</param>

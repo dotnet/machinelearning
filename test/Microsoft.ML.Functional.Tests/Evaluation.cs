@@ -64,8 +64,8 @@ namespace Microsoft.ML.Functional.Tests
             // Create a training pipeline.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                    new StochasticDualCoordinateAscentNonCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1 }));
+                .Append(mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(
+                    new SdcaNonCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Functional.Tests
             // Create a training pipeline.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Clustering.Trainers.KMeansPlusPlus(new KMeansPlusPlusClusteringTrainer.Options { NumberOfThreads = 1 }));
+                .Append(mlContext.Clustering.Trainers.KMeansPlusPlus(new KMeansPlusPlusTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -150,8 +150,8 @@ namespace Microsoft.ML.Functional.Tests
             // Create a training pipeline.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
-                    new StochasticDualCoordinateAscentMulticlassClassificationTrainer.Options { NumberOfThreads = 1}));
+                .Append(mlContext.MulticlassClassification.Trainers.Sdca(
+                    new SdcaMulticlassClassificationTrainer.Options { NumberOfThreads = 1}));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a pipeline to train on the sentiment data.
             var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(
-                new MatrixFactorizationRecommendationTrainer.Options{
+                new MatrixFactorizationTrainer.Options{
                     MatrixColumnIndexColumnName = "MatrixColumnIndex",
                     MatrixRowIndexColumnName = "MatrixRowIndex",
                     LabelColumnName = "Label",

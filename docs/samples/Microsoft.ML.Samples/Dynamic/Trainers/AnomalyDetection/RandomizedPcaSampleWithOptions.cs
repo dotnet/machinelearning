@@ -28,7 +28,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.AnomalyDetection
             // Convert the List<DataPoint> to IDataView, a consumble format to ML.NET functions.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
-            var options = new ML.Trainers.RandomizedPcaAnomalyDetectionTrainer.Options()
+            var options = new ML.Trainers.RandomizedPcaTrainer.Options()
             {
                 FeatureColumnName = nameof(DataPoint.Features),
                 Rank = 1,

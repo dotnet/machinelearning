@@ -416,7 +416,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// The output column is "Score" by default but user can append a string to it.
         /// </summary>
         /// <param name="env">Eviroment object for showing information</param>
-        /// <param name="model">The model trained by one of the training functions in <see cref="MatrixFactorizationRecommendationTrainer"/></param>
+        /// <param name="model">The model trained by one of the training functions in <see cref="MatrixFactorizationTrainer"/></param>
         /// <param name="trainSchema">Targeted schema that containing columns named as xColumnName</param>
         /// <param name="matrixColumnIndexColumnName">The name of the column used as role <see cref="RecommenderUtils.MatrixColumnIndexKind"/> in matrix factorization world</param>
         /// <param name="matrixRowIndexColumnName">The name of the column used as role <see cref="RecommenderUtils.MatrixRowIndexKind"/> in matrix factorization world</param>

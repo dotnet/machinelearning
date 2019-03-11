@@ -21,7 +21,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             var split = mlContext.MulticlassClassification.TrainTestSplit(dataView, testFraction: 0.1);
 
             // Create trainer options.
-            var options = new StochasticDualCoordinateAscentRegressionTrainer.Options
+            var options = new SdcaRegressionTrainer.Options
             {
                 // Make the convergence tolerance tighter.
                 ConvergenceTolerance = 0.02f,
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             };
 
             // Train the model.
-            var pipeline = mlContext.Regression.Trainers.StochasticDualCoordinateAscent(options);
+            var pipeline = mlContext.Regression.Trainers.Sdca(options);
             var model = pipeline.Fit(split.TrainSet);
 
             // Do prediction on the test set.

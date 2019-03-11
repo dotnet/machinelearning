@@ -71,7 +71,7 @@ namespace Microsoft.ML.Benchmarks
             IDataView data = loader.Load(dataPath);
 
             var pipeline = new ColumnConcatenatingEstimator(mlContext, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
+                .Append(mlContext.MulticlassClassification.Trainers.Sdca());
 
             return pipeline.Fit(data);
         }
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Benchmarks
                 WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe).Fit(text).Transform(text);
 
             // Train
-            var trainer = mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent();
+            var trainer = mlContext.MulticlassClassification.Trainers.Sdca();
             var predicted = trainer.Fit(trans);
             _consumer.Consume(predicted);
         }

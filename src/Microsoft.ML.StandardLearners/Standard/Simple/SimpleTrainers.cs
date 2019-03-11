@@ -12,10 +12,10 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
-[assembly: LoadableClass(PriorBinaryClassificationTrainer.Summary, typeof(PriorBinaryClassificationTrainer), typeof(PriorBinaryClassificationTrainer.Options),
+[assembly: LoadableClass(PriorTrainer.Summary, typeof(PriorTrainer), typeof(PriorTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
-    PriorBinaryClassificationTrainer.UserNameValue,
-    PriorBinaryClassificationTrainer.LoadNameValue,
+    PriorTrainer.UserNameValue,
+    PriorTrainer.LoadNameValue,
     "prior",
     "constant")]
 
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// Learns the prior distribution for 0/1 class labels and outputs that.
     /// </summary>
-    public sealed class PriorBinaryClassificationTrainer : ITrainer<PriorModelParameters>,
+    public sealed class PriorTrainer : ITrainer<PriorModelParameters>,
         ITrainerEstimator<BinaryPredictionTransformer<PriorModelParameters>, PriorModelParameters>
     {
         internal const string LoadNameValue = "PriorPredictor";
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         public TrainerInfo Info => _info;
 
-        internal PriorBinaryClassificationTrainer(IHostEnvironment env, Options options)
+        internal PriorTrainer(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoadNameValue);
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Initializes PriorTrainer object.
         /// </summary>
-        internal PriorBinaryClassificationTrainer(IHostEnvironment env, String labelColumn, String weightColunn = null)
+        internal PriorTrainer(IHostEnvironment env, String labelColumn, String weightColunn = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoadNameValue);

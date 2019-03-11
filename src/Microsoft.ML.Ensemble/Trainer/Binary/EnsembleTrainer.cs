@@ -57,8 +57,8 @@ namespace Microsoft.ML.Trainers.Ensemble
                 {
                     ComponentFactoryUtils.CreateFromFunction(
                         env => {
-                            var trainerEstimator = new LinearSvmBinaryClassificationTrainer(env);
-                            return TrainerUtils.MapTrainerEstimatorToTrainer<LinearSvmBinaryClassificationTrainer,
+                            var trainerEstimator = new LinearSvmTrainer(env);
+                            return TrainerUtils.MapTrainerEstimatorToTrainer<LinearSvmTrainer,
                                 LinearBinaryModelParameters, LinearBinaryModelParameters>(env, trainerEstimator);
                         })
                 };

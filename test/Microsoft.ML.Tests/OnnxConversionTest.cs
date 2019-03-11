@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tests
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(new StochasticDualCoordinateAscentRegressionTrainer.Options() {
+                .Append(mlContext.Regression.Trainers.Sdca(new SdcaRegressionTrainer.Options() {
                     LabelColumnName = "Target",
                     FeatureColumnName = "FeatureVector",
                     NumberOfThreads = 1
@@ -138,13 +138,13 @@ namespace Microsoft.ML.Tests
                 hasHeader: true);
 
             var pipeline = mlContext.Transforms.Normalize("Features").
-                Append(mlContext.Clustering.Trainers.KMeansPlusPlus(new Trainers.KMeansPlusPlusClusteringTrainer.Options
+                Append(mlContext.Clustering.Trainers.KMeansPlusPlus(new Trainers.KMeansPlusPlusTrainer.Options
                 {
                     FeatureColumnName = DefaultColumnNames.Features,
                     MaximumNumberOfIterations = 1,
                     NumberOfClusters = 4,
                     NumberOfThreads = 1,
-                    InitializationAlgorithm = Trainers.KMeansPlusPlusClusteringTrainer.InitializationAlgorithm.Random
+                    InitializationAlgorithm = Trainers.KMeansPlusPlusTrainer.InitializationAlgorithm.Random
                 }));
 
             var model = pipeline.Fit(data);
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Tests
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(new StochasticDualCoordinateAscentRegressionTrainer.Options() {
+                .Append(mlContext.Regression.Trainers.Sdca(new SdcaRegressionTrainer.Options() {
                     LabelColumnName = "Target",
                     FeatureColumnName = "FeatureVector",
                     NumberOfThreads = 1

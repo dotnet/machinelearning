@@ -27,7 +27,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 .Where(name => name != labelName) // Drop the Label
                 .ToArray();
             var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
-                    .Append(mlContext.Regression.Trainers.GeneralizedAdditiveModel(
+                    .Append(mlContext.Regression.Trainers.Gam(
                         labelColumnName: labelName, featureColumnName: "Features", maximumBinCountPerFeature: 16));
             var fitPipeline = pipeline.Fit(data);
 

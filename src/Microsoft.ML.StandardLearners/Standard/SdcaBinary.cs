@@ -141,10 +141,10 @@ namespace Microsoft.ML.Trainers
             =>  Math.Min(8, Math.Max(1, Environment.ProcessorCount / 2));
     }
 
-    public abstract class StochasticDualCoordinateAscentTrainerBase<TOptions, TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
+    public abstract class SdcaTrainerBase<TOptions, TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
-        where TOptions : StochasticDualCoordinateAscentTrainerBase<TOptions, TTransformer, TModel>.OptionsBase, new()
+        where TOptions : SdcaTrainerBase<TOptions, TTransformer, TModel>.OptionsBase, new()
     {
         // REVIEW: Making it even faster and more accurate:
         // 1. Train with not-too-many threads. nt = 2 or 4 seems to be good enough. Didn't seem additional benefit over more threads.
@@ -279,7 +279,7 @@ namespace Microsoft.ML.Trainers
 
         private protected override bool ShuffleData => SdcaTrainerOptions.Shuffle;
 
-        private const string RegisterName = nameof(StochasticDualCoordinateAscentTrainerBase<TOptions, TTransformer, TModel>);
+        private const string RegisterName = nameof(SdcaTrainerBase<TOptions, TTransformer, TModel>);
 
         private static TOptions ArgsInit(string featureColumnName, SchemaShape.Column labelColumn)
         {
@@ -290,14 +290,14 @@ namespace Microsoft.ML.Trainers
             return args;
         }
 
-        internal StochasticDualCoordinateAscentTrainerBase(IHostEnvironment env, string featureColumnName, SchemaShape.Column labelColumn,
+        internal SdcaTrainerBase(IHostEnvironment env, string featureColumnName, SchemaShape.Column labelColumn,
            SchemaShape.Column weight = default, float? l2Const = null,
             float? l1Threshold = null, int? maxIterations = null)
           : this(env, ArgsInit(featureColumnName, labelColumn), labelColumn, weight, l2Const, l1Threshold, maxIterations)
         {
         }
 
-        internal StochasticDualCoordinateAscentTrainerBase(IHostEnvironment env, TOptions options, SchemaShape.Column label, SchemaShape.Column weight = default,
+        internal SdcaTrainerBase(IHostEnvironment env, TOptions options, SchemaShape.Column label, SchemaShape.Column weight = default,
             float? l2Const = null, float? l1Threshold = null, int? maxIterations = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), label, weight)
         {
@@ -1426,13 +1426,13 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// SDCA is a general training algorithm for (generalized) linear models such as support vector machine, linear regression, logistic regression,
     /// and so on. SDCA binary classification trainer family includes several sealed members:
-    /// (1) <see cref="StochasticDualCoordinateAscentNonCalibratedBinaryClassificationTrainer"/> supports general loss functions and returns <see cref="LinearBinaryModelParameters"/>.
-    /// (2) <see cref="StochasticDualCoordinateAscentBinaryClassificationTrainer"/> essentially trains a regularized logistic regression model. Because logistic regression
+    /// (1) <see cref="SdcaNonCalibratedBinaryClassificationTrainer"/> supports general loss functions and returns <see cref="LinearBinaryModelParameters"/>.
+    /// (2) <see cref="SdcaCalibratedBinaryClassificationTrainer"/> essentially trains a regularized logistic regression model. Because logistic regression
     /// naturally provide probability output, this generated model's type is <see cref="CalibratedModelParametersBase{TSubModel, TCalibrator}"/>.
     /// where <see langword="TSubModel"/> is <see cref="LinearBinaryModelParameters"/> and <see langword="TCalibrator "/> is <see cref="PlattCalibrator"/>.
     /// </summary>
     public abstract class SdcaBinaryTrainerBase<TModelParameters> :
-        StochasticDualCoordinateAscentTrainerBase<SdcaBinaryTrainerBase<TModelParameters>.BinaryOptionsBase, BinaryPredictionTransformer<TModelParameters>, TModelParameters>
+        SdcaTrainerBase<SdcaBinaryTrainerBase<TModelParameters>.BinaryOptionsBase, BinaryPredictionTransformer<TModelParameters>, TModelParameters>
         where TModelParameters : class
     {
         private readonly ISupportSdcaClassificationLoss _loss;
@@ -1561,17 +1561,17 @@ namespace Microsoft.ML.Trainers
     /// linear function to a <see cref="PlattCalibrator"/>.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
-    public sealed class StochasticDualCoordinateAscentBinaryClassificationTrainer :
+    public sealed class SdcaCalibratedBinaryClassificationTrainer :
         SdcaBinaryTrainerBase<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
-        /// Options for the <see cref="StochasticDualCoordinateAscentBinaryClassificationTrainer"/>.
+        /// Options for the <see cref="SdcaCalibratedBinaryClassificationTrainer"/>.
         /// </summary>
         public sealed class Options : BinaryOptionsBase
         {
         }
 
-        internal StochasticDualCoordinateAscentBinaryClassificationTrainer(IHostEnvironment env,
+        internal SdcaCalibratedBinaryClassificationTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string weightColumnName = null,
@@ -1582,7 +1582,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        internal StochasticDualCoordinateAscentBinaryClassificationTrainer(IHostEnvironment env, Options options)
+        internal SdcaCalibratedBinaryClassificationTrainer(IHostEnvironment env, Options options)
             : base(env, options, new LogLoss())
         {
         }
@@ -1625,10 +1625,10 @@ namespace Microsoft.ML.Trainers
     /// The <see cref="IEstimator{TTransformer}"/> for training a binary logistic regression classification model using the stochastic dual coordinate ascent method.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
-    public sealed class StochasticDualCoordinateAscentNonCalibratedBinaryClassificationTrainer : SdcaBinaryTrainerBase<LinearBinaryModelParameters>
+    public sealed class SdcaNonCalibratedBinaryClassificationTrainer : SdcaBinaryTrainerBase<LinearBinaryModelParameters>
     {
         /// <summary>
-        /// Options for the <see cref="StochasticDualCoordinateAscentNonCalibratedBinaryClassificationTrainer"/>.
+        /// Options for the <see cref="SdcaNonCalibratedBinaryClassificationTrainer"/>.
         /// </summary>
         public sealed class Options : BinaryOptionsBase
         {
@@ -1642,7 +1642,7 @@ namespace Microsoft.ML.Trainers
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
         }
 
-        internal StochasticDualCoordinateAscentNonCalibratedBinaryClassificationTrainer(IHostEnvironment env,
+        internal SdcaNonCalibratedBinaryClassificationTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string weightColumnName = null,
@@ -1654,7 +1654,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        internal StochasticDualCoordinateAscentNonCalibratedBinaryClassificationTrainer(IHostEnvironment env, Options options)
+        internal SdcaNonCalibratedBinaryClassificationTrainer(IHostEnvironment env, Options options)
             : base(env, options, options.LossFunction.CreateComponent(env))
         {
         }
@@ -1680,7 +1680,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Comparing with <see cref="StochasticDualCoordinateAscentBinaryClassificationTrainer.CreatePredictor(VBuffer{float}[], float[])"/>,
+        /// Comparing with <see cref="SdcaCalibratedBinaryClassificationTrainer.CreatePredictor(VBuffer{float}[], float[])"/>,
         /// <see cref="CreatePredictor"/> directly outputs a <see cref="LinearBinaryModelParameters"/> built from
         /// the learned weights and bias without calibration.
         /// </summary>
@@ -1947,7 +1947,7 @@ namespace Microsoft.ML.Trainers
             => new BinaryPredictionTransformer<TModel>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Continues the training of a <see cref="StochasticDualCoordinateAscentBinaryClassificationTrainer"/> using an already trained <paramref name="modelParameters"/> and returns a <see cref="BinaryPredictionTransformer"/>.
+        /// Continues the training of a <see cref="SdcaCalibratedBinaryClassificationTrainer"/> using an already trained <paramref name="modelParameters"/> and returns a <see cref="BinaryPredictionTransformer"/>.
         /// </summary>
         public BinaryPredictionTransformer<TModel> Fit(IDataView trainData, LinearModelParameters modelParameters)
             => TrainTransformer(trainData, initPredictor: modelParameters);
@@ -2182,17 +2182,17 @@ namespace Microsoft.ML.Trainers
     /// that supports multi-threading without any locking. If the associated optimization problem is sparse, Hogwild SGD achieves a nearly optimal
     /// rate of convergence. For more details about Hogwild SGD, please refer to http://arxiv.org/pdf/1106.5730v2.pdf.
     /// </remarks>
-    public sealed class StochasticGradientDescentBinaryClassificationTrainer :
+    public sealed class SgdCalibratedTrainer :
         SgdBinaryTrainerBase<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
-        /// Options for the <see cref="StochasticGradientDescentBinaryClassificationTrainer"/>.
+        /// Options for the <see cref="SgdCalibratedTrainer"/>.
         /// </summary>
         public sealed class Options : OptionsBase
         {
         }
 
-        internal StochasticGradientDescentBinaryClassificationTrainer(IHostEnvironment env,
+        internal SgdCalibratedTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
@@ -2208,7 +2208,7 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        internal StochasticGradientDescentBinaryClassificationTrainer(IHostEnvironment env, Options options)
+        internal SgdCalibratedTrainer(IHostEnvironment env, Options options)
             : base(env, options, loss: new LogLoss(), doCalibration: false)
         {
         }
@@ -2242,10 +2242,10 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// <see cref="StochasticGradientDescentNonCalibratedBinaryClassificationTrainer"/> can train a linear classification model by minimizing any loss function
+    /// <see cref="SgdNonCalibratedTrainer"/> can train a linear classification model by minimizing any loss function
     /// which implements <see cref="IClassificationLoss"/>.
     /// </summary>
-    public sealed class StochasticGradientDescentNonCalibratedBinaryClassificationTrainer :
+    public sealed class SgdNonCalibratedTrainer :
         SgdBinaryTrainerBase<LinearBinaryModelParameters>
     {
         public sealed class Options : OptionsBase
@@ -2257,7 +2257,7 @@ namespace Microsoft.ML.Trainers
             public IClassificationLoss Loss = new LogLoss();
         }
 
-        internal StochasticGradientDescentNonCalibratedBinaryClassificationTrainer(IHostEnvironment env,
+        internal SgdNonCalibratedTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
@@ -2270,11 +2270,11 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="StochasticGradientDescentNonCalibratedBinaryClassificationTrainer"/>
+        /// Initializes a new instance of <see cref="SgdNonCalibratedTrainer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        internal StochasticGradientDescentNonCalibratedBinaryClassificationTrainer(IHostEnvironment env, Options options)
+        internal SgdNonCalibratedTrainer(IHostEnvironment env, Options options)
             : base(env, options, loss: options.Loss, doCalibration: false)
         {
         }

@@ -31,8 +31,8 @@ namespace Microsoft.ML.Scenarios
             var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                             .Append(mlContext.Transforms.Normalize("Features"))
                             .AppendCacheCheckpoint(mlContext)
-                            .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
-                                new StochasticDualCoordinateAscentMulticlassClassificationTrainer.Options { NumberOfThreads = 1 }));
+                            .Append(mlContext.MulticlassClassification.Trainers.Sdca(
+                                new SdcaMulticlassClassificationTrainer.Options { NumberOfThreads = 1 }));
 
             // Read training and test data sets
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);

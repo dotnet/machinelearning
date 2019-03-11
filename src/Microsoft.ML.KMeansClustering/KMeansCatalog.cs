@@ -9,12 +9,12 @@ using Microsoft.ML.Trainers;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// The trainer context extensions for the <see cref="KMeansPlusPlusClusteringTrainer"/>.
+    /// The trainer context extensions for the <see cref="KMeansPlusPlusTrainer"/>.
     /// </summary>
     public static class KMeansClusteringExtensions
     {
         /// <summary>
-        /// Train a KMeans++ clustering algorithm using <see cref="KMeansPlusPlusClusteringTrainer"/>.
+        /// Train a KMeans++ clustering algorithm using <see cref="KMeansPlusPlusTrainer"/>.
         /// </summary>
         /// <param name="catalog">The clustering catalog trainer object.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
@@ -26,25 +26,25 @@ namespace Microsoft.ML
         ///  [!code-csharp[KMeans](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Clustering/KMeans.cs)]
         /// ]]></format>
         /// </example>
-        public static KMeansPlusPlusClusteringTrainer KMeansPlusPlus(this ClusteringCatalog.ClusteringTrainers catalog,
+        public static KMeansPlusPlusTrainer KMeansPlusPlus(this ClusteringCatalog.ClusteringTrainers catalog,
            string featureColumnName = DefaultColumnNames.Features,
            string exampleWeightColumnName = null,
-           int numberOfClusters = KMeansPlusPlusClusteringTrainer.Defaults.NumberOfClusters)
+           int numberOfClusters = KMeansPlusPlusTrainer.Defaults.NumberOfClusters)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
 
-            var options = new KMeansPlusPlusClusteringTrainer.Options
+            var options = new KMeansPlusPlusTrainer.Options
             {
                 FeatureColumnName = featureColumnName,
                 ExampleWeightColumnName = exampleWeightColumnName,
                 NumberOfClusters = numberOfClusters
             };
-            return new KMeansPlusPlusClusteringTrainer(env, options);
+            return new KMeansPlusPlusTrainer(env, options);
         }
 
         /// <summary>
-        /// Train a KMeans++ clustering algorithm using <see cref="KMeansPlusPlusClusteringTrainer"/>.
+        /// Train a KMeans++ clustering algorithm using <see cref="KMeansPlusPlusTrainer"/>.
         /// </summary>
         /// <param name="catalog">The clustering catalog trainer object.</param>
         /// <param name="options">Algorithm advanced options.</param>
@@ -54,13 +54,13 @@ namespace Microsoft.ML
         ///  [!code-csharp[KMeans](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Clustering/KMeansWithOptions.cs)]
         /// ]]></format>
         /// </example>
-        public static KMeansPlusPlusClusteringTrainer KMeansPlusPlus(this ClusteringCatalog.ClusteringTrainers catalog, KMeansPlusPlusClusteringTrainer.Options options)
+        public static KMeansPlusPlusTrainer KMeansPlusPlus(this ClusteringCatalog.ClusteringTrainers catalog, KMeansPlusPlusTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new KMeansPlusPlusClusteringTrainer(env, options);
+            return new KMeansPlusPlusTrainer(env, options);
         }
     }
 }

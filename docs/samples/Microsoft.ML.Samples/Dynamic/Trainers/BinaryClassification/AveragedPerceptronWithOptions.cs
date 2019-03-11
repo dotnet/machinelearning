@@ -21,7 +21,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var trainTestData = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
 
             // Define the trainer options.
-            var options = new AveragedPerceptronBinaryClassificationTrainer.Options()
+            var options = new AveragedPerceptronTrainer.Options()
             {
                 LossFunction = new SmoothedHingeLoss.Options(),
                 LearningRate = 0.1f,

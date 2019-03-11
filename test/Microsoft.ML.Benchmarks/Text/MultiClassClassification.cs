@@ -38,7 +38,7 @@ namespace Microsoft.ML.Benchmarks
                         " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
                         " tr=OVA{p=AveragedPerceptron{iter=10}}";
 
-            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronBinaryClassificationTrainer, LinearBinaryModelParameters>();
+            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer, LinearBinaryModelParameters>();
             cmd.ExecuteMamlCommand(environment);
         }
 
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Benchmarks
                 " xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D}" +
                 " xf=Concat{col=Features:FeaturesText,FeaturesWordEmbedding,logged_in,ns}";
 
-            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronBinaryClassificationTrainer, LinearBinaryModelParameters>();
+            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer, LinearBinaryModelParameters>();
             cmd.ExecuteMamlCommand(environment);
         }
 
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Benchmarks
                 " xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D}" +
                 " xf=Concat{col=Features:FeaturesWordEmbedding,logged_in,ns}";
 
-            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, StochasticDualCoordinateAscentMulticlassClassificationTrainer, MulticlassLogisticRegressionModelParameters>();
+            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, SdcaMulticlassClassificationTrainer, MulticlassLogisticRegressionModelParameters>();
             cmd.ExecuteMamlCommand(environment);
         }
     }
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Benchmarks
                 " tr=OVA{p=AveragedPerceptron{iter=10}}" +
                 " out={" + _modelPath_Wiki + "}";
 
-            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronBinaryClassificationTrainer, LinearBinaryModelParameters>();
+            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer, LinearBinaryModelParameters>();
             cmd.ExecuteMamlCommand(environment);
         }
 
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Benchmarks
             string modelpath = Path.Combine(Path.GetDirectoryName(typeof(MultiClassClassificationTest).Assembly.Location), @"WikiModel.fold000.zip");
             string cmd = @"Test data=" + _dataPath_Wiki + " in=" + modelpath;
 
-            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronBinaryClassificationTrainer, LinearBinaryModelParameters>();
+            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer, LinearBinaryModelParameters>();
             cmd.ExecuteMamlCommand(environment);
         }
     }

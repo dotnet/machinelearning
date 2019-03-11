@@ -17,18 +17,18 @@ using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
-[assembly: LoadableClass(KMeansPlusPlusClusteringTrainer.Summary, typeof(KMeansPlusPlusClusteringTrainer), typeof(KMeansPlusPlusClusteringTrainer.Options),
+[assembly: LoadableClass(KMeansPlusPlusTrainer.Summary, typeof(KMeansPlusPlusTrainer), typeof(KMeansPlusPlusTrainer.Options),
     new[] { typeof(SignatureClusteringTrainer), typeof(SignatureTrainer) },
-    KMeansPlusPlusClusteringTrainer.UserNameValue,
-    KMeansPlusPlusClusteringTrainer.LoadNameValue,
-    KMeansPlusPlusClusteringTrainer.ShortName, "KMeans")]
+    KMeansPlusPlusTrainer.UserNameValue,
+    KMeansPlusPlusTrainer.LoadNameValue,
+    KMeansPlusPlusTrainer.ShortName, "KMeans")]
 
-[assembly: LoadableClass(typeof(void), typeof(KMeansPlusPlusClusteringTrainer), null, typeof(SignatureEntryPointModule), "KMeans")]
+[assembly: LoadableClass(typeof(void), typeof(KMeansPlusPlusTrainer), null, typeof(SignatureEntryPointModule), "KMeans")]
 
 namespace Microsoft.ML.Trainers
 {
     /// <include file='./doc.xml' path='doc/members/member[@name="KMeans++"]/*' />
-    public class KMeansPlusPlusClusteringTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansModelParameters>, KMeansModelParameters>
+    public class KMeansPlusPlusTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansModelParameters>, KMeansModelParameters>
     {
         internal const string LoadNameValue = "KMeansPlusPlus";
         internal const string UserNameValue = "KMeans++ Clustering";
@@ -112,11 +112,11 @@ namespace Microsoft.ML.Trainers
         private protected override PredictionKind PredictionKind => PredictionKind.Clustering;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="KMeansPlusPlusClusteringTrainer"/>
+        /// Initializes a new instance of <see cref="KMeansPlusPlusTrainer"/>
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> to use.</param>
         /// <param name="options">The advanced options of the algorithm.</param>
-        internal KMeansPlusPlusClusteringTrainer(IHostEnvironment env, Options options)
+        internal KMeansPlusPlusTrainer(IHostEnvironment env, Options options)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName), default, TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName))
         {
             Host.CheckValue(options, nameof(options));
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Trainers
             EntryPointUtils.CheckInputArgs(host, input);
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.ClusteringOutput>(host, input,
-                () => new KMeansPlusPlusClusteringTrainer(host, input),
+                () => new KMeansPlusPlusTrainer(host, input),
                 getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
 
@@ -739,10 +739,10 @@ namespace Microsoft.ML.Trainers
             host.CheckValue(ch, nameof(ch));
             ch.CheckValue(cursorFactory, nameof(cursorFactory));
             ch.CheckValue(centroids, nameof(centroids));
-            ch.CheckUserArg(numThreads > 0, nameof(KMeansPlusPlusClusteringTrainer.Options.NumberOfThreads), "Must be positive");
-            ch.CheckUserArg(k > 0, nameof(KMeansPlusPlusClusteringTrainer.Options.NumberOfClusters), "Must be positive");
+            ch.CheckUserArg(numThreads > 0, nameof(KMeansPlusPlusTrainer.Options.NumberOfThreads), "Must be positive");
+            ch.CheckUserArg(k > 0, nameof(KMeansPlusPlusTrainer.Options.NumberOfClusters), "Must be positive");
             ch.CheckParam(dimensionality > 0, nameof(dimensionality), "Must be positive");
-            ch.CheckUserArg(accelMemBudgetMb >= 0, nameof(KMeansPlusPlusClusteringTrainer.Options.AccelerationMemoryBudgetMb), "Must be non-negative");
+            ch.CheckUserArg(accelMemBudgetMb >= 0, nameof(KMeansPlusPlusTrainer.Options.AccelerationMemoryBudgetMb), "Must be non-negative");
 
             int numRounds;
             int numSamplesPerRound;

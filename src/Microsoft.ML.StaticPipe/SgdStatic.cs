@@ -14,7 +14,7 @@ namespace Microsoft.ML.StaticPipe
     public static class SgdStaticExtensions
     {
         /// <summary>
-        ///  Predict a target using logistic regression trained with the <see cref="StochasticGradientDescentBinaryClassificationTrainer"/> trainer.
+        ///  Predict a target using logistic regression trained with the <see cref="SgdCalibratedTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The name of the label column.</param>
@@ -34,15 +34,15 @@ namespace Microsoft.ML.StaticPipe
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            int numberOfIterations = StochasticGradientDescentBinaryClassificationTrainer.Options.Defaults.NumberOfIterations,
-            double initialLearningRate = StochasticGradientDescentBinaryClassificationTrainer.Options.Defaults.InitialLearningRate,
-            float l2Regularization = StochasticGradientDescentBinaryClassificationTrainer.Options.Defaults.L2Regularization,
+            int numberOfIterations = SgdCalibratedTrainer.Options.Defaults.NumberOfIterations,
+            double initialLearningRate = SgdCalibratedTrainer.Options.Defaults.InitialLearningRate,
+            float l2Regularization = SgdCalibratedTrainer.Options.Defaults.L2Regularization,
             Action<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new StochasticGradientDescentBinaryClassificationTrainer(env, labelName, featuresName, weightsName, numberOfIterations, initialLearningRate, l2Regularization);
+                    var trainer = new SgdCalibratedTrainer(env, labelName, featuresName, weightsName, numberOfIterations, initialLearningRate, l2Regularization);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -54,7 +54,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        ///  Predict a target using logistic regression trained with the <see cref="StochasticGradientDescentBinaryClassificationTrainer"/> trainer.
+        ///  Predict a target using logistic regression trained with the <see cref="SgdCalibratedTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The name of the label column.</param>
@@ -72,7 +72,7 @@ namespace Microsoft.ML.StaticPipe
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights,
-            StochasticGradientDescentBinaryClassificationTrainer.Options options,
+            SgdCalibratedTrainer.Options options,
             Action<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
@@ -82,7 +82,7 @@ namespace Microsoft.ML.StaticPipe
                     options.LabelColumnName = labelName;
                     options.ExampleWeightColumnName = weightsName;
 
-                    var trainer = new StochasticGradientDescentBinaryClassificationTrainer(env, options);
+                    var trainer = new SgdCalibratedTrainer(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -94,7 +94,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        ///  Predict a target using a linear classification model trained with the <see cref="StochasticGradientDescentNonCalibratedBinaryClassificationTrainer"/> trainer.
+        ///  Predict a target using a linear classification model trained with the <see cref="SgdNonCalibratedTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The name of the label column.</param>
@@ -115,16 +115,16 @@ namespace Microsoft.ML.StaticPipe
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            int numberOfIterations = StochasticGradientDescentNonCalibratedBinaryClassificationTrainer.Options.Defaults.NumberOfIterations,
-            double initialLearningRate = StochasticGradientDescentNonCalibratedBinaryClassificationTrainer.Options.Defaults.InitialLearningRate,
-            float l2Regularization = StochasticGradientDescentNonCalibratedBinaryClassificationTrainer.Options.Defaults.L2Regularization,
+            int numberOfIterations = SgdNonCalibratedTrainer.Options.Defaults.NumberOfIterations,
+            double initialLearningRate = SgdNonCalibratedTrainer.Options.Defaults.InitialLearningRate,
+            float l2Regularization = SgdNonCalibratedTrainer.Options.Defaults.L2Regularization,
             IClassificationLoss loss = null,
             Action<LinearBinaryModelParameters> onFit = null)
         {
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new StochasticGradientDescentNonCalibratedBinaryClassificationTrainer(env, labelName, featuresName, weightsName,
+                    var trainer = new SgdNonCalibratedTrainer(env, labelName, featuresName, weightsName,
                         numberOfIterations, initialLearningRate, l2Regularization, loss);
 
                     if (onFit != null)
@@ -137,7 +137,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        ///  Predict a target using a linear classification model trained with the <see cref="StochasticGradientDescentNonCalibratedBinaryClassificationTrainer"/> trainer.
+        ///  Predict a target using a linear classification model trained with the <see cref="SgdNonCalibratedTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The name of the label column.</param>
@@ -155,7 +155,7 @@ namespace Microsoft.ML.StaticPipe
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights,
-            StochasticGradientDescentNonCalibratedBinaryClassificationTrainer.Options options,
+            SgdNonCalibratedTrainer.Options options,
             Action<LinearBinaryModelParameters> onFit = null)
         {
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
@@ -165,7 +165,7 @@ namespace Microsoft.ML.StaticPipe
                     options.LabelColumnName = labelName;
                     options.ExampleWeightColumnName = weightsName;
 
-                    var trainer = new StochasticGradientDescentNonCalibratedBinaryClassificationTrainer(env, options);
+                    var trainer = new SgdNonCalibratedTrainer(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

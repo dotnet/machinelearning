@@ -22,10 +22,10 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
 
-[assembly: LoadableClass(OneVersusAllMulticlassClassificationTrainer.Summary, typeof(OneVersusAllMulticlassClassificationTrainer), typeof(OneVersusAllMulticlassClassificationTrainer.Options),
+[assembly: LoadableClass(OneVersusAllTrainer.Summary, typeof(OneVersusAllTrainer), typeof(OneVersusAllTrainer.Options),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
-    OneVersusAllMulticlassClassificationTrainer.UserNameValue,
-    OneVersusAllMulticlassClassificationTrainer.LoadNameValue, DocName = "trainer/OvaPkpd.md")]
+    OneVersusAllTrainer.UserNameValue,
+    OneVersusAllTrainer.LoadNameValue, DocName = "trainer/OvaPkpd.md")]
 
 [assembly: LoadableClass(typeof(OneVersusAllModelParameters), null, typeof(SignatureLoadModel),
     "OVA Executor",
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers
     using TScalarPredictor = IPredictorProducing<float>;
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
 
-    public sealed class OneVersusAllMulticlassClassificationTrainer : MetaMulticlassTrainer<MulticlassPredictionTransformer<OneVersusAllModelParameters>, OneVersusAllModelParameters>
+    public sealed class OneVersusAllTrainer : MetaMulticlassTrainer<MulticlassPredictionTransformer<OneVersusAllModelParameters>, OneVersusAllModelParameters>
     {
         internal const string LoadNameValue = "OVA";
         internal const string UserNameValue = "One-vs-All";
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Trainers
         private readonly Options _options;
 
         /// <summary>
-        /// Options passed to <see cref="OneVersusAllMulticlassClassificationTrainer"/>
+        /// Options passed to <see cref="OneVersusAllTrainer"/>
         /// </summary>
         internal sealed class Options : OptionsBase
         {
@@ -63,18 +63,18 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Constructs a <see cref="OneVersusAllMulticlassClassificationTrainer"/> trainer supplying a <see cref="Options"/>.
+        /// Constructs a <see cref="OneVersusAllTrainer"/> trainer supplying a <see cref="Options"/>.
         /// </summary>
         /// <param name="env">The private <see cref="IHostEnvironment"/> for this estimator.</param>
         /// <param name="options">The legacy <see cref="Options"/></param>
-        internal OneVersusAllMulticlassClassificationTrainer(IHostEnvironment env, Options options)
+        internal OneVersusAllTrainer(IHostEnvironment env, Options options)
             : base(env, options, LoadNameValue)
         {
             _options = options;
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="OneVersusAllMulticlassClassificationTrainer"/>.
+        /// Initializes a new instance of <see cref="OneVersusAllTrainer"/>.
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="imputeMissingLabelsAsNegative">If true will treat missing labels as negative labels.</param>
         /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
-        internal OneVersusAllMulticlassClassificationTrainer(IHostEnvironment env,
+        internal OneVersusAllTrainer(IHostEnvironment env,
             TScalarTrainer binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// Contains the model parameters and prediction functions for <see cref="OneVersusAllMulticlassClassificationTrainer"/>.
+    /// Contains the model parameters and prediction functions for <see cref="OneVersusAllTrainer"/>.
     /// </summary>
     public sealed class OneVersusAllModelParameters :
         ModelParametersBase<VBuffer<float>>,
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Trainers
                         ivmd.OutputType != NumberDataViewType.Single ||
                         ivmd.DistType != NumberDataViewType.Single))
                 {
-                    ch.Warning($"{nameof(OneVersusAllMulticlassClassificationTrainer.Options.UseProbabilities)} specified with {nameof(OneVersusAllMulticlassClassificationTrainer.Options.PredictorType)} that can't produce probabilities.");
+                    ch.Warning($"{nameof(OneVersusAllTrainer.Options.UseProbabilities)} specified with {nameof(OneVersusAllTrainer.Options.PredictorType)} that can't produce probabilities.");
                     ivmd = null;
                 }
 

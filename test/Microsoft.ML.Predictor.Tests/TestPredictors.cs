@@ -41,7 +41,7 @@ namespace Microsoft.ML.RunTests
             base.InitializeEnvironment(environment);
 
             environment.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
-            environment.ComponentCatalog.RegisterAssembly(typeof(SymbolicSgdBinaryClassificationTrainer).Assembly);
+            environment.ComponentCatalog.RegisterAssembly(typeof(SymbolicSgdTrainer).Assembly);
         }
 
         /// <summary>
@@ -732,7 +732,7 @@ namespace Microsoft.ML.RunTests
                     LabelColumnName = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,
-                AveragedPerceptronBinaryClassificationTrainer.TrainBinary(ML, new AveragedPerceptronBinaryClassificationTrainer.Options()
+                AveragedPerceptronTrainer.TrainBinary(ML, new AveragedPerceptronTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
