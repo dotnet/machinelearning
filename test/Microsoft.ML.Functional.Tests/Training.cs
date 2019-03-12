@@ -31,7 +31,8 @@ namespace Microsoft.ML.Functional.Tests
 
             // Get the dataset.
             var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
-                separatorChar: TestDatasets.Sentiment.fileSeparator, hasHeader: TestDatasets.Sentiment.fileHasHeader, 
+                separatorChar: TestDatasets.Sentiment.fileSeparator,
+                hasHeader: TestDatasets.Sentiment.fileHasHeader, 
                 allowQuoting: TestDatasets.Sentiment.allowQuoting);
             var trainTestSplit = mlContext.BinaryClassification.TrainTestSplit(data);
             var trainData = trainTestSplit.TrainSet;
@@ -85,7 +86,8 @@ namespace Microsoft.ML.Functional.Tests
 
             // Get the dataset.
             var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
-                separatorChar: TestDatasets.Sentiment.fileSeparator, hasHeader: TestDatasets.Sentiment.fileHasHeader,
+                separatorChar: TestDatasets.Sentiment.fileSeparator,
+                hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 allowQuoting: TestDatasets.Sentiment.allowQuoting);
 
             // Create a transformation pipeline.
@@ -128,7 +130,8 @@ namespace Microsoft.ML.Functional.Tests
 
             // Get the dataset.
             var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
-                separatorChar: TestDatasets.Sentiment.fileSeparator, hasHeader: TestDatasets.Sentiment.fileHasHeader,
+                separatorChar: TestDatasets.Sentiment.fileSeparator,
+                hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 allowQuoting: TestDatasets.Sentiment.allowQuoting);
 
             // Create a transformation pipeline.
@@ -171,7 +174,8 @@ namespace Microsoft.ML.Functional.Tests
 
             // Get the dataset.
             var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
-                separatorChar: TestDatasets.Sentiment.fileSeparator, hasHeader: TestDatasets.Sentiment.fileHasHeader,
+                separatorChar: TestDatasets.Sentiment.fileSeparator,
+                hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 allowQuoting: TestDatasets.Sentiment.allowQuoting);
 
             // Create a transformation pipeline.
@@ -214,7 +218,8 @@ namespace Microsoft.ML.Functional.Tests
 
             // Get the dataset.
             var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
-                separatorChar: TestDatasets.Sentiment.fileSeparator, hasHeader: TestDatasets.Sentiment.fileHasHeader,
+                separatorChar: TestDatasets.Sentiment.fileSeparator,
+                hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 allowQuoting: TestDatasets.Sentiment.allowQuoting);
 
             // Create a transformation pipeline.
@@ -256,8 +261,8 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             var data = mlContext.Data.LoadFromTextFile<Iris>(GetDataPath(TestDatasets.iris.trainFilename),
-                            hasHeader: TestDatasets.iris.fileHasHeader,
-                            separatorChar: TestDatasets.iris.fileSeparator);
+                hasHeader: TestDatasets.iris.fileHasHeader,
+                separatorChar: TestDatasets.iris.fileSeparator);
 
             // Create a training pipeline.
             var featurizationPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
@@ -306,7 +311,8 @@ namespace Microsoft.ML.Functional.Tests
 
             // Get the dataset.
             var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename),
-                separatorChar: TestDatasets.housing.fileSeparator, hasHeader: TestDatasets.housing.fileHasHeader);
+                separatorChar: TestDatasets.housing.fileSeparator,
+                hasHeader: TestDatasets.housing.fileHasHeader);
 
             // Create a transformation pipeline.
             var featurizationPipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -349,7 +355,8 @@ namespace Microsoft.ML.Functional.Tests
 
             // Get the dataset.
             var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
-                separatorChar: TestDatasets.Sentiment.fileSeparator, hasHeader: TestDatasets.Sentiment.fileHasHeader,
+                separatorChar: TestDatasets.Sentiment.fileSeparator,
+                hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 allowQuoting: TestDatasets.Sentiment.allowQuoting);
 
             // Create a transformation pipeline.
@@ -396,7 +403,8 @@ namespace Microsoft.ML.Functional.Tests
 
             // Get the dataset.
             var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename),
-                separatorChar: TestDatasets.housing.fileSeparator, hasHeader: TestDatasets.housing.fileHasHeader);
+                separatorChar: TestDatasets.housing.fileSeparator,
+                hasHeader: TestDatasets.housing.fileHasHeader);
 
             // Create a transformation pipeline.
             var featurizationPipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
@@ -439,8 +447,8 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1);
 
             var data = mlContext.Data.LoadFromTextFile<Iris>(GetDataPath(TestDatasets.iris.trainFilename),
-                            hasHeader: TestDatasets.iris.fileHasHeader,
-                            separatorChar: TestDatasets.iris.fileSeparator);
+                hasHeader: TestDatasets.iris.fileHasHeader,
+                separatorChar: TestDatasets.iris.fileSeparator);
 
             // Create a model training an OVA trainer with a binary classifier.
             var anomalyDetectionTrainer = mlContext.AnomalyDetection.Trainers.AnalyzeRandomizedPrincipalComponents();
