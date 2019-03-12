@@ -7,9 +7,9 @@ namespace Microsoft.ML.Experimental
     public static class Experimental
     {
         /// <summary>
-        /// Stop the exeuction of pipeline in <see cref="MLContext"/>
+        /// Stop the execution of pipeline in <see cref="MLContext"/>
         /// </summary>
-        /// <param name="ctx"></param>
+        /// <param name="ctx"><see cref="MLContext"/> reference.</param>
         public static void StopExecution(this MLContext ctx) => ctx.StopExecution();
     }
 }

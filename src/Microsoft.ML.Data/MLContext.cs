@@ -125,8 +125,8 @@ namespace Microsoft.ML
         internal void StopExecution()
         {
             foreach(var host in _hosts)
-                if (host is ICancellableHost)
-                    ((ICancellableHost)host).StopExecution();
+                if (host is ICancelableHost)
+                    ((ICancelableHost)host).StopExecution();
         }
     }
 }

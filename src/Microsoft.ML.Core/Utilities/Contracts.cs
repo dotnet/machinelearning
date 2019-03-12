@@ -749,7 +749,7 @@ namespace Microsoft.ML.Runtime
     /// </summary>
     public static void CheckAlive(this IHostEnvironment env)
         {
-            if ((env is ICancellableEnvironment) && (env as ICancellableEnvironment).IsCancelled)
+            if (env is ICancelableEnvironment cancelableEnv && cancelableEnv.IsCanceled)
                 throw Process(new OperationCanceledException("Operation was cancelled."), env);
         }
 #endif

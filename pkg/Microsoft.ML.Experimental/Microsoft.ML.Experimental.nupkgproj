@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageDescription>Microsoft.ML.Experimental contains extension method for MLContext to access internal function to cancel ML pipeline.</PackageDescription>
+    <PackageDescription>Microsoft.ML.Experimental contains experimental work such extension methods to access internal methods.</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Microsoft.ML.Data/Microsoft.ML.Data.nupkgproj" />
+    <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
   </ItemGroup>
 
 </Project>

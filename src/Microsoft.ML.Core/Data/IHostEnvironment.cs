@@ -51,12 +51,12 @@ namespace Microsoft.ML.Runtime
     }
 
     [BestFriend]
-    internal interface ICancellableEnvironment
+    internal interface ICancelableEnvironment
     {
         /// <summary>
         /// Flag which indicate should we stop any code execution in this host.
         /// </summary>
-        bool IsCancelled { get; }
+        bool IsCanceled { get; }
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Runtime
     }
 
     [BestFriend]
-    internal interface ICancellableHost
+    internal interface ICancelableHost
     {
         /// <summary>
         /// Signal to stop exection in this host and all its children.
