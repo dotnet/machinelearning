@@ -83,19 +83,19 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="textCase">Casing text using the rules of the invariant culture.</param>
+        /// <param name="caseMode">Casing text using the rules of the invariant culture.</param>
         /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
         /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
         public static TextNormalizingEstimator NormalizeText(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
-            TextNormalizingEstimator.CaseNormalizationMode textCase = TextNormalizeDefaults.TextCase,
+            TextNormalizingEstimator.CaseMode caseMode = TextNormalizeDefaults.Mode,
             bool keepDiacritics = TextNormalizeDefaults.KeepDiacritics,
             bool keepPunctuations = TextNormalizeDefaults.KeepPunctuations,
             bool keepNumbers = TextNormalizeDefaults.KeepNumbers)
             => new TextNormalizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnName, textCase, keepDiacritics, keepPunctuations, keepNumbers);
+                outputColumnName, inputColumnName, caseMode, keepDiacritics, keepPunctuations, keepNumbers);
 
         /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
         /// <param name="catalog">The text-related transform's catalog.</param>

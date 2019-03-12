@@ -59,10 +59,10 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Number of iterations.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum iterations.", ShortName = "maxiter, MaxIterations")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum iterations.", ShortName = "maxiter, MaxIterations, NumberOfIterations")]
             [TGUI(Label = "Max Number of Iterations")]
             [TlcModule.SweepableLongParamAttribute("MaxIterations", 1, int.MaxValue)]
-            public int NumberOfIterations = Defaults.NumberOfIterations;
+            public int MaximumNumberOfIterations = Defaults.MaximumNumberOfIterations;
 
             /// <summary>
             /// Run SGD to initialize LR weights, converging to this tolerance.
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Trainers
                 public const float L1Regularization = 1;
                 public const float OptimizationTolerance = 1e-7f;
                 public const int HistorySize = 20;
-                public const int NumberOfIterations = int.MaxValue;
+                public const int MaximumNumberOfIterations = int.MaxValue;
                 public const bool EnforceNonNegativity = false;
             }
         }
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckUserArg(LbfgsTrainerOptions.L1Regularization >= 0, nameof(LbfgsTrainerOptions.L1Regularization), "Must be non-negative");
             Host.CheckUserArg(LbfgsTrainerOptions.OptmizationTolerance > 0, nameof(LbfgsTrainerOptions.OptmizationTolerance), "Must be positive");
             Host.CheckUserArg(LbfgsTrainerOptions.HistorySize > 0, nameof(LbfgsTrainerOptions.HistorySize), "Must be positive");
-            Host.CheckUserArg(LbfgsTrainerOptions.NumberOfIterations > 0, nameof(LbfgsTrainerOptions.NumberOfIterations), "Must be positive");
+            Host.CheckUserArg(LbfgsTrainerOptions.MaximumNumberOfIterations > 0, nameof(LbfgsTrainerOptions.MaximumNumberOfIterations), "Must be positive");
             Host.CheckUserArg(LbfgsTrainerOptions.StochasticGradientDescentInitilaizationTolerance >= 0, nameof(LbfgsTrainerOptions.StochasticGradientDescentInitilaizationTolerance), "Must be non-negative");
             Host.CheckUserArg(LbfgsTrainerOptions.NumberOfThreads == null || LbfgsTrainerOptions.NumberOfThreads.Value >= 0, nameof(LbfgsTrainerOptions.NumberOfThreads), "Must be non-negative");
 
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Trainers
             L1Weight = LbfgsTrainerOptions.L1Regularization;
             OptTol = LbfgsTrainerOptions.OptmizationTolerance;
             MemorySize =LbfgsTrainerOptions.HistorySize;
-            MaxIterations = LbfgsTrainerOptions.NumberOfIterations;
+            MaxIterations = LbfgsTrainerOptions.MaximumNumberOfIterations;
             SgdInitializationTolerance = LbfgsTrainerOptions.StochasticGradientDescentInitilaizationTolerance;
             Quiet = LbfgsTrainerOptions.Quiet;
             InitWtsDiameter = LbfgsTrainerOptions.InitialWeightsDiameter;

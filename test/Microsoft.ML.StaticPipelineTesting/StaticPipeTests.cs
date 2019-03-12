@@ -825,7 +825,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (
                     r.label,
                     norm: r.text.NormalizeText(),
-                    norm_Upper: r.text.NormalizeText(textCase: TextNormalizingEstimator.CaseNormalizationMode.Upper),
+                    norm_Upper: r.text.NormalizeText(caseMode: TextNormalizingEstimator.CaseMode.Upper),
                     norm_KeepDiacritics: r.text.NormalizeText(keepDiacritics: true),
                     norm_NoPuctuations: r.text.NormalizeText(keepPunctuations: false),
                     norm_NoNumbers: r.text.NormalizeText(keepNumbers: false)));
