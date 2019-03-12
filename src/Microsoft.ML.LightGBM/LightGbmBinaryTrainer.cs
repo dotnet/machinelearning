@@ -80,13 +80,10 @@ namespace Microsoft.ML.LightGBM
         }
     }
 
-    ///<summary>
-    /// Trains a Light GBM Model.
-    ///</summary>
-    /// <remarks>
-    /// Light GBM is an open source implementation of boosted trees.
-    /// <a href = 'https://github.com/Microsoft/LightGBM/wiki' > GitHub: LightGBM</a>
-    /// </remarks>
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree binary classification model using LightGBM.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM_remarks"]/*' />
     public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<float,
         BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>

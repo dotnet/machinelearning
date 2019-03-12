@@ -54,7 +54,7 @@ namespace Microsoft.ML.Trainers
                 ShortName = "m, MemorySize", SortOrder = 50)]
             [TGUI(Description = "Memory size for L-BFGS", SuggestedSweeps = "5,20,50")]
             [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[] { 5, 20, 50 })]
-            public int IterationsToRemember = Defaults.IterationsToRemember;
+            public int HistorySize = Defaults.HistorySize;
 
             /// <summary>
             /// Number of iterations.
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Trainers
                 public const float L2Regularization = 1;
                 public const float L1Regularization = 1;
                 public const float OptimizationTolerance = 1e-7f;
-                public const int IterationsToRemember = 20;
+                public const int HistorySize = 20;
                 public const int NumberOfIterations = int.MaxValue;
                 public const bool EnforceNonNegativity = false;
             }
@@ -192,7 +192,7 @@ namespace Microsoft.ML.Trainers
                             L1Regularization = l1Weight,
                             L2Regularization = l2Weight,
                             OptmizationTolerance = optimizationTolerance,
-                            IterationsToRemember = memorySize,
+                            HistorySize = memorySize,
                             EnforceNonNegativity = enforceNoNegativity
                         },
                   labelColumn)
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckUserArg(LbfgsTrainerOptions.L2Regularization >= 0, nameof(LbfgsTrainerOptions.L2Regularization), "Must be non-negative");
             Host.CheckUserArg(LbfgsTrainerOptions.L1Regularization >= 0, nameof(LbfgsTrainerOptions.L1Regularization), "Must be non-negative");
             Host.CheckUserArg(LbfgsTrainerOptions.OptmizationTolerance > 0, nameof(LbfgsTrainerOptions.OptmizationTolerance), "Must be positive");
-            Host.CheckUserArg(LbfgsTrainerOptions.IterationsToRemember > 0, nameof(LbfgsTrainerOptions.IterationsToRemember), "Must be positive");
+            Host.CheckUserArg(LbfgsTrainerOptions.HistorySize > 0, nameof(LbfgsTrainerOptions.HistorySize), "Must be positive");
             Host.CheckUserArg(LbfgsTrainerOptions.NumberOfIterations > 0, nameof(LbfgsTrainerOptions.NumberOfIterations), "Must be positive");
             Host.CheckUserArg(LbfgsTrainerOptions.StochasticGradientDescentInitilaizationTolerance >= 0, nameof(LbfgsTrainerOptions.StochasticGradientDescentInitilaizationTolerance), "Must be non-negative");
             Host.CheckUserArg(LbfgsTrainerOptions.NumberOfThreads == null || LbfgsTrainerOptions.NumberOfThreads.Value >= 0, nameof(LbfgsTrainerOptions.NumberOfThreads), "Must be non-negative");
@@ -228,12 +228,12 @@ namespace Microsoft.ML.Trainers
             Host.CheckParam(!(LbfgsTrainerOptions.L2Regularization < 0), nameof(LbfgsTrainerOptions.L2Regularization), "Must be non-negative, if provided.");
             Host.CheckParam(!(LbfgsTrainerOptions.L1Regularization < 0), nameof(LbfgsTrainerOptions.L1Regularization), "Must be non-negative, if provided");
             Host.CheckParam(!(LbfgsTrainerOptions.OptmizationTolerance <= 0), nameof(LbfgsTrainerOptions.OptmizationTolerance), "Must be positive, if provided.");
-            Host.CheckParam(!(LbfgsTrainerOptions.IterationsToRemember <= 0), nameof(LbfgsTrainerOptions.IterationsToRemember), "Must be positive, if provided.");
+            Host.CheckParam(!(LbfgsTrainerOptions.HistorySize <= 0), nameof(LbfgsTrainerOptions.HistorySize), "Must be positive, if provided.");
 
             L2Weight = LbfgsTrainerOptions.L2Regularization;
             L1Weight = LbfgsTrainerOptions.L1Regularization;
             OptTol = LbfgsTrainerOptions.OptmizationTolerance;
-            MemorySize =LbfgsTrainerOptions.IterationsToRemember;
+            MemorySize =LbfgsTrainerOptions.HistorySize;
             MaxIterations = LbfgsTrainerOptions.NumberOfIterations;
             SgdInitializationTolerance = LbfgsTrainerOptions.StochasticGradientDescentInitilaizationTolerance;
             Quiet = LbfgsTrainerOptions.Quiet;
@@ -272,7 +272,7 @@ namespace Microsoft.ML.Trainers
                 L1Regularization = l1Weight,
                 L2Regularization = l2Weight,
                 OptmizationTolerance = optimizationTolerance,
-                IterationsToRemember = memorySize,
+                HistorySize = memorySize,
                 EnforceNonNegativity = enforceNoNegativity
             };
 

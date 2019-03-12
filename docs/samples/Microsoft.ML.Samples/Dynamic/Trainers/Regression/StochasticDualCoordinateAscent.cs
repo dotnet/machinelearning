@@ -19,7 +19,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 
             // Split the data into training and test sets. Only training set is used in fitting
             // the created pipeline. Metrics are computed on the test.
-            var split = mlContext.MulticlassClassification.TrainTestSplit(dataView, testFraction: 0.1);
+            var split = mlContext.Data.TrainTestSplit(dataView, testFraction: 0.1);
 
             // Train the model.
             var pipeline = mlContext.Regression.Trainers.StochasticDualCoordinateAscent();

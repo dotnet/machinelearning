@@ -82,7 +82,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <summary>
         /// The columns passed to this <see cref="ITransformer"/>.
         /// </summary>
-        public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
+        internal IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
         /// Initializes a new instance of <see cref="ImageLoadingTransformer"/>.

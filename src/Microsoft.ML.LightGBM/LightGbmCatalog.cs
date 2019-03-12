@@ -14,20 +14,20 @@ namespace Microsoft.ML
     public static class LightGbmExtensions
     {
         /// <summary>
-        /// Predict a target using a decision tree regression model trained with the <see cref="LightGbmRegressorTrainer"/>.
+        /// Predict a target using a gradient boosting decision tree regression model trained with the <see cref="LightGbmRegressorTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="numberOfLeaves">The number of leaves to use.</param>
-        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="numberOfLeaves">The maximum number of leaves in one tree.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points required to form a new tree leaf.</param>
         /// <param name="learningRate">The learning rate.</param>
-        /// <param name="numberOfIterations">The number of iterations to use.</param>
+        /// <param name="numberOfIterations">The number of boosting iterations. A new tree is created in each iteration, so this is equivalent to the number of trees.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/LightGBMRegression.cs)]
+        /// [!code-csharp[LightGbmRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/LightGbm.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -46,14 +46,14 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a decision tree regression model trained with the <see cref="LightGbmRegressorTrainer"/>.
+        /// Predict a target using a gradient boosting decision tree regression model trained with the <see cref="LightGbmRegressorTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="options">Advanced options to the algorithm.</param>
+        /// <param name="options">Trainer options.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/LightGBMRegressionWithOptions.cs)]
+        /// [!code-csharp[LightGbmRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/LightGbmWithOptions.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -66,20 +66,20 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a decision tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/>.
+        /// Predict a target using a gradient boosting decision tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="numberOfLeaves">The number of leaves to use.</param>
-        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="numberOfLeaves">The maximum number of leaves in one tree.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points required to form a new tree leaf.</param>
         /// <param name="learningRate">The learning rate.</param>
-        /// <param name="numberOfIterations">The number of iterations to use.</param>
+        /// <param name="numberOfIterations">The number of boosting iterations. A new tree is created in each iteration, so this is equivalent to the number of trees.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/LightGbmBinaryClassification.cs)]
+        /// [!code-csharp[LightGbmBinaryClassification](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/LightGbm.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -98,14 +98,14 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a decision tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/>.
+        /// Predict a target using a gradient boosting decision tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="options">Advanced options to the algorithm.</param>
+        /// <param name="options">Trainer options.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/LightGBMBinaryClassificationWithOptions.cs)]
+        /// [!code-csharp[LightGbmBinaryClassification](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/LightGbmWithOptions.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -118,17 +118,24 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a decision tree ranking model trained with the <see cref="LightGbmRankingTrainer"/>.
+        /// Predict a target using a gradient boosting decision tree ranking model trained with the <see cref="LightGbmRankingTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="rowGroupColumnName">The name of the group column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="numberOfLeaves">The number of leaves to use.</param>
-        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="numberOfLeaves">The maximum number of leaves in one tree.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points required to form a new tree leaf.</param>
         /// <param name="learningRate">The learning rate.</param>
-        /// <param name="numberOfIterations">The number of iterations to use.</param>
+        /// <param name="numberOfIterations">The number of boosting iterations. A new tree is created in each iteration, so this is equivalent to the number of trees.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[LightGbmRanking](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Ranking/LightGbm.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static LightGbmRankingTrainer LightGbm(this RankingCatalog.RankingTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
@@ -145,10 +152,17 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a decision tree ranking model trained with the <see cref="LightGbmRankingTrainer"/>.
+        /// Predict a target using a gradient boosting decision tree ranking model trained with the <see cref="LightGbmRankingTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
-        /// <param name="options">Advanced options to the algorithm.</param>
+        /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[LightGbmRanking](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Ranking/LightGbmWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static LightGbmRankingTrainer LightGbm(this RankingCatalog.RankingTrainers catalog,
             Options options)
         {
@@ -158,20 +172,20 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a decision tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/>.
+        /// Predict a target using a gradient boosting decision tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="numberOfLeaves">The number of leaves to use.</param>
-        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="numberOfLeaves">The maximum number of leaves in one tree.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points required to form a new tree leaf.</param>
         /// <param name="learningRate">The learning rate.</param>
-        /// <param name="numberOfIterations">The number of iterations to use.</param>
+        /// <param name="numberOfIterations">The number of boosting iterations. A new tree is created in each iteration, so this is equivalent to the number of trees.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/LightGBMMulticlassClassification.cs)]
+        /// [!code-csharp[LightGbmMulticlassClassification](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/LightGbm.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -190,14 +204,14 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a decision tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/>.
+        /// Predict a target using a gradient boosting decision tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog"/>.</param>
-        /// <param name="options">Advanced options to the algorithm.</param>
+        /// <param name="options">Trainer options.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/LightGBMMulticlassClassificationWithOptions.cs)]
+        /// [!code-csharp[LightGbmMulticlassClassification](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/LightGbmWithOptions.cs)]
         /// ]]>
         /// </format>
         /// </example>

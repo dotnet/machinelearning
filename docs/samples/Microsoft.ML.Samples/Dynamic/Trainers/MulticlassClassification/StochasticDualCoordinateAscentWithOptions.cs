@@ -29,7 +29,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             var options = new SdcaMultiClassTrainer.Options
             {
                 // Add custom loss
-                LossFunction = new HingeLoss.Options(),
+                LossFunction = new HingeLoss(),
                 // Make the convergence tolerance tighter.
                 ConvergenceTolerance = 0.05f,
                 // Increase the maximum number of passes over training data.
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
 
             // Split the data into training and test sets. Only training set is used in fitting
             // the created pipeline. Metrics are computed on the test.
-            var split = mlContext.MulticlassClassification.TrainTestSplit(dataView, testFraction: 0.1);
+            var split = mlContext.Data.TrainTestSplit(dataView, testFraction: 0.1);
 
             // Train the model.
             var model = pipeline.Fit(split.TrainSet);
