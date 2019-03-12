@@ -5,6 +5,7 @@
 using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Onnx;
 
 namespace Microsoft.ML
 {
