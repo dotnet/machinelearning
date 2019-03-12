@@ -96,6 +96,8 @@ namespace Microsoft.ML.Runtime
     internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironment, IChannelProvider
         where TEnv : HostEnvironmentBase<TEnv>
     {
+        public bool IsCancelled { get; set; }
+
         /// <summary>
         /// Base class for hosts. Classes derived from  <see cref="HostEnvironmentBase{THostEnvironmentBase}"/> may choose
         /// to provide their own host class that derives from this class.
@@ -109,8 +111,6 @@ namespace Microsoft.ML.Runtime
 
             // We don't have dispose mechanism for hosts, so to let GC collect children hosts we make them WeakReference.
             private readonly List<WeakReference<IHost>> _children;
-
-            public bool IsCancelled { get; set; }
 
             public HostBase(HostEnvironmentBase<TEnv> source, string shortName, string parentFullName, Random rand, bool verbose)
                 : base(source, rand, verbose, shortName, parentFullName)

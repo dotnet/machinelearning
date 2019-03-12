@@ -80,7 +80,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         private static HashSet<string> _targetSet = new HashSet<string>(new[]
         {
             "Check", "CheckUserArg", "CheckParam", "CheckParamValue", "CheckRef", "CheckValue",
-            "CheckNonEmpty", "CheckNonWhiteSpace", "CheckDecode", "CheckIO", "CheckValueOrNull",
+            "CheckNonEmpty", "CheckNonWhiteSpace", "CheckDecode", "CheckIO", "CheckAlive", "CheckValueOrNull",
             "Except", "ExceptUserArg", "ExceptParam", "ExceptParamValue", "ExceptValue", "ExceptEmpty",
             "ExceptWhiteSpace", "ExceptDecode", "ExceptIO", "ExceptNotImpl", "ExceptNotSupp", "ExceptSchemaMismatch"
         });

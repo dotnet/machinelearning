@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
@@ -72,6 +73,8 @@ namespace Microsoft.ML
         /// </summary>
         public ComponentCatalog ComponentCatalog => _env.ComponentCatalog;
 
+        private List<IHost> _hosts;
+
         /// <summary>
         /// Create the ML context.
         /// </summary>
@@ -90,6 +93,7 @@ namespace Microsoft.ML
             Transforms = new TransformsCatalog(_env);
             Model = new ModelOperationsCatalog(_env);
             Data = new DataOperationsCatalog(_env);
+            _hosts = new List<IHost>();
         }
 
         private void ProcessMessage(IMessageSource source, ChannelMessage message)
@@ -106,9 +110,23 @@ namespace Microsoft.ML
 
         string IExceptionContext.ContextDescription => _env.ContextDescription;
         TException IExceptionContext.Process<TException>(TException ex) => _env.Process(ex);
-        IHost IHostEnvironment.Register(string name, int? seed, bool? verbose) => _env.Register(name, seed, verbose);
+        IHost IHostEnvironment.Register(string name, int? seed, bool? verbose)
+        {
+            var host = _env.Register(name, seed, verbose);
+            _hosts.Add(host);
+            return host;
+        }
+
         IChannel IChannelProvider.Start(string name) => _env.Start(name);
         IPipe<TMessage> IChannelProvider.StartPipe<TMessage>(string name) => _env.StartPipe<TMessage>(name);
         IProgressChannel IProgressChannelProvider.StartProgressChannel(string name) => _env.StartProgressChannel(name);
+
+        [BestFriend]
+        internal void StopExecution()
+        {
+            foreach(var host in _hosts)
+                if (host is ICancellableHost)
+                    ((ICancellableHost)host).StopExecution();
+        }
     }
 }
