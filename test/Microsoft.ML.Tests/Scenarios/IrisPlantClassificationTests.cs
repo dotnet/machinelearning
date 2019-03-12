@@ -30,6 +30,7 @@ namespace Microsoft.ML.Scenarios
 
             var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                             .Append(mlContext.Transforms.Normalize("Features"))
+                            .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                             .AppendCacheCheckpoint(mlContext)
                             .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
                                 new SdcaMultiClassTrainer.Options { NumberOfThreads = 1 }));

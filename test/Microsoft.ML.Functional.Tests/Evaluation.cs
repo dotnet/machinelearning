@@ -149,6 +149,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a training pipeline.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
                     new SdcaMultiClassTrainer.Options { NumberOfThreads = 1}));

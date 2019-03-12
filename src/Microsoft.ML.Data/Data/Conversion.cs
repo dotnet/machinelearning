@@ -111,6 +111,7 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<I1, R4>(Convert);
             AddStd<I1, R8>(Convert);
             AddAux<I1, SB>(Convert);
+            AddStd<I1, BL>(Convert);
 
             AddStd<I2, I1>(Convert);
             AddStd<I2, I2>(Convert);
@@ -119,6 +120,7 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<I2, R4>(Convert);
             AddStd<I2, R8>(Convert);
             AddAux<I2, SB>(Convert);
+            AddStd<I2, BL>(Convert);
 
             AddStd<I4, I1>(Convert);
             AddStd<I4, I2>(Convert);
@@ -127,6 +129,7 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<I4, R4>(Convert);
             AddStd<I4, R8>(Convert);
             AddAux<I4, SB>(Convert);
+            AddStd<I4, BL>(Convert);
 
             AddStd<I8, I1>(Convert);
             AddStd<I8, I2>(Convert);
@@ -135,6 +138,7 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<I8, R4>(Convert);
             AddStd<I8, R8>(Convert);
             AddAux<I8, SB>(Convert);
+            AddStd<I8, BL>(Convert);
 
             AddStd<U1, U1>(Convert);
             AddStd<U1, U2>(Convert);
@@ -144,6 +148,7 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<U1, R4>(Convert);
             AddStd<U1, R8>(Convert);
             AddAux<U1, SB>(Convert);
+            AddStd<U1, BL>(Convert);
 
             AddStd<U2, U1>(Convert);
             AddStd<U2, U2>(Convert);
@@ -153,6 +158,7 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<U2, R4>(Convert);
             AddStd<U2, R8>(Convert);
             AddAux<U2, SB>(Convert);
+            AddStd<U2, BL>(Convert);
 
             AddStd<U4, U1>(Convert);
             AddStd<U4, U2>(Convert);
@@ -162,6 +168,7 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<U4, R4>(Convert);
             AddStd<U4, R8>(Convert);
             AddAux<U4, SB>(Convert);
+            AddStd<U4, BL>(Convert);
 
             AddStd<U8, U1>(Convert);
             AddStd<U8, U2>(Convert);
@@ -171,6 +178,7 @@ namespace Microsoft.ML.Data.Conversion
             AddStd<U8, R4>(Convert);
             AddStd<U8, R8>(Convert);
             AddAux<U8, SB>(Convert);
+            AddStd<U8, BL>(Convert);
 
             AddStd<UG, U1>(Convert);
             AddStd<UG, U2>(Convert);
@@ -180,11 +188,13 @@ namespace Microsoft.ML.Data.Conversion
             AddAux<UG, SB>(Convert);
 
             AddStd<R4, R4>(Convert);
+            AddStd<R4, BL>(Convert);
             AddStd<R4, R8>(Convert);
             AddAux<R4, SB>(Convert);
 
             AddStd<R8, R4>(Convert);
             AddStd<R8, R8>(Convert);
+            AddStd<R8, BL>(Convert);
             AddAux<R8, SB>(Convert);
 
             AddStd<TX, I1>(Convert);
@@ -901,6 +911,19 @@ namespace Microsoft.ML.Data.Conversion
         public void Convert(in DZ src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("{0:o}", src); }
         #endregion ToStringBuilder
 
+        #region ToBL
+        public void Convert(in R8 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in R4 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in I1 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in I2 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in I4 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in I8 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in U1 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in U2 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in U4 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        public void Convert(in U8 src, ref BL dst) => dst = System.Convert.ToBoolean(src);
+        #endregion
+
         #region FromR4
         public void Convert(in R4 src, ref R4 dst) => dst = src;
         public void Convert(in R4 src, ref R8 dst) => dst = src;
@@ -1139,7 +1162,7 @@ namespace Microsoft.ML.Data.Conversion
             dst = res;
             return true;
 
-            LFail:
+        LFail:
             dst = 0;
             return false;
         }
@@ -1246,7 +1269,7 @@ namespace Microsoft.ML.Data.Conversion
             result = res;
             return true;
 
-            LFail:
+        LFail:
             result = 0;
             return false;
         }

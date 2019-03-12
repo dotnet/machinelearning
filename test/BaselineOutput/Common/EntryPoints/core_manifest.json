@@ -4286,11 +4286,12 @@
           }
         },
         {
-          "Name": "L2RegularizerWeight",
+          "Name": "L2Regularization",
           "Type": "Float",
           "Desc": "L2 Regularization Weight",
           "Aliases": [
-            "reg"
+            "reg",
+            "L2RegularizerWeight"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -4377,11 +4378,12 @@
           "Default": null
         },
         {
-          "Name": "DoLazyUpdates",
+          "Name": "LazyUpdate",
           "Type": "Bool",
           "Desc": "Instead of updating averaged weights on every example, only update when loss is nonzero",
           "Aliases": [
-            "lazy"
+            "lazy",
+            "DoLazyUpdates"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -4401,11 +4403,12 @@
           "Default": 0.0
         },
         {
-          "Name": "RecencyGainMulti",
+          "Name": "RecencyGainMultiplicative",
           "Type": "Bool",
           "Desc": "Whether Recency Gain is multiplicative (vs. additive)",
           "Aliases": [
-            "rgm"
+            "rgm",
+            "RecencyGainMulti"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -13113,11 +13116,12 @@
           "Default": "Label"
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
-            "weight"
+            "weight",
+            "WeightColumn"
           ],
           "Required": false,
           "SortOrder": 4.0,
@@ -14214,11 +14218,12 @@
           }
         },
         {
-          "Name": "L2RegularizerWeight",
+          "Name": "L2Regularization",
           "Type": "Float",
           "Desc": "L2 Regularization Weight",
           "Aliases": [
-            "reg"
+            "reg",
+            "L2RegularizerWeight"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -14282,11 +14287,12 @@
           "Default": null
         },
         {
-          "Name": "DoLazyUpdates",
+          "Name": "LazyUpdate",
           "Type": "Bool",
           "Desc": "Instead of updating averaged weights on every example, only update when loss is nonzero",
           "Aliases": [
-            "lazy"
+            "lazy",
+            "DoLazyUpdates"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -14306,11 +14312,12 @@
           "Default": 0.0
         },
         {
-          "Name": "RecencyGainMulti",
+          "Name": "RecencyGainMultiplicative",
           "Type": "Bool",
           "Desc": "Whether Recency Gain is multiplicative (vs. additive)",
           "Aliases": [
-            "rgm"
+            "rgm",
+            "RecencyGainMulti"
           ],
           "Required": false,
           "SortOrder": 150.0,

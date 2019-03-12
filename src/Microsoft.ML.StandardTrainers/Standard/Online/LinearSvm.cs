@@ -69,8 +69,8 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Column to use for example weight.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public string WeightColumn = null;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight,WeightColumn", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            public string ExampleWeightColumnName = null;
         }
 
         private sealed class TrainState : TrainStateBase
@@ -232,20 +232,20 @@ namespace Microsoft.ML.Trainers
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column. </param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The optional name of the weight column.</param>
-        /// <param name="numIterations">The number of training iteraitons.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <param name="numberOfIterations">The number of training iteraitons.</param>
         [BestFriend]
         internal LinearSvmTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
-            string weightColumn = null,
-            int numIterations = Options.OnlineDefault.NumIterations)
+            string exampleWeightColumnName = null,
+            int numberOfIterations = Options.OnlineDefault.NumberOfIterations)
             : this(env, new Options
             {
                 LabelColumnName = labelColumn,
                 FeatureColumnName = featureColumn,
-                WeightColumn = weightColumn,
-                NumberOfIterations = numIterations,
+                ExampleWeightColumnName = exampleWeightColumnName,
+                NumberOfIterations = numberOfIterations,
             })
         {
         }
