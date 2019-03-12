@@ -38,7 +38,7 @@ namespace Microsoft.ML.Transforms
     {
         private readonly string _savedModelPath;
         private readonly bool _isTemporarySavedModel;
-
+        private readonly bool _addBatchDimensionInput;
         internal readonly TFSession Session;
         internal readonly DataViewType[] OutputTypes;
         internal readonly TFDataType[] TFOutputTypes;
@@ -69,8 +69,9 @@ namespace Microsoft.ML.Transforms
             return new VersionInfo(
                 modelSignature: "TENSFLOW",
                 //verWrittenCur: 0x00010001, // Initial
-                verWrittenCur: 0x00010002,  // Added Support for Multiple Outputs and SavedModel.
-                verReadableCur: 0x00010002,
+                //verWrittenCur: 0x00010002,  // Added Support for Multiple Outputs and SavedModel.
+                verWrittenCur: 0x00010003,  // Added Support for adding batch dimension in inputs.
+                verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(TensorFlowTransformer).Assembly.FullName);
@@ -79,28 +80,32 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Transform for scoring Tensorflow models. Input data column names/types must exactly match
         /// all model input names. Only the output columns specified will be generated.
-        /// If the model is already loaded please <see cref="TensorFlowTransformer(IHostEnvironment, TensorFlowModel, string, string)"/> to avoid reloading of model.
+        /// If the model is already loaded please <see cref="TensorFlowTransformer(IHostEnvironment, TensorFlowModel, string, string, bool)"/> to avoid reloading of model.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelFile">Model file path.</param>
         /// <param name="outputColumnName">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
         /// <param name="inputColumnName">The name of the input data column. Must match model input name. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        internal TensorFlowTransformer(IHostEnvironment env, string modelFile, string outputColumnName, string inputColumnName = null)
-            : this(env, TensorFlowUtils.GetSession(env, modelFile), new[] { outputColumnName }, new[] { inputColumnName ?? outputColumnName }, TensorFlowUtils.IsSavedModel(env, modelFile) ? modelFile : null, false)
+        /// <param name="addBatchDimensionInput">Add a batch dimension to the input e.g. input = [224, 224, 3] => [-1, 224, 224, 3].
+        /// This parameter is used to deal with models that have unknown shape but the internal operators in the model require data to have batch dimension as well.</param>
+        internal TensorFlowTransformer(IHostEnvironment env, string modelFile, string outputColumnName, string inputColumnName = null, bool addBatchDimensionInput = false)
+            : this(env, TensorFlowUtils.GetSession(env, modelFile), new[] { outputColumnName }, new[] { inputColumnName ?? outputColumnName }, TensorFlowUtils.IsSavedModel(env, modelFile) ? modelFile : null, false, addBatchDimensionInput)
         {
         }
 
         /// <summary>
         /// Transform for scoring Tensorflow models. Input data column names/types must exactly match
         /// all model input names. Only the output columns specified will be generated.
-        /// If the model is already loaded please <see cref="TensorFlowTransformer(IHostEnvironment, TensorFlowModel, string[], string[])"/> to avoid reloading of model.
+        /// If the model is already loaded please <see cref="TensorFlowTransformer(IHostEnvironment, TensorFlowModel, string[], string[], bool)"/> to avoid reloading of model.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelFile">Model file path.</param>
         /// <param name="inputColumnNames">The name of the input data columns. Must match model's input names.</param>
         /// <param name="outputColumnNames">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
-        internal TensorFlowTransformer(IHostEnvironment env, string modelFile, string[] outputColumnNames, string[] inputColumnNames)
-            : this(env, TensorFlowUtils.GetSession(env, modelFile), outputColumnNames, inputColumnNames, TensorFlowUtils.IsSavedModel(env, modelFile) ? modelFile : null, false)
+        /// <param name="addBatchDimensionInput">Add a batch dimension to the input e.g. input = [224, 224, 3] => [-1, 224, 224, 3].
+        /// This parameter is used to deal with models that have unknown shape but the internal operators in the model require data to have batch dimension as well.</param>
+        internal TensorFlowTransformer(IHostEnvironment env, string modelFile, string[] outputColumnNames, string[] inputColumnNames, bool addBatchDimensionInput = false)
+            : this(env, TensorFlowUtils.GetSession(env, modelFile), outputColumnNames, inputColumnNames, TensorFlowUtils.IsSavedModel(env, modelFile) ? modelFile : null, false, addBatchDimensionInput)
         {
         }
 
@@ -114,8 +119,10 @@ namespace Microsoft.ML.Transforms
         /// <param name="tfModelInfo"> <see cref="TensorFlowModel"/> object created with <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/>.</param>
         /// <param name="outputColumnName">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
         /// <param name="inputColumnName">The name of the input data columns. Must match model's input names. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        internal TensorFlowTransformer(IHostEnvironment env, TensorFlowModel tfModelInfo, string outputColumnName, string inputColumnName = null)
-            : this(env, tfModelInfo.Session, new[] { outputColumnName }, new[] { inputColumnName ?? outputColumnName }, TensorFlowUtils.IsSavedModel(env, tfModelInfo.ModelPath) ? tfModelInfo.ModelPath : null, false)
+        /// <param name="addBatchDimensionInput">Add a batch dimension to the input e.g. input = [224, 224, 3] => [-1, 224, 224, 3].
+        /// This parameter is used to deal with models that have unknown shape but the internal operators in the model require data to have batch dimension as well.</param>
+        internal TensorFlowTransformer(IHostEnvironment env, TensorFlowModel tfModelInfo, string outputColumnName, string inputColumnName = null, bool addBatchDimensionInput = false)
+            : this(env, tfModelInfo.Session, new[] { outputColumnName }, new[] { inputColumnName ?? outputColumnName }, TensorFlowUtils.IsSavedModel(env, tfModelInfo.ModelPath) ? tfModelInfo.ModelPath : null, false, addBatchDimensionInput)
         {
         }
 
@@ -129,8 +136,10 @@ namespace Microsoft.ML.Transforms
         /// <param name="tfModelInfo"> <see cref="TensorFlowModel"/> object created with <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/>.</param>
         /// <param name="inputColumnNames">The name of the input data columns. Must match model's input names.</param>
         /// <param name="outputColumnNames">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
-        internal TensorFlowTransformer(IHostEnvironment env, TensorFlowModel tfModelInfo, string[] outputColumnNames, string[] inputColumnNames)
-            : this(env, tfModelInfo.Session, outputColumnNames, inputColumnNames, TensorFlowUtils.IsSavedModel(env, tfModelInfo.ModelPath) ? tfModelInfo.ModelPath : null, false)
+        /// <param name="addBatchDimensionInput">Add a batch dimension to the input e.g. input = [224, 224, 3] => [-1, 224, 224, 3].
+        /// This parameter is used to deal with models that have unknown shape but the internal operators in the model require data to have batch dimension as well.</param>
+        internal TensorFlowTransformer(IHostEnvironment env, TensorFlowModel tfModelInfo, string[] outputColumnNames, string[] inputColumnNames, bool addBatchDimensionInput = false)
+            : this(env, tfModelInfo.Session, outputColumnNames, inputColumnNames, TensorFlowUtils.IsSavedModel(env, tfModelInfo.ModelPath) ? tfModelInfo.ModelPath : null, false, addBatchDimensionInput)
         {
         }
 
@@ -143,6 +152,7 @@ namespace Microsoft.ML.Transforms
 
             // *** Binary format ***
             // byte: indicator for frozen models
+            // byte: indicator for adding batch dimension in input
             // stream: tensorFlow model.
             // int: number of input columns
             // for each input column
@@ -150,13 +160,13 @@ namespace Microsoft.ML.Transforms
             // int: number of output columns
             // for each output column
             //   int: id of output column name
-            GetModelInfo(env, ctx, out string[] inputs, out string[] outputs, out bool isFrozen);
+            GetModelInfo(env, ctx, out string[] inputs, out string[] outputs, out bool isFrozen, out bool addBatchDimensionInput);
             if (isFrozen)
             {
                 byte[] modelBytes = null;
                 if (!ctx.TryLoadBinaryStream("TFModel", r => modelBytes = r.ReadByteArray()))
                     throw env.ExceptDecode();
-                return new TensorFlowTransformer(env, TensorFlowUtils.LoadTFSession(env, modelBytes), outputs, inputs, null, false);
+                return new TensorFlowTransformer(env, TensorFlowUtils.LoadTFSession(env, modelBytes), outputs, inputs, null, false, addBatchDimensionInput);
             }
 
             var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), nameof(TensorFlowTransformer) + "_" + Guid.NewGuid()));
@@ -185,7 +195,7 @@ namespace Microsoft.ML.Transforms
                     }
                 });
 
-                return new TensorFlowTransformer(env, TensorFlowUtils.GetSession(env, tempDirPath), outputs, inputs, tempDirPath, true);
+                return new TensorFlowTransformer(env, TensorFlowUtils.GetSession(env, tempDirPath), outputs, inputs, tempDirPath, true, addBatchDimensionInput);
             }
             catch (Exception)
             {
@@ -212,7 +222,7 @@ namespace Microsoft.ML.Transforms
         }
 
         internal TensorFlowTransformer(IHostEnvironment env, TensorFlowEstimator.Options options, TensorFlowModel tensorFlowModel, IDataView input)
-            : this(env, tensorFlowModel.Session, options.OutputColumns, options.InputColumns, TensorFlowUtils.IsSavedModel(env, options.ModelLocation) ? options.ModelLocation : null, false)
+            : this(env, tensorFlowModel.Session, options.OutputColumns, options.InputColumns, TensorFlowUtils.IsSavedModel(env, options.ModelLocation) ? options.ModelLocation : null, false, options.AddBatchDimensionInputs)
         {
 
             Contracts.CheckValue(env, nameof(env));
@@ -500,12 +510,17 @@ namespace Microsoft.ML.Transforms
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private static void GetModelInfo(IHostEnvironment env, ModelLoadContext ctx, out string[] inputs, out string[] outputs, out bool isFrozen)
+        private static void GetModelInfo(IHostEnvironment env, ModelLoadContext ctx, out string[] inputs, out string[] outputs, out bool isFrozen, out bool addBatchDimensionInput)
         {
             isFrozen = true;
             bool isNonFrozenModelSupported = ctx.Header.ModelVerReadable >= 0x00010002;
             if (isNonFrozenModelSupported)
                 isFrozen = ctx.Reader.ReadBoolByte();
+
+            addBatchDimensionInput = false;
+            bool isAddingBatchDimensionSupported = ctx.Header.ModelVerReadable >= 0x00010003;
+            if (isAddingBatchDimensionSupported)
+                addBatchDimensionInput = ctx.Reader.ReadBoolByte();
 
             var numInputs = ctx.Reader.ReadInt32();
             env.CheckDecode(numInputs > 0);
@@ -524,7 +539,7 @@ namespace Microsoft.ML.Transforms
                 outputs[j] = ctx.LoadNonEmptyString();
         }
 
-        internal TensorFlowTransformer(IHostEnvironment env, TFSession session, string[] outputColumnNames, string[] inputColumnNames, string savedModelPath, bool isTemporarySavedModel) :
+        internal TensorFlowTransformer(IHostEnvironment env, TFSession session, string[] outputColumnNames, string[] inputColumnNames, string savedModelPath, bool isTemporarySavedModel, bool addBatchDimensionInput) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TensorFlowTransformer)))
 
         {
@@ -535,6 +550,7 @@ namespace Microsoft.ML.Transforms
             Session = session;
             _savedModelPath = savedModelPath;
             _isTemporarySavedModel = isTemporarySavedModel;
+            _addBatchDimensionInput = addBatchDimensionInput;
             Inputs = inputColumnNames;
             Outputs = outputColumnNames;
 
@@ -610,6 +626,7 @@ namespace Microsoft.ML.Transforms
 
             // *** Binary format ***
             // byte: indicator for frozen models
+            // byte: indicator for adding batch dimension in input
             // stream: tensorFlow model.
             // int: number of input columns
             // for each input column
@@ -619,6 +636,7 @@ namespace Microsoft.ML.Transforms
             //   int: id of output column name
             var isFrozen = string.IsNullOrEmpty(_savedModelPath);
             ctx.Writer.WriteBoolByte(isFrozen);
+            ctx.Writer.WriteBoolByte(_addBatchDimensionInput);
             if (isFrozen)
             {
                 var buffer = new TFBuffer();
@@ -762,6 +780,15 @@ namespace Microsoft.ML.Transforms
                         var l = new long[originalShape.NumDimensions];
                         for (int ishape = 0; ishape < originalShape.NumDimensions; ishape++)
                             l[ishape] = originalShape[ishape] == -1 ? (int)d : originalShape[ishape];
+                        _fullySpecifiedShapes[i] = new TFShape(l);
+                    }
+
+                    if (_parent._addBatchDimensionInput)
+                    {
+                        var l = new long[_fullySpecifiedShapes[i].NumDimensions + 1];
+                        l[0] = 1L;
+                        for (int ishape = 1; ishape < l.Length; ishape++)
+                            l[ishape] = _fullySpecifiedShapes[i][ishape-1];
                         _fullySpecifiedShapes[i] = new TFShape(l);
                     }
                 }
@@ -1098,6 +1125,16 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Retrain TensorFlow model.", SortOrder = 15)]
             public bool ReTrain = false;
+
+            /// <summary>
+            /// Add a batch dimension to the input e.g. input = [224, 224, 3] => [-1, 224, 224, 3].
+            /// </summary>
+            /// <remarks>
+            /// This parameter is used to deal with models that have unknown shape but the internal operators in the model require data to have batch dimension as well.
+            /// In this case, there is no way to induce shape from the model's inputs or input data.
+            /// </remarks>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Add a batch dimension to the input e.g. input = [224, 224, 3] => [-1, 224, 224, 3].", SortOrder = 16)]
+            public bool AddBatchDimensionInputs = false;
         }
 
         private readonly IHost _host;
@@ -1108,13 +1145,13 @@ namespace Microsoft.ML.Transforms
         private TensorFlowTransformer _transformer;
 
         [BestFriend]
-        internal TensorFlowEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelLocation)
-            : this(env, outputColumnNames, inputColumnNames, TensorFlowUtils.LoadTensorFlowModel(env, modelLocation))
+        internal TensorFlowEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelLocation, bool addBatchDimensionInput)
+            : this(env, outputColumnNames, inputColumnNames, TensorFlowUtils.LoadTensorFlowModel(env, modelLocation), addBatchDimensionInput)
         {
         }
 
-        internal TensorFlowEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, TensorFlowModel tensorFlowModel)
-            : this(env, CreateArguments(tensorFlowModel, outputColumnNames, inputColumnNames), tensorFlowModel)
+        internal TensorFlowEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, TensorFlowModel tensorFlowModel, bool addBatchDimensionInput)
+            : this(env, CreateArguments(tensorFlowModel, outputColumnNames, inputColumnNames, addBatchDimensionInput), tensorFlowModel)
         {
         }
 
@@ -1134,13 +1171,14 @@ namespace Microsoft.ML.Transforms
             _outputTypes = outputTuple.outputTypes;
         }
 
-        private static Options CreateArguments(TensorFlowModel tensorFlowModel, string[] outputColumnNames, string[] inputColumnName)
+        private static Options CreateArguments(TensorFlowModel tensorFlowModel, string[] outputColumnNames, string[] inputColumnName, bool addBatchDimensionInput)
         {
             var options = new Options();
             options.ModelLocation = tensorFlowModel.ModelPath;
             options.InputColumns = inputColumnName;
             options.OutputColumns = outputColumnNames;
             options.ReTrain = false;
+            options.AddBatchDimensionInputs = addBatchDimensionInput;
             return options;
         }
 
@@ -1183,7 +1221,7 @@ namespace Microsoft.ML.Transforms
             {
                 _transformer = _options.ReTrain ? new TensorFlowTransformer(_host, _options, _tensorFlowModel, input) :
                     new TensorFlowTransformer(_host, _tensorFlowModel.Session, _options.OutputColumns, _options.InputColumns,
-                    TensorFlowUtils.IsSavedModel(_host, _options.ModelLocation) ? _options.ModelLocation : null, false);
+                    TensorFlowUtils.IsSavedModel(_host, _options.ModelLocation) ? _options.ModelLocation : null, false, _options.AddBatchDimensionInputs);
             }
             // Validate input schema.
             _transformer.GetOutputSchema(input.Schema);

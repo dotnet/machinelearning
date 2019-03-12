@@ -22268,6 +22268,15 @@
           "SortOrder": 15.0,
           "IsNullable": false,
           "Default": false
+        },
+        {
+          "Name": "AddBatchDimensionInputs",
+          "Type": "Bool",
+          "Desc": "Add a batch dimension to the input e.g. input = [224, 224, 3] => [-1, 224, 224, 3].",
+          "Required": false,
+          "SortOrder": 16.0,
+          "IsNullable": false,
+          "Default": false
         }
       ],
       "Outputs": [
