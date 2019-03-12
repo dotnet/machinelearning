@@ -16,7 +16,7 @@ namespace Microsoft.ML.Trainers
 {
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
 
-    public abstract class MetaMulticlassTrainer<TTransformer, TModel> : ITrainerEstimator<TTransformer, TModel>, ITrainer<IPredictor>
+    public abstract class MetaTrainer<TTransformer, TModel> : ITrainerEstimator<TTransformer, TModel>, ITrainer<IPredictor>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
     {
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Trainers
         public TrainerInfo Info { get; }
 
         /// <summary>
-        /// Initializes the <see cref="MetaMulticlassTrainer{TTransformer, TModel}"/> from the <see cref="OptionsBase"/> class.
+        /// Initializes the <see cref="MetaTrainer{TTransformer, TModel}"/> from the <see cref="OptionsBase"/> class.
         /// </summary>
         /// <param name="env">The private instance of the <see cref="IHostEnvironment"/>.</param>
         /// <param name="options">The legacy arguments <see cref="OptionsBase"/>class.</param>
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="labelColumn">The label column for the metalinear trainer and the binary trainer.</param>
         /// <param name="singleEstimator">The binary estimator.</param>
         /// <param name="calibrator">The calibrator. If a calibrator is not explicitly provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
-        internal MetaMulticlassTrainer(IHostEnvironment env, OptionsBase options, string name, string labelColumn = null,
+        internal MetaTrainer(IHostEnvironment env, OptionsBase options, string name, string labelColumn = null,
             TScalarTrainer singleEstimator = null, ICalibratorTrainer calibrator = null)
         {
             Host = Contracts.CheckRef(env, nameof(env)).Register(name);
