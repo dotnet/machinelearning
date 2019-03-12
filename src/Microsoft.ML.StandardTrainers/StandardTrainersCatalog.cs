@@ -18,6 +18,7 @@ namespace Microsoft.ML
     {
         /// <summary>
         /// Predict a target using a linear classification model trained with <see cref="SgdCalibratedTrainer"/>.
+        /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column, or dependent variable.</param>
@@ -49,6 +50,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Predict a target using a linear classification model trained with <see cref="SgdCalibratedTrainer"/> and advanced options.
+        /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
@@ -70,7 +72,8 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Predict a target using a linear classification model trained with <see cref="SgdNonCalibratedTrainer"/>.
+        /// Predict a target using a linear classification model trained with <see cref="SgdNonCalibratedTrainer"/>.
+        /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column, or dependent variable.</param>
@@ -104,6 +107,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Predict a target using a linear classification model trained with <see cref="SgdNonCalibratedTrainer"/> and advanced options.
+        /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
