@@ -321,7 +321,7 @@ namespace Microsoft.ML.StaticPipe
             return col =>
             {
                 var aCol = (NormalizingTransformer.CdfNormalizerModelParameters<TData>)col?.GetNormalizerModelParams();
-                onFit(aCol.Mean, aCol.Stddev);
+                onFit(aCol.Mean, aCol.StandardDeviation);
             };
         }
 

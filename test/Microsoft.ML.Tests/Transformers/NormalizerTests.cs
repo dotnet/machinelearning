@@ -187,22 +187,22 @@ namespace Microsoft.ML.Tests.Transformers
             var floatCdfLogMeanData = transformer.Columns[12].ModelParameters as NormalizingTransformer.CdfNormalizerModelParameters<float>;
             Assert.Equal(1.75623953f, floatCdfLogMeanData.Mean);
             Assert.True(true == floatCdfLogMeanData.UseLog);
-            Assert.Equal(0.140807763f, floatCdfLogMeanData.Stddev);
+            Assert.Equal(0.140807763f, floatCdfLogMeanData.StandardDeviation);
 
             var floatCdfLogMeanDataVec = transformer.Columns[13].ModelParameters as NormalizingTransformer.CdfNormalizerModelParameters<ImmutableArray<float>>;
             Assert.Equal(4, floatCdfLogMeanDataVec.Mean.Length);
             Assert.True(true == floatCdfLogMeanDataVec.UseLog);
-            Assert.Equal(4, floatCdfLogMeanDataVec.Stddev.Length);
+            Assert.Equal(4, floatCdfLogMeanDataVec.StandardDeviation.Length);
 
             var doubleCdfLogMeanData = transformer.Columns[14].ModelParameters as NormalizingTransformer.CdfNormalizerModelParameters<double>;
             Assert.Equal(1.7562395401953814, doubleCdfLogMeanData.Mean);
             Assert.True(doubleCdfLogMeanData.UseLog);
-            Assert.Equal(0.14080776721611848, doubleCdfLogMeanData.Stddev);
+            Assert.Equal(0.14080776721611848, doubleCdfLogMeanData.StandardDeviation);
 
             var doubleCdfLogMeanDataVec = transformer.Columns[15].ModelParameters as NormalizingTransformer.CdfNormalizerModelParameters<ImmutableArray<double>>;
             Assert.Equal(4, doubleCdfLogMeanDataVec.Mean.Length);
             Assert.True(doubleCdfLogMeanDataVec.UseLog);
-            Assert.Equal(4, doubleCdfLogMeanDataVec.Stddev.Length);
+            Assert.Equal(4, doubleCdfLogMeanDataVec.StandardDeviation.Length);
 
             Done();
         }
