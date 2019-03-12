@@ -40,7 +40,7 @@ namespace Microsoft.ML
         /// Predict a target using a field-aware factorization machine algorithm.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
-        /// <param name="featureColumnNames">The name(s) of the feature columns.</param>
+        /// <param name="featureColumnNames">The name of the feature column.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <example>
