@@ -342,8 +342,6 @@ namespace Microsoft.ML.Runtime
 
         protected readonly ProgressReporting.ProgressTracker ProgressTracker;
 
-
-
         public ComponentCatalog ComponentCatalog { get; }
 
         public override int Depth => 0;
