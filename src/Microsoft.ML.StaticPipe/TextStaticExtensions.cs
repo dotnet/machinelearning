@@ -162,8 +162,8 @@ namespace Microsoft.ML.StaticPipe
         /// Remove stop words from incoming text.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
-        /// <param name="language">Langauge of the input text.</param>
-        public static VarVector<string> RemoveStopwords(this VarVector<string> input,
+        /// <param name="language">Langauge of the input text. It will be used to retrieve a built-in stopword list.</param>
+        public static VarVector<string> RemoveDefaultStopWords(this VarVector<string> input,
             StopWordsRemovingEstimator.Language language = StopWordsRemovingEstimator.Language.English) => new OutPipelineColumn(input, language);
     }
 

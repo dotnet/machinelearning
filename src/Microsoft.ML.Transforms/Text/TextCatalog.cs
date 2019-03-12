@@ -235,24 +235,6 @@ namespace Microsoft.ML
             => new StopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName, language);
 
         /// <summary>
-        /// Removes stop words from incoming token streams in input columns
-        /// and outputs the token streams without stop words as output columns.
-        /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="columns">Pairs of columns to remove stop words on.</param>
-        /// <param name="language">Langauge of the input text columns <paramref name="columns"/>.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/StopWordRemoverTransform.cs)]
-        /// ]]></format>
-        /// </example>
-        public static StopWordsRemovingEstimator RemoveDefaultStopWords(this TransformsCatalog.TextTransforms catalog,
-            (string outputColumnName, string inputColumnName)[] columns,
-             StopWordsRemovingEstimator.Language language = StopWordsRemovingEstimator.Language.English)
-            => new StopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns, language);
-
-        /// <summary>
         /// Removes stop words from incoming token streams in <paramref name="inputColumnName"/>
         /// and outputs the token streams without stopwords as <paramref name="outputColumnName"/>.
         /// </summary>
@@ -271,24 +253,6 @@ namespace Microsoft.ML
             string inputColumnName = null,
             params string[] stopwords)
             => new CustomStopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName, stopwords);
-
-        /// <summary>
-        /// Removes stop words from incoming token streams in input columns
-        /// and outputs the token streams without stop words as output columns.
-        /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="columns">Pairs of columns to remove stop words on.</param>
-        /// <param name="stopwords">Array of words to remove.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/StopWordRemoverTransform.cs)]
-        /// ]]></format>
-        /// </example>
-        public static CustomStopWordsRemovingEstimator RemoveStopWords(this TransformsCatalog.TextTransforms catalog,
-            (string outputColumnName, string inputColumnName)[] columns,
-             params string[] stopwords)
-            => new CustomStopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns, stopwords);
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumnName"/>

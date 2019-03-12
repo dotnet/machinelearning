@@ -547,7 +547,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (
                     r.label,
                     normalized_text: r.text.NormalizeText(),
-                    words_without_stopwords: r.text.ProduceWordTokens().RemoveStopwords()));
+                    words_without_stopwords: r.text.ProduceWordTokens().RemoveDefaultStopWords()));
 
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
