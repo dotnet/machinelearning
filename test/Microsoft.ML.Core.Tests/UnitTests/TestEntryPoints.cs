@@ -717,9 +717,9 @@ namespace Microsoft.ML.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RandomFourierKernelMappingEstimator(Env, new[] {
-                    new RandomFourierKernelMappingEstimator.ColumnOptions("Features1", 10, false, "Features"),
-                    new RandomFourierKernelMappingEstimator.ColumnOptions("Features2", 10, false, "Features"),
+                data = new ApproximatedKernelMappingEstimator(Env, new[] {
+                    new ApproximatedKernelMappingEstimator.ColumnOptions("Features1", 10, false, "Features"),
+                    new ApproximatedKernelMappingEstimator.ColumnOptions("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
 
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
@@ -1169,9 +1169,9 @@ namespace Microsoft.ML.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RandomFourierKernelMappingEstimator(Env, new[] {
-                    new RandomFourierKernelMappingEstimator.ColumnOptions("Features1", 10, false, "Features"),
-                    new RandomFourierKernelMappingEstimator.ColumnOptions("Features2", 10, false, "Features"),
+                data = new ApproximatedKernelMappingEstimator(Env, new[] {
+                    new ApproximatedKernelMappingEstimator.ColumnOptions("Features1", 10, false, "Features"),
+                    new ApproximatedKernelMappingEstimator.ColumnOptions("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
 

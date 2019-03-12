@@ -1550,7 +1550,7 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    public static class RandomFourierKernelMappingStaticExtenensions
+    public static class ApproximatedKernelMappingStaticExtenensions
     {
         private readonly struct Config
         {
@@ -1591,13 +1591,13 @@ namespace Microsoft.ML.StaticPipe
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
-                var infos = new RandomFourierKernelMappingEstimator.ColumnOptions[toOutput.Length];
+                var infos = new ApproximatedKernelMappingEstimator.ColumnOptions[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IColInput)toOutput[i];
-                    infos[i] = new RandomFourierKernelMappingEstimator.ColumnOptions(outputNames[toOutput[i]], tcol.Config.Rank, tcol.Config.UseCosAndSinBases, inputNames[tcol.Input], tcol.Config.Generator, tcol.Config.Seed);
+                    infos[i] = new ApproximatedKernelMappingEstimator.ColumnOptions(outputNames[toOutput[i]], tcol.Config.Rank, tcol.Config.UseCosAndSinBases, inputNames[tcol.Input], tcol.Config.Generator, tcol.Config.Seed);
                 }
-                return new RandomFourierKernelMappingEstimator(env, infos);
+                return new ApproximatedKernelMappingEstimator(env, infos);
             }
         }
 
@@ -1612,8 +1612,8 @@ namespace Microsoft.ML.StaticPipe
         /// Otherwise, only cos bases would be used.</param>
         /// <param name="generator">Which kernel to use. (if it is null, <see cref="GaussianKernel"/> is used.)</param>
         /// <param name="seed">The seed of the random number generator for generating the new features. If not specified global random would be used.</param>
-        public static Vector<float> RandomFourierKernelMapper(this Vector<float> input,
-            int rank = RandomFourierKernelMappingEstimator.Defaults.Rank, bool useCosAndSinBases = RandomFourierKernelMappingEstimator.Defaults.UseCosAndSinBases,
+        public static Vector<float> ApproximatedKernelMap(this Vector<float> input,
+            int rank = ApproximatedKernelMappingEstimator.Defaults.Rank, bool useCosAndSinBases = ApproximatedKernelMappingEstimator.Defaults.UseCosAndSinBases,
             KernelBase generator = null, int? seed = null)
         {
             Contracts.CheckValue(input, nameof(input));
