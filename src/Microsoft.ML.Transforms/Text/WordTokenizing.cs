@@ -105,7 +105,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private const string RegistrationName = "DelimitedTokenize";
 
-        public IReadOnlyCollection<WordTokenizingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
+        internal IReadOnlyCollection<WordTokenizingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
         private readonly WordTokenizingEstimator.ColumnOptions[] _columns;
 
         private static (string name, string inputColumnName)[] GetColumnPairs(WordTokenizingEstimator.ColumnOptions[] columns)
