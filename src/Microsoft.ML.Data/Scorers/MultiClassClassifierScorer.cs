@@ -429,7 +429,7 @@ namespace Microsoft.ML.Data
             var scoreType = outSchema[scoreIdx].Type;
 
             // Check that the type is vector, and is of compatible size with the score output.
-            return labelNameType is VectorType vectorType && vectorType.Size == scoreType.GetVectorSize();
+            return labelNameType is VectorType vectorType && vectorType.Size == scoreType.GetVectorSize() && vectorType.ItemType == TextDataViewType.Instance;
         }
 
         internal static ISchemaBoundMapper WrapCore<T>(IHostEnvironment env, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)

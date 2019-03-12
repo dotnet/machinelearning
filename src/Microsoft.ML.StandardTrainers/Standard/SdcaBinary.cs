@@ -1512,20 +1512,6 @@ namespace Microsoft.ML.Trainers
 
         private protected abstract SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape();
 
-        private protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
-        {
-            Contracts.Assert(labelCol.IsValid);
-
-            Action error =
-                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", labelCol.Name, "float, double, bool or KeyType", labelCol.GetTypeString());
-
-            if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
-                error();
-
-            if (!labelCol.IsKey && labelCol.ItemType != NumberDataViewType.Single && labelCol.ItemType != NumberDataViewType.Double && !(labelCol.ItemType is BooleanDataViewType))
-                error();
-        }
-
         private protected LinearBinaryModelParameters CreateLinearBinaryModelParameters(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));

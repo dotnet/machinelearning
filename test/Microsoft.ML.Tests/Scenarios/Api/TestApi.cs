@@ -174,10 +174,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var dataFile = GetDataPath("breast-cancer.txt");
             var loader = TextLoader.Create(mlContext, new TextLoader.Options(), new MultiFileSource(dataFile));
             var globalCounter = 0;
-            var xf = LambdaTransform.CreateFilter<object, object>(mlContext, loader,
+            IDataView xf = LambdaTransform.CreateFilter<object, object>(mlContext, loader,
                 (i, s) => true,
                 s => { globalCounter++; });
-
+            xf = mlContext.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean).Fit(xf).Transform(xf);
             // The baseline result of this was generated with everything cached in memory. As auto-cache is removed,
             // an explicit step of caching is required to make this test ok.
             var cached = mlContext.Data.Cache(xf);
@@ -295,7 +295,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void TestTrainTestSplit()
         {
             var mlContext = new MLContext(0);
-            
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             // Create the reader: define the data columns and where to find them in the text file.
             var input = mlContext.Data.LoadFromTextFile(dataPath, new[] {

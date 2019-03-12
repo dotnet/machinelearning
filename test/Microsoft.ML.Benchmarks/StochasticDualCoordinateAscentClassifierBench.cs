@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -71,6 +71,7 @@ namespace Microsoft.ML.Benchmarks
             IDataView data = loader.Load(dataPath);
 
             var pipeline = new ColumnConcatenatingEstimator(mlContext, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
             return pipeline.Fit(data);
@@ -103,8 +104,10 @@ namespace Microsoft.ML.Benchmarks
                 UseWordExtractor = false,
             }, "SentimentText").Fit(loader).Transform(loader);
 
-            var trans = mlContext.Transforms.Text.ApplyWordEmbedding("Features", "WordEmbeddings_TransformedText", 
-                WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding).Fit(text).Transform(text);
+            var trans = mlContext.Transforms.Text.ApplyWordEmbedding("Features", "WordEmbeddings_TransformedText",
+                WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
+                .Fit(text).Transform(text);
 
             // Train
             var trainer = mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent();

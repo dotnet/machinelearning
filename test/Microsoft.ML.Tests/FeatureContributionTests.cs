@@ -109,7 +109,7 @@ namespace Microsoft.ML.Tests
         {
             TestFeatureContribution(ML.Ranking.Trainers.LightGbm(), GetSparseDataset(TaskType.Ranking, 100), "LightGbmRanking");
         }
-        
+
         // Tests for binary classification trainers that implement IFeatureContributionMapper interface.
         [Fact]
         public void TestAveragePerceptronBinary()
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Tests
         public void TestSGDBinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticGradientDescent(
-                new SgdBinaryTrainer.Options { NumberOfThreads = 1}),
+                new SgdBinaryTrainer.Options { NumberOfThreads = 1 }),
                 GetSparseDataset(TaskType.BinaryClassification, 100), "SGDBinary");
         }
 
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Tests
             int precision = 6)
         {
             // Train the model.
-                var model = trainer.Fit(data);
+            var model = trainer.Fit(data);
 
             // Extract the predictor, check that it supports feature contribution.
             var predictor = model.Model as ICalculateFeatureContribution;
@@ -274,8 +274,13 @@ namespace Microsoft.ML.Tests
             var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2VBuffer", "X3Important")
                 .Append(ML.Transforms.Normalize("Features"));
 
-            // Create a keytype for Ranking
-            if (task == TaskType.Ranking)
+            if (task == TaskType.BinaryClassification)
+                return pipeline.Append(ML.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean))
+                    .Fit(srcDV).Transform(srcDV);
+            else if (task == TaskType.MulticlassClassification)
+                return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("Label"))
+                    .Fit(srcDV).Transform(srcDV);
+            else if (task == TaskType.Ranking)
                 return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("GroupId"))
                     .Fit(srcDV).Transform(srcDV);
 

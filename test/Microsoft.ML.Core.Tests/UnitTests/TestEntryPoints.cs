@@ -972,8 +972,9 @@ namespace Microsoft.ML.RunTests
                 var data = splitOutput.TrainData[i];
                 if (i % 2 == 0)
                 {
-                    data = new TextFeaturizingEstimator(Env, "Features", new List<string> { "Text" }, 
-                        new TextFeaturizingEstimator.Options { 
+                    data = new TextFeaturizingEstimator(Env, "Features", new List<string> { "Text" },
+                        new TextFeaturizingEstimator.Options
+                        {
                             UseStopRemover = true,
                         }).Fit(data).Transform(data);
                 }
@@ -2015,13 +2016,23 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointBinaryEnsemble()
         {
-            TestEntryPointRoutine("iris.txt", "Trainers.EnsembleBinaryClassifier");
+            TestEntryPointRoutine("iris.txt", "Trainers.EnsembleBinaryClassifier", xfNames:
+                new[] { "Transforms.ColumnTypeConverter" },
+                xfArgs:
+                new[] {
+                    @"'Column': [{'Name': 'Label','Source': 'Label','Type': 'BL'}]"
+                });
         }
 
         [Fact]
         public void EntryPointClassificationEnsemble()
         {
-            TestEntryPointRoutine("iris.txt", "Trainers.EnsembleClassification");
+            TestEntryPointRoutine("iris.txt", "Trainers.EnsembleClassification", xfNames:
+                new[] { "Transforms.TextToKeyConverter" },
+                xfArgs:
+                new[] {
+                    @"'Column': [{'Name': 'Label','Source': 'Label'}]"
+                });
         }
 
         [Fact]
@@ -2352,10 +2363,29 @@ namespace Microsoft.ML.RunTests
             cmd.Run();
         }
 
-        internal void TestEntryPointRoutine(string dataFile, string trainerName, string loader = null, string trainerArgs = null)
+        internal void TestEntryPointRoutine(string dataFile, string trainerName, string loader = null, string trainerArgs = null, string[] xfNames = null, string[] xfArgs = null)
         {
             var dataPath = GetDataPath(dataFile);
             var outputPath = DeleteOutputPath("model.zip");
+            string xfTemplate =
+               @"'Name': '{0}',
+                    'Inputs': {{
+                      'Data': '$data{1}',
+                      {2},
+                    }},
+                    'Outputs': {{
+                      'OutputData': '$data{3}'
+                    }}";
+            var transforms = "";
+
+            for (int i = 0; i < Utils.Size(xfNames); i++)
+            {
+                transforms =
+                    $@"{transforms}
+                       {{
+                         {string.Format(xfTemplate, xfNames[i], i + 1, xfArgs[i], i + 2)}
+                       }},";
+            }
             string inputGraph = string.Format(@"
                 {{
                   'Nodes': [
@@ -2369,10 +2399,11 @@ namespace Microsoft.ML.RunTests
                         'Data': '$data1'
                       }}
                     }},
+                    {5}
                     {{
                       'Name': '{2}',
                       'Inputs': {{
-                        'TrainingData': '$data1'
+                        'TrainingData': '$data{6}'
                          {4}
                       }},
                       'Outputs': {{
@@ -2387,9 +2418,11 @@ namespace Microsoft.ML.RunTests
                     'model' : '{1}'
                   }}
                 }}", EscapePath(dataPath), EscapePath(outputPath), trainerName,
-                string.IsNullOrWhiteSpace(loader) ? "" : string.Format(",'CustomSchema': 'sparse+ {0}'", loader),
-                string.IsNullOrWhiteSpace(trainerArgs) ? "" : trainerArgs
-                );
+            string.IsNullOrWhiteSpace(loader) ? "" : string.Format(",'CustomSchema': 'sparse+ {0}'", loader),
+            string.IsNullOrWhiteSpace(trainerArgs) ? "" : trainerArgs,
+            transforms,
+            xfNames != null ? xfNames.Length + 1 : 1
+            );
 
             var jsonPath = DeleteOutputPath("graph.json");
             File.WriteAllLines(jsonPath, new[] { inputGraph });
@@ -2952,8 +2985,8 @@ namespace Microsoft.ML.RunTests
 
             var metrics = runner.GetOutput<IDataView>("OverallMetrics");
 
-            Action<IDataView> validateAuc = (metricsIdv) => 
-            { 
+            Action<IDataView> validateAuc = (metricsIdv) =>
+            {
                 Assert.NotNull(metricsIdv);
                 using (var cursor = metricsIdv.GetRowCursorForAllColumns())
                 {
@@ -3143,8 +3176,8 @@ namespace Microsoft.ML.RunTests
 
             var metrics = runner.GetOutput<IDataView>("OverallMetrics");
 
-            Action<IDataView> aucValidate = (metricsIdv) => 
-            { 
+            Action<IDataView> aucValidate = (metricsIdv) =>
+            {
                 Assert.NotNull(metricsIdv);
                 using (var cursor = metrics.GetRowCursorForAllColumns())
                 {

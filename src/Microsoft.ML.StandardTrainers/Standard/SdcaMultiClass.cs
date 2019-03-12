@@ -121,19 +121,6 @@ namespace Microsoft.ML.Trainers
             };
         }
 
-        private protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
-        {
-            Contracts.Assert(labelCol.IsValid);
-
-            Action error =
-                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", labelCol.Name, "float, double or KeyType", labelCol.GetTypeString());
-
-            if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
-                error();
-            if (!labelCol.IsKey && labelCol.ItemType != NumberDataViewType.Single && labelCol.ItemType != NumberDataViewType.Double)
-                error();
-        }
-
         /// <inheritdoc/>
         private protected override void TrainWithoutLock(IProgressChannelProvider progress, FloatLabelCursor.Factory cursorFactory, Random rand,
             IdToIdxLookup idToIdx, int numThreads, DualsTableBase duals, float[] biasReg, float[] invariants, float lambdaNInv,
