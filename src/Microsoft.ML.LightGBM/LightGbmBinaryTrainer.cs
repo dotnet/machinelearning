@@ -12,9 +12,9 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 
-[assembly: LoadableClass(LightGbmBinaryTrainer.Summary, typeof(LightGbmBinaryTrainer), typeof(Options),
+[assembly: LoadableClass(LightGbmBinaryClassificationTrainer.Summary, typeof(LightGbmBinaryClassificationTrainer), typeof(Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
-    LightGbmBinaryTrainer.UserName, LightGbmBinaryTrainer.LoadNameValue, LightGbmBinaryTrainer.ShortName, DocName = "trainer/LightGBM.md")]
+    LightGbmBinaryClassificationTrainer.UserName, LightGbmBinaryClassificationTrainer.LoadNameValue, LightGbmBinaryClassificationTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
 [assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(LightGbmBinaryModelParameters), null, typeof(SignatureLoadModel),
     "LightGBM Binary Executor",
@@ -84,7 +84,7 @@ namespace Microsoft.ML.LightGBM
     /// The <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree binary classification model using LightGBM.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM_remarks"]/*' />
-    public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<float,
+    public sealed class LightGbmBinaryClassificationTrainer : LightGbmTrainerBase<float,
         BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>
     {
@@ -95,13 +95,13 @@ namespace Microsoft.ML.LightGBM
 
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        internal LightGbmBinaryTrainer(IHostEnvironment env, Options options)
+        internal LightGbmBinaryClassificationTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LightGbmBinaryTrainer"/>
+        /// Initializes a new instance of <see cref="LightGbmBinaryClassificationTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumnName">The name of The label column.</param>
@@ -111,7 +111,7 @@ namespace Microsoft.ML.LightGBM
         /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="numberOfIterations">Number of iterations.</param>
-        internal LightGbmBinaryTrainer(IHostEnvironment env,
+        internal LightGbmBinaryClassificationTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -167,7 +167,7 @@ namespace Microsoft.ML.LightGBM
          => new BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Trains a <see cref="LightGbmBinaryTrainer"/> using both training and validation data, returns
+        /// Trains a <see cref="LightGbmBinaryClassificationTrainer"/> using both training and validation data, returns
         /// a <see cref="BinaryPredictionTransformer{CalibratedModelParametersBase}"/>.
         /// </summary>
         public BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> Fit(IDataView trainData, IDataView validationData)
@@ -181,9 +181,9 @@ namespace Microsoft.ML.LightGBM
     {
         [TlcModule.EntryPoint(
             Name = "Trainers.LightGbmBinaryClassifier",
-            Desc = LightGbmBinaryTrainer.Summary,
-            UserName = LightGbmBinaryTrainer.UserName,
-            ShortName = LightGbmBinaryTrainer.ShortName)]
+            Desc = LightGbmBinaryClassificationTrainer.Summary,
+            UserName = LightGbmBinaryClassificationTrainer.UserName,
+            ShortName = LightGbmBinaryClassificationTrainer.ShortName)]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -192,7 +192,7 @@ namespace Microsoft.ML.LightGBM
             EntryPointUtils.CheckInputArgs(host, input);
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new LightGbmBinaryTrainer(host, input),
+                () => new LightGbmBinaryClassificationTrainer(host, input),
                 getLabel: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }

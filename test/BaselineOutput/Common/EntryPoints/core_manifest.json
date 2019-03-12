@@ -11376,7 +11376,7 @@
         {
           "Name": "Sigmoid",
           "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
+          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryClassificationTrainer, LightGbmMulticlassClassificationTrainer and in LightGbmRankingTrainer.",
           "Aliases": [
             "sigmoid"
           ],
@@ -11879,7 +11879,7 @@
         {
           "Name": "Sigmoid",
           "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
+          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryClassificationTrainer, LightGbmMulticlassClassificationTrainer and in LightGbmRankingTrainer.",
           "Aliases": [
             "sigmoid"
           ],
@@ -12382,7 +12382,7 @@
         {
           "Name": "Sigmoid",
           "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
+          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryClassificationTrainer, LightGbmMulticlassClassificationTrainer and in LightGbmRankingTrainer.",
           "Aliases": [
             "sigmoid"
           ],
@@ -12885,7 +12885,7 @@
         {
           "Name": "Sigmoid",
           "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
+          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryClassificationTrainer, LightGbmMulticlassClassificationTrainer and in LightGbmRankingTrainer.",
           "Aliases": [
             "sigmoid"
           ],

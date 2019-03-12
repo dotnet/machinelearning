@@ -14,9 +14,9 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 
-[assembly: LoadableClass(LightGbmMulticlassTrainer.Summary, typeof(LightGbmMulticlassTrainer), typeof(Options),
+[assembly: LoadableClass(LightGbmMulticlassClassificationTrainer.Summary, typeof(LightGbmMulticlassClassificationTrainer), typeof(Options),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
-    "LightGBM Multi-class Classifier", LightGbmMulticlassTrainer.LoadNameValue, LightGbmMulticlassTrainer.ShortName, DocName = "trainer/LightGBM.md")]
+    "LightGBM Multi-class Classifier", LightGbmMulticlassClassificationTrainer.LoadNameValue, LightGbmMulticlassClassificationTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
 namespace Microsoft.ML.LightGBM
 {
@@ -24,7 +24,7 @@ namespace Microsoft.ML.LightGBM
     /// The <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree multi-class classification model using LightGBM.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM_remarks"]/*' />
-    public sealed class LightGbmMulticlassTrainer : LightGbmTrainerBase<VBuffer<float>, MulticlassPredictionTransformer<OneVersusAllModelParameters>, OneVersusAllModelParameters>
+    public sealed class LightGbmMulticlassClassificationTrainer : LightGbmTrainerBase<VBuffer<float>, MulticlassPredictionTransformer<OneVersusAllModelParameters>, OneVersusAllModelParameters>
     {
         internal const string Summary = "LightGBM Multi Class Classifier";
         internal const string LoadNameValue = "LightGBMMulticlass";
@@ -36,14 +36,14 @@ namespace Microsoft.ML.LightGBM
         private int _tlcNumClass;
         private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        internal LightGbmMulticlassTrainer(IHostEnvironment env, Options options)
+        internal LightGbmMulticlassClassificationTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
         {
             _numClass = -1;
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LightGbmMulticlassTrainer"/>
+        /// Initializes a new instance of <see cref="LightGbmMulticlassClassificationTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumnName">The name of The label column.</param>
@@ -53,7 +53,7 @@ namespace Microsoft.ML.LightGBM
         /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="numberOfIterations">The number of iterations to use.</param>
-        internal LightGbmMulticlassTrainer(IHostEnvironment env,
+        internal LightGbmMulticlassClassificationTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -225,7 +225,7 @@ namespace Microsoft.ML.LightGBM
             => new MulticlassPredictionTransformer<OneVersusAllModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
         /// <summary>
-        /// Trains a <see cref="LightGbmMulticlassTrainer"/> using both training and validation data, returns
+        /// Trains a <see cref="LightGbmMulticlassClassificationTrainer"/> using both training and validation data, returns
         /// a <see cref="MulticlassPredictionTransformer{OneVsAllModelParameters}"/>.
         /// </summary>
         public MulticlassPredictionTransformer<OneVersusAllModelParameters> Fit(IDataView trainData, IDataView validationData)
@@ -240,8 +240,8 @@ namespace Microsoft.ML.LightGBM
         [TlcModule.EntryPoint(
             Name = "Trainers.LightGbmClassifier",
             Desc = "Train a LightGBM multi class model.",
-            UserName = LightGbmMulticlassTrainer.Summary,
-            ShortName = LightGbmMulticlassTrainer.ShortName)]
+            UserName = LightGbmMulticlassClassificationTrainer.Summary,
+            ShortName = LightGbmMulticlassClassificationTrainer.ShortName)]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -250,7 +250,7 @@ namespace Microsoft.ML.LightGBM
             EntryPointUtils.CheckInputArgs(host, input);
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
-                () => new LightGbmMulticlassTrainer(host, input),
+                () => new LightGbmMulticlassClassificationTrainer(host, input),
                 getLabel: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }

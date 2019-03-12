@@ -20,12 +20,12 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
 
-[assembly: LoadableClass(typeof(MulticlassLogisticRegression), typeof(MulticlassLogisticRegression.Options),
+[assembly: LoadableClass(typeof(LogisticRegressionMulticlassClassificationTrainer), typeof(LogisticRegressionMulticlassClassificationTrainer.Options),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
-    MulticlassLogisticRegression.UserNameValue,
-    MulticlassLogisticRegression.LoadNameValue,
+    LogisticRegressionMulticlassClassificationTrainer.UserNameValue,
+    LogisticRegressionMulticlassClassificationTrainer.LoadNameValue,
     "MulticlassLogisticRegressionPredictorNew",
-    MulticlassLogisticRegression.ShortName,
+    LogisticRegressionMulticlassClassificationTrainer.ShortName,
     "multilr")]
 
 [assembly: LoadableClass(typeof(MulticlassLogisticRegressionModelParameters), null, typeof(SignatureLoadModel),
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Trainers
 {
     /// <include file = 'doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file = 'doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
-    public sealed class MulticlassLogisticRegression : LbfgsTrainerBase<MulticlassLogisticRegression.Options,
+    public sealed class LogisticRegressionMulticlassClassificationTrainer : LbfgsTrainerBase<LogisticRegressionMulticlassClassificationTrainer.Options,
         MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
     {
         internal const string LoadNameValue = "MultiClassLogisticRegression";
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Trainers
         private protected override int ClassCount => _numClasses;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="MulticlassLogisticRegression"/>
+        /// Initializes a new instance of <see cref="LogisticRegressionMulticlassClassificationTrainer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column.</param>
@@ -81,9 +81,9 @@ namespace Microsoft.ML.Trainers
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
-        /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="LogisticRegressionBinaryClassificationTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        internal MulticlassLogisticRegression(IHostEnvironment env,
+        internal LogisticRegressionMulticlassClassificationTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
@@ -101,9 +101,9 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="MulticlassLogisticRegression"/>
+        /// Initializes a new instance of <see cref="LogisticRegressionMulticlassClassificationTrainer"/>
         /// </summary>
-        internal MulticlassLogisticRegression(IHostEnvironment env, Options options)
+        internal LogisticRegressionMulticlassClassificationTrainer(IHostEnvironment env, Options options)
             : base(env, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
         {
             ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStatistics;
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Trainers
             => new MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
         /// <summary>
-        /// Continues the training of a <see cref="MulticlassLogisticRegression"/> using an already trained <paramref name="modelParameters"/> and returns
+        /// Continues the training of a <see cref="LogisticRegressionMulticlassClassificationTrainer"/> using an already trained <paramref name="modelParameters"/> and returns
         /// a <see cref="MulticlassPredictionTransformer{MulticlassLogisticRegressionModelParameters}"/>.
         /// </summary>
         public MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> Fit(IDataView trainData, MulticlassLogisticRegressionModelParameters modelParameters)
@@ -430,7 +430,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MulticlassLogisticRegressionModelParameters"/> class.
-        /// This constructor is called by <see cref="SdcaMultiClassTrainer"/> to create the predictor.
+        /// This constructor is called by <see cref="SdcaMulticlassClassificationTrainer"/> to create the predictor.
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="weights">The array of weights vectors. It should contain <paramref name="numClasses"/> weights.</param>
@@ -780,7 +780,7 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
-            writer.WriteLine(nameof(MulticlassLogisticRegression) + " bias and non-zero weights");
+            writer.WriteLine(nameof(LogisticRegressionMulticlassClassificationTrainer) + " bias and non-zero weights");
 
             foreach (var namedValues in ((ICanGetSummaryInKeyValuePairs)this).GetSummaryInKeyValuePairs(schema))
             {
@@ -1005,21 +1005,21 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// A component to train a logistic regression model.
     /// </summary>
-    public partial class LogisticRegression
+    public partial class LogisticRegressionBinaryClassificationTrainer
     {
         [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionClassifier",
             Desc = Summary,
-            UserName = MulticlassLogisticRegression.UserNameValue,
-            ShortName = MulticlassLogisticRegression.ShortName)]
-        internal static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, MulticlassLogisticRegression.Options input)
+            UserName = LogisticRegressionMulticlassClassificationTrainer.UserNameValue,
+            ShortName = LogisticRegressionMulticlassClassificationTrainer.ShortName)]
+        internal static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, LogisticRegressionMulticlassClassificationTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLRMultiClass");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<MulticlassLogisticRegression.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
-                () => new MulticlassLogisticRegression(host, input),
+            return TrainerEntryPointsUtils.Train<LogisticRegressionMulticlassClassificationTrainer.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
+                () => new LogisticRegressionMulticlassClassificationTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }

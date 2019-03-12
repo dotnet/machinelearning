@@ -39,7 +39,7 @@ namespace Microsoft.ML.Scenarios
                     .Append(new ColumnConcatenatingEstimator(mlContext, "Features", "Output"))
                     .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
                     .AppendCacheCheckpoint(mlContext)
-                    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
+                    .Append(mlContext.MulticlassClassification.Trainers.Sdca());
 
 
             var transformer = pipeEstimator.Fit(data);

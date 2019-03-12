@@ -1426,8 +1426,8 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// SDCA is a general training algorithm for (generalized) linear models such as support vector machine, linear regression, logistic regression,
     /// and so on. SDCA binary classification trainer family includes several sealed members:
-    /// (1) <see cref="SdcaNonCalibratedBinaryTrainer"/> supports general loss functions and returns <see cref="LinearBinaryModelParameters"/>.
-    /// (2) <see cref="SdcaBinaryTrainer"/> essentially trains a regularized logistic regression model. Because logistic regression
+    /// (1) <see cref="SdcaNonCalibratedBinaryClassificationTrainer"/> supports general loss functions and returns <see cref="LinearBinaryModelParameters"/>.
+    /// (2) <see cref="SdcaCalibratedBinaryClassificationTrainer"/> essentially trains a regularized logistic regression model. Because logistic regression
     /// naturally provide probability output, this generated model's type is <see cref="CalibratedModelParametersBase{TSubModel, TCalibrator}"/>.
     /// where <see langword="TSubModel"/> is <see cref="LinearBinaryModelParameters"/> and <see langword="TCalibrator "/> is <see cref="PlattCalibrator"/>.
     /// </summary>
@@ -1547,17 +1547,17 @@ namespace Microsoft.ML.Trainers
     /// linear function to a <see cref="PlattCalibrator"/>.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
-    public sealed class SdcaBinaryTrainer :
+    public sealed class SdcaCalibratedBinaryClassificationTrainer :
         SdcaBinaryTrainerBase<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
-        /// Options for the <see cref="SdcaBinaryTrainer"/>.
+        /// Options for the <see cref="SdcaCalibratedBinaryClassificationTrainer"/>.
         /// </summary>
         public sealed class Options : BinaryOptionsBase
         {
         }
 
-        internal SdcaBinaryTrainer(IHostEnvironment env,
+        internal SdcaCalibratedBinaryClassificationTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string weightColumnName = null,
@@ -1568,7 +1568,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        internal SdcaBinaryTrainer(IHostEnvironment env, Options options)
+        internal SdcaCalibratedBinaryClassificationTrainer(IHostEnvironment env, Options options)
             : base(env, options, new LogLoss())
         {
         }
@@ -1611,10 +1611,10 @@ namespace Microsoft.ML.Trainers
     /// The <see cref="IEstimator{TTransformer}"/> for training a binary logistic regression classification model using the stochastic dual coordinate ascent method.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
-    public sealed class SdcaNonCalibratedBinaryTrainer : SdcaBinaryTrainerBase<LinearBinaryModelParameters>
+    public sealed class SdcaNonCalibratedBinaryClassificationTrainer : SdcaBinaryTrainerBase<LinearBinaryModelParameters>
     {
         /// <summary>
-        /// Options for the <see cref="SdcaNonCalibratedBinaryTrainer"/>.
+        /// Options for the <see cref="SdcaNonCalibratedBinaryClassificationTrainer"/>.
         /// </summary>
         public sealed class Options : BinaryOptionsBase
         {
@@ -1636,7 +1636,7 @@ namespace Microsoft.ML.Trainers
             public ISupportSdcaClassificationLoss LossFunction { get; set; }
         }
 
-        internal SdcaNonCalibratedBinaryTrainer(IHostEnvironment env,
+        internal SdcaNonCalibratedBinaryClassificationTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string weightColumnName = null,
@@ -1648,7 +1648,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        internal SdcaNonCalibratedBinaryTrainer(IHostEnvironment env, Options options)
+        internal SdcaNonCalibratedBinaryClassificationTrainer(IHostEnvironment env, Options options)
             : base(env, options, options.LossFunction ?? options.LossFunctionFactory.CreateComponent(env))
         {
         }
@@ -1674,7 +1674,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Comparing with <see cref="SdcaBinaryTrainer.CreatePredictor(VBuffer{float}[], float[])"/>,
+        /// Comparing with <see cref="SdcaCalibratedBinaryClassificationTrainer.CreatePredictor(VBuffer{float}[], float[])"/>,
         /// <see cref="CreatePredictor"/> directly outputs a <see cref="LinearBinaryModelParameters"/> built from
         /// the learned weights and bias without calibration.
         /// </summary>
@@ -1941,7 +1941,7 @@ namespace Microsoft.ML.Trainers
             => new BinaryPredictionTransformer<TModel>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Continues the training of a <see cref="SdcaBinaryTrainer"/> using an already trained <paramref name="modelParameters"/> and returns a <see cref="BinaryPredictionTransformer"/>.
+        /// Continues the training of a <see cref="SdcaCalibratedBinaryClassificationTrainer"/> using an already trained <paramref name="modelParameters"/> and returns a <see cref="BinaryPredictionTransformer"/>.
         /// </summary>
         public BinaryPredictionTransformer<TModel> Fit(IDataView trainData, LinearModelParameters modelParameters)
             => TrainTransformer(trainData, initPredictor: modelParameters);
@@ -2176,17 +2176,17 @@ namespace Microsoft.ML.Trainers
     /// that supports multi-threading without any locking. If the associated optimization problem is sparse, Hogwild SGD achieves a nearly optimal
     /// rate of convergence. For more details about Hogwild SGD, please refer to http://arxiv.org/pdf/1106.5730v2.pdf.
     /// </remarks>
-    public sealed class SgdBinaryTrainer :
+    public sealed class SgdCalibratedTrainer :
         SgdBinaryTrainerBase<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
-        /// Options for the <see cref="SgdBinaryTrainer"/>.
+        /// Options for the <see cref="SgdCalibratedTrainer"/>.
         /// </summary>
         public sealed class Options : OptionsBase
         {
         }
 
-        internal SgdBinaryTrainer(IHostEnvironment env,
+        internal SgdCalibratedTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
@@ -2202,7 +2202,7 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        internal SgdBinaryTrainer(IHostEnvironment env, Options options)
+        internal SgdCalibratedTrainer(IHostEnvironment env, Options options)
             : base(env, options, loss: new LogLoss(), doCalibration: false)
         {
         }
@@ -2236,10 +2236,10 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// <see cref="SgdNonCalibratedBinaryTrainer"/> can train a linear classification model by minimizing any loss function
+    /// <see cref="SgdNonCalibratedTrainer"/> can train a linear classification model by minimizing any loss function
     /// which implements <see cref="IClassificationLoss"/>.
     /// </summary>
-    public sealed class SgdNonCalibratedBinaryTrainer :
+    public sealed class SgdNonCalibratedTrainer :
         SgdBinaryTrainerBase<LinearBinaryModelParameters>
     {
         public sealed class Options : OptionsBase
@@ -2251,7 +2251,7 @@ namespace Microsoft.ML.Trainers
             public IClassificationLoss Loss = new LogLoss();
         }
 
-        internal SgdNonCalibratedBinaryTrainer(IHostEnvironment env,
+        internal SgdNonCalibratedTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
@@ -2264,11 +2264,11 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SgdNonCalibratedBinaryTrainer"/>
+        /// Initializes a new instance of <see cref="SgdNonCalibratedTrainer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        internal SgdNonCalibratedBinaryTrainer(IHostEnvironment env, Options options)
+        internal SgdNonCalibratedTrainer(IHostEnvironment env, Options options)
             : base(env, options, loss: options.Loss, doCalibration: false)
         {
         }

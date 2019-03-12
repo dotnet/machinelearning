@@ -14,7 +14,7 @@ namespace Microsoft.ML
     public static class LightGbmExtensions
     {
         /// <summary>
-        /// Predict a target using a gradient boosting decision tree regression model trained with the <see cref="LightGbmRegressorTrainer"/>.
+        /// Predict a target using a gradient boosting decision tree regression model trained with the <see cref="LightGbmRegressionTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -31,7 +31,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static LightGbmRegressorTrainer LightGbm(this RegressionCatalog.RegressionTrainers catalog,
+        public static LightGbmRegressionTrainer LightGbm(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -42,11 +42,11 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LightGbmRegressorTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations);
+            return new LightGbmRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations);
         }
 
         /// <summary>
-        /// Predict a target using a gradient boosting decision tree regression model trained with the <see cref="LightGbmRegressorTrainer"/> and advanced options.
+        /// Predict a target using a gradient boosting decision tree regression model trained with the <see cref="LightGbmRegressionTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
@@ -57,16 +57,16 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static LightGbmRegressorTrainer LightGbm(this RegressionCatalog.RegressionTrainers catalog,
+        public static LightGbmRegressionTrainer LightGbm(this RegressionCatalog.RegressionTrainers catalog,
             Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LightGbmRegressorTrainer(env, options);
+            return new LightGbmRegressionTrainer(env, options);
         }
 
         /// <summary>
-        /// Predict a target using a gradient boosting decision tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/>.
+        /// Predict a target using a gradient boosting decision tree binary classification model trained with the <see cref="LightGbmBinaryClassificationTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -83,7 +83,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static LightGbmBinaryTrainer LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static LightGbmBinaryClassificationTrainer LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -94,11 +94,11 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LightGbmBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations);
+            return new LightGbmBinaryClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations);
         }
 
         /// <summary>
-        /// Predict a target using a gradient boosting decision tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/> and advanced options.
+        /// Predict a target using a gradient boosting decision tree binary classification model trained with the <see cref="LightGbmBinaryClassificationTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
@@ -109,12 +109,12 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static LightGbmBinaryTrainer LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static LightGbmBinaryClassificationTrainer LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LightGbmBinaryTrainer(env, options);
+            return new LightGbmBinaryClassificationTrainer(env, options);
         }
 
         /// <summary>
@@ -172,7 +172,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a gradient boosting decision tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/>.
+        /// Predict a target using a gradient boosting decision tree multiclass classification model trained with the <see cref="LightGbmMulticlassClassificationTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -189,7 +189,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static LightGbmMulticlassTrainer LightGbm(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        public static LightGbmMulticlassClassificationTrainer LightGbm(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -200,11 +200,11 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LightGbmMulticlassTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations);
+            return new LightGbmMulticlassClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations);
         }
 
         /// <summary>
-        /// Predict a target using a gradient boosting decision tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/> and advanced options.
+        /// Predict a target using a gradient boosting decision tree multiclass classification model trained with the <see cref="LightGbmMulticlassClassificationTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
@@ -215,12 +215,12 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static LightGbmMulticlassTrainer LightGbm(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        public static LightGbmMulticlassClassificationTrainer LightGbm(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LightGbmMulticlassTrainer(env, options);
+            return new LightGbmMulticlassClassificationTrainer(env, options);
         }
     }
 }

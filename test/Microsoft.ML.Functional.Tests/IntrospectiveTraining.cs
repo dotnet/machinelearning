@@ -38,7 +38,7 @@ namespace Microsoft.ML.Functional.Tests
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
                 .Append(mlContext.Regression.Trainers.FastForest(
-                    new FastForestRegression.Options { NumberOfLeaves = 5, NumberOfTrees = 3, NumberOfThreads = 1 }));
+                    new FastForestRegressionTrainer.Options { NumberOfLeaves = 5, NumberOfTrees = 3, NumberOfThreads = 1 }));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
@@ -142,8 +142,8 @@ namespace Microsoft.ML.Functional.Tests
 
             // Compose the transformation.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
-                .Append(mlContext.Regression.Trainers.GeneralizedAdditiveModels(
-                    new RegressionGamTrainer.Options { NumberOfIterations = 100, NumberOfThreads = 1 }));
+                .Append(mlContext.Regression.Trainers.Gam(
+                    new GamRegressionTrainer.Options { NumberOfIterations = 100, NumberOfThreads = 1 }));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
@@ -216,8 +216,8 @@ namespace Microsoft.ML.Functional.Tests
             // Create a training pipeline.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1 }));
+                .Append(mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(
+                    new SdcaNonCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1 }));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
@@ -421,9 +421,9 @@ namespace Microsoft.ML.Functional.Tests
         {
             return mlContext.Transforms.Concatenate("LabelAndFeatures", "Label", "Features")
                 .Append(mlContext.Clustering.Trainers.KMeans(
-                    new KMeansPlusPlusTrainer.Options
+                    new KMeansTrainer.Options
                     {
-                        InitializationAlgorithm = KMeansPlusPlusTrainer.InitializationAlgorithm.Random,
+                        InitializationAlgorithm = KMeansTrainer.InitializationAlgorithm.Random,
                         NumberOfClusters = 4,
                         MaximumNumberOfIterations = 10,
                         NumberOfThreads = 1
@@ -433,8 +433,8 @@ namespace Microsoft.ML.Functional.Tests
         private IEstimator<TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>>> StepTwo(MLContext mlContext)
         {
             return mlContext.Transforms.Conversion.MapValueToKey("Label")
-                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
-                new SdcaMultiClassTrainer.Options {
+                .Append(mlContext.MulticlassClassification.Trainers.Sdca(
+                new SdcaMulticlassClassificationTrainer.Options {
                     MaximumNumberOfIterations = 10,
                     NumberOfThreads = 1 }));
         }

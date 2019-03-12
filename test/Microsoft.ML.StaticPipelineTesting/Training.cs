@@ -118,7 +118,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.Sdca(r.label, r.features, null,
-                    new SdcaBinaryTrainer.Options { MaximumNumberOfIterations = 2, NumberOfThreads = 1 },
+                    new SdcaCalibratedBinaryClassificationTrainer.Options { MaximumNumberOfIterations = 2, NumberOfThreads = 1 },
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -198,7 +198,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.SdcaNonCalibrated(r.label, r.features, null, loss,
-                new SdcaNonCalibratedBinaryTrainer.Options { MaximumNumberOfIterations = 2, NumberOfThreads = 1 },
+                new SdcaNonCalibratedBinaryClassificationTrainer.Options { MaximumNumberOfIterations = 2, NumberOfThreads = 1 },
                 onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -618,7 +618,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: catalog.Trainers.PoissonRegression(r.label, r.features, null,
-                                new PoissonRegression.Options { L2Regularization = 2, EnforceNonNegativity = true, NumberOfThreads = 1 },
+                                new PoissonRegressionTrainer.Options { L2Regularization = 2, EnforceNonNegativity = true, NumberOfThreads = 1 },
                                 onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -655,7 +655,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.LogisticRegressionBinaryClassifier(r.label, r.features, null,
-                                    new LogisticRegression.Options { L1Regularization = 10, NumberOfThreads = 1 }, onFit: (p) => { pred = p; })));
+                                    new LogisticRegressionBinaryClassificationTrainer.Options { L1Regularization = 10, NumberOfThreads = 1 }, onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 
@@ -695,7 +695,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                     r.label,
                     r.features,
                     null,
-                    new MulticlassLogisticRegression.Options { NumberOfThreads = 1 },
+                    new LogisticRegressionMulticlassClassificationTrainer.Options { NumberOfThreads = 1 },
                     onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -784,7 +784,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                                 (
                                     r.features,
                                     null,
-                                    options: new KMeansPlusPlusTrainer.Options
+                                    options: new KMeansTrainer.Options
                                     {
                                         NumberOfClusters = 3,
                                         NumberOfThreads = 1
@@ -1009,7 +1009,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentClassificationTrainer(r.label, r.features, null,
-                    new SgdBinaryTrainer.Options { L2Regularization = 0, NumberOfThreads = 1 },
+                    new SgdCalibratedTrainer.Options { L2Regularization = 0, NumberOfThreads = 1 },
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -1082,7 +1082,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, null,
-                    new SgdNonCalibratedBinaryTrainer.Options { L2Regularization = 0, NumberOfThreads = 1, Loss = new HingeLoss()},
+                    new SgdNonCalibratedTrainer.Options { L2Regularization = 0, NumberOfThreads = 1, Loss = new HingeLoss()},
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);

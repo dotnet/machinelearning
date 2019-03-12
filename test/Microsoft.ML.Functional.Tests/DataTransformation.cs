@@ -144,8 +144,8 @@ namespace Microsoft.ML.Functional.Tests
                         VectorNormalizer = TextFeaturizingEstimator.NormFunction.L1
                     }, "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                    new SdcaBinaryTrainer.Options { NumberOfThreads = 1 }));
+                .Append(mlContext.BinaryClassification.Trainers.SdcaCalibrated(
+                    new SdcaCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);

@@ -11,9 +11,9 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 
-[assembly: LoadableClass(LightGbmRegressorTrainer.Summary, typeof(LightGbmRegressorTrainer), typeof(Options),
+[assembly: LoadableClass(LightGbmRegressionTrainer.Summary, typeof(LightGbmRegressionTrainer), typeof(Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
-    LightGbmRegressorTrainer.UserNameValue, LightGbmRegressorTrainer.LoadNameValue, LightGbmRegressorTrainer.ShortName, DocName = "trainer/LightGBM.md")]
+    LightGbmRegressionTrainer.UserNameValue, LightGbmRegressionTrainer.LoadNameValue, LightGbmRegressionTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
 [assembly: LoadableClass(typeof(LightGbmRegressionModelParameters), null, typeof(SignatureLoadModel),
     "LightGBM Regression Executor",
@@ -76,7 +76,7 @@ namespace Microsoft.ML.LightGBM
     /// The <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree regression model using LightGBM.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM_remarks"]/*' />
-    public sealed class LightGbmRegressorTrainer : LightGbmTrainerBase<float, RegressionPredictionTransformer<LightGbmRegressionModelParameters>, LightGbmRegressionModelParameters>
+    public sealed class LightGbmRegressionTrainer : LightGbmTrainerBase<float, RegressionPredictionTransformer<LightGbmRegressionModelParameters>, LightGbmRegressionModelParameters>
     {
         internal const string Summary = "LightGBM Regression";
         internal const string LoadNameValue = "LightGBMRegression";
@@ -86,7 +86,7 @@ namespace Microsoft.ML.LightGBM
         private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LightGbmRegressorTrainer"/>
+        /// Initializes a new instance of <see cref="LightGbmRegressionTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -96,7 +96,7 @@ namespace Microsoft.ML.LightGBM
         /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="numberOfIterations">Number of iterations.</param>
-        internal LightGbmRegressorTrainer(IHostEnvironment env,
+        internal LightGbmRegressionTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -108,7 +108,7 @@ namespace Microsoft.ML.LightGBM
         {
         }
 
-        internal LightGbmRegressorTrainer(IHostEnvironment env, Options options)
+        internal LightGbmRegressionTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName))
         {
         }
@@ -153,7 +153,7 @@ namespace Microsoft.ML.LightGBM
             => new RegressionPredictionTransformer<LightGbmRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Trains a <see cref="LightGbmRegressorTrainer"/> using both training and validation data, returns
+        /// Trains a <see cref="LightGbmRegressionTrainer"/> using both training and validation data, returns
         /// a <see cref="RegressionPredictionTransformer{LightGbmRegressionModelParameters}"/>.
         /// </summary>
         public RegressionPredictionTransformer<LightGbmRegressionModelParameters> Fit(IDataView trainData, IDataView validationData)
@@ -166,9 +166,9 @@ namespace Microsoft.ML.LightGBM
     internal static partial class LightGbm
     {
         [TlcModule.EntryPoint(Name = "Trainers.LightGbmRegressor",
-            Desc = LightGbmRegressorTrainer.Summary,
-            UserName = LightGbmRegressorTrainer.UserNameValue,
-            ShortName = LightGbmRegressorTrainer.ShortName)]
+            Desc = LightGbmRegressionTrainer.Summary,
+            UserName = LightGbmRegressionTrainer.UserNameValue,
+            ShortName = LightGbmRegressionTrainer.ShortName)]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -177,7 +177,7 @@ namespace Microsoft.ML.LightGBM
             EntryPointUtils.CheckInputArgs(host, input);
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, input,
-                () => new LightGbmRegressorTrainer(host, input),
+                () => new LightGbmRegressionTrainer(host, input),
                 getLabel: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }

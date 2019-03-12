@@ -21,7 +21,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var trainTestData = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Define the trainer options.
-            var options = new SgdBinaryTrainer.Options()
+            var options = new SgdCalibratedTrainer.Options()
             {
                 // Make the convergence tolerance tighter.
                 ConvergenceTolerance = 5e-5,
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             };
 
             // Create data training pipeline.
-            var pipeline = mlContext.BinaryClassification.Trainers.StochasticGradientDescent(options);
+            var pipeline = mlContext.BinaryClassification.Trainers.SgdCalibrated(options);
 
             // Fit this pipeline to the training data.
             var model = pipeline.Fit(trainTestData.TrainSet);
