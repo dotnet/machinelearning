@@ -119,7 +119,7 @@ namespace Microsoft.ML.Transforms.Text
 
             [TGUI(Label = "Word Gram Extractor")]
             [Argument(ArgumentType.Multiple, Name = "WordFeatureExtractor", HelpText = "Ngram feature extractor to use for words (WordBag/WordHashBag).", ShortName = "wordExtractor", NullName = "<None>", SortOrder = 11)]
-            internal INgramExtractorFactoryFactory WordFeatureExtractorFactory = new NgramExtractorTransform.NgramExtractorArguments();
+            internal INgramExtractorFactoryFactory WordFeatureExtractorFactory;
 
             /// <summary>
             /// The underlying state of <see cref="WordFeatureExtractorFactory"/> and <see cref="WordFeatureExtractor"/>.
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Transforms.Text
 
             [TGUI(Label = "Char Gram Extractor")]
             [Argument(ArgumentType.Multiple, Name = "CharFeatureExtractor", HelpText = "Ngram feature extractor to use for characters (WordBag/WordHashBag).", ShortName = "charExtractor", NullName = "<None>", SortOrder = 12)]
-            internal INgramExtractorFactoryFactory CharFeatureExtractorFactory = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
+            internal INgramExtractorFactoryFactory CharFeatureExtractorFactory;
 
             /// <summary>
             /// The underlying state of <see cref="CharFeatureExtractorFactory"/> and <see cref="CharFeatureExtractor"/>
