@@ -35,7 +35,7 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValueOrNull(onFit);
 
-            var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
+            var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new NaiveBayesTrainer(env, labelName, featuresName);

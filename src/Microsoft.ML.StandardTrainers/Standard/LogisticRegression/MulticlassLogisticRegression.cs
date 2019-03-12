@@ -37,7 +37,7 @@ namespace Microsoft.ML.Trainers
     /// <include file = 'doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file = 'doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
     public sealed class LogisticRegressionMulticlassClassificationTrainer : LbfgsTrainerBase<LogisticRegressionMulticlassClassificationTrainer.Options,
-        MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
+        MulticlassClassificationPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
     {
         internal const string LoadNameValue = "MultiClassLogisticRegression";
         internal const string UserNameValue = "Multi-class Logistic Regression";
@@ -325,14 +325,14 @@ namespace Microsoft.ML.Trainers
             };
         }
 
-        private protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(MulticlassLogisticRegressionModelParameters model, DataViewSchema trainSchema)
-            => new MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+        private protected override MulticlassClassificationPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(MulticlassLogisticRegressionModelParameters model, DataViewSchema trainSchema)
+            => new MulticlassClassificationPredictionTransformer<MulticlassLogisticRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
         /// <summary>
         /// Continues the training of a <see cref="LogisticRegressionMulticlassClassificationTrainer"/> using an already trained <paramref name="modelParameters"/> and returns
-        /// a <see cref="MulticlassPredictionTransformer{MulticlassLogisticRegressionModelParameters}"/>.
+        /// a <see cref="MulticlassClassificationPredictionTransformer{MulticlassLogisticRegressionModelParameters}"/>.
         /// </summary>
-        public MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> Fit(IDataView trainData, MulticlassLogisticRegressionModelParameters modelParameters)
+        public MulticlassClassificationPredictionTransformer<MulticlassLogisticRegressionModelParameters> Fit(IDataView trainData, MulticlassLogisticRegressionModelParameters modelParameters)
             => TrainTransformer(trainData, initPredictor: modelParameters);
     }
 

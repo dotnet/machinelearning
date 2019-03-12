@@ -221,14 +221,14 @@ namespace Microsoft.ML.LightGBM
             };
         }
 
-        private protected override MulticlassPredictionTransformer<OneVersusAllModelParameters> MakeTransformer(OneVersusAllModelParameters model, DataViewSchema trainSchema)
-            => new MulticlassPredictionTransformer<OneVersusAllModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+        private protected override MulticlassClassificationPredictionTransformer<OneVersusAllModelParameters> MakeTransformer(OneVersusAllModelParameters model, DataViewSchema trainSchema)
+            => new MulticlassClassificationPredictionTransformer<OneVersusAllModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
         /// <summary>
         /// Trains a <see cref="LightGbmMulticlassClassificationTrainer"/> using both training and validation data, returns
-        /// a <see cref="MulticlassPredictionTransformer{OneVsAllModelParameters}"/>.
+        /// a <see cref="MulticlassClassificationPredictionTransformer{OneVsAllModelParameters}"/>.
         /// </summary>
-        public MulticlassPredictionTransformer<OneVersusAllModelParameters> Fit(IDataView trainData, IDataView validationData)
+        public MulticlassClassificationPredictionTransformer<OneVersusAllModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
     }
 

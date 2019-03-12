@@ -427,7 +427,7 @@ namespace Microsoft.ML.EntryPoints
             case MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer:
                 return new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
             case MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer:
-                return new MultiClassMamlEvaluator(env, new MultiClassMamlEvaluator.Arguments());
+                return new MultiClassClassificationMamlEvaluator(env, new MultiClassClassificationMamlEvaluator.Arguments());
             case MacroUtils.TrainerKinds.SignatureRegressorTrainer:
                 return new RegressionMamlEvaluator(env, new RegressionMamlEvaluator.Arguments());
             case MacroUtils.TrainerKinds.SignatureRankerTrainer:

@@ -64,7 +64,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 case PredictionKind.Regression:
                     return new RegressionEvaluator(env, new RegressionEvaluator.Arguments());
                 case PredictionKind.MultiClassClassification:
-                    return new MultiClassClassifierEvaluator(env, new MultiClassClassifierEvaluator.Arguments());
+                    return new MultiClassClassificationEvaluator(env, new MultiClassClassificationEvaluator.Arguments());
                 default:
                     throw Host.Except("Unrecognized prediction kind '{0}'", PredictionKind);
             }
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     yield break;
                 case PredictionKind.MultiClassClassification:
                     yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, testSchema.Label.Value.Name);
-                    scoreCol = EvaluateUtils.GetScoreColumn(Host, scoredSchema, null, nameof(MultiClassMamlEvaluator.Arguments.ScoreColumn),
+                    scoreCol = EvaluateUtils.GetScoreColumn(Host, scoredSchema, null, nameof(MultiClassClassificationMamlEvaluator.Arguments.ScoreColumn),
                         AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification);
                     yield return RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, scoreCol.Name);
                     yield break;

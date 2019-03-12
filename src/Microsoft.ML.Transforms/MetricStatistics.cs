@@ -211,42 +211,42 @@ namespace Microsoft.ML.Data
     }
 
     /// <summary>
-    /// The <see cref="MultiClassClassifierMetricsStatistics"/> class holds summary
-    /// statistics over multiple observations of <see cref="MultiClassClassifierMetrics"/>.
+    /// The <see cref="MultiClassClassificationMetricsStatistics"/> class holds summary
+    /// statistics over multiple observations of <see cref="MultiClassClassificationMetrics"/>.
     /// </summary>
-    public sealed class MultiClassClassifierMetricsStatistics : IMetricsStatistics<MultiClassClassifierMetrics>
+    public sealed class MultiClassClassificationMetricsStatistics : IMetricsStatistics<MultiClassClassificationMetrics>
     {
         /// <summary>
-        /// Summary statistics for <see cref="MultiClassClassifierMetrics.MacroAccuracy"/>.
+        /// Summary statistics for <see cref="MultiClassClassificationMetrics.MacroAccuracy"/>.
         /// </summary>
         public MetricStatistics MacroAccuracy { get; }
 
         /// <summary>
-        /// Summary statistics for <see cref="MultiClassClassifierMetrics.MicroAccuracy"/>.
+        /// Summary statistics for <see cref="MultiClassClassificationMetrics.MicroAccuracy"/>.
         /// </summary>
         public MetricStatistics MicroAccuracy { get; }
 
         /// <summary>
-        /// Summary statistics for <see cref="MultiClassClassifierMetrics.LogLoss"/>.
+        /// Summary statistics for <see cref="MultiClassClassificationMetrics.LogLoss"/>.
         /// </summary>
         public MetricStatistics LogLoss { get; }
 
         /// <summary>
-        /// Summary statistics for <see cref="MultiClassClassifierMetrics.LogLossReduction"/>.
+        /// Summary statistics for <see cref="MultiClassClassificationMetrics.LogLossReduction"/>.
         /// </summary>
         public MetricStatistics LogLossReduction { get; }
 
         /// <summary>
-        /// Summary statistics for <see cref="MultiClassClassifierMetrics.TopKAccuracy"/>.
+        /// Summary statistics for <see cref="MultiClassClassificationMetrics.TopKAccuracy"/>.
         /// </summary>
         public MetricStatistics TopKAccuracy { get; }
 
         /// <summary>
-        /// Summary statistics for <see cref="MultiClassClassifierMetrics.PerClassLogLoss"/>.
+        /// Summary statistics for <see cref="MultiClassClassificationMetrics.PerClassLogLoss"/>.
         /// </summary>
         public IReadOnlyList<MetricStatistics> PerClassLogLoss { get; private set; }
 
-        internal MultiClassClassifierMetricsStatistics()
+        internal MultiClassClassificationMetricsStatistics()
         {
             MacroAccuracy = new MetricStatistics();
             MicroAccuracy = new MetricStatistics();
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Data
         /// Add a set of evaluation metrics to the set of observations.
         /// </summary>
         /// <param name="metrics">The observed binary classification evaluation metric</param>
-        void IMetricsStatistics<MultiClassClassifierMetrics>.Add(MultiClassClassifierMetrics metrics)
+        void IMetricsStatistics<MultiClassClassificationMetrics>.Add(MultiClassClassificationMetrics metrics)
         {
             MacroAccuracy.Add(metrics.MacroAccuracy);
             MicroAccuracy.Add(metrics.MicroAccuracy);

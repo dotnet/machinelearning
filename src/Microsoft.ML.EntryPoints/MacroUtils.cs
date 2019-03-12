@@ -53,7 +53,7 @@ namespace Microsoft.ML.EntryPoints
                 return new BinaryClassifierMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
             case TrainerKinds.SignatureMultiClassClassifierTrainer:
                 entryPointName = "Models.ClassificationEvaluator";
-                return new MultiClassMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
+                return new MultiClassClassificationMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
             case TrainerKinds.SignatureRankerTrainer:
                 entryPointName = "Models.RankingEvaluator";
                 return new RankingMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn, GroupIdColumn = settings.GroupColumn };

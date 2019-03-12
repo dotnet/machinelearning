@@ -97,9 +97,9 @@ namespace Microsoft.ML.Trainers.Ensemble
     // These values are serialized, so should not be changed.
     internal enum MultiWeightageKind
     {
-        [TGUI(Label = MultiClassClassifierEvaluator.AccuracyMicro)]
+        [TGUI(Label = MultiClassClassificationEvaluator.AccuracyMicro)]
         AccuracyMicroAvg = 0,
-        [TGUI(Label = MultiClassClassifierEvaluator.AccuracyMacro)]
+        [TGUI(Label = MultiClassClassificationEvaluator.AccuracyMacro)]
         AccuracyMacroAvg = 1
     }
 }

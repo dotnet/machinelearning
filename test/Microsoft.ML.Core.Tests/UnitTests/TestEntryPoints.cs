@@ -5347,7 +5347,7 @@ namespace Microsoft.ML.RunTests
 
             var data = runner.GetOutput<IDataView>("overallMetrics");
             var schema = data.Schema;
-            var accCol = schema.GetColumnOrNull(MultiClassClassifierEvaluator.AccuracyMacro);
+            var accCol = schema.GetColumnOrNull(MultiClassClassificationEvaluator.AccuracyMacro);
             Assert.True(accCol.HasValue);
             bool b;
             using (var cursor = data.GetRowCursor(accCol.Value))
@@ -5518,7 +5518,7 @@ namespace Microsoft.ML.RunTests
 
             var data = runner.GetOutput<IDataView>("overallMetrics");
             var schema = data.Schema;
-            var accCol = schema.GetColumnOrNull(MultiClassClassifierEvaluator.AccuracyMacro);
+            var accCol = schema.GetColumnOrNull(MultiClassClassificationEvaluator.AccuracyMacro);
             Assert.True(accCol.HasValue);
             bool b;
             using (var cursor = data.GetRowCursor(accCol.Value))

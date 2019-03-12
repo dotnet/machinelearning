@@ -240,7 +240,7 @@ namespace Microsoft.ML.StaticPipe
         {
             LbfgsStaticUtils.ValidateParams(label, features, weights, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity, onFit);
 
-            var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
+            var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new LogisticRegressionMulticlassClassificationTrainer(env, labelName, featuresName, weightsName,
@@ -281,7 +281,7 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckValue(options, nameof(options));
             Contracts.CheckValueOrNull(onFit);
 
-            var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
+            var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     options.LabelColumnName = labelName;

@@ -35,23 +35,23 @@ namespace Microsoft.ML.Benchmarks
             PetalWidth = 5.1f,
         };
 
-        private TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> _trainedModel;
+        private TransformerChain<MulticlassClassificationPredictionTransformer<MulticlassLogisticRegressionModelParameters>> _trainedModel;
         private PredictionEngine<IrisData, IrisPrediction> _predictionEngine;
         private IrisData[][] _batches;
-        private MultiClassClassifierMetrics _metrics;
+        private MultiClassClassificationMetrics _metrics;
 
         protected override IEnumerable<Metric> GetMetrics()
         {
             if (_metrics != null)
                 yield return new Metric(
-                    nameof(MultiClassClassifierMetrics.MacroAccuracy),
+                    nameof(MultiClassClassificationMetrics.MacroAccuracy),
                     _metrics.MacroAccuracy.ToString("0.##", CultureInfo.InvariantCulture));
         }
 
         [Benchmark]
-        public TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> TrainIris() => Train(_dataPath);
+        public TransformerChain<MulticlassClassificationPredictionTransformer<MulticlassLogisticRegressionModelParameters>> TrainIris() => Train(_dataPath);
 
-        private TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> Train(string dataPath)
+        private TransformerChain<MulticlassClassificationPredictionTransformer<MulticlassLogisticRegressionModelParameters>> Train(string dataPath)
         {
             // Create text loader.
             var options = new TextLoader.Options()
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Benchmarks
 
             IDataView testData = loader.Load(_dataPath);
             IDataView scoredTestData = _trainedModel.Transform(testData);
-            var evaluator = new MultiClassClassifierEvaluator(mlContext, new MultiClassClassifierEvaluator.Arguments());
+            var evaluator = new MultiClassClassificationEvaluator(mlContext, new MultiClassClassificationEvaluator.Arguments());
             _metrics = evaluator.Evaluate(scoredTestData, DefaultColumnNames.Label, DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel);
 
             _batches = new IrisData[_batchSizes.Length][];

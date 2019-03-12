@@ -10,9 +10,9 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Evaluation results for multi-class classifiers.
+    /// Evaluation results for multi-class classification trainers.
     /// </summary>
-    public sealed class MultiClassClassifierMetrics
+    public sealed class MultiClassClassificationMetrics
     {
         /// <summary>
         /// Gets the average log-loss of the classifier.
@@ -83,22 +83,22 @@ namespace Microsoft.ML.Data
         /// </remarks>
         public IReadOnlyList<double> PerClassLogLoss { get; }
 
-        internal MultiClassClassifierMetrics(IExceptionContext ectx, DataViewRow overallResult, int topK)
+        internal MultiClassClassificationMetrics(IExceptionContext ectx, DataViewRow overallResult, int topK)
         {
             double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
-            MicroAccuracy = FetchDouble(MultiClassClassifierEvaluator.AccuracyMicro);
-            MacroAccuracy = FetchDouble(MultiClassClassifierEvaluator.AccuracyMacro);
-            LogLoss = FetchDouble(MultiClassClassifierEvaluator.LogLoss);
-            LogLossReduction = FetchDouble(MultiClassClassifierEvaluator.LogLossReduction);
+            MicroAccuracy = FetchDouble(MultiClassClassificationEvaluator.AccuracyMicro);
+            MacroAccuracy = FetchDouble(MultiClassClassificationEvaluator.AccuracyMacro);
+            LogLoss = FetchDouble(MultiClassClassificationEvaluator.LogLoss);
+            LogLossReduction = FetchDouble(MultiClassClassificationEvaluator.LogLossReduction);
             TopK = topK;
             if (topK > 0)
-                TopKAccuracy = FetchDouble(MultiClassClassifierEvaluator.TopKAccuracy);
+                TopKAccuracy = FetchDouble(MultiClassClassificationEvaluator.TopKAccuracy);
 
-            var perClassLogLoss = RowCursorUtils.Fetch<VBuffer<double>>(ectx, overallResult, MultiClassClassifierEvaluator.PerClassLogLoss);
+            var perClassLogLoss = RowCursorUtils.Fetch<VBuffer<double>>(ectx, overallResult, MultiClassClassificationEvaluator.PerClassLogLoss);
             PerClassLogLoss = perClassLogLoss.DenseValues().ToImmutableArray();
         }
 
-        internal MultiClassClassifierMetrics(double accuracyMicro, double accuracyMacro, double logLoss, double logLossReduction,
+        internal MultiClassClassificationMetrics(double accuracyMicro, double accuracyMacro, double logLoss, double logLossReduction,
             int topK, double topKAccuracy, double[] perClassLogLoss)
         {
             MicroAccuracy = accuracyMicro;
