@@ -35,7 +35,8 @@ namespace Microsoft.ML.Transforms
     /// If all the slots are to be dropped, a vector valued column will be changed to a vector of length 1 (a scalar column will retain its type) and
     /// the value will be the default value.
     /// </summary>
-    public sealed class SlotsDroppingTransformer : OneToOneTransformerBase
+    [BestFriend]
+    internal sealed class SlotsDroppingTransformer : OneToOneTransformerBase
     {
         internal sealed class Options
         {

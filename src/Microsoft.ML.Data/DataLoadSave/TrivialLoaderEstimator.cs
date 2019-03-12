@@ -7,7 +7,7 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// The trivial wrapper for a <see cref="IDataLoader{TSource}"/> that acts as an estimator and ignores the source.
     /// </summary>
-    public sealed class TrivialLoaderEstimator<TSource, TLoader> : IDataLoaderEstimator<TSource, TLoader>
+    internal sealed class TrivialLoaderEstimator<TSource, TLoader> : IDataLoaderEstimator<TSource, TLoader>
         where TLoader : IDataLoader<TSource>
     {
         public TLoader Loader { get; }
