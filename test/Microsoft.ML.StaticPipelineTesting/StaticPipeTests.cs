@@ -633,7 +633,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label,
-                              lpnorm: r.features.LpNormalize(),
+                              lpnorm: r.features.LpNormNormalize(),
                               gcnorm: r.features.GlobalContrastNormalize(),
                               zcawhitened: r.features.ZcaWhitening(),
                               pcswhitened: r.features.PcaWhitening()));

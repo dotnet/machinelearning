@@ -65,9 +65,9 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="ensureUnitStandardDeviation">If <see langword="true"/>, resulted vector's standard deviation would be one. Otherwise, resulted vector's L2-norm would be one.</param>
         /// <param name="scale">Scale features by this value.</param>
         public static Vector<float> GlobalContrastNormalize(this Vector<float> input,
-            bool ensureZeroMean = LpNormalizingEstimatorBase.Defaults.GcnEnsureZeroMean,
-            bool ensureUnitStandardDeviation = LpNormalizingEstimatorBase.Defaults.EnsureUnitStdDev,
-            float scale = LpNormalizingEstimatorBase.Defaults.Scale) => new OutPipelineColumn(input, ensureZeroMean, ensureUnitStandardDeviation, scale);
+            bool ensureZeroMean = LpNormNormalizingEstimatorBase.Defaults.GcnEnsureZeroMean,
+            bool ensureUnitStandardDeviation = LpNormNormalizingEstimatorBase.Defaults.EnsureUnitStdDev,
+            float scale = LpNormNormalizingEstimatorBase.Defaults.Scale) => new OutPipelineColumn(input, ensureZeroMean, ensureUnitStandardDeviation, scale);
     }
 
     /// <summary>
