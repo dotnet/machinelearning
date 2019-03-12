@@ -1190,7 +1190,7 @@ namespace Microsoft.ML.RunTests
             const string loaderCmdline = @"loader=TextLoader{col=Label:TX:4 col=Features:R4:0-3 sep=,}";
             string pathTrain = GetDataPath("iris.data");
             OutputPath trainModel = ModelPath();
-            const string trainArgs = "tr=MulticlassLogisticRegression{maxiter=100 t=- stat=+} xf=Term{col=Label} seed=1";
+            const string trainArgs = "tr=MultiClassLogisticRegression{maxiter=100 t=- stat=+} xf=Term{col=Label} seed=1";
             TestCore("train", pathTrain, loaderCmdline, trainArgs);
 
             _step++;
