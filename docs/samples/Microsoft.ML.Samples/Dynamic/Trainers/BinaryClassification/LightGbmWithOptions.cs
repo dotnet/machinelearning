@@ -1,5 +1,5 @@
-﻿using Microsoft.ML.Trainers.LightGBM;
-using static Microsoft.ML.Trainers.LightGBM.Options;
+﻿using Microsoft.ML.Trainers.LightGbm;
+using static Microsoft.ML.Trainers.LightGbm.Options;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {

@@ -1,5 +1,5 @@
 <Project DefaultTargets="Pack">
 
-  <Import Project="Microsoft.ML.LightGBM.nupkgproj" />
+  <Import Project="Microsoft.ML.LightGbm.nupkgproj" />
 
 </Project>

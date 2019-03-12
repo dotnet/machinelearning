@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Trainers.LightGBM
+namespace Microsoft.ML.Trainers.LightGbm
 {
     /// <summary>
     /// Helpers to train a booster with given parameters.

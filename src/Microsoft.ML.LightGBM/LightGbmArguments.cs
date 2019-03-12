@@ -10,7 +10,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Trainers.LightGBM;
+using Microsoft.ML.Trainers.LightGbm;
 
 [assembly: LoadableClass(typeof(Options.TreeBooster), typeof(Options.TreeBooster.Options),
     typeof(SignatureLightGBMBooster), Options.TreeBooster.FriendlyName, Options.TreeBooster.Name)]
@@ -23,7 +23,7 @@ using Microsoft.ML.Trainers.LightGBM;
 [assembly: EntryPointModule(typeof(Options.DartBooster.Options))]
 [assembly: EntryPointModule(typeof(Options.GossBooster.Options))]
 
-namespace Microsoft.ML.Trainers.LightGBM
+namespace Microsoft.ML.Trainers.LightGbm
 {
     internal delegate void SignatureLightGBMBooster();
 

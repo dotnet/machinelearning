@@ -7,12 +7,12 @@ using Microsoft.ML;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Runtime;
 
-[assembly: LoadableClass(typeof(Microsoft.ML.Trainers.LightGBM.SingleTrainer),
-    null, typeof(Microsoft.ML.Trainers.LightGBM.SignatureParallelTrainer), "single")]
+[assembly: LoadableClass(typeof(Microsoft.ML.Trainers.LightGbm.SingleTrainer),
+    null, typeof(Microsoft.ML.Trainers.LightGbm.SignatureParallelTrainer), "single")]
 
-[assembly: EntryPointModule(typeof(Microsoft.ML.Trainers.LightGBM.SingleTrainerFactory))]
+[assembly: EntryPointModule(typeof(Microsoft.ML.Trainers.LightGbm.SingleTrainerFactory))]
 
-namespace Microsoft.ML.Trainers.LightGBM
+namespace Microsoft.ML.Trainers.LightGbm
 {
     internal sealed class SingleTrainer : IParallel
     {

@@ -21,7 +21,7 @@ using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.LightGBM;
+using Microsoft.ML.Trainers.LightGbm;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.Transforms.TimeSeries;
@@ -2870,34 +2870,34 @@ namespace Microsoft.ML.RunTests
                         }
                     },
                     {
-			        'Name': 'Transforms.ColumnCopier',
+                    'Name': 'Transforms.ColumnCopier',
                     'Inputs': {
                         'Column': [
-					        {
-						        'Name': 'Features2',
-						        'Source': 'Features'
+                            {
+                                'Name': 'Features2',
+                                'Source': 'Features'
 
                             }
-				        ],
-				        'Data': '$data2'
-			        },
-			        'Outputs': {
-				        'OutputData': '$data3',
-				        'Model': '$transform2'
-			            }
-		            },
+                        ],
+                        'Data': '$data2'
+                    },
+                    'Outputs': {
+                        'OutputData': '$data3',
+                        'Model': '$transform2'
+                        }
+                    },
                     {
-			            'Name': 'Transforms.ModelCombiner',
+                        'Name': 'Transforms.ModelCombiner',
                         'Inputs': {
                             'Models': [
-					            '$transform1',
-					            '$transform2'
-				            ]
-			            },
-			            'Outputs': {
-				            'OutputModel': '$CombinedModel'
-			            }
-		            },
+                                '$transform1',
+                                '$transform2'
+                            ]
+                        },
+                        'Outputs': {
+                            'OutputModel': '$CombinedModel'
+                        }
+                    },
                     {
                       'Name': 'Models.TrainTestEvaluator',
                       'Inputs': {
@@ -3031,34 +3031,34 @@ namespace Microsoft.ML.RunTests
                         }
                     },
                     {
-			        'Name': 'Transforms.ColumnCopier',
+                    'Name': 'Transforms.ColumnCopier',
                     'Inputs': {
                         'Column': [
-					        {
-						        'Name': 'Features2',
-						        'Source': 'Features'
+                            {
+                                'Name': 'Features2',
+                                'Source': 'Features'
 
                             }
-				        ],
-				        'Data': '$data2'
-			        },
-			        'Outputs': {
-				        'OutputData': '$data3',
-				        'Model': '$transform2'
-			            }
-		            },
+                        ],
+                        'Data': '$data2'
+                    },
+                    'Outputs': {
+                        'OutputData': '$data3',
+                        'Model': '$transform2'
+                        }
+                    },
                     {
-			            'Name': 'Transforms.ModelCombiner',
+                        'Name': 'Transforms.ModelCombiner',
                         'Inputs': {
                             'Models': [
-					            '$transform1',
-					            '$transform2'
-				            ]
-			            },
-			            'Outputs': {
-				            'OutputModel': '$CombinedModel'
-			            }
-		            },
+                                '$transform1',
+                                '$transform2'
+                            ]
+                        },
+                        'Outputs': {
+                            'OutputModel': '$CombinedModel'
+                        }
+                    },
                     {
                       'Name': 'Models.CrossValidator',
                       'Inputs': {
@@ -3101,22 +3101,22 @@ namespace Microsoft.ML.RunTests
                         'Kind': 'SignatureBinaryClassifierTrainer',
                         'Nodes': [
                             {
-			                    'Name': 'Transforms.ColumnCopier',
+                                'Name': 'Transforms.ColumnCopier',
                                 'Inputs': {
                                     'Column': [
-					                    {
-						                    'Name': 'Features3',
-						                    'Source': 'Features'
+                                        {
+                                            'Name': 'Features3',
+                                            'Source': 'Features'
 
                                         }
-				                    ],
-				                    'Data': '$data4'
-			                    },
-			                    'Outputs': {
-				                    'OutputData': '$data5',
-				                    'Model': '$transform3'
-			                        }
-		                       },
+                                    ],
+                                    'Data': '$data4'
+                                },
+                                'Outputs': {
+                                    'OutputData': '$data5',
+                                    'Model': '$transform3'
+                                    }
+                               },
                               {
                                 'Name': 'Trainers.StochasticDualCoordinateAscentBinaryClassifier',
                                 'Inputs': {
@@ -3128,17 +3128,17 @@ namespace Microsoft.ML.RunTests
                                 }
                               },
                             {
-			                    'Name': 'Transforms.ManyHeterogeneousModelCombiner',
+                                'Name': 'Transforms.ManyHeterogeneousModelCombiner',
                                 'Inputs': {
                                     'TransformModels': [
-					                    '$transform3'
-				                    ],
+                                        '$transform3'
+                                    ],
                                     'PredictorModel': '$predictor'
-			                    },
-			                    'Outputs': {
-				                    'PredictorModel': '$model2'
-			                    }
-		                    }
+                                },
+                                'Outputs': {
+                                    'PredictorModel': '$model2'
+                                }
+                            }
                         ],
                         'Inputs': {
                           'Data': '$data4'

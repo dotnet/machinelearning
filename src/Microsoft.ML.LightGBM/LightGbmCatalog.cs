@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Trainers.LightGBM;
+using Microsoft.ML.Trainers.LightGbm;
 
 namespace Microsoft.ML
 {
