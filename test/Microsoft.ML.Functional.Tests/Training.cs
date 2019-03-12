@@ -32,9 +32,9 @@ namespace Microsoft.ML.Functional.Tests
             // Get the dataset.
             var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
                 separatorChar: TestDatasets.Sentiment.fileSeparator,
-                hasHeader: TestDatasets.Sentiment.fileHasHeader, 
+                hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 allowQuoting: TestDatasets.Sentiment.allowQuoting);
-            var trainTestSplit = mlContext.BinaryClassification.TrainTestSplit(data);
+            var trainTestSplit = mlContext.Data.TrainTestSplit(data);
             var trainData = trainTestSplit.TrainSet;
             var testData = trainTestSplit.TestSet;
 
@@ -266,6 +266,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a training pipeline.
             var featurizationPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .AppendCacheCheckpoint(mlContext);
 
             var trainer = mlContext.MulticlassClassification.Trainers.LogisticRegression(
@@ -467,8 +468,7 @@ namespace Microsoft.ML.Functional.Tests
             var binaryClassificationPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
-                .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryclassificationTrainer))
-                .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+                .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryclassificationTrainer));
 
             // Fit the binary classification pipeline.
             var binaryClassificationModel = binaryClassificationPipeline.Fit(data);
@@ -503,6 +503,7 @@ namespace Microsoft.ML.Functional.Tests
             // Create a model training an OVA trainer with a ranking trainer.
             var rankingTrainer = mlContext.Ranking.Trainers.FastTree(
                 new FastTreeRankingTrainer.Options { NumberOfTrees = 2, NumberOfThreads = 1, });
+            // Todo #2920: Make this fail somehow.
             var rankingPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
@@ -510,18 +511,12 @@ namespace Microsoft.ML.Functional.Tests
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
             // Fit the invalid pipeline.
-            // Todo #2920: Make this fail somehow.
-            var rankingModel = rankingPipeline.Fit(data);
-
-            // Transform the data
-            var rankingPredictions = rankingModel.Transform(data);
-
-            // Evaluate the model.
-            var rankingMetrics = mlContext.MulticlassClassification.Evaluate(rankingPredictions);
+            Assert.Throws<ArgumentOutOfRangeException>(() => rankingPipeline.Fit(data));
 
             // Create a model training an OVA trainer with a regressor.
             var regressionTrainer = mlContext.Regression.Trainers.PoissonRegression(
                 new PoissonRegression.Options { NumberOfIterations = 10, NumberOfThreads = 1, });
+            // Todo #2920: Make this fail somehow.
             var regressionPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
@@ -529,14 +524,7 @@ namespace Microsoft.ML.Functional.Tests
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
             // Fit the invalid pipeline.
-            // Todo #2920: Make this fail somehow.
-            var regressionModel = regressionPipeline.Fit(data);
-
-            // Transform the data
-            var regressionPredictions = regressionModel.Transform(data);
-
-            // Evaluate the model.
-            var regressionMetrics = mlContext.MulticlassClassification.Evaluate(regressionPredictions);
+            Assert.Throws<ArgumentOutOfRangeException>(() => regressionPipeline.Fit(data));
         }
     }
 }
