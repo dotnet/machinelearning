@@ -39,7 +39,7 @@ namespace Microsoft.ML
             => new PrincipalComponentAnalyzer(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
-        /// Trains an approximate PCA using Randomized SVD algorithm.
+        /// Trains an approximate principal component analysis (PCA) model using randomized SVD algorithm.
         /// </summary>
         /// <param name="catalog">The anomaly detection catalog trainer object.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
@@ -68,7 +68,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Trains an approximate PCA using Randomized SVD algorithm.
+        /// Trains an approximate principal component analysis (PCA) model using randomized SVD algorithm.
         /// </summary>
         /// <param name="catalog">The anomaly detection catalog trainer object.</param>
         /// <param name="options">Advanced options to the algorithm.</param>

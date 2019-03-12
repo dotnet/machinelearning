@@ -16,6 +16,7 @@ namespace Microsoft.ML
     {
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="OlsTrainer"/>.
+        /// It uses ordinary least squares (OLS) for estimating the parameters of the linear regression model.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -47,6 +48,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="OlsTrainer"/>.
+        /// It uses ordinary least squares (OLS) for estimating the parameters of the linear regression model.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="options">Algorithm advanced options. See <see cref="OlsTrainer.Options"/>.</param>
@@ -69,7 +71,9 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="SymbolicSgdTrainer"/>.
+        /// Predict a target using a linear binary classification model trained with the <see cref="SymbolicSgdTrainer"/>.
+        /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
+        /// The <see cref="SymbolicSgdTrainer"/> parallelizes SGD using <a href="https://www.microsoft.com/en-us/research/project/project-parade/#!symbolic-execution">symbolic execution</a>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -101,6 +105,8 @@ namespace Microsoft.ML
 
         /// <summary>
         ///  Predict a target using a linear binary classification model trained with the <see cref="SymbolicSgdTrainer"/>.
+        /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
+        /// The <see cref="SymbolicSgdTrainer"/> parallelizes SGD using <a href="https://www.microsoft.com/en-us/research/project/project-parade/#!symbolic-execution">symbolic execution</a>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="options">Algorithm advanced options. See <see cref="SymbolicSgdTrainer.Options"/>.</param>

@@ -71,11 +71,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
             // Pipeline.
-            var pipeline = new KMeansPlusPlusTrainer(Env, new KMeansPlusPlusTrainer.Options
+            var pipeline = new KMeansTrainer(Env, new KMeansTrainer.Options
             {
                 FeatureColumnName = featureColumn,
                 ExampleWeightColumnName = weights,
-                InitializationAlgorithm = KMeansPlusPlusTrainer.InitializationAlgorithm.KMeansYinyang,
+                InitializationAlgorithm = KMeansTrainer.InitializationAlgorithm.KMeansYinyang,
             });
 
             TestEstimatorCore(pipeline, data);

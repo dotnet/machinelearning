@@ -37,7 +37,7 @@ namespace Microsoft.ML.Benchmarks
             var estimatorPipeline = ml.Transforms.Categorical.OneHotEncoding("CatFeatures")
                 .Append(ml.Transforms.Normalize("NumFeatures"))
                 .Append(ml.Transforms.Concatenate("Features", "NumFeatures", "CatFeatures"))
-                .Append(ml.Clustering.Trainers.KMeansPlusPlus("Features"))
+                .Append(ml.Clustering.Trainers.KMeans("Features"))
                 .Append(ml.Transforms.Concatenate("Features", "Features", "Score"))
                 .Append(ml.BinaryClassification.Trainers.LogisticRegression(
                     new LogisticRegressionBinaryClassificationTrainer.Options { EnforceNonNegativity = true, OptmizationTolerance = 1e-3f, }));

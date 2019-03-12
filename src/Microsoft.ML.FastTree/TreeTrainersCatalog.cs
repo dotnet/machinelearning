@@ -136,7 +136,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using generalized additive models trained with the <see cref="GamBinaryClassificationTrainer"/>.
+        /// Predict a target using generalized additive models (GAM) trained with the <see cref="GamBinaryClassificationTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -159,7 +159,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using generalized additive models trained with the <see cref="GamBinaryClassificationTrainer"/>.
+        /// Predict a target using generalized additive models (GAM) trained with the <see cref="GamBinaryClassificationTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="options">Algorithm advanced settings.</param>
@@ -172,7 +172,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using generalized additive models trained with the <see cref="GamRegressionTrainer"/>.
+        /// Predict a target using generalized additive models (GAM) trained with the <see cref="GamRegressionTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -195,7 +195,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using generalized additive models trained with the <see cref="GamRegressionTrainer"/>.
+        /// Predict a target using generalized additive models (GAM) trained with the <see cref="GamRegressionTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="options">Algorithm advanced settings.</param>

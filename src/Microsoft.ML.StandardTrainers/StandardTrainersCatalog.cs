@@ -681,7 +681,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <remarks>
         /// <para>
-        /// The idea behind support vector machines, is to map instances into a high dimensional space
+        /// The idea behind support vector machines (SVM), is to map instances into a high dimensional space
         /// in which the two classes are linearly separable, i.e., there exists a hyperplane such that all the positive examples are on one side of it,
         /// and all the negative examples are on the other.
         /// </para>
@@ -710,7 +710,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <remarks>
         /// <para>
-        /// The idea behind support vector machines, is to map instances into a high dimensional space
+        /// The idea behind support vector machines (SVM), is to map instances into a high dimensional space
         /// in which the two classes are linearly separable, i.e., there exists a hyperplane such that all the positive examples are on one side of it,
         /// and all the negative examples are on the other.
         /// </para>

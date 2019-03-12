@@ -420,10 +420,10 @@ namespace Microsoft.ML.Functional.Tests
         private IEstimator<TransformerChain<ClusteringPredictionTransformer<KMeansModelParameters>>> StepOne(MLContext mlContext)
         {
             return mlContext.Transforms.Concatenate("LabelAndFeatures", "Label", "Features")
-                .Append(mlContext.Clustering.Trainers.KMeansPlusPlus(
-                    new KMeansPlusPlusTrainer.Options
+                .Append(mlContext.Clustering.Trainers.KMeans(
+                    new KMeansTrainer.Options
                     {
-                        InitializationAlgorithm = KMeansPlusPlusTrainer.InitializationAlgorithm.Random,
+                        InitializationAlgorithm = KMeansTrainer.InitializationAlgorithm.Random,
                         NumberOfClusters = 4,
                         MaximumNumberOfIterations = 10,
                         NumberOfThreads = 1

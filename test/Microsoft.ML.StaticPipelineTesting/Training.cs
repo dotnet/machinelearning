@@ -784,7 +784,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                                 (
                                     r.features,
                                     null,
-                                    options: new KMeansPlusPlusTrainer.Options
+                                    options: new KMeansTrainer.Options
                                     {
                                         NumberOfClusters = 3,
                                         NumberOfThreads = 1

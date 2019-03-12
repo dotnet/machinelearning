@@ -122,7 +122,7 @@ namespace Microsoft.ML.Functional.Tests
             // Create a training pipeline.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Clustering.Trainers.KMeansPlusPlus(new KMeansPlusPlusTrainer.Options { NumberOfThreads = 1 }));
+                .Append(mlContext.Clustering.Trainers.KMeans(new KMeansTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);

@@ -138,13 +138,13 @@ namespace Microsoft.ML.Tests
                 hasHeader: true);
 
             var pipeline = mlContext.Transforms.Normalize("Features").
-                Append(mlContext.Clustering.Trainers.KMeansPlusPlus(new Trainers.KMeansPlusPlusTrainer.Options
+                Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeansTrainer.Options
                 {
                     FeatureColumnName = DefaultColumnNames.Features,
                     MaximumNumberOfIterations = 1,
                     NumberOfClusters = 4,
                     NumberOfThreads = 1,
-                    InitializationAlgorithm = Trainers.KMeansPlusPlusTrainer.InitializationAlgorithm.Random
+                    InitializationAlgorithm = Trainers.KMeansTrainer.InitializationAlgorithm.Random
                 }));
 
             var model = pipeline.Fit(data);
