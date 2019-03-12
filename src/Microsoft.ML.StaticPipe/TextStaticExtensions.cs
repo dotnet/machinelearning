@@ -176,7 +176,7 @@ namespace Microsoft.ML.StaticPipe
         {
             public readonly Scalar<string> Input;
 
-            public OutPipelineColumn(Scalar<string> input, TextNormalizingEstimator.CaseNormalizationMode textCase, bool keepDiacritics, bool keepPunctuations, bool keepNumbers)
+            public OutPipelineColumn(Scalar<string> input, TextNormalizingEstimator.CaseMode textCase, bool keepDiacritics, bool keepPunctuations, bool keepNumbers)
                 : base(new Reconciler(textCase, keepDiacritics, keepPunctuations, keepNumbers), input)
             {
                 Input = input;
@@ -185,12 +185,12 @@ namespace Microsoft.ML.StaticPipe
 
         private sealed class Reconciler : EstimatorReconciler, IEquatable<Reconciler>
         {
-            private readonly TextNormalizingEstimator.CaseNormalizationMode _textCase;
+            private readonly TextNormalizingEstimator.CaseMode _textCase;
             private readonly bool _keepDiacritics;
             private readonly bool _keepPunctuations;
             private readonly bool _keepNumbers;
 
-            public Reconciler(TextNormalizingEstimator.CaseNormalizationMode textCase, bool keepDiacritics, bool keepPunctuations, bool keepNumbers)
+            public Reconciler(TextNormalizingEstimator.CaseMode textCase, bool keepDiacritics, bool keepPunctuations, bool keepNumbers)
             {
                 _textCase = textCase;
                 _keepDiacritics = keepDiacritics;
@@ -227,15 +227,15 @@ namespace Microsoft.ML.StaticPipe
         /// Normalizes input text by changing case, removing diacritical marks, punctuation marks and/or numbers.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
-        /// <param name="textCase">Casing text using the rules of the invariant culture.</param>
+        /// <param name="caseMode">Casing text using the rules of the invariant culture.</param>
         /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
         /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
         public static Scalar<string> NormalizeText(this Scalar<string> input,
-            TextNormalizingEstimator.CaseNormalizationMode textCase = TextNormalizingEstimator.CaseNormalizationMode.Lower,
+            TextNormalizingEstimator.CaseMode caseMode = TextNormalizingEstimator.CaseMode.Lower,
             bool keepDiacritics = false,
             bool keepPunctuations = true,
-            bool keepNumbers = true) => new OutPipelineColumn(input, textCase, keepDiacritics, keepPunctuations, keepNumbers);
+            bool keepNumbers = true) => new OutPipelineColumn(input, caseMode, keepDiacritics, keepPunctuations, keepNumbers);
     }
 
     /// <summary>

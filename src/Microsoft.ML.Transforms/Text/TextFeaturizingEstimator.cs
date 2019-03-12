@@ -24,7 +24,7 @@ using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Transforms.Text
 {
-    using CaseNormalizationMode = TextNormalizingEstimator.CaseNormalizationMode;
+    using CaseMode = TextNormalizingEstimator.CaseMode;
     // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts
     // of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
     // integer index mapping through hashing) as an option.
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Transforms.Text
             public bool UsePredefinedStopWordRemover = false;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Casing text using the rules of the invariant culture.", ShortName = "case", SortOrder = 5)]
-            public CaseNormalizationMode TextCase = TextNormalizingEstimator.Defaults.TextCase;
+            public CaseMode TextCase = TextNormalizingEstimator.Defaults.Mode;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep diacritical marks or remove them.", ShortName = "diac", SortOrder = 6)]
             public bool KeepDiacritics = TextNormalizingEstimator.Defaults.KeepDiacritics;
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Transforms.Text
             /// <summary>
             /// Casing used for the text.
             /// </summary>
-            public CaseNormalizationMode TextCase { get; set; } = CaseNormalizationMode.Lower;
+            public CaseMode TextCase { get; set; } = CaseMode.Lower;
             /// <summary>
             /// Whether to keep diacritical marks or remove them.
             /// </summary>
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Transforms.Text
             public readonly NormFunction VectorNormalizer;
             public readonly Language Language;
             public readonly bool UsePredefinedStopWordRemover;
-            public readonly CaseNormalizationMode TextCase;
+            public readonly CaseMode TextCase;
             public readonly bool KeepDiacritics;
             public readonly bool KeepPunctuations;
             public readonly bool KeepNumbers;
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Transforms.Text
                 get
                 {
                     return
-                        TextCase != CaseNormalizationMode.None ||
+                        TextCase != CaseMode.None ||
                         !KeepDiacritics ||
                         !KeepPunctuations ||
                         !KeepNumbers;
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 var host = parent._host;
                 host.Check(Enum.IsDefined(typeof(Language), parent.OptionalSettings.TextLanguage));
-                host.Check(Enum.IsDefined(typeof(CaseNormalizationMode), parent.OptionalSettings.TextCase));
+                host.Check(Enum.IsDefined(typeof(CaseMode), parent.OptionalSettings.TextCase));
                 WordExtractorFactory = parent._wordFeatureExtractor?.CreateComponent(host, parent._dictionary);
                 CharExtractorFactory = parent._charFeatureExtractor?.CreateComponent(host, parent._dictionary);
                 VectorNormalizer = parent.OptionalSettings.VectorNormalizer;
