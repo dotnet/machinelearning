@@ -145,7 +145,7 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether the position of each source column should be included in the hash (when there are multiple source columns).",
                 ShortName = "ord", SortOrder = 6)]
-            public bool Ordered = NgramHashingEstimator.Defaults.Ordered;
+            public bool Ordered = NgramHashingEstimator.Defaults.UseOrderedHashing;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
@@ -417,7 +417,7 @@ namespace Microsoft.ML.Transforms.Text
                 uint mask = (1U << _parent._columns[iinfo].NumberOfBits) - 1;
                 int ngramLength = _parent._columns[iinfo].NgramLength;
                 bool rehash = _parent._columns[iinfo].RehashUnigrams;
-                bool ordered = _parent._columns[iinfo].Ordered;
+                bool ordered = _parent._columns[iinfo].UseOrderedHashing;
                 bool all = _parent._columns[iinfo].AllLengths;
                 uint seed = _parent._columns[iinfo].Seed;
 
@@ -891,7 +891,7 @@ namespace Microsoft.ML.Transforms.Text
             /// <summary>Hashing seed.</summary>
             public readonly uint Seed;
             /// <summary>Whether the position of each term should be included in the hash.</summary>
-            public readonly bool Ordered;
+            public readonly bool UseOrderedHashing;
             /// <summary>
             /// During hashing we constuct mappings between original values and the produced hash values.
             /// Text representation of original values are stored in the slot names of the  metadata for the new column.
@@ -916,7 +916,7 @@ namespace Microsoft.ML.Transforms.Text
             /// <param name="allLengths">Whether to store all ngram lengths up to <paramref name="ngramLength"/>, or only <paramref name="ngramLength"/>.</param>
             /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
-            /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
+            /// <param name="useOrderedHashing">Whether the position of each term should be included in the hash.</param>
             /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
             /// Text representation of original values are stored in the slot names of the metadata for the new column.
             /// Hashing, as such, can map many initial values to one.
@@ -930,7 +930,7 @@ namespace Microsoft.ML.Transforms.Text
                 bool allLengths = NgramHashingEstimator.Defaults.AllLengths,
                 int numberOfBits = NgramHashingEstimator.Defaults.NumberOfBits,
                 uint seed = NgramHashingEstimator.Defaults.Seed,
-                bool ordered = NgramHashingEstimator.Defaults.Ordered,
+                bool useOrderedHashing = NgramHashingEstimator.Defaults.UseOrderedHashing,
                 int invertHash = NgramHashingEstimator.Defaults.InvertHash,
                 bool rehashUnigrams = NgramHashingEstimator.Defaults.RehashUnigrams)
             {
@@ -962,7 +962,7 @@ namespace Microsoft.ML.Transforms.Text
                 AllLengths = allLengths;
                 NumberOfBits = numberOfBits;
                 Seed = seed;
-                Ordered = ordered;
+                UseOrderedHashing = useOrderedHashing;
                 InvertHash = invertHash;
                 RehashUnigrams = rehashUnigrams;
             }
@@ -996,7 +996,7 @@ namespace Microsoft.ML.Transforms.Text
                 Contracts.CheckDecode(1 <= NumberOfBits && NumberOfBits <= 30);
                 Seed = ctx.Reader.ReadUInt32();
                 RehashUnigrams = ctx.Reader.ReadBoolByte();
-                Ordered = ctx.Reader.ReadBoolByte();
+                UseOrderedHashing = ctx.Reader.ReadBoolByte();
                 AllLengths = ctx.Reader.ReadBoolByte();
             }
 
@@ -1026,7 +1026,7 @@ namespace Microsoft.ML.Transforms.Text
                 Contracts.CheckDecode(1 <= NumberOfBits && NumberOfBits <= 30);
                 Seed = ctx.Reader.ReadUInt32();
                 RehashUnigrams = ctx.Reader.ReadBoolByte();
-                Ordered = ctx.Reader.ReadBoolByte();
+                UseOrderedHashing = ctx.Reader.ReadBoolByte();
                 AllLengths = ctx.Reader.ReadBoolByte();
             }
 
@@ -1060,7 +1060,7 @@ namespace Microsoft.ML.Transforms.Text
                 ctx.Writer.Write(NumberOfBits);
                 ctx.Writer.Write(Seed);
                 ctx.Writer.WriteBoolByte(RehashUnigrams);
-                ctx.Writer.WriteBoolByte(Ordered);
+                ctx.Writer.WriteBoolByte(UseOrderedHashing);
                 ctx.Writer.WriteBoolByte(AllLengths);
             }
         }
@@ -1073,7 +1073,7 @@ namespace Microsoft.ML.Transforms.Text
             internal const int NumberOfBits = 16;
             internal const uint Seed = 314489979;
             internal const bool RehashUnigrams = false;
-            internal const bool Ordered = true;
+            internal const bool UseOrderedHashing = true;
             internal const int InvertHash = 0;
         }
 
@@ -1095,7 +1095,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
-        /// <param name="ordered">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
+        /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
@@ -1108,9 +1108,9 @@ namespace Microsoft.ML.Transforms.Text
             int skipLength = 0,
             bool allLengths = true,
             uint seed = 314489979,
-            bool ordered = true,
+            bool useOrderedHashing = true,
             int invertHash = 0)
-            : this(env, new ColumnOptions(outputColumnName, new[] { inputColumnName ?? outputColumnName }, ngramLength, skipLength, allLengths, numberOfBits, seed, ordered, invertHash))
+            : this(env, new ColumnOptions(outputColumnName, new[] { inputColumnName ?? outputColumnName }, ngramLength, skipLength, allLengths, numberOfBits, seed, useOrderedHashing, invertHash))
         {
         }
 

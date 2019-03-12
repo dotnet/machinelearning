@@ -336,9 +336,9 @@ namespace Microsoft.ML.StaticPipe
                 int skipLength,
                 bool allLengths,
                 uint seed,
-                bool ordered,
+                bool useOrderedHashing,
                 int invertHash)
-                : base(new Reconciler(hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash), input)
+                : base(new Reconciler(hashBits, ngramLength, skipLength, allLengths, seed, useOrderedHashing, invertHash), input)
             {
                 Input = input;
             }
@@ -351,17 +351,17 @@ namespace Microsoft.ML.StaticPipe
             private readonly int _skipLength;
             private readonly bool _allLengths;
             private readonly uint _seed;
-            private readonly bool _ordered;
+            private readonly bool _useOrderedHashing;
             private readonly int _invertHash;
 
-            public Reconciler(int hashBits, int ngramLength, int skipLength, bool allLengths, uint seed, bool ordered, int invertHash)
+            public Reconciler(int hashBits, int ngramLength, int skipLength, bool allLengths, uint seed, bool useOrderedHashing, int invertHash)
             {
                 _hashBits = hashBits;
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
                 _allLengths = allLengths;
                 _seed = seed;
-                _ordered = ordered;
+                _useOrderedHashing = useOrderedHashing;
                 _invertHash = invertHash;
             }
 
@@ -372,7 +372,7 @@ namespace Microsoft.ML.StaticPipe
                     _skipLength == other._skipLength &&
                     _allLengths == other._allLengths &&
                     _seed == other._seed &&
-                    _ordered == other._ordered &&
+                    _useOrderedHashing == other._useOrderedHashing &&
                     _invertHash == other._invertHash;
             }
 
@@ -388,7 +388,7 @@ namespace Microsoft.ML.StaticPipe
                 foreach (var outCol in toOutput)
                     pairs.Add((outputNames[outCol], new[] { inputNames[((OutPipelineColumn)outCol).Input] }));
 
-                return new WordHashBagEstimator(env, pairs.ToArray(), _hashBits, _ngramLength, _skipLength, _allLengths, _seed, _ordered, _invertHash);
+                return new WordHashBagEstimator(env, pairs.ToArray(), _hashBits, _ngramLength, _skipLength, _allLengths, _seed, _useOrderedHashing, _invertHash);
             }
         }
 
@@ -402,7 +402,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
-        /// <param name="ordered">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
+        /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
@@ -413,8 +413,8 @@ namespace Microsoft.ML.StaticPipe
             int skipLength = 0,
             bool allLengths = true,
             uint seed = 314489979,
-            bool ordered = true,
-            int invertHash = 0) => new OutPipelineColumn(input, numberOfBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash);
+            bool useOrderedHashing = true,
+            int invertHash = 0) => new OutPipelineColumn(input, numberOfBits, ngramLength, skipLength, allLengths, seed, useOrderedHashing, invertHash);
     }
 
     /// <summary>
@@ -512,8 +512,8 @@ namespace Microsoft.ML.StaticPipe
         {
             public readonly VarVector<Key<uint, string>> Input;
 
-            public OutPipelineColumn(VarVector<Key<uint, string>> input, int numberOfBits, int ngramLength, int skipLength, bool allLengths, uint seed, bool ordered, int invertHash)
-                : base(new Reconciler(numberOfBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash), input)
+            public OutPipelineColumn(VarVector<Key<uint, string>> input, int numberOfBits, int ngramLength, int skipLength, bool allLengths, uint seed, bool useOrderedHashing, int invertHash)
+                : base(new Reconciler(numberOfBits, ngramLength, skipLength, allLengths, seed, useOrderedHashing, invertHash), input)
             {
                 Input = input;
             }
@@ -526,17 +526,17 @@ namespace Microsoft.ML.StaticPipe
             private readonly int _skipLength;
             private readonly bool _allLengths;
             private readonly uint _seed;
-            private readonly bool _ordered;
+            private readonly bool _useOrderedHashing;
             private readonly int _invertHash;
 
-            public Reconciler(int numberOfBits, int ngramLength, int skipLength, bool allLengths, uint seed, bool ordered, int invertHash)
+            public Reconciler(int numberOfBits, int ngramLength, int skipLength, bool allLengths, uint seed, bool useOrderedHashing, int invertHash)
             {
                 _numberOfBits = numberOfBits;
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
                 _allLengths = allLengths;
                 _seed = seed;
-                _ordered = ordered;
+                _useOrderedHashing = useOrderedHashing;
                 _invertHash = invertHash;
             }
 
@@ -547,7 +547,7 @@ namespace Microsoft.ML.StaticPipe
                     _skipLength == other._skipLength &&
                     _allLengths == other._allLengths &&
                     _seed == other._seed &&
-                    _ordered == other._ordered &&
+                    _useOrderedHashing == other._useOrderedHashing &&
                     _invertHash == other._invertHash;
             }
 
@@ -561,7 +561,7 @@ namespace Microsoft.ML.StaticPipe
                 var columns = new List<NgramHashingEstimator.ColumnOptions>();
                 foreach (var outCol in toOutput)
                     columns.Add(new NgramHashingEstimator.ColumnOptions(outputNames[outCol], new[] { inputNames[((OutPipelineColumn)outCol).Input] },
-                          _ngramLength, _skipLength, _allLengths, _numberOfBits, _seed, _ordered, _invertHash));
+                          _ngramLength, _skipLength, _allLengths, _numberOfBits, _seed, _useOrderedHashing, _invertHash));
 
                 return new NgramHashingEstimator(env, columns.ToArray());
             }
@@ -580,7 +580,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
-        /// <param name="ordered">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
+        /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
@@ -591,7 +591,7 @@ namespace Microsoft.ML.StaticPipe
             int skipLength = 0,
             bool allLengths = true,
             uint seed = 314489979,
-            bool ordered = true,
-            int invertHash = 0) => new OutPipelineColumn(input, numberOfBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash);
+            bool useOrderedHashing = true,
+            int invertHash = 0) => new OutPipelineColumn(input, numberOfBits, ngramLength, skipLength, allLengths, seed, useOrderedHashing, invertHash);
     }
 }
