@@ -25,7 +25,7 @@ using Microsoft.ML;
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.FastTree" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Mkl.Components" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.KMeansClustering" + PublicKey.Value)]
-[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.LightGBM" + PublicKey.Value)]
+[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.LightGbm" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.OnnxConverter" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.OnnxTransformer" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Parquet" + PublicKey.Value)]
@@ -44,7 +44,7 @@ using Microsoft.ML;
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.TensorFlow.StaticPipe" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Mkl.Components.StaticPipe" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.OnnxTransformer.StaticPipe" + PublicKey.Value)]
-[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.LightGBM.StaticPipe" + PublicKey.Value)]
+[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.LightGbm.StaticPipe" + PublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.TimeSeries.StaticPipe" + PublicKey.Value)]
 
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Internal.MetaLinearLearner" + InternalPublicKey.Value)]
