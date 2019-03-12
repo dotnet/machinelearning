@@ -502,7 +502,7 @@ namespace Microsoft.ML.Functional.Tests
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
             // Fit the invalid pipeline.
-            // Todo #XXX: Make this fail somehow.
+            // Todo #2920: Make this fail somehow.
             var rankingModel = rankingPipeline.Fit(data);
 
             // Transform the data
@@ -521,7 +521,7 @@ namespace Microsoft.ML.Functional.Tests
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
             // Fit the invalid pipeline.
-            // Todo #XXX: Make this fail somehow.
+            // Todo #2920: Make this fail somehow.
             var regressionModel = regressionPipeline.Fit(data);
 
             // Transform the data
