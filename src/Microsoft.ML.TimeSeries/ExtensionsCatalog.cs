@@ -10,7 +10,7 @@ namespace Microsoft.ML
     public static class TimeSeriesCatalog
     {
         /// <summary>
-        /// Create a new instance of <see cref="IidChangePointEstimator"/> that detects a change of in a indiependent identically distributed time series.
+        /// Create a new instance of <see cref="IidChangePointEstimator"/> that detects a change of in a independent identically distributed time series.
         /// Detection is based on adaptive kernel density estimations and martingale scores.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
@@ -33,7 +33,7 @@ namespace Microsoft.ML
             => new IidChangePointEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, confidence, changeHistoryLength, inputColumnName, martingale, eps);
 
         /// <summary>
-        /// Create a new instance of <see cref="IidSpikeEstimator"/> that detects a spike in an indiependent identically distributed time series.
+        /// Create a new instance of <see cref="IidSpikeEstimator"/> that detects a spike in an independent identically distributed time series.
         /// Detection is based on adaptive kernel density estimations and martingale scores.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
