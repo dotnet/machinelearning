@@ -17,6 +17,29 @@ namespace Microsoft.ML
         /// Predict a target using a field-aware factorization machine algorithm.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
+        /// <param name="featureColumnName">The name(s) of the feature columns.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[FieldAwareFactorizationMachine](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/FieldAwareFactorizationMachine.cs)]
+        /// ]]></format>
+        /// </example>
+        public static FieldAwareFactorizationMachineBinaryClassificationTrainer FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            string featureColumnName = DefaultColumnNames.Features,
+            string labelColumnName = DefaultColumnNames.Label,
+            string exampleWeightColumnName = null)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new FieldAwareFactorizationMachineBinaryClassificationTrainer(env, new string[] { featureColumnName }, labelColumnName, exampleWeightColumnName);
+        }
+
+        /// <summary>
+        /// Predict a target using a field-aware factorization machine algorithm.
+        /// </summary>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="featureColumnNames">The name(s) of the feature columns.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
