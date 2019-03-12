@@ -121,13 +121,65 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.Multiple, Name = "WordFeatureExtractor", HelpText = "Ngram feature extractor to use for words (WordBag/WordHashBag).", ShortName = "wordExtractor", NullName = "<None>", SortOrder = 11)]
             internal INgramExtractorFactoryFactory WordFeatureExtractorFactory = new NgramExtractorTransform.NgramExtractorArguments();
 
-            public WordBagEstimator.Options WordFeatureExtractor;
+            /// <summary>
+            /// The underlying state of <see cref="WordFeatureExtractorFactory"/> and <see cref="WordFeatureExtractor"/>.
+            /// </summary>
+            private WordBagEstimator.Options _wordFeatureExtractor;
+
+            /// <summary>
+            /// Ngram feature extractor to use for words (WordBag/WordHashBag).
+            /// </summary>
+            public WordBagEstimator.Options WordFeatureExtractor
+            {
+                get { return _wordFeatureExtractor; }
+                set
+                {
+                    _wordFeatureExtractor = value;
+                    NgramExtractorTransform.NgramExtractorArguments extractor = null;
+                    if (_wordFeatureExtractor != null)
+                    {
+                        extractor = new NgramExtractorTransform.NgramExtractorArguments();
+                        extractor.NgramLength = _wordFeatureExtractor.NgramLength;
+                        extractor.SkipLength = _wordFeatureExtractor.SkipLength;
+                        extractor.AllLengths = _wordFeatureExtractor.AllLengths;
+                        extractor.MaxNumTerms = _wordFeatureExtractor.MaximumNgramsCount;
+                        extractor.Weighting = _wordFeatureExtractor.Weighting;
+                    }
+                    WordFeatureExtractorFactory = extractor;
+                }
+            }
 
             [TGUI(Label = "Char Gram Extractor")]
             [Argument(ArgumentType.Multiple, Name = "CharFeatureExtractor", HelpText = "Ngram feature extractor to use for characters (WordBag/WordHashBag).", ShortName = "charExtractor", NullName = "<None>", SortOrder = 12)]
             internal INgramExtractorFactoryFactory CharFeatureExtractorFactory = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
 
-            public WordBagEstimator.Options CharFeatureExtractor;
+            /// <summary>
+            /// The underlying state of <see cref="CharFeatureExtractorFactory"/> and <see cref="CharFeatureExtractor"/>
+            /// </summary>
+            private WordBagEstimator.Options _charFeatureExtractor;
+
+            /// <summary>
+            /// Ngram feature extractor to use for characters (WordBag/WordHashBag).
+            /// </summary>
+            public WordBagEstimator.Options CharFeatureExtractor
+            {
+                get { return _charFeatureExtractor; }
+                set
+                {
+                    _charFeatureExtractor = value;
+                    NgramExtractorTransform.NgramExtractorArguments extractor = null;
+                    if (_charFeatureExtractor != null)
+                    {
+                        extractor = new NgramExtractorTransform.NgramExtractorArguments();
+                        extractor.NgramLength = _charFeatureExtractor.NgramLength;
+                        extractor.SkipLength = _charFeatureExtractor.SkipLength;
+                        extractor.AllLengths = _charFeatureExtractor.AllLengths;
+                        extractor.MaxNumTerms = _charFeatureExtractor.MaximumNgramsCount;
+                        extractor.Weighting = _charFeatureExtractor.Weighting;
+                    }
+                    CharFeatureExtractorFactory = extractor;
+                }
+            }
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Normalize vectors (rows) individually by rescaling them to unit norm.", ShortName = "norm", SortOrder = 13)]
             public NormFunction VectorNormalizer = NormFunction.L2;
@@ -283,31 +335,10 @@ namespace Microsoft.ML.Transforms.Text
             if (options != null)
                 OptionalSettings = options;
 
-            NgramExtractorTransform.NgramExtractorArguments extractor = null;
-            if (OptionalSettings.WordFeatureExtractor != null)
-            {
-                extractor = new NgramExtractorTransform.NgramExtractorArguments();
-                extractor.NgramLength = OptionalSettings.WordFeatureExtractor.NgramLength;
-                extractor.SkipLength = OptionalSettings.WordFeatureExtractor.SkipLength;
-                extractor.AllLengths = OptionalSettings.WordFeatureExtractor.AllLengths;
-                extractor.MaxNumTerms = OptionalSettings.WordFeatureExtractor.MaximumNgramsCount;
-                extractor.Weighting = OptionalSettings.WordFeatureExtractor.Weighting;
-            }
-            _wordFeatureExtractor = extractor;
-
-            extractor = null;
-            if (OptionalSettings.CharFeatureExtractor != null)
-            {
-                extractor = new NgramExtractorTransform.NgramExtractorArguments();
-                extractor.NgramLength = OptionalSettings.CharFeatureExtractor.NgramLength;
-                extractor.SkipLength = OptionalSettings.CharFeatureExtractor.SkipLength;
-                extractor.AllLengths = OptionalSettings.CharFeatureExtractor.AllLengths;
-                extractor.MaxNumTerms = OptionalSettings.CharFeatureExtractor.MaximumNgramsCount;
-                extractor.Weighting = OptionalSettings.CharFeatureExtractor.Weighting;
-            }
-            _charFeatureExtractor = extractor;
-
             _dictionary = null;
+            _wordFeatureExtractor = OptionalSettings.WordFeatureExtractorFactory;
+            _charFeatureExtractor = OptionalSettings.CharFeatureExtractorFactory;
+
         }
 
         /// <summary>
