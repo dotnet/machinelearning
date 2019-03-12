@@ -758,7 +758,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label,
-                              pca: r.features.ToPrincipalComponents(rank: 5)));
+                              pca: r.features.ProjectToPrincipalComponents(rank: 5)));
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
 
@@ -850,7 +850,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 separator: ';', hasHeader: true);
             var data = reader.Load(dataSource);
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, pca: r.features.ToPrincipalComponents(rank: 5)));
+                .Append(r => (r.label, pca: r.features.ProjectToPrincipalComponents(rank: 5)));
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
 

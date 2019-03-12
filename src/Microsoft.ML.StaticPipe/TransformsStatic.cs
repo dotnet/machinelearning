@@ -1621,7 +1621,7 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    public static class PrincipalComponentAnalyzerStaticExtensions
+    public static class PcaStaticExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {
@@ -1673,7 +1673,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="ensureZeroMean">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation</param>
         /// <returns>Vector containing the principal components.</returns>
-        public static Vector<float> ToPrincipalComponents(this Vector<float> input,
+        public static Vector<float> ProjectToPrincipalComponents(this Vector<float> input,
             string weightColumn = PrincipalComponentAnalyzer.Defaults.WeightColumn,
             int rank = PrincipalComponentAnalyzer.Defaults.Rank,
             int overSampling = PrincipalComponentAnalyzer.Defaults.Oversampling,
