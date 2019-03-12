@@ -59,7 +59,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Number of iterations.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum iterations.", ShortName = "maxiter, MaxIterations")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum iterations.", ShortName = "maxiter, MaxIterations, NumberOfIterations")]
             [TGUI(Label = "Max Number of Iterations")]
             [TlcModule.SweepableLongParamAttribute("MaxIterations", 1, int.MaxValue)]
             public int MaximumNumberOfIterations = Defaults.MaximumNumberOfIterations;
