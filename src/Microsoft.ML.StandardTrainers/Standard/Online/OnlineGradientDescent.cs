@@ -97,23 +97,23 @@ namespace Microsoft.ML.Trainers
         /// <param name="featureColumn">Name of the feature column.</param>
         /// <param name="learningRate">The learning Rate.</param>
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
-        /// <param name="l2RegularizerWeight">L2 Regularization Weight.</param>
-        /// <param name="numIterations">Number of training iterations through the data.</param>
+        /// <param name="l2Regularization">Weight of L2 regularization term.</param>
+        /// <param name="numberOfIterations">Number of training iterations through the data.</param>
         /// <param name="lossFunction">The custom loss functions. Defaults to <see cref="SquaredLoss"/> if not provided.</param>
         internal OnlineGradientDescentTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             float learningRate = Options.OgdDefaultArgs.LearningRate,
             bool decreaseLearningRate = Options.OgdDefaultArgs.DecreaseLearningRate,
-            float l2RegularizerWeight = Options.OgdDefaultArgs.L2RegularizerWeight,
-            int numIterations = Options.OgdDefaultArgs.NumIterations,
+            float l2Regularization = Options.OgdDefaultArgs.L2Regularization,
+            int numberOfIterations = Options.OgdDefaultArgs.NumberOfIterations,
             IRegressionLoss lossFunction = null)
             : this(env, new Options
             {
                 LearningRate = learningRate,
                 DecreaseLearningRate = decreaseLearningRate,
-                L2RegularizerWeight = l2RegularizerWeight,
-                NumberOfIterations = numIterations,
+                L2Regularization= l2Regularization,
+                NumberOfIterations = numberOfIterations,
                 LabelColumnName = labelColumn,
                 FeatureColumnName = featureColumn,
                 LossFunction = lossFunction ?? new SquaredLoss()

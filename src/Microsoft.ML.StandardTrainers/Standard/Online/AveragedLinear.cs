@@ -57,16 +57,16 @@ namespace Microsoft.ML.Trainers
         /// <see langword="false" /> to update averaged weights on every example.
         /// Default is <see langword="true" />.
         /// </value>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Instead of updating averaged weights on every example, only update when loss is nonzero", ShortName = "lazy")]
-        public bool DoLazyUpdates = true;
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Instead of updating averaged weights on every example, only update when loss is nonzero", ShortName = "lazy,DoLazyUpdates")]
+        public bool LazyUpdate = true;
 
         /// <summary>
         /// The L2 weight for <a href='tmpurl_regularization'>regularization</a>.
         /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization Weight", ShortName = "reg", SortOrder = 50)]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization Weight", ShortName = "reg,L2RegularizerWeight", SortOrder = 50)]
         [TGUI(Label = "L2 Regularization Weight")]
         [TlcModule.SweepableFloatParam("L2RegularizerWeight", 0.0f, 0.4f)]
-        public float L2RegularizerWeight = AveragedDefault.L2RegularizerWeight;
+        public float L2Regularization = AveragedDefault.L2Regularization;
 
         /// <summary>
         /// Extra weight given to more recent updates.
@@ -85,8 +85,8 @@ namespace Microsoft.ML.Trainers
         /// <see langword="false" /> means <see cref="RecencyGain"/> is additive.
         /// Default is <see langword="false" />.
         /// </value>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Whether Recency Gain is multiplicative (vs. additive)", ShortName = "rgm")]
-        public bool RecencyGainMulti = false;
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Whether Recency Gain is multiplicative (vs. additive)", ShortName = "rgm,RecencyGainMulti")]
+        public bool RecencyGainMultiplicative = false;
 
         /// <summary>
         /// Determines whether to do averaging or not.
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers
         {
             public const float LearningRate = 1;
             public const bool DecreaseLearningRate = false;
-            public const float L2RegularizerWeight = 0;
+            public const float L2Regularization = 0;
         }
 
         internal abstract IComponentFactory<IScalarLoss> LossFunctionFactory { get; }
@@ -186,7 +186,7 @@ namespace Microsoft.ML.Trainers
                 // Finalize things
                 if (Averaged)
                 {
-                    if (_args.DoLazyUpdates && NumNoUpdates > 0)
+                    if (_args.LazyUpdate && NumNoUpdates > 0)
                     {
                         // Update the total weights to include the final loss=0 updates
                         VectorUtils.AddMult(in Weights, NumNoUpdates * WeightsScale, ref TotalWeights);
@@ -221,10 +221,10 @@ namespace Microsoft.ML.Trainers
                 // REVIEW: Should this be biasUpdate != 0?
                 // This loss does not incorporate L2 if present, but the chance of that addition to the loss
                 // exactly cancelling out loss is remote.
-                if (loss != 0 || _args.L2RegularizerWeight > 0)
+                if (loss != 0 || _args.L2Regularization > 0)
                 {
                     // If doing lazy weights, we need to update the totalWeights and totalBias before updating weights/bias
-                    if (_args.DoLazyUpdates && _args.Averaged && NumNoUpdates > 0 && TotalMultipliers * _args.AveragedTolerance <= PendingMultipliers)
+                    if (_args.LazyUpdate && _args.Averaged && NumNoUpdates > 0 && TotalMultipliers * _args.AveragedTolerance <= PendingMultipliers)
                     {
                         VectorUtils.AddMult(in Weights, NumNoUpdates * WeightsScale, ref TotalWeights);
                         TotalBias += Bias * NumNoUpdates * WeightsScale;
@@ -242,7 +242,7 @@ namespace Microsoft.ML.Trainers
 
                     // Perform the update to weights and bias.
                     VectorUtils.AddMult(in feat, biasUpdate / WeightsScale, ref Weights);
-                    WeightsScale *= 1 - 2 * _args.L2RegularizerWeight; // L2 regularization.
+                    WeightsScale *= 1 - 2 * _args.L2Regularization; // L2 regularization.
                     ScaleWeightsIfNeeded();
                     Bias += biasUpdate;
                     PendingMultipliers += Math.Abs(biasUpdate);
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Trainers
                 // Add to averaged weights and increment the count.
                 if (Averaged)
                 {
-                    if (!_args.DoLazyUpdates)
+                    if (!_args.LazyUpdate)
                         IncrementAverageNonLazy();
                     else
                         NumNoUpdates++;
@@ -282,7 +282,7 @@ namespace Microsoft.ML.Trainers
                 VectorUtils.AddMult(in Weights, Gain * WeightsScale, ref TotalWeights);
                 TotalBias += Gain * Bias;
                 NumWeightUpdates += Gain;
-                Gain = (_args.RecencyGainMulti ? Gain * _args.RecencyGain : Gain + _args.RecencyGain);
+                Gain = (_args.RecencyGainMultiplicative ? Gain * _args.RecencyGain : Gain + _args.RecencyGain);
 
                 // If gains got too big, rescale!
                 if (Gain > 1000)
@@ -303,11 +303,11 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckUserArg(!options.ResetWeightsAfterXExamples.HasValue || options.ResetWeightsAfterXExamples > 0, nameof(options.ResetWeightsAfterXExamples), UserErrorPositive);
 
             // Weights are scaled down by 2 * L2 regularization on each update step, so 0.5 would scale all weights to 0, which is not sensible.
-            Contracts.CheckUserArg(0 <= options.L2RegularizerWeight && options.L2RegularizerWeight < 0.5, nameof(options.L2RegularizerWeight), "must be in range [0, 0.5)");
+            Contracts.CheckUserArg(0 <= options.L2Regularization && options.L2Regularization < 0.5, nameof(options.L2Regularization), "must be in range [0, 0.5)");
             Contracts.CheckUserArg(options.RecencyGain >= 0, nameof(options.RecencyGain), UserErrorNonNegative);
             Contracts.CheckUserArg(options.AveragedTolerance >= 0, nameof(options.AveragedTolerance), UserErrorNonNegative);
             // Verify user didn't specify parameters that conflict
-            Contracts.Check(!options.DoLazyUpdates || !options.RecencyGainMulti && options.RecencyGain == 0, "Cannot have both recency gain and lazy updates.");
+            Contracts.Check(!options.LazyUpdate || !options.RecencyGainMultiplicative && options.RecencyGain == 0, "Cannot have both recency gain and lazy updates.");
 
             AveragedLinearTrainerOptions = options;
         }

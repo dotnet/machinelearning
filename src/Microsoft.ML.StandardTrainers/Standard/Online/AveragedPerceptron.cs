@@ -131,24 +131,24 @@ namespace Microsoft.ML.Trainers
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="learningRate">The learning rate. </param>
         /// <param name="decreaseLearningRate">Whether to decrease learning rate as iterations progress.</param>
-        /// <param name="l2RegularizerWeight">L2 Regularization Weight.</param>
-        /// <param name="numIterations">The number of training iterations.</param>
+        /// <param name="l2Regularization">Weight of L2 regularization term.</param>
+        /// <param name="numberOfIterations">The number of training iterations.</param>
         internal AveragedPerceptronTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             IClassificationLoss lossFunction = null,
             float learningRate = Options.AveragedDefault.LearningRate,
             bool decreaseLearningRate = Options.AveragedDefault.DecreaseLearningRate,
-            float l2RegularizerWeight = Options.AveragedDefault.L2RegularizerWeight,
-            int numIterations = Options.AveragedDefault.NumIterations)
+            float l2Regularization = Options.AveragedDefault.L2Regularization,
+            int numberOfIterations = Options.AveragedDefault.NumberOfIterations)
             : this(env, new Options
             {
                 LabelColumnName = labelColumnName,
                 FeatureColumnName = featureColumnName,
                 LearningRate = learningRate,
                 DecreaseLearningRate = decreaseLearningRate,
-                L2RegularizerWeight = l2RegularizerWeight,
-                NumberOfIterations = numIterations,
+                L2Regularization = l2Regularization,
+                NumberOfIterations = numberOfIterations,
                 LossFunction = lossFunction ?? new HingeLoss()
             })
         {

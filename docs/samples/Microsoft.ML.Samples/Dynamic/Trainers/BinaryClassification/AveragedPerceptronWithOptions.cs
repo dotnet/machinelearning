@@ -25,7 +25,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             {
                 LossFunction = new SmoothedHingeLoss(),
                 LearningRate = 0.1f,
-                DoLazyUpdates = false,
+                LazyUpdate = false,
                 RecencyGain = 0.1f,
                 NumberOfIterations = 10
             };
