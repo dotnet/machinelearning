@@ -78,7 +78,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Maximum number of iterations.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations.", ShortName = "maxiter")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations.", ShortName = "maxiter, NumberOfIterations")]
             [TGUI(Label = "Max Number of Iterations")]
             public int MaximumNumberOfIterations = 1000;
 

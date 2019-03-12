@@ -11026,7 +11026,8 @@
           "Type": "Int",
           "Desc": "Maximum number of iterations.",
           "Aliases": [
-            "maxiter"
+            "maxiter",
+            "NumberOfIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -13559,12 +13560,13 @@
           }
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum iterations.",
           "Aliases": [
             "maxiter",
-            "MaxIterations"
+            "MaxIterations",
+            "NumberOfIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -13879,12 +13881,13 @@
           }
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum iterations.",
           "Aliases": [
             "maxiter",
-            "MaxIterations"
+            "MaxIterations",
+            "NumberOfIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -14907,12 +14910,13 @@
           }
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum iterations.",
           "Aliases": [
             "maxiter",
-            "MaxIterations"
+            "MaxIterations",
+            "NumberOfIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -15233,7 +15237,8 @@
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [
             "iter",
-            "MaxIterations"
+            "MaxIterations",
+            "NumberOfIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -15506,7 +15511,8 @@
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [
             "iter",
-            "MaxIterations"
+            "MaxIterations",
+            "NumberOfIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -15779,7 +15785,8 @@
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [
             "iter",
-            "MaxIterations"
+            "MaxIterations",
+            "NumberOfIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
