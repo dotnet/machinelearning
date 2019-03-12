@@ -1512,20 +1512,6 @@ namespace Microsoft.ML.Trainers
 
         private protected abstract SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape();
 
-        private protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
-        {
-            Contracts.Assert(labelCol.IsValid);
-
-            Action error =
-                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", labelCol.Name, "float, double, bool or KeyType", labelCol.GetTypeString());
-
-            if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
-                error();
-
-            if (!labelCol.IsKey && labelCol.ItemType != NumberDataViewType.Single && labelCol.ItemType != NumberDataViewType.Double && !(labelCol.ItemType is BooleanDataViewType))
-                error();
-        }
-
         private protected LinearBinaryModelParameters CreateLinearBinaryModelParameters(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
@@ -1638,8 +1624,16 @@ namespace Microsoft.ML.Trainers
             /// <value>
             /// If unspecified, <see cref="LogLoss"/> will be used.
             /// </value>
-            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
-            public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
+            [Argument(ArgumentType.Multiple, Name = "LossFunction", HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
+            internal ISupportSdcaClassificationLossFactory LossFunctionFactory = new LogLossFactory();
+
+            /// <summary>
+            /// The custom <a href="tmpurl_loss">loss</a>.
+            /// </summary>
+            /// <value>
+            /// If unspecified, <see cref="LogLoss"/> will be used.
+            /// </value>
+            public ISupportSdcaClassificationLoss LossFunction { get; set; }
         }
 
         internal SdcaNonCalibratedBinaryClassificationTrainer(IHostEnvironment env,
@@ -1655,7 +1649,7 @@ namespace Microsoft.ML.Trainers
         }
 
         internal SdcaNonCalibratedBinaryClassificationTrainer(IHostEnvironment env, Options options)
-            : base(env, options, options.LossFunction.CreateComponent(env))
+            : base(env, options, options.LossFunction ?? options.LossFunctionFactory.CreateComponent(env))
         {
         }
 

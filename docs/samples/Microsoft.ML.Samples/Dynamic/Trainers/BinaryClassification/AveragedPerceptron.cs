@@ -19,7 +19,7 @@
             var trainTestData = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Create data training pipeline.
-            var pipeline = mlContext.BinaryClassification.Trainers.AveragedPerceptron(numIterations: 10);
+            var pipeline = mlContext.BinaryClassification.Trainers.AveragedPerceptron(numberOfIterations: 10);
 
             // Fit this pipeline to the training data.
             var model = pipeline.Fit(trainTestData.TrainSet);

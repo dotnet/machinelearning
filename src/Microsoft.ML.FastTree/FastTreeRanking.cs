@@ -105,6 +105,7 @@ namespace Microsoft.ML.Trainers.FastTree
             if (!labelCol.IsKey && labelCol.ItemType != NumberDataViewType.Single)
                 error();
         }
+
         private protected override float GetMaxLabel()
         {
             return GetLabelGains().Length - 1;

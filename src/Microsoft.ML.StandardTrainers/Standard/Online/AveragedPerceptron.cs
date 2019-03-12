@@ -61,8 +61,13 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// A custom <a href="tmpurl_loss">loss</a>.
             /// </summary>
-            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
-            public ISupportClassificationLossFactory LossFunction = new HingeLoss.Options();
+            [Argument(ArgumentType.Multiple, Name = "LossFunction", HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
+            internal ISupportClassificationLossFactory ClassificationLossFunctionFactory = new HingeLoss.Options();
+
+            /// <summary>
+            /// A custom <a href="tmpurl_loss">loss</a>.
+            /// </summary>
+            public IClassificationLoss LossFunction { get; set; }
 
             /// <summary>
             /// The <a href="tmpurl_calib">calibrator</a> for producing probabilities. Default is exponential (aka Platt) calibration.
@@ -76,7 +81,7 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             internal int MaxCalibrationExamples = 1000000;
 
-            internal override IComponentFactory<IScalarOutputLoss> LossFunctionFactory => LossFunction;
+            internal override IComponentFactory<IScalarLoss> LossFunctionFactory => ClassificationLossFunctionFactory;
         }
 
         private sealed class TrainState : AveragedTrainStateBase
@@ -113,7 +118,7 @@ namespace Microsoft.ML.Trainers
             : base(options, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             _args = options;
-            LossFunction = _args.LossFunction.CreateComponent(env);
+            LossFunction = _args.LossFunction ?? _args.LossFunctionFactory.CreateComponent(env);
         }
 
         /// <summary>
@@ -126,39 +131,27 @@ namespace Microsoft.ML.Trainers
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="learningRate">The learning rate. </param>
         /// <param name="decreaseLearningRate">Whether to decrease learning rate as iterations progress.</param>
-        /// <param name="l2RegularizerWeight">L2 Regularization Weight.</param>
-        /// <param name="numIterations">The number of training iterations.</param>
+        /// <param name="l2Regularization">Weight of L2 regularization term.</param>
+        /// <param name="numberOfIterations">The number of training iterations.</param>
         internal AveragedPerceptronTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             IClassificationLoss lossFunction = null,
             float learningRate = Options.AveragedDefault.LearningRate,
             bool decreaseLearningRate = Options.AveragedDefault.DecreaseLearningRate,
-            float l2RegularizerWeight = Options.AveragedDefault.L2RegularizerWeight,
-            int numIterations = Options.AveragedDefault.NumIterations)
+            float l2Regularization = Options.AveragedDefault.L2Regularization,
+            int numberOfIterations = Options.AveragedDefault.NumberOfIterations)
             : this(env, new Options
             {
                 LabelColumnName = labelColumnName,
                 FeatureColumnName = featureColumnName,
                 LearningRate = learningRate,
                 DecreaseLearningRate = decreaseLearningRate,
-                L2RegularizerWeight = l2RegularizerWeight,
-                NumberOfIterations = numIterations,
-                LossFunction = new TrivialFactory(lossFunction ?? new HingeLoss())
+                L2Regularization = l2Regularization,
+                NumberOfIterations = numberOfIterations,
+                LossFunction = lossFunction ?? new HingeLoss()
             })
         {
-        }
-
-        private sealed class TrivialFactory : ISupportClassificationLossFactory
-        {
-            private IClassificationLoss _loss;
-
-            public TrivialFactory(IClassificationLoss loss)
-            {
-                _loss = loss;
-            }
-
-            IClassificationLoss IComponentFactory<IClassificationLoss>.CreateComponent(IHostEnvironment env) => _loss;
         }
 
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -179,20 +172,6 @@ namespace Microsoft.ML.Trainers
         {
             Contracts.AssertValue(data);
             data.CheckBinaryLabel();
-        }
-
-        private protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
-        {
-            Contracts.Assert(labelCol.IsValid);
-
-            Action error =
-                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", labelCol.Name, "float, double, bool or KeyType", labelCol.GetTypeString());
-
-            if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
-                error();
-
-            if (!labelCol.IsKey && labelCol.ItemType != NumberDataViewType.Single && labelCol.ItemType != NumberDataViewType.Double && !(labelCol.ItemType is BooleanDataViewType))
-                error();
         }
 
         private protected override TrainStateBase MakeState(IChannel ch, int numFeatures, LinearModelParameters predictor)

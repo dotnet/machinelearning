@@ -145,28 +145,18 @@ namespace Microsoft.ML.Trainers
 
         private IDataView MapLabels(RoleMappedData data, int cls)
         {
-            var lab = data.Schema.Label.Value;
-            Host.Assert(!lab.IsHidden);
-            Host.Assert(lab.Type.GetKeyCount() > 0 || lab.Type == NumberDataViewType.Single || lab.Type == NumberDataViewType.Double);
+            var label = data.Schema.Label.Value;
+            Host.Assert(!label.IsHidden);
+            Host.Assert(label.Type.GetKeyCount() > 0 || label.Type == NumberDataViewType.Single || label.Type == NumberDataViewType.Double);
 
-            if (lab.Type.GetKeyCount() > 0)
+            if (label.Type.GetKeyCount() > 0)
             {
                 // Key values are 1-based.
                 uint key = (uint)(cls + 1);
                 return MapLabelsCore(NumberDataViewType.UInt32, (in uint val) => key == val, data);
             }
-            if (lab.Type == NumberDataViewType.Single)
-            {
-                float key = cls;
-                return MapLabelsCore(NumberDataViewType.Single, (in float val) => key == val, data);
-            }
-            if (lab.Type == NumberDataViewType.Double)
-            {
-                double key = cls;
-                return MapLabelsCore(NumberDataViewType.Double, (in double val) => key == val, data);
-            }
 
-            throw Host.ExceptNotSupp($"Label column type is not supported by OneVersusAllTrainer: {lab.Type.RawType}");
+            throw Host.ExceptNotSupp($"Label column type is not supported by OneVersusAllTrainer: {label.Type.RawType}");
         }
 
         /// <summary> Trains a <see cref="MulticlassPredictionTransformer{OneVersusAllModelParameters}"/> model.</summary>

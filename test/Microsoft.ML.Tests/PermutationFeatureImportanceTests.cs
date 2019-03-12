@@ -88,7 +88,7 @@ namespace Microsoft.ML.Tests
 
             Assert.Equal(3, MinDeltaIndex(pfi, m => m.RSquared.StandardDeviation));
             Assert.Equal(1, MaxDeltaIndex(pfi, m => m.RSquared.StandardDeviation));
-            
+
             // Stardard Error will scale with the magnitude of the measure (as it's SD/sqrt(N))
             Assert.Equal(3, MinDeltaIndex(pfi, m => m.MeanAbsoluteError.StandardError));
             Assert.Equal(1, MaxDeltaIndex(pfi, m => m.MeanAbsoluteError.StandardError));
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.PositiveRecall.Mean));
             Assert.Equal(3, MaxDeltaIndex(pfi, m => m.NegativePrecision.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.NegativePrecision.Mean));
-            Assert.Equal(0, MaxDeltaIndex(pfi, m => m.NegativeRecall.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.NegativeRecall.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.NegativeRecall.Mean));
             Assert.Equal(3, MaxDeltaIndex(pfi, m => m.F1Score.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.F1Score.Mean));
@@ -403,7 +403,7 @@ namespace Microsoft.ML.Tests
             }
 
             // If binary classification, modify the labels
-            if (task == TaskType.BinaryClassification || 
+            if (task == TaskType.BinaryClassification ||
                 task == TaskType.MulticlassClassification)
                 GetBinaryClassificationLabels(yArray);
             else if (task == TaskType.Ranking)
@@ -422,9 +422,13 @@ namespace Microsoft.ML.Tests
 
             var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2Important", "X3", "X4Rand")
                 .Append(ML.Transforms.Normalize("Features"));
-
-            // Create a keytype for Ranking
-            if (task == TaskType.Ranking)
+            if (task == TaskType.BinaryClassification)
+                return pipeline.Append(ML.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean))
+                    .Fit(srcDV).Transform(srcDV);
+            else if (task == TaskType.MulticlassClassification)
+                return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("Label"))
+                    .Fit(srcDV).Transform(srcDV);
+            else if (task == TaskType.Ranking)
                 return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("GroupId"))
                     .Fit(srcDV).Transform(srcDV);
 
@@ -498,9 +502,17 @@ namespace Microsoft.ML.Tests
 
             var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2VBuffer", "X3Important")
                 .Append(ML.Transforms.Normalize("Features"));
-
-            // Create a keytype for Ranking
-            if (task == TaskType.Ranking)
+            if (task == TaskType.BinaryClassification)
+            {
+                return pipeline.Append(ML.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean))
+                    .Fit(srcDV).Transform(srcDV);
+            }
+            else if (task == TaskType.MulticlassClassification)
+            {
+                return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("Label"))
+                    .Fit(srcDV).Transform(srcDV);
+            }
+            else if (task == TaskType.Ranking)
                 return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("GroupId"))
                     .Fit(srcDV).Transform(srcDV);
 
