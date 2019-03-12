@@ -227,7 +227,7 @@ namespace Microsoft.ML.Functional.Tests
                 .AppendCacheCheckpoint(mlContext);
 
             var trainer = mlContext.BinaryClassification.Trainers.LogisticRegression(
-                new LogisticRegression.Options { NumberOfThreads = 1, NumberOfIterations = 10 });
+                new LogisticRegression.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 });
 
             // Fit the data transformation pipeline.
             var featurization = featurizationPipeline.Fit(data);
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Functional.Tests
                 .AppendCacheCheckpoint(mlContext);
 
             var trainer = mlContext.MulticlassClassification.Trainers.LogisticRegression(
-                new MulticlassLogisticRegression.Options { NumberOfThreads = 1, NumberOfIterations = 10 });
+                new MulticlassLogisticRegression.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 });
 
             // Fit the data transformation pipeline.
             var featurization = featurizationPipeline.Fit(data);
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Functional.Tests
                 .AppendCacheCheckpoint(mlContext);
 
             var trainer = mlContext.Regression.Trainers.PoissonRegression(
-                new PoissonRegression.Options { NumberOfThreads = 1, NumberOfIterations = 100 });
+                new PoissonRegression.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 100 });
 
             // Fit the data transformation pipeline.
             var featurization = featurizationPipeline.Fit(data);
@@ -464,7 +464,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a model training an OVA trainer with a binary classifier.
             var binaryclassificationTrainer = mlContext.BinaryClassification.Trainers.LogisticRegression(
-                new LogisticRegression.Options { NumberOfIterations = 10, NumberOfThreads = 1, });
+                new LogisticRegression.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
             var binaryClassificationPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
@@ -492,7 +492,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a model training an OVA trainer with a multiclass classification trainer.
             var multiclassTrainer = mlContext.MulticlassClassification.Trainers.LogisticRegression(
-                new MulticlassLogisticRegression.Options { NumberOfIterations = 10, NumberOfThreads = 1, });
+                new MulticlassLogisticRegression.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
             Assert.Throws<ArgumentOutOfRangeException>(() => 
                 mlContext.Transforms.Concatenate("Features", Iris.Features)
                     .AppendCacheCheckpoint(mlContext)
@@ -515,7 +515,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a model training an OVA trainer with a regressor.
             var regressionTrainer = mlContext.Regression.Trainers.PoissonRegression(
-                new PoissonRegression.Options { NumberOfIterations = 10, NumberOfThreads = 1, });
+                new PoissonRegression.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
             // Todo #2920: Make this fail somehow.
             var regressionPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
