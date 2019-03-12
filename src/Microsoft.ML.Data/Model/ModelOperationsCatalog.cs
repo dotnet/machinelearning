@@ -159,5 +159,32 @@ namespace Microsoft.ML
                 _env = owner._env;
             }
         }
+
+        /// <summary>
+        /// Create a prediction engine for one-time prediction.
+        /// </summary>
+        /// <typeparam name="TSrc">The class that defines the input data.</typeparam>
+        /// <typeparam name="TDst">The class that defines the output data.</typeparam>
+        /// <param name="transformer">The transformer to use for prediction.</param>
+        /// <param name="ignoreMissingColumns">Whether to throw an exception if a column exists in
+        /// <paramref name="outputSchemaDefinition"/> but the corresponding member doesn't exist in
+        /// <typeparamref name="TDst"/>.</param>
+        /// <param name="inputSchemaDefinition">Additional settings of the input schema.</param>
+        /// <param name="outputSchemaDefinition">Additional settings of the output schema.</param>
+        public PredictionEngine<TSrc, TDst> CreatePredictionEngine<TSrc, TDst>(ITransformer transformer,
+            bool ignoreMissingColumns = true, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            where TSrc : class
+            where TDst : class, new()
+        {
+            return transformer.CreatePredictionEngine<TSrc, TDst>(_env, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
+        }
+
+        public PredictionEngine<TSrc, TDst> CreatePredictionEngine<TSrc, TDst>(ITransformer transformer, DataViewSchema inputSchema)
+            where TSrc : class
+            where TDst : class, new()
+        {
+            return transformer.CreatePredictionEngine<TSrc, TDst>(_env, false,
+                DataViewConstructionUtils.GetSchemaDefinition<TSrc>(_env, inputSchema));
+        }
     }
 }
