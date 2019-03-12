@@ -241,9 +241,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// LightGbmMulticlass TrainerEstimator test 
         /// </summary>
         [LightGBMFact]
-        public void LightGbmMultiClassEstimator()
+        public void LightGbmMulticlassEstimator()
         {
-            var (pipeline, dataView) = GetMultiClassPipeline();
+            var (pipeline, dataView) = GetMulticlassPipeline();
             var trainer = ML.MulticlassClassification.Trainers.LightGbm(learningRate: 0.4);
             var pipe = pipeline.Append(trainer)
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
@@ -373,7 +373,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [LightGBMFact]
-        public void LightGbmMultiClassEstimatorCompareOva()
+        public void LightGbmMulticlassEstimatorCompareOva()
         {
             // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
             LightGbmHelper(useSoftmax: false, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0);
@@ -405,7 +405,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [LightGBMFact]
-        public void LightGbmMultiClassEstimatorCompareSoftMax()
+        public void LightGbmMulticlassEstimatorCompareSoftMax()
         {
             // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
             LightGbmHelper(useSoftmax: true, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0);
@@ -438,7 +438,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var currentCulture = Thread.CurrentThread.CurrentCulture;
             Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("de-DE");
-            var (pipeline, dataView) = GetMultiClassPipeline();
+            var (pipeline, dataView) = GetMulticlassPipeline();
             var trainer = ML.MulticlassClassification.Trainers.LightGbm(learningRate: 0.4);
             var pipe = pipeline.Append(trainer)
                     .Append(ML.Transforms.Conversion.MapKeyToValue("PredictedLabel"));

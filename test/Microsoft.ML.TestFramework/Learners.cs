@@ -96,14 +96,14 @@ namespace Microsoft.ML.RunTests
         public static PredictorAndArgs multiclassSdcaL1 = new PredictorAndArgs
         {
             Trainer = new SubComponent("SDCAMC", "l2=1e-04 l1=0.5 maxIterations=20 checkFreq=0 nt=1"),
-            Tag = "MultiClassSDCA-L1"
+            Tag = "MulticlassSDCA-L1"
         };
 
         // New.
         public static PredictorAndArgs multiclassSdcaSmoothedHinge = new PredictorAndArgs
         {
             Trainer = new SubComponent("SDCAMC", "l2=1e-04 loss=SmoothedHinge maxIterations=20 checkFreq=0 nt=1"),
-            Tag = "MultiClassSDCA-SmoothedHinge"
+            Tag = "MulticlassSDCA-SmoothedHinge"
         };
 
         // Old.
@@ -731,7 +731,7 @@ namespace Microsoft.ML.RunTests
         };
 
         public static string BinaryTrembleTrainer = "BinaryTremble";
-        public static string MultiClassTrembleTrainer = "MultiClassTremble";
+        public static string MulticlassTrembleTrainer = "MultiClassTremble";
 
         public static PredictorAndArgs BinaryTrembleDecisionTreeLR = new PredictorAndArgs
         {
@@ -769,34 +769,34 @@ namespace Microsoft.ML.RunTests
             Tag = "BinaryDT-rewt"
         };
 
-        public static PredictorAndArgs MultiClassTrembleDecisionTreeLR = new PredictorAndArgs
+        public static PredictorAndArgs MulticlassTrembleDecisionTreeLR = new PredictorAndArgs
         {
-            Trainer = new SubComponent(MultiClassTrembleTrainer, "inp=SingleFeaturePredictor inp=LogisticRegression{maxiter=10 quiet=+ t-} lnp=MultiClassLogisticRegression{maxiter=100 quiet=+ t-} nl=8"),
-            Tag = "MultiClassTremble-lr"
+            Trainer = new SubComponent(MulticlassTrembleTrainer, "inp=SingleFeaturePredictor inp=LogisticRegression{maxiter=10 quiet=+ t-} lnp=MulticlassLogisticRegression{maxiter=100 quiet=+ t-} nl=8"),
+            Tag = "MulticlassTremble-lr"
         };
 
-        public static PredictorAndArgs MultiClassDecisionTreeDefault = new PredictorAndArgs
+        public static PredictorAndArgs MulticlassDecisionTreeDefault = new PredictorAndArgs
         {
-            Trainer = new SubComponent(MultiClassTrembleTrainer, "nl=20"),
-            Tag = "MultiClassDT-def"
+            Trainer = new SubComponent(MulticlassTrembleTrainer, "nl=20"),
+            Tag = "MulticlassDT-def"
         };
 
-        public static PredictorAndArgs MultiClassDecisionTreePruning = new PredictorAndArgs
+        public static PredictorAndArgs MulticlassDecisionTreePruning = new PredictorAndArgs
         {
-            Trainer = new SubComponent(MultiClassTrembleTrainer, "nl=20 prune=+"),
-            Tag = "MultiClassDT-prune"
+            Trainer = new SubComponent(MulticlassTrembleTrainer, "nl=20 prune=+"),
+            Tag = "MulticlassDT-prune"
         };
 
-        public static PredictorAndArgs MultiClassDecisionTreeGini = new PredictorAndArgs
+        public static PredictorAndArgs MulticlassDecisionTreeGini = new PredictorAndArgs
         {
-            Trainer = new SubComponent(MultiClassTrembleTrainer, "nl=20 imp=Gini"),
-            Tag = "MultiClassDT-gini"
+            Trainer = new SubComponent(MulticlassTrembleTrainer, "nl=20 imp=Gini"),
+            Tag = "MulticlassDT-gini"
         };
 
-        public static PredictorAndArgs MultiClassDecisionTreeModified = new PredictorAndArgs
+        public static PredictorAndArgs MulticlassDecisionTreeModified = new PredictorAndArgs
         {
-            Trainer = new SubComponent(MultiClassTrembleTrainer, "mil=2 inp=SingleFeaturePredictor{nb=FIFTEEN ff=0.7} nl=40"),
-            Tag = "MultiClassDT-mod"
+            Trainer = new SubComponent(MulticlassTrembleTrainer, "mil=2 inp=SingleFeaturePredictor{nb=FIFTEEN ff=0.7} nl=40"),
+            Tag = "MulticlassDT-mod"
         };
 
         public const string BinaryBPMTrainer = "BinaryBPM";

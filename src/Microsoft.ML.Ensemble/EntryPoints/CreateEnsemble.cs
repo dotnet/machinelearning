@@ -248,7 +248,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         }
 
         [TlcModule.EntryPoint(Name = "Models.MultiClassPipelineEnsemble", Desc = "Combine multiclass classifiers into an ensemble")]
-        public static CommonOutputs.MulticlassClassificationOutput CreateMultiClassPipelineEnsemble(IHostEnvironment env, PipelineClassifierInput input)
+        public static CommonOutputs.MulticlassClassificationOutput CreateMulticlassPipelineEnsemble(IHostEnvironment env, PipelineClassifierInput input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("CombineModels");
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 default:
                     throw host.Except("Unknown combiner kind");
             }
-            var ensemble = SchemaBindablePipelineEnsembleBase.Create(host, input.Models, combiner, AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification);
+            var ensemble = SchemaBindablePipelineEnsembleBase.Create(host, input.Models, combiner, AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification);
             return CreatePipelineEnsemble<CommonOutputs.MulticlassClassificationOutput>(host, input.Models, ensemble);
         }
 

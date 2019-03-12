@@ -37,10 +37,10 @@ namespace Microsoft.ML.SamplesUtils
         }
 
         /// <summary>
-        /// Pretty-print MultiClassClassifierMetrics objects.
+        /// Pretty-print MulticlassClassifierMetrics objects.
         /// </summary>
-        /// <param name="metrics"><see cref="MultiClassClassificationMetrics"/> object.</param>
-        public static void PrintMetrics(MultiClassClassificationMetrics metrics)
+        /// <param name="metrics"><see cref="MulticlassClassificationMetrics"/> object.</param>
+        public static void PrintMetrics(MulticlassClassificationMetrics metrics)
         {
             Console.WriteLine($"Micro Accuracy: {metrics.MicroAccuracy:F2}");
             Console.WriteLine($"Macro Accuracy: {metrics.MacroAccuracy:F2}");

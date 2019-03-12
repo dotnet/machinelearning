@@ -23,7 +23,7 @@ using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(OneVersusAllTrainer.Summary, typeof(OneVersusAllTrainer), typeof(OneVersusAllTrainer.Options),
-    new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
+    new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
     OneVersusAllTrainer.UserNameValue,
     OneVersusAllTrainer.LoadNameValue, DocName = "trainer/OvaPkpd.md")]
 
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Trainers
             roles[0] = new KeyValuePair<CR, string>(new CR(DefaultColumnNames.Label), LabelColumn.Name);
             var td = new RoleMappedData(input, roles);
 
-            td.CheckMultiClassLabel(out var numClasses);
+            td.CheckMulticlassLabel(out var numClasses);
 
             var predictors = new TScalarPredictor[numClasses];
             string featureColumn = null;
@@ -229,7 +229,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// The type of the prediction task.
         /// </summary>
-        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
         /// <summary>
         /// Function applied to output of predictors. Assume that we have n predictors (one per class) and for the i-th predictor,
