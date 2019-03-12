@@ -106,10 +106,10 @@ namespace Microsoft.ML.Functional.Tests
             // Without deserializing the loader from the model we lose the slot names.
             data = ml.Data.LoadFromEnumerable(new[] { new InputData() });
             data = loadedModelWithoutLoader.Transform(data);
-            Assert.Null(data.Schema["Features"].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames));
+            Assert.True(!data.Schema["Features"].HasSlotNames());
 
             data = loadedModel.Load(file);
-            Assert.True(data.Schema["Features"].HasSlotNames(data.Schema["Features"].Type.GetValueCount()));
+            Assert.True(data.Schema["Features"].HasSlotNames());
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
             data.Schema["Features"].GetSlotNames(ref slotNames);
             var ageIndex = FindIndex(slotNames.GetValues(), "age");
