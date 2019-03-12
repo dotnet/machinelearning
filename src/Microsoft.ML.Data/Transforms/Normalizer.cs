@@ -31,10 +31,10 @@ namespace Microsoft.ML.Transforms
         [BestFriend]
         internal static class Defaults
         {
-            public const bool FixZero = true;
+            public const bool EnsureZeroUntouched = true;
             public const bool MeanVarCdf = false;
             public const bool LogMeanVarCdf = true;
-            public const int BinCount = 1024;
+            public const int MaximumBinCount = 1024;
             public const int MininimumBinSize = 10;
             public const long MaximumExampleCount = 1000000000;
         }
@@ -104,19 +104,19 @@ namespace Microsoft.ML.Transforms
 
         public abstract class ControlZeroColumnOptionsBase : ColumnOptionsBase
         {
-            public readonly bool FixZero;
+            public readonly bool EnsureZeroUntouched;
 
-            private protected ControlZeroColumnOptionsBase(string outputColumnName, string inputColumnName, long maximumExampleCount, bool fixZero)
+            private protected ControlZeroColumnOptionsBase(string outputColumnName, string inputColumnName, long maximumExampleCount, bool ensureZeroUntouched)
                 : base(outputColumnName, inputColumnName, maximumExampleCount)
             {
-                FixZero = fixZero;
+                EnsureZeroUntouched = ensureZeroUntouched;
             }
         }
 
         public sealed class MinMaxColumnOptions : ControlZeroColumnOptionsBase
         {
-            public MinMaxColumnOptions(string outputColumnName, string inputColumnName = null, long maximumExampleCount = Defaults.MaximumExampleCount, bool fixZero = Defaults.FixZero)
-                : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, fixZero)
+            public MinMaxColumnOptions(string outputColumnName, string inputColumnName = null, long maximumExampleCount = Defaults.MaximumExampleCount, bool ensureZeroUntouched = Defaults.EnsureZeroUntouched)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, ensureZeroUntouched)
             {
             }
 
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Transforms
             public readonly bool UseCdf;
 
             public MeanVarianceColumnOptions(string outputColumnName, string inputColumnName = null,
-                long maximumExampleCount = Defaults.MaximumExampleCount, bool fixZero = Defaults.FixZero, bool useCdf = Defaults.MeanVarCdf)
+                long maximumExampleCount = Defaults.MaximumExampleCount, bool fixZero = Defaults.EnsureZeroUntouched, bool useCdf = Defaults.MeanVarCdf)
                 : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, fixZero)
             {
                 UseCdf = useCdf;
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Transforms
             public readonly int MaximumBinCount;
 
             public BinningColumnOptions(string outputColumnName, string inputColumnName = null,
-                long maximumExampleCount = Defaults.MaximumExampleCount, bool fixZero = true, int maximumBinCount = Defaults.BinCount)
+                long maximumExampleCount = Defaults.MaximumExampleCount, bool fixZero = true, int maximumBinCount = Defaults.MaximumBinCount)
                 : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, fixZero)
             {
                 MaximumBinCount = maximumBinCount;
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Transforms
                 string labelColumnName = DefaultColumnNames.Label,
                 long maximumExampleCount = Defaults.MaximumExampleCount,
                 bool fixZero = true,
-                int maximumBinCount = Defaults.BinCount,
+                int maximumBinCount = Defaults.MaximumBinCount,
                 int mininimumBinSize = Defaults.MininimumBinSize)
                 : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, fixZero)
             {
@@ -811,7 +811,7 @@ namespace Microsoft.ML.Transforms
             public TData Density { get; }
 
             /// <summary>
-            /// If normalization is performed with <see cref="NormalizeTransform.FixZeroArgumentsBase.FixZero"/> set to <value>true</value>,
+            /// If normalization is performed with <see cref="NormalizeTransform.ControlZeroArgumentsBase.EnsureZeroUntouched"/> set to <value>true</value>,
             /// the offset indicates the displacement of zero, if any.
             /// </summary>
             public TData Offset { get; }

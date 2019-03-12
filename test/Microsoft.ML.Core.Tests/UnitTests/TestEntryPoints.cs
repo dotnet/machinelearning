@@ -2411,9 +2411,9 @@ namespace Microsoft.ML.RunTests
                 Columns = new[]
                 {
                     NormalizeTransform.AffineColumn.Parse("A"),
-                    new NormalizeTransform.AffineColumn() { Name = "B", Source = "B", FixZero = false },
+                    new NormalizeTransform.AffineColumn() { Name = "B", Source = "B", EnsureZeroUntouched = false },
                 },
-                FixZero = true, // Same as default, should not appear in the generated JSON.
+                EnsureZeroUntouched = true, // Same as default, should not appear in the generated JSON.
                 MaximumExampleCount = 1000
             };
 

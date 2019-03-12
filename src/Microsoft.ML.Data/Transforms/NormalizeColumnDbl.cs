@@ -1430,7 +1430,7 @@ namespace Microsoft.ML.Transforms
                     ValueGetter<TFloat> getter)
                 {
                     host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
-                    return new MinMaxOneColumnFunctionBuilder(host, column.MaximumExampleCount, column.FixZero, getter);
+                    return new MinMaxOneColumnFunctionBuilder(host, column.MaximumExampleCount, column.EnsureZeroUntouched, getter);
                 }
 
                 public override IColumnFunction CreateColumnFunction()
@@ -1481,7 +1481,7 @@ namespace Microsoft.ML.Transforms
                 {
                     host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
                     var cv = srcType.Size;
-                    return new MinMaxVecColumnFunctionBuilder(host, cv, column.MaximumExampleCount, column.FixZero, getter);
+                    return new MinMaxVecColumnFunctionBuilder(host, cv, column.MaximumExampleCount, column.EnsureZeroUntouched, getter);
                 }
 
                 public override IColumnFunction CreateColumnFunction()
@@ -1542,7 +1542,7 @@ namespace Microsoft.ML.Transforms
                     ValueGetter<TFloat> getter)
                 {
                     host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
-                    return new MeanVarOneColumnFunctionBuilder(host, column.MaximumExampleCount, column.FixZero, getter, false, column.UseCdf);
+                    return new MeanVarOneColumnFunctionBuilder(host, column.MaximumExampleCount, column.EnsureZeroUntouched, getter, false, column.UseCdf);
                 }
 
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.LogMeanVarianceColumnOptions column, IHost host, DataViewType srcType,
@@ -1617,7 +1617,7 @@ namespace Microsoft.ML.Transforms
                 {
                     host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
                     var cv = srcType.Size;
-                    return new MeanVarVecColumnFunctionBuilder(host, cv, column.MaximumExampleCount, column.FixZero, getter, false, column.UseCdf);
+                    return new MeanVarVecColumnFunctionBuilder(host, cv, column.MaximumExampleCount, column.EnsureZeroUntouched, getter, false, column.UseCdf);
                 }
 
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.LogMeanVarianceColumnOptions column, IHost host, VectorType srcType,
@@ -1733,7 +1733,7 @@ namespace Microsoft.ML.Transforms
                 {
                     var lim = column.MaximumExampleCount;
                     host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
-                    bool fix = column.FixZero;
+                    bool fix = column.EnsureZeroUntouched;
                     var numBins = column.MaximumBinCount;
                     host.CheckUserArg(numBins > 1, nameof(column.MaximumBinCount), "Must be greater than 1");
                     return new BinOneColumnFunctionBuilder(host, lim, fix, numBins, getter);
@@ -1782,7 +1782,7 @@ namespace Microsoft.ML.Transforms
                 {
                     var lim = column.MaximumExampleCount;
                     host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
-                    bool fix = column.FixZero;
+                    bool fix = column.EnsureZeroUntouched;
                     var numBins = column.MaximumBinCount;
                     host.CheckUserArg(numBins > 1, nameof(column.MaximumBinCount), "Must be greater than 1");
                     var cv = srcType.Size;
@@ -1865,7 +1865,7 @@ namespace Microsoft.ML.Transforms
                 {
                     var lim = column.MaximumExampleCount;
                     host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
-                    bool fix = column.FixZero;
+                    bool fix = column.EnsureZeroUntouched;
                     var numBins = column.MaximumBinCount;
                     host.CheckUserArg(numBins > 1, nameof(column.MaximumBinCount), "Must be greater than 1");
                     host.CheckUserArg(column.MininimumBinSize > 0, nameof(column.MininimumBinSize), "Must be positive");
@@ -1905,7 +1905,7 @@ namespace Microsoft.ML.Transforms
                 {
                     var lim = column.MaximumExampleCount;
                     host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
-                    bool fix = column.FixZero;
+                    bool fix = column.EnsureZeroUntouched;
                     var numBins = column.MaximumBinCount;
                     host.CheckUserArg(numBins > 1, nameof(column.MaximumBinCount), "Must be greater than 1");
                     host.CheckUserArg(column.MininimumBinSize > 0, nameof(column.MininimumBinSize), "Must be positive");

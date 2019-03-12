@@ -17,7 +17,6 @@ namespace Microsoft.ML.StaticPipe
     public static class NormalizerStaticExtensions
     {
         private const long MaxTrain = NormalizingEstimator.Defaults.MaximumExampleCount;
-        private const bool FZ = NormalizingEstimator.Defaults.FixZero;
 
         /// <summary>
         /// Learns an affine function based on the minimum and maximum, so that all values between the minimum and
@@ -36,7 +35,8 @@ namespace Microsoft.ML.StaticPipe
         /// observed during fitting, that the output values may be outside the range of -1 to 1.</remarks>
         /// <returns>The normalized column.</returns>
         public static NormVector<float> Normalize(
-            this Vector<float> input, bool ensureZeroUntouched = FZ, long maximumExampleCount = MaxTrain,
+            this Vector<float> input, bool ensureZeroUntouched = NormalizingEstimator.Defaults.EnsureZeroUntouched,
+            long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             OnFitAffine<ImmutableArray<float>> onFit = null)
         {
             return NormalizeByMinMaxCore(input, ensureZeroUntouched, maximumExampleCount, onFit);
@@ -59,7 +59,8 @@ namespace Microsoft.ML.StaticPipe
         /// observed during fitting, that the output values may be outside the range of -1 to 1.</remarks>
         /// <returns>The normalized column.</returns>
         public static NormVector<double> Normalize(
-            this Vector<double> input, bool ensureZeroUntouched = FZ, long maximumExampleCount = MaxTrain,
+            this Vector<double> input, bool ensureZeroUntouched = NormalizingEstimator.Defaults.EnsureZeroUntouched,
+            long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             OnFitAffine<ImmutableArray<double>> onFit = null)
         {
             return NormalizeByMinMaxCore(input, ensureZeroUntouched, maximumExampleCount, onFit);
@@ -92,7 +93,8 @@ namespace Microsoft.ML.StaticPipe
         /// vector values.</remarks>
         /// <returns>The normalized column.</returns>
         public static NormVector<float> NormalizeByMeanVariance(
-            this Vector<float> input, bool ensureZeroUntouched = FZ, bool useLog = false, long maximumExampleCount = MaxTrain,
+            this Vector<float> input, bool ensureZeroUntouched = NormalizingEstimator.Defaults.EnsureZeroUntouched,
+            bool useLog = false, long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             OnFitAffine<ImmutableArray<float>> onFit = null)
         {
             return NormalizeByMVCdfCore(input, ensureZeroUntouched, useLog, false, maximumExampleCount, AffineMapper(onFit));
@@ -113,7 +115,8 @@ namespace Microsoft.ML.StaticPipe
         /// vector values.</remarks>
         /// <returns>The normalized column.</returns>
         public static NormVector<double> NormalizeByMeanVariance(
-            this Vector<double> input, bool ensureZeroUntouched = FZ, bool useLog = false, long maximumExampleCount = MaxTrain,
+            this Vector<double> input, bool ensureZeroUntouched = NormalizingEstimator.Defaults.EnsureZeroUntouched,
+            bool useLog = false, long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             OnFitAffine<ImmutableArray<double>> onFit = null)
         {
             return NormalizeByMVCdfCore(input, ensureZeroUntouched, useLog, false, maximumExampleCount, AffineMapper(onFit));
@@ -136,7 +139,8 @@ namespace Microsoft.ML.StaticPipe
         /// vector values.</remarks>
         /// <returns>The normalized column.</returns>
         public static NormVector<float> NormalizeByCumulativeDistribution(
-            this Vector<float> input, bool ensureZeroUntouched = FZ, bool useLog = false, long maximumNumberOfExamples = MaxTrain,
+            this Vector<float> input, bool ensureZeroUntouched = NormalizingEstimator.Defaults.EnsureZeroUntouched,
+            bool useLog = false, long maximumNumberOfExamples = NormalizingEstimator.Defaults.MaximumExampleCount,
             OnFitCumulativeDistribution<ImmutableArray<float>> onFit = null)
         {
             return NormalizeByMVCdfCore(input, ensureZeroUntouched, useLog, true, maximumNumberOfExamples, CdfMapper(onFit));
@@ -159,7 +163,8 @@ namespace Microsoft.ML.StaticPipe
         /// vector values.</remarks>
         /// <returns>The normalized column.</returns>
         public static NormVector<double> NormalizeByCumulativeDistribution(
-            this Vector<double> input, bool ensureZeroUntouched = FZ, bool useLog = false, long maximumExampleCount = MaxTrain,
+            this Vector<double> input, bool ensureZeroUntouched = NormalizingEstimator.Defaults.EnsureZeroUntouched,
+            bool useLog = false, long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             OnFitCumulativeDistribution<ImmutableArray<double>> onFit = null)
         {
             return NormalizeByMVCdfCore(input, ensureZeroUntouched, useLog, true, maximumExampleCount, CdfMapper(onFit));
@@ -196,7 +201,9 @@ namespace Microsoft.ML.StaticPipe
         /// vector values.</remarks>
         /// <returns>The normalized column.</returns>
         public static NormVector<float> NormalizeByBinning(
-            this Vector<float> input, int maximumBinCount = NormalizingEstimator.Defaults.BinCount, bool ensureZeroUntouched = FZ, long maximumExampleCount = MaxTrain,
+            this Vector<float> input, int maximumBinCount = NormalizingEstimator.Defaults.MaximumBinCount,
+            bool ensureZeroUntouched = NormalizingEstimator.Defaults.EnsureZeroUntouched,
+            long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             OnFitBinned<ImmutableArray<float>> onFit = null)
         {
             return NormalizeByBinningCore(input, maximumBinCount, ensureZeroUntouched, maximumExampleCount, onFit);
@@ -221,7 +228,9 @@ namespace Microsoft.ML.StaticPipe
         /// vector values.</remarks>
         /// <returns>The normalized column.</returns>
         public static NormVector<double> NormalizeByBinning(
-            this Vector<double> input, int maximumBinCount = NormalizingEstimator.Defaults.BinCount, bool ensureZeroUntouched = FZ, long maximumExampleCount = MaxTrain,
+            this Vector<double> input, int maximumBinCount = NormalizingEstimator.Defaults.MaximumBinCount,
+            bool ensureZeroUntouched = NormalizingEstimator.Defaults.EnsureZeroUntouched,
+            long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             OnFitBinned<ImmutableArray<double>> onFit = null)
         {
             return NormalizeByBinningCore(input, maximumBinCount, ensureZeroUntouched, maximumExampleCount, onFit);
