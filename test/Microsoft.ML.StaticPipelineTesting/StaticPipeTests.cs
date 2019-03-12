@@ -520,7 +520,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (
                     r.label,
                     tokens: r.text.ProduceWordTokens(),
-                    chars: r.text.ProduceCharacterTokens()));
+                    chars: r.text.ProduceCharactersAsKeys()));
 
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;

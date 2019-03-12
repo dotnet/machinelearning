@@ -109,7 +109,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">The column to apply to.</param>
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
-        public static VarVector<Key<ushort, string>> ProduceCharacterTokens(this Scalar<string> input, bool useMarkerCharacters = true) => new OutPipelineColumn(input, useMarkerCharacters);
+        public static VarVector<Key<ushort, string>> ProduceCharactersAsKeys(this Scalar<string> input, bool useMarkerCharacters = true) => new OutPipelineColumn(input, useMarkerCharacters);
     }
 
     /// <summary>
