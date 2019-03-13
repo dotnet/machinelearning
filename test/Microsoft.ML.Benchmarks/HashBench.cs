@@ -78,13 +78,13 @@ namespace Microsoft.ML.Benchmarks
         private ValueGetter<uint> _getter;
         private ValueGetter<VBuffer<uint>> _vecGetter;
 
-        private void InitMap<T>(T val, DataViewType type, int hashBits = 20, ValueGetter<T> getter = null)
+        private void InitMap<T>(T val, DataViewType type, int numberOfBits = 20, ValueGetter<T> getter = null)
         {
             if (getter == null)
                 getter = (ref T dst) => dst = val;
             _inRow = RowImpl.Create(type, getter);
             // One million features is a nice, typical number.
-            var info = new HashingEstimator.ColumnOptions("Bar", "Foo", hashBits: hashBits);
+            var info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: numberOfBits);
             var xf = new HashingTransformer(_env, new[] { info });
             var mapper = ((ITransformer)xf).GetRowToRowMapper(_inRow.Schema);
             var column = mapper.OutputSchema["Bar"];
@@ -108,10 +108,10 @@ namespace Microsoft.ML.Benchmarks
             }
         }
 
-        private void InitDenseVecMap<T>(T[] vals, PrimitiveDataViewType itemType, int hashBits = 20)
+        private void InitDenseVecMap<T>(T[] vals, PrimitiveDataViewType itemType, int numberOfBits = 20)
         {
             var vbuf = new VBuffer<T>(vals.Length, vals);
-            InitMap(vbuf, new VectorType(itemType, vals.Length), hashBits, vbuf.CopyTo);
+            InitMap(vbuf, new VectorType(itemType, vals.Length), numberOfBits, vbuf.CopyTo);
         }
 
         /// <summary>

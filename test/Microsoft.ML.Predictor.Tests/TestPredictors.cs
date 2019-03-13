@@ -16,7 +16,7 @@ namespace Microsoft.ML.RunTests
     using Microsoft.ML.Data;
     using Microsoft.ML.EntryPoints;
     using Microsoft.ML.Internal.Utilities;
-    using Microsoft.ML.LightGBM;
+    using Microsoft.ML.Trainers.LightGbm;
     using Microsoft.ML.Runtime;
     using Microsoft.ML.TestFramework;
     using Microsoft.ML.Trainers;
@@ -41,7 +41,7 @@ namespace Microsoft.ML.RunTests
             base.InitializeEnvironment(environment);
 
             environment.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
-            environment.ComponentCatalog.RegisterAssembly(typeof(SymbolicStochasticGradientDescentClassificationTrainer).Assembly);
+            environment.ComponentCatalog.RegisterAssembly(typeof(SymbolicSgdTrainer).Assembly);
         }
 
         /// <summary>
@@ -740,7 +740,7 @@ namespace Microsoft.ML.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainBinary(ML, new LogisticRegression.Options()
+                LogisticRegressionBinaryClassificationTrainer.TrainBinary(ML, new LogisticRegressionBinaryClassificationTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
@@ -748,7 +748,7 @@ namespace Microsoft.ML.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainBinary(ML, new LogisticRegression.Options()
+                LogisticRegressionBinaryClassificationTrainer.TrainBinary(ML, new LogisticRegressionBinaryClassificationTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
@@ -777,7 +777,7 @@ namespace Microsoft.ML.RunTests
                     LabelColumnName = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,
-                LogisticRegression.TrainMultiClass(Env, new MulticlassLogisticRegression.Options()
+                LogisticRegressionBinaryClassificationTrainer.TrainMultiClass(Env, new LogisticRegressionMulticlassClassificationTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
@@ -785,7 +785,7 @@ namespace Microsoft.ML.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainMultiClass(Env, new MulticlassLogisticRegression.Options()
+                LogisticRegressionBinaryClassificationTrainer.TrainMultiClass(Env, new LogisticRegressionMulticlassClassificationTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,

@@ -461,13 +461,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     TextFeatures: r.Message.FeaturizeText(),
 
                     // NLP pipeline 1: bag of words.
-                    BagOfWords: r.Message.NormalizeText().ToBagofWords(),
+                    BagOfWords: r.Message.NormalizeText().ProduceWordBags(),
 
                     // NLP pipeline 2: bag of bigrams, using hashes instead of dictionary indices.
-                    BagOfBigrams: r.Message.NormalizeText().ToBagofHashedWords(ngramLength: 2, allLengths: false),
+                    BagOfBigrams: r.Message.NormalizeText().ProduceHashedWordBags(ngramLength: 2, useAllLengths: false),
 
                     // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
-                    BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf),
+                    BagOfTrichar: r.Message.TokenizeIntoCharacters().ProduceNgrams(ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf),
 
                     // NLP pipeline 4: word embeddings.
                     // PretrainedModelKind.Sswe is used here for performance of the test. In a real

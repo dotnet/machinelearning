@@ -37,7 +37,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Regression.Trainers.OrdinaryLeastSquares());
+                .Append(mlContext.Regression.Trainers.Ols());
 
             // Compute the CV result.
             var cvResult = mlContext.Regression.CrossValidate(data, pipeline, numFolds: 5);

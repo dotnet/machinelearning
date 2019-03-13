@@ -11,12 +11,12 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
-[assembly: LoadableClass(RegressionGamTrainer.Summary,
-    typeof(RegressionGamTrainer), typeof(RegressionGamTrainer.Options),
+[assembly: LoadableClass(GamRegressionTrainer.Summary,
+    typeof(GamRegressionTrainer), typeof(GamRegressionTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    RegressionGamTrainer.UserNameValue,
-    RegressionGamTrainer.LoadNameValue,
-    RegressionGamTrainer.ShortName, DocName = "trainer/GAM.md")]
+    GamRegressionTrainer.UserNameValue,
+    GamRegressionTrainer.LoadNameValue,
+    GamRegressionTrainer.ShortName, DocName = "trainer/GAM.md")]
 
 [assembly: LoadableClass(typeof(RegressionGamModelParameters), null, typeof(SignatureLoadModel),
     "GAM Regression Predictor",
@@ -24,7 +24,7 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public sealed class RegressionGamTrainer : GamTrainerBase<RegressionGamTrainer.Options, RegressionPredictionTransformer<RegressionGamModelParameters>, RegressionGamModelParameters>
+    public sealed class GamRegressionTrainer : GamTrainerBase<GamRegressionTrainer.Options, RegressionPredictionTransformer<RegressionGamModelParameters>, RegressionGamModelParameters>
     {
         public partial class Options : OptionsBase
         {
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        internal RegressionGamTrainer(IHostEnvironment env, Options options)
+        internal GamRegressionTrainer(IHostEnvironment env, Options options)
              : base(env, options, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName)) { }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="numberOfIterations">The number of iterations to use in learning the features.</param>
         /// <param name="learningRate">The learning rate. GAMs work best with a small learning rate.</param>
         /// <param name="maximumBinCountPerFeature">The maximum number of bins to use to approximate features</param>
-        internal RegressionGamTrainer(IHostEnvironment env,
+        internal GamRegressionTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string rowGroupColumnName = null,
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Trainers.FastTree
             => new RegressionPredictionTransformer<RegressionGamModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Trains a <see cref="RegressionGamTrainer"/> using both training and validation data, returns
+        /// Trains a <see cref="GamRegressionTrainer"/> using both training and validation data, returns
         /// a <see cref="RegressionPredictionTransformer{RegressionGamModelParameters}"/>.
         /// </summary>
         public RegressionPredictionTransformer<RegressionGamModelParameters> Fit(IDataView trainData, IDataView validationData)

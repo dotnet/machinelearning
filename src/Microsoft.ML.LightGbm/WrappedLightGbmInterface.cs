@@ -8,7 +8,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.LightGBM
+namespace Microsoft.ML.Trainers.LightGbm
 {
     /// <summary>
     /// Wrapper of the c interfaces of LightGBM.

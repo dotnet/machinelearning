@@ -575,8 +575,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    bagofword: r.text.ToBagofWords(),
-                    bagofhashedword: r.text.ToBagofHashedWords()));
+                    bagofword: r.text.ProduceWordBags(),
+                    bagofhashedword: r.text.ProduceHashedWordBags()));
 
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
@@ -604,8 +604,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    ngrams: r.text.TokenizeText().ToKey().ToNgrams(),
-                    ngramshash: r.text.TokenizeText().ToKey().ToNgramsHash()));
+                    ngrams: r.text.TokenizeText().ToKey().ProduceNgrams(),
+                    ngramshash: r.text.TokenizeText().ToKey().ProduceHashedNgrams()));
 
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
@@ -675,7 +675,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    topics: r.text.ToBagofWords().LatentDirichletAllocation(numberOfTopics: 3, numberOfSummaryTermsPerTopic:5, alphaSum: 10, onFit: m => ldaSummary = m.LdaTopicSummary)));
+                    topics: r.text.ProduceWordBags().LatentDirichletAllocation(numberOfTopics: 3, numberOfSummaryTermsPerTopic:5, alphaSum: 10, onFit: m => ldaSummary = m.LdaTopicSummary)));
 
             var transformer = est.Fit(data);
             var tdata = transformer.Transform(data);
@@ -700,8 +700,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    bag_of_words_count: r.text.ToBagofWords().SelectFeaturesBasedOnCount(10),
-                    bag_of_words_mi: r.text.ToBagofWords().SelectFeaturesBasedOnMutualInformation(r.label)));
+                    bag_of_words_count: r.text.ProduceWordBags().SelectFeaturesBasedOnCount(10),
+                    bag_of_words_mi: r.text.ProduceWordBags().SelectFeaturesBasedOnMutualInformation(r.label)));
 
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;

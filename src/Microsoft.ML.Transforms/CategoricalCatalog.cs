@@ -23,7 +23,7 @@ namespace Microsoft.ML
         public static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 string outputColumnName,
                 string inputColumnName = null,
-                OneHotEncodingTransformer.OutputKind outputKind = OneHotEncodingTransformer.OutputKind.Ind)
+                OneHotEncodingEstimator.OutputKind outputKind = OneHotEncodingEstimator.OutputKind.Indicator)
             => new OneHotEncodingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, outputKind);
 
         /// <summary>
@@ -53,19 +53,19 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
-        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
+        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         /// <param name="outputKind">The conversion mode.</param>
         public static OneHotHashEncodingEstimator OneHotHashEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 string outputColumnName,
                 string inputColumnName = null,
-                int hashBits = OneHotHashEncodingEstimator.Defaults.HashBits,
-                int invertHash = OneHotHashEncodingEstimator.Defaults.InvertHash,
-                OneHotEncodingTransformer.OutputKind outputKind = OneHotEncodingTransformer.OutputKind.Ind)
-            => new OneHotHashEncodingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName ?? outputColumnName, hashBits, invertHash, outputKind);
+                int numberOfBits = OneHotHashEncodingEstimator.Defaults.NumberOfBits,
+                int maximumNumberOfInverts = OneHotHashEncodingEstimator.Defaults.MaximumNumberOfInverts,
+                OneHotEncodingEstimator.OutputKind outputKind = OneHotEncodingEstimator.OutputKind.Indicator)
+            => new OneHotHashEncodingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName ?? outputColumnName, numberOfBits, maximumNumberOfInverts, outputKind);
 
         /// <summary>
         /// Convert several text column into hash-based one-hot encoded vectors.

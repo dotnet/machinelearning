@@ -50,10 +50,10 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Categorical.OneHotHashEncoding(new[]{
-                    new OneHotHashEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag),
-                    new OneHotHashEncodingEstimator.ColumnOptions("CatB", "A", OneHotEncodingTransformer.OutputKind.Bin),
-                    new OneHotHashEncodingEstimator.ColumnOptions("CatC", "A", OneHotEncodingTransformer.OutputKind.Ind),
-                    new OneHotHashEncodingEstimator.ColumnOptions("CatD", "A", OneHotEncodingTransformer.OutputKind.Key),
+                    new OneHotHashEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingEstimator.OutputKind.Bag),
+                    new OneHotHashEncodingEstimator.ColumnOptions("CatB", "A", OneHotEncodingEstimator.OutputKind.Binary),
+                    new OneHotHashEncodingEstimator.ColumnOptions("CatC", "A", OneHotEncodingEstimator.OutputKind.Indicator),
+                    new OneHotHashEncodingEstimator.ColumnOptions("CatD", "A", OneHotEncodingEstimator.OutputKind.Key),
                 });
 
             TestEstimatorCore(pipe, dataView);
@@ -108,16 +108,16 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ML.Data.LoadFromEnumerable(data);
             var bagPipe = ML.Transforms.Categorical.OneHotHashEncoding(
-                new OneHotHashEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnOptions("CatB", "B", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnOptions("CatC", "C", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnOptions("CatD", "D", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnOptions("CatE", "E", OneHotEncodingTransformer.OutputKind.Ind, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnOptions("CatF", "F", OneHotEncodingTransformer.OutputKind.Ind, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnOptions("CatG", "A", OneHotEncodingTransformer.OutputKind.Key, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnOptions("CatH", "B", OneHotEncodingTransformer.OutputKind.Key, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnOptions("CatI", "A", OneHotEncodingTransformer.OutputKind.Bin, invertHash: -1),
-                new OneHotHashEncodingEstimator.ColumnOptions("CatJ", "B", OneHotEncodingTransformer.OutputKind.Bin, invertHash: -1));
+                new OneHotHashEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingEstimator.OutputKind.Bag, maximumNumberOfInverts: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatB", "B", OneHotEncodingEstimator.OutputKind.Bag, maximumNumberOfInverts: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatC", "C", OneHotEncodingEstimator.OutputKind.Bag, maximumNumberOfInverts: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatD", "D", OneHotEncodingEstimator.OutputKind.Bag, maximumNumberOfInverts: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatE", "E", OneHotEncodingEstimator.OutputKind.Indicator, maximumNumberOfInverts: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatF", "F", OneHotEncodingEstimator.OutputKind.Indicator, maximumNumberOfInverts: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatG", "A", OneHotEncodingEstimator.OutputKind.Key, maximumNumberOfInverts: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatH", "B", OneHotEncodingEstimator.OutputKind.Key, maximumNumberOfInverts: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatI", "A", OneHotEncodingEstimator.OutputKind.Binary, maximumNumberOfInverts: -1),
+                new OneHotHashEncodingEstimator.ColumnOptions("CatJ", "B", OneHotEncodingEstimator.OutputKind.Binary, maximumNumberOfInverts: -1));
 
             var bagResult = bagPipe.Fit(dataView).Transform(dataView);
             ValidateMetadata(bagResult);

@@ -11,11 +11,10 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Image;
 
 [assembly: LoadableClass(ImageResizingTransformer.Summary, typeof(IDataTransform), typeof(ImageResizingTransformer), typeof(ImageResizingTransformer.Arguments),
     typeof(SignatureDataTransform), ImageResizingTransformer.UserName, "ImageResizerTransform", "ImageResizer")]
@@ -29,7 +28,7 @@ using Microsoft.ML.Transforms;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(ImageResizingTransformer), null, typeof(SignatureLoadRowMapper),
     ImageResizingTransformer.UserName, ImageResizingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.ImageAnalytics
+namespace Microsoft.ML.Transforms.Image
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
     /// <summary>
