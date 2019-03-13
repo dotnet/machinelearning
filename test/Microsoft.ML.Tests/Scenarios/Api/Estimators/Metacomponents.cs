@@ -23,8 +23,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var ml = new MLContext();
             var data = ml.Data.LoadFromTextFile<IrisData>(GetDataPath(TestDatasets.irisData.trainFilename), separatorChar: ',');
 
-            var sdcaTrainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options { MaximumNumberOfIterations = 100, Shuffle = true, NumberOfThreads = 1, });
+            var sdcaTrainer = ml.BinaryClassification.Trainers.SdcaNonCalibrated(
+                new SdcaNonCalibratedBinaryClassificationTrainer.Options { MaximumNumberOfIterations = 100, Shuffle = true, NumberOfThreads = 1, });
 
             var pipeline = new ColumnConcatenatingEstimator (ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(ml.Transforms.Conversion.MapValueToKey("Label"), TransformerScope.TrainTest)

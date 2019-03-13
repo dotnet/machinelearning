@@ -17,7 +17,7 @@ namespace Microsoft.ML
         ///  Convert the key types back to binary vector.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
-        /// <param name="columns">The input column.</param>
+        /// <param name="columns">Specifies the output and input columns on which the transformation should be applied.</param>
         public static KeyToBinaryVectorMappingEstimator MapKeyToBinaryVector(this TransformsCatalog.ConversionTransforms catalog,
             params ColumnOptions[] columns)
             => new KeyToBinaryVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columns));

@@ -6,7 +6,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
-using static Microsoft.ML.Trainers.RandomizedPrincipalComponentAnalyzer;
+using static Microsoft.ML.Trainers.RandomizedPcaTrainer;
 
 namespace Microsoft.ML
 {
@@ -39,7 +39,7 @@ namespace Microsoft.ML
             => new PrincipalComponentAnalyzer(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
-        /// Trains an approximate PCA using Randomized SVD algorithm.
+        /// Trains an approximate principal component analysis (PCA) model using randomized SVD algorithm.
         /// </summary>
         /// <param name="catalog">The anomaly detection catalog trainer object.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
@@ -54,7 +54,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/AnomalyDetection/RandomizedPcaSample.cs)]
         /// ]]></format>
         /// </example>
-        public static RandomizedPrincipalComponentAnalyzer AnalyzeRandomizedPrincipalComponents(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog,
+        public static RandomizedPcaTrainer RandomizedPca(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
             int rank = Options.Defaults.NumComponents,
@@ -64,11 +64,11 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new RandomizedPrincipalComponentAnalyzer(env, featureColumnName, exampleWeightColumnName, rank, oversampling, ensureZeroMean, seed);
+            return new RandomizedPcaTrainer(env, featureColumnName, exampleWeightColumnName, rank, oversampling, ensureZeroMean, seed);
         }
 
         /// <summary>
-        /// Trains an approximate PCA using Randomized SVD algorithm.
+        /// Trains an approximate principal component analysis (PCA) model using randomized SVD algorithm.
         /// </summary>
         /// <param name="catalog">The anomaly detection catalog trainer object.</param>
         /// <param name="options">Advanced options to the algorithm.</param>
@@ -78,11 +78,11 @@ namespace Microsoft.ML
         ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/AnomalyDetection/RandomizedPcaSampleWithOptions.cs)]
         /// ]]></format>
         /// </example>
-        public static RandomizedPrincipalComponentAnalyzer AnalyzeRandomizedPrincipalComponents(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog, Options options)
+        public static RandomizedPcaTrainer RandomizedPca(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog, Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new RandomizedPrincipalComponentAnalyzer(env, options);
+            return new RandomizedPcaTrainer(env, options);
         }
     }
 }

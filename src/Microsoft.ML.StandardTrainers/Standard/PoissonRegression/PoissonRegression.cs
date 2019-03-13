@@ -13,20 +13,20 @@ using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
-[assembly: LoadableClass(PoissonRegression.Summary, typeof(PoissonRegression), typeof(PoissonRegression.Options),
+[assembly: LoadableClass(PoissonRegressionTrainer.Summary, typeof(PoissonRegressionTrainer), typeof(PoissonRegressionTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    PoissonRegression.UserNameValue,
-    PoissonRegression.LoadNameValue,
+    PoissonRegressionTrainer.UserNameValue,
+    PoissonRegressionTrainer.LoadNameValue,
     "PoissonRegressionNew",
     "Poisson",
-    PoissonRegression.ShortName)]
+    PoissonRegressionTrainer.ShortName)]
 
-[assembly: LoadableClass(typeof(void), typeof(PoissonRegression), null, typeof(SignatureEntryPointModule), PoissonRegression.LoadNameValue)]
+[assembly: LoadableClass(typeof(void), typeof(PoissonRegressionTrainer), null, typeof(SignatureEntryPointModule), PoissonRegressionTrainer.LoadNameValue)]
 
 namespace Microsoft.ML.Trainers
 {
     /// <include file='doc.xml' path='doc/members/member[@name="PoissonRegression"]/*' />
-    public sealed class PoissonRegression : LbfgsTrainerBase<PoissonRegression.Options, RegressionPredictionTransformer<PoissonRegressionModelParameters>, PoissonRegressionModelParameters>
+    public sealed class PoissonRegressionTrainer : LbfgsTrainerBase<PoissonRegressionTrainer.Options, RegressionPredictionTransformer<PoissonRegressionModelParameters>, PoissonRegressionModelParameters>
     {
         internal const string LoadNameValue = "PoissonRegression";
         internal const string UserNameValue = "Poisson Regression";
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Trainers
         private Double _lossNormalizer;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="PoissonRegression"/>
+        /// Initializes a new instance of <see cref="PoissonRegressionTrainer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column.</param>
@@ -49,9 +49,9 @@ namespace Microsoft.ML.Trainers
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="LogisticRegressionBinaryClassificationTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
-        internal PoissonRegression(IHostEnvironment env,
+        internal PoissonRegressionTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
@@ -68,9 +68,9 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="PoissonRegression"/>
+        /// Initializes a new instance of <see cref="PoissonRegressionTrainer"/>
         /// </summary>
-        internal PoissonRegression(IHostEnvironment env, Options options)
+        internal PoissonRegressionTrainer(IHostEnvironment env, Options options)
             : base(env, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName))
         {
         }
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Trainers
             => new RegressionPredictionTransformer<PoissonRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Continues the training of a <see cref="PoissonRegression"/> using an already trained <paramref name="linearModel"/> and returns
+        /// Continues the training of a <see cref="PoissonRegressionTrainer"/> using an already trained <paramref name="linearModel"/> and returns
         /// a <see cref="RegressionPredictionTransformer{PoissonRegressionModelParameters}"/>.
         /// </summary>
         public RegressionPredictionTransformer<PoissonRegressionModelParameters> Fit(IDataView trainData, LinearModelParameters linearModel)
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Trainers
             EntryPointUtils.CheckInputArgs(host, input);
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, input,
-                () => new PoissonRegression(host, input),
+                () => new PoissonRegressionTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }

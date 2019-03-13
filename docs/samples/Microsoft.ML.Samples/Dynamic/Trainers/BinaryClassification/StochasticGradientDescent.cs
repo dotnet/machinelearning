@@ -19,7 +19,7 @@
             var trainTestData = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Create data training pipeline.
-            var pipeline = mlContext.BinaryClassification.Trainers.StochasticGradientDescent();
+            var pipeline = mlContext.BinaryClassification.Trainers.SgdCalibrated();
 
             // Fit this pipeline to the training data.
             var model = pipeline.Fit(trainTestData.TrainSet);

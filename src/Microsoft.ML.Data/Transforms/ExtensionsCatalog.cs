@@ -9,17 +9,28 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {
+    /// <summary>
+    /// Specifies input and output column names for a transformation.
+    /// </summary>
     public sealed class ColumnOptions
     {
         private readonly string _outputColumnName;
         private readonly string _inputColumnName;
 
+        /// <summary>
+        /// Specifies input and output column names for a transformation.
+        /// </summary>
+        /// <param name="outputColumnName">Name of output column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of input column.</param>
         public ColumnOptions(string outputColumnName, string inputColumnName)
         {
             _outputColumnName = outputColumnName;
             _inputColumnName = inputColumnName;
         }
 
+        /// <summary>
+        /// Instantiates a <see cref="ColumnOptions"/> from a tuple of input and output column names.
+        /// </summary>
         public static implicit operator ColumnOptions((string outputColumnName, string inputColumnName) value)
         {
             return new ColumnOptions(value.outputColumnName, value.inputColumnName);

@@ -22,7 +22,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             var split = mlContext.Data.TrainTestSplit(dataView, testFraction: 0.1);
 
             // Train the model.
-            var pipeline = mlContext.Regression.Trainers.StochasticDualCoordinateAscent();
+            var pipeline = mlContext.Regression.Trainers.Sdca();
             var model = pipeline.Fit(split.TrainSet);
 
             // Do prediction on the test set.

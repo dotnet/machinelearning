@@ -18,16 +18,16 @@ using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
-[assembly: LoadableClass(RandomizedPrincipalComponentAnalyzer.Summary, typeof(RandomizedPrincipalComponentAnalyzer), typeof(RandomizedPrincipalComponentAnalyzer.Options),
+[assembly: LoadableClass(RandomizedPcaTrainer.Summary, typeof(RandomizedPcaTrainer), typeof(RandomizedPcaTrainer.Options),
     new[] { typeof(SignatureAnomalyDetectorTrainer), typeof(SignatureTrainer) },
-    RandomizedPrincipalComponentAnalyzer.UserNameValue,
-    RandomizedPrincipalComponentAnalyzer.LoadNameValue,
-    RandomizedPrincipalComponentAnalyzer.ShortName)]
+    RandomizedPcaTrainer.UserNameValue,
+    RandomizedPcaTrainer.LoadNameValue,
+    RandomizedPcaTrainer.ShortName)]
 
 [assembly: LoadableClass(typeof(PrincipleComponentModelParameters), null, typeof(SignatureLoadModel),
     "PCA Anomaly Executor", PrincipleComponentModelParameters.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(void), typeof(RandomizedPrincipalComponentAnalyzer), null, typeof(SignatureEntryPointModule), RandomizedPrincipalComponentAnalyzer.LoadNameValue)]
+[assembly: LoadableClass(typeof(void), typeof(RandomizedPcaTrainer), null, typeof(SignatureEntryPointModule), RandomizedPcaTrainer.LoadNameValue)]
 
 namespace Microsoft.ML.Trainers
 {
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Trainers
     /// <remarks>
     /// This PCA can be made into Kernel PCA by using Random Fourier Features transform
     /// </remarks>
-    public sealed class RandomizedPrincipalComponentAnalyzer : TrainerEstimatorBase<AnomalyPredictionTransformer<PrincipleComponentModelParameters>, PrincipleComponentModelParameters>
+    public sealed class RandomizedPcaTrainer : TrainerEstimatorBase<AnomalyPredictionTransformer<PrincipleComponentModelParameters>, PrincipleComponentModelParameters>
     {
         internal const string LoadNameValue = "pcaAnomaly";
         internal const string UserNameValue = "PCA Anomaly Detector";
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Trainers
         public override TrainerInfo Info => _info;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="RandomizedPrincipalComponentAnalyzer"/>.
+        /// Initializes a new instance of <see cref="RandomizedPcaTrainer"/>.
         /// </summary>
         /// <param name="env">The local instance of the <see cref="IHostEnvironment"/>.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="oversampling">Oversampling parameter for randomized PCA training.</param>
         /// <param name="ensureZeroMean">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation.</param>
-        internal RandomizedPrincipalComponentAnalyzer(IHostEnvironment env,
+        internal RandomizedPcaTrainer(IHostEnvironment env,
             string featureColumnName,
             string exampleWeightColumnName = null,
             int rank = Options.Defaults.NumComponents,
@@ -108,12 +108,12 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        internal RandomizedPrincipalComponentAnalyzer(IHostEnvironment env, Options options)
+        internal RandomizedPcaTrainer(IHostEnvironment env, Options options)
             : this(env, options, options.FeatureColumnName, options.ExampleWeightColumnName)
         {
         }
 
-        private RandomizedPrincipalComponentAnalyzer(IHostEnvironment env, Options options, string featureColumnName, string exampleWeightColumnName,
+        private RandomizedPcaTrainer(IHostEnvironment env, Options options, string featureColumnName, string exampleWeightColumnName,
             int rank = 20, int oversampling = 20, bool center = true, int? seed = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumnName), default, TrainerUtils.MakeR4ScalarWeightColumn(exampleWeightColumnName))
         {
@@ -359,7 +359,7 @@ namespace Microsoft.ML.Trainers
             EntryPointUtils.CheckInputArgs(host, input);
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.AnomalyDetectionOutput>(host, input,
-                () => new RandomizedPrincipalComponentAnalyzer(host, input),
+                () => new RandomizedPcaTrainer(host, input),
                 getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
     }

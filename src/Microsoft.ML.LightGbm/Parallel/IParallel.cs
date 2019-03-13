@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.LightGBM
+namespace Microsoft.ML.Trainers.LightGbm
 {
     /// <summary>
     /// Signature of LightGBM IAllreduce

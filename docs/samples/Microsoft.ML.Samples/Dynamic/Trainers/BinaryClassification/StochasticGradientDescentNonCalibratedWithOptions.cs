@@ -22,8 +22,8 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Create data training pipeline.
             var pipeline = mlContext.BinaryClassification
-                .Trainers.StochasticGradientDescentNonCalibrated(
-                        new SgdNonCalibratedBinaryTrainer.Options
+                .Trainers.SgdNonCalibrated(
+                        new SgdNonCalibratedTrainer.Options
                         {
                             InitialLearningRate = 0.01,
                             NumberOfIterations = 10,

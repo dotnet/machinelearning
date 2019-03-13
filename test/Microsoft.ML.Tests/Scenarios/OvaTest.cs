@@ -138,7 +138,7 @@ namespace Microsoft.ML.Scenarios
 
             // Pipeline
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(
-                mlContext.BinaryClassification.Trainers.LinearSupportVectorMachines(new LinearSvmTrainer.Options { NumberOfIterations = 100 }),
+                mlContext.BinaryClassification.Trainers.LinearSvm(new LinearSvmTrainer.Options { NumberOfIterations = 100 }),
                 useProbabilities: false);
 
             var model = pipeline.Fit(data);

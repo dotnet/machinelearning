@@ -17,11 +17,11 @@ using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
-[assembly: LoadableClass(SdcaMultiClassTrainer.Summary, typeof(SdcaMultiClassTrainer), typeof(SdcaMultiClassTrainer.Options),
+[assembly: LoadableClass(SdcaMulticlassClassificationTrainer.Summary, typeof(SdcaMulticlassClassificationTrainer), typeof(SdcaMulticlassClassificationTrainer.Options),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    SdcaMultiClassTrainer.UserNameValue,
-    SdcaMultiClassTrainer.LoadNameValue,
-    SdcaMultiClassTrainer.ShortName)]
+    SdcaMulticlassClassificationTrainer.UserNameValue,
+    SdcaMulticlassClassificationTrainer.LoadNameValue,
+    SdcaMulticlassClassificationTrainer.ShortName)]
 
 namespace Microsoft.ML.Trainers
 {
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Trainers
     /// The <see cref="IEstimator{TTransformer}"/> for training a multiclass logistic regression classification model using the stochastic dual coordinate ascent method.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
-    public sealed class SdcaMultiClassTrainer : SdcaTrainerBase<SdcaMultiClassTrainer.Options, MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
+    public sealed class SdcaMulticlassClassificationTrainer : SdcaTrainerBase<SdcaMulticlassClassificationTrainer.Options, MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
     {
         internal const string LoadNameValue = "SDCAMC";
         internal const string UserNameValue = "Fast Linear Multi-class Classification (SA-SDCA)";
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Trainers
         internal const string Summary = "The SDCA linear multi-class classification trainer.";
 
         /// <summary>
-        /// Options for the <see cref="SdcaMultiClassTrainer"/>.
+        /// Options for the <see cref="SdcaMulticlassClassificationTrainer"/>.
         /// </summary>
         public sealed class Options : OptionsBase
         {
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Trainers
         private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SdcaMultiClassTrainer"/>
+        /// Initializes a new instance of <see cref="SdcaMulticlassClassificationTrainer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The label, or dependent variable.</param>
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
-        internal SdcaMultiClassTrainer(IHostEnvironment env,
+        internal SdcaMulticlassClassificationTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Trainers
             Loss = _loss;
         }
 
-        internal SdcaMultiClassTrainer(IHostEnvironment env, Options options,
+        internal SdcaMulticlassClassificationTrainer(IHostEnvironment env, Options options,
             string featureColumn, string labelColumn, string weightColumn = null)
             : base(env, options, TrainerUtils.MakeU4ScalarColumn(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Trainers
             Loss = _loss;
         }
 
-        internal SdcaMultiClassTrainer(IHostEnvironment env, Options options)
+        internal SdcaMulticlassClassificationTrainer(IHostEnvironment env, Options options)
             : this(env, options, options.FeatureColumnName, options.LabelColumnName)
         {
         }
@@ -449,18 +449,18 @@ namespace Microsoft.ML.Trainers
     internal static partial class Sdca
     {
         [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentClassifier",
-            Desc = SdcaMultiClassTrainer.Summary,
-            UserName = SdcaMultiClassTrainer.UserNameValue,
-            ShortName = SdcaMultiClassTrainer.ShortName)]
-        public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, SdcaMultiClassTrainer.Options input)
+            Desc = SdcaMulticlassClassificationTrainer.Summary,
+            UserName = SdcaMulticlassClassificationTrainer.UserNameValue,
+            ShortName = SdcaMulticlassClassificationTrainer.ShortName)]
+        public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, SdcaMulticlassClassificationTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainSDCA");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<SdcaMultiClassTrainer.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
-                () => new SdcaMultiClassTrainer(host, input),
+            return TrainerEntryPointsUtils.Train<SdcaMulticlassClassificationTrainer.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
+                () => new SdcaMulticlassClassificationTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName));
         }
     }
