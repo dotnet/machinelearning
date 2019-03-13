@@ -52,7 +52,7 @@ namespace Microsoft.ML.Trainers
     /// L-BFGS history for all classes *simultaneously*, rather than just one-by-one
     /// as would be needed for a one-versus-all classification model.
     /// </summary>
-    public sealed class PairwiseCouplingTrainer : MetaMulticlassTrainer<MulticlassPredictionTransformer<PairwiseCouplingModelParameters>, PairwiseCouplingModelParameters>
+    public sealed class PairwiseCouplingTrainer : MetaMulticlassClassificationTrainer<MulticlassPredictionTransformer<PairwiseCouplingModelParameters>, PairwiseCouplingModelParameters>
     {
         internal const string LoadNameValue = "PKPD";
         internal const string UserNameValue = "Pairwise coupling (PKPD)";

@@ -28,7 +28,7 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "The number of bits to hash into. Must be between 1 and 30, inclusive.",
                 ShortName = "bits")]
-            public int? HashBits;
+            public int? NumberOfBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
             public uint? Seed;
@@ -39,11 +39,11 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
-            public int? InvertHash;
+            public int? MaximumNumberOfInverts;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)",
                 ShortName = "kind", SortOrder = 102)]
-            public OneHotEncodingTransformer.OutputKind? OutputKind;
+            public OneHotEncodingEstimator.OutputKind? OutputKind;
 
             internal static Column Parse(string str)
             {
@@ -67,18 +67,18 @@ namespace Microsoft.ML.Transforms
                     return true;
                 if (!int.TryParse(extra, out int bits))
                     return false;
-                HashBits = bits;
+                NumberOfBits = bits;
                 return true;
             }
 
             internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (Seed != null || Ordered != null || InvertHash != null)
+                if (Seed != null || Ordered != null || MaximumNumberOfInverts != null)
                     return false;
-                if (HashBits == null)
+                if (NumberOfBits == null)
                     return TryUnparseCore(sb);
-                string extra = HashBits.Value.ToString();
+                string extra = NumberOfBits.Value.ToString();
                 return TryUnparseCore(sb, extra);
             }
         }
@@ -89,27 +89,27 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         internal sealed class Options : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:hashBits:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:numberOfBits:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bits to hash into. Must be between 1 and 30, inclusive.",
                 ShortName = "bits", SortOrder = 2)]
-            public int HashBits = OneHotHashEncodingEstimator.Defaults.HashBits;
+            public int NumberOfBits = OneHotHashEncodingEstimator.Defaults.NumberOfBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
             public uint Seed = OneHotHashEncodingEstimator.Defaults.Seed;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the position of each term should be included in the hash", ShortName = "ord")]
-            public bool Ordered = OneHotHashEncodingEstimator.Defaults.Ordered;
+            public bool Ordered = OneHotHashEncodingEstimator.Defaults.UseOrderedHashing;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
-            public int InvertHash = OneHotHashEncodingEstimator.Defaults.InvertHash;
+            public int MaximumNumberOfInverts = OneHotHashEncodingEstimator.Defaults.MaximumNumberOfInverts;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)",
                 ShortName = "kind", SortOrder = 102)]
-            public OneHotEncodingTransformer.OutputKind OutputKind = OneHotHashEncodingEstimator.Defaults.OutputKind;
+            public OneHotEncodingEstimator.OutputKind OutputKind = OneHotHashEncodingEstimator.Defaults.OutputKind;
         }
 
         internal const string Summary = "Converts the categorical value into an indicator array by hashing the value and using the hash as an index in the "
@@ -124,21 +124,21 @@ namespace Microsoft.ML.Transforms
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
-        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
+        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         /// <param name="outputKind">The type of output expected.</param>
         private static IDataView Create(IHostEnvironment env,
             IDataView input,
             string name,
             string source = null,
-            int hashBits = OneHotHashEncodingEstimator.Defaults.HashBits,
-            int invertHash = OneHotHashEncodingEstimator.Defaults.InvertHash,
-            OneHotEncodingTransformer.OutputKind outputKind = OneHotHashEncodingEstimator.Defaults.OutputKind)
+            int numberOfBits = OneHotHashEncodingEstimator.Defaults.NumberOfBits,
+            int maximumNumberOfInverts = OneHotHashEncodingEstimator.Defaults.MaximumNumberOfInverts,
+            OneHotEncodingEstimator.OutputKind outputKind = OneHotHashEncodingEstimator.Defaults.OutputKind)
         {
-            return new OneHotHashEncodingEstimator(env, name, source, hashBits, invertHash, outputKind).Fit(input).Transform(input) as IDataView;
+            return new OneHotHashEncodingEstimator(env, name, source, numberOfBits, maximumNumberOfInverts, outputKind).Fit(input).Transform(input) as IDataView;
         }
 
         internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
@@ -156,10 +156,10 @@ namespace Microsoft.ML.Transforms
                     column.Name,
                     column.Source ?? column.Name,
                     column.OutputKind ?? options.OutputKind,
-                    column.HashBits ?? options.HashBits,
+                    column.NumberOfBits ?? options.NumberOfBits,
                     column.Seed ?? options.Seed,
                     column.Ordered ?? options.Ordered,
-                    column.InvertHash ?? options.InvertHash);
+                    column.MaximumNumberOfInverts ?? options.MaximumNumberOfInverts);
                 columns.Add(col);
             }
             return new OneHotHashEncodingEstimator(env, columns.ToArray()).Fit(input).Transform(input) as IDataTransform;
@@ -207,11 +207,11 @@ namespace Microsoft.ML.Transforms
         [BestFriend]
         internal static class Defaults
         {
-            public const int HashBits = 16;
+            public const int NumberOfBits = 16;
             public const uint Seed = 314489979;
-            public const bool Ordered = true;
-            public const int InvertHash = 0;
-            public const OneHotEncodingTransformer.OutputKind OutputKind = OneHotEncodingTransformer.OutputKind.Bag;
+            public const bool UseOrderedHashing = true;
+            public const int MaximumNumberOfInverts = 0;
+            public const OneHotEncodingEstimator.OutputKind OutputKind = OneHotEncodingEstimator.OutputKind.Bag;
         }
 
         /// <summary>
@@ -219,8 +219,8 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public sealed class ColumnOptions
         {
-            public readonly HashingEstimator.ColumnOptions HashInfo;
-            public readonly OneHotEncodingTransformer.OutputKind OutputKind;
+            public readonly HashingEstimator.ColumnOptions HashingOptions;
+            public readonly OneHotEncodingEstimator.OutputKind OutputKind;
 
             /// <summary>
             /// Describes how the transformer handles one column pair.
@@ -228,21 +228,21 @@ namespace Microsoft.ML.Transforms
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="outputKind">Kind of output: bag, indicator vector etc.</param>
-            /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
+            /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
-            /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
-            /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+            /// <param name="useOrderedHashing">Whether the position of each term should be included in the hash.</param>
+            /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
             /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-            /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+            /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
             /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
             public ColumnOptions(string name, string inputColumnName = null,
-                OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutputKind,
-                int hashBits = Defaults.HashBits,
+                OneHotEncodingEstimator.OutputKind outputKind = Defaults.OutputKind,
+                int numberOfBits = Defaults.NumberOfBits,
                 uint seed = Defaults.Seed,
-                bool ordered = Defaults.Ordered,
-                int invertHash = Defaults.InvertHash)
+                bool useOrderedHashing = Defaults.UseOrderedHashing,
+                int maximumNumberOfInverts = Defaults.MaximumNumberOfInverts)
             {
-                HashInfo = new HashingEstimator.ColumnOptions(name, inputColumnName ?? name, hashBits, seed, ordered, invertHash);
+                HashingOptions = new HashingEstimator.ColumnOptions(name, inputColumnName ?? name, numberOfBits, seed, useOrderedHashing, maximumNumberOfInverts);
                 OutputKind = outputKind;
             }
         }
@@ -258,19 +258,19 @@ namespace Microsoft.ML.Transforms
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform.
         /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
-        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
+        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         /// <param name="outputKind">The type of output expected.</param>
         internal OneHotHashEncodingEstimator(IHostEnvironment env,
             string outputColumnName,
             string inputColumnName = null,
-            int hashBits = Defaults.HashBits,
-            int invertHash = Defaults.InvertHash,
-            OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutputKind)
-            : this(env, new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, outputKind, hashBits, invertHash: invertHash))
+            int numberOfBits = Defaults.NumberOfBits,
+            int maximumNumberOfInverts = Defaults.MaximumNumberOfInverts,
+            OneHotEncodingEstimator.OutputKind outputKind = Defaults.OutputKind)
+            : this(env, new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, outputKind, numberOfBits, maximumNumberOfInverts: maximumNumberOfInverts))
         {
         }
 
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(ValueToKeyMappingEstimator));
-            _hash = new HashingEstimator(_host, columns.Select(x => x.HashInfo).ToArray());
+            _hash = new HashingEstimator(_host, columns.Select(x => x.HashingOptions).ToArray());
             using (var ch = _host.Start(nameof(OneHotHashEncodingEstimator)))
             {
                 var binaryCols = new List<(string outputColumnName, string inputColumnName)>();
@@ -286,23 +286,23 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < columns.Length; i++)
                 {
                     var column = columns[i];
-                    OneHotEncodingTransformer.OutputKind kind = columns[i].OutputKind;
+                    OneHotEncodingEstimator.OutputKind kind = columns[i].OutputKind;
                     switch (kind)
                     {
                         default:
                             throw _host.ExceptUserArg(nameof(column.OutputKind));
-                        case OneHotEncodingTransformer.OutputKind.Key:
+                        case OneHotEncodingEstimator.OutputKind.Key:
                             continue;
-                        case OneHotEncodingTransformer.OutputKind.Bin:
-                            if ((column.HashInfo.InvertHash) != 0)
+                        case OneHotEncodingEstimator.OutputKind.Binary:
+                            if ((column.HashingOptions.MaximumNumberOfInverts) != 0)
                                 ch.Warning("Invert hashing is being used with binary encoding.");
-                            binaryCols.Add((column.HashInfo.Name, column.HashInfo.Name));
+                            binaryCols.Add((column.HashingOptions.Name, column.HashingOptions.Name));
                             break;
-                        case OneHotEncodingTransformer.OutputKind.Ind:
-                            cols.Add((column.HashInfo.Name, column.HashInfo.Name, false));
+                        case OneHotEncodingEstimator.OutputKind.Indicator:
+                            cols.Add((column.HashingOptions.Name, column.HashingOptions.Name, false));
                             break;
-                        case OneHotEncodingTransformer.OutputKind.Bag:
-                            cols.Add((column.HashInfo.Name, column.HashInfo.Name, true));
+                        case OneHotEncodingEstimator.OutputKind.Bag:
+                            cols.Add((column.HashingOptions.Name, column.HashingOptions.Name, true));
                             break;
                     }
                 }

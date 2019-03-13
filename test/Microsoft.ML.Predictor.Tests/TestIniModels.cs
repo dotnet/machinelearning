@@ -527,7 +527,7 @@ namespace Microsoft.ML.RunTests
                     }).Load(GetDataPath("breast-cancer.txt"));
 
             var pipeline = mlContext.Transforms.ReplaceMissingValues("Features")
-                .Append(mlContext.Regression.Trainers.GeneralizedAdditiveModels());
+                .Append(mlContext.Regression.Trainers.Gam());
             var model = pipeline.Fit(idv);
             var data = model.Transform(idv);
 
@@ -566,7 +566,7 @@ namespace Microsoft.ML.RunTests
                     }).Load(GetDataPath("breast-cancer.txt"));
 
             var pipeline = mlContext.Transforms.ReplaceMissingValues("Features")
-                .Append(mlContext.BinaryClassification.Trainers.GeneralizedAdditiveModels());
+                .Append(mlContext.BinaryClassification.Trainers.Gam());
             var model = pipeline.Fit(idv);
             var data = model.Transform(idv);
 

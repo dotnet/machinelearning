@@ -19,8 +19,8 @@
             // Leave out 10% of data for testing.
             var split = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
             // Create data training pipeline
-            var pipeline = mlContext.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(
-                    new ML.Trainers.SymbolicStochasticGradientDescentClassificationTrainer.Options()
+            var pipeline = mlContext.BinaryClassification.Trainers.SymbolicSgd(
+                    new ML.Trainers.SymbolicSgdTrainer.Options()
                     {
                         LearningRate = 0.2f,
                         NumberOfIterations = 10,

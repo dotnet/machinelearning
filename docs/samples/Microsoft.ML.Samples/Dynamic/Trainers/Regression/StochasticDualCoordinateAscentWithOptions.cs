@@ -32,7 +32,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             };
 
             // Train the model.
-            var pipeline = mlContext.Regression.Trainers.StochasticDualCoordinateAscent(options);
+            var pipeline = mlContext.Regression.Trainers.Sdca(options);
             var model = pipeline.Fit(split.TrainSet);
 
             // Do prediction on the test set.

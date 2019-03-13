@@ -9,7 +9,7 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML
 {
-    using LROptions = LogisticRegression.Options;
+    using LROptions = LogisticRegressionBinaryClassificationTrainer.Options;
 
     /// <summary>
     /// TrainerEstimator extension methods.
@@ -17,7 +17,8 @@ namespace Microsoft.ML
     public static class StandardTrainersCatalog
     {
         /// <summary>
-        /// Predict a target using a linear classification model trained with <see cref="SgdBinaryTrainer"/>.
+        /// Predict a target using a linear classification model trained with <see cref="SgdCalibratedTrainer"/>.
+        /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column, or dependent variable.</param>
@@ -33,22 +34,23 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static SgdBinaryTrainer StochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static SgdCalibratedTrainer SgdCalibrated(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            int numberOfIterations = SgdBinaryTrainer.Options.Defaults.NumberOfIterations,
-            double initialLearningRate = SgdBinaryTrainer.Options.Defaults.InitialLearningRate,
-            float l2Regularization = SgdBinaryTrainer.Options.Defaults.L2Regularization)
+            int numberOfIterations = SgdCalibratedTrainer.Options.Defaults.NumberOfIterations,
+            double initialLearningRate = SgdCalibratedTrainer.Options.Defaults.InitialLearningRate,
+            float l2Regularization = SgdCalibratedTrainer.Options.Defaults.L2Regularization)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SgdBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName,
+            return new SgdCalibratedTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName,
                 numberOfIterations, initialLearningRate, l2Regularization);
         }
 
         /// <summary>
-        /// Predict a target using a linear classification model trained with <see cref="SgdBinaryTrainer"/> and advanced options.
+        /// Predict a target using a linear classification model trained with <see cref="SgdCalibratedTrainer"/> and advanced options.
+        /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
@@ -59,18 +61,19 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static SgdBinaryTrainer StochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            SgdBinaryTrainer.Options options)
+        public static SgdCalibratedTrainer SgdCalibrated(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            SgdCalibratedTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SgdBinaryTrainer(env, options);
+            return new SgdCalibratedTrainer(env, options);
         }
 
         /// <summary>
-        ///  Predict a target using a linear classification model trained with <see cref="SgdNonCalibratedBinaryTrainer"/>.
+        /// Predict a target using a linear classification model trained with <see cref="SgdNonCalibratedTrainer"/>.
+        /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column, or dependent variable.</param>
@@ -87,23 +90,24 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static SgdNonCalibratedBinaryTrainer StochasticGradientDescentNonCalibrated(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static SgdNonCalibratedTrainer SgdNonCalibrated(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
             IClassificationLoss loss = null,
-            int numberOfIterations = SgdNonCalibratedBinaryTrainer.Options.Defaults.NumberOfIterations,
-            double initialLearningRate = SgdNonCalibratedBinaryTrainer.Options.Defaults.InitialLearningRate,
-            float l2Regularization = SgdNonCalibratedBinaryTrainer.Options.Defaults.L2Regularization)
+            int numberOfIterations = SgdNonCalibratedTrainer.Options.Defaults.NumberOfIterations,
+            double initialLearningRate = SgdNonCalibratedTrainer.Options.Defaults.InitialLearningRate,
+            float l2Regularization = SgdNonCalibratedTrainer.Options.Defaults.L2Regularization)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SgdNonCalibratedBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName,
+            return new SgdNonCalibratedTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName,
                 numberOfIterations, initialLearningRate, l2Regularization, loss);
         }
 
         /// <summary>
-        /// Predict a target using a linear classification model trained with <see cref="SgdNonCalibratedBinaryTrainer"/> and advanced options.
+        /// Predict a target using a linear classification model trained with <see cref="SgdNonCalibratedTrainer"/> and advanced options.
+        /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
@@ -114,14 +118,14 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static SgdNonCalibratedBinaryTrainer StochasticGradientDescentNonCalibrated(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            SgdNonCalibratedBinaryTrainer.Options options)
+        public static SgdNonCalibratedTrainer SgdNonCalibrated(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            SgdNonCalibratedTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SgdNonCalibratedBinaryTrainer(env, options);
+            return new SgdNonCalibratedTrainer(env, options);
         }
 
         /// <summary>
@@ -141,7 +145,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/StochasticDualCoordinateAscent.cs)]
         /// ]]></format>
         /// </example>
-        public static SdcaRegressionTrainer StochasticDualCoordinateAscent(this RegressionCatalog.RegressionTrainers catalog,
+        public static SdcaRegressionTrainer Sdca(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -166,7 +170,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/StochasticDualCoordinateAscentWithOptions.cs)]
         /// ]]></format>
         /// </example>
-        public static SdcaRegressionTrainer StochasticDualCoordinateAscent(this RegressionCatalog.RegressionTrainers catalog,
+        public static SdcaRegressionTrainer Sdca(this RegressionCatalog.RegressionTrainers catalog,
         SdcaRegressionTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
@@ -177,7 +181,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear classification model trained with <see cref="SdcaBinaryTrainer"/>.
+        /// Predict a target using a linear classification model trained with <see cref="SdcaCalibratedBinaryClassificationTrainer"/>.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -192,7 +196,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/StochasticDualCoordinateAscent.cs)]
         /// ]]></format>
         /// </example>
-        public static SdcaBinaryTrainer StochasticDualCoordinateAscent(
+        public static SdcaCalibratedBinaryClassificationTrainer SdcaCalibrated(
                 this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
                 string labelColumnName = DefaultColumnNames.Label,
                 string featureColumnName = DefaultColumnNames.Features,
@@ -203,11 +207,11 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l2Regularization, l1Threshold, maximumNumberOfIterations);
+            return new SdcaCalibratedBinaryClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l2Regularization, l1Threshold, maximumNumberOfIterations);
         }
 
         /// <summary>
-        /// Predict a target using a linear classification model trained with <see cref="SdcaBinaryTrainer"/> and advanced options.
+        /// Predict a target using a linear classification model trained with <see cref="SdcaCalibratedBinaryClassificationTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
@@ -217,19 +221,19 @@ namespace Microsoft.ML
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/StochasticDualCoordinateAscentWithOptions.cs)]
         /// ]]></format>
         /// </example>
-        public static SdcaBinaryTrainer StochasticDualCoordinateAscent(
+        public static SdcaCalibratedBinaryClassificationTrainer SdcaCalibrated(
                 this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-                SdcaBinaryTrainer.Options options)
+                SdcaCalibratedBinaryClassificationTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaBinaryTrainer(env, options);
+            return new SdcaCalibratedBinaryClassificationTrainer(env, options);
         }
 
         /// <summary>
-        /// Predict a target using a linear classification model trained with <see cref="SdcaNonCalibratedBinaryTrainer"/>.
+        /// Predict a target using a linear classification model trained with <see cref="SdcaNonCalibratedBinaryClassificationTrainer"/>.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -245,7 +249,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/StochasticDualCoordinateAscentNonCalibrated.cs)]
         /// ]]></format>
         /// </example>
-        public static SdcaNonCalibratedBinaryTrainer StochasticDualCoordinateAscentNonCalibrated(
+        public static SdcaNonCalibratedBinaryClassificationTrainer SdcaNonCalibrated(
                 this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
                 string labelColumnName = DefaultColumnNames.Label,
                 string featureColumnName = DefaultColumnNames.Features,
@@ -257,27 +261,27 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaNonCalibratedBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, maximumNumberOfIterations);
+            return new SdcaNonCalibratedBinaryClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, maximumNumberOfIterations);
         }
 
         /// <summary>
-        /// Predict a target using a linear classification model trained with <see cref="SdcaNonCalibratedBinaryTrainer"/> and advanced options.
+        /// Predict a target using a linear classification model trained with <see cref="SdcaNonCalibratedBinaryClassificationTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
-        public static SdcaNonCalibratedBinaryTrainer StochasticDualCoordinateAscentNonCalibrated(
+        public static SdcaNonCalibratedBinaryClassificationTrainer SdcaNonCalibrated(
                 this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-                SdcaNonCalibratedBinaryTrainer.Options options)
+                SdcaNonCalibratedBinaryClassificationTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaNonCalibratedBinaryTrainer(env, options);
+            return new SdcaNonCalibratedBinaryClassificationTrainer(env, options);
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with <see cref="SdcaMultiClassTrainer"/>.
+        /// Predict a target using a linear multiclass classification model trained with <see cref="SdcaMulticlassClassificationTrainer"/>.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -293,7 +297,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/StochasticDualCoordinateAscent.cs)]
         /// ]]></format>
         /// </example>
-        public static SdcaMultiClassTrainer StochasticDualCoordinateAscent(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        public static SdcaMulticlassClassificationTrainer Sdca(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
         string labelColumnName = DefaultColumnNames.Label,
                     string featureColumnName = DefaultColumnNames.Features,
                     string exampleWeightColumnName = null,
@@ -304,11 +308,11 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaMultiClassTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, maximumNumberOfIterations);
+            return new SdcaMulticlassClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, maximumNumberOfIterations);
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with <see cref="SdcaMultiClassTrainer"/> and advanced options.
+        /// Predict a target using a linear multiclass classification model trained with <see cref="SdcaMulticlassClassificationTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
@@ -318,14 +322,14 @@ namespace Microsoft.ML
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/StochasticDualCoordinateAscentWithOptions.cs)]
         /// ]]></format>
         /// </example>
-        public static SdcaMultiClassTrainer StochasticDualCoordinateAscent(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-        SdcaMultiClassTrainer.Options options)
+        public static SdcaMulticlassClassificationTrainer Sdca(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        SdcaMulticlassClassificationTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaMultiClassTrainer(env, options);
+            return new SdcaMulticlassClassificationTrainer(env, options);
         }
 
         /// <summary>
@@ -444,7 +448,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LogisticRegression"/> trainer.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LogisticRegressionBinaryClassificationTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -453,7 +457,7 @@ namespace Microsoft.ML
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Regularization">Weight of L1 regularization term.</param>
         /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="historySize">Memory size for <see cref="Trainers.LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Memory size for <see cref="Trainers.LogisticRegressionBinaryClassificationTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -462,7 +466,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static LogisticRegression LogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static LogisticRegressionBinaryClassificationTrainer LogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -474,25 +478,25 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LogisticRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
+            return new LogisticRegressionBinaryClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LogisticRegression"/> trainer.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LogisticRegressionBinaryClassificationTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        public static LogisticRegression LogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, LROptions options)
+        public static LogisticRegressionBinaryClassificationTrainer LogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, LROptions options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LogisticRegression(env, options);
+            return new LogisticRegressionBinaryClassificationTrainer(env, options);
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Trainers.PoissonRegression"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Trainers.PoissonRegressionTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -501,9 +505,9 @@ namespace Microsoft.ML
         /// <param name="l1Regularization">Weight of L1 regularization term.</param>
         /// <param name="l2Regularization">Weight of L2 regularization term.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.PoissonRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.PoissonRegressionTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
-        public static PoissonRegression PoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
+        public static PoissonRegressionTrainer PoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -515,25 +519,25 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new PoissonRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
+            return new PoissonRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Trainers.PoissonRegression"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Trainers.PoissonRegressionTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        public static PoissonRegression PoissonRegression(this RegressionCatalog.RegressionTrainers catalog, PoissonRegression.Options options)
+        public static PoissonRegressionTrainer PoissonRegression(this RegressionCatalog.RegressionTrainers catalog, PoissonRegressionTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new PoissonRegression(env, options);
+            return new PoissonRegressionTrainer(env, options);
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the <see cref="MulticlassLogisticRegression"/> trainer.
+        /// Predict a target using a linear multiclass classification model trained with the <see cref="LogisticRegressionMulticlassClassificationTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -542,9 +546,9 @@ namespace Microsoft.ML
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Regularization">Weight of L1 regularization term.</param>
         /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.MulticlassLogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.LogisticRegressionMulticlassClassificationTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        public static MulticlassLogisticRegression LogisticRegression(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        public static LogisticRegressionMulticlassClassificationTrainer LogisticRegression(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -556,37 +560,37 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new MulticlassLogisticRegression(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
+            return new LogisticRegressionMulticlassClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the <see cref="MulticlassLogisticRegression"/> trainer.
+        /// Predict a target using a linear multiclass classification model trained with the <see cref="LogisticRegressionMulticlassClassificationTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        public static MulticlassLogisticRegression LogisticRegression(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-            MulticlassLogisticRegression.Options options)
+        public static LogisticRegressionMulticlassClassificationTrainer LogisticRegression(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            LogisticRegressionMulticlassClassificationTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new MulticlassLogisticRegression(env, options);
+            return new LogisticRegressionMulticlassClassificationTrainer(env, options);
         }
 
         /// <summary>
-        /// Predicts a target using a linear multiclass classification model trained with the <see cref="MultiClassNaiveBayesTrainer"/>.
-        /// The <see cref="MultiClassNaiveBayesTrainer"/> trains a multiclass Naive Bayes predictor that supports binary feature values.
+        /// Predicts a target using a linear multiclass classification model trained with the <see cref="NaiveBayesTrainer"/>.
+        /// The <see cref="NaiveBayesTrainer"/> trains a multiclass Naive Bayes predictor that supports binary feature values.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
-        public static MultiClassNaiveBayesTrainer NaiveBayes(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        public static NaiveBayesTrainer NaiveBayes(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
-            return new MultiClassNaiveBayesTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, featureColumnName);
+            return new NaiveBayesTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, featureColumnName);
         }
 
         /// <summary>
@@ -681,7 +685,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <remarks>
         /// <para>
-        /// The idea behind support vector machines, is to map instances into a high dimensional space
+        /// The idea behind support vector machines (SVM), is to map instances into a high dimensional space
         /// in which the two classes are linearly separable, i.e., there exists a hyperplane such that all the positive examples are on one side of it,
         /// and all the negative examples are on the other.
         /// </para>
@@ -695,7 +699,7 @@ namespace Microsoft.ML
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numberOfIterations">The number of training iteraitons.</param>
-        public static LinearSvmTrainer LinearSupportVectorMachines(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static LinearSvmTrainer LinearSvm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -710,7 +714,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <remarks>
         /// <para>
-        /// The idea behind support vector machines, is to map instances into a high dimensional space
+        /// The idea behind support vector machines (SVM), is to map instances into a high dimensional space
         /// in which the two classes are linearly separable, i.e., there exists a hyperplane such that all the positive examples are on one side of it,
         /// and all the negative examples are on the other.
         /// </para>
@@ -721,7 +725,7 @@ namespace Microsoft.ML
         /// </remarks>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        public static LinearSvmTrainer LinearSupportVectorMachines(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static LinearSvmTrainer LinearSvm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             LinearSvmTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));

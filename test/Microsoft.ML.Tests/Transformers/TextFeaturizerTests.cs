@@ -206,7 +206,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Load(sentimentDataPath);
 
             var est = new WordBagEstimator(ML, "bag_of_words", "text").
-                Append(new WordHashBagEstimator(ML, "bag_of_wordshash", "text", invertHash: -1));
+                Append(new WordHashBagEstimator(ML, "bag_of_wordshash", "text", maximumNumberOfInverts: -1));
 
             // The following call fails because of the following issue
             // https://github.com/dotnet/machinelearning/issues/969

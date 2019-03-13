@@ -31,8 +31,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var trainData = ml.Data.Cache(pipeline.Fit(data).Transform(data));
 
             // Train the first predictor.
-            var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1 });
+            var trainer = ml.BinaryClassification.Trainers.SdcaNonCalibrated(
+                new SdcaNonCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1 });
 
             var firstModel = trainer.Fit(trainData);
 
