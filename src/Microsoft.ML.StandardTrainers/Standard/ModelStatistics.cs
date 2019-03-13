@@ -35,9 +35,11 @@ namespace Microsoft.ML.Trainers
         public readonly float StandardError;
         public readonly float ZScore;
         public readonly float PValue;
+        public readonly int FeatureIndex;
 
-        internal CoefficientStatistics(float estimate, float stdError, float zScore, float pValue)
+        internal CoefficientStatistics(int featureIndex, float estimate, float stdError, float zScore, float pValue)
         {
+            FeatureIndex = featureIndex;
             Estimate = estimate;
             StandardError = stdError;
             ZScore = zScore;
@@ -51,7 +53,7 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     public class ModelStatisticsBase : ICanSaveModel
     {
-        protected IHostEnvironment Env;
+        private protected IHostEnvironment Env;
 
         // Total count of training examples used to train the model.
         public readonly long TrainingExampleCount;
@@ -111,7 +113,7 @@ namespace Microsoft.ML.Trainers
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        protected virtual void SaveCore(ModelSaveContext ctx)
+        private protected virtual void SaveCore(ModelSaveContext ctx)
         {
             // *** Binary Format ***
             // int: count of parameters
@@ -165,7 +167,7 @@ namespace Microsoft.ML.Trainers
             builder.AddPrimitiveValue("Null Deviance", NumberDataViewType.Single, NullDeviance);
             builder.AddPrimitiveValue("AIC", NumberDataViewType.Single, 2 * ParametersCount + Deviance);
 
-           return builder.ToAnnotations();
+            return builder.ToAnnotations();
         }
 
         private protected virtual VersionInfo GetVersionInfo()
@@ -221,7 +223,7 @@ namespace Microsoft.ML.Trainers
 
         internal LinearModelParameterStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, float deviance, float nullDeviance,
             in VBuffer<float> coeffStdError, VBuffer<float> weights, float bias)
-            :base(env, trainingExampleCount, paramCount, deviance, nullDeviance)
+            : base(env, trainingExampleCount, paramCount, deviance, nullDeviance)
         {
             Env.Assert(trainingExampleCount > 0);
             Env.Assert(paramCount > 0);
@@ -234,7 +236,7 @@ namespace Microsoft.ML.Trainers
         }
 
         private LinearModelParameterStatistics(IHostEnvironment env, ModelLoadContext ctx)
-            :base(env, ctx)
+            : base(env, ctx)
         {
             // *** Binary format ***
             // <base>
@@ -246,7 +248,7 @@ namespace Microsoft.ML.Trainers
             //backwards compatibility
             if (ctx.Header.ModelVerWritten < CoeffStatsRefactorVersion)
             {
-                if(!ctx.Reader.ReadBoolean()) // this was used in the old model to denote whether there were stdErrorValues or not.
+                if (!ctx.Reader.ReadBoolean()) // this was used in the old model to denote whether there were stdErrorValues or not.
                     return;
             }
 
@@ -284,7 +286,7 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             // *** Binary Format ***
             // <base>
@@ -323,8 +325,8 @@ namespace Microsoft.ML.Trainers
             var zScore = bias / stdError;
             var pValue = 1.0f - (float)ProbabilityFunctions.Erf(Math.Abs(zScore / sqrt2));
 
-            //string name, float estimate, float stdError, float zScore, float pValue
-            return new CoefficientStatistics(bias, stdError, zScore, pValue);
+            //int feature index, float estimate, float stdError, float zScore, float pValue
+            return new CoefficientStatistics(0, bias, stdError, zScore, pValue);
         }
 
         // sefilipi: do we want to offer this? Do we want to offer setting the weights?
@@ -377,16 +379,11 @@ namespace Microsoft.ML.Trainers
                 };
         }
 
-        private List<CoefficientStatistics> GetUnorderedCoefficientStatistics(DataViewSchema.Column featureColumn)
+        private List<CoefficientStatistics> GetUnorderedCoefficientStatistics()
         {
             Contracts.AssertValue(Env);
 
             Env.Assert(_coeffStdError.Length == _weights.Length + 1);
-
-            var names = default(VBuffer<ReadOnlyMemory<char>>);
-
-            featureColumn.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref names);
-            Env.Assert(names.Length > 0, "FeatureColumnName has no metadata.");
 
             ReadOnlySpan<float> stdErrorValues = _coeffStdError.GetValues();
             const Double sqrt2 = 1.41421356237; // Math.Sqrt(2);
@@ -399,29 +396,53 @@ namespace Microsoft.ML.Trainers
             {
                 int wi = denseStdError ? i - 1 : stdErrorIndices[i] - 1;
                 Env.Assert(0 <= wi && wi < _weights.Length);
-                var name = names.GetItemOrDefault(wi).ToString();
-                if (string.IsNullOrEmpty(name))
-                    name = $"f{wi}";
                 var weight = _weights.GetItemOrDefault(wi);
                 var stdError = stdErrorValues[i];
                 var zScore = zScores[i - 1] = weight / stdError;
                 var pValue = 1 - (float)ProbabilityFunctions.Erf(Math.Abs(zScore / sqrt2));
-                result.Add(new CoefficientStatistics(weight, stdError, zScore, pValue));
+                result.Add(new CoefficientStatistics(wi, weight, stdError, zScore, pValue));
             }
             return result;
+        }
+
+        private string[] GetFeatureNames(DataViewSchema.Column featureColumn)
+        {
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
+
+            featureColumn.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref names);
+            Env.Assert(names.Length > 0, "FeatureColumnName has no metadata.");
+
+            bool denseStdError = _coeffStdError.IsDense;
+            ReadOnlySpan<int> stdErrorIndices = _coeffStdError.GetIndices();
+
+            var featureNames = new List<string>();
+
+            for (int i = 1; i < ParametersCount; i++) //skip the bias term
+            {
+                int wi = denseStdError ? i - 1 : stdErrorIndices[i] - 1;
+                Env.Assert(0 <= wi && wi < _weights.Length);
+                var name = names.GetItemOrDefault(wi).ToString();
+                if (string.IsNullOrEmpty(name))
+                    name = $"f{wi}";
+
+                featureNames.Add(name);
+            }
+
+            return featureNames.ToArray();
+
         }
 
         /// <summary>
         /// Gets the coefficient statistics as an object.
         /// </summary>
-        public CoefficientStatistics[] GetWeightsCoefficientStatistics(DataViewSchema.Column featureColumn, int paramCountCap)
+        public CoefficientStatistics[] GetWeightsCoefficientStatistics(int paramCountCap)
         {
             Env.CheckParam(paramCountCap >= 0, nameof(paramCountCap));
 
             if (paramCountCap > ParametersCount)
                 paramCountCap = ParametersCount;
 
-            var order = GetUnorderedCoefficientStatistics(featureColumn).OrderByDescending(stat => stat.ZScore).Take(paramCountCap - 1);
+            var order = GetUnorderedCoefficientStatistics().OrderByDescending(stat => stat.ZScore).Take(paramCountCap - 1);
             return order.ToArray();
         }
 
@@ -433,9 +454,12 @@ namespace Microsoft.ML.Trainers
             base.SaveText(writer, featureColumn, paramCountCap);
 
             var biasStats = GetBiasStatistics();
-            var coeffStats = GetWeightsCoefficientStatistics(featureColumn, paramCountCap);
+            var coeffStats = GetWeightsCoefficientStatistics(paramCountCap);
             if (coeffStats == null)
                 return;
+
+            var featureNames = GetFeatureNames(featureColumn);
+            Env.Assert(featureNames.Length >= 1);
 
             writer.WriteLine();
             writer.WriteLine("Coefficients statistics:");
@@ -457,7 +481,7 @@ namespace Microsoft.ML.Trainers
                 return probZ.ToString();
             };
 
-            writer.WriteLine("{0,-10:G7}\t{1,-10:G7}\t{2,-10:G7}\t{3}",
+            writer.WriteLine("(Bias)\t{0,-10:G7}\t{1,-10:G7}\t{2,-10:G7}\t{3}",
                            biasStats.Estimate,
                            biasStats.StandardError,
                            biasStats.ZScore,
@@ -465,7 +489,10 @@ namespace Microsoft.ML.Trainers
 
             foreach (var coeffStat in coeffStats)
             {
-                writer.WriteLine("{0,-10:G7}\t{1,-10:G7}\t{2,-10:G7}\t{3}",
+                Env.Assert(coeffStat.FeatureIndex < featureNames.Length);
+
+                writer.WriteLine("{0,-15}\t{1,-10:G7}\t{2,-10:G7}\t{3,-10:G7}\t{4}",
+                            featureNames[coeffStat.FeatureIndex],
                             coeffStat.Estimate,
                             coeffStat.StandardError,
                             coeffStat.ZScore,
@@ -486,18 +513,21 @@ namespace Microsoft.ML.Trainers
             base.SaveSummaryInKeyValuePairs(featureColumn, paramCountCap, resultCollection);
 
             var biasStats = GetBiasStatistics();
-            var coeffStats = GetWeightsCoefficientStatistics(featureColumn, paramCountCap);
+            var coeffStats = GetWeightsCoefficientStatistics(paramCountCap);
             if (coeffStats == null)
                 return;
-            int index = 0;
+
+            var featureNames = GetFeatureNames(featureColumn);
             resultCollection.Add(new KeyValuePair<string, object>(
-                   (index++).ToString(),
+                   "(Bias)",
                    new float[] { biasStats.Estimate, biasStats.StandardError, biasStats.ZScore, biasStats.PValue }));
 
             foreach (var coeffStat in coeffStats)
             {
+                Env.Assert(coeffStat.FeatureIndex < featureNames.Length);
+
                 resultCollection.Add(new KeyValuePair<string, object>(
-                    (index++).ToString(),
+                    featureNames[coeffStat.FeatureIndex],
                     new float[] { coeffStat.Estimate, coeffStat.StandardError, coeffStat.ZScore, coeffStat.PValue }));
             }
         }

@@ -103,7 +103,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
                 var scoredData = transformer.Transform(dataView);
 
-                var coefficients = stats.GetWeightsCoefficientStatistics(scoredData.Schema["Features"], 100);
+                var coefficients = stats.GetWeightsCoefficientStatistics(100);
 
                 Assert.Equal(18, coefficients.Length);
 
