@@ -57,7 +57,7 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
         /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
-        public static TokenizingByCharactersEstimator ProduceCharactersAsKeys(this TransformsCatalog.TextTransforms catalog,
+        public static TokenizingByCharactersEstimator TokenizeIntoCharactersAsKeys(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
             bool useMarkerCharacters = CharTokenizingDefaults.UseMarkerCharacters)
@@ -72,7 +72,7 @@ namespace Microsoft.ML
         /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
 
-        public static TokenizingByCharactersEstimator ProduceCharactersAsKeys(this TransformsCatalog.TextTransforms catalog,
+        public static TokenizingByCharactersEstimator TokenizeIntoCharactersAsKeys(this TransformsCatalog.TextTransforms catalog,
             bool useMarkerCharacters = CharTokenizingDefaults.UseMarkerCharacters,
             params ColumnOptions[] columns)
             => new TokenizingByCharactersEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), useMarkerCharacters, ColumnOptions.ConvertToValueTuples(columns));
@@ -159,7 +159,7 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
-        public static WordTokenizingEstimator ProduceWordTokens(this TransformsCatalog.TextTransforms catalog,
+        public static WordTokenizingEstimator TokenizeIntoWords(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
             char[] separators = null)
@@ -170,7 +170,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        public static WordTokenizingEstimator ProduceWordTokens(this TransformsCatalog.TextTransforms catalog,
+        public static WordTokenizingEstimator TokenizeIntoWords(this TransformsCatalog.TextTransforms catalog,
             params WordTokenizingEstimator.ColumnOptions[] columns)
           => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
