@@ -127,6 +127,8 @@ namespace Microsoft.ML
             foreach(var host in _hosts)
                 if (host is ICancelableHost)
                     ((ICancelableHost)host).StopExecution();
+
+            _hosts.RemoveAll(h => true);
         }
     }
 }

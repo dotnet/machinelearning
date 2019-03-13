@@ -72,6 +72,45 @@ namespace Microsoft.ML.RunTests
             }
         }
 
+        [Fact]
+        public void TestCancellationRoot()
+        {
+            IHostEnvironment env = new MLContext(seed: 42);
+            var mainHost = env.Register("Main");
+            var children = new ConcurrentDictionary<IHost, List<IHost>>();
+            var hosts = new BlockingCollection<Tuple<IHost, int>>();
+            hosts.Add(new Tuple<IHost, int>(mainHost.Register("1"), 1));
+            hosts.Add(new Tuple<IHost, int>(mainHost.Register("2"), 1));
+            hosts.Add(new Tuple<IHost, int>(mainHost.Register("3"), 1));
+            hosts.Add(new Tuple<IHost, int>(mainHost.Register("4"), 1));
+            hosts.Add(new Tuple<IHost, int>(mainHost.Register("5"), 1));
+            Random rand = new Random();
+            var addThread = new Thread(
+            () =>
+            {
+                for (int i = 0; i < 100; i++)
+                {
+                    var randHostTuple = hosts.ElementAt(rand.Next(hosts.Count - 1));
+                    var newHost = randHostTuple.Item1.Register((randHostTuple.Item2 + 1).ToString());
+                    hosts.Add(new Tuple<IHost, int>(newHost, randHostTuple.Item2 + 1));
+                    if (!children.ContainsKey(randHostTuple.Item1))
+                        children[randHostTuple.Item1] = new List<IHost>();
+                    else
+                        children[randHostTuple.Item1].Add(newHost);
+                }
+            });
+            addThread.Start();
+            var index = 0;
+            do
+            {
+                index = rand.Next(hosts.Count);
+            } while ((hosts.ElementAt(index).Item1 as ICancelableEnvironment).IsCanceled || hosts.ElementAt(index).Item2 < 3);
+            ((MLContext)env).StopExecution();
+            addThread.Join();
+            foreach (var value in children.Values)
+                value.ForEach(v => Assert.True((v as ICancelableEnvironment).IsCanceled));
+        }
+
         /// <summary>
         /// Tests that MLContext's Log event intercepts messages properly.
         /// </summary>
