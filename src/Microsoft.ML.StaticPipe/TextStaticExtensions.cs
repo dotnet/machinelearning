@@ -309,16 +309,16 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="input">The column to apply to.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public static Vector<float> ProduceWordBags(this Scalar<string> input,
             int ngramLength = 1,
             int skipLength = 0,
-            bool allLengths = true,
+            bool useAllLengths = true,
             int maximumNgramsCount = 10000000,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
-                => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maximumNgramsCount, weighting);
+                => new OutPipelineColumn(input, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
     }
 
     /// <summary>
@@ -334,11 +334,11 @@ namespace Microsoft.ML.StaticPipe
                 int numberOfBits,
                 int ngramLength,
                 int skipLength,
-                bool allLengths,
+                bool useAllLengths,
                 uint seed,
                 bool useOrderedHashing,
                 int maximumNumberOfInverts)
-                : base(new Reconciler(numberOfBits, ngramLength, skipLength, allLengths, seed, useOrderedHashing, maximumNumberOfInverts), input)
+                : base(new Reconciler(numberOfBits, ngramLength, skipLength, useAllLengths, seed, useOrderedHashing, maximumNumberOfInverts), input)
             {
                 Input = input;
             }
@@ -354,12 +354,12 @@ namespace Microsoft.ML.StaticPipe
             private readonly bool _useOrderedHashing;
             private readonly int _maximumNumberOfInverts;
 
-            public Reconciler(int numberOfBits, int ngramLength, int skipLength, bool allLengths, uint seed, bool useOrderedHashing, int maximumNumberOfInverts)
+            public Reconciler(int numberOfBits, int ngramLength, int skipLength, bool useAllLengths, uint seed, bool useOrderedHashing, int maximumNumberOfInverts)
             {
                 _numberOfBits = numberOfBits;
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
-                _useAllLengths = allLengths;
+                _useAllLengths = useAllLengths;
                 _seed = seed;
                 _useOrderedHashing = useOrderedHashing;
                 _maximumNumberOfInverts = maximumNumberOfInverts;
@@ -400,7 +400,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
@@ -411,10 +411,10 @@ namespace Microsoft.ML.StaticPipe
             int numberOfBits = 16,
             int ngramLength = 1,
             int skipLength = 0,
-            bool allLengths = true,
+            bool useAllLengths = true,
             uint seed = 314489979,
             bool useOrderedHashing = true,
-            int maximumNumberOfInverts = 0) => new OutPipelineColumn(input, numberOfBits, ngramLength, skipLength, allLengths, seed, useOrderedHashing, maximumNumberOfInverts);
+            int maximumNumberOfInverts = 0) => new OutPipelineColumn(input, numberOfBits, ngramLength, skipLength, useAllLengths, seed, useOrderedHashing, maximumNumberOfInverts);
     }
 
     /// <summary>
@@ -429,10 +429,10 @@ namespace Microsoft.ML.StaticPipe
             public OutPipelineColumn(PipelineColumn input,
                 int ngramLength,
                 int skipLength,
-                bool allLengths,
+                bool useAllLengths,
                 int maxNumTerms,
                 NgramExtractingEstimator.WeightingCriteria weighting)
-                : base(new Reconciler(ngramLength, skipLength, allLengths, maxNumTerms, weighting), input)
+                : base(new Reconciler(ngramLength, skipLength, useAllLengths, maxNumTerms, weighting), input)
             {
                 Input = input;
             }
@@ -446,11 +446,11 @@ namespace Microsoft.ML.StaticPipe
             private readonly int _maxNgramsCount;
             private readonly NgramExtractingEstimator.WeightingCriteria _weighting;
 
-            public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramExtractingEstimator.WeightingCriteria weighting)
+            public Reconciler(int ngramLength, int skipLength, bool useAllLengths, int maxNumTerms, NgramExtractingEstimator.WeightingCriteria weighting)
             {
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
-                _useAllLengths = allLengths;
+                _useAllLengths = useAllLengths;
                 _maxNgramsCount = maxNumTerms;
                 _weighting = weighting;
 
@@ -491,16 +491,16 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="input">The column to apply to.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public static Vector<float> ProduceNgrams<TKey>(this VarVector<Key<TKey, string>> input,
             int ngramLength = 1,
             int skipLength = 0,
-            bool allLengths = true,
+            bool useAllLengths = true,
             int maximumNgramsCount = 10000000,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
-                => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maximumNgramsCount, weighting);
+                => new OutPipelineColumn(input, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
     }
 
     /// <summary>
@@ -512,8 +512,8 @@ namespace Microsoft.ML.StaticPipe
         {
             public readonly VarVector<Key<uint, string>> Input;
 
-            public OutPipelineColumn(VarVector<Key<uint, string>> input, int numberOfBits, int ngramLength, int skipLength, bool allLengths, uint seed, bool useOrderedHashing, int maximumNumberOfInverts)
-                : base(new Reconciler(numberOfBits, ngramLength, skipLength, allLengths, seed, useOrderedHashing, maximumNumberOfInverts), input)
+            public OutPipelineColumn(VarVector<Key<uint, string>> input, int numberOfBits, int ngramLength, int skipLength, bool useAllLengths, uint seed, bool useOrderedHashing, int maximumNumberOfInverts)
+                : base(new Reconciler(numberOfBits, ngramLength, skipLength, useAllLengths, seed, useOrderedHashing, maximumNumberOfInverts), input)
             {
                 Input = input;
             }
@@ -529,12 +529,12 @@ namespace Microsoft.ML.StaticPipe
             private readonly bool _useOrderedHashing;
             private readonly int _maximumNumberOfInverts;
 
-            public Reconciler(int numberOfBits, int ngramLength, int skipLength, bool allLengths, uint seed, bool useOrderedHashing, int maximumNumberOfInverts)
+            public Reconciler(int numberOfBits, int ngramLength, int skipLength, bool useAllLengths, uint seed, bool useOrderedHashing, int maximumNumberOfInverts)
             {
                 _numberOfBits = numberOfBits;
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
-                _useAllLengths = allLengths;
+                _useAllLengths = useAllLengths;
                 _seed = seed;
                 _useOrderedHashing = useOrderedHashing;
                 _maximumNumberOfInverts = maximumNumberOfInverts;
@@ -578,7 +578,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
@@ -589,9 +589,9 @@ namespace Microsoft.ML.StaticPipe
             int numberOfBits = 16,
             int ngramLength = 2,
             int skipLength = 0,
-            bool allLengths = true,
+            bool useAllLengths = true,
             uint seed = 314489979,
             bool useOrderedHashing = true,
-            int maximumNumberOfInverts = 0) => new OutPipelineColumn(input, numberOfBits, ngramLength, skipLength, allLengths, seed, useOrderedHashing, maximumNumberOfInverts);
+            int maximumNumberOfInverts = 0) => new OutPipelineColumn(input, numberOfBits, ngramLength, skipLength, useAllLengths, seed, useOrderedHashing, maximumNumberOfInverts);
     }
 }
