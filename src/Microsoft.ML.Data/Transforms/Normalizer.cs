@@ -64,7 +64,8 @@ namespace Microsoft.ML.Transforms
             SupervisedBinning = 4
         }
 
-        public abstract class ColumnOptionsBase
+        [BestFriend]
+        internal abstract class ColumnOptionsBase
         {
             public readonly string Name;
             public readonly string InputColumnName;
@@ -103,7 +104,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public abstract class ControlZeroColumnOptionsBase : ColumnOptionsBase
+        internal abstract class ControlZeroColumnOptionsBase : ColumnOptionsBase
         {
             public readonly bool EnsureZeroUntouched;
 
@@ -114,7 +115,8 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public sealed class MinMaxColumnOptions : ControlZeroColumnOptionsBase
+        [BestFriend]
+        internal sealed class MinMaxColumnOptions : ControlZeroColumnOptionsBase
         {
             public MinMaxColumnOptions(string outputColumnName, string inputColumnName = null, long maximumExampleCount = Defaults.MaximumExampleCount, bool ensureZeroUntouched = Defaults.EnsureZeroUntouched)
                 : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, ensureZeroUntouched)
@@ -125,7 +127,8 @@ namespace Microsoft.ML.Transforms
                 => NormalizeTransform.MinMaxUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
-        public sealed class MeanVarianceColumnOptions : ControlZeroColumnOptionsBase
+        [BestFriend]
+        internal sealed class MeanVarianceColumnOptions : ControlZeroColumnOptionsBase
         {
             public readonly bool UseCdf;
 
@@ -140,7 +143,8 @@ namespace Microsoft.ML.Transforms
                 => NormalizeTransform.MeanVarUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
-        public sealed class LogMeanVarianceColumnOptions : ColumnOptionsBase
+        [BestFriend]
+        internal sealed class LogMeanVarianceColumnOptions : ColumnOptionsBase
         {
             public readonly bool UseCdf;
 
@@ -155,7 +159,8 @@ namespace Microsoft.ML.Transforms
                 => NormalizeTransform.LogMeanVarUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
-        public sealed class BinningColumnOptions : ControlZeroColumnOptionsBase
+        [BestFriend]
+        internal sealed class BinningColumnOptions : ControlZeroColumnOptionsBase
         {
             public readonly int MaximumBinCount;
 
@@ -170,7 +175,8 @@ namespace Microsoft.ML.Transforms
                 => NormalizeTransform.BinUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
-        public sealed class SupervisedBinningColumOptions : ControlZeroColumnOptionsBase
+        [BestFriend]
+        internal sealed class SupervisedBinningColumOptions : ControlZeroColumnOptionsBase
         {
             public readonly int MaximumBinCount;
             public readonly string LabelColumnName;
@@ -309,7 +315,8 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(NormalizingTransformer).Assembly.FullName);
         }
 
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             public readonly string Name;
             public readonly string InputColumnName;

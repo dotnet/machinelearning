@@ -901,7 +901,8 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>
             /// The possible ways to replace missing values.
