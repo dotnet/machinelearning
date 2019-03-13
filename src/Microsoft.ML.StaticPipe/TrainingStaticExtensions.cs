@@ -252,7 +252,7 @@ namespace Microsoft.ML.StaticPipe
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Scalar<bool>> label,
             int numFolds = 5,
-            Func<TInShape, PipelineColumn> stratificationColumn = null, uint? seed = null)
+            Func<TInShape, PipelineColumn> stratificationColumn = null, int? seed = null)
             where TTransformer : class, ITransformer
         {
             var env = StaticPipeUtils.GetEnvironment(data);
