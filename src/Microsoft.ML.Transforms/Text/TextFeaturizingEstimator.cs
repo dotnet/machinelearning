@@ -128,6 +128,7 @@ namespace Microsoft.ML.Transforms.Text
 
             /// <summary>
             /// Ngram feature extractor to use for words (WordBag/WordHashBag).
+            /// Set to <see langword="null" /> to turn off n-gram generation for words.
             /// </summary>
             public WordBagEstimator.Options WordFeatureExtractor
             {
@@ -160,6 +161,7 @@ namespace Microsoft.ML.Transforms.Text
 
             /// <summary>
             /// Ngram feature extractor to use for characters (WordBag/WordHashBag).
+            /// Set to <see langword="null" /> to turn off n-gram generation for characters.
             /// </summary>
             public WordBagEstimator.Options CharFeatureExtractor
             {
