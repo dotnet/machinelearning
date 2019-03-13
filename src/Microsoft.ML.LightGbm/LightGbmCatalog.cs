@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.LightGBM;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers.LightGbm;
 
 namespace Microsoft.ML
 {

@@ -74,7 +74,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "netstandard2.0", "netstanda
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Sweeper.Tests", "test\Microsoft.ML.Sweeper.Tests\Microsoft.ML.Sweeper.Tests.csproj", "{3DEB504D-7A07-48CE-91A2-8047461CB3D4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.LightGBM", "src\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.csproj", "{001F3B4E-FBE4-4001-AFD2-A6A989CD1C25}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.LightGbm", "src\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj", "{001F3B4E-FBE4-4001-AFD2-A6A989CD1C25}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Ensemble", "src\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.csproj", "{DCF46B79-1FDB-4DBA-A263-D3D64E3AAA27}"
 EndProject
@@ -146,7 +146,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Mkl.Components
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OnnxTransformer.StaticPipe", "src\Microsoft.ML.OnnxTransformer.StaticPipe\Microsoft.ML.OnnxTransformer.StaticPipe.csproj", "{D1324668-9568-40F4-AA55-30A9A516C230}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.LightGBM.StaticPipe", "src\Microsoft.ML.LightGBM.StaticPipe\Microsoft.ML.LightGBM.StaticPipe.csproj", "{22C51B08-ACAE-47B2-A312-462DC239A23B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.LightGbm.StaticPipe", "src\Microsoft.ML.LightGbm.StaticPipe\Microsoft.ML.LightGbm.StaticPipe.csproj", "{22C51B08-ACAE-47B2-A312-462DC239A23B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.TimeSeries.StaticPipe", "src\Microsoft.ML.TimeSeries.StaticPipe\Microsoft.ML.TimeSeries.StaticPipe.csproj", "{06A147ED-15EA-4106-9105-9B745125B470}"
 EndProject
@@ -162,10 +162,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.ImageAnalytics
 		pkg\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.symbols.nupkgproj = pkg\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.symbols.nupkgproj
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.LightGBM", "Microsoft.ML.LightGBM", "{DE95FE65-9FF7-4233-93DF-7A8F2805624A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.LightGbm", "Microsoft.ML.LightGbm", "{DE95FE65-9FF7-4233-93DF-7A8F2805624A}"
 	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.nupkgproj = pkg\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.nupkgproj
-		pkg\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.symbols.nupkgproj = pkg\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.symbols.nupkgproj
+		pkg\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.nupkgproj = pkg\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.nupkgproj
+		pkg\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.symbols.nupkgproj = pkg\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.symbols.nupkgproj
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Mkl.Redist", "Microsoft.ML.Mkl.Redist", "{4CF8095E-B4A3-4326-A550-43098E447288}"

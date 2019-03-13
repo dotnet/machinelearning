@@ -4,7 +4,7 @@
 
 using System.IO;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms;
 using Xunit;
