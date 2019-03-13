@@ -49,8 +49,7 @@ namespace Microsoft.ML.Functional.Tests
             var fastTreeTrainer = mlContext.BinaryClassification.Trainers.FastTree(
                     new FastTreeBinaryClassificationTrainer.Options { NumberOfThreads = 1 });
 
-            var ffmTrainer = mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine(
-                    new FieldAwareFactorizationMachineTrainer.Options { });
+            var ffmTrainer = mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine();
 
             // Fit the data transformation pipeline.
             var featurization = featurizationPipeline.Fit(trainData);
