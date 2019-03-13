@@ -241,9 +241,10 @@ namespace Microsoft.ML.Trainers
         /// <see cref="Softmax"/>: Generate probability by feeding raw outputs to softmax function. Output is [z_1, ..., z_n], where z_i is exp(y_i) / (exp(y_1) + ... + exp(y_n)).
         /// </para>
         /// </summary>
-        public enum OutputFormula { Raw = 0, ProbabilityNormalization = 1, Softmax = 2 };
-        private readonly DataViewType _outputType;
-        private DataViewType DistType => _outputType;
+        [BestFriend]
+        internal enum OutputFormula { Raw = 0, ProbabilityNormalization = 1, Softmax = 2 };
+
+        private DataViewType DistType { get; }
 
         bool ICanSavePfa.CanSavePfa => _impl.CanSavePfa;
 
@@ -313,7 +314,7 @@ namespace Microsoft.ML.Trainers
             Host.Assert(Utils.Size(impl.Predictors) > 0);
 
             _impl = impl;
-            _outputType = new VectorType(NumberDataViewType.Single, _impl.Predictors.Length);
+            DistType = new VectorType(NumberDataViewType.Single, _impl.Predictors.Length);
         }
 
         private OneVersusAllModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -339,7 +340,7 @@ namespace Microsoft.ML.Trainers
                 _impl = new ImplRaw(predictors);
             }
 
-            _outputType = new VectorType(NumberDataViewType.Single, _impl.Predictors.Length);
+            DistType = new VectorType(NumberDataViewType.Single, _impl.Predictors.Length);
         }
 
         private static OneVersusAllModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -389,7 +390,7 @@ namespace Microsoft.ML.Trainers
 
         DataViewType IValueMapper.OutputType
         {
-            get { return _outputType; }
+            get { return DistType; }
         }
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
