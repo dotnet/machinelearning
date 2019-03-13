@@ -5,10 +5,10 @@
 resources:
   containers:
   - container: CentosContainer
-    image: microsoft/dotnet-buildtools-prereqs:centos-7-b46d863-20180719033416
+    image: microsoft/dotnet-buildtools-prereqs:centos-7-mlnet-df8e152-20190312232803
   
   - container: UbuntuContainer
-    image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-10fcdcf-20190208200917
+    image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-mlnet-207e097-20190312152303
 
 phases:
 - template: /build/ci/phase-template.yml
