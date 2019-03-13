@@ -26,7 +26,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Pipeline which goes through SentimentText and normalizes it, tokenize it by words, and removes default stopwords.
             var wordsPipeline = ml.Transforms.Text.NormalizeText("NormalizedText", "SentimentText", keepDiacritics: false, keepPunctuations: false)
-                .Append(ml.Transforms.Text.TokenizeWords("Words", "NormalizedText"))
+                .Append(ml.Transforms.Text.TokenizeIntoWords("Words", "NormalizedText"))
                 .Append(ml.Transforms.Text.RemoveDefaultStopWords("CleanWords", "Words"));
 
             var wordsDataview = wordsPipeline.Fit(trainData).Transform(trainData);

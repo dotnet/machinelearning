@@ -55,7 +55,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">The column to apply to.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
-        public static VarVector<string> TokenizeText(this Scalar<string> input, char[] separators = null) => new OutPipelineColumn(input, separators);
+        public static VarVector<string> TokenizeIntoWords(this Scalar<string> input, char[] separators = null) => new OutPipelineColumn(input, separators);
     }
 
     /// <summary>
@@ -109,7 +109,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">The column to apply to.</param>
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
-        public static VarVector<Key<ushort, string>> TokenizeIntoCharacters(this Scalar<string> input, bool useMarkerCharacters = true) => new OutPipelineColumn(input, useMarkerCharacters);
+        public static VarVector<Key<ushort, string>> TokenizeIntoCharactersAsKeys(this Scalar<string> input, bool useMarkerCharacters = true) => new OutPipelineColumn(input, useMarkerCharacters);
     }
 
     /// <summary>
@@ -162,8 +162,8 @@ namespace Microsoft.ML.StaticPipe
         /// Remove stop words from incoming text.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
-        /// <param name="language">Langauge of the input text.</param>
-        public static VarVector<string> RemoveStopwords(this VarVector<string> input,
+        /// <param name="language">Langauge of the input text. It will be used to retrieve a built-in stopword list.</param>
+        public static VarVector<string> RemoveDefaultStopWords(this VarVector<string> input,
             StopWordsRemovingEstimator.Language language = StopWordsRemovingEstimator.Language.English) => new OutPipelineColumn(input, language);
     }
 
