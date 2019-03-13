@@ -54,7 +54,7 @@ namespace Microsoft.ML.Functional.Tests
                     OutputTokens = true,
                     CharFeatureExtractor = null, // new WordBagEstimator.Options { NgramLength = 0, SkipLength = -1 },
                     WordFeatureExtractor = new WordBagEstimator.Options { NgramLength = 1},
-                    VectorNormalizer = TextFeaturizingEstimator.NormFunction.None
+                    Norm = TextFeaturizingEstimator.NormFunction.None
                 },
                 "SentimentText");
 
