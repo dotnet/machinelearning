@@ -565,7 +565,7 @@ namespace Microsoft.ML.Internal.CpuMath
 
                 Vector128<float> scaleVector = Vector128.Create(scale);
 
-                while (pDstCurrent + 4 <= pEnd)
+                while (pDstCurrent <= pEnd - 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
@@ -609,7 +609,7 @@ namespace Microsoft.ML.Internal.CpuMath
 
                 Vector128<float> scaleVector = Vector128.Create(scale);
 
-                while (pResCurrent + 4 <= pResEnd)
+                while (pResCurrent <= pResEnd - 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
@@ -653,7 +653,7 @@ namespace Microsoft.ML.Internal.CpuMath
 
                 Vector128<float> scaleVector = Vector128.Create(scale);
 
-                while (pIdxCurrent + 4 <= pEnd)
+                while (pIdxCurrent <= pEnd - 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     Vector128<float> dstVector = Load4(pDstCurrent, pIdxCurrent);
@@ -687,7 +687,7 @@ namespace Microsoft.ML.Internal.CpuMath
                 float* pDstCurrent = pdst;
                 float* pEnd = psrc + count;
 
-                while (pSrcCurrent + 4 <= pEnd)
+                while (pSrcCurrent <= pEnd - 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
@@ -727,7 +727,7 @@ namespace Microsoft.ML.Internal.CpuMath
                 float* pDstCurrent = pdst;
                 int* pEnd = pidx + count;
 
-                while (pIdxCurrent + 4 <= pEnd)
+                while (pIdxCurrent <= pEnd - 4)
                 {
                     Vector128<float> dstVector = Load4(pDstCurrent, pIdxCurrent);
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
@@ -763,7 +763,7 @@ namespace Microsoft.ML.Internal.CpuMath
                 float* pDstCurrent = pdst;
                 float* pEnd = pdst + count;
 
-                while (pDstCurrent + 4 <= pEnd)
+                while (pDstCurrent <= pEnd - 4)
                 {
                     Vector128<float> src1Vector = Sse.LoadVector128(pSrc1Current);
                     Vector128<float> src2Vector = Sse.LoadVector128(pSrc2Current);
@@ -883,7 +883,7 @@ namespace Microsoft.ML.Internal.CpuMath
 
                 Vector128<float> result = Vector128<float>.Zero;
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                while (pSrcCurrent <= pSrcEnd - 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     result = Sse.Add(result, Sse.Multiply(srcVector, srcVector));
@@ -915,7 +915,7 @@ namespace Microsoft.ML.Internal.CpuMath
                 Vector128<float> result = Vector128<float>.Zero;
                 Vector128<float> meanVector = Vector128.Create(mean);
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                while (pSrcCurrent <= pSrcEnd - 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     srcVector = Sse.Subtract(srcVector, meanVector);
@@ -948,7 +948,7 @@ namespace Microsoft.ML.Internal.CpuMath
 
                 Vector128<float> result = Vector128<float>.Zero;
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                while (pSrcCurrent <= pSrcEnd - 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     result = Sse.Add(result, Sse.And(srcVector, AbsMask128));
@@ -980,7 +980,7 @@ namespace Microsoft.ML.Internal.CpuMath
                 Vector128<float> result = Vector128<float>.Zero;
                 Vector128<float> meanVector = Vector128.Create(mean);
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                while (pSrcCurrent <= pSrcEnd - 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     srcVector = Sse.Subtract(srcVector, meanVector);
@@ -1013,7 +1013,7 @@ namespace Microsoft.ML.Internal.CpuMath
 
                 Vector128<float> result = Vector128<float>.Zero;
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                while (pSrcCurrent <= pSrcEnd - 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     result = Sse.Max(result, Sse.And(srcVector, AbsMask128));
@@ -1045,7 +1045,7 @@ namespace Microsoft.ML.Internal.CpuMath
                 Vector128<float> result = Vector128<float>.Zero;
                 Vector128<float> meanVector = Vector128.Create(mean);
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                while (pSrcCurrent <= pSrcEnd - 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     srcVector = Sse.Subtract(srcVector, meanVector);
@@ -1082,7 +1082,7 @@ namespace Microsoft.ML.Internal.CpuMath
 
                 Vector128<float> result = Vector128<float>.Zero;
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                while (pSrcCurrent <= pSrcEnd - 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
@@ -1126,7 +1126,7 @@ namespace Microsoft.ML.Internal.CpuMath
 
                 Vector128<float> result = Vector128<float>.Zero;
 
-                while (pIdxCurrent + 4 <= pIdxEnd)
+                while (pIdxCurrent <= pIdxEnd - 4)
                 {
                     Vector128<float> srcVector = Load4(pSrcCurrent, pIdxCurrent);
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
@@ -1167,7 +1167,7 @@ namespace Microsoft.ML.Internal.CpuMath
 
                 Vector128<float> sqDistanceVector = Vector128<float>.Zero;
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                while (pSrcCurrent <= pSrcEnd - 4)
                 {
                     Vector128<float> distanceVector = Sse.Subtract(Sse.LoadVector128(pSrcCurrent),
                                                                     Sse.LoadVector128(pDstCurrent));
@@ -1210,7 +1210,7 @@ namespace Microsoft.ML.Internal.CpuMath
                 Vector128<float> signMask = Vector128.Create(-0.0f); // 0x8000 0000
                 Vector128<float> xThreshold = Vector128.Create(threshold);
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                while (pSrcCurrent <= pSrcEnd - 4)
                 {
                     Vector128<float> xSrc = Sse.LoadVector128(pSrcCurrent);
 
@@ -1255,7 +1255,7 @@ namespace Microsoft.ML.Internal.CpuMath
                 Vector128<float> signMask = Vector128.Create(-0.0f); // 0x8000 0000
                 Vector128<float> xThreshold = Vector128.Create(threshold);
 
-                while (pIdxCurrent + 4 <= pIdxEnd)
+                while (pIdxCurrent <= pIdxEnd - 4)
                 {
                     Vector128<float> xSrc = Sse.LoadVector128(pSrcCurrent);
 
