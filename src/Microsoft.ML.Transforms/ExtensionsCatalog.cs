@@ -15,7 +15,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform extensions' catalog.</param>
         /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
-        public static MissingValueIndicatorEstimator IndicateMissingValues(this TransformsCatalog catalog,
+        [BestFriend]
+        internal static MissingValueIndicatorEstimator IndicateMissingValues(this TransformsCatalog catalog,
             params ColumnOptions[] columns)
             => new MissingValueIndicatorEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columns));
 
@@ -58,7 +59,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform extensions' catalog.</param>
         /// <param name="columns">The name of the columns to use, and per-column transformation configuraiton.</param>
-        public static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog, params MissingValueReplacingEstimator.ColumnOptions[] columns)
+        [BestFriend]
+        internal static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog, params MissingValueReplacingEstimator.ColumnOptions[] columns)
             => new MissingValueReplacingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

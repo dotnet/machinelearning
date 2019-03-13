@@ -40,7 +40,8 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static NormalizingEstimator Normalize(this TransformsCatalog catalog,
+        [BestFriend]
+        internal static NormalizingEstimator Normalize(this TransformsCatalog catalog,
             NormalizingEstimator.NormalizationMode mode,
             params ColumnOptions[] columns)
             => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), mode, ColumnOptions.ConvertToValueTuples(columns));
@@ -79,7 +80,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of the lp-normalization process for each column pair.</param>
-        public static LpNormNormalizingEstimator NormalizeLpNorm(this TransformsCatalog catalog, params LpNormNormalizingEstimator.ColumnOptions[] columns)
+        [BestFriend]
+        internal static LpNormNormalizingEstimator NormalizeLpNorm(this TransformsCatalog catalog, params LpNormNormalizingEstimator.ColumnOptions[] columns)
             => new LpNormNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -110,7 +112,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of the gcn-normaliztion process for each column pair.</param>
-        public static GlobalContrastNormalizingEstimator NormalizeGlobalContrast(this TransformsCatalog catalog, params GlobalContrastNormalizingEstimator.ColumnOptions[] columns)
+        [BestFriend]
+        internal static GlobalContrastNormalizingEstimator NormalizeGlobalContrast(this TransformsCatalog catalog, params GlobalContrastNormalizingEstimator.ColumnOptions[] columns)
             => new GlobalContrastNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

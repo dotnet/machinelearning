@@ -12,7 +12,8 @@ namespace Microsoft.ML
     /// <summary>
     /// Specifies input and output column names for a transformation.
     /// </summary>
-    public sealed class ColumnOptions
+    [BestFriend]
+    internal sealed class ColumnOptions
     {
         private readonly string _outputColumnName;
         private readonly string _inputColumnName;
@@ -77,7 +78,8 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params ColumnOptions[] columns)
+        [BestFriend]
+        internal static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params ColumnOptions[] columns)
             => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columns));
 
         /// <summary>

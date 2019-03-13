@@ -37,7 +37,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="columns">Description of dataset columns and how to process them.</param>
-        public static HashingEstimator Hash(this TransformsCatalog.ConversionTransforms catalog, params HashingEstimator.ColumnOptions[] columns)
+        [BestFriend]
+        internal static HashingEstimator Hash(this TransformsCatalog.ConversionTransforms catalog, params HashingEstimator.ColumnOptions[] columns)
             => new HashingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -62,7 +63,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="columns">Description of dataset columns and how to process them.</param>
-        public static TypeConvertingEstimator ConvertType(this TransformsCatalog.ConversionTransforms catalog, params TypeConvertingEstimator.ColumnOptions[] columns)
+        [BestFriend]
+        internal static TypeConvertingEstimator ConvertType(this TransformsCatalog.ConversionTransforms catalog, params TypeConvertingEstimator.ColumnOptions[] columns)
             => new TypeConvertingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -92,7 +94,8 @@ namespace Microsoft.ML
         ///  [!code-csharp[KeyToValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
         /// ]]></format>
         /// </example>
-        public static KeyToValueMappingEstimator MapKeyToValue(this TransformsCatalog.ConversionTransforms catalog, params ColumnOptions[] columns)
+        [BestFriend]
+        internal static KeyToValueMappingEstimator MapKeyToValue(this TransformsCatalog.ConversionTransforms catalog, params ColumnOptions[] columns)
              => new KeyToValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columns));
 
         /// <summary>
@@ -100,7 +103,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="columns">The input column to map back to vectors.</param>
-        public static KeyToVectorMappingEstimator MapKeyToVector(this TransformsCatalog.ConversionTransforms catalog,
+        [BestFriend]
+        internal static KeyToVectorMappingEstimator MapKeyToVector(this TransformsCatalog.ConversionTransforms catalog,
             params KeyToVectorMappingEstimator.ColumnOptions[] columns)
             => new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
@@ -154,7 +158,8 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static ValueToKeyMappingEstimator MapValueToKey(this TransformsCatalog.ConversionTransforms catalog,
+        [BestFriend]
+        internal static ValueToKeyMappingEstimator MapValueToKey(this TransformsCatalog.ConversionTransforms catalog,
             ValueToKeyMappingEstimator.ColumnOptions[] columns, IDataView keyData = null)
             => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns, keyData);
 
@@ -178,7 +183,8 @@ namespace Microsoft.ML
         ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
         /// ]]></format>
         /// </example>
-        public static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
+        [BestFriend]
+        internal static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
             IEnumerable<TInputType> keys,
             IEnumerable<TOutputType> values,
@@ -203,7 +209,8 @@ namespace Microsoft.ML
         ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
         /// ]]></format>
         /// </example>
-        public static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
+        [BestFriend]
+        internal static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
             IEnumerable<TInputType> keys,
             IEnumerable<TOutputType> values,
@@ -232,7 +239,8 @@ namespace Microsoft.ML
         ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
         /// ]]></format>
         /// </example>
-        public static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
+        [BestFriend]
+        internal static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
             IEnumerable<TInputType> keys,
             IEnumerable<TOutputType[]> values,
@@ -258,7 +266,8 @@ namespace Microsoft.ML
         ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
         /// ]]></format>
         /// </example>
-        public static ValueMappingEstimator MapValue(
+        [BestFriend]
+        internal static ValueMappingEstimator MapValue(
             this TransformsCatalog.ConversionTransforms catalog,
             IDataView lookupMap, string keyColumnName, string valueColumnName, params ColumnOptions[] columns)
             => new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumnName, valueColumnName,

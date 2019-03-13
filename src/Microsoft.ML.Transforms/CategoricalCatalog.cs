@@ -31,7 +31,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The column settings.</param>
-        public static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
+        [BestFriend]
+        internal static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 params OneHotEncodingEstimator.ColumnOptions[] columns)
             => new OneHotEncodingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
@@ -42,7 +43,8 @@ namespace Microsoft.ML
         /// <param name="columns">The column settings.</param>
         /// <param name="keyData">Specifies an ordering for the encoding. If specified, this should be a single column data view,
         /// and the key-values will be taken from that column. If unspecified, the ordering will be determined from the input data upon fitting.</param>
-        public static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
+        [BestFriend]
+        internal static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 OneHotEncodingEstimator.ColumnOptions[] columns,
                 IDataView keyData = null)
             => new OneHotEncodingEstimator(CatalogUtils.GetEnvironment(catalog), columns, keyData);
@@ -72,7 +74,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The column settings.</param>
-        public static OneHotHashEncodingEstimator OneHotHashEncoding(this TransformsCatalog.CategoricalTransforms catalog,
+        [BestFriend]
+        internal static OneHotHashEncodingEstimator OneHotHashEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 params OneHotHashEncodingEstimator.ColumnOptions[] columns)
             => new OneHotHashEncodingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
