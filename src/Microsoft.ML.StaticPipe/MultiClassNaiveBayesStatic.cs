@@ -38,7 +38,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new MultiClassNaiveBayesTrainer(env, labelName, featuresName);
+                    var trainer = new NaiveBayesTrainer(env, labelName, featuresName);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

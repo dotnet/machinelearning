@@ -105,7 +105,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private const string RegistrationName = "DelimitedTokenize";
 
-        public IReadOnlyCollection<WordTokenizingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
+        internal IReadOnlyCollection<WordTokenizingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
         private readonly WordTokenizingEstimator.ColumnOptions[] _columns;
 
         private static (string name, string inputColumnName)[] GetColumnPairs(WordTokenizingEstimator.ColumnOptions[] columns)
@@ -441,9 +441,21 @@ namespace Microsoft.ML.Transforms.Text
         }
         public sealed class ColumnOptions
         {
+            /// <summary>
+            /// Output column name that will be used to store the tokenization result of <see cref="InputColumnName"/> column.
+            /// </summary>
             public readonly string Name;
+            /// <summary>
+            /// Input column name that will be tokenized into words.
+            /// </summary>
             public readonly string InputColumnName;
+            /// <summary>
+            /// Seperator list used to tokenize input string. If not specified, space will be used.
+            /// </summary>
             public IReadOnlyList<char> Separators => SeparatorsArray;
+            /// <summary>
+            /// State of <see cref="Separators"/>. Since <see langword="char"/>[] is multable, it's not safe to directly expose this field to users.
+            /// </summary>
             internal readonly char[] SeparatorsArray;
 
             /// <summary>

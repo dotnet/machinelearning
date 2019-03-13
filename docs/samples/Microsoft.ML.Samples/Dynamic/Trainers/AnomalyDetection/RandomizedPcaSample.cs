@@ -29,7 +29,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.AnomalyDetection
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
             // Create an anomaly detector. Its underlying algorithm is randomized PCA.
-            var pipeline = mlContext.AnomalyDetection.Trainers.AnalyzeRandomizedPrincipalComponents(featureColumnName: nameof(DataPoint.Features), rank: 1, ensureZeroMean: false);
+            var pipeline = mlContext.AnomalyDetection.Trainers.RandomizedPca(featureColumnName: nameof(DataPoint.Features), rank: 1, ensureZeroMean: false);
 
             // Train the anomaly detector.
             var model = pipeline.Fit(data);

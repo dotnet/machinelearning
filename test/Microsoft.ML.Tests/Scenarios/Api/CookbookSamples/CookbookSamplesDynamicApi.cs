@@ -105,7 +105,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // once so adding a caching step before it is not helpful.
                 .AppendCacheCheckpoint(mlContext)
                 // Add the SDCA regression trainer.
-                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumnName: "Target", featureColumnName: "FeatureVector"));
+                .Append(mlContext.Regression.Trainers.Sdca(labelColumnName: "Target", featureColumnName: "FeatureVector"));
 
             // Step three. Fit the pipeline to the training data.
             var model = pipeline.Fit(trainData);
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // Cache data in memory for steps after the cache check point stage.
                 .AppendCacheCheckpoint(mlContext)
                 // Use the multi-class SDCA model to predict the label using features.
-                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
+                .Append(mlContext.MulticlassClassification.Trainers.Sdca());
 
             // Train the model.
             var trainedModel = pipeline.Fit(trainData);
@@ -302,17 +302,17 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
                 // NLP pipeline 2: bag of bigrams, using hashes instead of dictionary indices.
                 .Append(new WordHashBagEstimator(mlContext, "BagOfBigrams","NormalizedMessage", 
-                            ngramLength: 2, allLengths: false))
+                            ngramLength: 2, useAllLengths: false))
 
                 // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
-                .Append(mlContext.Transforms.Text.TokenizeCharacters("MessageChars", "Message"))
+                .Append(mlContext.Transforms.Text.TokenizeIntoCharactersAsKeys("MessageChars", "Message"))
                 .Append(new NgramExtractingEstimator(mlContext, "BagOfTrichar", "MessageChars", 
                             ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf))
 
                 // NLP pipeline 4: word embeddings.
                 // PretrainedModelKind.Sswe is used here for performance of the test. In a real
                 // scenario, it is best to use a different model for more accuracy.
-                .Append(mlContext.Transforms.Text.TokenizeWords("TokenizedMessage", "NormalizedMessage"))
+                .Append(mlContext.Transforms.Text.TokenizeIntoWords("TokenizedMessage", "NormalizedMessage"))
                 .Append(mlContext.Transforms.Text.ApplyWordEmbedding("Embeddings", "TokenizedMessage",
                             WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding));
 
@@ -368,7 +368,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // Convert each categorical feature into one-hot encoding independently.
                 mlContext.Transforms.Categorical.OneHotEncoding("CategoricalOneHot", "CategoricalFeatures")
                 // Convert all categorical features into indices, and build a 'word bag' of these.
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalBag", "CategoricalFeatures", OneHotEncodingTransformer.OutputKind.Bag))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalBag", "CategoricalFeatures", OneHotEncodingEstimator.OutputKind.Bag))
                 // One-hot encode the workclass column, then drop all the categories that have fewer than 10 instances in the train set.
                 .Append(mlContext.Transforms.Categorical.OneHotEncoding("WorkclassOneHot", "Workclass"))
                 .Append(mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("WorkclassOneHotTrimmed", "WorkclassOneHot", count: 10));
@@ -423,7 +423,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // Notice that unused part in the data may not be cached.
                 .AppendCacheCheckpoint(mlContext)
                 // Use the multi-class SDCA model to predict the label using features.
-                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
+                .Append(mlContext.MulticlassClassification.Trainers.Sdca());
 
             // Split the data 90:10 into train and test sets, train and evaluate.
             var split = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);

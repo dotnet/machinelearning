@@ -60,7 +60,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// The names of the output and input column pairs on which the transformation is performed.
         /// </summary>
-        public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
+        internal IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private string TestIsKey(DataViewType type)
         {

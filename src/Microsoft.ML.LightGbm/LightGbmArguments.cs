@@ -9,9 +9,8 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.LightGBM;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.LightGbm;
 
 [assembly: LoadableClass(typeof(Options.TreeBooster), typeof(Options.TreeBooster.Options),
     typeof(SignatureLightGBMBooster), Options.TreeBooster.FriendlyName, Options.TreeBooster.Name)]
@@ -24,7 +23,7 @@ using Microsoft.ML.Trainers;
 [assembly: EntryPointModule(typeof(Options.DartBooster.Options))]
 [assembly: EntryPointModule(typeof(Options.GossBooster.Options))]
 
-namespace Microsoft.ML.LightGBM
+namespace Microsoft.ML.Trainers.LightGbm
 {
     internal delegate void SignatureLightGBMBooster();
 
@@ -151,7 +150,7 @@ namespace Microsoft.ML.LightGBM
             public class Options : ISupportBoosterParameterFactory
             {
                 /// <summary>
-                /// Whether training data is unbalanced. Used by <see cref="LightGbmBinaryTrainer"/>.
+                /// Whether training data is unbalanced. Used by <see cref="LightGbmBinaryClassificationTrainer"/>.
                 /// </summary>
                 [Argument(ArgumentType.AtMostOnce, HelpText = "Use for binary classification when training data is not balanced.", ShortName = "us")]
                 public bool UnbalancedSets = false;
@@ -264,7 +263,7 @@ namespace Microsoft.ML.LightGBM
                 public double L1Regularization = 0;
 
                 /// <summary>
-                /// Controls the balance of positive and negative weights in <see cref="LightGbmBinaryTrainer"/>.
+                /// Controls the balance of positive and negative weights in <see cref="LightGbmBinaryClassificationTrainer"/>.
                 /// </summary>
                 /// <value>
                 /// This is useful for training on unbalanced data. A typical value to consider is sum(negative cases) / sum(positive cases).
@@ -519,7 +518,7 @@ namespace Microsoft.ML.LightGBM
         public EvalMetricType EvaluationMetric = EvalMetricType.DefaultMetric;
 
         /// <summary>
-        /// Whether to use softmax loss. Used only by <see cref="LightGbmMulticlassTrainer"/>.
+        /// Whether to use softmax loss. Used only by <see cref="LightGbmMulticlassClassificationTrainer"/>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Use softmax loss for the multi classification.")]
         [TlcModule.SweepableDiscreteParam("UseSoftmax", new object[] { true, false })]
@@ -543,9 +542,9 @@ namespace Microsoft.ML.LightGBM
         public string CustomGains = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
 
         /// <summary>
-        /// Parameter for the sigmoid function. Used only by <see cref="LightGbmBinaryTrainer"/>, <see cref="LightGbmMulticlassTrainer"/>, and <see cref="LightGbmRankingTrainer"/>.
+        /// Parameter for the sigmoid function. Used only by <see cref="LightGbmBinaryClassificationTrainer"/>, <see cref="LightGbmMulticlassClassificationTrainer"/>, and <see cref="LightGbmRankingTrainer"/>.
         /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function. Used only in " + nameof(LightGbmBinaryTrainer) + ", " + nameof(LightGbmMulticlassTrainer) +
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function. Used only in " + nameof(LightGbmBinaryClassificationTrainer) + ", " + nameof(LightGbmMulticlassClassificationTrainer) +
             " and in " + nameof(LightGbmRankingTrainer) + ".", ShortName = "sigmoid")]
         [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
         public double Sigmoid = 0.5;

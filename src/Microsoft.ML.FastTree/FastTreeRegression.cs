@@ -391,7 +391,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             private readonly float[] _labels;
 
-            public ObjectiveImpl(Dataset trainData, RegressionGamTrainer.Options options) :
+            public ObjectiveImpl(Dataset trainData, GamRegressionTrainer.Options options) :
                 base(
                     trainData,
                     options.LearningRate,

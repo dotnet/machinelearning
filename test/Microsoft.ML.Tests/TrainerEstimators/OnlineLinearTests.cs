@@ -43,7 +43,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var apModel = apTrainer.Fit(binaryTrainData);
             apTrainer.Fit(binaryTrainData, apModel.Model);
 
-            var svmTrainer = ML.BinaryClassification.Trainers.LinearSupportVectorMachines();
+            var svmTrainer = ML.BinaryClassification.Trainers.LinearSvm();
             TestEstimatorCore(svmTrainer, binaryTrainData);
 
             var svmModel = svmTrainer.Fit(binaryTrainData);

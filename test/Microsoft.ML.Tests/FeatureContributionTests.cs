@@ -28,7 +28,7 @@ namespace Microsoft.ML.Tests
         public void FeatureContributionEstimatorWorkout()
         {
             var data = GetSparseDataset();
-            var model = ML.Regression.Trainers.OrdinaryLeastSquares().Fit(data);
+            var model = ML.Regression.Trainers.Ols().Fit(data);
 
             var estPipe = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn)
                 .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, normalize: false))
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestOrdinaryLeastSquaresRegression()
         {
-            TestFeatureContribution(ML.Regression.Trainers.OrdinaryLeastSquares(), GetSparseDataset(numberOfInstances: 100), "LeastSquaresRegression");
+            TestFeatureContribution(ML.Regression.Trainers.Ols(), GetSparseDataset(numberOfInstances: 100), "LeastSquaresRegression");
         }
 
         [LightGBMFact]
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSDCARegression()
         {
-            TestFeatureContribution(ML.Regression.Trainers.StochasticDualCoordinateAscent(
+            TestFeatureContribution(ML.Regression.Trainers.Sdca(
                 new SdcaRegressionTrainer.Options { NumberOfThreads = 1, }), GetSparseDataset(numberOfInstances: 100), "SDCARegression");
         }
 
@@ -88,13 +88,13 @@ namespace Microsoft.ML.Tests
         public void TestPoissonRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.PoissonRegression(
-                new PoissonRegression.Options { NumberOfThreads = 1 }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
+                new PoissonRegressionTrainer.Options { NumberOfThreads = 1 }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
         }
 
         [Fact]
         public void TestGAMRegression()
         {
-            TestFeatureContribution(ML.Regression.Trainers.GeneralizedAdditiveModels(), GetSparseDataset(numberOfInstances: 100), "GAMRegression");
+            TestFeatureContribution(ML.Regression.Trainers.Gam(), GetSparseDataset(numberOfInstances: 100), "GAMRegression");
         }
 
         // Tests for ranking trainers that implement IFeatureContributionMapper interface.
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSVMBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.LinearSupportVectorMachines(), GetSparseDataset(TaskType.BinaryClassification, 100), "SVMBinary");
+            TestFeatureContribution(ML.BinaryClassification.Trainers.LinearSvm(), GetSparseDataset(TaskType.BinaryClassification, 100), "SVMBinary");
         }
 
         [Fact]
@@ -150,28 +150,28 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSDCABinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary", precision: 5);
+            TestFeatureContribution(ML.BinaryClassification.Trainers.SdcaNonCalibrated(
+                new SdcaNonCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1, }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary", precision: 5);
         }
 
         [Fact]
         public void TestSGDBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticGradientDescent(
-                new SgdBinaryTrainer.Options { NumberOfThreads = 1 }),
+            TestFeatureContribution(ML.BinaryClassification.Trainers.SgdCalibrated(
+                new SgdCalibratedTrainer.Options { NumberOfThreads = 1 }),
                 GetSparseDataset(TaskType.BinaryClassification, 100), "SGDBinary");
         }
 
         [Fact]
         public void TestSSGDBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(), GetSparseDataset(TaskType.BinaryClassification, 100), "SSGDBinary", 4);
+            TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicSgd(), GetSparseDataset(TaskType.BinaryClassification, 100), "SSGDBinary", 4);
         }
 
         [Fact]
         public void TestGAMBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.GeneralizedAdditiveModels(), GetSparseDataset(TaskType.BinaryClassification, 100), "GAMBinary");
+            TestFeatureContribution(ML.BinaryClassification.Trainers.Gam(), GetSparseDataset(TaskType.BinaryClassification, 100), "GAMBinary");
         }
 
         private void TestFeatureContribution(

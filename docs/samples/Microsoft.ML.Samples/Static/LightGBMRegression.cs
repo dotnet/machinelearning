@@ -1,7 +1,7 @@
 using System;
 using Microsoft.ML.Data;
-using Microsoft.ML.LightGBM;
-using Microsoft.ML.LightGBM.StaticPipe;
+using Microsoft.ML.Trainers.LightGbm;
+using Microsoft.ML.Trainers.LightGbm.StaticPipe;
 using Microsoft.ML.StaticPipe;
 
 namespace Microsoft.ML.Samples.Static
