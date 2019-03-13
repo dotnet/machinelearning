@@ -55,8 +55,9 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
-        public static TokenizingByCharactersEstimator TokenizeCharacters(this TransformsCatalog.TextTransforms catalog,
+        /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
+        /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
+        public static TokenizingByCharactersEstimator TokenizeIntoCharactersAsKeys(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
             bool useMarkerCharacters = CharTokenizingDefaults.UseMarkerCharacters)
@@ -67,10 +68,11 @@ namespace Microsoft.ML
         /// Tokenize incoming text in input columns and output the tokens as output columns.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
+        /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
+        /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
 
-        public static TokenizingByCharactersEstimator TokenizeCharacters(this TransformsCatalog.TextTransforms catalog,
+        public static TokenizingByCharactersEstimator TokenizeIntoCharactersAsKeys(this TransformsCatalog.TextTransforms catalog,
             bool useMarkerCharacters = CharTokenizingDefaults.UseMarkerCharacters,
             params ColumnOptions[] columns)
             => new TokenizingByCharactersEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), useMarkerCharacters, ColumnOptions.ConvertToValueTuples(columns));
@@ -157,29 +159,18 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
-        public static WordTokenizingEstimator TokenizeWords(this TransformsCatalog.TextTransforms catalog,
+        public static WordTokenizingEstimator TokenizeIntoWords(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
             char[] separators = null)
             => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName, separators);
 
         /// <summary>
-        /// Tokenizes incoming text in input columns and outputs the tokens using <paramref name="separators"/> as separators.
-        /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        /// <param name="separators">The separators to use (uses space character by default).</param>
-        public static WordTokenizingEstimator TokenizeWords(this TransformsCatalog.TextTransforms catalog,
-            (string outputColumnName, string inputColumnName)[] columns,
-            char[] separators = null)
-            => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns, separators);
-
-        /// <summary>
         ///  Tokenizes incoming text in input columns, using per-column configurations, and outputs the tokens.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        public static WordTokenizingEstimator TokenizeWords(this TransformsCatalog.TextTransforms catalog,
+        public static WordTokenizingEstimator TokenizeIntoWords(this TransformsCatalog.TextTransforms catalog,
             params WordTokenizingEstimator.ColumnOptions[] columns)
           => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
@@ -244,24 +235,6 @@ namespace Microsoft.ML
             => new StopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName, language);
 
         /// <summary>
-        /// Removes stop words from incoming token streams in input columns
-        /// and outputs the token streams without stop words as output columns.
-        /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="columns">Pairs of columns to remove stop words on.</param>
-        /// <param name="language">Langauge of the input text columns <paramref name="columns"/>.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/StopWordRemoverTransform.cs)]
-        /// ]]></format>
-        /// </example>
-        public static StopWordsRemovingEstimator RemoveDefaultStopWords(this TransformsCatalog.TextTransforms catalog,
-            (string outputColumnName, string inputColumnName)[] columns,
-             StopWordsRemovingEstimator.Language language = StopWordsRemovingEstimator.Language.English)
-            => new StopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns, language);
-
-        /// <summary>
         /// Removes stop words from incoming token streams in <paramref name="inputColumnName"/>
         /// and outputs the token streams without stopwords as <paramref name="outputColumnName"/>.
         /// </summary>
@@ -280,24 +253,6 @@ namespace Microsoft.ML
             string inputColumnName = null,
             params string[] stopwords)
             => new CustomStopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName, stopwords);
-
-        /// <summary>
-        /// Removes stop words from incoming token streams in input columns
-        /// and outputs the token streams without stop words as output columns.
-        /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="columns">Pairs of columns to remove stop words on.</param>
-        /// <param name="stopwords">Array of words to remove.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/StopWordRemoverTransform.cs)]
-        /// ]]></format>
-        /// </example>
-        public static CustomStopWordsRemovingEstimator RemoveStopWords(this TransformsCatalog.TextTransforms catalog,
-            (string outputColumnName, string inputColumnName)[] columns,
-             params string[] stopwords)
-            => new CustomStopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns, stopwords);
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumnName"/>

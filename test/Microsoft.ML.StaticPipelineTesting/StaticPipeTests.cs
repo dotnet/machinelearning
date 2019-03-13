@@ -519,8 +519,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    tokens: r.text.TokenizeText(),
-                    chars: r.text.TokenizeIntoCharacters()));
+                    tokens: r.text.TokenizeIntoWords(),
+                    chars: r.text.TokenizeIntoCharactersAsKeys()));
 
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
@@ -547,7 +547,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (
                     r.label,
                     normalized_text: r.text.NormalizeText(),
-                    words_without_stopwords: r.text.TokenizeText().RemoveStopwords()));
+                    words_without_stopwords: r.text.TokenizeIntoWords().RemoveDefaultStopWords()));
 
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
@@ -604,8 +604,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    ngrams: r.text.TokenizeText().ToKey().ProduceNgrams(),
-                    ngramshash: r.text.TokenizeText().ToKey().ProduceHashedNgrams()));
+                    ngrams: r.text.TokenizeIntoWords().ToKey().ProduceNgrams(),
+                    ngramshash: r.text.TokenizeIntoWords().ToKey().ProduceHashedNgrams()));
 
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;

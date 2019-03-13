@@ -99,7 +99,7 @@ namespace Microsoft.ML.Benchmarks
                 OutputTokens = true,
                 KeepPunctuations = false,
                 UsePredefinedStopWordRemover = true,
-                VectorNormalizer = TextFeaturizingEstimator.NormFunction.None,
+                Norm = TextFeaturizingEstimator.NormFunction.None,
                 CharFeatureExtractor = null,
                 WordFeatureExtractor = null,
             }, "SentimentText").Fit(loader).Transform(loader);

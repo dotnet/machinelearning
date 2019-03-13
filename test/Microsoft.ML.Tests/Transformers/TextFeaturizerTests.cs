@@ -143,7 +143,7 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Load(sentimentDataPath);
             var est = ML.Transforms.Text.NormalizeText("text")
-                .Append(ML.Transforms.Text.TokenizeWords("words", "text"))
+                .Append(ML.Transforms.Text.TokenizeIntoWords("words", "text"))
                 .Append(ML.Transforms.Text.RemoveDefaultStopWords("NoDefaultStopwords", "words"))
                 .Append(ML.Transforms.Text.RemoveStopWords("NoStopWords", "words", "xbox", "this", "is", "a", "the", "THAT", "bY"));
 

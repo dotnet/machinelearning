@@ -30,7 +30,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // making use of default settings.
             string defaultColumnName = "DefaultKeys";
             // REVIEW create through the catalog extension
-            var default_pipeline = ml.Transforms.Text.TokenizeWords("Review")
+            var default_pipeline = ml.Transforms.Text.TokenizeIntoWords("Review")
                 .Append(ml.Transforms.Conversion.MapValueToKey(defaultColumnName, "Review"));
 
             // Another pipeline, that customizes the advanced settings of the ValueToKeyMappingEstimator.
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // and condition the order in which they get evaluated by changing keyOrdinality from the default ByOccurence (order in which they get encountered) 
             // to value/alphabetically.
             string customizedColumnName = "CustomizedKeys";
-            var customized_pipeline = ml.Transforms.Text.TokenizeWords("Review")
+            var customized_pipeline = ml.Transforms.Text.TokenizeIntoWords("Review")
                 .Append(ml.Transforms.Conversion.MapValueToKey(customizedColumnName, "Review", maximumNumberOfKeys: 10, keyOrdinality: ValueToKeyMappingEstimator.KeyOrdinality.ByValue));
 
             // The transformed data.

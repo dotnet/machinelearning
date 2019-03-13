@@ -31,7 +31,7 @@ namespace Microsoft.ML.StaticPipe
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>A pair of datasets, for the train and test set.</returns>
         public static (DataView<T> trainSet, DataView<T> testSet) TrainTestSplit<T>(this DataOperationsCatalog catalog,
-            DataView<T> data, double testFraction = 0.1, Func<T, PipelineColumn> stratificationColumn = null, uint? seed = null)
+            DataView<T> data, double testFraction = 0.1, Func<T, PipelineColumn> stratificationColumn = null, int? seed = null)
         {
             var env = StaticPipeUtils.GetEnvironment(data);
             Contracts.AssertValue(env);
@@ -78,7 +78,7 @@ namespace Microsoft.ML.StaticPipe
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Scalar<float>> label,
             int numFolds = 5,
-            Func<TInShape, PipelineColumn> stratificationColumn = null, uint? seed = null)
+            Func<TInShape, PipelineColumn> stratificationColumn = null, int? seed = null)
             where TTransformer : class, ITransformer
         {
             var env = StaticPipeUtils.GetEnvironment(data);
@@ -136,7 +136,7 @@ namespace Microsoft.ML.StaticPipe
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Key<uint>> label,
             int numFolds = 5,
-            Func<TInShape, PipelineColumn> stratificationColumn = null, uint? seed = null)
+            Func<TInShape, PipelineColumn> stratificationColumn = null, int? seed = null)
             where TTransformer : class, ITransformer
         {
             var env = StaticPipeUtils.GetEnvironment(data);
@@ -194,7 +194,7 @@ namespace Microsoft.ML.StaticPipe
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Scalar<bool>> label,
             int numFolds = 5,
-            Func<TInShape, PipelineColumn> stratificationColumn = null, uint? seed = null)
+            Func<TInShape, PipelineColumn> stratificationColumn = null, int? seed = null)
             where TTransformer : class, ITransformer
         {
             var env = StaticPipeUtils.GetEnvironment(data);
@@ -252,7 +252,7 @@ namespace Microsoft.ML.StaticPipe
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Scalar<bool>> label,
             int numFolds = 5,
-            Func<TInShape, PipelineColumn> stratificationColumn = null, uint? seed = null)
+            Func<TInShape, PipelineColumn> stratificationColumn = null, int? seed = null)
             where TTransformer : class, ITransformer
         {
             var env = StaticPipeUtils.GetEnvironment(data);
