@@ -302,7 +302,7 @@ namespace Microsoft.ML.EntryPoints
             MacroUtils.ConvertIdataViewsToArray(env, node.Context, subGraphNodes, overallMetricsVars, overallArrayVar.VarName);
             MacroUtils.ConvertIdataViewsToArray(env, node.Context, subGraphNodes, instanceMetricsVars, instanceArrayVar.VarName);
             if (input.Kind == MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer ||
-                input.Kind == MacroUtils.TrainerKinds.SignatureMulticlassClassifierTrainer)
+                input.Kind == MacroUtils.TrainerKinds.SignatureMulticlassClassificationTrainer)
             {
                 confusionMatrixArrayVar = new ArrayVar<IDataView>();
                 MacroUtils.ConvertIdataViewsToArray(env, node.Context, subGraphNodes, confusionMatrixVars, confusionMatrixArrayVar.VarName);
@@ -426,7 +426,7 @@ namespace Microsoft.ML.EntryPoints
             {
             case MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer:
                 return new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureMulticlassClassifierTrainer:
+            case MacroUtils.TrainerKinds.SignatureMulticlassClassificationTrainer:
                 return new MulticlassClassificationMamlEvaluator(env, new MulticlassClassificationMamlEvaluator.Arguments());
             case MacroUtils.TrainerKinds.SignatureRegressorTrainer:
                 return new RegressionMamlEvaluator(env, new RegressionMamlEvaluator.Arguments());

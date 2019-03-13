@@ -1311,7 +1311,7 @@
             "Kind": "Enum",
             "Values": [
               "SignatureBinaryClassifierTrainer",
-              "SignatureMulticlassClassifierTrainer",
+              "SignatureMulticlassClassificationTrainer",
               "SignatureRankerTrainer",
               "SignatureRegressorTrainer",
               "SignatureMultiOutputRegressorTrainer",
@@ -1502,7 +1502,7 @@
             "Kind": "Enum",
             "Values": [
               "SignatureBinaryClassifierTrainer",
-              "SignatureMulticlassClassifierTrainer",
+              "SignatureMulticlassClassificationTrainer",
               "SignatureRankerTrainer",
               "SignatureRegressorTrainer",
               "SignatureMultiOutputRegressorTrainer",
@@ -3177,7 +3177,7 @@
             "Kind": "Enum",
             "Values": [
               "SignatureBinaryClassifierTrainer",
-              "SignatureMulticlassClassifierTrainer",
+              "SignatureMulticlassClassificationTrainer",
               "SignatureRankerTrainer",
               "SignatureRegressorTrainer",
               "SignatureMultiOutputRegressorTrainer",

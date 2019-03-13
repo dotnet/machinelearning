@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime;
 [assembly: LoadableClass(typeof(BinaryPredictionTransformer<IPredictorProducing<float>>), typeof(BinaryPredictionTransformer), null, typeof(SignatureLoadModel),
     "", BinaryPredictionTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(MulticlassClassificationPredictionTransformer<IPredictorProducing<VBuffer<float>>>), typeof(MulticlassPredictionTransformer), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>), typeof(MulticlassPredictionTransformer), null, typeof(SignatureLoadModel),
     "", MulticlassPredictionTransformer.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(RegressionPredictionTransformer<IPredictorProducing<float>>), typeof(RegressionPredictionTransformer), null, typeof(SignatureLoadModel),
@@ -398,14 +398,14 @@ namespace Microsoft.ML.Data
     /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on multi-class classification tasks.
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
-    public sealed class MulticlassClassificationPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
+    public sealed class MulticlassPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class
     {
         private readonly string _trainLabelColumn;
 
         [BestFriend]
-        internal MulticlassClassificationPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn, string labelColumn)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassClassificationPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
+        internal MulticlassPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn, string labelColumn)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
             Host.CheckValueOrNull(labelColumn);
 
@@ -413,8 +413,8 @@ namespace Microsoft.ML.Data
             SetScorer();
         }
 
-        internal MulticlassClassificationPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassClassificationPredictionTransformer<TModel>)), ctx)
+        internal MulticlassPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassPredictionTransformer<TModel>)), ctx)
         {
             // *** Binary format ***
             // <base info>
@@ -427,8 +427,8 @@ namespace Microsoft.ML.Data
         private void SetScorer()
         {
             var schema = new RoleMappedSchema(TrainSchema, _trainLabelColumn, FeatureColumn);
-            var args = new MulticlassClassifierScorer.Arguments();
-            Scorer = new MulticlassClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
+            var args = new MulticlassClassificationScorer.Arguments();
+            Scorer = new MulticlassClassificationScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Data
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: MulticlassPredictionTransformer.LoaderSignature,
-                loaderAssemblyName: typeof(MulticlassClassificationPredictionTransformer<>).Assembly.FullName);
+                loaderAssemblyName: typeof(MulticlassPredictionTransformer<>).Assembly.FullName);
         }
     }
 
@@ -605,8 +605,8 @@ namespace Microsoft.ML.Data
     {
         public const string LoaderSignature = "MulticlassPredXfer";
 
-        public static MulticlassClassificationPredictionTransformer<IPredictorProducing<VBuffer<float>>> Create(IHostEnvironment env, ModelLoadContext ctx)
-            => new MulticlassClassificationPredictionTransformer<IPredictorProducing<VBuffer<float>>>(env, ctx);
+        public static MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>> Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>(env, ctx);
     }
 
     internal static class RegressionPredictionTransformer

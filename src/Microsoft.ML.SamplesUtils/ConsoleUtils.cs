@@ -37,7 +37,7 @@ namespace Microsoft.ML.SamplesUtils
         }
 
         /// <summary>
-        /// Pretty-print MulticlassClassifierMetrics objects.
+        /// Pretty-print MulticlassClassificationMetrics objects.
         /// </summary>
         /// <param name="metrics"><see cref="MulticlassClassificationMetrics"/> object.</param>
         public static void PrintMetrics(MulticlassClassificationMetrics metrics)

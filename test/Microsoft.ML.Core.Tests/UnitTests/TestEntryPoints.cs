@@ -1192,7 +1192,7 @@ namespace Microsoft.ML.RunTests
                         .ScoredData;
             }
 
-            var mcEnsembleModel = EnsembleCreator.CreateMultiClassPipelineEnsemble(Env,
+            var mcEnsembleModel = EnsembleCreator.CreateMulticlassPipelineEnsemble(Env,
                 new EnsembleCreator.PipelineClassifierInput()
                 {
                     ModelCombiner = EnsembleCreator.ClassifierCombiner.Average,
@@ -1772,7 +1772,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        public void EntryPointEvaluateMultiClass()
+        public void EntryPointEvaluateMulticlass()
         {
             var dataPath = GetDataPath("iris.txt");
             var warningsPath = DeleteOutputPath("warnings.idv");
@@ -1899,7 +1899,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [LightGBMFact]
-        public void EntryPointLightGbmMultiClass()
+        public void EntryPointLightGbmMulticlass()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
             TestEntryPointRoutine(GetDataPath(@"iris.txt"), "Trainers.LightGbmClassifier");
@@ -1912,7 +1912,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        public void EntryPointSDCAMultiClass()
+        public void EntryPointSDCAMulticlass()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.StochasticDualCoordinateAscentClassifier");
         }
@@ -1924,7 +1924,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        public void EntryPointLogisticRegressionMultiClass()
+        public void EntryPointLogisticRegressionMulticlass()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.LogisticRegressionClassifier");
         }
@@ -2041,7 +2041,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        public void EntryPointNaiveBayesMultiClass()
+        public void EntryPointNaiveBayesMulticlass()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.NaiveBayesClassifier");
         }
@@ -3366,7 +3366,7 @@ namespace Microsoft.ML.RunTests
                 NumberOfThreads = 1,
                 ShowTrainingStatistics = true
             };
-            var mcModel = LogisticRegressionBinaryClassificationTrainer.TrainMultiClass(Env, mcLrInput).PredictorModel;
+            var mcModel = LogisticRegressionBinaryClassificationTrainer.TrainMulticlass(Env, mcLrInput).PredictorModel;
 
             var output = SummarizePredictor.Summarize(Env,
                 new SummarizePredictor.Input() { PredictorModel = model });
@@ -4308,7 +4308,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        public void TestCrossValidationMacroWithMultiClass()
+        public void TestCrossValidationMacroWithMulticlass()
         {
             var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
             string inputGraph = @"
@@ -4395,7 +4395,7 @@ namespace Microsoft.ML.RunTests
                             },
                             'StratificationColumn': null,
                             'NumFolds': 2,
-                            'Kind': 'SignatureMulticlassClassifierTrainer',
+                            'Kind': 'SignatureMulticlassClassificationTrainer',
                             'LabelColumn': 'Label',
                             'WeightColumn': null,
                             'GroupColumn': null,
@@ -4507,7 +4507,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        public void TestCrossValidationMacroMultiClassWithWarnings()
+        public void TestCrossValidationMacroMulticlassWithWarnings()
         {
             var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
             string inputGraph = @"
@@ -4622,7 +4622,7 @@ namespace Microsoft.ML.RunTests
                             },
                             'StratificationColumn': 'Strat',
                             'NumFolds': 2,
-                            'Kind': 'SignatureMulticlassClassifierTrainer',
+                            'Kind': 'SignatureMulticlassClassificationTrainer',
                             'LabelColumn': 'Label',
                             'WeightColumn': null,
                             'GroupColumn': null,
@@ -5347,7 +5347,7 @@ namespace Microsoft.ML.RunTests
 
             var data = runner.GetOutput<IDataView>("overallMetrics");
             var schema = data.Schema;
-            var accCol = schema.GetColumnOrNull(MultiClassClassificationEvaluator.AccuracyMacro);
+            var accCol = schema.GetColumnOrNull(MulticlassClassificationEvaluator.AccuracyMacro);
             Assert.True(accCol.HasValue);
             bool b;
             using (var cursor = data.GetRowCursor(accCol.Value))
@@ -5518,7 +5518,7 @@ namespace Microsoft.ML.RunTests
 
             var data = runner.GetOutput<IDataView>("overallMetrics");
             var schema = data.Schema;
-            var accCol = schema.GetColumnOrNull(MultiClassClassificationEvaluator.AccuracyMacro);
+            var accCol = schema.GetColumnOrNull(MulticlassClassificationEvaluator.AccuracyMacro);
             Assert.True(accCol.HasValue);
             bool b;
             using (var cursor = data.GetRowCursor(accCol.Value))

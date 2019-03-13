@@ -22,7 +22,7 @@ namespace Microsoft.ML.EntryPoints
         public enum TrainerKinds
         {
             SignatureBinaryClassifierTrainer,
-            SignatureMulticlassClassifierTrainer,
+            SignatureMulticlassClassificationTrainer,
             SignatureRankerTrainer,
             SignatureRegressorTrainer,
             SignatureMultiOutputRegressorTrainer,
@@ -51,7 +51,7 @@ namespace Microsoft.ML.EntryPoints
             case TrainerKinds.SignatureBinaryClassifierTrainer:
                 entryPointName = "Models.BinaryClassificationEvaluator";
                 return new BinaryClassifierMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
-            case TrainerKinds.SignatureMulticlassClassifierTrainer:
+            case TrainerKinds.SignatureMulticlassClassificationTrainer:
                 entryPointName = "Models.ClassificationEvaluator";
                 return new MulticlassClassificationMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
             case TrainerKinds.SignatureRankerTrainer:

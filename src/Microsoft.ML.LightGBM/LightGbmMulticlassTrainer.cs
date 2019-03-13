@@ -15,7 +15,7 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 
 [assembly: LoadableClass(LightGbmMulticlassClassificationTrainer.Summary, typeof(LightGbmMulticlassClassificationTrainer), typeof(Options),
-    new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
+    new[] { typeof(SignatureMulticlassClassificationTrainer), typeof(SignatureTrainer) },
     "LightGBM Multi-class Classifier", LightGbmMulticlassClassificationTrainer.LoadNameValue, LightGbmMulticlassClassificationTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
 namespace Microsoft.ML.LightGBM
@@ -34,7 +34,7 @@ namespace Microsoft.ML.LightGBM
         private const double _maxNumClass = 1e6;
         private int _numClass;
         private int _tlcNumClass;
-        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
         internal LightGbmMulticlassClassificationTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
@@ -182,7 +182,7 @@ namespace Microsoft.ML.LightGBM
         private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
             Host.AssertValue(ch);
-            ch.Assert(PredictionKind == PredictionKind.MultiClassClassification);
+            ch.Assert(PredictionKind == PredictionKind.MulticlassClassification);
             ch.Assert(_numClass > 1);
             Options["num_class"] = _numClass;
             bool useSoftmax = false;
@@ -221,14 +221,14 @@ namespace Microsoft.ML.LightGBM
             };
         }
 
-        private protected override MulticlassClassificationPredictionTransformer<OneVersusAllModelParameters> MakeTransformer(OneVersusAllModelParameters model, DataViewSchema trainSchema)
-            => new MulticlassClassificationPredictionTransformer<OneVersusAllModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+        private protected override MulticlassPredictionTransformer<OneVersusAllModelParameters> MakeTransformer(OneVersusAllModelParameters model, DataViewSchema trainSchema)
+            => new MulticlassPredictionTransformer<OneVersusAllModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
         /// <summary>
         /// Trains a <see cref="LightGbmMulticlassClassificationTrainer"/> using both training and validation data, returns
-        /// a <see cref="MulticlassClassificationPredictionTransformer{OneVsAllModelParameters}"/>.
+        /// a <see cref="MulticlassPredictionTransformer{OneVsAllModelParameters}"/>.
         /// </summary>
-        public MulticlassClassificationPredictionTransformer<OneVersusAllModelParameters> Fit(IDataView trainData, IDataView validationData)
+        public MulticlassPredictionTransformer<OneVersusAllModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
     }
 
@@ -242,7 +242,7 @@ namespace Microsoft.ML.LightGBM
             Desc = "Train a LightGBM multi class model.",
             UserName = LightGbmMulticlassClassificationTrainer.Summary,
             ShortName = LightGbmMulticlassClassificationTrainer.ShortName)]
-        public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, Options input)
+        public static CommonOutputs.MulticlassClassificationOutput TrainMulticlass(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLightGBM");

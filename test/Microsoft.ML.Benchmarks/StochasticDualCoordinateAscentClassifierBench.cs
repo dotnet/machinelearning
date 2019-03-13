@@ -35,7 +35,7 @@ namespace Microsoft.ML.Benchmarks
             PetalWidth = 5.1f,
         };
 
-        private TransformerChain<MulticlassClassificationPredictionTransformer<MulticlassLogisticRegressionModelParameters>> _trainedModel;
+        private TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> _trainedModel;
         private PredictionEngine<IrisData, IrisPrediction> _predictionEngine;
         private IrisData[][] _batches;
         private MulticlassClassificationMetrics _metrics;
@@ -49,9 +49,9 @@ namespace Microsoft.ML.Benchmarks
         }
 
         [Benchmark]
-        public TransformerChain<MulticlassClassificationPredictionTransformer<MulticlassLogisticRegressionModelParameters>> TrainIris() => Train(_dataPath);
+        public TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> TrainIris() => Train(_dataPath);
 
-        private TransformerChain<MulticlassClassificationPredictionTransformer<MulticlassLogisticRegressionModelParameters>> Train(string dataPath)
+        private TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> Train(string dataPath)
         {
             // Create text loader.
             var options = new TextLoader.Options()
