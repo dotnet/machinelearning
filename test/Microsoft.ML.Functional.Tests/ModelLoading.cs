@@ -148,6 +148,39 @@ namespace Microsoft.ML.Functional.Tests
             var ageBinEffects = gamModel.GetBinEffects(ageIndex);
         }
 
+        [Fact]
+        public void LoadSchemaAndCreateNewData()
+        {
+            var ml = new MLContext(seed: 1);
+            var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
+            var loader = ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
+            var data = loader.Load(file);
+
+            // Pipeline.
+            var pipeline = ml.Transforms.Normalize("Features");
+
+            // Train.
+            var model = pipeline.Fit(data);
+
+            // Save and reload.
+            string modelPath = GetOutputPath(FullTestName + "-model.zip");
+            using (var fs = File.Create(modelPath))
+                ml.Model.Save(loader, model, fs);
+
+            ITransformer loadedModel;
+            DataViewSchema loadedSchema;
+            using (var fs = File.OpenRead(modelPath))
+                loadedModel = ml.Model.Load(fs, out loadedSchema);
+
+            // Without using the schema from the model we lose the slot names.
+            data = ml.Data.LoadFromEnumerable(new[] { new InputData() });
+            data = loadedModel.Transform(data);
+            Assert.True(!data.Schema["Features"].HasSlotNames());
+
+            data = ml.Data.LoadFromEnumerable(new[] { new InputData() }, loadedSchema);
+            Assert.True(data.Schema["Features"].HasSlotNames());
+        }
+
         private int FindIndex(ReadOnlySpan<ReadOnlyMemory<char>> values, string slotName)
         {
             int index = 0;

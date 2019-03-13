@@ -93,7 +93,7 @@ namespace Microsoft.ML.Data
         {
             T value = default;
             annotations.GetValue(kind, ref value);
-            return new AnnotationInfo<T>(kind, value);
+            return new AnnotationInfo<T>(kind, value, annotations.Schema[kind].Type);
         }
 
         public static InputRow<TRow> CreateInputRow<TRow>(IHostEnvironment env, SchemaDefinition schemaDefinition = null)

@@ -32,20 +32,23 @@ namespace Microsoft.ML
             Explainability = new ExplainabilityTransforms(this);
         }
 
+        private void Save<TSource>(DataViewSchema schema, IDataLoader<TSource> model, Stream stream)
+        {
+            using (var rep = RepositoryWriter.CreateNew(stream))
+            {
+                ModelSaveContext.SaveModel(rep, model, null);
+                SaveInputSchema(schema, rep);
+                rep.Commit();
+            }
+        }
+
         /// <summary>
         /// Save the model to the stream.
         /// </summary>
         /// <param name="model">The trained model to be saved.</param>
         /// <param name="stream">A writeable, seekable stream to save to.</param>
         public void Save<TSource>(IDataLoader<TSource> model, Stream stream)
-        {
-            using (var rep = RepositoryWriter.CreateNew(stream))
-            {
-                ModelSaveContext.SaveModel(rep, model, null);
-                SaveInputSchema(model.GetOutputSchema(), rep);
-                rep.Commit();
-            }
-        }
+            => Save(model.GetOutputSchema(), model, stream);
 
         /// <summary>
         /// Save a transformer model and the loader used to create its input data to the stream.
@@ -54,7 +57,7 @@ namespace Microsoft.ML
         /// <param name="model">The trained model to be saved</param>
         /// <param name="stream">A writeable, seekable stream to save to.</param>
         public void Save<TSource>(IDataLoader<TSource> loader, ITransformer model, Stream stream) =>
-            Save(new CompositeDataLoader<TSource, ITransformer>(loader, new TransformerChain<ITransformer>(model)), stream);
+            Save(loader.GetOutputSchema(), new CompositeDataLoader<TSource, ITransformer>(loader, new TransformerChain<ITransformer>(model)), stream);
 
         /// <summary>
         /// Save a transformer model and the schema of the data that was used to train it to the stream.
