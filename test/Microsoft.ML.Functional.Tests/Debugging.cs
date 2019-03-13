@@ -48,11 +48,12 @@ namespace Microsoft.ML.Functional.Tests
             // create a training pipeline.
             var pipeline = mlContext.Transforms.Text.FeaturizeText(
                 "Features",
-                new TextFeaturizingEstimator.Options {
+                new TextFeaturizingEstimator.Options
+                {
                     KeepPunctuations = false,
                     OutputTokens = true,
-                    UseCharExtractor = false,
-                    UseWordExtractor = true,
+                    CharFeatureExtractor = null, // new WordBagEstimator.Options { NgramLength = 0, SkipLength = -1 },
+                    WordFeatureExtractor = new WordBagEstimator.Options { NgramLength = 1},
                     VectorNormalizer = TextFeaturizingEstimator.NormFunction.None
                 },
                 "SentimentText");
@@ -106,7 +107,7 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
                 .Append(mlContext.Transforms.Normalize())
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(
+                .Append(mlContext.Regression.Trainers.Sdca(
                     new SdcaRegressionTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 20 }));
 
             // Fit the pipeline to the data.
@@ -174,7 +175,7 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
                 .Append(mlContext.Transforms.Normalize())
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(
+                .Append(mlContext.Regression.Trainers.Sdca(
                     new SdcaRegressionTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 20 }));
 
             // Fit the pipeline to the data.
