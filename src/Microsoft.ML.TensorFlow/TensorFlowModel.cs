@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Data.DataView;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.TensorFlow;
 
 namespace Microsoft.ML.Transforms
@@ -62,7 +63,7 @@ namespace Microsoft.ML.Transforms
         /// </format>
         /// </example>
         public TensorFlowEstimator ScoreTensorFlowModel(string outputColumnName, string inputColumnName)
-            => new TensorFlowEstimator(_env, new[] { outputColumnName }, new[] { inputColumnName }, ModelPath);
+            => new TensorFlowEstimator(_env, new[] { outputColumnName }, new[] { inputColumnName }, this);
 
         /// <summary>
         /// Scores a dataset using a pre-traiend TensorFlow model.
@@ -77,7 +78,7 @@ namespace Microsoft.ML.Transforms
         /// </format>
         /// </example>
         public TensorFlowEstimator ScoreTensorFlowModel(string[] outputColumnNames, string[] inputColumnNames)
-            => new TensorFlowEstimator(_env, outputColumnNames, inputColumnNames, ModelPath);
+            => new TensorFlowEstimator(_env, outputColumnNames, inputColumnNames, this);
 
         /// <summary>
         /// Retrain the TensorFlow model on new data.
@@ -107,7 +108,7 @@ namespace Microsoft.ML.Transforms
             string optimizationOperation,
             int epoch = 10,
             int batchSize = 20,
-            string lossOperation= null,
+            string lossOperation = null,
             string metricOperation = null,
             string learningRateOperation = null,
             float learningRate = 0.01f)

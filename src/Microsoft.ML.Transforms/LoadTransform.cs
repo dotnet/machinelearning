@@ -11,6 +11,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(LoadTransform.Summary, typeof(IDataTransform), typeof(LoadTransform), typeof(LoadTransform.Arguments), typeof(SignatureDataTransform),

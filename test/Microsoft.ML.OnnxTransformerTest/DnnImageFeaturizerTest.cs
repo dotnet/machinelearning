@@ -111,11 +111,10 @@ namespace Microsoft.ML.Tests
             TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
 
             var result = pipe.Fit(data).Transform(data).AsDynamic;
-            result.Schema.TryGetColumnIndex("output_1", out int output);
             using (var cursor = result.GetRowCursor(result.Schema["output_1"]))
             {
                 var buffer = default(VBuffer<float>);
-                var getter = cursor.GetGetter<VBuffer<float>>(output);
+                var getter = cursor.GetGetter<VBuffer<float>>(result.Schema["output_1"]);
                 var numRows = 0;
                 while (cursor.MoveNext())
                 {
@@ -153,11 +152,10 @@ namespace Microsoft.ML.Tests
                 ms.Position = 0;
                 var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
 
-                loadedView.Schema.TryGetColumnIndex(outputNames, out int softMaxOut1);
                 using (var cursor = loadedView.GetRowCursor(loadedView.Schema[outputNames]))
                 {
                     VBuffer<float> softMaxValue = default;
-                    var softMaxGetter = cursor.GetGetter<VBuffer<float>>(softMaxOut1);
+                    var softMaxGetter = cursor.GetGetter<VBuffer<float>>(loadedView.Schema[outputNames]);
                     float sum = 0f;
                     int i = 0;
                     while (cursor.MoveNext())

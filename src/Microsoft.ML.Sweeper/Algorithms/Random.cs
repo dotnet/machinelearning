@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Microsoft.ML;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Sweeper;
 
 [assembly: LoadableClass(typeof(UniformRandomSweeper), typeof(SweeperBase.OptionsBase), typeof(SignatureSweeper),

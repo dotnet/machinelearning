@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {
@@ -511,7 +512,7 @@ namespace Microsoft.ML.Internal.Utilities
             else
             {
                 var ex = ExpSlow(x);
-                return  ex / (1 + ex);
+                return ex / (1 + ex);
             }
         }
 

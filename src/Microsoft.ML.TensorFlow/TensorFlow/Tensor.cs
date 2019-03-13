@@ -6,6 +6,7 @@ using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.ML.Runtime;
 using size_t = System.UIntPtr;
 using TF_Status = System.IntPtr;
 using TF_Tensor = System.IntPtr;
@@ -478,7 +479,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             // [offset1, offset2,...,offsetn, s1size, s1bytes, s2size, s2bytes,...,snsize,snbytes]
             //
             int size = 0;
-            foreach(var b in buffer)
+            foreach (var b in buffer)
             {
                 size += (int)TF_StringEncodedSize((UIntPtr)b.Length);
             }

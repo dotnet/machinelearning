@@ -7,6 +7,7 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(void), typeof(TrainTestSplit), null, typeof(SignatureEntryPointModule), "TrainTestSplit")]
@@ -96,7 +97,7 @@ namespace Microsoft.ML.EntryPoints
                     {
                         Columns = new[] { new HashJoiningTransform.Column { Name = stratCol, Source = stratificationColumn } },
                         Join = true,
-                        HashBits = 30
+                        NumberOfBits = 30
                     }, data);
             }
 

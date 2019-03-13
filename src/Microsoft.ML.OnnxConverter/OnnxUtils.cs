@@ -9,6 +9,7 @@ using System.Text;
 using Google.Protobuf;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
 namespace Microsoft.ML.Model.OnnxConverter

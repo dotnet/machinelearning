@@ -14,6 +14,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(VectorWhiteningTransformer.Summary, typeof(IDataTransform), typeof(VectorWhiteningTransformer), typeof(VectorWhiteningTransformer.Options), typeof(SignatureDataTransform),
@@ -336,7 +337,7 @@ namespace Microsoft.ML.Transforms
             {
                 var getters = new ValueGetter<VBuffer<float>>[columns.Length];
                 for (int i = 0; i < columns.Length; i++)
-                    getters[i] = cursor.GetGetter<VBuffer<float>>(cols[i]);
+                    getters[i] = cursor.GetGetter<VBuffer<float>>(cursor.Schema[cols[i]]);
                 var val = default(VBuffer<float>);
                 int irow = 0;
                 while (irow < maxActualRowCount && cursor.MoveNext())
@@ -530,7 +531,7 @@ namespace Microsoft.ML.Transforms
 
             // See: https://software.intel.com/en-us/node/520750
             [DllImport(MklPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "cblas_sgemv"), SuppressUnmanagedCodeSecurity]
-            private static unsafe extern void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
+            private static extern unsafe void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
                 float* a, int lda, float* x, int incx, float beta, float* y, int incy);
 
             // See: https://software.intel.com/en-us/node/520775
@@ -623,9 +624,9 @@ namespace Microsoft.ML.Transforms
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                int src = _cols[iinfo];
-                Host.Assert(input.IsColumnActive(src));
-                return input.GetGetter<T>(src);
+                var srcCol = input.Schema[_cols[iinfo]];
+                Host.Assert(input.IsColumnActive(srcCol));
+                return input.GetGetter<T>(srcCol);
             }
 
             private static void FillValues(float[] model, ref VBuffer<float> src, ref VBuffer<float> dst, int cdst)

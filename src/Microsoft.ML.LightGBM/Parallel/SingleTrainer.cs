@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(typeof(Microsoft.ML.LightGBM.SingleTrainer),
     null, typeof(Microsoft.ML.LightGBM.SignatureParallelTrainer), "single")]

@@ -10,6 +10,7 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Sweeper;
 using Microsoft.ML.Sweeper.Algorithms;
 using Microsoft.ML.Trainers.FastTree;
@@ -133,8 +134,8 @@ namespace Microsoft.ML.Sweeper
             {
                 // Set relevant random forest arguments.
                 // Train random forest.
-                var trainer = new FastForestRegression(_host,
-                    new FastForestRegression.Options
+                var trainer = new FastForestRegressionTrainer(_host,
+                    new FastForestRegressionTrainer.Options
                     {
                         FeatureFraction = _args.SplitRatio,
                         NumberOfTrees = _args.NumOfTrees,

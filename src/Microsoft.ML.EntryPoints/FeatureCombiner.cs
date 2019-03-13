@@ -12,6 +12,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(void), typeof(FeatureCombiner), null, typeof(SignatureEntryPointModule), "FeatureCombiner")]
@@ -252,7 +253,7 @@ namespace Microsoft.ML.EntryPoints
                         Name = input.LabelColumn,
                         Source = input.LabelColumn,
                         TextKeyValues = input.TextKeyValues,
-                        Sort = ValueToKeyMappingEstimator.SortOrder.Value
+                        Sort = ValueToKeyMappingEstimator.KeyOrdinality.ByValue
                     }
                 }
             };

@@ -1,4 +1,4 @@
 OVA
 Accuracy(micro-avg)	Accuracy(macro-avg)	Log-loss	Log-loss reduction	/p	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
-0.940899	0.942785	0.150571	86.14639	FastForest{}	OVA	%Data%		%Output%	99	0	0	maml.exe CV tr=OVA{p=FastForest{ }} threads=- norm=No dout=%Output% data=%Data% seed=1	/p:FastForest{}	
+0.940899	0.942785	0.150571	86.14639	FastForest{}	OVA	%Data%		%Output%	99	0	0	maml.exe CV tr=OVA{p=FastForest{ }} threads=- norm=No dout=%Output% data=%Data% seed=1 xf=Term{col=Label}	/p:FastForest{}	
 

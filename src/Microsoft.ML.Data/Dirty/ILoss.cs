@@ -4,8 +4,9 @@
 
 using System;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Trainers
 {
     public interface ILossFunction<in TOutput, in TLabel>
     {
@@ -16,7 +17,7 @@ namespace Microsoft.ML
         Double Loss(TOutput output, TLabel label);
     }
 
-    public interface IScalarOutputLoss : ILossFunction<float, float>
+    public interface IScalarLoss : ILossFunction<float, float>
     {
         /// <summary>
         /// Derivative of the loss function with respect to output
@@ -25,20 +26,22 @@ namespace Microsoft.ML
     }
 
     [TlcModule.ComponentKind("RegressionLossFunction")]
-    public interface ISupportRegressionLossFactory : IComponentFactory<IRegressionLoss>
+    [BestFriend]
+    internal interface ISupportRegressionLossFactory : IComponentFactory<IRegressionLoss>
     {
     }
 
-    public interface IRegressionLoss : IScalarOutputLoss
+    public interface IRegressionLoss : IScalarLoss
     {
     }
 
     [TlcModule.ComponentKind("ClassificationLossFunction")]
-    public interface ISupportClassificationLossFactory : IComponentFactory<IClassificationLoss>
+    [BestFriend]
+    internal interface ISupportClassificationLossFactory : IComponentFactory<IClassificationLoss>
     {
     }
 
-    public interface IClassificationLoss : IScalarOutputLoss
+    public interface IClassificationLoss : IScalarLoss
     {
     }
 

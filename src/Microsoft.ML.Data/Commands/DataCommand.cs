@@ -12,6 +12,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {

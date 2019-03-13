@@ -17,7 +17,7 @@ using System.Threading;
 #if CPUMATH_INFRASTRUCTURE
 namespace Microsoft.ML.Internal.CpuMath.Core
 #else
-namespace Microsoft.ML
+namespace Microsoft.ML.Runtime
 #endif
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;

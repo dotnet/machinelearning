@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
 [assembly: LoadableClass(typeof(TolerantEarlyStoppingRule), typeof(TolerantEarlyStoppingRule.Options), typeof(SignatureEarlyStoppingCriterion), "Tolerant (TR)", "tr")]

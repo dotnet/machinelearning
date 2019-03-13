@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Runtime
 {
     /// <summary>
     /// A channel provider can create new channels and generic information pipes.

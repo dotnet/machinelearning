@@ -47,7 +47,7 @@ namespace Microsoft.ML.Benchmarks
             .AppendCacheCheckpoint(mlContext)
             .Append(mlContext.Transforms.Concatenate("Features", "FeaturesRFF"))
             .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
-            .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.AveragedPerceptron(numIterations: 10)));
+            .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.AveragedPerceptron(numberOfIterations: 10)));
 
             var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline, numFolds: 5);
         }

@@ -30,11 +30,11 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
                     // Convert the string labels into key types.
                     mlContext.Transforms.Conversion.MapValueToKey("Label")
                     // Apply StochasticDualCoordinateAscent multiclass trainer.
-                    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
+                    .Append(mlContext.MulticlassClassification.Trainers.Sdca());
 
             // Split the data into training and test sets. Only training set is used in fitting
             // the created pipeline. Metrics are computed on the test.
-            var split = mlContext.MulticlassClassification.TrainTestSplit(dataView, testFraction: 0.1);
+            var split = mlContext.Data.TrainTestSplit(dataView, testFraction: 0.1);
 
             // Train the model.
             var model = pipeline.Fit(split.TrainSet);

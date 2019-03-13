@@ -15,7 +15,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Parquet;
 using Parquet.Data;
 using Parquet.File.Values.Primitives;
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Data
         private const int _defaultColumnChunkReadSize = 1000000;
 
         private bool _disposed;
-        private long? _rowCount;
+        private readonly long? _rowCount;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -396,8 +396,7 @@ namespace Microsoft.ML.Data
         public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
-            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
-            return new Cursor(this, predicate, rand);
+            return new Cursor(this, columnsNeeded, rand);
         }
 
         public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
@@ -445,13 +444,13 @@ namespace Microsoft.ML.Data
             private int _curDataSetRow;
             private IEnumerator<int> _dataSetEnumerator;
             private IEnumerator<int> _blockEnumerator;
-            private IList[] _columnValues;
-            private Random _rand;
+            private readonly IList[] _columnValues;
+            private readonly Random _rand;
 
-            public Cursor(ParquetLoader parent, Func<int, bool> predicate, Random rand)
+            public Cursor(ParquetLoader parent, IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand)
                : base(parent._host)
             {
-                Ch.AssertValue(predicate);
+                Ch.AssertValue(columnsNeeded);
                 Ch.AssertValue(parent._parquetStream);
 
                 _loader = parent;
@@ -460,7 +459,7 @@ namespace Microsoft.ML.Data
                 _rand = rand;
 
                 // Create Getter delegates
-                Utils.BuildSubsetMaps(Schema.Count, predicate, out _actives, out _colToActivesIndex);
+                Utils.BuildSubsetMaps(Schema.Count, columnsNeeded, out _actives, out _colToActivesIndex);
                 _readerOptions = new ReaderOptions
                 {
                     Count = _loader._columnChunkReadSize,
@@ -491,7 +490,7 @@ namespace Microsoft.ML.Data
             #region CreateGetterDelegates
             private Delegate CreateGetterDelegate(int col)
             {
-                Ch.CheckParam(IsColumnActive(col), nameof(col));
+                Ch.CheckParam(IsColumnActive(Schema[col]), nameof(col));
 
                 var parquetType = _loader._columnsLoaded[col].DataType;
                 switch (parquetType)
@@ -539,7 +538,7 @@ namespace Microsoft.ML.Data
 
             private ValueGetter<TValue> CreateGetterDelegateCore<TSource, TValue>(int col, ValueMapper<TSource, TValue> valueConverter)
             {
-                Ch.CheckParam(IsColumnActive(col), nameof(col));
+                Ch.CheckParam(IsColumnActive(Schema[col]), nameof(col));
                 Ch.CheckValue(valueConverter, nameof(valueConverter));
 
                 int activeIdx = _colToActivesIndex[col];
@@ -591,11 +590,18 @@ namespace Microsoft.ML.Data
 
             public override long Batch => 0;
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(IsColumnActive(col), nameof(col), "requested column not active");
+                Ch.CheckParam(IsColumnActive(column), nameof(column), "requested column not active");
 
-                var getter = _getters[_colToActivesIndex[col]] as ValueGetter<TValue>;
+                var getter = _getters[_colToActivesIndex[column.Index]] as ValueGetter<TValue>;
                 if (getter == null)
                     throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
 
@@ -613,10 +619,13 @@ namespace Microsoft.ML.Data
                    };
             }
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
-                return _colToActivesIndex[col] >= 0;
+                Ch.CheckParam(column.Index < _colToActivesIndex.Length, nameof(column));
+                return _colToActivesIndex[column.Index] >= 0;
             }
 
             /// <summary>

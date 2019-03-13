@@ -13,6 +13,7 @@ using System.Text;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Xunit;
 using Xunit.Abstractions;
 

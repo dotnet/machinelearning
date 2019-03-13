@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
             // Pipeline.
-            var pipeline = new RandomizedPrincipalComponentAnalyzer(Env, featureColumn, rank: 10);
+            var pipeline = new RandomizedPcaTrainer(Env, featureColumn, rank: 10);
 
             TestEstimatorCore(pipeline, data);
             Done();
@@ -71,11 +71,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
             // Pipeline.
-            var pipeline = new KMeansPlusPlusTrainer(Env, new KMeansPlusPlusTrainer.Options
+            var pipeline = new KMeansTrainer(Env, new KMeansTrainer.Options
             {
                 FeatureColumnName = featureColumn,
                 ExampleWeightColumnName = weights,
-                InitializationAlgorithm = KMeansPlusPlusTrainer.InitializationAlgorithm.KMeansYinyang,
+                InitializationAlgorithm = KMeansTrainer.InitializationAlgorithm.KMeansYinyang,
             });
 
             TestEstimatorCore(pipeline, data);
@@ -89,8 +89,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void TestEstimatorHogwildSGD()
         {
-            var trainers = new[] { ML.BinaryClassification.Trainers.StochasticGradientDescent(l2Regularization: 0, numberOfIterations: 80),
-                ML.BinaryClassification.Trainers.StochasticGradientDescent(new Trainers.SgdBinaryTrainer.Options(){ L2Regularization = 0, NumberOfIterations = 80})};
+            var trainers = new[] { ML.BinaryClassification.Trainers.SgdCalibrated(l2Regularization: 0, numberOfIterations: 80),
+                ML.BinaryClassification.Trainers.SgdCalibrated(new Trainers.SgdCalibratedTrainer.Options(){ L2Regularization = 0, NumberOfIterations = 80})};
 
             foreach (var trainer in trainers)
             {
@@ -121,8 +121,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void TestEstimatorHogwildSGDNonCalibrated()
         {
-            var trainers = new[] { ML.BinaryClassification.Trainers.StochasticGradientDescentNonCalibrated(loss : new SmoothedHingeLoss()),
-                ML.BinaryClassification.Trainers.StochasticGradientDescentNonCalibrated(new Trainers.SgdNonCalibratedBinaryTrainer.Options() { Loss = new HingeLoss() }) };
+            var trainers = new[] { ML.BinaryClassification.Trainers.SgdNonCalibrated(loss : new SmoothedHingeLoss()),
+                ML.BinaryClassification.Trainers.SgdNonCalibrated(new Trainers.SgdNonCalibratedTrainer.Options() { Loss = new HingeLoss() }) };
 
             foreach (var trainer in trainers)
             {

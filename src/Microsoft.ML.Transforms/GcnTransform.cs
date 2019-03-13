@@ -13,6 +13,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(LpNormNormalizingTransformer.GcnSummary, typeof(IDataTransform), typeof(LpNormNormalizingTransformer), typeof(LpNormNormalizingTransformer.GcnOptions), typeof(SignatureDataTransform),
@@ -370,7 +371,7 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(0 < ex.Scale && ex.Scale < float.PositiveInfinity);
                 Host.Assert(_srcTypes[iinfo] is VectorType);
 
-                var getSrc = input.GetGetter<VBuffer<float>>(_srcCols[iinfo]);
+                var getSrc = input.GetGetter<VBuffer<float>>(input.Schema[_srcCols[iinfo]]);
                 var src = default(VBuffer<float>);
                 ValueGetter<VBuffer<float>> del;
                 float scale = ex.Scale;

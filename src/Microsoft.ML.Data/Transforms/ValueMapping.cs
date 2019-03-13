@@ -13,6 +13,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ValueMappingTransformer.Summary, typeof(IDataTransform), typeof(ValueMappingTransformer),
@@ -67,7 +68,7 @@ namespace Microsoft.ML.Transforms
             if (Transformer.ValueColumnType is VectorType)
             {
                 vectorKind = SchemaShape.Column.VectorKind.Vector;
-                if(Transformer.ValueColumnType.GetVectorSize() == 0)
+                if (Transformer.ValueColumnType.GetVectorSize() == 0)
                     vectorKind = SchemaShape.Column.VectorKind.VariableVector;
             }
 
@@ -195,7 +196,7 @@ namespace Microsoft.ML.Transforms
         internal static void AddColumnWrapper<T>(ArrayDataViewBuilder builder, string columnName, PrimitiveDataViewType primitiveType, T[] values)
         {
             if (typeof(T) == typeof(string))
-                builder.AddColumn(columnName, values.Select(x=>x.ToString()).ToArray());
+                builder.AddColumn(columnName, values.Select(x => x.ToString()).ToArray());
             else
                 builder.AddColumn(columnName, primitiveType, values);
         }
@@ -208,7 +209,7 @@ namespace Microsoft.ML.Transforms
             if (typeof(T) == typeof(string))
             {
                 var convertedValues = new List<ReadOnlyMemory<char>[]>();
-                foreach(var value in values)
+                foreach (var value in values)
                 {
                     var converted = value.Select(x => x.ToString().AsMemory());
                     convertedValues.Add(converted.ToArray());
@@ -327,7 +328,7 @@ namespace Microsoft.ML.Transforms
         internal static string KeyColumnName = "Key";
         internal static string ValueColumnName = "Value";
         private ValueMap _valueMap;
-        private byte[] _dataView;
+        private readonly byte[] _dataView;
 
         internal DataViewType ValueColumnType => _valueMap.ValueType;
         internal DataViewSchema.Annotations ValueColumnMetadata { get; }
@@ -439,8 +440,8 @@ namespace Microsoft.ML.Transforms
             {
                 using (var ch = env.Start($"Processing key values from file {fileName}"))
                 {
-                    var getKey = cursor.GetGetter<ReadOnlyMemory<char>>(keyIdx);
-                    var getValue = cursor.GetGetter<ReadOnlyMemory<char>>(valueIdx);
+                    var getKey = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema[keyIdx]);
+                    var getValue = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema[valueIdx]);
                     int countNonKeys = 0;
 
                     ReadOnlyMemory<char> key = default;
@@ -515,16 +516,16 @@ namespace Microsoft.ML.Transforms
             List<TKey> keys = new List<TKey>();
             List<TValue> values = new List<TValue>();
 
-            idv.Schema.TryGetColumnIndex(keyColumnName, out int keyIdx);
-            idv.Schema.TryGetColumnIndex(valueColumnName, out int valueIdx);
+            var keyColumn = idv.Schema[keyColumnName];
+            var valueColumn = idv.Schema[valueColumnName];
             using (var cursor = idv.GetRowCursorForAllColumns())
             {
                 using (var ch = env.Start("Processing key values"))
                 {
                     TKey key = default;
                     TValue value = default;
-                    var getKey = cursor.GetGetter<TKey>(keyIdx);
-                    var getValue = cursor.GetGetter<TValue>(valueIdx);
+                    var getKey = cursor.GetGetter<TKey>(keyColumn);
+                    var getValue = cursor.GetGetter<TValue>(valueColumn);
                     while (cursor.MoveNext())
                     {
                         try
@@ -788,7 +789,7 @@ namespace Microsoft.ML.Transforms
         {
             private Dictionary<TKey, TValue> _mapping;
             private TValue _missingValue;
-            private DataViewSchema.Annotations _valueMetadata;
+            private readonly DataViewSchema.Annotations _valueMetadata;
 
             private Dictionary<TKey, TValue> CreateDictionary()
             {
@@ -821,7 +822,7 @@ namespace Microsoft.ML.Transforms
                     // First check if there is a String->ValueType conversion method. If so, call the conversion method with an
                     // empty string, the returned value will be the new missing value.
                     // NOTE this will return NA for R4 and R8 types.
-                    if (Microsoft.ML.Data.Conversion.Conversions.Instance.TryGetStandardConversion<ReadOnlyMemory<char>, TValue>(
+                    if (Data.Conversion.Conversions.Instance.TryGetStandardConversion<ReadOnlyMemory<char>, TValue>(
                                                                         TextDataViewType.Instance,
                                                                         ValueType,
                                                                         out conv,
@@ -833,8 +834,8 @@ namespace Microsoft.ML.Transforms
                     }
                 }
 
-                var keyGetter = cursor.GetGetter<TKey>(0);
-                var valueGetter = cursor.GetGetter<TValue>(1);
+                var keyGetter = cursor.GetGetter<TKey>(cursor.Schema[0]);
+                var valueGetter = cursor.GetGetter<TValue>(cursor.Schema[1]);
                 while (cursor.MoveNext())
                 {
                     TKey key = default;
@@ -863,10 +864,11 @@ namespace Microsoft.ML.Transforms
 
             public override Delegate GetGetter(DataViewRow input, int index)
             {
-                if (input.Schema[index].Type is VectorType)
+                var column = input.Schema[index];
+                if (column.Type is VectorType)
                 {
                     var src = default(VBuffer<TKey>);
-                    var getSrc = input.GetGetter<VBuffer<TKey>>(index);
+                    var getSrc = input.GetGetter<VBuffer<TKey>>(column);
 
                     ValueGetter<VBuffer<TValue>> retVal =
                         (ref VBuffer<TValue> dst) =>
@@ -886,7 +888,7 @@ namespace Microsoft.ML.Transforms
                 else
                 {
                     var src = default(TKey);
-                    var getSrc = input.GetGetter<TKey>(index);
+                    var getSrc = input.GetGetter<TKey>(column);
                     ValueGetter<TValue> retVal =
                         (ref TValue dst) =>
                         {

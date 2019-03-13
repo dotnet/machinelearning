@@ -4,6 +4,7 @@
 
 using Microsoft.ML;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.FeatureSelection;
 

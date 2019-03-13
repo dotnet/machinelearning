@@ -11,9 +11,8 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(TokenizingByCharactersTransformer.Summary, typeof(IDataTransform), typeof(TokenizingByCharactersTransformer), typeof(TokenizingByCharactersTransformer.Options), typeof(SignatureDataTransform),
@@ -412,7 +411,7 @@ namespace Microsoft.ML.Transforms.Text
             private ValueGetter<VBuffer<ushort>> MakeGetterOne(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
-                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[ColMapNewToOld[iinfo]]);
                 var src = default(ReadOnlyMemory<char>);
                 return
                     (ref VBuffer<ushort> dst) =>
@@ -445,7 +444,7 @@ namespace Microsoft.ML.Transforms.Text
                 int cv = input.Schema[ColMapNewToOld[iinfo]].Type.GetVectorSize();
                 Contracts.Assert(cv >= 0);
 
-                var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(input.Schema[ColMapNewToOld[iinfo]]);
                 var src = default(VBuffer<ReadOnlyMemory<char>>);
 
                 ValueGetter<VBuffer<ushort>> getterWithStartEndSep = (ref VBuffer<ushort> dst) =>

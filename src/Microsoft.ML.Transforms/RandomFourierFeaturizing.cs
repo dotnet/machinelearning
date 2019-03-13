@@ -12,7 +12,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ApproximatedKernelTransformer.Summary, typeof(IDataTransform), typeof(ApproximatedKernelTransformer), typeof(ApproximatedKernelTransformer.Options), typeof(SignatureDataTransform),
@@ -307,12 +307,12 @@ namespace Microsoft.ML.Transforms
                     var srcType = input.Schema[srcCols[i]].Type;
                     if (srcType is VectorType)
                     {
-                        var get = cursor.GetGetter<VBuffer<float>>(srcCols[i]);
+                        var get = cursor.GetGetter<VBuffer<float>>(cursor.Schema[srcCols[i]]);
                         reservoirSamplers[i] = new ReservoirSamplerWithReplacement<VBuffer<float>>(rng, reservoirSize, get);
                     }
                     else
                     {
-                        var getOne = cursor.GetGetter<float>(srcCols[i]);
+                        var getOne = cursor.GetGetter<float>(cursor.Schema[srcCols[i]]);
                         float val = 0;
                         ValueGetter<VBuffer<float>> get =
                             (ref VBuffer<float> dst) =>
@@ -516,7 +516,7 @@ namespace Microsoft.ML.Transforms
 
             private ValueGetter<VBuffer<float>> GetterFromVectorType(DataViewRow input, int iinfo)
             {
-                var getSrc = input.GetGetter<VBuffer<float>>(_srcCols[iinfo]);
+                var getSrc = input.GetGetter<VBuffer<float>>(input.Schema[_srcCols[iinfo]]);
                 var src = default(VBuffer<float>);
 
                 var featuresAligned = new AlignedArray(RoundUp(_srcTypes[iinfo].GetValueCount(), _cfltAlign), CpuMathUtils.GetVectorAlignment());
@@ -533,7 +533,7 @@ namespace Microsoft.ML.Transforms
 
             private ValueGetter<VBuffer<float>> GetterFromFloatType(DataViewRow input, int iinfo)
             {
-                var getSrc = input.GetGetter<float>(_srcCols[iinfo]);
+                var getSrc = input.GetGetter<float>(input.Schema[_srcCols[iinfo]]);
                 var src = default(float);
 
                 var featuresAligned = new AlignedArray(RoundUp(1, _cfltAlign), CpuMathUtils.GetVectorAlignment());

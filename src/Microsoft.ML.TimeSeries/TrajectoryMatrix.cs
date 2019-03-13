@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {

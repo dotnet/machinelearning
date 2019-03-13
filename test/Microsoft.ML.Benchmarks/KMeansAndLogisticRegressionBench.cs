@@ -4,8 +4,8 @@
 
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Benchmarks.Harness;
-using Microsoft.ML.Data;
 using Microsoft.ML.Calibrators;
+using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Benchmarks
                 .Append(ml.Clustering.Trainers.KMeans("Features"))
                 .Append(ml.Transforms.Concatenate("Features", "Features", "Score"))
                 .Append(ml.BinaryClassification.Trainers.LogisticRegression(
-                    new LogisticRegression.Options { EnforceNonNegativity = true, OptmizationTolerance = 1e-3f, }));
+                    new LogisticRegressionBinaryClassificationTrainer.Options { EnforceNonNegativity = true, OptmizationTolerance = 1e-3f, }));
 
             var model = estimatorPipeline.Fit(input);
             // Return the last model in the chain.

@@ -1,6 +1,4 @@
-﻿using Microsoft.ML.Transforms;
-
-namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
+﻿namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
     public class LightGbm
     {
@@ -14,7 +12,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var dataview = SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
 
             // Leave out 10% of data for testing.
-            var split = mlContext.BinaryClassification.TrainTestSplit(dataview, testFraction: 0.1);
+            var split = mlContext.Data.TrainTestSplit(dataview, testFraction: 0.1);
 
             // Create the Estimator.
             var pipeline = mlContext.BinaryClassification.Trainers.LightGbm();

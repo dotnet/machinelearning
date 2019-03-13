@@ -9,6 +9,7 @@ using System.Reflection;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.EntryPoints

@@ -63,7 +63,7 @@ namespace Microsoft.ML.Scenarios
             var testData = mlContext.Data.LoadFromEnumerable(clusters);
 
             // Create Estimator
-            var pipe = mlContext.Clustering.Trainers.KMeans("Features", clustersCount: k);
+            var pipe = mlContext.Clustering.Trainers.KMeans("Features", numberOfClusters: k);
 
             // Train the pipeline
             var trainedModel = pipe.Fit(trainData);
