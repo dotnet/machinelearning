@@ -79,5 +79,17 @@ namespace Microsoft.ML.CLI.Utilities
             }
         }
 
+        internal static bool? GetCacheSettings(string input)
+        {
+            switch (input)
+            {
+                case "on": return true;
+                case "off": return false;
+                case "auto": return null;
+                default:
+                    throw new ArgumentException($"{nameof(input)} is invalid", nameof(input));
+            }
+        }
+
     }
 }

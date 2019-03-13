@@ -30,6 +30,7 @@ namespace Microsoft.ML.CLI.Commands
                                 Name(),
                                 OutputPath(),
                                 HasHeader(),
+                                Cache()
             };
 
             newCommand.Argument.AddValidator((sym) =>
@@ -99,6 +100,10 @@ namespace Microsoft.ML.CLI.Commands
              new Option(new List<string>() { "--has-header" }, "Specify true/false depending if the dataset file(s) have a header row.",
             new Argument<bool>(defaultValue: true));
 
+            Option Cache() =>
+ new Option(new List<string>() { "--cache" }, "Specify on/off/auto if you want cache to be turned on, off or auto determined.",
+new Argument<string>(defaultValue: "auto").FromAmong(GetCacheSuggestions()));
+
         }
 
         private static string[] GetMlTaskSuggestions()
@@ -109,6 +114,11 @@ namespace Microsoft.ML.CLI.Commands
         private static string[] GetVerbositySuggestions()
         {
             return new[] { "q", "m", "diag" };
+        }
+
+        private static string[] GetCacheSuggestions()
+        {
+            return new[] { "on", "off", "auto" };
         }
     }
 }

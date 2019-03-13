@@ -172,5 +172,63 @@ namespace mlnet.Test
             Assert.IsFalse(parsingSuccessful);
 
         }
+
+        [TestMethod]
+        public void CacheArgumentTest()
+        {
+            bool parsingSuccessful = false;
+            var trainDataset = Path.GetTempFileName();
+            var testDataset = Path.GetTempFileName();
+            var labelName = "Label";
+            var cache = "on";
+
+            // Create handler outside so that commandline and the handler is decoupled and testable.
+            var handler = CommandHandler.Create<NewCommandSettings>(
+                (opt) =>
+                {
+                    parsingSuccessful = true;
+                    Assert.AreEqual(opt.MlTask, "binary-classification");
+                    Assert.AreEqual(opt.Dataset, trainDataset);
+                    Assert.AreEqual(opt.LabelColumnName, labelName);
+                    Assert.AreEqual(opt.Cache, cache);
+                });
+
+            var parser = new CommandLineBuilder()
+                        // Parser
+                        .AddCommand(CommandDefinitions.New(handler))
+                        .UseDefaults()
+                        .Build();
+
+            // valid cache test
+            string[] args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--cache", cache };
+            parser.InvokeAsync(args).Wait();
+            Assert.IsTrue(parsingSuccessful);
+
+            parsingSuccessful = false;
+
+            cache = "off";
+            // valid cache test
+            args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--cache", cache };
+            parser.InvokeAsync(args).Wait();
+            Assert.IsTrue(parsingSuccessful);
+
+            parsingSuccessful = false;
+
+            cache = "auto";
+            // valid cache test
+            args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--cache", cache };
+            parser.InvokeAsync(args).Wait();
+            Assert.IsTrue(parsingSuccessful);
+
+            parsingSuccessful = false;
+
+            // invalid cache test
+            args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--cache", "blah" };
+            parser.InvokeAsync(args).Wait();
+            Assert.IsFalse(parsingSuccessful);
+
+            File.Delete(trainDataset);
+            File.Delete(testDataset);
+        }
     }
 }

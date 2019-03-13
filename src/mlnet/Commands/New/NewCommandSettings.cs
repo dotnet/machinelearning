@@ -30,5 +30,7 @@ namespace Microsoft.ML.CLI.Data
 
         public bool HasHeader { get; set; }
 
+        public string Cache { get; set; }
+
     }
 }

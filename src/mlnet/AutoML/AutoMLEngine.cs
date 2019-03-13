@@ -14,12 +14,14 @@ namespace Microsoft.ML.CLI.CodeGenerator
     {
         private NewCommandSettings settings;
         private TaskKind taskKind;
+        private bool? enableCaching;
         private static Logger logger = LogManager.GetCurrentClassLogger();
 
         public AutoMLEngine(NewCommandSettings settings)
         {
             this.settings = settings;
             this.taskKind = Utils.GetTaskKind(settings.MlTask);
+            this.enableCaching = Utils.GetCacheSettings(settings.Cache);
         }
 
         public ColumnInferenceResults InferColumns(MLContext context)
@@ -53,7 +55,8 @@ namespace Microsoft.ML.CLI.CodeGenerator
                     .CreateBinaryClassificationExperiment(new BinaryExperimentSettings()
                     {
                         MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
-                        ProgressHandler = progressReporter
+                        ProgressHandler = progressReporter,
+                        EnableCaching = this.enableCaching
                     })
                     .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = labelName });
                 logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
@@ -69,7 +72,8 @@ namespace Microsoft.ML.CLI.CodeGenerator
                     .CreateRegressionExperiment(new RegressionExperimentSettings()
                     {
                         MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
-                        ProgressHandler = progressReporter
+                        ProgressHandler = progressReporter,
+                        EnableCaching = this.enableCaching
                     }).Execute(trainData, validationData, new ColumnInformation() { LabelColumn = labelName });
                 logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
                 var bestIteration = result.Best();
@@ -84,7 +88,8 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 var experimentSettings = new MulticlassExperimentSettings()
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
-                    ProgressHandler = progressReporter
+                    ProgressHandler = progressReporter,
+                    EnableCaching = this.enableCaching
                 };
 
                 // Inclusion list for currently supported learners. Need to remove once we have codegen support for all other learners.
