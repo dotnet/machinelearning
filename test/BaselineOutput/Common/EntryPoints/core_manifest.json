@@ -16695,9 +16695,9 @@
                     "Kind": "Enum",
                     "Values": [
                       "Bag",
-                      "Ind",
+                      "Indicator",
                       "Key",
-                      "Bin"
+                      "Binary"
                     ]
                   },
                   "Desc": "Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)",
@@ -16710,7 +16710,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "HashBits",
+                  "Name": "NumberOfBits",
                   "Type": "Int",
                   "Desc": "The number of bits to hash into. Must be between 1 and 30, inclusive.",
                   "Aliases": [
@@ -16743,7 +16743,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "InvertHash",
+                  "Name": "MaximumNumberOfInverts",
                   "Type": "Int",
                   "Desc": "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                   "Aliases": [
@@ -16781,7 +16781,7 @@
               ]
             }
           },
-          "Desc": "New column definition(s) (optional form: name:hashBits:src)",
+          "Desc": "New column definition(s) (optional form: name:numberOfBits:src)",
           "Aliases": [
             "col"
           ],
@@ -16798,7 +16798,7 @@
           "IsNullable": false
         },
         {
-          "Name": "HashBits",
+          "Name": "NumberOfBits",
           "Type": "Int",
           "Desc": "Number of bits to hash into. Must be between 1 and 30, inclusive.",
           "Aliases": [
@@ -16815,9 +16815,9 @@
             "Kind": "Enum",
             "Values": [
               "Bag",
-              "Ind",
+              "Indicator",
               "Key",
-              "Bin"
+              "Binary"
             ]
           },
           "Desc": "Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)",
@@ -16851,7 +16851,7 @@
           "Default": true
         },
         {
-          "Name": "InvertHash",
+          "Name": "MaximumNumberOfInverts",
           "Type": "Int",
           "Desc": "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
           "Aliases": [
@@ -16901,9 +16901,9 @@
                     "Kind": "Enum",
                     "Values": [
                       "Bag",
-                      "Ind",
+                      "Indicator",
                       "Key",
-                      "Bin"
+                      "Binary"
                     ]
                   },
                   "Desc": "Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector",
@@ -16944,8 +16944,8 @@
                   "Type": {
                     "Kind": "Enum",
                     "Values": [
-                      "Occurrence",
-                      "Value"
+                      "ByOccurrence",
+                      "ByValue"
                     ]
                   },
                   "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
@@ -17012,7 +17012,7 @@
         {
           "Name": "MaxNumTerms",
           "Type": "Int",
-          "Desc": "Maximum number of terms to keep per column when auto-training",
+          "Desc": "Maximum number of keys to keep per column when auto-training",
           "Aliases": [
             "max"
           ],
@@ -17027,9 +17027,9 @@
             "Kind": "Enum",
             "Values": [
               "Bag",
-              "Ind",
+              "Indicator",
               "Key",
-              "Bin"
+              "Binary"
             ]
           },
           "Desc": "Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)",
@@ -17039,7 +17039,7 @@
           "Required": false,
           "SortOrder": 102.0,
           "IsNullable": false,
-          "Default": "Ind"
+          "Default": "Indicator"
         },
         {
           "Name": "Term",
@@ -17058,15 +17058,15 @@
           "Type": {
             "Kind": "Enum",
             "Values": [
-              "Occurrence",
-              "Value"
+              "ByOccurrence",
+              "ByValue"
             ]
           },
           "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
           "Required": false,
           "SortOrder": 113.0,
           "IsNullable": false,
-          "Default": "Occurrence"
+          "Default": "ByOccurrence"
         },
         {
           "Name": "TextKeyValues",
@@ -17918,8 +17918,8 @@
                   "Type": {
                     "Kind": "Enum",
                     "Values": [
-                      "Occurrence",
-                      "Value"
+                      "ByOccurrence",
+                      "ByValue"
                     ]
                   },
                   "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
@@ -17987,7 +17987,7 @@
         {
           "Name": "MaxNumTerms",
           "Type": "Int",
-          "Desc": "Maximum number of terms to keep per column when auto-training",
+          "Desc": "Maximum number of keys to keep per column when auto-training",
           "Aliases": [
             "max"
           ],
@@ -18013,15 +18013,15 @@
           "Type": {
             "Kind": "Enum",
             "Values": [
-              "Occurrence",
-              "Value"
+              "ByOccurrence",
+              "ByValue"
             ]
           },
           "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
           "Required": false,
           "SortOrder": 113.0,
           "IsNullable": false,
-          "Default": "Occurrence"
+          "Default": "ByOccurrence"
         },
         {
           "Name": "TextKeyValues",
@@ -18493,7 +18493,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "HashBits",
+                  "Name": "NumberOfBits",
                   "Type": "Int",
                   "Desc": "Number of bits to hash into. Must be between 1 and 31, inclusive.",
                   "Aliases": [
@@ -18569,7 +18569,7 @@
           "IsNullable": false
         },
         {
-          "Name": "HashBits",
+          "Name": "NumberOfBits",
           "Type": "Int",
           "Desc": "Number of bits to hash into. Must be between 1 and 31, inclusive.",
           "Aliases": [
@@ -22471,15 +22471,15 @@
                 "Type": {
                   "Kind": "Enum",
                   "Values": [
-                    "Occurrence",
-                    "Value"
+                    "ByOccurrence",
+                    "ByValue"
                   ]
                 },
                 "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
                 "Required": false,
                 "SortOrder": 5.0,
                 "IsNullable": false,
-                "Default": "Occurrence"
+                "Default": "ByOccurrence"
               },
               {
                 "Name": "DropUnknowns",
@@ -22632,8 +22632,8 @@
                   "Type": {
                     "Kind": "Enum",
                     "Values": [
-                      "Occurrence",
-                      "Value"
+                      "ByOccurrence",
+                      "ByValue"
                     ]
                   },
                   "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
@@ -22701,7 +22701,7 @@
         {
           "Name": "MaxNumTerms",
           "Type": "Int",
-          "Desc": "Maximum number of terms to keep per column when auto-training",
+          "Desc": "Maximum number of keys to keep per column when auto-training",
           "Aliases": [
             "max"
           ],
@@ -22727,15 +22727,15 @@
           "Type": {
             "Kind": "Enum",
             "Values": [
-              "Occurrence",
-              "Value"
+              "ByOccurrence",
+              "ByValue"
             ]
           },
           "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
           "Required": false,
           "SortOrder": 113.0,
           "IsNullable": false,
-          "Default": "Occurrence"
+          "Default": "ByOccurrence"
         },
         {
           "Name": "TextKeyValues",
@@ -28756,7 +28756,7 @@
           ],
           "Settings": [
             {
-              "Name": "HashBits",
+              "Name": "NumberOfBits",
               "Type": "Int",
               "Desc": "Number of bits to hash into. Must be between 1 and 30, inclusive.",
               "Aliases": [
@@ -28825,7 +28825,7 @@
               "Default": true
             },
             {
-              "Name": "InvertHash",
+              "Name": "MaximumNumberOfInverts",
               "Type": "Int",
               "Desc": "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
               "Aliases": [

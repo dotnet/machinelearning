@@ -53,7 +53,7 @@ namespace Microsoft.ML.Transforms.Text
                 int bits;
                 if (!int.TryParse(extra, out bits))
                     return false;
-                HashBits = bits;
+                NumberOfBits = bits;
                 return true;
             }
 
@@ -61,21 +61,21 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Contracts.AssertValue(sb);
                 if (NgramLength != null || SkipLength != null || Seed != null ||
-                    Ordered != null || InvertHash != null)
+                    Ordered != null || MaximumNumberOfInverts != null)
                 {
                     return false;
                 }
-                if (HashBits == null)
+                if (NumberOfBits == null)
                     return TryUnparseCore(sb);
 
-                string extra = HashBits.Value.ToString();
+                string extra = NumberOfBits.Value.ToString();
                 return TryUnparseCore(sb, extra);
             }
         }
 
         internal sealed class Options : NgramHashExtractingTransformer.ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:hashBits:srcs)",
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:numberOfBits:srcs)",
                 Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
         }
@@ -122,12 +122,12 @@ namespace Microsoft.ML.Transforms.Text
                     {
                         Name = column.Name,
                         Source = curTmpNames,
-                        HashBits = column.HashBits,
+                        NumberOfBits = column.NumberOfBits,
                         NgramLength = column.NgramLength,
                         Seed = column.Seed,
                         SkipLength = column.SkipLength,
                         Ordered = column.Ordered,
-                        InvertHash = column.InvertHash,
+                        MaximumNumberOfInverts = column.MaximumNumberOfInverts,
                         FriendlyNames = options.Columns[iinfo].Source,
                         AllLengths = column.AllLengths
                     };
@@ -139,13 +139,13 @@ namespace Microsoft.ML.Transforms.Text
                 new NgramHashExtractingTransformer.Options
                 {
                     AllLengths = options.AllLengths,
-                    HashBits = options.HashBits,
+                    NumberOfBits = options.NumberOfBits,
                     NgramLength = options.NgramLength,
                     SkipLength = options.SkipLength,
                     Ordered = options.Ordered,
                     Seed = options.Seed,
                     Columns = extractorCols.ToArray(),
-                    InvertHash = options.InvertHash
+                    MaximumNumberOfInverts = options.MaximumNumberOfInverts
                 };
 
             view = NgramHashExtractingTransformer.Create(h, featurizeArgs, view);
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Number of bits to hash into. Must be between 1 and 30, inclusive.",
                 ShortName = "bits")]
-            public int? HashBits;
+            public int? NumberOfBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
             public uint? Seed;
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
-            public int? InvertHash;
+            public int? MaximumNumberOfInverts;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Transforms.Text
                 int bits;
                 if (!int.TryParse(extra, out bits))
                     return false;
-                HashBits = bits;
+                NumberOfBits = bits;
                 return true;
             }
 
@@ -232,14 +232,14 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Contracts.AssertValue(sb);
                 if (NgramLength != null || SkipLength != null || Seed != null ||
-                    Ordered != null || InvertHash != null)
+                    Ordered != null || MaximumNumberOfInverts != null)
                 {
                     return false;
                 }
-                if (HashBits == null)
+                if (NumberOfBits == null)
                     return TryUnparseCore(sb);
 
-                string extra = HashBits.Value.ToString();
+                string extra = NumberOfBits.Value.ToString();
                 return TryUnparseCore(sb, extra);
             }
         }
@@ -262,7 +262,7 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Number of bits to hash into. Must be between 1 and 30, inclusive.",
                 ShortName = "bits", SortOrder = 2)]
-            public int HashBits = 16;
+            public int NumberOfBits = 16;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
             public uint Seed = 314489979;
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
-            public int InvertHash;
+            public int MaximumNumberOfInverts;
 
             [Argument(ArgumentType.AtMostOnce,
                HelpText = "Whether to include all ngram lengths up to ngramLength or only ngramLength",
@@ -287,10 +287,10 @@ namespace Microsoft.ML.Transforms.Text
         {
             public const int NgramLength = 1;
             public const int SkipLength = 0;
-            public const int HashBits = 16;
+            public const int NumberOfBits = 16;
             public const uint Seed = 314489979;
             public const bool Ordered = true;
-            public const int InvertHash = 0;
+            public const int MaximumNumberOfInverts = 0;
             public const bool AllLengths = true;
         }
 
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Transforms.Text
                     }
 
                     hashColumns.Add(new HashingEstimator.ColumnOptions(tmpName, termLoaderArgs == null ? column.Source[isrc] : tmpName,
-                        30, column.Seed ?? options.Seed, false, column.InvertHash ?? options.InvertHash));
+                        30, column.Seed ?? options.Seed, false, column.MaximumNumberOfInverts ?? options.MaximumNumberOfInverts));
                 }
 
                 ngramHashColumns[iinfo] =
@@ -370,10 +370,10 @@ namespace Microsoft.ML.Transforms.Text
                     column.NgramLength ?? options.NgramLength,
                     column.SkipLength ?? options.SkipLength,
                     column.AllLengths ?? options.AllLengths,
-                    column.HashBits ?? options.HashBits,
+                    column.NumberOfBits ?? options.NumberOfBits,
                     column.Seed ?? options.Seed,
                     column.Ordered ?? options.Ordered,
-                    column.InvertHash ?? options.InvertHash);
+                    column.MaximumNumberOfInverts ?? options.MaximumNumberOfInverts);
                 ngramHashColumns[iinfo].FriendlyNames = column.FriendlyNames;
             }
 
@@ -435,8 +435,8 @@ namespace Microsoft.ML.Transforms.Text
                 Columns = extractorCols,
                 NgramLength = extractorArgs.NgramLength,
                 SkipLength = extractorArgs.SkipLength,
-                HashBits = extractorArgs.HashBits,
-                InvertHash = extractorArgs.InvertHash,
+                NumberOfBits = extractorArgs.NumberOfBits,
+                MaximumNumberOfInverts = extractorArgs.MaximumNumberOfInverts,
                 Ordered = extractorArgs.Ordered,
                 Seed = extractorArgs.Seed,
                 AllLengths = extractorArgs.AllLengths

@@ -947,16 +947,16 @@ namespace Microsoft.ML.StaticPipe
         // Raw generics would allow illegal possible inputs, for example, Scalar<Bitmap>. So, this is a partial
         // class, and all the public facing extension methods for each possible type are in a T4 generated result.
 
-        private const KeyValueOrder DefSort = (KeyValueOrder)ValueToKeyMappingEstimator.Defaults.Sort;
-        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumKeys;
+        private const KeyOrdinality DefSort = (KeyOrdinality)ValueToKeyMappingEstimator.Defaults.Ordinality;
+        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaximumNumberOfKeys;
 
         private readonly struct Config
         {
-            public readonly KeyValueOrder Order;
+            public readonly KeyOrdinality Order;
             public readonly int Max;
             public readonly Action<ValueToKeyMappingTransformer.TermMap> OnFit;
 
-            public Config(KeyValueOrder order, int max, Action<ValueToKeyMappingTransformer.TermMap> onFit)
+            public Config(KeyOrdinality order, int max, Action<ValueToKeyMappingTransformer.TermMap> onFit)
             {
                 Order = order;
                 Max = max;
@@ -1028,7 +1028,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     var tcol = (ITermCol)toOutput[i];
                     infos[i] = new ValueToKeyMappingEstimator.ColumnOptions(outputNames[toOutput[i]], inputNames[tcol.Input],
-                        tcol.Config.Max, (ValueToKeyMappingEstimator.SortOrder)tcol.Config.Order);
+                        tcol.Config.Max, (ValueToKeyMappingEstimator.KeyOrdinality)tcol.Config.Order);
                     if (tcol.Config.OnFit != null)
                     {
                         int ii = i; // Necessary because if we capture i that will change to toOutput.Length on call.

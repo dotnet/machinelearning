@@ -412,7 +412,7 @@ namespace Microsoft.ML.RunTests
             TestCore(null, false,
                 new[] {
                     "loader=Text{quote+ sparse+ col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
-                    "xf=Cat{max=5 col={name=Bag src=Text kind=bag} col=One:ind:OneText}",
+                    "xf=Cat{max=5 col={name=Bag src=Text kind=bag} col=One:indicator:OneText}",
                     "xf=Cat{max=7 col=Hot:Text}",
                     "xf=Cat{max=8 col=Key:kEY:Text col=KeyOne:KeY:OneText}",
                 });
@@ -702,7 +702,7 @@ namespace Microsoft.ML.RunTests
                     loader,
                     "xf=WordToken{col=AT:A}",
                     "xf=Hash{col=AH:AT bits=30}",
-                    "xf=NgramHash{col=AH ngram=3 hashbits=4 all- ih=3}",
+                    "xf=NgramHash{col=AH ngram=3 bits=4 all- ih=3}",
                     "xf=SelectColumns{keepCol=AH}"
                 }, suffix: "6");
 
