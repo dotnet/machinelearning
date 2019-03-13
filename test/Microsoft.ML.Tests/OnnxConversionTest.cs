@@ -392,9 +392,9 @@ namespace Microsoft.ML.Tests
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
 
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "MultiClassClassification", "BreastCancer");
-            var onnxFileName = "MulticlassificationLogisticRegressionSaveModelToOnnxTest.onnx";
+            var onnxFileName = "MultiClassificationLogisticRegressionSaveModelToOnnxTest.onnx";
             var onnxFilePath = GetOutputPath(subDir, onnxFileName);
-            var onnxTextName = "MulticlassificationLogisticRegressionSaveModelToOnnxTest.txt";
+            var onnxTextName = "MultiClassificationLogisticRegressionSaveModelToOnnxTest.txt";
             var onnxTextPath = GetOutputPath(subDir, onnxTextName);
 
             SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
