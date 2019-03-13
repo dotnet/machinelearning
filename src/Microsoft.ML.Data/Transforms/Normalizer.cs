@@ -384,8 +384,10 @@ namespace Microsoft.ML.Transforms
         [BestFriend]
         internal readonly IReadOnlyList<IColumnFunction> ColumnFunctions;
 
-        [BestFriend]
-        internal readonly ImmutableArray<ColumnOptions> Columns;
+        /// <summary>
+        /// The configuration of the normalizer. The i-th element describes the i-th input-output column pair.
+        /// </summary>
+        public readonly ImmutableArray<ColumnOptions> Columns;
 
         private NormalizingTransformer(IHostEnvironment env, ColumnOptions[] columns)
             : base(env.Register(nameof(NormalizingTransformer)), columns.Select(x => (x.Name, x.InputColumnName)).ToArray())
