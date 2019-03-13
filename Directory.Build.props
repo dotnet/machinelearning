@@ -1,7 +1,10 @@
 <Project>
   <!-- Directory.Build.props contains the common build settings for all projects in the repo. -->
 
-  <Import Project="build/BranchInfo.props" />
+  <Import Project="build/StablePackagesInfo.props" />
+  <Import Project="$(RepoRoot)build/BranchInfo.props" />
+  <Import Project="$(RepoRoot)build/BranchInfo.Stable.props" Condition="'$(MSBuildProjectName.Contains(.symbols))' == 'false' AND '$(StableProjects.Contains($(MSBuildProjectName)))' == 'true'"/>
+  <Import Project="$(RepoRoot)build/BranchInfo.Stable.props" Condition="'$(MSBuildProjectName.Contains(.symbols))' == 'true' AND '$(StableProjects.Contains($(MSBuildProjectName.Substring(0, $(MSBuildProjectName.IndexOf(.symbols))))))' == 'true'"/>
   <Import Project="build/Dependencies.props" />
 
   <PropertyGroup>

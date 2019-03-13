@@ -1,0 +1,14 @@
+<Project>
+    <ItemGroup>
+        <StableProject Include="Microsoft.ML"/>
+        <StableProject Include="Microsoft.ML.CpuMath"/>
+        <StableProject Include="Microsoft.ML.FastTree"/>
+        <StableProject Include="Microsoft.ML.ImageAnalytics"/>
+        <StableProject Include="Microsoft.ML.LightGbm"/>
+        <StableProject Include="Microsoft.ML.Mkl.Components"/>
+        <StableProject Include="Microsoft.ML.Mkl.Redist"/>
+    </ItemGroup>
+    <PropertyGroup>
+        <StableProjects>@(StableProject, ';')</StableProjects>
+    </PropertyGroup>
+</Project>
