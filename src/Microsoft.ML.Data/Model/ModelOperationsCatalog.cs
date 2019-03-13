@@ -66,7 +66,7 @@ namespace Microsoft.ML
         {
             using (var rep = RepositoryWriter.CreateNew(stream))
             {
-                ModelSaveContext.SaveModel(rep, model, TransformerDirectory);
+                ModelSaveContext.SaveModel(rep, model, CompositeDataLoader<object, ITransformer>.TransformerDirectory);
                 SaveInputSchema(inputSchema, rep);
                 rep.Commit();
             }

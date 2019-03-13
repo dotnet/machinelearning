@@ -40,9 +40,9 @@ namespace Microsoft.ML.Functional.Tests
             var data = loader.Load(file);
 
             // Pipeline.
-            var pipeline = ml.BinaryClassification.Trainers.GeneralizedAdditiveModels();
+            var pipeline = ml.BinaryClassification.Trainers.Gam();
             // Define the same pipeline starting with the loader.
-            var pipeline1 = loader.Append(ml.BinaryClassification.Trainers.GeneralizedAdditiveModels());
+            var pipeline1 = loader.Append(ml.BinaryClassification.Trainers.Gam());
             
             // Train.
             var transformerModel = pipeline.Fit(data);
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Functional.Tests
             var data = loader.Load(file);
 
             // Pipeline.
-            var pipeline = ml.BinaryClassification.Trainers.GeneralizedAdditiveModels();
+            var pipeline = ml.BinaryClassification.Trainers.Gam();
 
             // Train.
             var model = pipeline.Fit(data);

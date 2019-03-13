@@ -18,9 +18,9 @@ namespace Microsoft.ML.Data
     public sealed class CompositeDataLoader<TSource, TLastTransformer> : IDataLoader<TSource>
         where TLastTransformer : class, ITransformer
     {
+        internal const string TransformerDirectory = TransformerChain.LoaderSignature;
         private const string LoaderDirectory = "Loader";
         private const string LegacyLoaderDirectory = "Reader";
-        private const string TransformerDirectory = TransformerChain.LoaderSignature;
 
         /// <summary>
         /// The underlying data loader.
