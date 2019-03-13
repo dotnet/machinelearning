@@ -124,7 +124,7 @@ namespace Microsoft.ML.Functional.Tests
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
         [Fact]
-        public void ContinueTrainingFieldAwareFactorizationMachines()
+        public void ContinueTrainingFieldAwareFactorizationMachine()
         {
             var mlContext = new MLContext(seed: 1);
 
