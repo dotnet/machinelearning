@@ -9,7 +9,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
 {
     public static class LightGbmWithOptions
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGBM</a>.
         public static void Example()
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,

@@ -5,7 +5,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
 {
     public class LightGbmWithOptions
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGBM</a>.
         public static void Example()
         {
             // Creating the ML.Net IHostEnvironment object, needed for the pipeline.
