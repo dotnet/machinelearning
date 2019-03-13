@@ -2,7 +2,6 @@
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.LightGBM;
-using static Microsoft.ML.LightGBM.Options;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 {
@@ -36,13 +35,13 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
                 .Where(name => name != labelName) // Drop the Label
                 .ToArray();
             var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
-                           .Append(mlContext.Regression.Trainers.LightGbm(new Options
+                           .Append(mlContext.Regression.Trainers.LightGbm(new LightGbmRegressorTrainer.Options
                            {
                                LabelColumnName = labelName,
                                NumberOfLeaves = 4,
                                MinimumExampleCountPerLeaf = 6,
                                LearningRate = 0.001,
-                               Booster = new GossBooster.Options
+                               BoosterParameter = new GossBooster.Options()
                                {
                                    TopRate = 0.3,
                                    OtherRate = 0.2

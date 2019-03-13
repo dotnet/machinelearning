@@ -11,7 +11,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 
-[assembly: LoadableClass(LightGbmRegressorTrainer.Summary, typeof(LightGbmRegressorTrainer), typeof(Options),
+[assembly: LoadableClass(LightGbmRegressorTrainer.Summary, typeof(LightGbmRegressorTrainer), typeof(LightGbmRegressorTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
     LightGbmRegressorTrainer.UserNameValue, LightGbmRegressorTrainer.LoadNameValue, LightGbmRegressorTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
@@ -106,7 +106,7 @@ namespace Microsoft.ML.LightGBM
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = Options.Defaults.NumberOfIterations)
+            int numberOfIterations = Defaults.NumberOfIterations)
             : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(labelColumnName), featureColumnName, exampleWeightColumnName, null, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations)
         {
         }
@@ -120,7 +120,7 @@ namespace Microsoft.ML.LightGBM
         {
             Host.Check(TrainedEnsemble != null,
                 "The predictor cannot be created before training is complete");
-            var innerArgs = LightGbmInterfaceUtils.JoinParameters(Options);
+            var innerArgs = LightGbmInterfaceUtils.JoinParameters(GbmOptions);
             return new LightGbmRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, innerArgs);
         }
 
@@ -138,10 +138,10 @@ namespace Microsoft.ML.LightGBM
 
         private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
-            Options["objective"] = "regression";
+            GbmOptions["objective"] = "regression";
             // Add default metric.
-            if (!Options.ContainsKey("metric"))
-                Options["metric"] = "l2";
+            if (!GbmOptions.ContainsKey("metric"))
+                GbmOptions["metric"] = "l2";
         }
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

@@ -13,7 +13,7 @@ using Microsoft.ML.LightGBM;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 
-[assembly: LoadableClass(LightGbmBinaryTrainer.Summary, typeof(LightGbmBinaryTrainer), typeof(Options),
+[assembly: LoadableClass(LightGbmBinaryTrainer.Summary, typeof(LightGbmBinaryTrainer), typeof(LightGbmBinaryTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
     LightGbmBinaryTrainer.UserName, LightGbmBinaryTrainer.LoadNameValue, LightGbmBinaryTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
@@ -123,6 +123,7 @@ namespace Microsoft.ML.LightGBM
         internal LightGbmBinaryTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
+            Contracts.CheckUserArg(options.Sigmoid > 0, nameof(Options.Sigmoid), "must be > 0.");
         }
 
         /// <summary>
@@ -143,15 +144,24 @@ namespace Microsoft.ML.LightGBM
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = Options.Defaults.NumberOfIterations)
-            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumnName), featureColumnName, exampleWeightColumnName, null, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations)
+            int numberOfIterations = Defaults.NumberOfIterations)
+            : this(env,
+                  new Options() {
+                      LabelColumnName = labelColumnName,
+                      FeatureColumnName = featureColumnName,
+                      ExampleWeightColumnName = exampleWeightColumnName,
+                      NumberOfLeaves = numberOfLeaves,
+                      MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
+                      LearningRate = learningRate,
+                      NumberOfIterations = numberOfIterations
+                  })
         {
         }
 
         private protected override CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator> CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete");
-            var innerArgs = LightGbmInterfaceUtils.JoinParameters(Options);
+            var innerArgs = LightGbmInterfaceUtils.JoinParameters(base.GbmOptions);
             var pred = new LightGbmBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, innerArgs);
             var cali = new PlattCalibrator(Host, -0.5, 0);
             return new FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>(Host, pred, cali);
@@ -171,10 +181,10 @@ namespace Microsoft.ML.LightGBM
 
         private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
-            Options["objective"] = "binary";
+            base.GbmOptions["objective"] = "binary";
             // Add default metric.
-            if (!Options.ContainsKey("metric"))
-                Options["metric"] = "binary_logloss";
+            if (!base.GbmOptions.ContainsKey("metric"))
+                base.GbmOptions["metric"] = "binary_logloss";
         }
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

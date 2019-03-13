@@ -14,7 +14,7 @@ using Microsoft.ML.LightGBM;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 
-[assembly: LoadableClass(LightGbmMulticlassTrainer.Summary, typeof(LightGbmMulticlassTrainer), typeof(Options),
+[assembly: LoadableClass(LightGbmMulticlassTrainer.Summary, typeof(LightGbmMulticlassTrainer), typeof(LightGbmMulticlassTrainer.Options),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
     "LightGBM Multi-class Classifier", LightGbmMulticlassTrainer.LoadNameValue, LightGbmMulticlassTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
@@ -59,6 +59,7 @@ namespace Microsoft.ML.LightGBM
         internal LightGbmMulticlassTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
         {
+
             _numClass = -1;
         }
 
@@ -80,10 +81,19 @@ namespace Microsoft.ML.LightGBM
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = Options.Defaults.NumberOfIterations)
-            : base(env, LoadNameValue, TrainerUtils.MakeU4ScalarColumn(labelColumnName), featureColumnName, exampleWeightColumnName, null, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations)
+            int numberOfIterations = Defaults.NumberOfIterations)
+            : this(env,
+                  new Options()
+                  {
+                    LabelColumnName = labelColumnName,
+                    FeatureColumnName = featureColumnName,
+                    ExampleWeightColumnName = exampleWeightColumnName,
+                    NumberOfLeaves = numberOfLeaves,
+                    MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
+                    LearningRate = learningRate,
+                    NumberOfIterations = numberOfIterations
+                  })
         {
-            _numClass = -1;
         }
 
         private InternalTreeEnsemble GetBinaryEnsemble(int classID)
@@ -110,7 +120,7 @@ namespace Microsoft.ML.LightGBM
             Host.Assert(_numClass > 1, "Must know the number of classes before creating a predictor.");
             Host.Assert(TrainedEnsemble.NumTrees % _numClass == 0, "Number of trees should be a multiple of number of classes.");
 
-            var innerArgs = LightGbmInterfaceUtils.JoinParameters(Options);
+            var innerArgs = LightGbmInterfaceUtils.JoinParameters(GbmOptions);
             IPredictorProducing<float>[] predictors = new IPredictorProducing<float>[_tlcNumClass];
             for (int i = 0; i < _tlcNumClass; ++i)
             {
@@ -185,16 +195,16 @@ namespace Microsoft.ML.LightGBM
         private protected override void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
         {
             base.GetDefaultParameters(ch, numRow, hasCategorical, totalCats, true);
-            int numberOfLeaves = (int)_options["num_leaves"];
+            int numberOfLeaves = (int)base.GbmOptions["num_leaves"];
             int minimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow, numberOfLeaves, _numClass);
-            _options["min_data_per_leaf"] = minimumExampleCountPerLeaf;
+            base.GbmOptions["min_data_per_leaf"] = minimumExampleCountPerLeaf;
             LightGbmTrainerOptions.MinimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow,
                                                                                                                                             LightGbmTrainerOptions.NumberOfLeaves.Value,
                                                                                                                                             _numClass);
             if (!hiddenMsg)
             {
                 if (!LightGbmTrainerOptions.LearningRate.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.LearningRate) + " = " + _options["learning_rate"]);
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.LearningRate) + " = " + GbmOptions["learning_rate"]);
                 if (!LightGbmTrainerOptions.NumberOfLeaves.HasValue)
                     ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.NumberOfLeaves) + " = " + numberOfLeaves);
 
@@ -208,7 +218,7 @@ namespace Microsoft.ML.LightGBM
             Host.AssertValue(ch);
             ch.Assert(PredictionKind == PredictionKind.MultiClassClassification);
             ch.Assert(_numClass > 1);
-            Options["num_class"] = _numClass;
+            GbmOptions["num_class"] = _numClass;
             bool useSoftmax = false;
 
             if (LightGbmTrainerOptions.UseSoftmax.HasValue)
@@ -222,13 +232,13 @@ namespace Microsoft.ML.LightGBM
             }
 
             if (useSoftmax)
-                Options["objective"] = "multiclass";
+                GbmOptions["objective"] = "multiclass";
             else
-                Options["objective"] = "multiclassova";
+                GbmOptions["objective"] = "multiclassova";
 
             // Add default metric.
-            if (!Options.ContainsKey("metric"))
-                Options["metric"] = "multi_error";
+            if (!GbmOptions.ContainsKey("metric"))
+                GbmOptions["metric"] = "multi_error";
         }
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

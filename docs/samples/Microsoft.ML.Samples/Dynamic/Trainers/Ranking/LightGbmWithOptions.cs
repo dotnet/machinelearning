@@ -1,5 +1,4 @@
 ﻿using Microsoft.ML.LightGBM;
-using static Microsoft.ML.LightGBM.Options;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
 {
@@ -21,13 +20,13 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
 
             // Create the Estimator pipeline. For simplicity, we will train a small tree with 4 leaves and 2 boosting iterations.
             var pipeline = mlContext.Ranking.Trainers.LightGbm(
-                new Options
+                new LightGbmRankingTrainer.Options
                 {
                     NumberOfLeaves = 4,
                     MinimumExampleCountPerGroup = 10,
                     LearningRate = 0.1,
                     NumberOfIterations = 2,
-                    Booster = new TreeBooster.Options
+                    BoosterParameter = new GradientBooster.Options
                     {
                         FeatureFraction = 0.9
                     }

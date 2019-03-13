@@ -11259,6 +11259,38 @@
           "Default": "Auto"
         },
         {
+          "Name": "Sigmoid",
+          "Type": "Float",
+          "Desc": "Parameter for the sigmoid function.LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
+          "Aliases": [
+            "sigmoid"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.5
+        },
+        {
+          "Name": "EvaluationMetric",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Default",
+              "Logloss",
+              "Error",
+              "Auc"
+            ]
+          },
+          "Desc": "Evaluation metrics.",
+          "Aliases": [
+            "em"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "Default"
+        },
+        {
           "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of bucket bin for features.",
@@ -11304,48 +11336,6 @@
           "Default": null
         },
         {
-          "Name": "EvaluationMetric",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "DefaultMetric",
-              "Rmse",
-              "Mae",
-              "Logloss",
-              "Error",
-              "Merror",
-              "Mlogloss",
-              "Auc",
-              "Ndcg",
-              "Map"
-            ]
-          },
-          "Desc": "Evaluation metrics.",
-          "Aliases": [
-            "em"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "DefaultMetric"
-        },
-        {
-          "Name": "UseSoftmax",
-          "Type": "Bool",
-          "Desc": "Use softmax loss for the multi classification.",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              true,
-              false
-            ]
-          }
-        },
-        {
           "Name": "EarlyStoppingRound",
           "Type": "Int",
           "Desc": "Rounds of early stopping, 0 will disable it.",
@@ -11356,30 +11346,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 0
-        },
-        {
-          "Name": "CustomGains",
-          "Type": "String",
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
-          "Aliases": [
-            "gains"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
-        },
-        {
-          "Name": "Sigmoid",
-          "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
-          "Aliases": [
-            "sigmoid"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -11762,6 +11728,43 @@
           "Default": "Auto"
         },
         {
+          "Name": "UseSoftmax",
+          "Type": "Bool",
+          "Desc": "Use softmax loss for the multi classification.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "Name": "EvaluationMetric",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Default",
+              "Mae",
+              "Rmse",
+              "Merror",
+              "Mlogloss"
+            ]
+          },
+          "Desc": "Evaluation metrics.",
+          "Aliases": [
+            "em"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "Default"
+        },
+        {
           "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of bucket bin for features.",
@@ -11807,48 +11810,6 @@
           "Default": null
         },
         {
-          "Name": "EvaluationMetric",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "DefaultMetric",
-              "Rmse",
-              "Mae",
-              "Logloss",
-              "Error",
-              "Merror",
-              "Mlogloss",
-              "Auc",
-              "Ndcg",
-              "Map"
-            ]
-          },
-          "Desc": "Evaluation metrics.",
-          "Aliases": [
-            "em"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "DefaultMetric"
-        },
-        {
-          "Name": "UseSoftmax",
-          "Type": "Bool",
-          "Desc": "Use softmax loss for the multi classification.",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              true,
-              false
-            ]
-          }
-        },
-        {
           "Name": "EarlyStoppingRound",
           "Type": "Int",
           "Desc": "Rounds of early stopping, 0 will disable it.",
@@ -11859,30 +11820,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 0
-        },
-        {
-          "Name": "CustomGains",
-          "Type": "String",
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
-          "Aliases": [
-            "gains"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
-        },
-        {
-          "Name": "Sigmoid",
-          "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
-          "Aliases": [
-            "sigmoid"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -12265,6 +12202,18 @@
           "Default": "Auto"
         },
         {
+          "Name": "CustomGains",
+          "Type": "String",
+          "Desc": "Comma seperated list of gains associated to each relevance label.",
+          "Aliases": [
+            "gains"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
+        },
+        {
           "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of bucket bin for features.",
@@ -12310,48 +12259,6 @@
           "Default": null
         },
         {
-          "Name": "EvaluationMetric",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "DefaultMetric",
-              "Rmse",
-              "Mae",
-              "Logloss",
-              "Error",
-              "Merror",
-              "Mlogloss",
-              "Auc",
-              "Ndcg",
-              "Map"
-            ]
-          },
-          "Desc": "Evaluation metrics.",
-          "Aliases": [
-            "em"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "DefaultMetric"
-        },
-        {
-          "Name": "UseSoftmax",
-          "Type": "Bool",
-          "Desc": "Use softmax loss for the multi classification.",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              true,
-              false
-            ]
-          }
-        },
-        {
           "Name": "EarlyStoppingRound",
           "Type": "Int",
           "Desc": "Rounds of early stopping, 0 will disable it.",
@@ -12362,30 +12269,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 0
-        },
-        {
-          "Name": "CustomGains",
-          "Type": "String",
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
-          "Aliases": [
-            "gains"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
-        },
-        {
-          "Name": "Sigmoid",
-          "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
-          "Aliases": [
-            "sigmoid"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -12813,48 +12696,6 @@
           "Default": null
         },
         {
-          "Name": "EvaluationMetric",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "DefaultMetric",
-              "Rmse",
-              "Mae",
-              "Logloss",
-              "Error",
-              "Merror",
-              "Mlogloss",
-              "Auc",
-              "Ndcg",
-              "Map"
-            ]
-          },
-          "Desc": "Evaluation metrics.",
-          "Aliases": [
-            "em"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "DefaultMetric"
-        },
-        {
-          "Name": "UseSoftmax",
-          "Type": "Bool",
-          "Desc": "Use softmax loss for the multi classification.",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              true,
-              false
-            ]
-          }
-        },
-        {
           "Name": "EarlyStoppingRound",
           "Type": "Int",
           "Desc": "Rounds of early stopping, 0 will disable it.",
@@ -12865,30 +12706,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 0
-        },
-        {
-          "Name": "CustomGains",
-          "Type": "String",
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
-          "Aliases": [
-            "gains"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
-        },
-        {
-          "Name": "Sigmoid",
-          "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
-          "Aliases": [
-            "sigmoid"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.5
         },
         {
           "Name": "BatchSize",

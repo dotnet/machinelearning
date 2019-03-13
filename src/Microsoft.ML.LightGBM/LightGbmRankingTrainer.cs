@@ -10,11 +10,10 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.LightGBM;
-using Microsoft.ML.Model;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 
-[assembly: LoadableClass(LightGbmRankingTrainer.UserName, typeof(LightGbmRankingTrainer), typeof(Options),
+[assembly: LoadableClass(LightGbmRankingTrainer.UserName, typeof(LightGbmRankingTrainer), typeof(LightGbmRankingTrainer.Options),
     new[] { typeof(SignatureRankerTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
     "LightGBM Ranking", LightGbmRankingTrainer.LoadNameValue, LightGbmRankingTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
@@ -87,6 +86,11 @@ namespace Microsoft.ML.LightGBM
             [Argument(ArgumentType.AtMostOnce, HelpText = "Comma seperated list of gains associated to each relevance label.", ShortName = "gains")]
             [TGUI(Label = "Ranking Label Gain")]
             public string CustomGains = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
+
+            public Options()
+            {
+                NameMapping[nameof(CustomGains)] = "label_gain";
+            }
         }
 
         internal LightGbmRankingTrainer(IHostEnvironment env, Options options)
@@ -114,10 +118,19 @@ namespace Microsoft.ML.LightGBM
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = Options.Defaults.NumberOfIterations)
-            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(labelColumnName),
-                    featureColumnName, weightsColumnName, rowGroupdColumnName, numberOfLeaves,
-                    minimumExampleCountPerLeaf, learningRate, numberOfIterations)
+            int numberOfIterations = Defaults.NumberOfIterations)
+            : this(env,
+                  new Options()
+                  {
+                    LabelColumnName = labelColumnName,
+                    FeatureColumnName = featureColumnName,
+                    ExampleWeightColumnName = weightsColumnName,
+                    RowGroupColumnName = rowGroupdColumnName,
+                    NumberOfLeaves = numberOfLeaves,
+                    MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
+                    LearningRate = learningRate,
+                    NumberOfIterations = numberOfIterations
+                  })
         {
             Host.CheckNonEmpty(rowGroupdColumnName, nameof(rowGroupdColumnName));
         }
@@ -161,20 +174,20 @@ namespace Microsoft.ML.LightGBM
         private protected override LightGbmRankingModelParameters CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete");
-            var innerArgs = LightGbmInterfaceUtils.JoinParameters(Options);
+            var innerArgs = LightGbmInterfaceUtils.JoinParameters(GbmOptions);
             return new LightGbmRankingModelParameters(Host, TrainedEnsemble, FeatureCount, innerArgs);
         }
 
         private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
             Host.AssertValue(ch);
-            Options["objective"] = "lambdarank";
+            GbmOptions["objective"] = "lambdarank";
             ch.CheckValue(groups, nameof(groups));
             // Add default metric.
-            if (!Options.ContainsKey("metric"))
-                Options["metric"] = "ndcg";
+            if (!GbmOptions.ContainsKey("metric"))
+                GbmOptions["metric"] = "ndcg";
             // Only output one ndcg score.
-            Options["eval_at"] = "5";
+            GbmOptions["eval_at"] = "5";
         }
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

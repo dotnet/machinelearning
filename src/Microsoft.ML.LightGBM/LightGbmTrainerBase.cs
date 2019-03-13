@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
@@ -14,6 +15,12 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.LightGBM
 {
+    [BestFriend]
+    internal static class Defaults
+    {
+        public const int NumberOfIterations = 100;
+    }
+
     /// <summary>
     /// Lock for LightGBM trainer.
     /// </summary>
@@ -37,12 +44,6 @@ namespace Microsoft.ML.LightGBM
         public class OptionsBase : TrainerInputBaseWithGroupId
         {
             private protected OptionsBase() { }
-
-            [BestFriend]
-            internal static class Defaults
-            {
-                public const int NumberOfIterations = 100;
-            }
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations.", SortOrder = 1, ShortName = "iter")]
             [TGUI(Label = "Number of boosting iterations", SuggestedSweeps = "10,20,50,100,150,200")]
@@ -72,7 +73,7 @@ namespace Microsoft.ML.LightGBM
             public int MaximumBinCountPerFeature = 255;
 
             [Argument(ArgumentType.Multiple, HelpText = "Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.", SortOrder = 3)]
-            public ISupportBoosterParameterFactory Booster = new TreeBooster.Options();
+            internal IBoosterParameterFactory Booster = new GradientBooster.Options();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Verbose", ShortName = "v")]
             public bool Verbose = false;
@@ -124,9 +125,128 @@ namespace Microsoft.ML.LightGBM
             [Argument(ArgumentType.Multiple, HelpText = "Parallel LightGBM Learning Algorithm", ShortName = "parag")]
             internal ISupportParallel ParallelTrainer = new SingleTrainerFactory();
 
-            internal string Objective;
+            private BoosterParameterBase.OptionsBase _boosterParameter;
 
-            internal int NumberOfClasses;
+            /// <summary>
+            /// Booster parameter to use
+            /// </summary>
+            public BoosterParameterBase.OptionsBase BoosterParameter
+            {
+                get => _boosterParameter;
+
+                set
+                {
+                    _boosterParameter = value;
+                    Booster = _boosterParameter;
+                }
+            }
+
+            private static string GetOptionName(string name)
+            {
+                if (NameMapping.ContainsKey(name))
+                    return NameMapping[name];
+
+                // Otherwise convert the name to the light gbm argument
+                StringBuilder strBuf = new StringBuilder();
+                bool first = true;
+                foreach (char c in name)
+                {
+                    if (char.IsUpper(c))
+                    {
+                        if (first)
+                            first = false;
+                        else
+                            strBuf.Append('_');
+                        strBuf.Append(char.ToLower(c));
+                    }
+                    else
+                        strBuf.Append(c);
+                }
+                return strBuf.ToString();
+            }
+
+            // Static override name map that maps friendly names to lightGBM arguments.
+            // If an argument is not here, then its name is identicaltto a lightGBM argument
+            // and does not require a mapping, for example, Subsample.
+            private protected static Dictionary<string, string> NameMapping = new Dictionary<string, string>()
+            {
+               {nameof(GradientBooster.Options.MinimumSplitGain),               "min_split_gain" },
+               {nameof(GradientBooster.Options.MaximumTreeDepth),               "max_depth"},
+               {nameof(GradientBooster.Options.MinimumChildWeight),             "min_child_weight"},
+               {nameof(GradientBooster.Options.SubsampleFraction),              "subsample"},
+               {nameof(GradientBooster.Options.SubsampleFrequency),             "subsample_freq"},
+               {nameof(GradientBooster.Options.L1Regularization),               "reg_alpha"},
+               {nameof(GradientBooster.Options.L2Regularization),               "reg_lambda"},
+               {nameof(GradientBooster.Options.WeightOfPositiveExamples),       "scale_pos_weight"},
+               {nameof(DartBooster.Options.TreeDropFraction),                   "drop_rate" },
+               {nameof(DartBooster.Options.MaximumNumberOfDroppedTreesPerRound),"max_drop" },
+               {nameof(DartBooster.Options.SkipDropFraction),                   "skip_drop" },
+               {nameof(MinimumExampleCountPerLeaf),                             "min_data_per_leaf"},
+               {nameof(NumberOfLeaves),                                         "num_leaves"},
+               {nameof(MaximumBinCountPerFeature),                              "max_bin" },
+               {nameof(MinimumExampleCountPerGroup),                            "min_data_per_group" },
+               {nameof(MaximumCategoricalSplitPointCount),                      "max_cat_threshold" },
+               {nameof(CategoricalSmoothing),                                   "cat_smooth" },
+               {nameof(L2CategoricalRegularization),                            "cat_l2" }
+            };
+
+            internal Dictionary<string, object> ToDictionary(IHost host)
+            {
+                Contracts.CheckValue(host, nameof(host));
+                Contracts.CheckUserArg(MaximumBinCountPerFeature > 0, nameof(MaximumBinCountPerFeature), "must be > 0.");
+                Dictionary<string, object> res = new Dictionary<string, object>();
+
+                var boosterParams = Booster.CreateComponent(host);
+                boosterParams.UpdateParameters(res);
+                /*
+
+                res[GetOptionName(nameof(MaximumBinCountPerFeature))] = MaximumBinCountPerFeature;
+
+                res["verbose"] = Silent ? "-1" : "1";
+                if (NumberOfThreads.HasValue)
+                    res["nthread"] = NumberOfThreads.Value;
+
+                res["seed"] = (Seed.HasValue) ? Seed : host.Rand.Next();
+
+                string metric = null;
+                switch (EvaluationMetric)
+                {
+                    case EvalMetricType.DefaultMetric:
+                        break;
+                    case EvalMetricType.Mae:
+                        metric = "l1";
+                        break;
+                    case EvalMetricType.Logloss:
+                        metric = "binary_logloss";
+                        break;
+                    case EvalMetricType.Error:
+                        metric = "binary_error";
+                        break;
+                    case EvalMetricType.Merror:
+                        metric = "multi_error";
+                        break;
+                    case EvalMetricType.Mlogloss:
+                        metric = "multi_logloss";
+                        break;
+                    case EvalMetricType.Rmse:
+                    case EvalMetricType.Auc:
+                    case EvalMetricType.Ndcg:
+                    case EvalMetricType.Map:
+                        metric = EvaluationMetric.ToString().ToLower();
+                        break;
+                }
+                if (!string.IsNullOrEmpty(metric))
+                    res[GetOptionName(nameof(metric))] = metric;
+                res[GetOptionName(nameof(Sigmoid))] = Sigmoid;
+                res[GetOptionName(nameof(CustomGains))] = CustomGains;
+                res[GetOptionName(nameof(HandleMissingValue))] = HandleMissingValue;
+                res[GetOptionName(nameof(MinimumExampleCountPerGroup))] = MinimumExampleCountPerGroup;
+                res[GetOptionName(nameof(MaximumCategoricalSplitPointCount))] = MaximumCategoricalSplitPointCount;
+                res[GetOptionName(nameof(CategoricalSmoothing))] = CategoricalSmoothing;
+                res[GetOptionName(nameof(L2CategoricalRegularization))] = L2CategoricalRegularization;
+                */
+                return res;
+            }
         }
 
         private sealed class CategoricalMetaData
@@ -139,8 +259,11 @@ namespace Microsoft.ML.LightGBM
             public bool[] IsCategoricalFeature;
         }
 
+        // Contains the passed in options when the API is called
         private protected readonly TOptions LightGbmTrainerOptions;
-        private Dictionary<string, object> _options;
+
+        // Contains the GBMOptions
+        private protected Dictionary<string, object> GbmOptions;
 
         /// <summary>
         /// Stores argumments as objects to convert them to invariant string type in the end so that
@@ -231,20 +354,18 @@ namespace Microsoft.ML.LightGBM
 
         private void InitParallelTraining()
         {
+            GbmOptions = LightGbmTrainerOptions.ToDictionary(Host);
             ParallelTraining = LightGbmTrainerOptions.ParallelTrainer != null ? LightGbmTrainerOptions.ParallelTrainer.CreateComponent(Host) : new SingleTrainer();
 
             if (ParallelTraining.ParallelType() != "serial" && ParallelTraining.NumMachines() > 1)
             {
-                LightGbmTrainerOptions.TreeLearner = ParallelTraining.ParallelType;
-                LightGbmTrainerOptions.
-                /*
-                Options["tree_learner"] = ParallelTraining.ParallelType();
+                GbmOptions["tree_learner"] = ParallelTraining.ParallelType();
                 var otherParams = ParallelTraining.AdditionalParams();
                 if (otherParams != null)
                 {
                     foreach (var pair in otherParams)
-                        Options[pair.Key] = pair.Value;
-                }*/
+                        GbmOptions[pair.Key] = pair.Value;
+                }
 
                 Contracts.CheckValue(ParallelTraining.GetReduceScatterFunction(), nameof(ParallelTraining.GetReduceScatterFunction));
                 Contracts.CheckValue(ParallelTraining.GetAllgatherFunction(), nameof(ParallelTraining.GetAllgatherFunction));
@@ -274,9 +395,9 @@ namespace Microsoft.ML.LightGBM
             double learningRate = LightGbmTrainerOptions.LearningRate ?? DefaultLearningRate(numRow, hasCategorical, totalCats);
             int numberOfLeaves = LightGbmTrainerOptions.NumberOfLeaves ?? DefaultNumLeaves(numRow, hasCategorical, totalCats);
             int minimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow, numberOfLeaves, 1);
-            _options["learning_rate"] = learningRate;
-            _options["num_leaves"] = numberOfLeaves;
-            _options["min_data_per_leaf"] = minimumExampleCountPerLeaf;
+            GbmOptions["learning_rate"] = learningRate;
+            GbmOptions["num_leaves"] = numberOfLeaves;
+            GbmOptions["min_data_per_leaf"] = minimumExampleCountPerLeaf;
             if (!hiddenMsg)
             {
                 if (!LightGbmTrainerOptions.LearningRate.HasValue)
@@ -289,7 +410,7 @@ namespace Microsoft.ML.LightGBM
         }
 
         [BestFriend]
-        internal Dictionary<string, object> GetGbmParameters() => Options;
+        internal Dictionary<string, object> GetGbmParameters() => GbmOptions;
 
         private FloatLabelCursor.Factory CreateCursorFactory(RoleMappedData data)
         {
@@ -400,7 +521,7 @@ namespace Microsoft.ML.LightGBM
             {
                 var catIndices = ConstructCategoricalFeatureMetaData(categoricalFeatures, rawNumCol, ref catMetaData);
                 // Set categorical features
-                Options["categorical_feature"] = string.Join(",", catIndices);
+                GbmOptions["categorical_feature"] = string.Join(",", catIndices);
             }
             return catMetaData;
         }
@@ -419,7 +540,7 @@ namespace Microsoft.ML.LightGBM
             catMetaData = GetCategoricalMetaData(ch, trainData, numRow);
             GetDefaultParameters(ch, numRow, catMetaData.CategoricalBoudaries != null, catMetaData.TotalCats);
 
-            string param = LightGbmInterfaceUtils.JoinParameters(_options);
+            string param = LightGbmInterfaceUtils.JoinParameters(GbmOptions);
 
             Dataset dtrain;
             // To reduce peak memory usage, only enable one sampling task at any given time.
@@ -467,14 +588,14 @@ namespace Microsoft.ML.LightGBM
             Host.AssertValueOrNull(dvalid);
 
             // For multi class, the number of labels is required.
-            ch.Assert(((ITrainer)this).PredictionKind != PredictionKind.MultiClassClassification || LightGbmTrainerOptions.Options.ContainsKey("num_class"),
+            ch.Assert(((ITrainer)this).PredictionKind != PredictionKind.MultiClassClassification || GbmOptions.ContainsKey("num_class"),
                 "LightGBM requires the number of classes to be specified in the parameters.");
 
             // Only enable one trainer to run at one time.
             lock (LightGbmShared.LockForMultiThreadingInside)
             {
-                ch.Info("LightGBM objective={0}", Options["objective"]);
-                using (Booster bst = WrappedLightGbmTraining.Train(ch, pch, Options, dtrain,
+                ch.Info("LightGBM objective={0}", GbmOptions["objective"]);
+                using (Booster bst = WrappedLightGbmTraining.Train(ch, pch, GbmOptions, dtrain,
                 dvalid: dvalid, numIteration: LightGbmTrainerOptions.NumberOfIterations,
                 verboseEval: LightGbmTrainerOptions.Verbose, earlyStoppingRound: LightGbmTrainerOptions.EarlyStoppingRound))
                 {
