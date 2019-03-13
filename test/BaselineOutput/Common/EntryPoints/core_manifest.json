@@ -11265,7 +11265,7 @@
         {
           "Name": "Sigmoid",
           "Type": "Float",
-          "Desc": "Parameter for the sigmoid function.LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
+          "Desc": "Parameter for the sigmoid function.",
           "Aliases": [
             "sigmoid"
           ],
@@ -11350,30 +11350,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 0
-        },
-        {
-          "Name": "CustomGains",
-          "Type": "String",
-          "Desc": "Comma separated list of gains associated to each relevance label.",
-          "Aliases": [
-            "gains"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
-        },
-        {
-          "Name": "Sigmoid",
-          "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryClassificationTrainer, LightGbmMulticlassClassificationTrainer and in LightGbmRankingTrainer.",
-          "Aliases": [
-            "sigmoid"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -11472,7 +11448,7 @@
         {
           "Name": "CategoricalSmoothing",
           "Type": "Float",
-          "Desc": "Laplace smooth term in categorical feature split. Avoid the bias of small categories.",
+          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -11772,6 +11748,18 @@
           }
         },
         {
+          "Name": "Sigmoid",
+          "Type": "Float",
+          "Desc": "Parameter for the sigmoid function.",
+          "Aliases": [
+            "sigmoid"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.5
+        },
+        {
           "Name": "EvaluationMetric",
           "Type": {
             "Kind": "Enum",
@@ -11848,30 +11836,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 0
-        },
-        {
-          "Name": "CustomGains",
-          "Type": "String",
-          "Desc": "Comma separated list of gains associated to each relevance label.",
-          "Aliases": [
-            "gains"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
-        },
-        {
-          "Name": "Sigmoid",
-          "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryClassificationTrainer, LightGbmMulticlassClassificationTrainer and in LightGbmRankingTrainer.",
-          "Aliases": [
-            "sigmoid"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -11970,7 +11934,7 @@
         {
           "Name": "CategoricalSmoothing",
           "Type": "Float",
-          "Desc": "Laplace smooth term in categorical feature split. Avoid the bias of small categories.",
+          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -12266,6 +12230,18 @@
           "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
         },
         {
+          "Name": "Sigmoid",
+          "Type": "Float",
+          "Desc": "Parameter for the sigmoid function.",
+          "Aliases": [
+            "sigmoid"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.5
+        },
+        {
           "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of bucket bin for features.",
@@ -12321,30 +12297,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 0
-        },
-        {
-          "Name": "CustomGains",
-          "Type": "String",
-          "Desc": "Comma separated list of gains associated to each relevance label.",
-          "Aliases": [
-            "gains"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
-        },
-        {
-          "Name": "Sigmoid",
-          "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryClassificationTrainer, LightGbmMulticlassClassificationTrainer and in LightGbmRankingTrainer.",
-          "Aliases": [
-            "sigmoid"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -12443,7 +12395,7 @@
         {
           "Name": "CategoricalSmoothing",
           "Type": "Float",
-          "Desc": "Laplace smooth term in categorical feature split. Avoid the bias of small categories.",
+          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -12784,30 +12736,6 @@
           "Default": 0
         },
         {
-          "Name": "CustomGains",
-          "Type": "String",
-          "Desc": "Comma separated list of gains associated to each relevance label.",
-          "Aliases": [
-            "gains"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
-        },
-        {
-          "Name": "Sigmoid",
-          "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryClassificationTrainer, LightGbmMulticlassClassificationTrainer and in LightGbmRankingTrainer.",
-          "Aliases": [
-            "sigmoid"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.5
-        },
-        {
           "Name": "BatchSize",
           "Type": "Int",
           "Desc": "Number of entries in a batch when loading data.",
@@ -12904,7 +12832,7 @@
         {
           "Name": "CategoricalSmoothing",
           "Type": "Float",
-          "Desc": "Laplace smooth term in categorical feature split. Avoid the bias of small categories.",
+          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -23438,13 +23366,13 @@
       "Components": [
         {
           "Name": "dart",
-          "Desc": "Dropouts meet Multiple Additive Regression Trees. See https://arxiv.org/abs/1505.01866",
+          "Desc": "Dropouts meet Multiple Additive Regresion Trees. See https://arxiv.org/abs/1505.01866",
           "FriendlyName": "Tree Dropout Tree Booster",
           "Settings": [
             {
               "Name": "TreeDropFraction",
               "Type": "Float",
-              "Desc": "The drop ratio for trees. Range:[0,1].",
+              "Desc": "The drop ratio for trees. Range:(0,1).",
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,

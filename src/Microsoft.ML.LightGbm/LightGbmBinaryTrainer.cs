@@ -8,7 +8,7 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Trainers;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// The <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree binary classification model using LightGBM.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM_remarks"]/*' />
-    public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<LightGbmBinaryTrainer.Options,float,
+    public sealed class LightGbmBinaryClassificationTrainer : LightGbmTrainerBase<LightGbmBinaryClassificationTrainer.Options,float,
         BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>
     {
@@ -106,8 +106,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 Auc,
             };
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function." + nameof(LightGbmBinaryTrainer) + ", " + nameof(LightGbmMulticlassTrainer) +
-                " and in " + nameof(LightGbmRankingTrainer) + ".", ShortName = "sigmoid")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function.", ShortName = "sigmoid")]
             [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
             public double Sigmoid = 0.5;
 
@@ -117,7 +116,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Default;
         }
 
-        internal LightGbmBinaryTrainer(IHostEnvironment env, Options options)
+        internal LightGbmBinaryClassificationTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             Contracts.CheckUserArg(options.Sigmoid > 0, nameof(Options.Sigmoid), "must be > 0.");

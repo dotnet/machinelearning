@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.LightGBM;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.LightGbm;
 
 [assembly: LoadableClass(typeof(GradientBooster), typeof(GradientBooster.Options),
     typeof(SignatureLightGBMBooster), GradientBooster.FriendlyName, GradientBooster.Name)]
@@ -20,7 +18,7 @@ using Microsoft.ML.Trainers;
 [assembly: EntryPointModule(typeof(DartBooster.Options))]
 [assembly: EntryPointModule(typeof(GossBooster.Options))]
 
-namespace Microsoft.ML.Trainers.LightGBM
+namespace Microsoft.ML.Trainers.LightGbm
 {
     internal delegate void SignatureLightGBMBooster();
 
@@ -118,7 +116,7 @@ namespace Microsoft.ML.Trainers.LightGBM
                 if (attribute == null)
                     continue;
 
-                //res[GetOptionName(field.Name)] = field.GetValue(BoosterParameterOptions);
+                res[LightGbmInterfaceUtils.GetOptionName(field.Name)] = field.GetValue(BoosterOptions);
             }
         }
 

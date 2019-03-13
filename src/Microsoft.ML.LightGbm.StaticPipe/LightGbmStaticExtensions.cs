@@ -76,7 +76,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
         /// <returns>The Score output column indicating the predicted value.</returns>
         public static Scalar<float> LightGbm(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label, Vector<float> features, Scalar<float> weights,
-            LightGbmRegressorTrainer.Options options,
+            LightGbmRegressionTrainer.Options options,
             Action<LightGbmRegressionModelParameters> onFit = null)
         {
             Contracts.CheckValue(options, nameof(options));
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
         /// from negative to positive infinity), the calibrated prediction (from 0 to 1), and the predicted label.</returns>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
-            LightGbmBinaryTrainer.Options options,
+            LightGbmBinaryClassificationTrainer.Options options,
             Action<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             Contracts.CheckValue(options, nameof(options));
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights,
-            LightGbmMulticlassTrainer.Options options,
+            LightGbmMulticlassClassificationTrainer.Options options,
             Action<OneVersusAllModelParameters> onFit = null)
         {
             Contracts.CheckValue(options, nameof(options));

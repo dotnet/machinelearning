@@ -35,7 +35,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
                 .Where(name => name != labelName) // Drop the Label
                 .ToArray();
             var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
-                           .Append(mlContext.Regression.Trainers.LightGbm(new LightGbmRegressorTrainer.Options
+                           .Append(mlContext.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options
                            {
                                LabelColumnName = labelName,
                                NumberOfLeaves = 4,

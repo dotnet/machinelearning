@@ -110,7 +110,7 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static LightGbmBinaryClassificationTrainer LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            LightGbmBinaryTrainer.Options options)
+            LightGbmBinaryClassificationTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);

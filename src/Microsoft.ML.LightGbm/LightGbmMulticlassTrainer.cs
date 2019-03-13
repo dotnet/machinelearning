@@ -10,6 +10,7 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
@@ -24,8 +25,8 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// The <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree multi-class classification model using LightGBM.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM_remarks"]/*' />
-    public sealed class LightGbmMulticlassClassificationTrainer : LightGbmTrainerBase<LightGbmMulticlassificationTrainer.Options, 
-                                                                        VBuffer<float>, 
+    public sealed class LightGbmMulticlassClassificationTrainer : LightGbmTrainerBase<LightGbmMulticlassClassificationTrainer.Options,
+                                                                        VBuffer<float>,
                                                                         MulticlassPredictionTransformer<OneVersusAllModelParameters>,
                                                                         OneVersusAllModelParameters>
     {
@@ -53,6 +54,10 @@ namespace Microsoft.ML.Trainers.LightGbm
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use softmax loss for the multi classification.")]
             [TlcModule.SweepableDiscreteParam("UseSoftmax", new object[] { true, false })]
             public bool? UseSoftmax;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function.", ShortName = "sigmoid")]
+            [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
+            public double Sigmoid = 0.5;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Evaluation metrics.",

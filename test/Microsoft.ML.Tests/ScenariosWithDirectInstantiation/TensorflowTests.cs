@@ -678,7 +678,7 @@ namespace Microsoft.ML.Scenarios
                         batchSize: 20))
                     .Append(mlContext.Transforms.Concatenate("Features", "Prediction"))
                     .AppendCacheCheckpoint(mlContext)
-                    .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new Trainers.LightGbm.Options()
+                    .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new Trainers.LightGbm.LightGbmMulticlassClassificationTrainer.Options()
                     {
                         LabelColumnName = "Label",
                         FeatureColumnName = "Features",

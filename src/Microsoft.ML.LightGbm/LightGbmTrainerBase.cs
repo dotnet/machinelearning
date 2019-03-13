@@ -41,7 +41,6 @@ namespace Microsoft.ML.Trainers.LightGbm
         where TModel : class
         where TOptions : LightGbmTrainerBase<TOptions, TOutput, TTransformer, TModel>.OptionsBase, new()
     {
-
         public class OptionsBase : TrainerInputBaseWithGroupId
         {
             private protected OptionsBase() { }
@@ -142,56 +141,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 }
             }
 
-            private static string GetOptionName(string name)
-            {
-                if (NameMapping.ContainsKey(name))
-                    return NameMapping[name];
-
-                // Otherwise convert the name to the light gbm argument
-                StringBuilder strBuf = new StringBuilder();
-                bool first = true;
-                foreach (char c in name)
-                {
-                    if (char.IsUpper(c))
-                    {
-                        if (first)
-                            first = false;
-                        else
-                            strBuf.Append('_');
-                        strBuf.Append(char.ToLower(c));
-                    }
-                    else
-                        strBuf.Append(c);
-                }
-                return strBuf.ToString();
-            }
-
-            // Static override name map that maps friendly names to lightGBM arguments.
-            // If an argument is not here, then its name is identicaltto a lightGBM argument
-            // and does not require a mapping, for example, Subsample.
-            private protected static Dictionary<string, string> NameMapping = new Dictionary<string, string>()
-            {
-               {nameof(GradientBooster.Options.MinimumSplitGain),               "min_split_gain" },
-               {nameof(GradientBooster.Options.MaximumTreeDepth),               "max_depth"},
-               {nameof(GradientBooster.Options.MinimumChildWeight),             "min_child_weight"},
-               {nameof(GradientBooster.Options.SubsampleFraction),              "subsample"},
-               {nameof(GradientBooster.Options.SubsampleFrequency),             "subsample_freq"},
-               {nameof(GradientBooster.Options.L1Regularization),               "reg_alpha"},
-               {nameof(GradientBooster.Options.L2Regularization),               "reg_lambda"},
-               {nameof(GradientBooster.Options.WeightOfPositiveExamples),       "scale_pos_weight"},
-               {nameof(DartBooster.Options.TreeDropFraction),                   "drop_rate" },
-               {nameof(DartBooster.Options.MaximumNumberOfDroppedTreesPerRound),"max_drop" },
-               {nameof(DartBooster.Options.SkipDropFraction),                   "skip_drop" },
-               {nameof(MinimumExampleCountPerLeaf),                             "min_data_per_leaf"},
-               {nameof(NumberOfLeaves),                                         "num_leaves"},
-               {nameof(MaximumBinCountPerFeature),                              "max_bin" },
-               {nameof(MinimumExampleCountPerGroup),                            "min_data_per_group" },
-               {nameof(MaximumCategoricalSplitPointCount),                      "max_cat_threshold" },
-               {nameof(CategoricalSmoothing),                                   "cat_smooth" },
-               {nameof(L2CategoricalRegularization),                            "cat_l2" }
-            };
-
-            internal Dictionary<string, object> ToDictionary(IHost host)
+            internal virtual Dictionary<string, object> ToDictionary(IHost host)
             {
                 Contracts.CheckValue(host, nameof(host));
                 Contracts.CheckUserArg(MaximumBinCountPerFeature > 0, nameof(MaximumBinCountPerFeature), "must be > 0.");
@@ -199,8 +149,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
                 var boosterParams = Booster.CreateComponent(host);
                 boosterParams.UpdateParameters(res);
-                /*
-
+/*
                 res[GetOptionName(nameof(MaximumBinCountPerFeature))] = MaximumBinCountPerFeature;
 
                 res["verbose"] = Silent ? "-1" : "1";
@@ -244,7 +193,6 @@ namespace Microsoft.ML.Trainers.LightGbm
                 res[GetOptionName(nameof(MinimumExampleCountPerGroup))] = MinimumExampleCountPerGroup;
                 res[GetOptionName(nameof(MaximumCategoricalSplitPointCount))] = MaximumCategoricalSplitPointCount;
                 res[GetOptionName(nameof(CategoricalSmoothing))] = CategoricalSmoothing;
-                res[GetOptionName(nameof(L2CategoricalRegularization))] = L2CategoricalRegularization;
                 */
                 return res;
             }

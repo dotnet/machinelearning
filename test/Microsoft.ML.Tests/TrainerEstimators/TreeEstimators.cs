@@ -49,7 +49,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
+            var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryClassificationTrainer.Options
             {
                 NumberOfLeaves = 10,
                 NumberOfThreads = 1,
@@ -162,13 +162,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// LightGbmRegressorTrainer TrainerEstimator test 
+        /// LightGbmRegressionTrainer TrainerEstimator test 
         /// </summary>
         [LightGBMFact]
         public void LightGBMRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = ML.Regression.Trainers.LightGbm(new LightGbmRegressorTrainer.Options
+            var trainer = ML.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options
             {
                 NumberOfThreads = 1,
                 NormalizeFeatures = NormalizeOption.Warn,

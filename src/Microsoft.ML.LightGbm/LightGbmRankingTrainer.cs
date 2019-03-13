@@ -8,6 +8,7 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
@@ -73,7 +74,7 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// The <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree ranking model using LightGBM.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM_remarks"]/*' />
-    public sealed class LightGbmRankingTrainer : LightGbmTrainerBase<LightGbmRankingTrainer.Options, 
+    public sealed class LightGbmRankingTrainer : LightGbmTrainerBase<LightGbmRankingTrainer.Options,
                                                                         float,
                                                                         RankingPredictionTransformer<LightGbmRankingModelParameters>,
                                                                         LightGbmRankingModelParameters>
@@ -90,9 +91,13 @@ namespace Microsoft.ML.Trainers.LightGbm
             [TGUI(Label = "Ranking Label Gain")]
             public string CustomGains = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
 
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function.", ShortName = "sigmoid")]
+            [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
+            public double Sigmoid = 0.5;
+
             public Options()
             {
-                NameMapping[nameof(CustomGains)] = "label_gain";
+                //NameMapping[nameof(CustomGains)] = "label_gain";
             }
         }
 

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.LightGbm
@@ -223,6 +224,55 @@ namespace Microsoft.ML.Trainers.LightGbm
             foreach (var keyVal in parameters)
                 res.Add(keyVal.Key + "=" + string.Format(CultureInfo.InvariantCulture, "{0}", keyVal.Value));
             return string.Join(" ", res);
+        }
+
+        // Static override name map that maps friendly names to lightGBM arguments.
+        // If an argument is not here, then its name is identicaltto a lightGBM argument
+        // and does not require a mapping, for example, Subsample.
+        private static Dictionary<string, string> _nameMapping = new Dictionary<string, string>()
+        {
+           {nameof(GradientBooster.Options.MinimumSplitGain),               "min_split_gain" },
+           {nameof(GradientBooster.Options.MaximumTreeDepth),               "max_depth"},
+           {nameof(GradientBooster.Options.MinimumChildWeight),             "min_child_weight"},
+           {nameof(GradientBooster.Options.SubsampleFraction),              "subsample"},
+           {nameof(GradientBooster.Options.SubsampleFrequency),             "subsample_freq"},
+           {nameof(GradientBooster.Options.L1Regularization),               "reg_alpha"},
+           {nameof(GradientBooster.Options.L2Regularization),               "reg_lambda"},
+           {nameof(GradientBooster.Options.WeightOfPositiveExamples),       "scale_pos_weight"},
+           {nameof(DartBooster.Options.TreeDropFraction),                   "drop_rate" },
+           {nameof(DartBooster.Options.MaximumNumberOfDroppedTreesPerRound),"max_drop" },
+           {nameof(DartBooster.Options.SkipDropFraction),                   "skip_drop" },
+           {nameof(LightGbmBinaryClassificationTrainer.Options.MinimumExampleCountPerLeaf),           "min_data_per_leaf"},
+           {nameof(LightGbmBinaryClassificationTrainer.Options.NumberOfLeaves),                       "num_leaves"},
+           {nameof(LightGbmBinaryClassificationTrainer.Options.MaximumBinCountPerFeature),            "max_bin" },
+           {nameof(LightGbmBinaryClassificationTrainer.Options.MinimumExampleCountPerGroup),          "min_data_per_group" },
+           {nameof(LightGbmBinaryClassificationTrainer.Options.MaximumCategoricalSplitPointCount),    "max_cat_threshold" },
+           {nameof(LightGbmBinaryClassificationTrainer.Options.CategoricalSmoothing),                 "cat_smooth" },
+           {nameof(LightGbmBinaryClassificationTrainer.Options.L2CategoricalRegularization),          "cat_l2" }
+        };
+
+        public static string GetOptionName(string name)
+        {
+            if (_nameMapping.ContainsKey(name))
+                return _nameMapping[name];
+
+            // Otherwise convert the name to the light gbm argument
+            StringBuilder strBuf = new StringBuilder();
+            bool first = true;
+            foreach (char c in name)
+            {
+                if (char.IsUpper(c))
+                {
+                    if (first)
+                        first = false;
+                    else
+                        strBuf.Append('_');
+                    strBuf.Append(char.ToLower(c));
+                }
+                else
+                    strBuf.Append(c);
+            }
+            return strBuf.ToString();
         }
 
         /// <summary>

@@ -32,7 +32,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             //  - Convert the string labels into key types.
             //  - Apply LightGbm multiclass trainer with advanced options.
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label")
-                        .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new LightGbmMulticlassTrainer.Options
+                        .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new LightGbmMulticlassClassificationTrainer.Options
                         {
                             LabelColumnName = "LabelIndex",
                             FeatureColumnName = "Features",
