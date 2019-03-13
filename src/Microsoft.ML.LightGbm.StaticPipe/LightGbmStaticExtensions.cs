@@ -6,9 +6,8 @@ using System;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML.Trainers;
 
-namespace Microsoft.ML.LightGBM.StaticPipe
+namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
 {
     /// <summary>
     /// Regression trainer estimators.

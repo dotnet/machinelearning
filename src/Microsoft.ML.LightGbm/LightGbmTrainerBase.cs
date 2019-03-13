@@ -10,7 +10,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 
-namespace Microsoft.ML.LightGBM
+namespace Microsoft.ML.Trainers.LightGbm
 {
     /// <summary>
     /// Lock for LightGBM trainer.
