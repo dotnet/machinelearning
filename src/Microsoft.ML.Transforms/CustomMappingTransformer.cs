@@ -7,7 +7,7 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms
 {
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Transforms
 
             private Delegate GetDstGetter<T>(DataViewRow input, int colIndex, Action refreshAction)
             {
-                var getter = input.GetGetter<T>(colIndex);
+                var getter = input.GetGetter<T>(input.Schema[colIndex]);
                 ValueGetter<T> combinedGetter = (ref T dst) =>
                 {
                     refreshAction();

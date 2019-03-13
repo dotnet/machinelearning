@@ -7,6 +7,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.DataLoadSave;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.Text
 {
@@ -24,6 +25,47 @@ namespace Microsoft.ML.Transforms.Text
         private readonly bool _allLengths;
         private readonly int _maxNumTerms;
         private readonly NgramExtractingEstimator.WeightingCriteria _weighting;
+
+        /// <summary>
+        /// Options for how the ngrams are extracted.
+        /// </summary>
+        public class Options
+        {
+            /// <summary>
+            /// Maximum ngram length.
+            /// </summary>
+            public int NgramLength;
+
+            /// <summary>
+            /// Maximum number of tokens to skip when constructing an ngram.
+            /// </summary>
+            public int SkipLength;
+
+            /// <summary>
+            /// Whether to store all ngram lengths up to ngramLength, or only ngramLength.
+            /// </summary>
+            public bool AllLengths;
+
+            /// <summary>
+            /// The maximum number of grams to store in the dictionary, for each level of ngrams,
+            /// from 1 (in position 0) up to ngramLength (in position ngramLength-1)
+            /// </summary>
+            public int[] MaximumNgramsCount;
+
+            /// <summary>
+            /// The weighting criteria.
+            /// </summary>
+            public NgramExtractingEstimator.WeightingCriteria Weighting;
+
+            public Options()
+            {
+                NgramLength = 1;
+                SkipLength = NgramExtractingEstimator.Defaults.SkipLength;
+                AllLengths = NgramExtractingEstimator.Defaults.AllLengths;
+                MaximumNgramsCount = new int[] { NgramExtractingEstimator.Defaults.MaxNumTerms };
+                Weighting = NgramExtractingEstimator.Defaults.Weighting;
+            }
+        }
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumnName"/>
@@ -269,7 +311,7 @@ namespace Microsoft.ML.Transforms.Text
             // Create arguments.
             var options = new WordHashBagProducingTransformer.Options
             {
-                Columns = _columns.Select(x => new WordHashBagProducingTransformer.Column { Name = x.outputColumnName  ,Source = x.inputColumnNames}).ToArray(),
+                Columns = _columns.Select(x => new WordHashBagProducingTransformer.Column { Name = x.outputColumnName, Source = x.inputColumnNames }).ToArray(),
                 HashBits = _hashBits,
                 NgramLength = _ngramLength,
                 SkipLength = _skipLength,

@@ -10,6 +10,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
@@ -69,7 +70,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = new BinaryClassificationGamTrainer(Env, new BinaryClassificationGamTrainer.Options
+            var trainer = new GamBinaryClassificationTrainer(Env, new GamBinaryClassificationTrainer.Options
             {
                 GainConfidenceLevel = 0,
                 NumberOfIterations = 15,
@@ -89,7 +90,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
             var trainer = ML.BinaryClassification.Trainers.FastForest(
-                new FastForestClassification.Options
+                new FastForestBinaryClassificationTrainer.Options
                 {
                     NumberOfLeaves = 10,
                     NumberOfTrees = 20,
@@ -187,7 +188,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void GAMRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = new RegressionGamTrainer(Env, new RegressionGamTrainer.Options
+            var trainer = new GamRegressionTrainer(Env, new GamRegressionTrainer.Options
             {
                 EnablePruning = false,
                 NumberOfIterations = 15,
@@ -225,7 +226,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataView = GetRegressionPipeline();
             var trainer = ML.Regression.Trainers.FastForest(
-                new FastForestRegression.Options
+                new FastForestRegressionTrainer.Options
                 {
                     BaggingSize = 2,
                     NumberOfTrees = 10,
@@ -290,10 +291,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 dataList.Add(new GbmExample { Features = featureVector, Label = labels[i], Score = new float[_classNumber] });
             }
 
-            var mlContext = new MLContext(seed: 0, conc: 1);
+            var mlContext = new MLContext(seed: 0);
             var dataView = mlContext.Data.LoadFromEnumerable(dataList);
             int numberOfTrainingIterations = 3;
-            var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, new Options
+            var gbmTrainer = new LightGbmMulticlassClassificationTrainer(mlContext, new Options
             {
                 NumberOfIterations = numberOfTrainingIterations,
                 MinimumExampleCountPerGroup = 1,

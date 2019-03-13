@@ -17,6 +17,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(BinarySaver.Summary, typeof(BinarySaver), typeof(BinarySaver.Arguments), typeof(SignatureDataSaver),
     "Binary Saver", "BinarySaver", "Binary")]
@@ -116,7 +117,7 @@ namespace Microsoft.ML.Data.IO
                 var codec = col.Codec as IValueCodec<T>;
                 Contracts.AssertValue(codec);
                 _codec = codec;
-                _getter = cursor.GetGetter<T>(col.SourceIndex);
+                _getter = cursor.GetGetter<T>(cursor.Schema[col.SourceIndex]);
             }
 
             public override void BeginBlock()
@@ -776,7 +777,7 @@ namespace Microsoft.ML.Data.IO
         private void EstimatorCore<T>(DataViewRowCursor cursor, ColumnCodec col,
             out Func<long> fetchWriteEstimator, out IValueWriter writer)
         {
-            ValueGetter<T> getter = cursor.GetGetter<T>(col.SourceIndex);
+            ValueGetter<T> getter = cursor.GetGetter<T>(cursor.Schema[col.SourceIndex]);
             IValueCodec<T> codec = col.Codec as IValueCodec<T>;
             _host.AssertValue(codec);
             IValueWriter<T> specificWriter = codec.OpenWriter(Stream.Null);

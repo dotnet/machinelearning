@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -307,7 +308,7 @@ namespace Microsoft.ML.Data
                 schema.Schema[list[0].Index].Annotations.GetValue(Kinds.SlotNames, ref slotNames);
         }
 
-        public static bool HasKeyValues(this SchemaShape.Column col)
+        public static bool NeedsSlotNames(this SchemaShape.Column col)
         {
             return col.Annotations.TryFindColumn(Kinds.KeyValues, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Vector
@@ -441,7 +442,7 @@ namespace Microsoft.ML.Data
         public static IEnumerable<SchemaShape.Column> AnnotationsForMulticlassScoreColumn(SchemaShape.Column? labelColumn = null)
         {
             var cols = new List<SchemaShape.Column>();
-            if (labelColumn != null && labelColumn.Value.IsKey && HasKeyValues(labelColumn.Value))
+            if (labelColumn != null && labelColumn.Value.IsKey && NeedsSlotNames(labelColumn.Value))
                 cols.Add(new SchemaShape.Column(Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
             cols.AddRange(GetTrainerOutputAnnotation());
             return cols;
@@ -460,9 +461,22 @@ namespace Microsoft.ML.Data
             public override DataViewSchema Schema => _annotations.Schema;
             public override long Position => 0;
             public override long Batch => 0;
-            public override ValueGetter<TValue> GetGetter<TValue>(int col) => _annotations.GetGetter<TValue>(col);
+
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column) => _annotations.GetGetter<TValue>(column);
+
             public override ValueGetter<DataViewRowId> GetIdGetter() => (ref DataViewRowId dst) => dst = default;
-            public override bool IsColumnActive(int col) => true;
+
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column) => true;
         }
 
         /// <summary>

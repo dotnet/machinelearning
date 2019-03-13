@@ -4,6 +4,7 @@
 
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
@@ -45,7 +46,7 @@ namespace Microsoft.ML
             Contracts.CheckParam(maxRows >= 0, nameof(maxRows));
             Contracts.CheckParam(maxTrainingRows >= 0, nameof(maxTrainingRows));
 
-            var env = new LocalEnvironment(conc: 1);
+            var env = new LocalEnvironment();
             var trainData = SkipTakeFilter.Create(env, new SkipTakeFilter.TakeOptions { Count = maxTrainingRows }, data);
             return new DataDebuggerPreview(estimator.Fit(trainData).Transform(data), maxRows);
         }

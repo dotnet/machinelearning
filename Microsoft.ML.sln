@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Data", "src\Mi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OnnxConverter", "src\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.csproj", "{65D0603E-B96C-4DFC-BDD1-705891B88C18}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.StandardLearners", "src\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj", "{707BB22C-7E5F-497A-8C2F-74578F675705}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.StandardTrainers", "src\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj", "{707BB22C-7E5F-497A-8C2F-74578F675705}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Transforms", "src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj", "{2911A286-ECA4-4730-97A9-DA1FEE2DED97}"
 EndProject

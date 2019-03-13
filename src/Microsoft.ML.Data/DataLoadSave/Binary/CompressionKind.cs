@@ -5,6 +5,7 @@
 using System.IO;
 using System.IO.Compression;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data.IO
 {

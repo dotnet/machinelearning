@@ -244,7 +244,7 @@ We tried to make `Preview` debugger-friendly: our expectation is that, if you en
 Here is the code sample:
 ```csharp
 var estimator = mlContext.Transforms.Categorical.MapValueToKey("Label")
-    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
+    .Append(mlContext.MulticlassClassification.Trainers.Sdca())
     .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
 var data = mlContext.Data.LoadFromTextFile(new TextLoader.Column[] {
@@ -355,7 +355,7 @@ var pipeline =
     // once so adding a caching step before it is not helpful.
     .AppendCacheCheckpoint(mlContext)
     // Add the SDCA regression trainer.
-    .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumnName: "Target", featureColumnName: "FeatureVector"));
+    .Append(mlContext.Regression.Trainers.Sdca(labelColumnName: "Target", featureColumnName: "FeatureVector"));
 
 // Step three. Fit the pipeline to the training data.
 var model = pipeline.Fit(trainData);
@@ -423,7 +423,7 @@ var pipeline =
     // Cache data in memory for steps after the cache check point stage.
     .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
-    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
+    .Append(mlContext.MulticlassClassification.Trainers.Sdca())
     // Apply the inverse conversion from 'PredictedLabel' column back to string value.
     .Append(mlContext.Transforms.Conversion.MapKeyToValue(("PredictedLabel", "Data")));
 
@@ -547,7 +547,7 @@ var pipeline =
     // Cache data in memory for steps after the cache check point stage.
     .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
-    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
+    .Append(mlContext.MulticlassClassification.Trainers.Sdca());
 
 // Train the model.
 var trainedModel = pipeline.Fit(trainData);
@@ -782,7 +782,7 @@ var pipeline =
     // NLP pipeline 4: word embeddings.
     .Append(mlContext.Transforms.Text.TokenizeWords("TokenizedMessage", "NormalizedMessage"))
     .Append(mlContext.Transforms.Text.ExtractWordEmbeddings("Embeddings", "TokenizedMessage",
-                WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVeTwitter25D));
+                WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding));
 
 // Let's train our pipeline, and then apply it to the same data.
 // Note that even on a small dataset of 70KB the pipeline above can take up to a minute to completely train.
@@ -822,10 +822,10 @@ var pipeline =
     // Notice that unused part in the data may not be cached.
     .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
-    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
+    .Append(mlContext.MulticlassClassification.Trainers.Sdca());
 
 // Split the data 90:10 into train and test sets, train and evaluate.
-var split = mlContext.MulticlassClassification.TrainTestSplit(data, testFraction: 0.1);
+var split = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
 // Train the model.
 var model = pipeline.Fit(split.TrainSet);
@@ -944,9 +944,9 @@ public static IDataView PrepareData(MLContext mlContext, IDataView data)
 {
     // Define the operation code.
     Action<InputRow, OutputRow> mapping = (input, output) => output.Label = input.Income > 50000;
-    // Make a custom transformer and transform the data.
-    var transformer = mlContext.Transforms.CustomMappingTransformer(mapping, null);
-    return transformer.Transform(data);
+    // Make a custom estimator and transform the data.
+    var estimator = mlContext.Transforms.CustomMapping(mapping, null);
+    return estimator.Fit(data).Transform(data);
 }
 ```
 

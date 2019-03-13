@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 0);
 
             // Create an anomaly detector. Its underlying algorithm is randomized PCA.
-            var trainer1 = mlContext.AnomalyDetection.Trainers.RandomizedPca(featureColumnName: nameof(DataPoint.Features), rank: 1, center: false);
+            var trainer1 = mlContext.AnomalyDetection.Trainers.RandomizedPca(featureColumnName: nameof(DataPoint.Features), rank: 1, ensureZeroMean: false);
 
             // Test the first detector.
             ExecutePipelineWithGivenRandomizedPcaTrainer(mlContext, trainer1);
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tests
             {
                 FeatureColumnName = nameof(DataPoint.Features),
                 Rank = 1,
-                Center = false
+                EnsureZeroMean = false
             };
 
             // Create anther anomaly detector. Its underlying algorithm is randomized PCA.

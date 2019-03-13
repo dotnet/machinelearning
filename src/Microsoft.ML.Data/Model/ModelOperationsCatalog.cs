@@ -4,6 +4,7 @@
 
 using System.IO;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
 {
@@ -51,22 +52,6 @@ namespace Microsoft.ML
             {
                 _env = owner._env;
             }
-        }
-
-        /// <summary>
-        /// Create a prediction engine for one-time prediction.
-        /// </summary>
-        /// <typeparam name="TSrc">The class that defines the input data.</typeparam>
-        /// <typeparam name="TDst">The class that defines the output data.</typeparam>
-        /// <param name="transformer">The transformer to use for prediction.</param>
-        /// <param name="inputSchemaDefinition">Additional settings of the input schema.</param>
-        /// <param name="outputSchemaDefinition">Additional settings of the output schema.</param>
-        public PredictionEngine<TSrc, TDst> CreatePredictionEngine<TSrc, TDst>(ITransformer transformer,
-            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            where TSrc : class
-            where TDst : class, new()
-        {
-            return new PredictionEngine<TSrc, TDst>(_env, transformer, false, inputSchemaDefinition, outputSchemaDefinition);
         }
     }
 }

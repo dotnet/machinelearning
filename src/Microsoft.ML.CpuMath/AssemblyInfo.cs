@@ -12,7 +12,7 @@ using Microsoft.ML.Internal.CpuMath.Core;
 [assembly: InternalsVisibleTo("Microsoft.ML.Mkl.Components" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.KMeansClustering" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.PCA" + PublicKey.Value)]
-[assembly: InternalsVisibleTo("Microsoft.ML.StandardLearners" + PublicKey.Value)]
+[assembly: InternalsVisibleTo("Microsoft.ML.StandardTrainers" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.Sweeper" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.TimeSeries" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.Transforms" + PublicKey.Value)]

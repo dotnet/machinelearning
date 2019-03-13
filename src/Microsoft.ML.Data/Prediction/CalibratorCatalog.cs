@@ -8,6 +8,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(CalibratorTransformer<PlattCalibrator>), typeof(PlattCalibratorTransformer), null,
@@ -142,7 +143,7 @@ namespace Microsoft.ML.Calibrators
     public abstract class CalibratorTransformer<TICalibrator> : RowToRowTransformerBase, ISingleFeaturePredictionTransformer<TICalibrator>
         where TICalibrator : class, ICalibrator
     {
-        private TICalibrator _calibrator;
+        private readonly TICalibrator _calibrator;
         private readonly string _loaderSignature;
 
         private protected CalibratorTransformer(IHostEnvironment env, TICalibrator calibrator, string loaderSignature)
@@ -202,7 +203,7 @@ namespace Microsoft.ML.Calibrators
             where TCalibrator : class, ICalibrator
         {
             private TCalibrator _calibrator;
-            private int _scoreColIndex;
+            private readonly int _scoreColIndex;
             private CalibratorTransformer<TCalibrator> _parent;
 
             internal Mapper(CalibratorTransformer<TCalibrator> parent, TCalibrator calibrator, DataViewSchema inputSchema) :
@@ -234,8 +235,8 @@ namespace Microsoft.ML.Calibrators
                 Host.AssertValue(input);
                 disposer = null;
 
-                Host.Assert(input.IsColumnActive(_scoreColIndex));
-                var getScore = input.GetGetter<float>(_scoreColIndex);
+                Host.Assert(input.IsColumnActive(input.Schema[_scoreColIndex]));
+                var getScore = input.GetGetter<float>(input.Schema[_scoreColIndex]);
 
                 float score = default;
 

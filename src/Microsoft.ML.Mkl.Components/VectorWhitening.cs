@@ -14,6 +14,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(VectorWhiteningTransformer.Summary, typeof(IDataTransform), typeof(VectorWhiteningTransformer), typeof(VectorWhiteningTransformer.Options), typeof(SignatureDataTransform),
@@ -39,11 +40,11 @@ namespace Microsoft.ML.Transforms
     {
         /// <summary> PCA whitening.</summary>
         [TGUI(Label = "PCA whitening")]
-        Pca,
+        PrincipalComponentAnalysis,
 
         /// <summary> ZCA whitening.</summary>
         [TGUI(Label = "ZCA whitening")]
-        Zca
+        ZeroPhaseComponentAnalysis
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
@@ -58,16 +59,16 @@ namespace Microsoft.ML.Transforms
             public WhiteningKind Kind = VectorWhiteningEstimator.Defaults.Kind;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Scaling regularizer")]
-            public float Eps = VectorWhiteningEstimator.Defaults.Eps;
+            public float Eps = VectorWhiteningEstimator.Defaults.Epsilon;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of rows", ShortName = "rows")]
-            public int MaxRows = VectorWhiteningEstimator.Defaults.MaxRows;
+            public int MaxRows = VectorWhiteningEstimator.Defaults.MaximumNumberOfRows;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to save inverse (recovery) matrix", ShortName = "saveInv")]
             public bool SaveInverse = VectorWhiteningEstimator.Defaults.SaveInverse;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "PCA components to retain")]
-            public int PcaNum = VectorWhiteningEstimator.Defaults.PcaNum;
+            public int PcaNum = VectorWhiteningEstimator.Defaults.Rank;
 
             // REVIEW: add the following options:
             // 1. Currently there is no way to apply an inverse transform AFTER the the transform is trained.
@@ -248,7 +249,7 @@ namespace Microsoft.ML.Transforms
             if (rows != null)
                 return rows.GetValueOrDefault();
 
-            int maxRows = columns.Max(i => i.MaxRow);
+            int maxRows = columns.Max(i => i.MaximumNumberOfRows);
             long r = 0;
             using (var cursor = inputData.GetRowCursor())
             {
@@ -311,12 +312,12 @@ namespace Microsoft.ML.Transforms
                 ch.Assert(vectorType != null && vectorType.IsKnownSize);
                 // Use not more than MaxRow number of rows.
                 var ex = columns[i];
-                if (crowData <= ex.MaxRow)
+                if (crowData <= ex.MaximumNumberOfRows)
                     actualRowCounts[i] = (int)crowData;
                 else
                 {
-                    ch.Info(MessageSensitivity.Schema, "Only {0:N0} rows of column '{1}' will be used for whitening transform.", ex.MaxRow, columns[i].Name);
-                    actualRowCounts[i] = ex.MaxRow;
+                    ch.Info(MessageSensitivity.Schema, "Only {0:N0} rows of column '{1}' will be used for whitening transform.", ex.MaximumNumberOfRows, columns[i].Name);
+                    actualRowCounts[i] = ex.MaximumNumberOfRows;
                 }
 
                 int cslot = vectorType.Size;
@@ -336,7 +337,7 @@ namespace Microsoft.ML.Transforms
             {
                 var getters = new ValueGetter<VBuffer<float>>[columns.Length];
                 for (int i = 0; i < columns.Length; i++)
-                    getters[i] = cursor.GetGetter<VBuffer<float>>(cols[i]);
+                    getters[i] = cursor.GetGetter<VBuffer<float>>(cursor.Schema[cols[i]]);
                 var val = default(VBuffer<float>);
                 int irow = 0;
                 while (irow < maxActualRowCount && cursor.MoveNext())
@@ -436,14 +437,14 @@ namespace Microsoft.ML.Transforms
                 }
 
                 // For ZCA need to do additional multiply by U.
-                if (ex.Kind == WhiteningKind.Pca)
+                if (ex.Kind == WhiteningKind.PrincipalComponentAnalysis)
                 {
                     // Save all components for PCA. Retained components will be selected during evaluation.
                     models[iinfo] = uScaled;
                     if (ex.SaveInv)
                         invModels[iinfo] = uInvScaled;
                 }
-                else if (ex.Kind == WhiteningKind.Zca)
+                else if (ex.Kind == WhiteningKind.ZeroPhaseComponentAnalysis)
                 {
                     models[iinfo] = new float[u.Length];
                     Mkl.Gemm(Layout, Mkl.Transpose.NoTrans, Mkl.Transpose.NoTrans,
@@ -530,7 +531,7 @@ namespace Microsoft.ML.Transforms
 
             // See: https://software.intel.com/en-us/node/520750
             [DllImport(MklPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "cblas_sgemv"), SuppressUnmanagedCodeSecurity]
-            private static unsafe extern void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
+            private static extern unsafe void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
                 float* a, int lda, float* x, int incx, float beta, float* y, int incy);
 
             // See: https://software.intel.com/en-us/node/520775
@@ -588,7 +589,7 @@ namespace Microsoft.ML.Transforms
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var info = _parent._columns[iinfo];
-                    DataViewType outType = (info.Kind == WhiteningKind.Pca && info.PcaNum > 0) ? new VectorType(NumberDataViewType.Single, info.PcaNum) : _srcTypes[iinfo];
+                    DataViewType outType = (info.Kind == WhiteningKind.PrincipalComponentAnalysis && info.Rank > 0) ? new VectorType(NumberDataViewType.Single, info.Rank) : _srcTypes[iinfo];
                     result[iinfo] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, outType, null);
                 }
                 return result;
@@ -601,13 +602,13 @@ namespace Microsoft.ML.Transforms
                 disposer = null;
 
                 var ex = _parent._columns[iinfo];
-                Host.Assert(ex.Kind == WhiteningKind.Pca || ex.Kind == WhiteningKind.Zca);
+                Host.Assert(ex.Kind == WhiteningKind.PrincipalComponentAnalysis || ex.Kind == WhiteningKind.ZeroPhaseComponentAnalysis);
                 var getSrc = GetSrcGetter<VBuffer<float>>(input, iinfo);
                 var src = default(VBuffer<float>);
                 int cslotSrc = _srcTypes[iinfo].GetValueCount();
                 // Notice that here that the learned matrices in _models will have the same size for both PCA and ZCA,
                 // so we perform a truncation of the matrix in FillValues, that only keeps PcaNum columns.
-                int cslotDst = (ex.Kind == WhiteningKind.Pca && ex.PcaNum > 0) ? ex.PcaNum : cslotSrc;
+                int cslotDst = (ex.Kind == WhiteningKind.PrincipalComponentAnalysis && ex.Rank > 0) ? ex.Rank : cslotSrc;
                 var model = _parent._models[iinfo];
                 ValueGetter<VBuffer<float>> del =
                     (ref VBuffer<float> dst) =>
@@ -623,9 +624,9 @@ namespace Microsoft.ML.Transforms
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                int src = _cols[iinfo];
-                Host.Assert(input.IsColumnActive(src));
-                return input.GetGetter<T>(src);
+                var srcCol = input.Schema[_cols[iinfo]];
+                Host.Assert(input.IsColumnActive(srcCol));
+                return input.GetGetter<T>(srcCol);
             }
 
             private static void FillValues(float[] model, ref VBuffer<float> src, ref VBuffer<float> dst, int cdst)
@@ -672,11 +673,11 @@ namespace Microsoft.ML.Transforms
         [BestFriend]
         internal static class Defaults
         {
-            public const WhiteningKind Kind = WhiteningKind.Zca;
-            public const float Eps = 1e-5f;
-            public const int MaxRows = 100 * 1000;
+            public const WhiteningKind Kind = WhiteningKind.ZeroPhaseComponentAnalysis;
+            public const float Epsilon = 1e-5f;
+            public const int MaximumNumberOfRows = 100 * 1000;
             public const bool SaveInverse = false;
-            public const int PcaNum = 0;
+            public const int Rank = 0;
         }
 
         /// <summary>
@@ -703,11 +704,11 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Maximum number of rows used to train the transform.
             /// </summary>
-            public readonly int MaxRow;
+            public readonly int MaximumNumberOfRows;
             /// <summary>
             /// In case of PCA whitening, indicates the number of components to retain.
             /// </summary>
-            public readonly int PcaNum;
+            public readonly int Rank;
             internal readonly bool SaveInv;
 
             /// <summary>
@@ -716,25 +717,25 @@ namespace Microsoft.ML.Transforms
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="kind">Whitening kind (PCA/ZCA).</param>
-            /// <param name="eps">Whitening constant, prevents division by zero.</param>
-            /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
-            /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
-            public ColumnOptions(string name, string inputColumnName = null, WhiteningKind kind = Defaults.Kind, float eps = Defaults.Eps,
-                int maxRows = Defaults.MaxRows, int pcaNum = Defaults.PcaNum)
+            /// <param name="epsilon">Whitening constant, prevents division by zero.</param>
+            /// <param name="maximumNumberOfRows">Maximum number of rows used to train the transform.</param>
+            /// <param name="rank">In case of PCA whitening, indicates the number of components to retain.</param>
+            public ColumnOptions(string name, string inputColumnName = null, WhiteningKind kind = Defaults.Kind, float epsilon = Defaults.Epsilon,
+                int maximumNumberOfRows = Defaults.MaximumNumberOfRows, int rank = Defaults.Rank)
             {
                 Name = name;
                 Contracts.CheckValue(Name, nameof(Name));
                 InputColumnName = inputColumnName ?? name;
                 Contracts.CheckValue(InputColumnName, nameof(InputColumnName));
                 Kind = kind;
-                Contracts.CheckUserArg(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca, nameof(Kind));
-                Epsilon = eps;
+                Contracts.CheckUserArg(Kind == WhiteningKind.PrincipalComponentAnalysis || Kind == WhiteningKind.ZeroPhaseComponentAnalysis, nameof(Kind));
+                Epsilon = epsilon;
                 Contracts.CheckUserArg(0 <= Epsilon && Epsilon < float.PositiveInfinity, nameof(Epsilon));
-                MaxRow = maxRows;
-                Contracts.CheckUserArg(MaxRow > 0, nameof(MaxRow));
+                MaximumNumberOfRows = maximumNumberOfRows;
+                Contracts.CheckUserArg(MaximumNumberOfRows > 0, nameof(MaximumNumberOfRows));
                 SaveInv = Defaults.SaveInverse;
-                PcaNum = pcaNum; // REVIEW: make it work with pcaNum == 1.
-                Contracts.CheckUserArg(PcaNum >= 0, nameof(PcaNum));
+                Rank = rank; // REVIEW: make it work with pcaNum == 1.
+                Contracts.CheckUserArg(Rank >= 0, nameof(Rank));
             }
 
             internal ColumnOptions(VectorWhiteningTransformer.Column item, VectorWhiteningTransformer.Options options)
@@ -744,14 +745,14 @@ namespace Microsoft.ML.Transforms
                 InputColumnName = item.Source ?? item.Name;
                 Contracts.CheckValue(InputColumnName, nameof(InputColumnName));
                 Kind = item.Kind ?? options.Kind;
-                Contracts.CheckUserArg(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca, nameof(item.Kind));
+                Contracts.CheckUserArg(Kind == WhiteningKind.PrincipalComponentAnalysis || Kind == WhiteningKind.ZeroPhaseComponentAnalysis, nameof(item.Kind));
                 Epsilon = item.Eps ?? options.Eps;
                 Contracts.CheckUserArg(0 <= Epsilon && Epsilon < float.PositiveInfinity, nameof(item.Eps));
-                MaxRow = item.MaxRows ?? options.MaxRows;
-                Contracts.CheckUserArg(MaxRow > 0, nameof(item.MaxRows));
+                MaximumNumberOfRows = item.MaxRows ?? options.MaxRows;
+                Contracts.CheckUserArg(MaximumNumberOfRows > 0, nameof(item.MaxRows));
                 SaveInv = item.SaveInverse ?? options.SaveInverse;
-                PcaNum = item.PcaNum ?? options.PcaNum;
-                Contracts.CheckUserArg(PcaNum >= 0, nameof(item.PcaNum));
+                Rank = item.PcaNum ?? options.PcaNum;
+                Contracts.CheckUserArg(Rank >= 0, nameof(item.PcaNum));
             }
 
             internal ColumnOptions(ModelLoadContext ctx)
@@ -765,14 +766,14 @@ namespace Microsoft.ML.Transforms
                 // byte:  saveInv
                 // int:   pcaNum
                 Kind = (WhiteningKind)ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca);
+                Contracts.CheckDecode(Kind == WhiteningKind.PrincipalComponentAnalysis || Kind == WhiteningKind.ZeroPhaseComponentAnalysis);
                 Epsilon = ctx.Reader.ReadFloat();
                 Contracts.CheckDecode(0 <= Epsilon && Epsilon < float.PositiveInfinity);
-                MaxRow = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(MaxRow > 0);
+                MaximumNumberOfRows = ctx.Reader.ReadInt32();
+                Contracts.CheckDecode(MaximumNumberOfRows > 0);
                 SaveInv = ctx.Reader.ReadBoolByte();
-                PcaNum = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(PcaNum >= 0);
+                Rank = ctx.Reader.ReadInt32();
+                Contracts.CheckDecode(Rank >= 0);
             }
 
             internal void Save(ModelSaveContext ctx)
@@ -785,15 +786,15 @@ namespace Microsoft.ML.Transforms
                 // int:   maxrow
                 // byte:  saveInv
                 // int:   pcaNum
-                Contracts.Assert(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca);
+                Contracts.Assert(Kind == WhiteningKind.PrincipalComponentAnalysis || Kind == WhiteningKind.ZeroPhaseComponentAnalysis);
                 ctx.Writer.Write((int)Kind);
                 Contracts.Assert(0 <= Epsilon && Epsilon < float.PositiveInfinity);
                 ctx.Writer.Write(Epsilon);
-                Contracts.Assert(MaxRow > 0);
-                ctx.Writer.Write(MaxRow);
+                Contracts.Assert(MaximumNumberOfRows > 0);
+                ctx.Writer.Write(MaximumNumberOfRows);
                 ctx.Writer.WriteBoolByte(SaveInv);
-                Contracts.Assert(PcaNum >= 0);
-                ctx.Writer.Write(PcaNum);
+                Contracts.Assert(Rank >= 0);
+                ctx.Writer.Write(Rank);
             }
         }
 
@@ -814,15 +815,15 @@ namespace Microsoft.ML.Transforms
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="kind">Whitening kind (PCA/ZCA).</param>
-        /// <param name="eps">Whitening constant, prevents division by zero when scaling the data by inverse of eigenvalues.</param>
-        /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
-        /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
+        /// <param name="epsilon">Whitening constant, prevents division by zero when scaling the data by inverse of eigenvalues.</param>
+        /// <param name="maximumNumberOfRows">Maximum number of rows used to train the transform.</param>
+        /// <param name="rank">In case of PCA whitening, indicates the number of components to retain.</param>
         internal VectorWhiteningEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
             WhiteningKind kind = Defaults.Kind,
-            float eps = Defaults.Eps,
-            int maxRows = Defaults.MaxRows,
-            int pcaNum = Defaults.PcaNum)
-            : this(env, new ColumnOptions(outputColumnName, inputColumnName, kind, eps, maxRows, pcaNum))
+            float epsilon = Defaults.Epsilon,
+            int maximumNumberOfRows = Defaults.MaximumNumberOfRows,
+            int rank = Defaults.Rank)
+            : this(env, new ColumnOptions(outputColumnName, inputColumnName, kind, epsilon, maximumNumberOfRows, rank))
         {
         }
 

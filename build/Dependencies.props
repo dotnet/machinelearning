@@ -34,7 +34,7 @@
   <PropertyGroup>
     <PublishSymbolsPackageVersion>1.0.0-beta-62824-02</PublishSymbolsPackageVersion>
     <CodecovVersion>1.1.1</CodecovVersion>
-    <CoverletVersion>2.5.1</CoverletVersion>
+    <CoverletVersion>2.6.0</CoverletVersion>
     <ReportGeneratorVersion>4.0.9</ReportGeneratorVersion>
   </PropertyGroup>
 

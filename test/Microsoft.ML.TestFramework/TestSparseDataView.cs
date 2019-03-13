@@ -53,7 +53,7 @@ namespace Microsoft.ML.RunTests
             int n = 0;
             using (var cur = data.GetRowCursorForAllColumns())
             {
-                var getter = cur.GetGetter<VBuffer<T>>(0);
+                var getter = cur.GetGetter<VBuffer<T>>(cur.Schema[0]);
                 while (cur.MoveNext())
                 {
                     getter(ref value);
@@ -93,7 +93,7 @@ namespace Microsoft.ML.RunTests
             int n = 0;
             using (var cur = data.GetRowCursorForAllColumns())
             {
-                var getter = cur.GetGetter<VBuffer<T>>(0);
+                var getter = cur.GetGetter<VBuffer<T>>(cur.Schema[0]);
                 while (cur.MoveNext())
                 {
                     getter(ref value);

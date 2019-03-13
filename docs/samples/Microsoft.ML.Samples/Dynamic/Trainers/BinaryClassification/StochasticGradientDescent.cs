@@ -1,6 +1,4 @@
-﻿using Microsoft.ML;
-
-namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
+﻿namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class StochasticGradientDescent
     {
@@ -18,10 +16,10 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var data = SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
 
             // Leave out 10% of data for testing.
-            var trainTestData = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
+            var trainTestData = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Create data training pipeline.
-            var pipeline = mlContext.BinaryClassification.Trainers.StochasticGradientDescent();
+            var pipeline = mlContext.BinaryClassification.Trainers.SgdCalibrated();
 
             // Fit this pipeline to the training data.
             var model = pipeline.Fit(trainTestData.TrainSet);

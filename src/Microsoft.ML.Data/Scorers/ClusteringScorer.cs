@@ -7,9 +7,9 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(typeof(ClusteringScorer), typeof(ClusteringScorer.Arguments), typeof(SignatureDataScorer),
@@ -95,9 +95,9 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValue(output);
             Contracts.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
-            Contracts.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
+            Contracts.Assert(output.IsColumnActive(output.Schema[Bindings.ScoreColumnIndex]));
 
-            ValueGetter<VBuffer<float>> mapperScoreGetter = output.GetGetter<VBuffer<float>>(Bindings.ScoreColumnIndex);
+            ValueGetter<VBuffer<float>> mapperScoreGetter = output.GetGetter<VBuffer<float>>(output.Schema[Bindings.ScoreColumnIndex]);
 
             long cachedPosition = -1;
             VBuffer<float> score = default(VBuffer<float>);

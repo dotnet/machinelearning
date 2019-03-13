@@ -10,7 +10,7 @@ namespace Microsoft.ML.Samples.Dynamic
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
-            var ml = new MLContext(seed: 1, conc: 1);
+            var ml = new MLContext(seed: 1);
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             var data = SamplesUtils.DatasetUtils.GetInfertData();
@@ -29,12 +29,13 @@ namespace Microsoft.ML.Samples.Dynamic
             string outputColumnName = "Features";
             var pipeline = ml.Transforms.Concatenate(outputColumnName, new[] { "Age", "Parity", "Induced" })
                 .Append(ml.Clustering.Trainers.KMeans(
-                    new KMeansPlusPlusTrainer.Options
+                    new KMeansTrainer.Options
                     {
                         FeatureColumnName = outputColumnName,
                         NumberOfClusters = 2,
-                        NumberOfIterations = 100,
-                        OptimizationTolerance = 1e-6f
+                        MaximumNumberOfIterations = 100,
+                        OptimizationTolerance = 1e-6f,
+                        NumberOfThreads = 1
                     }
                  ));
 

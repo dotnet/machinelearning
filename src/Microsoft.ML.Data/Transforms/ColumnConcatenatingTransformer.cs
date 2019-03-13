@@ -10,11 +10,10 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
@@ -223,7 +222,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// The names of the output and input column pairs for the transformation.
         /// </summary>
-        public IReadOnlyCollection<(string outputColumnName, string[] inputColumnNames)> Columns
+        internal IReadOnlyCollection<(string outputColumnName, string[] inputColumnNames)> Columns
             => _columns.Select(col => (outputColumnName: col.Name, inputColumnNames: col.Sources.Select(source => source.name).ToArray())).ToArray().AsReadOnly();
 
         /// <summary>
@@ -680,19 +679,22 @@ namespace Microsoft.ML.Data
                 private Delegate MakeIdentityGetter<T>(DataViewRow input)
                 {
                     Contracts.Assert(SrcIndices.Length == 1);
-                    return input.GetGetter<T>(SrcIndices[0]);
+                    return input.GetGetter<T>(input.Schema[SrcIndices[0]]);
                 }
 
                 private Delegate MakeGetter<T>(DataViewRow input)
                 {
                     var srcGetterOnes = new ValueGetter<T>[SrcIndices.Length];
                     var srcGetterVecs = new ValueGetter<VBuffer<T>>[SrcIndices.Length];
+
                     for (int j = 0; j < SrcIndices.Length; j++)
                     {
+                        var column = input.Schema[SrcIndices[j]];
+
                         if (_srcTypes[j] is VectorType)
-                            srcGetterVecs[j] = input.GetGetter<VBuffer<T>>(SrcIndices[j]);
+                            srcGetterVecs[j] = input.GetGetter<VBuffer<T>>(column);
                         else
-                            srcGetterOnes[j] = input.GetGetter<T>(SrcIndices[j]);
+                            srcGetterOnes[j] = input.GetGetter<T>(column);
                     }
 
                     T tmp = default(T);

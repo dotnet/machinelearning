@@ -19,7 +19,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(BinaryLoader.Summary, typeof(BinaryLoader), typeof(BinaryLoader.Arguments), typeof(SignatureDataLoader),
@@ -643,7 +643,7 @@ namespace Microsoft.ML.Data.IO
         {
             var schemaBuilder = new DataViewSchema.Builder();
 
-            for(int i = 0; i < _aliveColumns.Length; ++i)
+            for (int i = 0; i < _aliveColumns.Length; ++i)
             {
                 // Informaiton of a column loaded from a binary file.
                 var loadedColumn = _aliveColumns[i];
@@ -654,7 +654,7 @@ namespace Microsoft.ML.Data.IO
                 {
                     // We got some metadata fields here.
                     var metadataBuilder = new DataViewSchema.Annotations.Builder();
-                    foreach(var loadedMetadataColumn in metadataArray)
+                    foreach (var loadedMetadataColumn in metadataArray)
                     {
                         var metadataGetter = loadedMetadataColumn.GetGetter();
                         if (metadataGetter == null)
@@ -1986,10 +1986,13 @@ namespace Microsoft.ML.Data.IO
                 }
             }
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
-                return _colToActivesIndex[col] >= 0;
+                Ch.CheckParam(column.Index < _colToActivesIndex.Length, nameof(column));
+                return _colToActivesIndex[column.Index] >= 0;
             }
 
             protected override bool MoveNextCore()
@@ -2047,11 +2050,18 @@ namespace Microsoft.ML.Data.IO
                 return more;
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
-                Ch.CheckParam(_colToActivesIndex[col] >= 0, nameof(col), "requested column not active");
-                var getter = _pipeGetters[_colToActivesIndex[col]] as ValueGetter<TValue>;
+                Ch.CheckParam(column.Index < _colToActivesIndex.Length, nameof(column), "requested column not active.");
+
+                var getter = _pipeGetters[_colToActivesIndex[column.Index]] as ValueGetter<TValue>;
                 if (getter == null)
                     throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
                 return getter;
@@ -2062,9 +2072,7 @@ namespace Microsoft.ML.Data.IO
             /// a delegate that simply always throws.
             /// </summary>
             private Delegate GetNoRowGetter(DataViewType type)
-            {
-                return Utils.MarshalInvoke(NoRowGetter<int>, type.RawType);
-            }
+                => Utils.MarshalInvoke(NoRowGetter<int>, type.RawType);
 
             private Delegate NoRowGetter<T>()
             {

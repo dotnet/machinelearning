@@ -38,10 +38,9 @@ namespace Microsoft.ML.Samples.Dynamic
                     Console.WriteLine($"{string.Join(" ", row.DenseValues().Select(x => x.ToString("f3")))} ");
             };
 
-          
             // A pipeline to project Features column into white noise vector.
-            var whiteningPipeline = ml.Transforms.Projection.VectorWhiten(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features),
-                kind: Transforms.WhiteningKind.Zca);
+            var whiteningPipeline = ml.Transforms.VectorWhiten(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features),
+                kind: Transforms.WhiteningKind.ZeroPhaseComponentAnalysis);
             // The transformed (projected) data.
             var transformedData = whiteningPipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.

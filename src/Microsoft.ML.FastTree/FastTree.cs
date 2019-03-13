@@ -20,6 +20,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.TreePredictor;
 using Newtonsoft.Json.Linq;
@@ -176,22 +177,12 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private void Initialize(IHostEnvironment env)
         {
-            int numThreads = FastTreeTrainerOptions.NumberOfThreads ?? Environment.ProcessorCount;
-            if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
-            {
-                using (var ch = Host.Start("FastTreeTrainerBase"))
-                {
-                    numThreads = Host.ConcurrencyFactor;
-                    ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
-                        + "setting of the environment. Using {0} training threads instead.", numThreads);
-                }
-            }
             ParallelTraining = FastTreeTrainerOptions.ParallelTrainer != null ? FastTreeTrainerOptions.ParallelTrainer.CreateComponent(env) : new SingleTrainer();
             ParallelTraining.InitEnvironment();
 
             Tests = new List<Test>();
 
-            InitializeThreads(numThreads);
+            InitializeThreads(FastTreeTrainerOptions.NumberOfThreads ?? Environment.ProcessorCount);
         }
 
         private protected void ConvertData(RoleMappedData trainData)
@@ -245,7 +236,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        private protected virtual bool ShouldStop(IChannel ch, ref IEarlyStoppingCriterion earlyStopping, ref int bestIteration)
+        private protected virtual bool ShouldStop(IChannel ch, ref EarlyStoppingRuleBase earlyStopping, ref int bestIteration)
         {
             bestIteration = Ensemble.NumTrees;
             return false;
@@ -650,7 +641,7 @@ namespace Microsoft.ML.Trainers.FastTree
 #endif
 #endif
 
-            IEarlyStoppingCriterion earlyStoppingRule = null;
+            EarlyStoppingRuleBase earlyStoppingRule = null;
             int bestIteration = 0;
             int emptyTrees = 0;
             using (var pch = Host.StartProgressChannel("FastTree training"))

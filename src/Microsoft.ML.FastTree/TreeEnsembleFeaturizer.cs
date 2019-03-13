@@ -15,6 +15,7 @@ using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.TreePredictor;
@@ -144,23 +145,24 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(OutputSchema[OutputColumnNames.Paths].Index == PathIdsColumnId);
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 _ectx.CheckValue(input, nameof(input));
-                _ectx.CheckValue(predicate, nameof(predicate));
-                return new SimpleRow(OutputSchema, input, CreateGetters(input, predicate));
+                _ectx.CheckValue(activeColumns, nameof(activeColumns));
+                return new SimpleRow(OutputSchema, input, CreateGetters(input, activeColumns));
             }
 
-            private Delegate[] CreateGetters(DataViewRow input, Func<int, bool> predicate)
+            private Delegate[] CreateGetters(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 _ectx.AssertValue(input);
-                _ectx.AssertValue(predicate);
+                _ectx.AssertValue(activeColumns);
 
                 var delegates = new Delegate[3];
 
-                var treeValueActive = predicate(TreeValuesColumnId);
-                var leafIdActive = predicate(LeafIdsColumnId);
-                var pathIdActive = predicate(PathIdsColumnId);
+                var activeIndices = activeColumns.Select(c => c.Index);
+                var treeValueActive = activeIndices.Contains(TreeValuesColumnId);
+                var leafIdActive = activeIndices.Contains(LeafIdsColumnId);
+                var pathIdActive = activeIndices.Contains(PathIdsColumnId);
 
                 if (!treeValueActive && !leafIdActive && !pathIdActive)
                     return delegates;
@@ -201,7 +203,6 @@ namespace Microsoft.ML.Data
 
                 private VBuffer<float> _src;
                 private ValueGetter<VBuffer<float>> _featureGetter;
-
                 private long _cachedPosition;
                 private readonly int[] _leafIds;
                 private readonly List<int>[] _pathIds;
@@ -224,7 +225,7 @@ namespace Microsoft.ML.Data
                     _numLeaves = numLeaves;
 
                     _src = default(VBuffer<float>);
-                    _featureGetter = input.GetGetter<VBuffer<float>>(featureIndex);
+                    _featureGetter = input.GetGetter<VBuffer<float>>(input.Schema[featureIndex]);
 
                     _cachedPosition = -1;
                     _leafIds = new int[_numTrees];
@@ -696,7 +697,7 @@ namespace Microsoft.ML.Data
                             return;
                         }
                         converter(in src, ref temp);
-                        dst = (Single)(temp - 1);
+                        dst = (Single)temp - 1;
                     };
             }
             else

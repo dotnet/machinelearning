@@ -16,7 +16,7 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public void TrainAndPredictIrisModelTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var reader = mlContext.Data.CreateTextLoader(columns: new[]
                 {
@@ -30,9 +30,10 @@ namespace Microsoft.ML.Scenarios
 
             var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                             .Append(mlContext.Transforms.Normalize("Features"))
+                            .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                             .AppendCacheCheckpoint(mlContext)
-                            .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
-                                new SdcaMultiClassTrainer.Options { NumberOfThreads = 1 }));
+                            .Append(mlContext.MulticlassClassification.Trainers.Sdca(
+                                new SdcaMulticlassClassificationTrainer.Options { NumberOfThreads = 1 }));
 
             // Read training and test data sets
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
@@ -90,7 +91,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(.06, metrics.LogLoss, 2);
             Assert.Equal(1, metrics.TopKAccuracy);
 
-            Assert.Equal(3, metrics.PerClassLogLoss.Length);
+            Assert.Equal(3, metrics.PerClassLogLoss.Count);
             Assert.Equal(0, metrics.PerClassLogLoss[0], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[1], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[2], 1);

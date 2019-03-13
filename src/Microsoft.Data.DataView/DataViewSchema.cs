@@ -217,14 +217,14 @@ namespace Microsoft.Data.DataView
             /// <summary>
             /// Get a getter delegate for one value of the annotations row.
             /// </summary>
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                if (!(0 <= col && col < Schema.Count))
-                    throw new ArgumentOutOfRangeException(nameof(col));
-                var typedGetter = _getters[col] as ValueGetter<TValue>;
+                if (column.Index >= _getters.Length)
+                    throw new ArgumentException(nameof(column));
+                var typedGetter = _getters[column.Index] as ValueGetter<TValue>;
                 if (typedGetter == null)
                 {
-                    Debug.Assert(_getters[col] != null);
+                    Debug.Assert(_getters[column.Index] != null);
                     throw new InvalidOperationException($"Invalid call to '{nameof(GetGetter)}'");
                 }
                 return typedGetter;
@@ -238,7 +238,7 @@ namespace Microsoft.Data.DataView
                 var column = Schema.GetColumnOrNull(kind);
                 if (column == null)
                     throw new InvalidOperationException($"Invalid call to '{nameof(GetValue)}'");
-                GetGetter<TValue>(column.Value.Index)(ref value);
+                GetGetter<TValue>(column.Value)(ref value);
             }
 
             public override string ToString() => string.Join(", ", Schema.Select(x => x.Name));
