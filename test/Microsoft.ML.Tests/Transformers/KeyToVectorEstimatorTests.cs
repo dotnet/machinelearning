@@ -55,7 +55,7 @@ namespace Microsoft.ML.Tests.Transformers
             dataView = new ValueToKeyMappingEstimator(Env, new[]{
                     new ValueToKeyMappingEstimator.ColumnOptions("TermA", "A"),
                     new ValueToKeyMappingEstimator.ColumnOptions("TermB", "B"),
-                    new ValueToKeyMappingEstimator.ColumnOptions("TermC", "C", textKeyValues:true)
+                    new ValueToKeyMappingEstimator.ColumnOptions("TermC", "C", addKeyValueAnnotationsAsText:true)
                 }).Fit(dataView).Transform(dataView);
 
             var pipe = ML.Transforms.Conversion.MapKeyToVector(new KeyToVectorMappingEstimator.ColumnOptions("CatA", "TermA", false),
@@ -110,14 +110,14 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ML.Data.LoadFromEnumerable(data);
             var termEst = new ValueToKeyMappingEstimator(Env, new[] {
-                new ValueToKeyMappingEstimator.ColumnOptions("TA", "A", textKeyValues: true),
+                new ValueToKeyMappingEstimator.ColumnOptions("TA", "A", addKeyValueAnnotationsAsText: true),
                 new ValueToKeyMappingEstimator.ColumnOptions("TB", "B"),
-                new ValueToKeyMappingEstimator.ColumnOptions("TC", "C", textKeyValues: true),
-                new ValueToKeyMappingEstimator.ColumnOptions("TD", "D", textKeyValues: true),
+                new ValueToKeyMappingEstimator.ColumnOptions("TC", "C", addKeyValueAnnotationsAsText: true),
+                new ValueToKeyMappingEstimator.ColumnOptions("TD", "D", addKeyValueAnnotationsAsText: true),
                 new ValueToKeyMappingEstimator.ColumnOptions("TE", "E"),
                 new ValueToKeyMappingEstimator.ColumnOptions("TF", "F"),
                 new ValueToKeyMappingEstimator.ColumnOptions("TG", "G"),
-                new ValueToKeyMappingEstimator.ColumnOptions("TH", "H", textKeyValues: true) });
+                new ValueToKeyMappingEstimator.ColumnOptions("TH", "H", addKeyValueAnnotationsAsText: true) });
             var termTransformer = termEst.Fit(dataView);
             dataView = termTransformer.Transform(dataView);
 

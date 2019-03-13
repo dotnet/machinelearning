@@ -358,22 +358,24 @@ namespace Microsoft.ML
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public static WordHashBagEstimator ProduceHashedWordBags(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
-            int numberOfBits = NgramHashExtractingTransformer.DefaultArguments.HashBits,
+            int numberOfBits = NgramHashExtractingTransformer.DefaultArguments.NumberOfBits,
             int ngramLength = NgramHashExtractingTransformer.DefaultArguments.NgramLength,
             int skipLength = NgramHashExtractingTransformer.DefaultArguments.SkipLength,
             bool allLengths = NgramHashExtractingTransformer.DefaultArguments.AllLengths,
             uint seed = NgramHashExtractingTransformer.DefaultArguments.Seed,
             bool useOrderedHashing = NgramHashExtractingTransformer.DefaultArguments.Ordered,
-            int invertHash = NgramHashExtractingTransformer.DefaultArguments.InvertHash)
+            int maximumNumberOfInverts = NgramHashExtractingTransformer.DefaultArguments.MaximumNumberOfInverts)
             => new WordHashBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnName, numberOfBits, ngramLength, skipLength, allLengths, seed, useOrderedHashing, invertHash);
+                outputColumnName, inputColumnName, numberOfBits: numberOfBits, ngramLength: ngramLength,
+                skipLength: skipLength, allLengths: allLengths, seed: seed, useOrderedHashing: useOrderedHashing,
+                maximumNumberOfInverts: maximumNumberOfInverts);
 
         /// <summary>
         /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnNames"/>
@@ -388,22 +390,24 @@ namespace Microsoft.ML
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public static WordHashBagEstimator ProduceHashedWordBags(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string[] inputColumnNames,
-            int numberOfBits = NgramHashExtractingTransformer.DefaultArguments.HashBits,
+            int numberOfBits = NgramHashExtractingTransformer.DefaultArguments.NumberOfBits,
             int ngramLength = NgramHashExtractingTransformer.DefaultArguments.NgramLength,
             int skipLength = NgramHashExtractingTransformer.DefaultArguments.SkipLength,
             bool allLengths = NgramHashExtractingTransformer.DefaultArguments.AllLengths,
             uint seed = NgramHashExtractingTransformer.DefaultArguments.Seed,
             bool useOrderedHashing = NgramHashExtractingTransformer.DefaultArguments.Ordered,
-            int invertHash = NgramHashExtractingTransformer.DefaultArguments.InvertHash)
+            int maximumNumberOfInverts = NgramHashExtractingTransformer.DefaultArguments.MaximumNumberOfInverts)
             => new WordHashBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnNames, numberOfBits, ngramLength, skipLength, allLengths, seed, useOrderedHashing, invertHash);
+                outputColumnName, inputColumnNames, numberOfBits: numberOfBits, ngramLength: ngramLength,
+                skipLength: skipLength, allLengths: allLengths, seed: seed, useOrderedHashing: useOrderedHashing,
+                maximumNumberOfInverts: maximumNumberOfInverts);
 
         /// <summary>
         /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnName"/>
@@ -421,9 +425,9 @@ namespace Microsoft.ML
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public static NgramHashingEstimator ProduceHashedNgrams(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
@@ -434,9 +438,10 @@ namespace Microsoft.ML
             bool allLengths = NgramHashingEstimator.Defaults.AllLengths,
             uint seed = NgramHashingEstimator.Defaults.Seed,
             bool useOrderedHashing = NgramHashingEstimator.Defaults.UseOrderedHashing,
-            int invertHash = NgramHashingEstimator.Defaults.InvertHash)
+            int maximumNumberOfInverts = NgramHashingEstimator.Defaults.MaximumNumberOfInverts)
             => new NgramHashingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnName, numberOfBits, ngramLength, skipLength, allLengths, seed, useOrderedHashing, invertHash);
+                outputColumnName, inputColumnName, numberOfBits: numberOfBits, ngramLength: ngramLength, skipLength: skipLength,
+                allLengths: allLengths, seed: seed, useOrderedHashing: useOrderedHashing, maximumNumberOfInverts: maximumNumberOfInverts);
 
         /// <summary>
         /// Produces a bag of counts of hashed ngrams for each <paramref name="columns"/>. For each column,

@@ -98,10 +98,10 @@ namespace Microsoft.ML.Benchmarks
             {
                 OutputTokens = true,
                 KeepPunctuations = false,
-                UseStopRemover = true,
+                UsePredefinedStopWordRemover = true,
                 VectorNormalizer = TextFeaturizingEstimator.NormFunction.None,
-                UseCharExtractor = false,
-                UseWordExtractor = false,
+                CharFeatureExtractor = null,
+                WordFeatureExtractor = null,
             }, "SentimentText").Fit(loader).Transform(loader);
 
             var trans = mlContext.Transforms.Text.ApplyWordEmbedding("Features", "WordEmbeddings_TransformedText",

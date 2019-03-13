@@ -512,7 +512,7 @@ var pipeline =
     // Convert each categorical feature into one-hot encoding independently.
     mlContext.Transforms.Categorical.OneHotEncoding("CategoricalOneHot", "CategoricalFeatures")
     // Convert all categorical features into indices, and build a 'word bag' of these.
-    .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalBag", "CategoricalFeatures", OneHotEncodingTransformer.OutputKind.Bag))
+    .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalBag", "CategoricalFeatures", OneHotEncodingEstimator.OutputKind.Bag))
     // One-hot encode the workclass column, then drop all the categories that have fewer than 10 instances in the train set.
     .Append(mlContext.Transforms.Categorical.OneHotEncoding("WorkclassOneHot", "Workclass"))
     .Append(mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("WorkclassOneHotTrimmed", "WorkclassOneHot", count: 10));
