@@ -42,8 +42,8 @@ namespace Microsoft.ML.Transforms.Text
             public int? NgramLength;
 
             [Argument(ArgumentType.AtMostOnce, HelpText =
-                "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength), ShortName = "all")]
-            public bool? AllLengths;
+                "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength), Name = "AllLengths", ShortName = "all")]
+            public bool? UseAllLengths;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Maximum number of tokens to skip when constructing an ngram",
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Transforms.Text
             internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (NgramLength != null || AllLengths != null || SkipLength != null || Seed != null ||
+                if (NgramLength != null || UseAllLengths != null || SkipLength != null || Seed != null ||
                     RehashUnigrams != null || Ordered != null || MaximumNumberOfInverts != null)
                 {
                     return false;
@@ -123,8 +123,8 @@ namespace Microsoft.ML.Transforms.Text
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
-                ShortName = "all", SortOrder = 4)]
-            public bool AllLengths = NgramHashingEstimator.Defaults.AllLengths;
+                Name = "AllLengths", ShortName = "all", SortOrder = 4)]
+            public bool UseAllLengths = NgramHashingEstimator.Defaults.UseAllLengths;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Maximum number of tokens to skip when constructing an ngram",
@@ -352,7 +352,7 @@ namespace Microsoft.ML.Transforms.Text
                         item.Source ?? new string[] { item.Name },
                         item.NgramLength ?? options.NgramLength,
                         item.SkipLength ?? options.SkipLength,
-                        item.AllLengths ?? options.AllLengths,
+                        item.UseAllLengths ?? options.UseAllLengths,
                         item.NumberOfBits ?? options.NumberOfBits,
                         item.Seed ?? options.Seed,
                         item.Ordered ?? options.Ordered,
@@ -418,7 +418,7 @@ namespace Microsoft.ML.Transforms.Text
                 int ngramLength = _parent._columns[iinfo].NgramLength;
                 bool rehash = _parent._columns[iinfo].RehashUnigrams;
                 bool ordered = _parent._columns[iinfo].UseOrderedHashing;
-                bool all = _parent._columns[iinfo].AllLengths;
+                bool all = _parent._columns[iinfo].UseAllLengths;
                 uint seed = _parent._columns[iinfo].Seed;
 
                 // REVIEW: Consider the case when:
@@ -885,7 +885,7 @@ namespace Microsoft.ML.Transforms.Text
             /// <summary>Maximum number of tokens to skip when constructing an ngram.</summary>
             public readonly int SkipLength;
             /// <summary>Whether to store all ngram lengths up to <see cref="NgramLength"/>, or only <see cref="NgramLength"/>.</summary>
-            public readonly bool AllLengths;
+            public readonly bool UseAllLengths;
             /// <summary>Number of bits to hash into. Must be between 1 and 31, inclusive.</summary>
             public readonly int NumberOfBits;
             /// <summary>Hashing seed.</summary>
@@ -913,7 +913,7 @@ namespace Microsoft.ML.Transforms.Text
             /// <param name="inputColumnNames">Names of the columns to transform. </param>
             /// <param name="ngramLength">Maximum ngram length.</param>
             /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-            /// <param name="allLengths">Whether to store all ngram lengths up to <paramref name="ngramLength"/>, or only <paramref name="ngramLength"/>.</param>
+            /// <param name="useAllLengths">Whether to store all ngram lengths up to <paramref name="ngramLength"/>, or only <paramref name="ngramLength"/>.</param>
             /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
             /// <param name="useOrderedHashing">Whether the position of each term should be included in the hash.</param>
@@ -927,7 +927,7 @@ namespace Microsoft.ML.Transforms.Text
                 string[] inputColumnNames,
                 int ngramLength = NgramHashingEstimator.Defaults.NgramLength,
                 int skipLength = NgramHashingEstimator.Defaults.SkipLength,
-                bool allLengths = NgramHashingEstimator.Defaults.AllLengths,
+                bool useAllLengths = NgramHashingEstimator.Defaults.UseAllLengths,
                 int numberOfBits = NgramHashingEstimator.Defaults.NumberOfBits,
                 uint seed = NgramHashingEstimator.Defaults.Seed,
                 bool useOrderedHashing = NgramHashingEstimator.Defaults.UseOrderedHashing,
@@ -959,7 +959,7 @@ namespace Microsoft.ML.Transforms.Text
                 InputColumnNamesArray = inputColumnNames;
                 NgramLength = ngramLength;
                 SkipLength = skipLength;
-                AllLengths = allLengths;
+                UseAllLengths = useAllLengths;
                 NumberOfBits = numberOfBits;
                 Seed = seed;
                 UseOrderedHashing = useOrderedHashing;
@@ -997,7 +997,7 @@ namespace Microsoft.ML.Transforms.Text
                 Seed = ctx.Reader.ReadUInt32();
                 RehashUnigrams = ctx.Reader.ReadBoolByte();
                 UseOrderedHashing = ctx.Reader.ReadBoolByte();
-                AllLengths = ctx.Reader.ReadBoolByte();
+                UseAllLengths = ctx.Reader.ReadBoolByte();
             }
 
             internal ColumnOptions(ModelLoadContext ctx, string name, string[] inputColumnNames)
@@ -1027,7 +1027,7 @@ namespace Microsoft.ML.Transforms.Text
                 Seed = ctx.Reader.ReadUInt32();
                 RehashUnigrams = ctx.Reader.ReadBoolByte();
                 UseOrderedHashing = ctx.Reader.ReadBoolByte();
-                AllLengths = ctx.Reader.ReadBoolByte();
+                UseAllLengths = ctx.Reader.ReadBoolByte();
             }
 
             internal void Save(ModelSaveContext ctx)
@@ -1061,14 +1061,14 @@ namespace Microsoft.ML.Transforms.Text
                 ctx.Writer.Write(Seed);
                 ctx.Writer.WriteBoolByte(RehashUnigrams);
                 ctx.Writer.WriteBoolByte(UseOrderedHashing);
-                ctx.Writer.WriteBoolByte(AllLengths);
+                ctx.Writer.WriteBoolByte(UseAllLengths);
             }
         }
 
         internal static class Defaults
         {
             internal const int NgramLength = 2;
-            internal const bool AllLengths = true;
+            internal const bool UseAllLengths = true;
             internal const int SkipLength = 0;
             internal const int NumberOfBits = 16;
             internal const uint Seed = 314489979;
@@ -1093,7 +1093,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
@@ -1106,11 +1106,11 @@ namespace Microsoft.ML.Transforms.Text
             int numberOfBits = 16,
             int ngramLength = 2,
             int skipLength = 0,
-            bool allLengths = true,
+            bool useAllLengths = true,
             uint seed = 314489979,
             bool useOrderedHashing = true,
             int maximumNumberOfInverts = 0)
-            : this(env, outputColumnName, new[] { inputColumnName ?? outputColumnName }, numberOfBits, ngramLength, skipLength, allLengths, seed, useOrderedHashing, maximumNumberOfInverts)
+            : this(env, outputColumnName, new[] { inputColumnName ?? outputColumnName }, numberOfBits, ngramLength, skipLength, useAllLengths, seed, useOrderedHashing, maximumNumberOfInverts)
         {
         }
 
@@ -1127,7 +1127,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
@@ -1140,11 +1140,11 @@ namespace Microsoft.ML.Transforms.Text
             int numberOfBits = 16,
             int ngramLength = 2,
             int skipLength = 0,
-            bool allLengths = true,
+            bool useAllLengths = true,
             uint seed = 314489979,
             bool useOrderedHashing = true,
             int maximumNumberOfInverts = 0)
-            : this(env, new ColumnOptions(outputColumnName, inputColumnNames, ngramLength, skipLength, allLengths, numberOfBits, seed, useOrderedHashing, maximumNumberOfInverts))
+            : this(env, new ColumnOptions(outputColumnName, inputColumnNames, ngramLength, skipLength, useAllLengths, numberOfBits, seed, useOrderedHashing, maximumNumberOfInverts))
         {
         }
 

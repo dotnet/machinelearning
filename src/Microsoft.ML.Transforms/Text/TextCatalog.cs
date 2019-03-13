@@ -192,7 +192,7 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         /// <example>
@@ -207,11 +207,11 @@ namespace Microsoft.ML
             string inputColumnName = null,
             int ngramLength = NgramExtractingEstimator.Defaults.NgramLength,
             int skipLength = NgramExtractingEstimator.Defaults.SkipLength,
-            bool allLengths = NgramExtractingEstimator.Defaults.AllLengths,
+            bool useAllLengths = NgramExtractingEstimator.Defaults.UseAllLengths,
             int maximumNgramsCount = NgramExtractingEstimator.Defaults.MaximumNgramsCount,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.Defaults.Weighting) =>
             new NgramExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName,
-                ngramLength, skipLength, allLengths, maximumNgramsCount, weighting);
+                ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="columns.inputs"/>
@@ -308,7 +308,7 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public static WordBagEstimator ProduceWordBags(this TransformsCatalog.TextTransforms catalog,
@@ -316,11 +316,11 @@ namespace Microsoft.ML
             string inputColumnName = null,
             int ngramLength = NgramExtractingEstimator.Defaults.NgramLength,
             int skipLength = NgramExtractingEstimator.Defaults.SkipLength,
-            bool allLengths = NgramExtractingEstimator.Defaults.AllLengths,
+            bool useAllLengths = NgramExtractingEstimator.Defaults.UseAllLengths,
             int maximumNgramsCount = NgramExtractingEstimator.Defaults.MaximumNgramsCount,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
             => new WordBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnName, ngramLength, skipLength, allLengths, maximumNgramsCount);
+                outputColumnName, inputColumnName, ngramLength, skipLength, useAllLengths, maximumNgramsCount);
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumnNames"/>
@@ -331,7 +331,7 @@ namespace Microsoft.ML
         /// <param name="inputColumnNames">Name of the columns to transform.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public static WordBagEstimator ProduceWordBags(this TransformsCatalog.TextTransforms catalog,
@@ -339,11 +339,11 @@ namespace Microsoft.ML
             string[] inputColumnNames,
             int ngramLength = NgramExtractingEstimator.Defaults.NgramLength,
             int skipLength = NgramExtractingEstimator.Defaults.SkipLength,
-            bool allLengths = NgramExtractingEstimator.Defaults.AllLengths,
+            bool useAllLengths = NgramExtractingEstimator.Defaults.UseAllLengths,
             int maximumNgramsCount = NgramExtractingEstimator.Defaults.MaximumNgramsCount,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
             => new WordBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnNames, ngramLength, skipLength, allLengths, maximumNgramsCount, weighting);
+                outputColumnName, inputColumnNames, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
 
         /// <summary>
         /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnName"/>
@@ -355,7 +355,7 @@ namespace Microsoft.ML
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
@@ -368,13 +368,13 @@ namespace Microsoft.ML
             int numberOfBits = NgramHashExtractingTransformer.DefaultArguments.NumberOfBits,
             int ngramLength = NgramHashExtractingTransformer.DefaultArguments.NgramLength,
             int skipLength = NgramHashExtractingTransformer.DefaultArguments.SkipLength,
-            bool allLengths = NgramHashExtractingTransformer.DefaultArguments.AllLengths,
+            bool useAllLengths = NgramHashExtractingTransformer.DefaultArguments.UseAllLengths,
             uint seed = NgramHashExtractingTransformer.DefaultArguments.Seed,
             bool useOrderedHashing = NgramHashExtractingTransformer.DefaultArguments.Ordered,
             int maximumNumberOfInverts = NgramHashExtractingTransformer.DefaultArguments.MaximumNumberOfInverts)
             => new WordHashBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
                 outputColumnName, inputColumnName, numberOfBits: numberOfBits, ngramLength: ngramLength,
-                skipLength: skipLength, allLengths: allLengths, seed: seed, useOrderedHashing: useOrderedHashing,
+                skipLength: skipLength, useAllLengths: useAllLengths, seed: seed, useOrderedHashing: useOrderedHashing,
                 maximumNumberOfInverts: maximumNumberOfInverts);
 
         /// <summary>
@@ -387,7 +387,7 @@ namespace Microsoft.ML
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
@@ -400,13 +400,13 @@ namespace Microsoft.ML
             int numberOfBits = NgramHashExtractingTransformer.DefaultArguments.NumberOfBits,
             int ngramLength = NgramHashExtractingTransformer.DefaultArguments.NgramLength,
             int skipLength = NgramHashExtractingTransformer.DefaultArguments.SkipLength,
-            bool allLengths = NgramHashExtractingTransformer.DefaultArguments.AllLengths,
+            bool useAllLengths = NgramHashExtractingTransformer.DefaultArguments.UseAllLengths,
             uint seed = NgramHashExtractingTransformer.DefaultArguments.Seed,
             bool useOrderedHashing = NgramHashExtractingTransformer.DefaultArguments.Ordered,
             int maximumNumberOfInverts = NgramHashExtractingTransformer.DefaultArguments.MaximumNumberOfInverts)
             => new WordHashBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
                 outputColumnName, inputColumnNames, numberOfBits: numberOfBits, ngramLength: ngramLength,
-                skipLength: skipLength, allLengths: allLengths, seed: seed, useOrderedHashing: useOrderedHashing,
+                skipLength: skipLength, useAllLengths: useAllLengths, seed: seed, useOrderedHashing: useOrderedHashing,
                 maximumNumberOfInverts: maximumNumberOfInverts);
 
         /// <summary>
@@ -422,7 +422,7 @@ namespace Microsoft.ML
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
@@ -435,13 +435,13 @@ namespace Microsoft.ML
             int numberOfBits = NgramHashingEstimator.Defaults.NumberOfBits,
             int ngramLength = NgramHashingEstimator.Defaults.NgramLength,
             int skipLength = NgramHashingEstimator.Defaults.SkipLength,
-            bool allLengths = NgramHashingEstimator.Defaults.AllLengths,
+            bool useAllLengths = NgramHashingEstimator.Defaults.UseAllLengths,
             uint seed = NgramHashingEstimator.Defaults.Seed,
             bool useOrderedHashing = NgramHashingEstimator.Defaults.UseOrderedHashing,
             int maximumNumberOfInverts = NgramHashingEstimator.Defaults.MaximumNumberOfInverts)
             => new NgramHashingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
                 outputColumnName, inputColumnName, numberOfBits: numberOfBits, ngramLength: ngramLength, skipLength: skipLength,
-                allLengths: allLengths, seed: seed, useOrderedHashing: useOrderedHashing, maximumNumberOfInverts: maximumNumberOfInverts);
+                useAllLengths: useAllLengths, seed: seed, useOrderedHashing: useOrderedHashing, maximumNumberOfInverts: maximumNumberOfInverts);
 
         /// <summary>
         /// Produces a bag of counts of hashed ngrams for each <paramref name="columns"/>. For each column,

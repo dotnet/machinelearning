@@ -129,7 +129,7 @@ namespace Microsoft.ML.Transforms.Text
                         Ordered = column.Ordered,
                         MaximumNumberOfInverts = column.MaximumNumberOfInverts,
                         FriendlyNames = options.Columns[iinfo].Source,
-                        AllLengths = column.AllLengths
+                        UseAllLengths = column.UseAllLengths
                     };
             }
 
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Transforms.Text
             var featurizeArgs =
                 new NgramHashExtractingTransformer.Options
                 {
-                    AllLengths = options.AllLengths,
+                    UseAllLengths = options.UseAllLengths,
                     NumberOfBits = options.NumberOfBits,
                     NgramLength = options.NgramLength,
                     SkipLength = options.SkipLength,
@@ -189,8 +189,8 @@ namespace Microsoft.ML.Transforms.Text
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
-                ShortName = "all", SortOrder = 4)]
-            public bool? AllLengths;
+                Name = "AllLengths", ShortName = "all", SortOrder = 4)]
+            public bool? UseAllLengths;
         }
 
         internal sealed class Column : ColumnBase
@@ -279,8 +279,8 @@ namespace Microsoft.ML.Transforms.Text
 
             [Argument(ArgumentType.AtMostOnce,
                HelpText = "Whether to include all ngram lengths up to ngramLength or only ngramLength",
-               ShortName = "all", SortOrder = 4)]
-            public bool AllLengths = true;
+               Name = "AllLengths", ShortName = "all", SortOrder = 4)]
+            public bool UseAllLengths = true;
         }
 
         internal static class DefaultArguments
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Transforms.Text
             public const uint Seed = 314489979;
             public const bool Ordered = true;
             public const int MaximumNumberOfInverts = 0;
-            public const bool AllLengths = true;
+            public const bool UseAllLengths = true;
         }
 
         [TlcModule.Component(Name = "NGramHash", FriendlyName = "NGram Hash Extractor Transform", Alias = "NGramHashExtractorTransform,NGramHashExtractor",
@@ -369,7 +369,7 @@ namespace Microsoft.ML.Transforms.Text
                     new NgramHashingEstimator.ColumnOptions(column.Name, tmpColNames[iinfo],
                     column.NgramLength ?? options.NgramLength,
                     column.SkipLength ?? options.SkipLength,
-                    column.AllLengths ?? options.AllLengths,
+                    column.UseAllLengths ?? options.UseAllLengths,
                     column.NumberOfBits ?? options.NumberOfBits,
                     column.Seed ?? options.Seed,
                     column.Ordered ?? options.Ordered,
@@ -439,7 +439,7 @@ namespace Microsoft.ML.Transforms.Text
                 MaximumNumberOfInverts = extractorArgs.MaximumNumberOfInverts,
                 Ordered = extractorArgs.Ordered,
                 Seed = extractorArgs.Seed,
-                AllLengths = extractorArgs.AllLengths
+                UseAllLengths = extractorArgs.UseAllLengths
             };
 
             return Create(h, options, input, termLoaderArgs);

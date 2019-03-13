@@ -22,7 +22,7 @@ namespace Microsoft.ML.Transforms.Text
         private readonly (string outputColumnName, string[] sourceColumnsNames)[] _columns;
         private readonly int _ngramLength;
         private readonly int _skipLength;
-        private readonly bool _allLengths;
+        private readonly bool _useAllLengths;
         private readonly int _maxNumTerms;
         private readonly NgramExtractingEstimator.WeightingCriteria _weighting;
 
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Transforms.Text
             /// <summary>
             /// Whether to store all ngram lengths up to ngramLength, or only ngramLength.
             /// </summary>
-            public bool AllLengths;
+            public bool UseAllLengths;
 
             /// <summary>
             /// The maximum number of grams to store in the dictionary, for each level of ngrams,
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 NgramLength = 1;
                 SkipLength = NgramExtractingEstimator.Defaults.SkipLength;
-                AllLengths = NgramExtractingEstimator.Defaults.AllLengths;
+                UseAllLengths = NgramExtractingEstimator.Defaults.UseAllLengths;
                 MaximumNgramsCount = new int[] { NgramExtractingEstimator.Defaults.MaximumNgramsCount };
                 Weighting = NgramExtractingEstimator.Defaults.Weighting;
             }
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         internal WordBagEstimator(IHostEnvironment env,
@@ -84,10 +84,10 @@ namespace Microsoft.ML.Transforms.Text
             string inputColumnName = null,
             int ngramLength = 1,
             int skipLength = 0,
-            bool allLengths = true,
+            bool useAllLengths = true,
             int maximumNgramsCount = 10000000,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
-            : this(env, outputColumnName, new[] { inputColumnName ?? outputColumnName }, ngramLength, skipLength, allLengths, maximumNgramsCount, weighting)
+            : this(env, outputColumnName, new[] { inputColumnName ?? outputColumnName }, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting)
         {
         }
 
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="inputColumnNames">The columns containing text to compute bag of word vector.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         internal WordBagEstimator(IHostEnvironment env,
@@ -108,10 +108,10 @@ namespace Microsoft.ML.Transforms.Text
             string[] inputColumnNames,
             int ngramLength = 1,
             int skipLength = 0,
-            bool allLengths = true,
+            bool useAllLengths = true,
             int maximumNgramsCount = 10000000,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
-            : this(env, new[] { (outputColumnName, inputColumnNames) }, ngramLength, skipLength, allLengths, maximumNgramsCount, weighting)
+            : this(env, new[] { (outputColumnName, inputColumnNames) }, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting)
         {
         }
 
@@ -123,14 +123,14 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="columns">Pairs of columns to compute bag of word vector.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         internal WordBagEstimator(IHostEnvironment env,
             (string outputColumnName, string[] inputColumnNames)[] columns,
             int ngramLength = 1,
             int skipLength = 0,
-            bool allLengths = true,
+            bool useAllLengths = true,
             int maximumNgramsCount = 10000000,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
         {
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Transforms.Text
             _columns = columns;
             _ngramLength = ngramLength;
             _skipLength = skipLength;
-            _allLengths = allLengths;
+            _useAllLengths = useAllLengths;
             _maxNumTerms = maximumNgramsCount;
             _weighting = weighting;
         }
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Transforms.Text
                 Columns = _columns.Select(x => new WordBagBuildingTransformer.Column { Name = x.outputColumnName, Source = x.sourceColumnsNames }).ToArray(),
                 NgramLength = _ngramLength,
                 SkipLength = _skipLength,
-                AllLengths = _allLengths,
+                UseAllLengths = _useAllLengths,
                 MaxNumTerms = new[] { _maxNumTerms },
                 Weighting = _weighting
             };
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Transforms.Text
         private readonly int _numberOfBits;
         private readonly int _ngramLength;
         private readonly int _skipLength;
-        private readonly bool _allLengths;
+        private readonly bool _useAllLengths;
         private readonly uint _seed;
         private readonly bool _ordered;
         private readonly int _maximumNumberOfInverts;
@@ -208,7 +208,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
@@ -221,12 +221,12 @@ namespace Microsoft.ML.Transforms.Text
             int numberOfBits = 16,
             int ngramLength = 1,
             int skipLength = 0,
-            bool allLengths = true,
+            bool useAllLengths = true,
             uint seed = 314489979,
             bool useOrderedHashing = true,
             int maximumNumberOfInverts = 0)
             : this(env, new[] { (outputColumnName, new[] { inputColumnName ?? outputColumnName }) }, numberOfBits: numberOfBits,
-                  ngramLength: ngramLength, skipLength: skipLength, allLengths: allLengths, seed: seed,
+                  ngramLength: ngramLength, skipLength: skipLength, useAllLengths: useAllLengths, seed: seed,
                   useOrderedHashing: useOrderedHashing, maximumNumberOfInverts: maximumNumberOfInverts)
         {
         }
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
@@ -254,12 +254,12 @@ namespace Microsoft.ML.Transforms.Text
             int numberOfBits = 16,
             int ngramLength = 1,
             int skipLength = 0,
-            bool allLengths = true,
+            bool useAllLengths = true,
             uint seed = 314489979,
             bool useOrderedHashing = true,
             int maximumNumberOfInverts = 0)
             : this(env, new[] { (outputColumnName, inputColumnNames) }, numberOfBits: numberOfBits,
-                  ngramLength: ngramLength, skipLength: skipLength, allLengths: allLengths, seed: seed,
+                  ngramLength: ngramLength, skipLength: skipLength, useAllLengths: useAllLengths, seed: seed,
                   useOrderedHashing: useOrderedHashing, maximumNumberOfInverts: maximumNumberOfInverts)
         {
         }
@@ -273,7 +273,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Transforms.Text
             int numberOfBits = 16,
             int ngramLength = 1,
             int skipLength = 0,
-            bool allLengths = true,
+            bool useAllLengths = true,
             uint seed = 314489979,
             bool useOrderedHashing = true,
             int maximumNumberOfInverts = 0)
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Transforms.Text
             _numberOfBits = numberOfBits;
             _ngramLength = ngramLength;
             _skipLength = skipLength;
-            _allLengths = allLengths;
+            _useAllLengths = useAllLengths;
             _seed = seed;
             _ordered = useOrderedHashing;
             _maximumNumberOfInverts = maximumNumberOfInverts;
@@ -319,7 +319,7 @@ namespace Microsoft.ML.Transforms.Text
                 NumberOfBits = _numberOfBits,
                 NgramLength = _ngramLength,
                 SkipLength = _skipLength,
-                AllLengths = _allLengths,
+                UseAllLengths = _useAllLengths,
                 Seed = _seed,
                 Ordered = _ordered,
                 MaximumNumberOfInverts = _maximumNumberOfInverts

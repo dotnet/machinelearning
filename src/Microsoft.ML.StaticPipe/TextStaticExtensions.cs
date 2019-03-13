@@ -263,7 +263,7 @@ namespace Microsoft.ML.StaticPipe
         {
             private readonly int _ngramLength;
             private readonly int _skipLength;
-            private readonly bool _allLengths;
+            private readonly bool _useAllLengths;
             private readonly int _maxNumTerms;
             private readonly NgramExtractingEstimator.WeightingCriteria _weighting;
 
@@ -271,7 +271,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
-                _allLengths = allLengths;
+                _useAllLengths = allLengths;
                 _maxNumTerms = maxNumTerms;
                 _weighting = weighting;
 
@@ -281,7 +281,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 return _ngramLength == other._ngramLength &&
                 _skipLength == other._skipLength &&
-                _allLengths == other._allLengths &&
+                _useAllLengths == other._useAllLengths &&
                 _maxNumTerms == other._maxNumTerms &&
                 _weighting == other._weighting;
             }
@@ -298,7 +298,7 @@ namespace Microsoft.ML.StaticPipe
                 foreach (var outCol in toOutput)
                     pairs.Add((outputNames[outCol], new[] { inputNames[((OutPipelineColumn)outCol).Input] }));
 
-                return new WordBagEstimator(env, pairs.ToArray(), _ngramLength, _skipLength, _allLengths, _maxNumTerms, _weighting);
+                return new WordBagEstimator(env, pairs.ToArray(), _ngramLength, _skipLength, _useAllLengths, _maxNumTerms, _weighting);
             }
         }
 
@@ -349,7 +349,7 @@ namespace Microsoft.ML.StaticPipe
             private readonly int _numberOfBits;
             private readonly int _ngramLength;
             private readonly int _skipLength;
-            private readonly bool _allLengths;
+            private readonly bool _useAllLengths;
             private readonly uint _seed;
             private readonly bool _useOrderedHashing;
             private readonly int _maximumNumberOfInverts;
@@ -359,7 +359,7 @@ namespace Microsoft.ML.StaticPipe
                 _numberOfBits = numberOfBits;
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
-                _allLengths = allLengths;
+                _useAllLengths = allLengths;
                 _seed = seed;
                 _useOrderedHashing = useOrderedHashing;
                 _maximumNumberOfInverts = maximumNumberOfInverts;
@@ -370,7 +370,7 @@ namespace Microsoft.ML.StaticPipe
                 return _numberOfBits == other._numberOfBits &&
                     _ngramLength == other._ngramLength &&
                     _skipLength == other._skipLength &&
-                    _allLengths == other._allLengths &&
+                    _useAllLengths == other._useAllLengths &&
                     _seed == other._seed &&
                     _useOrderedHashing == other._useOrderedHashing &&
                     _maximumNumberOfInverts == other._maximumNumberOfInverts;
@@ -388,7 +388,7 @@ namespace Microsoft.ML.StaticPipe
                 foreach (var outCol in toOutput)
                     pairs.Add((outputNames[outCol], new[] { inputNames[((OutPipelineColumn)outCol).Input] }));
 
-                return new WordHashBagEstimator(env, pairs.ToArray(), _numberOfBits, _ngramLength, _skipLength, _allLengths, _seed, _useOrderedHashing, _maximumNumberOfInverts);
+                return new WordHashBagEstimator(env, pairs.ToArray(), _numberOfBits, _ngramLength, _skipLength, _useAllLengths, _seed, _useOrderedHashing, _maximumNumberOfInverts);
             }
         }
 
@@ -442,7 +442,7 @@ namespace Microsoft.ML.StaticPipe
         {
             private readonly int _ngramLength;
             private readonly int _skipLength;
-            private readonly bool _allLengths;
+            private readonly bool _useAllLengths;
             private readonly int _maxNgramsCount;
             private readonly NgramExtractingEstimator.WeightingCriteria _weighting;
 
@@ -450,7 +450,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
-                _allLengths = allLengths;
+                _useAllLengths = allLengths;
                 _maxNgramsCount = maxNumTerms;
                 _weighting = weighting;
 
@@ -460,7 +460,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 return _ngramLength == other._ngramLength &&
                 _skipLength == other._skipLength &&
-                _allLengths == other._allLengths &&
+                _useAllLengths == other._useAllLengths &&
                 _maxNgramsCount == other._maxNgramsCount &&
                 _weighting == other._weighting;
             }
@@ -477,7 +477,7 @@ namespace Microsoft.ML.StaticPipe
                 foreach (var outCol in toOutput)
                     pairs.Add((outputNames[outCol], inputNames[((OutPipelineColumn)outCol).Input]));
 
-                return new NgramExtractingEstimator(env, pairs.ToArray(), _ngramLength, _skipLength, _allLengths, _maxNgramsCount, _weighting);
+                return new NgramExtractingEstimator(env, pairs.ToArray(), _ngramLength, _skipLength, _useAllLengths, _maxNgramsCount, _weighting);
             }
         }
 
@@ -524,7 +524,7 @@ namespace Microsoft.ML.StaticPipe
             private readonly int _numberOfBits;
             private readonly int _ngramLength;
             private readonly int _skipLength;
-            private readonly bool _allLengths;
+            private readonly bool _useAllLengths;
             private readonly uint _seed;
             private readonly bool _useOrderedHashing;
             private readonly int _maximumNumberOfInverts;
@@ -534,7 +534,7 @@ namespace Microsoft.ML.StaticPipe
                 _numberOfBits = numberOfBits;
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
-                _allLengths = allLengths;
+                _useAllLengths = allLengths;
                 _seed = seed;
                 _useOrderedHashing = useOrderedHashing;
                 _maximumNumberOfInverts = maximumNumberOfInverts;
@@ -545,7 +545,7 @@ namespace Microsoft.ML.StaticPipe
                 return _numberOfBits == other._numberOfBits &&
                     _ngramLength == other._ngramLength &&
                     _skipLength == other._skipLength &&
-                    _allLengths == other._allLengths &&
+                    _useAllLengths == other._useAllLengths &&
                     _seed == other._seed &&
                     _useOrderedHashing == other._useOrderedHashing &&
                     _maximumNumberOfInverts == other._maximumNumberOfInverts;
@@ -561,7 +561,7 @@ namespace Microsoft.ML.StaticPipe
                 var columns = new List<NgramHashingEstimator.ColumnOptions>();
                 foreach (var outCol in toOutput)
                     columns.Add(new NgramHashingEstimator.ColumnOptions(outputNames[outCol], new[] { inputNames[((OutPipelineColumn)outCol).Input] },
-                          _ngramLength, _skipLength, _allLengths, _numberOfBits, _seed, _useOrderedHashing, _maximumNumberOfInverts));
+                          _ngramLength, _skipLength, _useAllLengths, _numberOfBits, _seed, _useOrderedHashing, _maximumNumberOfInverts));
 
                 return new NgramHashingEstimator(env, columns.ToArray());
             }
