@@ -16,6 +16,32 @@ namespace Microsoft.ML
         /// <summary>
         /// Predict a target using a field-aware factorization machine algorithm.
         /// </summary>
+        /// <remarks>
+        /// Note that because there is only one feature column, the underlying model is equivalent to standard factorization machine.
+        /// </remarks>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[FieldAwareFactorizationMachineWithoutArguments](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/FieldAwareFactorizationMachineWithoutArguments.cs)]
+        /// ]]></format>
+        /// </example>
+        public static FieldAwareFactorizationMachineTrainer FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            string featureColumnName = DefaultColumnNames.Features,
+            string labelColumnName = DefaultColumnNames.Label,
+            string exampleWeightColumnName = null)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new FieldAwareFactorizationMachineTrainer(env, new string[] { featureColumnName }, labelColumnName, exampleWeightColumnName);
+        }
+
+        /// <summary>
+        /// Predict a target using a field-aware factorization machine algorithm.
+        /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="featureColumnNames">The name(s) of the feature columns.</param>
         /// <param name="labelColumnName">The name of the label column.</param>

@@ -2,7 +2,7 @@
 <doc>
   <members>
 
-    <member name="MultiClassNaiveBayesTrainer">
+    <member name="MulticlassNaiveBayesTrainer">
       <summary>
         Trains a multiclass Naive Bayes predictor that supports binary feature values.
       </summary>
@@ -15,7 +15,7 @@
         Specifically a feature value greater than zero is treated as true.
       </remarks>
     </member>
-    <example name="MultiClassNaiveBayesTrainer">
+    <example name="MulticlassNaiveBayesTrainer">
       <example>
         <code language="csharp">
           pipeline.Add(new NaiveBayesClassifier

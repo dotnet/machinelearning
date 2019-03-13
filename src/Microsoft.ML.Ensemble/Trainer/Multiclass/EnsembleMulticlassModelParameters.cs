@@ -10,12 +10,12 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.Ensemble;
 
-[assembly: LoadableClass(typeof(EnsembleMultiClassModelParameters), null, typeof(SignatureLoadModel),
-    EnsembleMultiClassModelParameters.UserName, EnsembleMultiClassModelParameters.LoaderSignature)]
+[assembly: LoadableClass(typeof(EnsembleMulticlassModelParameters), null, typeof(SignatureLoadModel),
+    EnsembleMulticlassModelParameters.UserName, EnsembleMulticlassModelParameters.LoaderSignature)]
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
-    internal sealed class EnsembleMultiClassModelParameters : EnsembleModelParametersBase<VBuffer<Single>>, IValueMapper
+    internal sealed class EnsembleMulticlassModelParameters : EnsembleModelParametersBase<VBuffer<Single>>, IValueMapper
     {
         internal const string UserName = "Ensemble Multiclass Executor";
         internal const string LoaderSignature = "EnsemMcExec";
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(EnsembleMultiClassModelParameters).Assembly.FullName);
+                loaderAssemblyName: typeof(EnsembleMulticlassModelParameters).Assembly.FullName);
         }
 
         private readonly VectorType _inputType;
@@ -48,14 +48,14 @@ namespace Microsoft.ML.Trainers.Ensemble
         /// <param name="models">Array of sub-models that you want to ensemble together.</param>
         /// <param name="combiner">The combiner class to use to ensemble the models.</param>
         /// <param name="weights">The weights assigned to each model to be ensembled.</param>
-        internal EnsembleMultiClassModelParameters(IHostEnvironment env, FeatureSubsetModel<VBuffer<float>>[] models,
-            IMultiClassOutputCombiner combiner, Single[] weights = null)
+        internal EnsembleMulticlassModelParameters(IHostEnvironment env, FeatureSubsetModel<VBuffer<float>>[] models,
+            IMulticlassOutputCombiner combiner, Single[] weights = null)
             : base(env, RegistrationName, models, combiner, weights)
         {
             InitializeMappers(out _mappers, out _inputType, out _outputType);
         }
 
-        private EnsembleMultiClassModelParameters(IHostEnvironment env, ModelLoadContext ctx)
+        private EnsembleMulticlassModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
             InitializeMappers(out _mappers, out _inputType, out _outputType);
@@ -92,12 +92,12 @@ namespace Microsoft.ML.Trainers.Ensemble
                 inputType = new VectorType(NumberDataViewType.Single);
         }
 
-        private static EnsembleMultiClassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static EnsembleMulticlassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new EnsembleMultiClassModelParameters(env, ctx);
+            return new EnsembleMulticlassModelParameters(env, ctx);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {

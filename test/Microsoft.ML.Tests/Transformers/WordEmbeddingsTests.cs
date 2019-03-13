@@ -35,7 +35,7 @@ namespace Microsoft.ML.Tests.Transformers
                    }).Load(GetDataPath(dataPath));
 
             var est = ML.Transforms.Text.NormalizeText("NormalizedText", "SentimentText", keepDiacritics: false, keepPunctuations: false)
-                  .Append(ML.Transforms.Text.TokenizeWords("Words", "NormalizedText"))
+                  .Append(ML.Transforms.Text.TokenizeIntoWords("Words", "NormalizedText"))
                   .Append(ML.Transforms.Text.RemoveDefaultStopWords("CleanWords", "Words"));
             var words = est.Fit(data).Transform(data);
 
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Tests.Transformers
                    }).Load(GetDataPath(dataPath));
 
             var est = ML.Transforms.Text.NormalizeText("NormalizedText", "SentimentText", keepDiacritics: false, keepPunctuations: false)
-                  .Append(ML.Transforms.Text.TokenizeWords("Words", "NormalizedText"))
+                  .Append(ML.Transforms.Text.TokenizeIntoWords("Words", "NormalizedText"))
                   .Append(ML.Transforms.Text.RemoveDefaultStopWords("CleanWords", "Words"));
             var words = est.Fit(data).Transform(data);
             var pathToCustomModel = DeleteOutputPath("custommodel.txt");

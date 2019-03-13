@@ -365,7 +365,7 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckParam(!(numberOfIterations < 1), nameof(numberOfIterations), "Must be positive if specified");
             Contracts.CheckValueOrNull(onFit);
 
-            var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
+            var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new SdcaMulticlassClassificationTrainer(env, labelName, featuresName, weightsName, loss, l2Regularization, l1Threshold, numberOfIterations);
@@ -405,7 +405,7 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckValueOrNull(options);
             Contracts.CheckValueOrNull(onFit);
 
-            var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
+            var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     options.LabelColumnName = labelName;

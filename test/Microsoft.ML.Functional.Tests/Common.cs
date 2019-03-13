@@ -210,10 +210,10 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// Check that a <see cref="MultiClassClassifierMetrics"/> object is valid.
+        /// Check that a <see cref="MulticlassClassificationMetrics"/> object is valid.
         /// </summary>
         /// <param name="metrics">The metrics object.</param>
-        public static void AssertMetrics(MultiClassClassifierMetrics metrics)
+        public static void AssertMetrics(MulticlassClassificationMetrics metrics)
         {
             Assert.InRange(metrics.MacroAccuracy, 0, 1);
             Assert.InRange(metrics.MicroAccuracy, 0, 1);

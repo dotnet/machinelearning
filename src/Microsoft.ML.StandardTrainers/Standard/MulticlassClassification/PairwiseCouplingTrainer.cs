@@ -15,7 +15,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(PairwiseCouplingTrainer.Summary, typeof(PairwiseCouplingTrainer), typeof(PairwiseCouplingTrainer.Options),
-    new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
+    new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
     PairwiseCouplingTrainer.UserNameValue, PairwiseCouplingTrainer.LoadNameValue, DocName = "trainer/OvaPkpd.md")]
 
 [assembly: LoadableClass(typeof(PairwiseCouplingModelParameters), null, typeof(SignatureLoadModel),
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Trainers
             roles[0] = new KeyValuePair<CR, string>(new CR(DefaultColumnNames.Label), LabelColumn.Name);
             var td = new RoleMappedData(input, roles);
 
-            td.CheckMultiClassLabel(out var numClasses);
+            td.CheckMulticlassLabel(out var numClasses);
             // Train M * (M+1) / 2 models arranged as a lower triangular matrix.
             var predictors = new TDistPredictor[numClasses][];
 
@@ -232,7 +232,7 @@ namespace Microsoft.ML.Trainers
         private readonly IValueMapperDist[] _mappers;
 
         /// <summary> Return the type of prediction task.</summary>
-        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
         private readonly VectorType _inputType;
         private readonly DataViewType _outputType;
         DataViewType IValueMapper.InputType => _inputType;

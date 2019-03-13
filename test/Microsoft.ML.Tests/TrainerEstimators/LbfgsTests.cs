@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void TestEstimatorMulticlassLogisticRegression()
         {
-            (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
+            (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();
             var trainer = ML.MulticlassClassification.Trainers.LogisticRegression();
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);

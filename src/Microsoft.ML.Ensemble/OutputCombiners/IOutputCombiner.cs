@@ -43,12 +43,12 @@ namespace Microsoft.ML.Trainers.Ensemble
     {
     }
 
-    internal interface IMultiClassOutputCombiner : IOutputCombiner<VBuffer<Single>>
+    internal interface IMulticlassOutputCombiner : IOutputCombiner<VBuffer<Single>>
     {
     }
 
     [TlcModule.ComponentKind("EnsembleMulticlassOutputCombiner")]
-    internal interface ISupportMulticlassOutputCombinerFactory : IComponentFactory<IMultiClassOutputCombiner>
+    internal interface ISupportMulticlassOutputCombinerFactory : IComponentFactory<IMulticlassOutputCombiner>
     {
     }
 

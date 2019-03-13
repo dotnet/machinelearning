@@ -546,7 +546,7 @@ namespace Microsoft.ML.Tests.Transformers
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
             var values = new List<int>() { 1, 2, 3, 4 };
 
-            var est = ML.Transforms.Text.TokenizeWords("TokenizeB", "B")
+            var est = ML.Transforms.Text.TokenizeIntoWords("TokenizeB", "B")
                 .Append(ML.Transforms.Conversion.MapValue(keys, values, new ColumnOptions[] { ("VecB", "TokenizeB") }));
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }

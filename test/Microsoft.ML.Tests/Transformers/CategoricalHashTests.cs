@@ -76,7 +76,7 @@ namespace Microsoft.ML.Tests.Transformers
                       row.ScalarString,
                       row.VectorString,
                       // Create a VarVector column
-                      VarVectorString: row.ScalarString.TokenizeText())).
+                      VarVectorString: row.ScalarString.TokenizeIntoWords())).
                   Append(row => (
                       A: row.ScalarString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashScalarOutputKind.Ind),
                       B: row.VectorString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashVectorOutputKind.Ind),

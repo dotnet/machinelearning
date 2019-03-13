@@ -133,7 +133,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Defines the behavior of the transformer.
         /// </summary>
-        public IReadOnlyCollection<StopWordsRemovingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
+        internal IReadOnlyCollection<StopWordsRemovingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
 
         private readonly StopWordsRemovingEstimator.ColumnOptions[] _columns;
         private static volatile NormStr.Pool[] _stopWords;
@@ -828,7 +828,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// The names of the input output column pairs on which this transformation is applied.
         /// </summary>
-        public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
+        internal IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
         /// Custom stopword remover removes specified list of stop words.

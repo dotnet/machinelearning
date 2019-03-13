@@ -38,7 +38,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         [TlcModule.Component(Name = LoadName, FriendlyName = Median.UserName)]
         public sealed class Options : OptionsBase, ISupportMulticlassOutputCombinerFactory
         {
-            public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiMedian(env, this);
+            public IMulticlassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiMedian(env, this);
         }
 
         public MultiMedian(IHostEnvironment env, Options options)

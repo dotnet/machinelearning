@@ -16,7 +16,7 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 
 [assembly: LoadableClass(LightGbmMulticlassClassificationTrainer.Summary, typeof(LightGbmMulticlassClassificationTrainer), typeof(LightGbmMulticlassClassificationTrainer.Options),
-    new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
+    new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
     "LightGBM Multi-class Classifier", LightGbmMulticlassClassificationTrainer.LoadNameValue, LightGbmMulticlassClassificationTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
 namespace Microsoft.ML.Trainers.LightGbm
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         private const double _maxNumClass = 1e6;
         private int _numClass;
         private int _tlcNumClass;
-        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
         public sealed class Options : OptionsBase
         {
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
             Host.AssertValue(ch);
-            ch.Assert(PredictionKind == PredictionKind.MultiClassClassification);
+            ch.Assert(PredictionKind == PredictionKind.MulticlassClassification);
             ch.Assert(_numClass > 1);
             GbmOptions["num_class"] = _numClass;
             bool useSoftmax = false;
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             Desc = "Train a LightGBM multi class model.",
             UserName = LightGbmMulticlassClassificationTrainer.Summary,
             ShortName = LightGbmMulticlassClassificationTrainer.ShortName)]
-        public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, LightGbmMulticlassClassificationTrainer.Options input)
+        public static CommonOutputs.MulticlassClassificationOutput TrainMulticlass(IHostEnvironment env, LightGbmMulticlassClassificationTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLightGBM");

@@ -775,12 +775,12 @@ var pipeline =
                 ngramLength: 2, useAllLengths: false))
 
     // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
-    .Append(mlContext.Transforms.Text.TokenizeCharacters("MessageChars", "Message"))
+    .Append(mlContext.Transforms.Text.ProduceCharactersAsKeys("MessageChars", "Message"))
     .Append(new NgramExtractingEstimator(mlContext, "BagOfTrichar", "MessageChars", 
                 ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf))
 
     // NLP pipeline 4: word embeddings.
-    .Append(mlContext.Transforms.Text.TokenizeWords("TokenizedMessage", "NormalizedMessage"))
+    .Append(mlContext.Transforms.Text.ProduceWordTokens("TokenizedMessage", "NormalizedMessage"))
     .Append(mlContext.Transforms.Text.ExtractWordEmbeddings("Embeddings", "TokenizedMessage",
                 WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding));
 

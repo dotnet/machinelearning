@@ -46,7 +46,7 @@ namespace Microsoft.ML.Trainers
         private protected readonly TScalarTrainer Trainer;
 
         PredictionKind ITrainer.PredictionKind => PredictionKind;
-        private protected PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
         private protected SchemaShape.Column[] OutputColumns;
 
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Trainers
             data.CheckFeatureFloatVector();
 
             int count;
-            data.CheckMultiClassLabel(out count);
+            data.CheckMulticlassLabel(out count);
             Host.Assert(count > 0);
 
             using (var ch = Host.Start("Training"))
