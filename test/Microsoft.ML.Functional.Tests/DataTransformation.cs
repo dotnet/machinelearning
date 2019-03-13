@@ -135,12 +135,11 @@ namespace Microsoft.ML.Functional.Tests
                 separatorChar: TestDatasets.Sentiment.fileSeparator);
 
             // Create a training pipeline.
-            // TODO #2802: Update FeaturizeText to allow specifications of word-grams and char-grams.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features",
                     new TextFeaturizingEstimator.Options
                     {
-                        UseCharExtractor = true,
-                        UseWordExtractor = true,
+                        CharFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 3, AllLengths = false },
+                        WordFeatureExtractor = new WordBagEstimator.Options(),
                         VectorNormalizer = TextFeaturizingEstimator.NormFunction.L1
                     }, "SentimentText")
                 .AppendCacheCheckpoint(mlContext)

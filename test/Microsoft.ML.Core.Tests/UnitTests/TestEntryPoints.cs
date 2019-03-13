@@ -972,10 +972,9 @@ namespace Microsoft.ML.RunTests
                 var data = splitOutput.TrainData[i];
                 if (i % 2 == 0)
                 {
-                    data = new TextFeaturizingEstimator(Env, "Features", new List<string> { "Text" },
-                        new TextFeaturizingEstimator.Options
-                        {
-                            UseStopRemover = true,
+                    data = new TextFeaturizingEstimator(Env, "Features", new List<string> { "Text" }, 
+                        new TextFeaturizingEstimator.Options { 
+                            UsePredefinedStopWordRemover = true,
                         }).Fit(data).Transform(data);
                 }
                 else

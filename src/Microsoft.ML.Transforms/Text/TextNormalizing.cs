@@ -459,7 +459,6 @@ namespace Microsoft.ML.Transforms.Text
             public const bool KeepDiacritics = false;
             public const bool KeepPunctuations = true;
             public const bool KeepNumbers = true;
-
         }
 
         internal static bool IsColumnTypeValid(DataViewType type) => (type.GetItemType() is TextDataViewType);

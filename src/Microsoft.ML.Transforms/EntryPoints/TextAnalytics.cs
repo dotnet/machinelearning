@@ -21,7 +21,7 @@ namespace Microsoft.ML.Transforms.Text
             Desc = TextFeaturizingEstimator.Summary,
             UserName = TextFeaturizingEstimator.UserName,
             ShortName = TextFeaturizingEstimator.LoaderSignature)]
-        public static CommonOutputs.TransformOutput TextTransform(IHostEnvironment env, TextFeaturizingEstimator.Arguments input)
+        public static CommonOutputs.TransformOutput TextTransform(IHostEnvironment env, TextFeaturizingEstimator.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "FeaturizeTextEstimator", input);
             var xf = TextFeaturizingEstimator.Create(h, input, input.Data);
