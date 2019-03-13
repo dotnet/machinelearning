@@ -1001,7 +1001,7 @@ namespace Microsoft.ML.Scenarios
             var estimator = mlContext.Transforms.Text.TokenizeWords("TokenizedWords", "Sentiment_Text")
                 .Append(mlContext.Transforms.Conversion.MapValue(lookupMap, "Words", "Ids", new ColumnOptions[] { ("Features", "TokenizedWords") }));
             var model = estimator.Fit(dataView);
-            var dataPipe = mlContext.CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(model);
+            var dataPipe = mlContext.Model.CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(model);
 
             // For explanation on how was the `sentiment_model` created 
             // c.f. https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/README.md
@@ -1009,7 +1009,7 @@ namespace Microsoft.ML.Scenarios
             var pipelineModel = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" })
                 .Append(mlContext.Transforms.CopyColumns(("Prediction", "Prediction/Softmax")))
                 .Fit(dataView);
-            var tfEnginePipe = mlContext.CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(pipelineModel);
+            var tfEnginePipe = mlContext.Model.CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(pipelineModel);
 
             var processedData = dataPipe.Predict(data[0]);
             Array.Resize(ref processedData.Features, 600);
