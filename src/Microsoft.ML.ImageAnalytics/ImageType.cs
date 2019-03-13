@@ -7,7 +7,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.ImageAnalytics
+namespace Microsoft.ML.Transforms.Image
 {
     public sealed class ImageType : StructuredDataViewType
     {

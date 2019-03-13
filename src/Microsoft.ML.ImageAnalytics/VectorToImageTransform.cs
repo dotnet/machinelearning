@@ -11,10 +11,9 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Image;
 
 [assembly: LoadableClass(VectorToImageConvertingTransformer.Summary, typeof(IDataTransform), typeof(VectorToImageConvertingTransformer), typeof(VectorToImageConvertingTransformer.Options), typeof(SignatureDataTransform),
     ImagePixelExtractingTransformer.UserName, "VectorToImageTransform", "VectorToImage")]
@@ -28,7 +27,7 @@ using Microsoft.ML.Transforms;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(VectorToImageConvertingTransformer), null, typeof(SignatureLoadRowMapper),
     VectorToImageConvertingTransformer.UserName, VectorToImageConvertingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.ImageAnalytics
+namespace Microsoft.ML.Transforms.Image
 {
     /// <summary>
     /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="VectorToImageConvertingEstimator" /> .

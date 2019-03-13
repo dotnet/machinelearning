@@ -12,10 +12,9 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Image;
 
 [assembly: LoadableClass(ImageGrayscalingTransformer.Summary, typeof(IDataTransform), typeof(ImageGrayscalingTransformer), typeof(ImageGrayscalingTransformer.Options), typeof(SignatureDataTransform),
     ImageGrayscalingTransformer.UserName, "ImageGrayscaleTransform", "ImageGrayscale")]
@@ -29,7 +28,7 @@ using Microsoft.ML.Transforms;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(ImageGrayscalingTransformer), null, typeof(SignatureLoadRowMapper),
     ImageGrayscalingTransformer.UserName, ImageGrayscalingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.ImageAnalytics
+namespace Microsoft.ML.Transforms.Image
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
     // REVIEW: Should it be separate transform or part of ImageResizerTransform?
