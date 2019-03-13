@@ -176,7 +176,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestMLRWithStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
-            var trainer = ML.MulticlassClassification.Trainers.LogisticRegression(new MulticlassLogisticRegression.Options
+            var trainer = ML.MulticlassClassification.Trainers.LogisticRegression(new LogisticRegressionMulticlassClassificationTrainer.Options
             {
                 ShowTrainingStatistics = true
             });
