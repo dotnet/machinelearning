@@ -13,7 +13,7 @@ namespace Microsoft.ML.Auto
         {
             return new SweepableParam[]
             {
-                new SweepableDiscreteParam("LearningRate", new object[] { 0.01, 0.1, 0.5, 1.0 }),
+                new SweepableDiscreteParam("LearningRate", new object[] { 0.01f, 0.1f, 0.5f, 1.0f}),
                 new SweepableDiscreteParam("DecreaseLearningRate", new object[] { false, true }),
                 new SweepableFloatParam("L2RegularizerWeight", 0.0f, 0.4f),
             };
@@ -31,12 +31,12 @@ namespace Microsoft.ML.Auto
 
         private static IEnumerable<SweepableParam> BuildTreeArgsParams()
         {
-           return new SweepableParam[]
-           {
+            return new SweepableParam[]
+            {
                 new SweepableLongParam("NumLeaves", 2, 128, isLogScale: true, stepSize: 4),
                 new SweepableDiscreteParam("MinDocumentsInLeafs", new object[] { 1, 10, 50 }),
                 new SweepableDiscreteParam("NumTrees", new object[] { 20, 100, 500 }),
-           };
+            };
         }
 
         private static IEnumerable<SweepableParam> BuildBoostedTreeArgsParams()
@@ -139,13 +139,15 @@ namespace Microsoft.ML.Auto
             };
         }
 
-        public static IEnumerable<SweepableParam> BuildOrdinaryLeastSquaresParams() {
+        public static IEnumerable<SweepableParam> BuildOrdinaryLeastSquaresParams()
+        {
             return new SweepableParam[] {
                 new SweepableDiscreteParam("L2Weight", new object[] { 1e-6f, 0.1f, 1f })
             };
         }
 
-        public static IEnumerable<SweepableParam> BuildSgdParams() {
+        public static IEnumerable<SweepableParam> BuildSgdParams()
+        {
             return new SweepableParam[] {
                 new SweepableDiscreteParam("L2Weight", new object[] { 1e-7f, 5e-7f, 1e-6f, 5e-6f, 1e-5f }),
                 new SweepableDiscreteParam("ConvergenceTolerance", new object[] { 1e-2f, 1e-3f, 1e-4f, 1e-5f }),
@@ -154,7 +156,8 @@ namespace Microsoft.ML.Auto
             };
         }
 
-        public static IEnumerable<SweepableParam> BuildSymSgdParams() {
+        public static IEnumerable<SweepableParam> BuildSymSgdParams()
+        {
             return new SweepableParam[] {
                 new SweepableDiscreteParam("NumberOfIterations", new object[] { 1, 5, 10, 20, 30, 40, 50 }),
                 new SweepableDiscreteParam("LearningRate", new object[] { "<Auto>", 1e1f, 1e0f, 1e-1f, 1e-2f, 1e-3f }),
