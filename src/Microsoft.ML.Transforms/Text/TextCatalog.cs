@@ -193,7 +193,7 @@ namespace Microsoft.ML
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maximumNgramsCounts">Maximum number of n-grams to store in the dictionary.</param>
+        /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -208,10 +208,10 @@ namespace Microsoft.ML
             int ngramLength = NgramExtractingEstimator.Defaults.NgramLength,
             int skipLength = NgramExtractingEstimator.Defaults.SkipLength,
             bool allLengths = NgramExtractingEstimator.Defaults.AllLengths,
-            int maximumNgramsCounts = NgramExtractingEstimator.Defaults.MaximumNgramsCount,
+            int maximumNgramsCount = NgramExtractingEstimator.Defaults.MaximumNgramsCount,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.Defaults.Weighting) =>
             new NgramExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName,
-                ngramLength, skipLength, allLengths, maximumNgramsCounts, weighting);
+                ngramLength, skipLength, allLengths, maximumNgramsCount, weighting);
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="columns.inputs"/>
