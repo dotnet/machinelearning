@@ -43,14 +43,14 @@ namespace Microsoft.ML.Functional.Tests
                 .AppendCacheCheckpoint(mlContext);
 
             // Create a selection of learners.
-            var sdcaTrainer = mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                    new SdcaBinaryTrainer.Options { NumberOfThreads = 1 });
+            var sdcaTrainer = mlContext.BinaryClassification.Trainers.SdcaCalibrated(
+                    new SdcaCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1 });
 
             var fastTreeTrainer = mlContext.BinaryClassification.Trainers.FastTree(
                     new FastTreeBinaryClassificationTrainer.Options { NumberOfThreads = 1 });
 
             var ffmTrainer = mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine(
-                    new FieldAwareFactorizationMachineBinaryClassificationTrainer.Options { });
+                    new FieldAwareFactorizationMachineTrainer.Options { });
 
             // Fit the data transformation pipeline.
             var featurization = featurizationPipeline.Fit(trainData);
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Functional.Tests
                 .AppendCacheCheckpoint(mlContext);
 
             var trainer = mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine(
-                new FieldAwareFactorizationMachineBinaryClassificationTrainer.Options { NumberOfIterations = 100 });
+                new FieldAwareFactorizationMachineTrainer.Options { NumberOfIterations = 100 });
 
             // Fit the data transformation pipeline.
             var featurization = featurizationPipeline.Fit(data);
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Functional.Tests
             var featurizationPipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext);
 
-            var trainer = mlContext.BinaryClassification.Trainers.LinearSupportVectorMachines(
+            var trainer = mlContext.BinaryClassification.Trainers.LinearSvm(
                 new LinearSvmTrainer.Options { NumberOfIterations = 1 });
 
             // Fit the data transformation pipeline.
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Functional.Tests
                 .AppendCacheCheckpoint(mlContext);
 
             var trainer = mlContext.BinaryClassification.Trainers.LogisticRegression(
-                new LogisticRegression.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 });
+                new LogisticRegressionBinaryClassificationTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 });
 
             // Fit the data transformation pipeline.
             var featurization = featurizationPipeline.Fit(data);
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Functional.Tests
                 .AppendCacheCheckpoint(mlContext);
 
             var trainer = mlContext.MulticlassClassification.Trainers.LogisticRegression(
-                new MulticlassLogisticRegression.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 });
+                new LogisticRegressionMulticlassClassificationTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 });
 
             // Fit the data transformation pipeline.
             var featurization = featurizationPipeline.Fit(data);
@@ -350,7 +350,51 @@ namespace Microsoft.ML.Functional.Tests
         /// Training: Models can be trained starting from an existing model.
         /// </summary>
         [Fact]
-        public void ContinueTrainingLinearSymbolicStochasticGradientDescent()
+        public void ContinueTrainingPoissonRegression()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            // Get the dataset.
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename),
+                separatorChar: TestDatasets.housing.fileSeparator,
+                hasHeader: TestDatasets.housing.fileHasHeader);
+
+            // Create a transformation pipeline.
+            var featurizationPipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
+                .Append(mlContext.Transforms.Normalize("Features"))
+                .AppendCacheCheckpoint(mlContext);
+
+            var trainer = mlContext.Regression.Trainers.PoissonRegression(
+                new PoissonRegressionTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 100 });
+
+            // Fit the data transformation pipeline.
+            var featurization = featurizationPipeline.Fit(data);
+            var featurizedData = featurization.Transform(data);
+
+            // Fit the first trainer.
+            var firstModel = trainer.Fit(featurizedData);
+            var firstModelWeights = firstModel.Model.Weights;
+
+            // Fist the first trainer again.
+            var firstModelPrime = trainer.Fit(featurizedData);
+            var firstModelWeightsPrime = firstModel.Model.Weights;
+
+            // Fit the second trainer.
+            var secondModel = trainer.Fit(featurizedData, firstModel.Model);
+            var secondModelWeights = secondModel.Model.Weights;
+
+            // Validate that continued training occurred.
+            // Training from the same initial condition, same seed should create the same model.
+            Common.AssertEqual(firstModelWeights.ToArray(), firstModelWeightsPrime.ToArray());
+            // Continued training should create a different model.
+            Common.AssertNotEqual(firstModelWeights.ToArray(), secondModelWeights.ToArray());
+        }
+
+        /// <summary>
+        /// Training: Models can be trained starting from an existing model.
+        /// </summary>
+        [Fact]
+        public void ContinueTrainingSymbolicStochasticGradientDescent()
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -364,8 +408,8 @@ namespace Microsoft.ML.Functional.Tests
             var featurizationPipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext);
 
-            var trainer = mlContext.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(
-                new SymbolicStochasticGradientDescentClassificationTrainer.Options
+            var trainer = mlContext.BinaryClassification.Trainers.SymbolicSgd(
+                new SymbolicSgdTrainer.Options
                 {
                     NumberOfThreads = 1,
                     NumberOfIterations = 10
@@ -395,50 +439,6 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// Training: Models can be trained starting from an existing model.
-        /// </summary>
-        [Fact]
-        public void ContinueTrainingPoissonRegression()
-        {
-            var mlContext = new MLContext(seed: 1);
-
-            // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename),
-                separatorChar: TestDatasets.housing.fileSeparator,
-                hasHeader: TestDatasets.housing.fileHasHeader);
-
-            // Create a transformation pipeline.
-            var featurizationPipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Transforms.Normalize("Features"))
-                .AppendCacheCheckpoint(mlContext);
-
-            var trainer = mlContext.Regression.Trainers.PoissonRegression(
-                new PoissonRegression.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 100 });
-
-            // Fit the data transformation pipeline.
-            var featurization = featurizationPipeline.Fit(data);
-            var featurizedData = featurization.Transform(data);
-
-            // Fit the first trainer.
-            var firstModel = trainer.Fit(featurizedData);
-            var firstModelWeights = firstModel.Model.Weights;
-
-            // Fist the first trainer again.
-            var firstModelPrime = trainer.Fit(featurizedData);
-            var firstModelWeightsPrime = firstModel.Model.Weights;
-
-            // Fit the second trainer.
-            var secondModel = trainer.Fit(featurizedData, firstModel.Model);
-            var secondModelWeights = secondModel.Model.Weights;
-
-            // Validate that continued training occurred.
-            // Training from the same initial condition, same seed should create the same model.
-            Common.AssertEqual(firstModelWeights.ToArray(), firstModelWeightsPrime.ToArray());
-            // Continued training should create a different model.
-            Common.AssertNotEqual(firstModelWeights.ToArray(), secondModelWeights.ToArray());
-        }
-
-        /// <summary>
         /// Training: Meta-compononts function as expected. For OVA (one-versus-all), a user will be able to specify only
         /// binary classifier trainers. If they specify a different model class there should be a compile error.
         /// </summary>
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Functional.Tests
                 separatorChar: TestDatasets.iris.fileSeparator);
 
             // Create a model training an OVA trainer with a binary classifier.
-            var anomalyDetectionTrainer = mlContext.AnomalyDetection.Trainers.AnalyzeRandomizedPrincipalComponents();
+            var anomalyDetectionTrainer = mlContext.AnomalyDetection.Trainers.RandomizedPca();
             var anomalyDetectionPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
@@ -464,7 +464,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a model training an OVA trainer with a binary classifier.
             var binaryclassificationTrainer = mlContext.BinaryClassification.Trainers.LogisticRegression(
-                new LogisticRegression.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
+                new LogisticRegressionBinaryClassificationTrainer.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
             var binaryClassificationPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
@@ -481,7 +481,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a model training an OVA trainer with a clustering trainer.
             var kmeansTrainer = mlContext.Clustering.Trainers.KMeans(
-                new KMeansPlusPlusTrainer.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
+                new KMeansTrainer.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
 
             Assert.Throws<ArgumentOutOfRangeException>(() =>
                 mlContext.Transforms.Concatenate("Features", Iris.Features)
@@ -492,7 +492,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a model training an OVA trainer with a multiclass classification trainer.
             var multiclassTrainer = mlContext.MulticlassClassification.Trainers.LogisticRegression(
-                new MulticlassLogisticRegression.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
+                new LogisticRegressionMulticlassClassificationTrainer.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
             Assert.Throws<ArgumentOutOfRangeException>(() => 
                 mlContext.Transforms.Concatenate("Features", Iris.Features)
                     .AppendCacheCheckpoint(mlContext)
@@ -515,7 +515,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a model training an OVA trainer with a regressor.
             var regressionTrainer = mlContext.Regression.Trainers.PoissonRegression(
-                new PoissonRegression.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
+                new PoissonRegressionTrainer.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
             // Todo #2920: Make this fail somehow.
             var regressionPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
