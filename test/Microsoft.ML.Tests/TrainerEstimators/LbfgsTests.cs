@@ -194,7 +194,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
                 CompareNumbersWithTolerance(stats.Deviance, 45.3556442);
                 CompareNumbersWithTolerance(stats.NullDeviance, 329.583679199219);
-                Assert.Equal(12, stats.ParametersCount);
+                Assert.Equal(14, stats.ParametersCount);
                 Assert.Equal(150, stats.TrainingExampleCount);
             };
 
