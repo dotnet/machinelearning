@@ -54,8 +54,8 @@ namespace Microsoft.ML.Transforms.Text
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
-                ShortName = "all")]
-            public bool? AllLengths;
+                Name = "AllLengths", ShortName = "all")]
+            public bool? UseAllLengths;
 
             [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
             public int[] MaxNumTerms = null;
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Transforms.Text
             internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (NgramLength != null || SkipLength != null || AllLengths != null || Utils.Size(MaxNumTerms) > 0 ||
+                if (NgramLength != null || SkipLength != null || UseAllLengths != null || Utils.Size(MaxNumTerms) > 0 ||
                     Weighting != null)
                 {
                     return false;
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Transforms.Text
                     MaxNumTerms = options.MaxNumTerms,
                     NgramLength = options.NgramLength,
                     SkipLength = options.SkipLength,
-                    AllLengths = options.AllLengths,
+                    UseAllLengths = options.UseAllLengths,
                     Weighting = options.Weighting,
                     Columns = new NgramExtractorTransform.Column[options.Columns.Length]
                 };
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Transforms.Text
                         NgramLength = column.NgramLength,
                         SkipLength = column.SkipLength,
                         Weighting = column.Weighting,
-                        AllLengths = column.AllLengths
+                        UseAllLengths = column.UseAllLengths
                     };
             }
 
@@ -175,8 +175,9 @@ namespace Microsoft.ML.Transforms.Text
             public int? SkipLength;
 
             [Argument(ArgumentType.AtMostOnce, HelpText =
-                "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength), ShortName = "all")]
-            public bool? AllLengths;
+                "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
+                Name = "AllLengths", ShortName = "all")]
+            public bool? UseAllLengths;
 
             // REVIEW: This argument is actually confusing. If you set only one value we will use this value for all ngrams respectfully for example,
             // if we specify 3 ngrams we will have maxNumTerms * 3. And it also pick first value from this array to run term transform, so if you specify
@@ -200,7 +201,7 @@ namespace Microsoft.ML.Transforms.Text
             internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (NgramLength != null || SkipLength != null || AllLengths != null || Utils.Size(MaxNumTerms) > 0 ||
+                if (NgramLength != null || SkipLength != null || UseAllLengths != null || Utils.Size(MaxNumTerms) > 0 ||
                     Weighting != null)
                 {
                     return false;
@@ -225,11 +226,11 @@ namespace Microsoft.ML.Transforms.Text
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
-                ShortName = "all")]
-            public bool AllLengths = NgramExtractingEstimator.Defaults.AllLengths;
+                Name = "AllLengths", ShortName = "all")]
+            public bool UseAllLengths = NgramExtractingEstimator.Defaults.UseAllLengths;
 
             [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
-            public int[] MaxNumTerms = new int[] { NgramExtractingEstimator.Defaults.MaxNumTerms };
+            public int[] MaxNumTerms = new int[] { NgramExtractingEstimator.Defaults.MaximumNgramsCount };
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
             public NgramExtractingEstimator.WeightingCriteria Weighting = NgramExtractingEstimator.Defaults.Weighting;
@@ -315,7 +316,7 @@ namespace Microsoft.ML.Transforms.Text
                     termArgs =
                         new ValueToKeyMappingTransformer.Options()
                         {
-                            MaxNumTerms = Utils.Size(options.MaxNumTerms) > 0 ? options.MaxNumTerms[0] : NgramExtractingEstimator.Defaults.MaxNumTerms,
+                            MaxNumTerms = Utils.Size(options.MaxNumTerms) > 0 ? options.MaxNumTerms[0] : NgramExtractingEstimator.Defaults.MaximumNgramsCount,
                             Columns = new ValueToKeyMappingTransformer.Column[termCols.Count]
                         };
                 }
@@ -347,7 +348,7 @@ namespace Microsoft.ML.Transforms.Text
                 ngramColumns[iinfo] = new NgramExtractingEstimator.ColumnOptions(column.Name,
                     column.NgramLength ?? options.NgramLength,
                     column.SkipLength ?? options.SkipLength,
-                    column.AllLengths ?? options.AllLengths,
+                    column.UseAllLengths ?? options.UseAllLengths,
                     column.Weighting ?? options.Weighting,
                     column.MaxNumTerms ?? options.MaxNumTerms,
                     isTermCol[iinfo] ? column.Name : column.Source
@@ -380,7 +381,7 @@ namespace Microsoft.ML.Transforms.Text
                 Columns = extractorCols,
                 NgramLength = extractorArgs.NgramLength,
                 SkipLength = extractorArgs.SkipLength,
-                AllLengths = extractorArgs.AllLengths,
+                UseAllLengths = extractorArgs.UseAllLengths,
                 MaxNumTerms = extractorArgs.MaxNumTerms,
                 Weighting = extractorArgs.Weighting
             };

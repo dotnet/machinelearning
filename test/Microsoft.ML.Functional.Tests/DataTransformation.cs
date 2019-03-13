@@ -138,7 +138,7 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features",
                     new TextFeaturizingEstimator.Options
                     {
-                        CharFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 3, AllLengths = false },
+                        CharFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 3, UseAllLengths = false },
                         WordFeatureExtractor = new WordBagEstimator.Options(),
                         VectorNormalizer = TextFeaturizingEstimator.NormFunction.L1
                     }, "SentimentText")

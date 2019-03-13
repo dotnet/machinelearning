@@ -302,7 +302,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
                 // NLP pipeline 2: bag of bigrams, using hashes instead of dictionary indices.
                 .Append(new WordHashBagEstimator(mlContext, "BagOfBigrams","NormalizedMessage", 
-                            ngramLength: 2, allLengths: false))
+                            ngramLength: 2, useAllLengths: false))
 
                 // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
                 .Append(mlContext.Transforms.Text.TokenizeCharacters("MessageChars", "Message"))

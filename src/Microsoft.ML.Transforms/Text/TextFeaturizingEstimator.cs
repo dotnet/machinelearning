@@ -141,7 +141,7 @@ namespace Microsoft.ML.Transforms.Text
                         extractor = new NgramExtractorTransform.NgramExtractorArguments();
                         extractor.NgramLength = _wordFeatureExtractor.NgramLength;
                         extractor.SkipLength = _wordFeatureExtractor.SkipLength;
-                        extractor.AllLengths = _wordFeatureExtractor.AllLengths;
+                        extractor.UseAllLengths = _wordFeatureExtractor.UseAllLengths;
                         extractor.MaxNumTerms = _wordFeatureExtractor.MaximumNgramsCount;
                         extractor.Weighting = _wordFeatureExtractor.Weighting;
                     }
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Transforms.Text
                         extractor = new NgramExtractorTransform.NgramExtractorArguments();
                         extractor.NgramLength = _charFeatureExtractor.NgramLength;
                         extractor.SkipLength = _charFeatureExtractor.SkipLength;
-                        extractor.AllLengths = _charFeatureExtractor.AllLengths;
+                        extractor.UseAllLengths = _charFeatureExtractor.UseAllLengths;
                         extractor.MaxNumTerms = _charFeatureExtractor.MaximumNgramsCount;
                         extractor.Weighting = _charFeatureExtractor.Weighting;
                     }
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Transforms.Text
             public Options()
             {
                 WordFeatureExtractor = new WordBagEstimator.Options();
-                CharFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 3, AllLengths = false };
+                CharFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 3, UseAllLengths = false };
             }
         }
 
