@@ -9,6 +9,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(typeof(BinaryClassifierScorer), typeof(BinaryClassifierScorer.Arguments), typeof(SignatureDataScorer),
@@ -220,9 +221,10 @@ namespace Microsoft.ML.Data
         {
             Host.AssertValue(output);
             Host.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
-            Host.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
+            Host.Assert(output.IsColumnActive(output.Schema[Bindings.ScoreColumnIndex]));
 
-            ValueGetter<float> mapperScoreGetter = output.GetGetter<float>(Bindings.ScoreColumnIndex);
+            var scoreColumn = output.Schema[Bindings.ScoreColumnIndex];
+            ValueGetter<float> mapperScoreGetter = output.GetGetter<float>(scoreColumn);
 
             long cachedPosition = -1;
             float score = 0;

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Data;
-
 namespace Microsoft.ML.Samples.Dynamic
 {
     public static partial class ValueMapping
@@ -57,7 +55,7 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             // Constructs the ValueMappingEstimator making the ML.net pipeline
-            var pipeline = mlContext.Transforms.Conversion.ValueMap(educationKeys, educationValues, ("EducationCategory", "Education"));
+            var pipeline = mlContext.Transforms.Conversion.MapValue(educationKeys, educationValues, ("EducationCategory", "Education"));
 
             // Fits the ValueMappingEstimator and transforms the data converting the Education to EducationCategory.
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);

@@ -7,7 +7,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
 {
     public static class LightGbm
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
         public static void Example()
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
 
             // Split the static-typed data into training and test sets. Only training set is used in fitting
             // the created pipeline. Metrics are computed on the test.
-            var split = mlContext.MulticlassClassification.TrainTestSplit(dataView, testFraction: 0.5);
+            var split = mlContext.Data.TrainTestSplit(dataView, testFraction: 0.5);
 
             // Train the model.
             var model = pipeline.Fit(split.TrainSet);

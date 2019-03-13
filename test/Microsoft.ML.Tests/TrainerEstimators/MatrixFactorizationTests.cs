@@ -53,7 +53,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [MatrixFactorizationFact]
         public void MatrixFactorizationSimpleTrainAndPredict()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Specific column names of the considered data set
             string labelColumnName = "Label";
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var options = new MatrixFactorizationTrainer.Options
             {
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var options = new MatrixFactorizationTrainer.Options
             {
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var options = new MatrixFactorizationTrainer.Options
             {
@@ -496,7 +496,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Train a matrix factorization model.
             //var model = pipeline.Fit(dataView);
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Test that we can load model after KeyType change (removed Min and Contiguous).            
             var modelPath = GetDataPath("backcompat", "matrix-factorization-model.zip");
@@ -549,7 +549,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var options = new MatrixFactorizationTrainer.Options
             {

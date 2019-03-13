@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 
 namespace Microsoft.ML.Samples.Static
@@ -57,7 +56,7 @@ namespace Microsoft.ML.Samples.Static
 
             // Loader the data, and leave 10% out, so we can use them for testing
             var data = loader.Load(dataFilePath);
-            var (trainData, testData) = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
+            var (trainData, testData) = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Create the Estimator
             var learningPipeline = loader.MakeNewEstimator()

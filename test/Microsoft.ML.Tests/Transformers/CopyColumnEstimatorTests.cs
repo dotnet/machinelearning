@@ -7,6 +7,7 @@ using System.IO;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -164,11 +165,11 @@ namespace Microsoft.ML.Tests
                 int dvalue = 0;
                 int evalue = 0;
                 int fvalue = 0;
-                var aGetter = cursor.GetGetter<int>(0);
-                var bGetter = cursor.GetGetter<int>(1);
-                var dGetter = cursor.GetGetter<int>(3);
-                var eGetter = cursor.GetGetter<int>(4);
-                var fGetter = cursor.GetGetter<int>(5);
+                var aGetter = cursor.GetGetter<int>(cursor.Schema[0]);
+                var bGetter = cursor.GetGetter<int>(cursor.Schema[1]);
+                var dGetter = cursor.GetGetter<int>(cursor.Schema[3]);
+                var eGetter = cursor.GetGetter<int>(cursor.Schema[4]);
+                var fGetter = cursor.GetGetter<int>(cursor.Schema[5]);
                 while (cursor.MoveNext())
                 {
                     aGetter(ref avalue);

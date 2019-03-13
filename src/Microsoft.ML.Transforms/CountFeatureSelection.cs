@@ -11,12 +11,13 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Transforms.FeatureSelection;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(CountFeatureSelectingEstimator.Summary, typeof(IDataTransform), typeof(CountFeatureSelectingEstimator), typeof(CountFeatureSelectingEstimator.Options), typeof(SignatureDataTransform),
     CountFeatureSelectingEstimator.UserName, "CountFeatureSelectionTransform", "CountFeatureSelection")]
 
-namespace Microsoft.ML.Transforms.FeatureSelection
+namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
     public sealed class CountFeatureSelectingEstimator : IEstimator<ITransformer>
@@ -309,7 +310,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         private static CountAggregator GetOneAggregator<T>(DataViewRow row, DataViewType colType, int colSrc)
         {
-            return new CountAggregator<T>(colType, row.GetGetter<T>(colSrc));
+            return new CountAggregator<T>(colType, row.GetGetter<T>(row.Schema[colSrc]));
         }
 
         private static CountAggregator GetVecAggregator(DataViewRow row, VectorType colType, int colSrc)
@@ -321,7 +322,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         private static CountAggregator GetVecAggregator<T>(DataViewRow row, VectorType colType, int colSrc)
         {
-            return new CountAggregator<T>(colType, row.GetGetter<VBuffer<T>>(colSrc));
+            return new CountAggregator<T>(colType, row.GetGetter<VBuffer<T>>(row.Schema[colSrc]));
         }
 
         private abstract class CountAggregator

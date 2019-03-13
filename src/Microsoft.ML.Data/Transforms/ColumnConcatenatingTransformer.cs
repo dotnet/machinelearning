@@ -13,6 +13,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
@@ -678,19 +679,22 @@ namespace Microsoft.ML.Data
                 private Delegate MakeIdentityGetter<T>(DataViewRow input)
                 {
                     Contracts.Assert(SrcIndices.Length == 1);
-                    return input.GetGetter<T>(SrcIndices[0]);
+                    return input.GetGetter<T>(input.Schema[SrcIndices[0]]);
                 }
 
                 private Delegate MakeGetter<T>(DataViewRow input)
                 {
                     var srcGetterOnes = new ValueGetter<T>[SrcIndices.Length];
                     var srcGetterVecs = new ValueGetter<VBuffer<T>>[SrcIndices.Length];
+
                     for (int j = 0; j < SrcIndices.Length; j++)
                     {
+                        var column = input.Schema[SrcIndices[j]];
+
                         if (_srcTypes[j] is VectorType)
-                            srcGetterVecs[j] = input.GetGetter<VBuffer<T>>(SrcIndices[j]);
+                            srcGetterVecs[j] = input.GetGetter<VBuffer<T>>(column);
                         else
-                            srcGetterOnes[j] = input.GetGetter<T>(SrcIndices[j]);
+                            srcGetterOnes[j] = input.GetGetter<T>(column);
                     }
 
                     T tmp = default(T);

@@ -20,21 +20,26 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = TextLoaderStatic.CreateLoader(Env, ctx => (Label: ctx.LoadFloat(0), Features: ctx.LoadFloat(1, 10)))
                 .Load(dataPath).Cache();
 
-            var binaryTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                new SdcaBinaryTrainer.Options { ConvergenceTolerance = 1e-2f });
-            TestEstimatorCore(binaryTrainer, data.AsDynamic);
+            var binaryData = ML.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean)
+                .Fit(data.AsDynamic).Transform(data.AsDynamic);
 
-            var nonCalibratedBinaryTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options { ConvergenceTolerance = 1e-2f });
-            TestEstimatorCore(nonCalibratedBinaryTrainer, data.AsDynamic);
+            var binaryTrainer = ML.BinaryClassification.Trainers.SdcaCalibrated(
+                new SdcaCalibratedBinaryClassificationTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+            TestEstimatorCore(binaryTrainer, binaryData);
 
-            var regressionTrainer = ML.Regression.Trainers.StochasticDualCoordinateAscent(
-                new SdcaRegressionTrainer.Options { ConvergenceTolerance = 1e-2f });
+            var nonCalibratedBinaryTrainer = ML.BinaryClassification.Trainers.SdcaNonCalibrated(
+                new SdcaNonCalibratedBinaryClassificationTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+            TestEstimatorCore(nonCalibratedBinaryTrainer, binaryData);
+
+            var regressionTrainer = ML.Regression.Trainers.Sdca(
+                new SdcaRegressionTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+
             TestEstimatorCore(regressionTrainer, data.AsDynamic);
+            var mcData = ML.Transforms.Conversion.MapValueToKey("Label").Fit(data.AsDynamic).Transform(data.AsDynamic);
 
-            var mcTrainer = ML.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
-                new SdcaMultiClassTrainer.Options { ConvergenceTolerance = 1e-2f });
-            TestEstimatorCore(mcTrainer, data.AsDynamic);
+            var mcTrainer = ML.MulticlassClassification.Trainers.Sdca(
+                new SdcaMulticlassClassificationTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+            TestEstimatorCore(mcTrainer, mcData);
 
             Done();
         }
@@ -58,7 +63,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Step 2: Create a binary classifier.
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
-            var pipeline = mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(labelColumnName: "Label", featureColumnName: "Features", l2Regularization: 0.001f);
+            var pipeline = mlContext.BinaryClassification.Trainers.SdcaCalibrated(labelColumnName: "Label", featureColumnName: "Features", l2Regularization: 0.001f);
 
             // Step 3: Train the pipeline created.
             var model = pipeline.Fit(data);
@@ -102,7 +107,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Step 2: Create a binary classifier.
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
-            var pipeline = mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+            var pipeline = mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(
                 labelColumnName: "Label", featureColumnName: "Features", loss: new HingeLoss(), l2Regularization: 0.001f);
 
             // Step 3: Train the pipeline created.

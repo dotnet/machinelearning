@@ -12,6 +12,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Transforms
@@ -586,7 +587,7 @@ namespace Microsoft.ML.Transforms
 
                     public override Delegate GetGetter(DataViewRow input, int icol)
                     {
-                        var getSrc = input.GetGetter<TFloat>(icol);
+                        var getSrc = input.GetGetter<TFloat>(input.Schema[icol]);
                         ValueGetter<TFloat> del =
                             (ref TFloat dst) =>
                             {
@@ -661,7 +662,7 @@ namespace Microsoft.ML.Transforms
 
                     public override Delegate GetGetter(DataViewRow input, int icol)
                     {
-                        var getSrc = input.GetGetter<VBuffer<TFloat>>(icol);
+                        var getSrc = input.GetGetter<VBuffer<TFloat>>(input.Schema[icol]);
                         var bldr = new BufferBuilder<TFloat>(R4Adder.Instance);
                         ValueGetter<VBuffer<TFloat>> del;
                         if (Offset == null)
@@ -916,7 +917,7 @@ namespace Microsoft.ML.Transforms
                             return trivial;
                         }
 
-                        var getSrc = input.GetGetter<TFloat>(icol);
+                        var getSrc = input.GetGetter<TFloat>(input.Schema[icol]);
                         ValueGetter<TFloat> del =
                             (ref TFloat dst) =>
                             {
@@ -961,7 +962,7 @@ namespace Microsoft.ML.Transforms
 
                     public override Delegate GetGetter(DataViewRow input, int icol)
                     {
-                        var getSrc = input.GetGetter<VBuffer<TFloat>>(icol);
+                        var getSrc = input.GetGetter<VBuffer<TFloat>>(input.Schema[icol]);
                         var bldr = new BufferBuilder<TFloat>(R4Adder.Instance);
                         ValueGetter<VBuffer<TFloat>> del;
                         del = (ref VBuffer<TFloat> dst) =>
@@ -1091,7 +1092,7 @@ namespace Microsoft.ML.Transforms
 
                     public override Delegate GetGetter(DataViewRow input, int icol)
                     {
-                        var getSrc = input.GetGetter<TFloat>(icol);
+                        var getSrc = input.GetGetter<TFloat>(input.Schema[icol]);
                         ValueGetter<TFloat> del =
                             (ref TFloat dst) =>
                             {
@@ -1176,7 +1177,7 @@ namespace Microsoft.ML.Transforms
 
                     public override Delegate GetGetter(DataViewRow input, int icol)
                     {
-                        var getSrc = input.GetGetter<VBuffer<TFloat>>(icol);
+                        var getSrc = input.GetGetter<VBuffer<TFloat>>(input.Schema[icol]);
                         var bldr = new BufferBuilder<TFloat>(R4Adder.Instance);
                         ValueGetter<VBuffer<TFloat>> del =
                             (ref VBuffer<TFloat> dst) =>

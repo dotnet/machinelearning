@@ -6,6 +6,7 @@ using System;
 using System.Text;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.TestFramework
 {

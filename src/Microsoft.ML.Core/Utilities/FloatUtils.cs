@@ -5,6 +5,7 @@
 using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {

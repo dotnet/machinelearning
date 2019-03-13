@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -71,7 +71,8 @@ namespace Microsoft.ML.Benchmarks
             IDataView data = loader.Load(dataPath);
 
             var pipeline = new ColumnConcatenatingEstimator(mlContext, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
+                .Append(mlContext.MulticlassClassification.Trainers.Sdca());
 
             return pipeline.Fit(data);
         }
@@ -97,17 +98,19 @@ namespace Microsoft.ML.Benchmarks
             {
                 OutputTokens = true,
                 KeepPunctuations = false,
-                UseStopRemover = true,
-                VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
-                UseCharExtractor = false,
-                UseWordExtractor = false,
+                UsePredefinedStopWordRemover = true,
+                VectorNormalizer = TextFeaturizingEstimator.NormFunction.None,
+                CharFeatureExtractor = null,
+                WordFeatureExtractor = null,
             }, "SentimentText").Fit(loader).Transform(loader);
 
-            var trans = mlContext.Transforms.Text.ExtractWordEmbeddings("Features", "WordEmbeddings_TransformedText", 
-                WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe).Fit(text).Transform(text);
+            var trans = mlContext.Transforms.Text.ApplyWordEmbedding("Features", "WordEmbeddings_TransformedText",
+                WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
+                .Fit(text).Transform(text);
 
             // Train
-            var trainer = mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent();
+            var trainer = mlContext.MulticlassClassification.Trainers.Sdca();
             var predicted = trainer.Fit(trans);
             _consumer.Consume(predicted);
         }

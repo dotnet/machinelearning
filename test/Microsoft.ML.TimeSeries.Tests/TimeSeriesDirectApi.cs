@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void ChangeDetection()
         {
-            var env = new MLContext(conc: 1);
+            var env = new MLContext();
             const int size = 10;
             List<Data> data = new List<Data>(size);
             var dataView = env.Data.LoadFromEnumerable(data);
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Tests
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         public void ChangePointDetectionWithSeasonality()
         {
-            var env = new MLContext(conc: 1);
+            var env = new MLContext();
             const int ChangeHistorySize = 10;
             const int SeasonalitySize = 10;
             const int NumberOfSeasonsInTraining = 5;
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Tests
 
             List<Data> data = new List<Data>();
 
-            var ml = new MLContext(seed: 1, conc: 1);
+            var ml = new MLContext(seed: 1);
             var dataView = ml.Data.LoadFromEnumerable(data);
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Tests
 
             List<Data> data = new List<Data>();
 
-            var ml = new MLContext(seed: 1, conc: 1);
+            var ml = new MLContext(seed: 1);
             var dataView = ml.Data.LoadFromEnumerable(data);
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)

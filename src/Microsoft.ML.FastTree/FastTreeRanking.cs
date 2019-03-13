@@ -14,6 +14,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
 // REVIEW: Do we really need all these names?
@@ -104,6 +105,7 @@ namespace Microsoft.ML.Trainers.FastTree
             if (!labelCol.IsKey && labelCol.ItemType != NumberDataViewType.Single)
                 error();
         }
+
         private protected override float GetMaxLabel()
         {
             return GetLabelGains().Length - 1;

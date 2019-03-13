@@ -12,6 +12,7 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(typeof(TransformerChain<ITransformer>), typeof(TransformerChain), null, typeof(SignatureLoadModel),
     "Transformer chain", TransformerChain.LoaderSignature)]
@@ -199,7 +200,8 @@ namespace Microsoft.ML.Data
                 LastTransformer = null;
         }
 
-        public void SaveTo(IHostEnvironment env, Stream outputStream)
+        [BestFriend]
+        internal void SaveTo(IHostEnvironment env, Stream outputStream)
         {
             using (var ch = env.Start("Saving pipeline"))
             {

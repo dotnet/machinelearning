@@ -16,7 +16,7 @@
         <code language="csharp">
           pipeline.Add(new CategoricalHashOneHotVectorizer(&quot;Text1&quot;) 
           { 
-            HashBits = 10, 
+            NumberOfBits = 10, 
             Seed = 314489979, 
             OutputKind = CategoricalTransformOutputKind.Bag 
           });

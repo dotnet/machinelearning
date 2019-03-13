@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Model
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// A base class for predictors producing <typeparamref name="TOutput"/>.

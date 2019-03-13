@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers;
 using Xunit;
@@ -21,14 +20,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void SimpleTrainAndPredict()
         {
-            var ml = new MLContext(seed: 1, conc: 1);
+            var ml = new MLContext(seed: 1);
             var data = ml.Data.LoadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
 
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(ml)
-                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1 }));
+                .Append(ml.BinaryClassification.Trainers.SdcaNonCalibrated(
+                    new SdcaNonCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1 }));
 
             // Train.
             var model = pipeline.Fit(data);
@@ -58,13 +57,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void SimpleTrainAndPredictSymSGD()
         {
-            var ml = new MLContext(seed: 1, conc: 1);
+            var ml = new MLContext(seed: 1);
             var data = ml.Data.LoadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
 
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(ml)
-                .Append(ml.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(new SymbolicStochasticGradientDescentClassificationTrainer.Options
+                .Append(ml.BinaryClassification.Trainers.SymbolicSgd(new SymbolicSgdTrainer.Options
                 {
                     NumberOfThreads = 1
                 }));
