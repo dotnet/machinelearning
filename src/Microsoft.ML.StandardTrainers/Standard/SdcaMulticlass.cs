@@ -18,7 +18,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(SdcaMulticlassClassificationTrainer.Summary, typeof(SdcaMulticlassClassificationTrainer), typeof(SdcaMulticlassClassificationTrainer.Options),
-    new[] { typeof(SignatureMulticlassClassificationTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
+    new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
     SdcaMulticlassClassificationTrainer.UserNameValue,
     SdcaMulticlassClassificationTrainer.LoadNameValue,
     SdcaMulticlassClassificationTrainer.ShortName)]

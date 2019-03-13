@@ -23,7 +23,7 @@ using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(OneVersusAllTrainer.Summary, typeof(OneVersusAllTrainer), typeof(OneVersusAllTrainer.Options),
-    new[] { typeof(SignatureMulticlassClassificationTrainer), typeof(SignatureTrainer) },
+    new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
     OneVersusAllTrainer.UserNameValue,
     OneVersusAllTrainer.LoadNameValue, DocName = "trainer/OvaPkpd.md")]
 

@@ -15,7 +15,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(NaiveBayesTrainer.Summary, typeof(NaiveBayesTrainer), typeof(NaiveBayesTrainer.Options),
-    new[] { typeof(SignatureMulticlassClassificationTrainer), typeof(SignatureTrainer) },
+    new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
     NaiveBayesTrainer.UserName,
     NaiveBayesTrainer.LoadName,
     NaiveBayesTrainer.ShortName, DocName = "trainer/NaiveBayes.md")]

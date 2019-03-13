@@ -42,7 +42,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         {
             // REVIEW: If we make this public again it should be an *estimator* of this type of predictor, rather than the (deprecated) ITrainer.
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor for meta learning", ShortName = "bp", SortOrder = 50,
-                Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureMulticlassClassificationTrainer))]
+                Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureMulticlassClassifierTrainer))]
             [TGUI(Label = "Base predictor")]
             public IComponentFactory<ITrainer<TVectorPredictor>> BasePredictorType;
 

@@ -21,7 +21,7 @@ using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(typeof(LogisticRegressionMulticlassClassificationTrainer), typeof(LogisticRegressionMulticlassClassificationTrainer.Options),
-    new[] { typeof(SignatureMulticlassClassificationTrainer), typeof(SignatureTrainer) },
+    new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
     LogisticRegressionMulticlassClassificationTrainer.UserNameValue,
     LogisticRegressionMulticlassClassificationTrainer.LoadNameValue,
     "MulticlassLogisticRegressionPredictorNew",

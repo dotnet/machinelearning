@@ -14,7 +14,7 @@ using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(MulticlassDataPartitionEnsembleTrainer.Summary, typeof(MulticlassDataPartitionEnsembleTrainer),
     typeof(MulticlassDataPartitionEnsembleTrainer.Arguments),
-    new[] { typeof(SignatureMulticlassClassificationTrainer), typeof(SignatureTrainer) },
+    new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
     MulticlassDataPartitionEnsembleTrainer.UserNameValue,
     MulticlassDataPartitionEnsembleTrainer.LoadNameValue)]
 
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             public ISupportMulticlassOutputCombinerFactory OutputCombiner = new MultiMedian.Options();
 
             // REVIEW: If we make this public again it should be an *estimator* of this type of predictor, rather than the (deprecated) ITrainer.
-            [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureMulticlassClassificationTrainer))]
+            [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureMulticlassClassifierTrainer))]
             internal IComponentFactory<ITrainer<TVectorPredictor>>[] BasePredictors;
 
             internal override IComponentFactory<ITrainer<TVectorPredictor>>[] GetPredictorFactories() => BasePredictors;

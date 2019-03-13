@@ -15,7 +15,7 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 
 [assembly: LoadableClass(LightGbmMulticlassClassificationTrainer.Summary, typeof(LightGbmMulticlassClassificationTrainer), typeof(Options),
-    new[] { typeof(SignatureMulticlassClassificationTrainer), typeof(SignatureTrainer) },
+    new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
     "LightGBM Multi-class Classifier", LightGbmMulticlassClassificationTrainer.LoadNameValue, LightGbmMulticlassClassificationTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
 namespace Microsoft.ML.LightGBM
