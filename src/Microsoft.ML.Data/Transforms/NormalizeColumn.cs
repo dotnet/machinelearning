@@ -50,7 +50,8 @@ namespace Microsoft.ML.Transforms
     {
         public abstract class ColumnBase : OneToOneColumn
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of examples used to train the normalizer", ShortName = "maxtrain")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of examples used to train the normalizer",
+                Name = "MaxTrainingExamples", ShortName = "maxtrain")]
             public long? MaximumExampleCount;
 
             private protected ColumnBase()
@@ -182,7 +183,8 @@ namespace Microsoft.ML.Transforms
 
         public abstract class ArgumentsBase : TransformInputBase
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of examples used to train the normalizer", ShortName = "maxtrain")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of examples used to train the normalizer",
+                Name = "MaxTrainingExamples", ShortName = "maxtrain")]
             public long MaximumExampleCount = 1000000000;
 
             public abstract OneToOneColumn[] GetColumns();

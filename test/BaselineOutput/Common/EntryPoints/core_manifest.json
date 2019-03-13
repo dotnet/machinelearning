@@ -16565,7 +16565,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "MaximumExampleCount",
+                  "Name": "MaxTrainingExamples",
                   "Type": "Int",
                   "Desc": "Max number of examples used to train the normalizer",
                   "Aliases": [
@@ -16645,7 +16645,7 @@
           "Default": true
         },
         {
-          "Name": "MaximumExampleCount",
+          "Name": "MaxTrainingExamples",
           "Type": "Int",
           "Desc": "Max number of examples used to train the normalizer",
           "Aliases": [
@@ -17700,7 +17700,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "MaximumExampleCount",
+                  "Name": "MaxTrainingExamples",
                   "Type": "Int",
                   "Desc": "Max number of examples used to train the normalizer",
                   "Aliases": [
@@ -17767,7 +17767,7 @@
           "Default": true
         },
         {
-          "Name": "MaximumExampleCount",
+          "Name": "MaxTrainingExamples",
           "Type": "Int",
           "Desc": "Max number of examples used to train the normalizer",
           "Aliases": [
@@ -19952,7 +19952,7 @@
               "Kind": "Struct",
               "Fields": [
                 {
-                  "Name": "MaximumExampleCount",
+                  "Name": "MaxTrainingExamples",
                   "Type": "Int",
                   "Desc": "Max number of examples used to train the normalizer",
                   "Aliases": [
@@ -20020,7 +20020,7 @@
           "Default": true
         },
         {
-          "Name": "MaximumExampleCount",
+          "Name": "MaxTrainingExamples",
           "Type": "Int",
           "Desc": "Max number of examples used to train the normalizer",
           "Aliases": [
@@ -20245,7 +20245,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "MaximumExampleCount",
+                  "Name": "MaxTrainingExamples",
                   "Type": "Int",
                   "Desc": "Max number of examples used to train the normalizer",
                   "Aliases": [
@@ -20324,7 +20324,7 @@
           "Default": true
         },
         {
-          "Name": "MaximumExampleCount",
+          "Name": "MaxTrainingExamples",
           "Type": "Int",
           "Desc": "Max number of examples used to train the normalizer",
           "Aliases": [
@@ -20381,7 +20381,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "MaximumExampleCount",
+                  "Name": "MaxTrainingExamples",
                   "Type": "Int",
                   "Desc": "Max number of examples used to train the normalizer",
                   "Aliases": [
@@ -20448,7 +20448,7 @@
           "Default": true
         },
         {
-          "Name": "MaximumExampleCount",
+          "Name": "MaxTrainingExamples",
           "Type": "Int",
           "Desc": "Max number of examples used to train the normalizer",
           "Aliases": [

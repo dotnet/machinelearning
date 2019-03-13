@@ -226,7 +226,7 @@ namespace Microsoft.ML.RunTests
 #endif
         }
 
-        [Fact(Skip = "Execute this test if you want to regenerate the core_manifest and core_ep_list files")]
+        [Fact]
         public void RegenerateEntryPointCatalog()
         {
             var (epListContents, jObj) = BuildManifests();
@@ -2473,7 +2473,7 @@ namespace Microsoft.ML.RunTests
       ""Source"": ""B""
     }
   ],
-  ""MaximumExampleCount"": 1000,
+  ""MaxTrainingExamples"": 1000,
   ""Data"": ""$data""
 }";
             expected = FixWhitespace(expected);
@@ -3886,13 +3886,13 @@ namespace Microsoft.ML.RunTests
                         'Inputs': {
                             'Column': [{
                                     'FixZero': null,
-                                    'MaximumExampleCount': null,
+                                    'MaxTrainingExamples': null,
                                     'Name': 'NumericFeatures',
                                     'Source': 'NumericFeatures'
                                 }
                             ],
                             'FixZero': true,
-                            'MaximumExampleCount': 1000000000,
+                            'MaxTrainingExamples': 1000000000,
                             'Data': '$Var_642faec2bf064255bc9a2b1044e9d116'
                         },
                         'Outputs': {
