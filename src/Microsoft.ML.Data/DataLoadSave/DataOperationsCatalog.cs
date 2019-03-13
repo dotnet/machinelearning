@@ -374,7 +374,7 @@ namespace Microsoft.ML
         /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for the train-test split.</param>
-        public TrainTestData TrainTestSplit(IDataView data, double testFraction = 0.1, string samplingKeyColumn = null, uint? seed = null)
+        public TrainTestData TrainTestSplit(IDataView data, double testFraction = 0.1, string samplingKeyColumn = null, int? seed = null)
         {
             _env.CheckValue(data, nameof(data));
             _env.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1 exclusive");
@@ -403,7 +403,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Ensures the provided <paramref name="samplingKeyColumn"/> is valid for <see cref="RangeFilter"/>, hashing it if necessary, or creates a new column <paramref name="samplingKeyColumn"/> is null.
         /// </summary>
-        internal static void EnsureGroupPreservationColumn(IHostEnvironment env, ref IDataView data, ref string samplingKeyColumn, uint? seed = null)
+        internal static void EnsureGroupPreservationColumn(IHostEnvironment env, ref IDataView data, ref string samplingKeyColumn, int? seed = null)
         {
             // We need to handle two cases: if samplingKeyColumn is provided, we use hashJoin to
             // build a single hash of it. If it is not, we generate a random number.
@@ -411,7 +411,7 @@ namespace Microsoft.ML
             if (samplingKeyColumn == null)
             {
                 samplingKeyColumn = data.Schema.GetTempColumnName("SamplingKeyColumn");
-                data = new GenerateNumberTransform(env, data, samplingKeyColumn, seed);
+                data = new GenerateNumberTransform(env, data, samplingKeyColumn, (uint?)seed);
             }
             else
             {
@@ -434,7 +434,7 @@ namespace Microsoft.ML
                         samplingKeyColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
                     HashingEstimator.ColumnOptions columnOptions;
                     if (seed.HasValue)
-                        columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, seed.Value);
+                        columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, (uint)seed.Value);
                     else
                         columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30);
                     data = new HashingEstimator(env, columnOptions).Fit(data).Transform(data);
