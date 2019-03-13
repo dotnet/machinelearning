@@ -14,17 +14,17 @@ namespace Microsoft.ML.CLI.Utilities
 
         internal static void PrintBinaryClassificationMetrics(int iteration, string trainerName, BinaryClassificationMetrics metrics)
         {
-            logger.Log(LogLevel.Info, $"{iteration,-4} {trainerName,-35} {metrics.Accuracy,9:F4} {metrics.Auc,8:F4} {metrics.Auprc,8:F4} {metrics.F1Score,9:F4}");
+            logger.Log(LogLevel.Info, $"{iteration,-4} {trainerName,-35} {metrics?.Accuracy ?? double.NaN,9:F4} {metrics?.Auc ?? double.NaN,8:F4} {metrics?.Auprc ?? double.NaN,8:F4} {metrics?.F1Score ?? double.NaN,9:F4}");
         }
 
         internal static void PrintMulticlassClassificationMetrics(int iteration, string trainerName, MultiClassClassifierMetrics metrics)
         {
-            logger.Log(LogLevel.Info, $"{iteration,-4} {trainerName,-35} {metrics.AccuracyMicro,14:F4} {metrics.AccuracyMacro,14:F4}");
+            logger.Log(LogLevel.Info, $"{iteration,-4} {trainerName,-35} {metrics?.AccuracyMicro ?? double.NaN,14:F4} {metrics?.AccuracyMacro ?? double.NaN,14:F4}");
         }
 
         internal static void PrintRegressionMetrics(int iteration, string trainerName, RegressionMetrics metrics)
         {
-            logger.Log(LogLevel.Info, $"{iteration,-4} {trainerName,-35} {metrics.RSquared,9:F4} {metrics.LossFn,12:F2} {metrics.L1,15:F2} {metrics.L2,15:F2} {metrics.Rms,12:F2}");
+            logger.Log(LogLevel.Info, $"{iteration,-4} {trainerName,-35} {metrics?.RSquared ?? double.NaN,9:F4} {metrics?.LossFn ?? double.NaN,12:F2} {metrics?.L1 ?? double.NaN,15:F2} {metrics?.L2 ?? double.NaN,15:F2} {metrics?.Rms ?? double.NaN,12:F2}");
         }
 
         internal static void PrintBinaryClassificationMetricsHeader()
