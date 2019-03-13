@@ -724,7 +724,7 @@ namespace Microsoft.ML.RunTests
                 }).Fit(data).Transform(data);
 
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
-                data = new ValueToKeyMappingEstimator(Env, "Label", "Label", sort: ValueToKeyMappingEstimator.MappingOrder.ByValue).Fit(data).Transform(data);
+                data = new ValueToKeyMappingEstimator(Env, "Label", "Label", keyOrdinality: ValueToKeyMappingEstimator.KeyOrdinality.ByValue).Fit(data).Transform(data);
 
                 var lrInput = new LogisticRegression.Options
                 {
@@ -4942,7 +4942,7 @@ namespace Microsoft.ML.RunTests
                                     'Column': [{
                                             'Join': null,
                                             'CustomSlotMap': null,
-                                            'HashBits': null,
+                                            'NumberOfBits': null,
                                             'Seed': null,
                                             'Ordered': null,
                                             'Name': 'GroupId1',
@@ -4950,7 +4950,7 @@ namespace Microsoft.ML.RunTests
                                         }
                                     ],
                                     'Join': true,
-                                    'HashBits': 31,
+                                    'NumberOfBits': 31,
                                     'Seed': 314489979,
                                     'Ordered': true,
                                     'Data': '$Var_44ac8ba819da483089dacc0f12bae3d6'

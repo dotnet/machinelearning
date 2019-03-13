@@ -46,7 +46,7 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             // Constructs the ValueMappingEstimator making the ML.net pipeline
-            var pipeline = mlContext.Transforms.Conversion.ValueMap(temperatureKeys, classificationValues, ("TemperatureCategory", "Temperature"));
+            var pipeline = mlContext.Transforms.Conversion.MapValue(temperatureKeys, classificationValues, ("TemperatureCategory", "Temperature"));
 
             // Fits the ValueMappingEstimator and transforms the data adding the TemperatureCategory column.
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);

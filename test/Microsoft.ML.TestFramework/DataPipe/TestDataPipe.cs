@@ -701,7 +701,7 @@ namespace Microsoft.ML.RunTests
                     loader,
                     "xf=WordToken{col=AT:A}",
                     "xf=Hash{col=AH:AT bits=30}",
-                    "xf=NgramHash{col=AH ngram=3 hashbits=4 all- ih=3}",
+                    "xf=NgramHash{col=AH ngram=3 bits=4 all- ih=3}",
                     "xf=SelectColumns{keepCol=AH}"
                 }, suffix: "6");
 

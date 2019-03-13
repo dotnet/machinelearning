@@ -17,15 +17,22 @@ namespace Microsoft.ML.Transforms
         internal static class Defaults
         {
             public const int MaximumNumberOfKeys = 1000000;
-            public const MappingOrder Order = MappingOrder.ByOccurrence;
+            public const KeyOrdinality Ordinality = KeyOrdinality.ByOccurrence;
         }
 
         /// <summary>
         /// Controls how the order of the output keys.
         /// </summary>
-        public enum MappingOrder : byte
+        public enum KeyOrdinality : byte
         {
+            /// <summary>
+            /// Values will be assigned keys in the order in which they appear.
+            /// </summary>
             ByOccurrence = 0,
+
+            /// <summary>
+            /// Values will be assigned keys according to their sort via an ordinal comparison for the type.
+            /// </summary>
             ByValue = 1,
             // REVIEW: We can think about having a frequency order option. What about
             // other things, like case insensitive (where appropriate), culturally aware, etc.?
@@ -38,7 +45,7 @@ namespace Microsoft.ML.Transforms
         {
             public readonly string OutputColumnName;
             public readonly string InputColumnName;
-            public readonly MappingOrder MappingOrder;
+            public readonly KeyOrdinality KeyOrdinality;
             public readonly int MaximumNumberOfKeys;
             public readonly bool AddKeyValueAnnotationsAsText;
 
@@ -50,13 +57,13 @@ namespace Microsoft.ML.Transforms
 
             [BestFriend]
             private protected ColumnOptionsBase(string outputColumnName, string inputColumnName,
-                int maxNumberOfKeys, MappingOrder mappingOrder, bool addKeyValueAnnotationsAsText)
+                int maximumNumberOfKeys, KeyOrdinality keyOrdinality, bool addKeyValueAnnotationsAsText)
             {
                 Contracts.CheckNonWhiteSpace(outputColumnName, nameof(outputColumnName));
                 OutputColumnName = outputColumnName;
                 InputColumnName = inputColumnName ?? outputColumnName;
-                MappingOrder = mappingOrder;
-                MaximumNumberOfKeys = maxNumberOfKeys;
+                KeyOrdinality = keyOrdinality;
+                MaximumNumberOfKeys = maximumNumberOfKeys;
                 AddKeyValueAnnotationsAsText = addKeyValueAnnotationsAsText;
             }
         }
@@ -72,14 +79,14 @@ namespace Microsoft.ML.Transforms
             /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
             /// <param name="maximumNumberOfKeys">Maximum number of keys to keep per column when auto-training.</param>
-            /// <param name="mappingOrder">How items should be ordered when vectorized. If <see cref="MappingOrder.ByOccurrence"/> choosen they will be in the order encountered.
-            /// If <see cref="MappingOrder.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+            /// <param name="keyOrdinality">How items should be ordered when vectorized. If <see cref="KeyOrdinality.ByOccurrence"/> choosen they will be in the order encountered.
+            /// If <see cref="KeyOrdinality.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
             /// <param name="addKeyValueAnnotationsAsText">Whether key value annotations should be text, regardless of the actual input type.</param>
             public ColumnOptions(string outputColumnName, string inputColumnName = null,
                 int maximumNumberOfKeys = Defaults.MaximumNumberOfKeys,
-                MappingOrder mappingOrder = Defaults.Order,
+                KeyOrdinality keyOrdinality = Defaults.Ordinality,
                 bool addKeyValueAnnotationsAsText = false)
-                : base(outputColumnName, inputColumnName, maximumNumberOfKeys, mappingOrder, addKeyValueAnnotationsAsText)
+                : base(outputColumnName, inputColumnName, maximumNumberOfKeys, keyOrdinality, addKeyValueAnnotationsAsText)
             {
             }
         }
@@ -95,10 +102,10 @@ namespace Microsoft.ML.Transforms
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="maximumNumberOfKeys">Maximum number of keys to keep per column when auto-training.</param>
-        /// <param name="sort">How items should be ordered when vectorized. If <see cref="MappingOrder.ByOccurrence"/> choosen they will be in the order encountered.
-        /// If <see cref="MappingOrder.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
-        internal ValueToKeyMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int maximumNumberOfKeys = Defaults.MaximumNumberOfKeys, MappingOrder sort = Defaults.Order) :
-           this(env, new [] { new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, maximumNumberOfKeys, sort) })
+        /// <param name="keyOrdinality">How items should be ordered when vectorized. If <see cref="KeyOrdinality.ByOccurrence"/> choosen they will be in the order encountered.
+        /// If <see cref="KeyOrdinality.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+        internal ValueToKeyMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int maximumNumberOfKeys = Defaults.MaximumNumberOfKeys, KeyOrdinality keyOrdinality = Defaults.Ordinality) :
+           this(env, new [] { new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, maximumNumberOfKeys, keyOrdinality) })
         {
         }
 

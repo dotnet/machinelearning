@@ -58,7 +58,7 @@ namespace Microsoft.ML.Transforms
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
                 "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').")]
-            public ValueToKeyMappingEstimator.MappingOrder? Sort;
+            public ValueToKeyMappingEstimator.KeyOrdinality? Sort;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether key value metadata should be text, regardless of the actual input type", ShortName = "textkv", Hide = true)]
             public bool? TextKeyValues;
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Transforms
             // REVIEW: Should we always sort? Opinions are mixed. See work item 7797429.
             [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
                 "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').", SortOrder = 113)]
-            public ValueToKeyMappingEstimator.MappingOrder Sort = ValueToKeyMappingEstimator.Defaults.Order;
+            public ValueToKeyMappingEstimator.KeyOrdinality Sort = ValueToKeyMappingEstimator.Defaults.Ordinality;
 
             // REVIEW: Should we do this here, or correct the various pieces of code here and in MRS etc. that
             // assume key-values will be string? Once we correct these things perhaps we can see about removing it.
@@ -285,14 +285,14 @@ namespace Microsoft.ML.Transforms
                 {
                     ch.Warning("Explicit term list specified. Data file arguments will be ignored");
                 }
-                if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.MappingOrder), options.Sort))
+                if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.KeyOrdinality), options.Sort))
                     throw ch.ExceptUserArg(nameof(options.Sort), "Undefined sorting criteria '{0}' detected", options.Sort);
 
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var item = options.Columns[i];
                     var sortOrder = item.Sort ?? options.Sort;
-                    if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.MappingOrder), sortOrder))
+                    if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.KeyOrdinality), sortOrder))
                         throw env.ExceptUserArg(nameof(options.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.Name);
 
                     cols[i] = new ValueToKeyMappingEstimator.ColumnOptions(
@@ -538,7 +538,7 @@ namespace Microsoft.ML.Transforms
                 if (!terms.IsEmpty || (termsArray != null && termsArray.Length > 0))
                 {
                     // We have terms! Pass it in.
-                    var sortOrder = columns[iinfo].MappingOrder;
+                    var sortOrder = columns[iinfo].KeyOrdinality;
                     var bldr = Builder.Create(infos[iinfo].TypeSrc, sortOrder);
                     if (!terms.IsEmpty)
                         bldr.ParseAddTermArg(ref terms, ch);
@@ -551,7 +551,7 @@ namespace Microsoft.ML.Transforms
                     // First column using this file.
                     if (termsFromFile == null)
                     {
-                        var bldr = Builder.Create(infos[iinfo].TypeSrc, columns[iinfo].MappingOrder);
+                        var bldr = Builder.Create(infos[iinfo].TypeSrc, columns[iinfo].KeyOrdinality);
                         termsFromFile = CreateTermMapFromData(env, ch, keyData, autoConvert, bldr);
                     }
                     if (!termsFromFile.ItemType.Equals(infos[iinfo].TypeSrc.GetItemType()))
@@ -597,7 +597,7 @@ namespace Microsoft.ML.Transforms
                     {
                         if (termMap[iinfo] != null)
                             continue;
-                        var bldr = Builder.Create(infos[iinfo].TypeSrc, columns[iinfo].MappingOrder);
+                        var bldr = Builder.Create(infos[iinfo].TypeSrc, columns[iinfo].KeyOrdinality);
                         trainerInfo[itrainer] = iinfo;
                         trainingData.Schema.TryGetColumnIndex(infos[iinfo].InputColumnName, out int colIndex);
                         trainer[itrainer++] = Trainer.Create(cursor, colIndex, false, lims[iinfo], bldr);

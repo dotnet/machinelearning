@@ -16696,7 +16696,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "HashBits",
+                  "Name": "NumberOfBits",
                   "Type": "Int",
                   "Desc": "The number of bits to hash into. Must be between 1 and 30, inclusive.",
                   "Aliases": [
@@ -16729,7 +16729,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "InvertHash",
+                  "Name": "MaximumNumberOfInverts",
                   "Type": "Int",
                   "Desc": "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                   "Aliases": [
@@ -16767,7 +16767,7 @@
               ]
             }
           },
-          "Desc": "New column definition(s) (optional form: name:hashBits:src)",
+          "Desc": "New column definition(s) (optional form: name:numberOfBits:src)",
           "Aliases": [
             "col"
           ],
@@ -16784,7 +16784,7 @@
           "IsNullable": false
         },
         {
-          "Name": "HashBits",
+          "Name": "NumberOfBits",
           "Type": "Int",
           "Desc": "Number of bits to hash into. Must be between 1 and 30, inclusive.",
           "Aliases": [
@@ -16837,7 +16837,7 @@
           "Default": true
         },
         {
-          "Name": "InvertHash",
+          "Name": "MaximumNumberOfInverts",
           "Type": "Int",
           "Desc": "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
           "Aliases": [
@@ -18479,7 +18479,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "HashBits",
+                  "Name": "NumberOfBits",
                   "Type": "Int",
                   "Desc": "Number of bits to hash into. Must be between 1 and 31, inclusive.",
                   "Aliases": [
@@ -18555,7 +18555,7 @@
           "IsNullable": false
         },
         {
-          "Name": "HashBits",
+          "Name": "NumberOfBits",
           "Type": "Int",
           "Desc": "Number of bits to hash into. Must be between 1 and 31, inclusive.",
           "Aliases": [
@@ -28742,7 +28742,7 @@
           ],
           "Settings": [
             {
-              "Name": "HashBits",
+              "Name": "NumberOfBits",
               "Type": "Int",
               "Desc": "Number of bits to hash into. Must be between 1 and 30, inclusive.",
               "Aliases": [
@@ -28811,7 +28811,7 @@
               "Default": true
             },
             {
-              "Name": "InvertHash",
+              "Name": "MaximumNumberOfInverts",
               "Type": "Int",
               "Desc": "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
               "Aliases": [

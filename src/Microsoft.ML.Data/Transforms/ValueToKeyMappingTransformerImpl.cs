@@ -37,7 +37,7 @@ namespace Microsoft.ML.Transforms
                 ItemType = type;
             }
 
-            public static Builder Create(DataViewType type, ValueToKeyMappingEstimator.MappingOrder sortOrder)
+            public static Builder Create(DataViewType type, ValueToKeyMappingEstimator.KeyOrdinality sortOrder)
             {
                 Contracts.AssertValue(type);
                 Contracts.Assert(type is VectorType || type is PrimitiveDataViewType);
@@ -45,8 +45,8 @@ namespace Microsoft.ML.Transforms
                 // accept any value, but currently the internal implementations of Builder are split
                 // along this being a purely binary option, for now (though this can easily change
                 // with mot implementations of Builder).
-                Contracts.Assert(sortOrder == ValueToKeyMappingEstimator.MappingOrder.ByOccurrence || sortOrder == ValueToKeyMappingEstimator.MappingOrder.ByValue);
-                bool sorted = sortOrder == ValueToKeyMappingEstimator.MappingOrder.ByValue;
+                Contracts.Assert(sortOrder == ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence || sortOrder == ValueToKeyMappingEstimator.KeyOrdinality.ByValue);
+                bool sorted = sortOrder == ValueToKeyMappingEstimator.KeyOrdinality.ByValue;
 
                 PrimitiveDataViewType itemType = type.GetItemType() as PrimitiveDataViewType;
                 Contracts.AssertValue(itemType);

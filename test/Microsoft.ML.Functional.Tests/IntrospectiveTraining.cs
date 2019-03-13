@@ -339,7 +339,7 @@ namespace Microsoft.ML.Functional.Tests
             // Create the learning pipeline.
             var pipeline = mlContext.Transforms.Concatenate("NumericalFeatures", Adult.NumericalFeatures)
                 .Append(mlContext.Transforms.Concatenate("CategoricalFeatures", Adult.CategoricalFeatures))
-                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CategoricalFeatures", numberOfHashBits: 8, // get collisions!
+                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CategoricalFeatures", numberOfBits: 8, // get collisions!
                     maximumNumberOfInverts: -1, outputKind: OneHotEncodingEstimator.OutputKind.Bag));
 
             // Fit the pipeline.
