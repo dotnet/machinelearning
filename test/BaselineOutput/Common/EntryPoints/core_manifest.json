@@ -1311,7 +1311,7 @@
             "Kind": "Enum",
             "Values": [
               "SignatureBinaryClassifierTrainer",
-              "SignatureMultiClassClassifierTrainer",
+              "SignatureMulticlassClassificationTrainer",
               "SignatureRankerTrainer",
               "SignatureRegressorTrainer",
               "SignatureMultiOutputRegressorTrainer",
@@ -1502,7 +1502,7 @@
             "Kind": "Enum",
             "Values": [
               "SignatureBinaryClassifierTrainer",
-              "SignatureMultiClassClassifierTrainer",
+              "SignatureMulticlassClassificationTrainer",
               "SignatureRankerTrainer",
               "SignatureRegressorTrainer",
               "SignatureMultiOutputRegressorTrainer",
@@ -3177,7 +3177,7 @@
             "Kind": "Enum",
             "Values": [
               "SignatureBinaryClassifierTrainer",
-              "SignatureMultiClassClassifierTrainer",
+              "SignatureMulticlassClassificationTrainer",
               "SignatureRankerTrainer",
               "SignatureRegressorTrainer",
               "SignatureMultiOutputRegressorTrainer",
@@ -13988,7 +13988,7 @@
     },
     {
       "Name": "Trainers.NaiveBayesClassifier",
-      "Desc": "Train a MultiClassNaiveBayesTrainer.",
+      "Desc": "Train a MulticlassNaiveBayesTrainer.",
       "FriendlyName": "Multiclass Naive Bayes",
       "ShortName": "MNB",
       "Inputs": [

@@ -8,21 +8,21 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.Ensemble;
 
-[assembly: LoadableClass(typeof(AllSelectorMultiClass), null, typeof(SignatureEnsembleSubModelSelector),
-    AllSelectorMultiClass.UserName, AllSelectorMultiClass.LoadName)]
+[assembly: LoadableClass(typeof(AllSelectorMulticlass), null, typeof(SignatureEnsembleSubModelSelector),
+    AllSelectorMulticlass.UserName, AllSelectorMulticlass.LoadName)]
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
-    internal sealed class AllSelectorMultiClass : BaseSubModelSelector<VBuffer<Single>>, IMulticlassSubModelSelector
+    internal sealed class AllSelectorMulticlass : BaseSubModelSelector<VBuffer<Single>>, IMulticlassSubModelSelector
     {
         public const string UserName = "All Selector";
         public const string LoadName = "AllSelectorMultiClass";
 
         public override Single ValidationDatasetProportion => 0;
 
-        protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
-        public AllSelectorMultiClass(IHostEnvironment env)
+        public AllSelectorMulticlass(IHostEnvironment env)
             : base(env, LoadName)
         {
         }

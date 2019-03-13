@@ -485,11 +485,11 @@ namespace Microsoft.ML
         /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
-        /// <param name="topK">If given a positive value, the <see cref="MultiClassClassifierMetrics.TopKAccuracy"/> will be filled with
+        /// <param name="topK">If given a positive value, the <see cref="MulticlassClassificationMetrics.TopKAccuracy"/> will be filled with
         /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
         /// the top-K values as being stored "correctly."</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public MultiClassClassifierMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
+        public MulticlassClassificationMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
             string predictedLabel = DefaultColumnNames.PredictedLabel, int topK = 0)
         {
             Environment.CheckValue(data, nameof(data));
@@ -497,10 +497,10 @@ namespace Microsoft.ML
             Environment.CheckNonEmpty(score, nameof(score));
             Environment.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
 
-            var args = new MultiClassClassifierEvaluator.Arguments() { };
+            var args = new MulticlassClassificationEvaluator.Arguments() { };
             if (topK > 0)
                 args.OutputTopKAcc = topK;
-            var eval = new MultiClassClassifierEvaluator(Environment, args);
+            var eval = new MulticlassClassificationEvaluator(Environment, args);
             return eval.Evaluate(data, label, score, predictedLabel);
         }
 
@@ -519,13 +519,13 @@ namespace Microsoft.ML
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public CrossValidationResult<MultiClassClassifierMetrics>[] CrossValidate(
+        public CrossValidationResult<MulticlassClassificationMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
             string samplingKeyColumn = null, int? seed = null)
         {
             Environment.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);
-            return result.Select(x => new CrossValidationResult<MultiClassClassifierMetrics>(x.Model,
+            return result.Select(x => new CrossValidationResult<MulticlassClassificationMetrics>(x.Model,
                 Evaluate(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
         }
     }

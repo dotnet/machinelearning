@@ -9,12 +9,12 @@ using Microsoft.ML.Trainers;
 namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
-    /// MultiClass Classification trainer estimators.
+    /// Multiclass Classification trainer estimators.
     /// </summary>
-    public static partial class MultiClassClassificationStaticExtensions
+    public static partial class MulticlassClassificationStaticExtensions
     {
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the <see cref="MultiClassNaiveBayesTrainer"/> trainer.
+        /// Predict a target using a linear multiclass classification model trained with the <see cref="MulticlassNaiveBayesTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -26,16 +26,16 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
         public static (Vector<float> score, Key<uint, TVal> predictedLabel)
-            MultiClassNaiveBayesTrainer<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            MulticlassNaiveBayesTrainer<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             Key<uint, TVal> label,
             Vector<float> features,
-            Action<MultiClassNaiveBayesModelParameters> onFit = null)
+            Action<MulticlassNaiveBayesModelParameters> onFit = null)
         {
             Contracts.CheckValue(features, nameof(features));
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValueOrNull(onFit);
 
-            var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
+            var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new NaiveBayesTrainer(env, labelName, featuresName);

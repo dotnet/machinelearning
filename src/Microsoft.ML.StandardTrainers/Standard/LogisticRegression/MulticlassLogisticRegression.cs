@@ -21,7 +21,7 @@ using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(typeof(LogisticRegressionMulticlassClassificationTrainer), typeof(LogisticRegressionMulticlassClassificationTrainer.Options),
-    new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
+    new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
     LogisticRegressionMulticlassClassificationTrainer.UserNameValue,
     LogisticRegressionMulticlassClassificationTrainer.LoadNameValue,
     "MulticlassLogisticRegressionPredictorNew",
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers
             ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStatistics;
         }
 
-        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
         private protected override void CheckLabel(RoleMappedData data)
         {
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Trainers
             // REVIEW: For floating point labels, this will make a pass over the data.
             // Should we instead leverage the pass made by the LBFGS base class? Ideally, it wouldn't
             // make a pass over the data...
-            data.CheckMultiClassLabel(out _numClasses);
+            data.CheckMulticlassLabel(out _numClasses);
 
             // Initialize prior counts.
             _prior = new Double[_numClasses];
@@ -387,7 +387,7 @@ namespace Microsoft.ML.Trainers
         // at which point it is initialized.
         private volatile VBuffer<float>[] _weightsDense;
 
-        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
         internal readonly DataViewType InputType;
         internal readonly DataViewType OutputType;
         DataViewType IValueMapper.InputType => InputType;
@@ -1011,7 +1011,7 @@ namespace Microsoft.ML.Trainers
             Desc = Summary,
             UserName = LogisticRegressionMulticlassClassificationTrainer.UserNameValue,
             ShortName = LogisticRegressionMulticlassClassificationTrainer.ShortName)]
-        internal static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, LogisticRegressionMulticlassClassificationTrainer.Options input)
+        internal static CommonOutputs.MulticlassClassificationOutput TrainMulticlass(IHostEnvironment env, LogisticRegressionMulticlassClassificationTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLRMultiClass");

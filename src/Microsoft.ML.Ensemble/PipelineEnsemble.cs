@@ -266,16 +266,16 @@ namespace Microsoft.ML.Trainers.Ensemble
             {
                 get
                 {
-                    if (_scoreColumnKind == AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification)
-                        return PredictionKind.MultiClassClassification;
+                    if (_scoreColumnKind == AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification)
+                        return PredictionKind.MulticlassClassification;
                     throw Host.Except("Unknown prediction kind");
                 }
             }
 
             private readonly VectorType _scoreType;
 
-            public ImplVec(IHostEnvironment env, PredictorModel[] predictors, IMultiClassOutputCombiner combiner)
-                : base(env, predictors, combiner, LoaderSignature, AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification)
+            public ImplVec(IHostEnvironment env, PredictorModel[] predictors, IMulticlassOutputCombiner combiner)
+                : base(env, predictors, combiner, LoaderSignature, AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification)
             {
                 int classCount = CheckLabelColumn(Host, predictors, false);
                 _scoreType = new VectorType(NumberDataViewType.Single, classCount);
@@ -532,8 +532,8 @@ namespace Microsoft.ML.Trainers.Ensemble
                     if (regressionCombiner == null)
                         throw env.Except("Combiner type incompatible with score column kind");
                     return new ImplOne(env, predictors, regressionCombiner, scoreColumnKind);
-                case AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification:
-                    var vectorCombiner = combiner as IMultiClassOutputCombiner;
+                case AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification:
+                    var vectorCombiner = combiner as IMulticlassOutputCombiner;
                     if (vectorCombiner == null)
                         throw env.Except("Combiner type incompatible with score column kind");
                     return new ImplVec(env, predictors, vectorCombiner);
@@ -556,7 +556,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 case AnnotationUtils.Const.ScoreColumnKind.Regression:
                 case AnnotationUtils.Const.ScoreColumnKind.AnomalyDetection:
                     return new ImplOne(env, ctx, scoreColumnKind);
-                case AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification:
+                case AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification:
                     return new ImplVec(env, ctx, scoreColumnKind);
                 default:
                     throw env.Except("Unknown score kind");

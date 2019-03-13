@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
-    internal abstract class BaseMultiCombiner : IMultiClassOutputCombiner, ICanSaveModel
+    internal abstract class BaseMultiCombiner : IMulticlassOutputCombiner, ICanSaveModel
     {
         protected readonly IHost Host;
 

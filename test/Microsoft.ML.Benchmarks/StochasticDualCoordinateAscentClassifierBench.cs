@@ -38,13 +38,13 @@ namespace Microsoft.ML.Benchmarks
         private TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> _trainedModel;
         private PredictionEngine<IrisData, IrisPrediction> _predictionEngine;
         private IrisData[][] _batches;
-        private MultiClassClassifierMetrics _metrics;
+        private MulticlassClassificationMetrics _metrics;
 
         protected override IEnumerable<Metric> GetMetrics()
         {
             if (_metrics != null)
                 yield return new Metric(
-                    nameof(MultiClassClassifierMetrics.MacroAccuracy),
+                    nameof(MulticlassClassificationMetrics.MacroAccuracy),
                     _metrics.MacroAccuracy.ToString("0.##", CultureInfo.InvariantCulture));
         }
 
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Benchmarks
 
             IDataView testData = loader.Load(_dataPath);
             IDataView scoredTestData = _trainedModel.Transform(testData);
-            var evaluator = new MultiClassClassifierEvaluator(mlContext, new MultiClassClassifierEvaluator.Arguments());
+            var evaluator = new MulticlassClassificationEvaluator(mlContext, new MulticlassClassificationEvaluator.Arguments());
             _metrics = evaluator.Evaluate(scoredTestData, DefaultColumnNames.Label, DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel);
 
             _batches = new IrisData[_batchSizes.Length][];

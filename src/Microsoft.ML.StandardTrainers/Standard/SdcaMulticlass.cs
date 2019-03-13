@@ -18,7 +18,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(SdcaMulticlassClassificationTrainer.Summary, typeof(SdcaMulticlassClassificationTrainer), typeof(SdcaMulticlassClassificationTrainer.Options),
-    new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
+    new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
     SdcaMulticlassClassificationTrainer.UserNameValue,
     SdcaMulticlassClassificationTrainer.LoadNameValue,
     SdcaMulticlassClassificationTrainer.ShortName)]
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Trainers
 
         private readonly ISupportSdcaClassificationLoss _loss;
 
-        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
         /// <summary>
         /// Initializes a new instance of <see cref="SdcaMulticlassClassificationTrainer"/>
@@ -425,7 +425,7 @@ namespace Microsoft.ML.Trainers
 
         private protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
         {
-            examples.CheckMultiClassLabel(out weightSetCount);
+            examples.CheckMulticlassLabel(out weightSetCount);
         }
 
         private protected override float[] InitializeFeatureNormSquared(int length)
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Trainers
             Desc = SdcaMulticlassClassificationTrainer.Summary,
             UserName = SdcaMulticlassClassificationTrainer.UserNameValue,
             ShortName = SdcaMulticlassClassificationTrainer.ShortName)]
-        public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, SdcaMulticlassClassificationTrainer.Options input)
+        public static CommonOutputs.MulticlassClassificationOutput TrainMulticlass(IHostEnvironment env, SdcaMulticlassClassificationTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainSDCA");

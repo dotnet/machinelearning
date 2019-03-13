@@ -11,42 +11,42 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.Ensemble;
 
-[assembly: LoadableClass(typeof(BestPerformanceSelectorMultiClass), typeof(BestPerformanceSelectorMultiClass.Arguments),
-    typeof(SignatureEnsembleSubModelSelector), BestPerformanceSelectorMultiClass.UserName, BestPerformanceSelectorMultiClass.LoadName)]
+[assembly: LoadableClass(typeof(BestPerformanceSelectorMulticlass), typeof(BestPerformanceSelectorMulticlass.Arguments),
+    typeof(SignatureEnsembleSubModelSelector), BestPerformanceSelectorMulticlass.UserName, BestPerformanceSelectorMulticlass.LoadName)]
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
-    internal sealed class BestPerformanceSelectorMultiClass : BaseBestPerformanceSelector<VBuffer<Single>>, IMulticlassSubModelSelector
+    internal sealed class BestPerformanceSelectorMulticlass : BaseBestPerformanceSelector<VBuffer<Single>>, IMulticlassSubModelSelector
     {
         [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
         public sealed class Arguments : ArgumentsBase, ISupportMulticlassSubModelSelectorFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The metric type to be used to find the best performance", ShortName = "mn", SortOrder = 50)]
             [TGUI(Label = "Metric Name")]
-            public MultiClassClassifierEvaluator.Metrics MetricName = MultiClassClassifierEvaluator.Metrics.AccuracyMicro;
+            public MulticlassClassificationEvaluator.Metrics MetricName = MulticlassClassificationEvaluator.Metrics.AccuracyMicro;
 
-            IMulticlassSubModelSelector IComponentFactory<IMulticlassSubModelSelector>.CreateComponent(IHostEnvironment env) => new BestPerformanceSelectorMultiClass(env, this);
+            IMulticlassSubModelSelector IComponentFactory<IMulticlassSubModelSelector>.CreateComponent(IHostEnvironment env) => new BestPerformanceSelectorMulticlass(env, this);
         }
 
         public const string UserName = "Best Performance Selector";
         public const string LoadName = "BestPerformanceSelectorMultiClass";
 
-        private readonly MultiClassClassifierEvaluator.Metrics _metric;
+        private readonly MulticlassClassificationEvaluator.Metrics _metric;
         private readonly string _metricName;
 
-        public BestPerformanceSelectorMultiClass(IHostEnvironment env, Arguments args)
+        public BestPerformanceSelectorMulticlass(IHostEnvironment env, Arguments args)
             : base(args, env, LoadName)
         {
-            Host.CheckUserArg(Enum.IsDefined(typeof(MultiClassClassifierEvaluator.Metrics), args.MetricName),
+            Host.CheckUserArg(Enum.IsDefined(typeof(MulticlassClassificationEvaluator.Metrics), args.MetricName),
                 nameof(args.MetricName), "Undefined metric name");
             _metric = args.MetricName;
-            _metricName = FindMetricName(typeof(MultiClassClassifierEvaluator.Metrics), _metric);
+            _metricName = FindMetricName(typeof(MulticlassClassificationEvaluator.Metrics), _metric);
             Host.Assert(!string.IsNullOrEmpty(_metricName));
         }
 
-        protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
-        protected override bool IsAscMetric => _metric != MultiClassClassifierEvaluator.Metrics.LogLoss;
+        protected override bool IsAscMetric => _metric != MulticlassClassificationEvaluator.Metrics.LogLoss;
 
         protected override string MetricName => _metricName;
     }
