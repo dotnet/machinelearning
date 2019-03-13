@@ -29,14 +29,14 @@ namespace Microsoft.ML
         ///  [!code-csharp[FieldAwareFactorizationMachineWithoutArguments](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/FieldAwareFactorizationMachineWithoutArguments.cs)]
         /// ]]></format>
         /// </example>
-        public static FieldAwareFactorizationMachineBinaryClassificationTrainer FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static FieldAwareFactorizationMachineTrainer FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string featureColumnName = DefaultColumnNames.Features,
             string labelColumnName = DefaultColumnNames.Label,
             string exampleWeightColumnName = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FieldAwareFactorizationMachineBinaryClassificationTrainer(env, new string[] { featureColumnName }, labelColumnName, exampleWeightColumnName);
+            return new FieldAwareFactorizationMachineTrainer(env, new string[] { featureColumnName }, labelColumnName, exampleWeightColumnName);
         }
 
         /// <summary>
