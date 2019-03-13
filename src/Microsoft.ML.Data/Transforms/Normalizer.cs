@@ -387,7 +387,21 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// The configuration of the normalizer. The i-th element describes the i-th input-output column pair.
         /// </summary>
-        public readonly ImmutableArray<ColumnOptions> Columns;
+        [BestFriend]
+        internal readonly ImmutableArray<ColumnOptions> Columns;
+
+        /// <summary>
+        /// The normalization configurations of input columns. It returns the normalization parameters applied to the <paramref name="index"/>-th input column.
+        /// </summary>
+        /// <param name="index">column index.</param>
+        /// <returns>the normalization parameters applied to the <paramref name="index"/>-th input column.</returns>
+        public NormalizerModelParametersBase GetNormalizerModelParameters(int index)
+        {
+            string errMsg = "Not valid. Valid range is from 0 (inclusive) to " + Columns.Length + " (exclusive) but got " + index + ".";
+            Contracts.CheckUserArg(index >= 0 && index < Columns.Length, nameof(index), errMsg);
+
+            return Columns[index].ModelParameters;
+        }
 
         private NormalizingTransformer(IHostEnvironment env, ColumnOptions[] columns)
             : base(env.Register(nameof(NormalizingTransformer)), columns.Select(x => (x.Name, x.InputColumnName)).ToArray())

@@ -339,7 +339,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var pipeline = loader.MakeNewEstimator()
                 .Append(r => (
                     MinMaxNormalized: r.Features.Normalize(ensureZeroUntouched: true),
-                    MeanVarNormalized: r.Features.NormalizeByMeanVariance(ensureZeroUntouched: false),
+                    MeanVarNormalized: r.Features.NormalizeMeanVariance(ensureZeroUntouched: false),
                     CdfNormalized: r.Features.NormalizeByCumulativeDistribution(),
                     BinNormalized: r.Features.NormalizeByBinning(maximumBinCount: 256)
                 ));

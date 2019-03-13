@@ -29,9 +29,9 @@ namespace Microsoft.ML.StaticPipe
             private readonly LpNormNormalizingEstimatorBase.NormFunction _norm;
             private readonly bool _ensureZeroMean;
 
-            public Reconciler(LpNormNormalizingEstimatorBase.NormFunction normKind, bool ensureZeroMean)
+            public Reconciler(LpNormNormalizingEstimatorBase.NormFunction norm, bool ensureZeroMean)
             {
-                _norm = normKind;
+                _norm = norm;
                 _ensureZeroMean = ensureZeroMean;
             }
 
@@ -52,10 +52,10 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="LpNormalize"]/*'/>
-        /// <param name="input">The column to apply to.</param>
+        /// <param name="input">The column containing the vectors to apply the normalization to.</param>
         /// <param name="norm">Type of norm to use to normalize each sample.</param>
         /// <param name="ensureZeroMean">Subtract mean from each value before normalizing.</param>
-        public static Vector<float> LpNormNormalize(this Vector<float> input,
+        public static Vector<float> NormalizeLpNorm(this Vector<float> input,
             LpNormNormalizingEstimatorBase.NormFunction norm = LpNormNormalizingEstimatorBase.Defaults.Norm,
             bool ensureZeroMean = LpNormNormalizingEstimatorBase.Defaults.LpEnsureZeroMean) => new OutPipelineColumn(input, norm, ensureZeroMean);
     }

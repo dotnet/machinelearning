@@ -60,11 +60,11 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="GcNormalize"]/*'/>
-        /// <param name="input">The column to apply to.</param>
+        /// <param name="input">The column containing the vectors to apply the normalization to.</param>
         /// <param name="ensureZeroMean">If <see langword="true"/>, subtract mean from each value before normalizing and use the raw input otherwise.</param>
         /// <param name="ensureUnitStandardDeviation">If <see langword="true"/>, resulted vector's standard deviation would be one. Otherwise, resulted vector's L2-norm would be one.</param>
         /// <param name="scale">Scale features by this value.</param>
-        public static Vector<float> GlobalContrastNormalize(this Vector<float> input,
+        public static Vector<float> NormalizeGlobalContrast(this Vector<float> input,
             bool ensureZeroMean = LpNormNormalizingEstimatorBase.Defaults.GcnEnsureZeroMean,
             bool ensureUnitStandardDeviation = LpNormNormalizingEstimatorBase.Defaults.EnsureUnitStdDev,
             float scale = LpNormNormalizingEstimatorBase.Defaults.Scale) => new OutPipelineColumn(input, ensureZeroMean, ensureUnitStandardDeviation, scale);

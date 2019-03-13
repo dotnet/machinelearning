@@ -405,7 +405,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = reader.MakeNewEstimator()
                 .Append(r => (r,
                     ncdf: r.NormalizeByCumulativeDistribution(onFit: (m, s) => mm = m),
-                    n: r.NormalizeByMeanVariance(onFit: (s, o) => { ss = s; Assert.Empty(o); }),
+                    n: r.NormalizeMeanVariance(onFit: (s, o) => { ss = s; Assert.Empty(o); }),
                     b: r.NormalizeByBinning(onFit: b => bb = b)));
             var tdata = est.Fit(data).Transform(data);
 
@@ -634,8 +634,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label,
-                              lpnorm: r.features.LpNormNormalize(),
-                              gcnorm: r.features.GlobalContrastNormalize(),
+                              lpnorm: r.features.NormalizeLpNorm(),
+                              gcnorm: r.features.NormalizeGlobalContrast(),
                               zcawhitened: r.features.ZcaWhitening(),
                               pcswhitened: r.features.PcaWhitening()));
             var tdata = est.Fit(data).Transform(data);

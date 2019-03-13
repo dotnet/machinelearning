@@ -55,7 +55,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //0.165 0.117 -0.547  0.014
 
             // A pipeline to project Features column into L-p normalized vector.
-            var lpNormalizePipeline = ml.Transforms.LpNormNormalize(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), norm: Transforms.LpNormNormalizingEstimatorBase.NormFunction.L1);
+            var lpNormalizePipeline = ml.Transforms.NormalizeLpNorm(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), norm: Transforms.LpNormNormalizingEstimatorBase.NormFunction.L1);
             // The transformed (projected) data.
             transformedData = lpNormalizePipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // 0.133 0.156 0.178 0.200 0.000 0.022 0.044 0.067 0.089 0.111
 
             // A pipeline to project Features column into L-p normalized vector.
-            var gcNormalizePipeline = ml.Transforms.GlobalContrastNormalize(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), ensureZeroMean:false);
+            var gcNormalizePipeline = ml.Transforms.NormalizeGlobalContrast(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), ensureZeroMean:false);
             // The transformed (projected) data.
             transformedData = gcNormalizePipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.

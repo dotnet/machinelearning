@@ -47,7 +47,7 @@ namespace Microsoft.ML.StaticPipe
         /// Learns an affine function based on the minimum and maximum, so that all values between the minimum and
         /// maximum observed during fitting fall into the range of -1 to 1.
         /// </summary>
-        /// <param name="input">The input column.</param>
+        /// <param name="input">The column containing the vectors to apply the normalization to.</param>
         /// <param name="ensureZeroUntouched">If set to <c>false</c>, then the observed minimum and maximum during fitting
         /// will map to -1 and 1 respectively, exactly. If however set to <c>true</c>, then 0 will always map to 0.
         /// This is valuable for the sake of sparsity preservation, if normalizing sparse vectors.</param>
@@ -83,7 +83,7 @@ namespace Microsoft.ML.StaticPipe
         /// Learns an affine function based on the observed mean and standard deviation. This is less susceptible
         /// to outliers as compared to <see cref="Normalize(Vector{float}, bool, long, OnFitAffine{ImmutableArray{float}})"/>.
         /// </summary>
-        /// <param name="input">The input column.</param>
+        /// <param name="input">The column containing the vectors to apply the normalization to.</param>
         /// <param name="ensureZeroUntouched">If set to <c>true</c> then the offset will always be considered zero.</param>
         /// <param name="useLog">If set to true then we transform over the logarithm of the values, rather
         /// than just the raw values. If this is set to <c>true</c> then <paramref name="ensureZeroUntouched"/> is ignored.</param>
@@ -93,7 +93,7 @@ namespace Microsoft.ML.StaticPipe
         /// <remarks>Note that the statistics gathering and normalization is done independently per slot of the
         /// vector values.</remarks>
         /// <returns>The normalized column.</returns>
-        public static NormVector<float> NormalizeByMeanVariance(
+        public static NormVector<float> NormalizeMeanVariance(
             this Vector<float> input, bool ensureZeroUntouched = NormalizingEstimator.Defaults.EnsureZeroUntouched,
             bool useLog = false, long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             OnFitAffine<ImmutableArray<float>> onFit = null)
@@ -105,7 +105,7 @@ namespace Microsoft.ML.StaticPipe
         /// Learns an affine function based on the observed mean and standard deviation. This is less susceptible
         /// to outliers as compared to <see cref="Normalize(Vector{double}, bool, long, OnFitAffine{ImmutableArray{double}})"/>.
         /// </summary>
-        /// <param name="input">The input column.</param>
+        /// <param name="input">The column containing the vectors to apply the normalization to.</param>
         /// <param name="ensureZeroUntouched">If set to <c>true</c> then the offset will always be considered zero.</param>
         /// <param name="useLog">If set to true then we transform over the logarithm of the values, rather
         /// than just the raw values. If this is set to <c>true</c> then <paramref name="ensureZeroUntouched"/> is ignored.</param>
@@ -115,7 +115,7 @@ namespace Microsoft.ML.StaticPipe
         /// <remarks>Note that the statistics gathering and normalization is done independently per slot of the
         /// vector values.</remarks>
         /// <returns>The normalized column.</returns>
-        public static NormVector<double> NormalizeByMeanVariance(
+        public static NormVector<double> NormalizeMeanVariance(
             this Vector<double> input, bool ensureZeroUntouched = NormalizingEstimator.Defaults.EnsureZeroUntouched,
             bool useLog = false, long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             OnFitAffine<ImmutableArray<double>> onFit = null)
@@ -127,7 +127,7 @@ namespace Microsoft.ML.StaticPipe
         /// Learns a function based on the cumulative density function of a normal distribution parameterized by
         /// a mean and variance as observed during fitting.
         /// </summary>
-        /// <param name="input">The input column.</param>
+        /// <param name="input">The column containing the vectors to apply the normalization to.</param>
         /// <param name="ensureZeroUntouched">If set to <c>false</c>, then the learned distributional parameters will be
         /// adjusted in such a way as to ensure that the input 0 maps to the output 0.
         /// This is valuable for the sake of sparsity preservation, if normalizing sparse vectors.</param>
@@ -151,7 +151,7 @@ namespace Microsoft.ML.StaticPipe
         /// Learns a function based on the cumulative density function of a normal distribution parameterized by
         /// a mean and variance as observed during fitting.
         /// </summary>
-        /// <param name="input">The input column.</param>
+        /// <param name="input">The column containing the vectors to apply the normalization to.</param>
         /// <param name="ensureZeroUntouched">If set to <c>false</c>, then the learned distributional parameters will be
         /// adjusted in such a way as to ensure that the input 0 maps to the output 0.
         /// This is valuable for the sake of sparsity preservation, if normalizing sparse vectors.</param>
@@ -191,7 +191,7 @@ namespace Microsoft.ML.StaticPipe
         /// falls in the range of bin <c>n</c> (indexed from 0), the output value is <c>n / (N - 1)</c>, and then possibly
         /// subtracting off the binned value for what 0 would have been if <paramref name="ensureZeroUntouched"/> is true.
         /// </summary>
-        /// <param name="input">The input column.</param>
+        /// <param name="input">The column containing the vectors to apply the normalization to.</param>
         /// <param name="maximumBinCount">The maximum number of discretization points to learn per slot.</param>
         /// <param name="ensureZeroUntouched">Normally the output is in the range of 0 to 1, but if set to <c>true</c>, then what
         /// would have been the output for a zero input is subtracted off the value.
@@ -218,7 +218,7 @@ namespace Microsoft.ML.StaticPipe
         /// falls in the range of bin <c>n</c> (indexed from 0), the output value is <c>n / (N - 1)</c>, and then possibly
         /// subtracting off the binned value for what 0 would have been if <paramref name="ensureZeroUntouched"/> is true.
         /// </summary>
-        /// <param name="input">The input column.</param>
+        /// <param name="input">The column containing the vectors to apply the normalization to.</param>
         /// <param name="maximumBinCount">The maximum number of discretization points to learn per slot.</param>
         /// <param name="ensureZeroUntouched">Normally the output is in the range of 0 to 1, but if set to <c>true</c>, then what
         /// would have been the output for a zero input is subtracted off the value.
