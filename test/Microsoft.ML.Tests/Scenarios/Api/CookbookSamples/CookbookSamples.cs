@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
@@ -157,7 +158,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // When you load the model, it's a 'dynamic' transformer. 
             ITransformer loadedModel;
             using (var stream = File.OpenRead(modelPath))
-                loadedModel = mlContext.Model.Load(stream, out var schema);
+                loadedModel = mlContext.Model.Load(stream, out DataViewSchema schema);
         }
 
         [Fact]

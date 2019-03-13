@@ -131,7 +131,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // When you load the model, it's a 'dynamic' transformer. 
             ITransformer loadedModel;
             using (var stream = File.OpenRead(modelPath))
-                loadedModel = mlContext.Model.Load(stream, out var schema);
+                loadedModel = mlContext.Model.Load(stream, out DataViewSchema schema);
         }
 
         [Fact]
@@ -535,7 +535,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Now we can load the model.
             ITransformer loadedModel;
             using (var fs = File.OpenRead(modelPath))
-                loadedModel = newContext.Model.Load(fs, out var schema);
+                loadedModel = newContext.Model.Load(fs, out DataViewSchema schema);
         }
 
         public static IDataView PrepareData(MLContext mlContext, IDataView data)

@@ -17,10 +17,7 @@ namespace Microsoft.ML
     /// </summary>
     public sealed class ModelOperationsCatalog : IInternalCatalog
     {
-        internal const string LoaderDirectory = "Loader";
-        internal const string LegacyLoaderDirectory = "Reader";
-        internal const string TransformerDirectory = TransformerChain.LoaderSignature;
-        internal const string SchemaEntryName = "Schema";
+        private const string SchemaEntryName = "Schema";
 
         IHostEnvironment IInternalCatalog.Environment => _env;
         private readonly IHostEnvironment _env;
@@ -44,7 +41,7 @@ namespace Microsoft.ML
         {
             using (var rep = RepositoryWriter.CreateNew(stream))
             {
-                ModelSaveContext.SaveModel(rep, model, "Model");
+                ModelSaveContext.SaveModel(rep, model, null);
                 SaveInputSchema(model.GetOutputSchema(), rep);
                 rep.Commit();
             }
@@ -89,7 +86,8 @@ namespace Microsoft.ML
         /// Load the model and its input schema from the stream.
         /// </summary>
         /// <param name="stream">A readable, seekable stream to load from.</param>
-        /// <param name="inputSchema">Will contain the input schema for the model.</param>
+        /// <param name="inputSchema">Will contain the input schema for the model. If the model was saved using older APIs
+        /// it may not contain an input schema, in this case <paramref name="inputSchema"/> will be null.</param>
         /// <returns>The loaded model.</returns>
         public ITransformer Load(Stream stream, out DataViewSchema inputSchema)
         {
@@ -130,9 +128,26 @@ namespace Microsoft.ML
         {
             using (var rep = RepositoryReader.Open(stream))
             {
-                ModelLoadContext.LoadModel<CompositeDataLoader<IMultiStreamSource, ITransformer>, SignatureLoadModel>(_env, out var model, rep, "Model");
+                ModelLoadContext.LoadModel<CompositeDataLoader<IMultiStreamSource, ITransformer>, SignatureLoadModel>(_env, out var model, rep, null);
                 return model;
             }
+        }
+
+        /// <summary>
+        /// Load a transformer model and a data loader model from the stream.
+        /// </summary>
+        /// <param name="stream">A readable, seekable stream to load from.</param>
+        /// <param name="loader">The data loader from the model stream.</param>
+        /// <returns>The transformer model from the model stream.</returns>
+        public ITransformer Load(Stream stream, out IDataLoader<IMultiStreamSource> loader)
+        {
+            loader = Load(stream);
+            if (loader is CompositeDataLoader<IMultiStreamSource, ITransformer> composite)
+            {
+                loader = composite.Loader;
+                return composite.Transformer;
+            }
+            return new TransformerChain<ITransformer>();
         }
 
         /// <summary>

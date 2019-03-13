@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
@@ -505,7 +506,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 using (var fs = File.OpenRead(modelPath))
                 {
-                    model = ML.Model.Load(fs, out var schema);
+                    model = ML.Model.Load(fs, out DataViewSchema schema);
                     // This model was saved without the input schema.
                     Assert.Null(schema);
                 }

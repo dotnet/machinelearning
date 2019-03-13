@@ -45,30 +45,54 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline1 = loader.Append(ml.BinaryClassification.Trainers.GeneralizedAdditiveModels());
             
             // Train.
-            var model = pipeline.Fit(data);
-            var model1 = pipeline1.Fit(file);
+            var transformerModel = pipeline.Fit(data);
+            var compositeLoaderModel = pipeline1.Fit(file);
 
             // Save and reload.
-            string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            using (var fs = File.Create(modelPath))
-                ml.Model.Save(data.Schema, model, fs);
-            string modelPath1 = GetOutputPath(FullTestName + "-model1.zip");
-            using (var fs = File.Create(modelPath1))
-                ml.Model.Save(model1, fs);
+            string modelAndSchemaPath = GetOutputPath(FullTestName + "-model-schema.zip");
+            using (var fs = File.Create(modelAndSchemaPath))
+                ml.Model.Save(data.Schema, transformerModel, fs);
+            string compositeLoaderModelPath = GetOutputPath(FullTestName + "-composite-model.zip");
+            using (var fs = File.Create(compositeLoaderModelPath))
+                ml.Model.Save(compositeLoaderModel, fs);
+            string loaderAndTransformerModelPath = GetOutputPath(FullTestName + "-loader-transformer.zip");
+            using (var fs = File.Create(loaderAndTransformerModelPath))
+                ml.Model.Save(loader, transformerModel, fs);
 
-            ITransformer loadedModel;
-            IDataLoader<IMultiStreamSource> loadedModel1;
-            using (var fs = File.OpenRead(modelPath))
-                loadedModel = ml.Model.Load(fs, out var loadedSchema);
-            using (var fs = File.OpenRead(modelPath1))
-                loadedModel1 = ml.Model.Load(fs);
+            ITransformer loadedTransformerModel;
+            IDataLoader<IMultiStreamSource> loadedCompositeLoader;
+            ITransformer loadedTransformerModel1;
+            using (var fs = File.OpenRead(modelAndSchemaPath))
+                loadedTransformerModel = ml.Model.Load(fs, out DataViewSchema loadedSchema);
+            using (var fs = File.OpenRead(compositeLoaderModelPath))
+            {
+                // This model can be loaded either as a composite data loader,
+                // a transformer model + an input schema, or a transformer model + a data loader.
+                var t = ml.Model.Load(fs, out IDataLoader<IMultiStreamSource> l);
+                var t1 = ml.Model.Load(fs, out DataViewSchema s);
+                loadedCompositeLoader = ml.Model.Load(fs);
+            }
+            using (var fs = File.OpenRead(loaderAndTransformerModelPath))
+            {
+                // This model can be loaded either as a composite data loader,
+                // a transformer model + an input schema, or a transformer model + a data loader.
+                var t = ml.Model.Load(fs, out DataViewSchema s);
+                var c = ml.Model.Load(fs);
+                loadedTransformerModel1 = ml.Model.Load(fs, out IDataLoader<IMultiStreamSource> l);
+            }
 
-            var gam = ((loadedModel as ISingleFeaturePredictionTransformer<object>).Model
+            var gam = ((loadedTransformerModel as ISingleFeaturePredictionTransformer<object>).Model
                 as CalibratedModelParametersBase).SubModel
                 as BinaryClassificationGamModelParameters;
             Assert.NotNull(gam);
 
-            gam = (((loadedModel1 as CompositeDataLoader<IMultiStreamSource, ITransformer>).Transformer.LastTransformer
+            gam = (((loadedCompositeLoader as CompositeDataLoader<IMultiStreamSource, ITransformer>).Transformer.LastTransformer
+                as ISingleFeaturePredictionTransformer<object>).Model
+                as CalibratedModelParametersBase).SubModel
+                as BinaryClassificationGamModelParameters;
+            Assert.NotNull(gam);
+
+            gam = (((loadedTransformerModel1 as TransformerChain<ITransformer>).LastTransformer
                 as ISingleFeaturePredictionTransformer<object>).Model
                 as CalibratedModelParametersBase).SubModel
                 as BinaryClassificationGamModelParameters;

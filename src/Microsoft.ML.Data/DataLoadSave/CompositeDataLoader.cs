@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.IO;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
@@ -19,6 +18,10 @@ namespace Microsoft.ML.Data
     public sealed class CompositeDataLoader<TSource, TLastTransformer> : IDataLoader<TSource>
         where TLastTransformer : class, ITransformer
     {
+        private const string LoaderDirectory = "Loader";
+        private const string LegacyLoaderDirectory = "Reader";
+        private const string TransformerDirectory = TransformerChain.LoaderSignature;
+
         /// <summary>
         /// The underlying data loader.
         /// </summary>
@@ -39,9 +42,9 @@ namespace Microsoft.ML.Data
 
         private CompositeDataLoader(IHost host, ModelLoadContext ctx)
         {
-            if (!ctx.LoadModelOrNull<IDataLoader<TSource>, SignatureLoadModel>(host, out Loader, ModelOperationsCatalog.LegacyLoaderDirectory))
-                ctx.LoadModel<IDataLoader<TSource>, SignatureLoadModel>(host, out Loader, ModelOperationsCatalog.LoaderDirectory);
-            ctx.LoadModel<TransformerChain<TLastTransformer>, SignatureLoadModel>(host, out Transformer, ModelOperationsCatalog.TransformerDirectory);
+            if (!ctx.LoadModelOrNull<IDataLoader<TSource>, SignatureLoadModel>(host, out Loader, LegacyLoaderDirectory))
+                ctx.LoadModel<IDataLoader<TSource>, SignatureLoadModel>(host, out Loader, LoaderDirectory);
+            ctx.LoadModel<TransformerChain<TLastTransformer>, SignatureLoadModel>(host, out Transformer, TransformerDirectory);
         }
 
         private static CompositeDataLoader<TSource, TLastTransformer> Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -90,11 +93,11 @@ namespace Microsoft.ML.Data
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            ctx.SaveModel(Loader, ModelOperationsCatalog.LoaderDirectory);
-            ctx.SaveModel(Transformer, ModelOperationsCatalog.TransformerDirectory);
+            ctx.SaveModel(Loader, LoaderDirectory);
+            ctx.SaveModel(Transformer, TransformerDirectory);
         }
 
-        internal const string Summary = "A loader that encapsulates a loader and a transformer chain.";
+        internal const string Summary = "A model loader that encapsulates a data loader and a transformer chain.";
 
         internal const string LoaderSignature = "CompositeLoader";
         private static VersionInfo GetVersionInfo()
