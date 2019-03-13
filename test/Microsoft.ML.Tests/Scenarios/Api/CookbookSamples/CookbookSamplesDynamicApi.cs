@@ -305,14 +305,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                             ngramLength: 2, useAllLengths: false))
 
                 // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
-                .Append(mlContext.Transforms.Text.TokenizeCharacters("MessageChars", "Message"))
+                .Append(mlContext.Transforms.Text.TokenizeIntoCharactersAsKeys("MessageChars", "Message"))
                 .Append(new NgramExtractingEstimator(mlContext, "BagOfTrichar", "MessageChars", 
                             ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf))
 
                 // NLP pipeline 4: word embeddings.
                 // PretrainedModelKind.Sswe is used here for performance of the test. In a real
                 // scenario, it is best to use a different model for more accuracy.
-                .Append(mlContext.Transforms.Text.TokenizeWords("TokenizedMessage", "NormalizedMessage"))
+                .Append(mlContext.Transforms.Text.TokenizeIntoWords("TokenizedMessage", "NormalizedMessage"))
                 .Append(mlContext.Transforms.Text.ApplyWordEmbedding("Embeddings", "TokenizedMessage",
                             WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding));
 

@@ -99,8 +99,8 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.Multiple, HelpText = "Use stop remover or not.", ShortName = "remover", SortOrder = 4)]
             public bool UsePredefinedStopWordRemover = false;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Casing text using the rules of the invariant culture.", ShortName = "case", SortOrder = 5)]
-            public CaseMode TextCase = TextNormalizingEstimator.Defaults.Mode;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Casing text using the rules of the invariant culture.", Name="TextCase", ShortName = "case", SortOrder = 5)]
+            public CaseMode CaseMode = TextNormalizingEstimator.Defaults.Mode;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep diacritical marks or remove them.", ShortName = "diac", SortOrder = 6)]
             public bool KeepDiacritics = TextNormalizingEstimator.Defaults.KeepDiacritics;
@@ -126,6 +126,9 @@ namespace Microsoft.ML.Transforms.Text
             /// </summary>
             private WordBagEstimator.Options _wordFeatureExtractor;
 
+            /// <summary>
+            /// Norm of the output vector. It will be normalized to one.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Normalize vectors (rows) individually by rescaling them to unit norm.", Name = "VectorNormalizer", ShortName = "norm", SortOrder = 13)]
             public NormFunction Norm = NormFunction.L2;
 
@@ -193,7 +196,7 @@ namespace Microsoft.ML.Transforms.Text
 
         internal readonly string OutputColumn;
         private readonly string[] _inputColumns;
-        internal IReadOnlyCollection<string> InputColumns => _inputColumns.AsReadOnly();
+        private IReadOnlyCollection<string> InputColumns => _inputColumns.AsReadOnly();
         internal Options OptionalSettings { get; }
 
         // These parameters are hardcoded for now.
@@ -288,13 +291,13 @@ namespace Microsoft.ML.Transforms.Text
             {
                 var host = parent._host;
                 host.Check(Enum.IsDefined(typeof(Language), parent.OptionalSettings.Language));
-                host.Check(Enum.IsDefined(typeof(CaseMode), parent.OptionalSettings.TextCase));
+                host.Check(Enum.IsDefined(typeof(CaseMode), parent.OptionalSettings.CaseMode));
                 WordExtractorFactory = parent._wordFeatureExtractor?.CreateComponent(host, parent._dictionary);
                 CharExtractorFactory = parent._charFeatureExtractor?.CreateComponent(host, parent._dictionary);
                 Norm = parent.OptionalSettings.Norm;
                 Language = parent.OptionalSettings.Language;
                 UsePredefinedStopWordRemover = parent.OptionalSettings.UsePredefinedStopWordRemover;
-                TextCase = parent.OptionalSettings.TextCase;
+                TextCase = parent.OptionalSettings.CaseMode;
                 KeepDiacritics = parent.OptionalSettings.KeepDiacritics;
                 KeepPunctuations = parent.OptionalSettings.KeepPunctuations;
                 KeepNumbers = parent.OptionalSettings.KeepNumbers;
