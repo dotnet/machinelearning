@@ -129,7 +129,7 @@ namespace Microsoft.ML
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public CrossValidationResult<RegressionMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
-            string stratificationColumn = null, uint? seed = null)
+            string stratificationColumn = null, int? seed = null)
         {
             Environment.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);

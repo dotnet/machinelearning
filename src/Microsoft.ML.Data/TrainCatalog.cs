@@ -88,7 +88,7 @@ namespace Microsoft.ML
         /// </summary>
         [BestFriend]
         private protected CrossValidationResult[] CrossValidateTrain(IDataView data, IEstimator<ITransformer> estimator,
-            int numFolds, string samplingKeyColumn, uint? seed = null)
+            int numFolds, string samplingKeyColumn, int? seed = null)
         {
             Environment.CheckValue(data, nameof(data));
             Environment.CheckValue(estimator, nameof(estimator));
@@ -242,7 +242,7 @@ namespace Microsoft.ML
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public CrossValidationResult<BinaryClassificationMetrics>[] CrossValidateNonCalibrated(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
-            string samplingKeyColumn = null, uint? seed = null)
+            string samplingKeyColumn = null, int? seed = null)
         {
             Environment.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);
@@ -266,7 +266,7 @@ namespace Microsoft.ML
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public CrossValidationResult<CalibratedBinaryClassificationMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
-            string samplingKeyColumn = null, uint? seed = null)
+            string samplingKeyColumn = null, int? seed = null)
         {
             Environment.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);
@@ -446,7 +446,7 @@ namespace Microsoft.ML
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         public CrossValidationResult<ClusteringMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = null, string featuresColumn = null,
-            string samplingKeyColumn = null, uint? seed = null)
+            string samplingKeyColumn = null, int? seed = null)
         {
             var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);
             return result.Select(x => new CrossValidationResult<ClusteringMetrics>(x.Model,
@@ -521,7 +521,7 @@ namespace Microsoft.ML
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public CrossValidationResult<MultiClassClassifierMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
-            string samplingKeyColumn = null, uint? seed = null)
+            string samplingKeyColumn = null, int? seed = null)
         {
             Environment.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);
@@ -587,7 +587,7 @@ namespace Microsoft.ML
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public CrossValidationResult<RegressionMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
-            string samplingKeyColumn = null, uint? seed = null)
+            string samplingKeyColumn = null, int? seed = null)
         {
             Environment.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);
