@@ -1,7 +1,24 @@
 <Project>
   <PropertyGroup>
+    <StableProjects>
+        Microsoft.ML;
+        Microsoft.ML.CpuMath;
+        Microsoft.ML.FastTree;
+        Microsoft.ML.ImageAnalytics;
+        Microsoft.ML.LightGbm;
+        Microsoft.ML.Mkl.Components;
+        Microsoft.ML.Mkl.Redist;
+    </StableProjects>
+    <IsStableProject Condition="'$(MSBuildProjectName.Contains(.symbols))' == 'false'">$(StableProjects.Contains($(MSBuildProjectName)))</IsStableProject>
+    <IsStableProject Condition="'$(MSBuildProjectName.Contains(.symbols))' == 'true'">$(StableProjects.Contains($(MSBuildProjectName.Substring(0, $(MSBuildProjectName.IndexOf(.symbols))))))</IsStableProject>
     <MajorVersion>0</MajorVersion>
     <MinorVersion>12</MinorVersion>
+    <PatchVersion>0</PatchVersion>
+    <PreReleaseLabel>preview</PreReleaseLabel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IsStableProject)' == 'true'">
+    <MajorVersion>0</MajorVersion>
+    <MinorVersion>15</MinorVersion>
     <PatchVersion>0</PatchVersion>
     <PreReleaseLabel>preview</PreReleaseLabel>
   </PropertyGroup>
