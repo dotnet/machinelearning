@@ -26,7 +26,6 @@ namespace Microsoft.ML.Samples.Dynamic
             // IndicateMissingValues is used to create a boolean containing
             // 'true' where the value in the input column is NaN. This value can be used
             // to replace missing values with other values.
-
             IEstimator<ITransformer> pipeline = mlContext.Transforms.IndicateMissingValues("MissingIndicator", "Features");
 
             // Now we can transform the data and look at the output to confirm the behavior of the estimator.

@@ -12,7 +12,7 @@ namespace Microsoft.ML.Samples.Dynamic
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
-            var ml = new MLContext();
+            var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
             var samples = new List<DataPoint>()
@@ -25,10 +25,10 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             // Convert training data to IDataView.
-            var trainData = ml.Data.LoadFromEnumerable(samples);
+            var trainData = mlContext.Data.LoadFromEnumerable(samples);
 
             // A pipeline for one hot encoding the Education column.
-            var bagPipeline = ml.Transforms.Categorical.OneHotEncoding("EducationOneHotEncoded", "Education", OutputKind.Bag);
+            var bagPipeline = mlContext.Transforms.Categorical.OneHotEncoding("EducationOneHotEncoded", "Education", OutputKind.Bag);
             // Fit to data.
             var bagTransformer = bagPipeline.Fit(trainData);
 
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Getting the data of the newly created column, so we can preview it.
             var bagEncodedColumn = bagTransformedData.GetColumn<float[]>("EducationOneHotEncoded");
 
-            var keyPipeline = ml.Transforms.Categorical.OneHotEncoding("EducationOneHotEncoded", "Education", OutputKind.Key);
+            var keyPipeline = mlContext.Transforms.Categorical.OneHotEncoding("EducationOneHotEncoded", "Education", OutputKind.Key);
             // Fit to data.
             var keyTransformer = keyPipeline.Fit(trainData);
 
