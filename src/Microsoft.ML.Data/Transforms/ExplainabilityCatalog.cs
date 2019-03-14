@@ -18,11 +18,11 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The model explainability operations catalog.</param>
         /// <param name="modelParameters">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
-        /// <param name="featureColumn">The name of the feature column that will be used as input.</param>
-        /// <param name="numPositiveContributions">The number of positive contributions to report, sorted from highest magnitude to lowest magnitude.
-        /// Note that if there are fewer features with positive contributions than <paramref name="numPositiveContributions"/>, the rest will be returned as zeros.</param>
-        /// <param name="numNegativeContributions">The number of negative contributions to report, sorted from highest magnitude to lowest magnitude.
-        /// Note that if there are fewer features with negative contributions than <paramref name="numNegativeContributions"/>, the rest will be returned as zeros.</param>
+        /// <param name="featureColumnName">The name of the feature column that will be used as input.</param>
+        /// <param name="numberOfPositiveContributions">The number of positive contributions to report, sorted from highest magnitude to lowest magnitude.
+        /// Note that if there are fewer features with positive contributions than <paramref name="numberOfPositiveContributions"/>, the rest will be returned as zeros.</param>
+        /// <param name="numberOfNegativeContributions">The number of negative contributions to report, sorted from highest magnitude to lowest magnitude.
+        /// Note that if there are fewer features with negative contributions than <paramref name="numberOfNegativeContributions"/>, the rest will be returned as zeros.</param>
         /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -33,10 +33,10 @@ namespace Microsoft.ML
         /// </example>
         public static FeatureContributionCalculatingEstimator CalculateFeatureContribution(this TransformsCatalog catalog,
             ICalculateFeatureContribution modelParameters,
-            string featureColumn = DefaultColumnNames.Features,
-            int numPositiveContributions = FeatureContributionDefaults.NumPositiveContributions,
-            int numNegativeContributions = FeatureContributionDefaults.NumNegativeContributions,
+            string featureColumnName = DefaultColumnNames.Features,
+            int numberOfPositiveContributions = FeatureContributionDefaults.NumberOfPositiveContributions,
+            int numberOfNegativeContributions = FeatureContributionDefaults.NumberOfNegativeContributions,
             bool normalize = FeatureContributionDefaults.Normalize)
-            => new FeatureContributionCalculatingEstimator(CatalogUtils.GetEnvironment(catalog), modelParameters, featureColumn, numPositiveContributions, numNegativeContributions, normalize);
+            => new FeatureContributionCalculatingEstimator(CatalogUtils.GetEnvironment(catalog), modelParameters, featureColumnName, numberOfPositiveContributions, numberOfNegativeContributions, normalize);
     }
 }

@@ -78,10 +78,10 @@ namespace Microsoft.ML.Transforms
             public string FeatureColumn = DefaultColumnNames.Features;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of top contributions", SortOrder = 3)]
-            public int Top = FeatureContributionCalculatingEstimator.Defaults.NumPositiveContributions;
+            public int Top = FeatureContributionCalculatingEstimator.Defaults.NumberOfPositiveContributions;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bottom contributions", SortOrder = 4)]
-            public int Bottom = FeatureContributionCalculatingEstimator.Defaults.NumNegativeContributions;
+            public int Bottom = FeatureContributionCalculatingEstimator.Defaults.NumberOfNegativeContributions;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether or not output of Features contribution should be normalized", ShortName = "norm", SortOrder = 5)]
             public bool Normalize = FeatureContributionCalculatingEstimator.Defaults.Normalize;
@@ -115,24 +115,24 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelParameters">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
-        /// <param name="featureColumn">The name of the feature column that will be used as input.</param>
-        /// <param name="numPositiveContributions">The number of positive contributions to report, sorted from highest magnitude to lowest magnitude.
-        /// Note that if there are fewer features with positive contributions than <paramref name="numPositiveContributions"/>, the rest will be returned as zeros.</param>
-        /// <param name="numNegativeContributions">The number of negative contributions to report, sorted from highest magnitude to lowest magnitude.
-        /// Note that if there are fewer features with negative contributions than <paramref name="numNegativeContributions"/>, the rest will be returned as zeros.</param>
+        /// <param name="featureColumnName">The name of the feature column that will be used as input.</param>
+        /// <param name="numberOfPositiveContributions">The number of positive contributions to report, sorted from highest magnitude to lowest magnitude.
+        /// Note that if there are fewer features with positive contributions than <paramref name="numberOfPositiveContributions"/>, the rest will be returned as zeros.</param>
+        /// <param name="numberOfNegativeContributions">The number of negative contributions to report, sorted from highest magnitude to lowest magnitude.
+        /// Note that if there are fewer features with negative contributions than <paramref name="numberOfNegativeContributions"/>, the rest will be returned as zeros.</param>
         /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
         internal FeatureContributionCalculatingTransformer(IHostEnvironment env, ICalculateFeatureContribution modelParameters,
-            string featureColumn = DefaultColumnNames.Features,
-            int numPositiveContributions = FeatureContributionCalculatingEstimator.Defaults.NumPositiveContributions,
-            int numNegativeContributions = FeatureContributionCalculatingEstimator.Defaults.NumNegativeContributions,
+            string featureColumnName = DefaultColumnNames.Features,
+            int numberOfPositiveContributions = FeatureContributionCalculatingEstimator.Defaults.NumberOfPositiveContributions,
+            int numberOfNegativeContributions = FeatureContributionCalculatingEstimator.Defaults.NumberOfNegativeContributions,
             bool normalize = FeatureContributionCalculatingEstimator.Defaults.Normalize)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)), new[] { (name: DefaultColumnNames.FeatureContributions, source: featureColumn) })
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)), new[] { (name: DefaultColumnNames.FeatureContributions, source: featureColumnName) })
         {
             Host.CheckValue(modelParameters, nameof(modelParameters));
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
-            if (numPositiveContributions < 0)
+            Host.CheckNonEmpty(featureColumnName, nameof(featureColumnName));
+            if (numberOfPositiveContributions < 0)
                 throw Host.Except($"Number of top contribution must be non negative");
-            if (numNegativeContributions < 0)
+            if (numberOfNegativeContributions < 0)
                 throw Host.Except($"Number of bottom contribution must be non negative");
 
             // If a predictor implements ICalculateFeatureContribution, it also implements the internal interface IFeatureContributionMapper.
@@ -140,8 +140,8 @@ namespace Microsoft.ML.Transforms
             _predictor = modelParameters as IFeatureContributionMapper;
             Host.AssertValue(_predictor);
 
-            Top = numPositiveContributions;
-            Bottom = numNegativeContributions;
+            Top = numberOfPositiveContributions;
+            Bottom = numberOfNegativeContributions;
             Normalize = normalize;
         }
 
@@ -276,8 +276,8 @@ namespace Microsoft.ML.Transforms
 
         internal static class Defaults
         {
-            public const int NumPositiveContributions = 10;
-            public const int NumNegativeContributions = 10;
+            public const int NumberOfPositiveContributions = 10;
+            public const int NumberOfNegativeContributions = 10;
             public const bool Normalize = true;
         }
 
@@ -287,21 +287,21 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelParameters">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
-        /// <param name="featureColumn">The name of the feature column that will be used as input.</param>
-        /// <param name="numPositiveContributions">The number of positive contributions to report, sorted from highest magnitude to lowest magnitude.
-        /// Note that if there are fewer features with positive contributions than <paramref name="numPositiveContributions"/>, the rest will be returned as zeros.</param>
-        /// <param name="numNegativeContributions">The number of negative contributions to report, sorted from highest magnitude to lowest magnitude.
-        /// Note that if there are fewer features with negative contributions than <paramref name="numNegativeContributions"/>, the rest will be returned as zeros.</param>
+        /// <param name="featureColumnName">The name of the feature column that will be used as input.</param>
+        /// <param name="numberOfPositiveContributions">The number of positive contributions to report, sorted from highest magnitude to lowest magnitude.
+        /// Note that if there are fewer features with positive contributions than <paramref name="numberOfPositiveContributions"/>, the rest will be returned as zeros.</param>
+        /// <param name="numberOfNegativeContributions">The number of negative contributions to report, sorted from highest magnitude to lowest magnitude.
+        /// Note that if there are fewer features with negative contributions than <paramref name="numberOfNegativeContributions"/>, the rest will be returned as zeros.</param>
         /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
         internal FeatureContributionCalculatingEstimator(IHostEnvironment env, ICalculateFeatureContribution modelParameters,
-            string featureColumn = DefaultColumnNames.Features,
-            int numPositiveContributions = Defaults.NumPositiveContributions,
-            int numNegativeContributions = Defaults.NumNegativeContributions,
+            string featureColumnName = DefaultColumnNames.Features,
+            int numberOfPositiveContributions = Defaults.NumberOfPositiveContributions,
+            int numberOfNegativeContributions = Defaults.NumberOfNegativeContributions,
             bool normalize = Defaults.Normalize)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)),
-                  new FeatureContributionCalculatingTransformer(env, modelParameters, featureColumn, numPositiveContributions, numNegativeContributions, normalize))
+                  new FeatureContributionCalculatingTransformer(env, modelParameters, featureColumnName, numberOfPositiveContributions, numberOfNegativeContributions, normalize))
         {
-            _featureColumn = featureColumn;
+            _featureColumn = featureColumnName;
             _predictor = modelParameters;
         }
 

@@ -31,9 +31,9 @@ namespace Microsoft.ML.Tests
 
             var estPipe = ML.Transforms.CalculateFeatureContribution(model.Model, model.FeatureColumn)
                 .Append(ML.Transforms.CalculateFeatureContribution(model.Model, model.FeatureColumn, normalize: false))
-                .Append(ML.Transforms.CalculateFeatureContribution(model.Model, model.FeatureColumn, numPositiveContributions: 0))
-                .Append(ML.Transforms.CalculateFeatureContribution(model.Model, model.FeatureColumn, numNegativeContributions: 0))
-                .Append(ML.Transforms.CalculateFeatureContribution(model.Model, model.FeatureColumn, numPositiveContributions: 0, numNegativeContributions: 0));
+                .Append(ML.Transforms.CalculateFeatureContribution(model.Model, model.FeatureColumn, numberOfPositiveContributions: 0))
+                .Append(ML.Transforms.CalculateFeatureContribution(model.Model, model.FeatureColumn, numberOfNegativeContributions: 0))
+                .Append(ML.Transforms.CalculateFeatureContribution(model.Model, model.FeatureColumn, numberOfPositiveContributions: 0, numberOfNegativeContributions: 0));
 
             TestEstimatorCore(estPipe, data);
             Done();
@@ -187,10 +187,10 @@ namespace Microsoft.ML.Tests
             Assert.NotNull(predictor);
 
             // Calculate feature contributions.
-            var est = ML.Transforms.CalculateFeatureContribution(predictor, "Features", numPositiveContributions: 3, numNegativeContributions: 0)
-                .Append(ML.Transforms.CalculateFeatureContribution(predictor, "Features", numPositiveContributions: 0, numNegativeContributions: 3))
-                .Append(ML.Transforms.CalculateFeatureContribution(predictor, "Features", numPositiveContributions: 1, numNegativeContributions: 1))
-                .Append(ML.Transforms.CalculateFeatureContribution(predictor, "Features", numPositiveContributions: 1, numNegativeContributions: 1, normalize: false));
+            var est = ML.Transforms.CalculateFeatureContribution(predictor, "Features", numberOfPositiveContributions: 3, numberOfNegativeContributions: 0)
+                .Append(ML.Transforms.CalculateFeatureContribution(predictor, "Features", numberOfPositiveContributions: 0, numberOfNegativeContributions: 3))
+                .Append(ML.Transforms.CalculateFeatureContribution(predictor, "Features", numberOfPositiveContributions: 1, numberOfNegativeContributions: 1))
+                .Append(ML.Transforms.CalculateFeatureContribution(predictor, "Features", numberOfPositiveContributions: 1, numberOfNegativeContributions: 1, normalize: false));
 
             TestEstimatorCore(est, data);
             // Verify output.
