@@ -139,6 +139,7 @@ namespace Microsoft.ML.Trainers
         private float _lambdaLatent;
         private float _learningRate;
         private int _numIterations;
+        // whether to normalize input vectors so that the concatenation of all fields' feature vectors is unit-length
         private bool _norm;
         private bool _shuffle;
         private bool _verbose;
