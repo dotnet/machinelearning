@@ -163,7 +163,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void TestMLRNoStats()
         {
-            (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
+            (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();
             var trainer = ML.MulticlassClassification.Trainers.LogisticRegression();
             var pipeWithTrainer = pipe.Append(trainer);
 
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void TestMLRWithStats()
         {
-            (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
+            (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();
 
             var trainer = ML.MulticlassClassification.Trainers.LogisticRegression(new LogisticRegressionMulticlassClassificationTrainer.Options
             {
