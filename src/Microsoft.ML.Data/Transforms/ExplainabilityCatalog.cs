@@ -24,7 +24,14 @@ namespace Microsoft.ML
         /// <param name="numNegativeContributions">The number of negative contributions to report, sorted from highest magnitude to lowest magnitude.
         /// Note that if there are fewer features with negative contributions than <paramref name="numNegativeContributions"/>, the rest will be returned as zeros.</param>
         /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
-        public static FeatureContributionCalculatingEstimator FeatureContributionCalculation(this ModelOperationsCatalog.ExplainabilityTransforms catalog,
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FCT](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureContributionCalculationTransform.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static FeatureContributionCalculatingEstimator CalculateFeatureContribution(this TransformsCatalog catalog,
             ICalculateFeatureContribution modelParameters,
             string featureColumn = DefaultColumnNames.Features,
             int numPositiveContributions = FeatureContributionDefaults.NumPositiveContributions,

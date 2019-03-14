@@ -67,13 +67,6 @@ namespace Microsoft.ML.Transforms
     /// See the sample below for an example of how to compute feature importance using the FeatureContributionCalculatingTransformer.
     /// </para>
     /// </remarks>
-    /// <example>
-    /// <format type="text/markdown">
-    /// <![CDATA[
-    /// [!code-csharp[FCT](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureContributionCalculationTransform.cs)]
-    /// ]]>
-    /// </format>
-    /// </example>
     public sealed class FeatureContributionCalculatingTransformer : OneToOneTransformerBase
     {
         internal sealed class Options : TransformInputBase
