@@ -51,7 +51,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The normalization settings for all the columns</param>
-        public static NormalizingEstimator Normalize(this TransformsCatalog catalog,
+        [BestFriend]
+        internal static NormalizingEstimator Normalize(this TransformsCatalog catalog,
             params NormalizingEstimator.ColumnOptionsBase[] columns)
             => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 

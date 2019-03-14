@@ -168,6 +168,5 @@ namespace Microsoft.ML
         [BestFriend]
         internal static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog catalog, params VectorWhiteningEstimator.ColumnOptions[] columns)
             => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), columns);
-
     }
 }

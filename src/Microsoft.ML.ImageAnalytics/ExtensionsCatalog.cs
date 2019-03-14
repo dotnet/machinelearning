@@ -11,6 +11,19 @@ namespace Microsoft.ML
     {
         /// <include file='doc.xml' path='doc/members/member[@name="ImageGrayscalingEstimator"]/*' />
         /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[ConvertToGrayscale](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/ConvertToGrayscale.cs)]
+        /// ]]></format>
+        /// </example>
+        public static ImageGrayscalingEstimator ConvertToGrayscale(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null)
+            => new ImageGrayscalingEstimator(CatalogUtils.GetEnvironment(catalog), new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
+
+        /// <include file='doc.xml' path='doc/members/member[@name="ImageGrayscalingEstimator"]/*' />
+        /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Specifies the names of the input columns for the transformation, and their respective output column names.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -21,6 +34,30 @@ namespace Microsoft.ML
         [BestFriend]
         internal static ImageGrayscalingEstimator ConvertToGrayscale(this TransformsCatalog catalog, params ColumnOptions[] columns)
             => new ImageGrayscalingEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columns));
+
+        /// <summary>
+        /// Loads the images from the <see cref="ImageLoadingTransformer.ImageFolder" /> into memory.
+        /// </summary>
+        /// <remarks>
+        /// The image get loaded in memory as a <see cref="System.Drawing.Bitmap" /> type.
+        /// Loading is the first step of almost every pipeline that does image processing, and further analysis on images.
+        /// The images to load need to be in the formats supported by <see cref = "System.Drawing.Bitmap" />.
+        /// For end-to-end image processing pipelines, and scenarios in your applications, see the
+        /// <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started"> examples in the machinelearning-samples github repository.</a>
+        /// <seealso cref = "ImageEstimatorsCatalog" />
+        /// </remarks>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="imageFolder">The images folder.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[LoadImages](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/LoadImages.cs)]
+        /// ]]></format>
+        /// </example>
+        public static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string imageFolder, string outputColumnName, string inputColumnName = null)
+           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
 
         /// <summary>
         /// Loads the images from the <see cref="ImageLoadingTransformer.ImageFolder" /> into memory.
