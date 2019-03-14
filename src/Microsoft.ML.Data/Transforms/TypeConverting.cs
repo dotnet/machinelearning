@@ -173,7 +173,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// A collection of <see cref="TypeConvertingEstimator.ColumnOptions"/> describing the settings of the transformation.
         /// </summary>
-        public IReadOnlyCollection<TypeConvertingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
+        internal IReadOnlyCollection<TypeConvertingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
 
         private readonly TypeConvertingEstimator.ColumnOptions[] _columns;
 

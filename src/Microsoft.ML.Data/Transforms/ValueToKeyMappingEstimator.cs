@@ -18,6 +18,7 @@ namespace Microsoft.ML.Transforms
         {
             public const int MaximumNumberOfKeys = 1000000;
             public const KeyOrdinality Ordinality = KeyOrdinality.ByOccurrence;
+            public const bool AddKeyValueAnnotationsAsText = false;
         }
 
         /// <summary>
