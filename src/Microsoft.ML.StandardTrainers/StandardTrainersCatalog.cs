@@ -632,7 +632,7 @@ namespace Microsoft.ML
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
         /// <typeparam name="TModel">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
         public static OneVersusAllTrainer OneVersusAll<TModel>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-            ITrainerEstimator<ISingleFeaturePredictionTransformer<TModel>, TModel> binaryEstimator,
+            ITrainerEstimator<BinaryPredictionTransformer<TModel>, TModel> binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
             IEstimator<ISingleFeaturePredictionTransformer<ICalibrator>> calibrator = null,
