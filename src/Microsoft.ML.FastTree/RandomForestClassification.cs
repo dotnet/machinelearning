@@ -22,9 +22,9 @@ using Microsoft.ML.Trainers.FastTree;
     FastForestBinaryClassificationTrainer.ShortName,
     "ffc")]
 
-[assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(FastForestClassificationModelParameters), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(FastForestMulticlassModelParameters), null, typeof(SignatureLoadModel),
     "FastForest Binary Executor",
-    FastForestClassificationModelParameters.LoaderSignature)]
+    FastForestMulticlassModelParameters.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(void), typeof(FastForest), null, typeof(SignatureEntryPointModule), "FastForest")]
 
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public sealed class FastForestClassificationModelParameters :
+    public sealed class FastForestMulticlassModelParameters :
         TreeEnsembleModelParametersBasedOnQuantileRegressionTree
     {
         internal const string LoaderSignature = "FastForestBinaryExec";
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 verReadableCur: 0x00010005,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(FastForestClassificationModelParameters).Assembly.FullName);
+                loaderAssemblyName: typeof(FastForestMulticlassModelParameters).Assembly.FullName);
         }
 
         private protected override uint VerNumFeaturesSerialized => 0x00010003;
@@ -76,11 +76,11 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        internal FastForestClassificationModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        internal FastForestMulticlassModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         { }
 
-        private FastForestClassificationModelParameters(IHostEnvironment env, ModelLoadContext ctx)
+        private FastForestMulticlassModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx, GetVersionInfo())
         {
         }
@@ -96,18 +96,18 @@ namespace Microsoft.ML.Trainers.FastTree
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            var predictor = new FastForestClassificationModelParameters(env, ctx);
+            var predictor = new FastForestMulticlassModelParameters(env, ctx);
             ICalibrator calibrator;
             ctx.LoadModelOrNull<ICalibrator, SignatureLoadModel>(env, out calibrator, @"Calibrator");
             if (calibrator == null)
                 return predictor;
-            return new SchemaBindableCalibratedModelParameters<FastForestClassificationModelParameters, ICalibrator>(env, predictor, calibrator);
+            return new SchemaBindableCalibratedModelParameters<FastForestMulticlassModelParameters, ICalibrator>(env, predictor, calibrator);
         }
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="FastForest"]/*' />
     public sealed partial class FastForestBinaryClassificationTrainer :
-        RandomForestTrainerBase<FastForestBinaryClassificationTrainer.Options, BinaryPredictionTransformer<FastForestClassificationModelParameters>, FastForestClassificationModelParameters>
+        RandomForestTrainerBase<FastForestBinaryClassificationTrainer.Options, BinaryPredictionTransformer<FastForestMulticlassModelParameters>, FastForestMulticlassModelParameters>
     {
         public sealed class Options : FastForestOptionsBase
         {
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
-        private protected override FastForestClassificationModelParameters TrainModelCore(TrainContext context)
+        private protected override FastForestMulticlassModelParameters TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // calibrator, transform the scores using that.
 
             // REVIEW: Need a way to signal the outside world that we prefer simple sigmoid?
-            return new FastForestClassificationModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
+            return new FastForestMulticlassModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
         }
 
         private protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
@@ -207,14 +207,14 @@ namespace Microsoft.ML.Trainers.FastTree
             return new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, 1);
         }
 
-        private protected override BinaryPredictionTransformer<FastForestClassificationModelParameters> MakeTransformer(FastForestClassificationModelParameters model, DataViewSchema trainSchema)
-         => new BinaryPredictionTransformer<FastForestClassificationModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
+        private protected override BinaryPredictionTransformer<FastForestMulticlassModelParameters> MakeTransformer(FastForestMulticlassModelParameters model, DataViewSchema trainSchema)
+         => new BinaryPredictionTransformer<FastForestMulticlassModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
         /// Trains a <see cref="FastForestBinaryClassificationTrainer"/> using both training and validation data, returns
         /// a <see cref="BinaryPredictionTransformer{FastForestClassificationModelParameters}"/>.
         /// </summary>
-        public BinaryPredictionTransformer<FastForestClassificationModelParameters> Fit(IDataView trainData, IDataView validationData)
+        public BinaryPredictionTransformer<FastForestMulticlassModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

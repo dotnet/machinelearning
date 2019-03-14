@@ -404,7 +404,7 @@ namespace Microsoft.ML.Functional.Tests
             // Extract the trained models.
             var modelComponents = model.ToList();
             var kMeansModel = (modelComponents[1] as TransformerChain<ClusteringPredictionTransformer<KMeansModelParameters>>).LastTransformer;
-            var mcLrModel = (modelComponents[2] as TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>>).LastTransformer;
+            var mcLrModel = (modelComponents[2] as TransformerChain<MulticlassPredictionTransformer<LogisticRegressionMulticlassModelParameters>>).LastTransformer;
 
             // Validate the k-means model.
             VBuffer<float>[] centroids = default;
@@ -430,7 +430,7 @@ namespace Microsoft.ML.Functional.Tests
                     }));
         }
 
-        private IEstimator<TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>>> StepTwo(MLContext mlContext)
+        private IEstimator<TransformerChain<MulticlassPredictionTransformer<LogisticRegressionMulticlassModelParameters>>> StepTwo(MLContext mlContext)
         {
             return mlContext.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlContext.MulticlassClassification.Trainers.Sdca(

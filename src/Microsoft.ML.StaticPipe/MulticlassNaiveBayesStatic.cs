@@ -29,7 +29,7 @@ namespace Microsoft.ML.StaticPipe
             MulticlassNaiveBayesTrainer<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             Key<uint, TVal> label,
             Vector<float> features,
-            Action<MulticlassNaiveBayesModelParameters> onFit = null)
+            Action<NaiveBayesModelParameters> onFit = null)
         {
             Contracts.CheckValue(features, nameof(features));
             Contracts.CheckValue(label, nameof(label));
