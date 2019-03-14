@@ -338,10 +338,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Apply all kinds of standard ML.NET normalization to the raw features.
             var pipeline = loader.MakeNewEstimator()
                 .Append(r => (
-                    MinMaxNormalized: r.Features.Normalize(fixZero: true),
-                    MeanVarNormalized: r.Features.NormalizeByMeanVar(fixZero: false),
+                    MinMaxNormalized: r.Features.Normalize(ensureZeroUntouched: true),
+                    MeanVarNormalized: r.Features.NormalizeMeanVariance(ensureZeroUntouched: false),
                     CdfNormalized: r.Features.NormalizeByCumulativeDistribution(),
-                    BinNormalized: r.Features.NormalizeByBinning(maxBins: 256)
+                    BinNormalized: r.Features.NormalizeByBinning(maximumBinCount: 256)
                 ));
 
             // Let's train our pipeline of normalizers, and then apply it to the same data.
