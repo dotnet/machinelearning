@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
@@ -57,5 +58,30 @@ namespace Microsoft.ML.Functional.Tests
             Assert.False(pr.PredictedLabel);
             Assert.False(pr.Score > 0.7);
         }
+
+        [Fact]
+        public void ReconfigurablePredictionNoPipeline()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            var data = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
+            var pipeline = mlContext.BinaryClassification.Trainers.LogisticRegression(
+                     new Trainers.LogisticRegressionBinaryClassificationTrainer.Options { NumberOfThreads = 1 });
+            var model = pipeline.Fit(data);
+            var newModel = mlContext.BinaryClassification.ChangeModelThreshold(model, -2.0f);
+            var rnd = new Random(1);
+            var randomDataPoint = TypeTestData.GetRandomInstance(rnd);
+            var engine = model.CreatePredictionEngine<TypeTestData, Answer>(mlContext);
+            var pr = engine.Predict(randomDataPoint);
+            // Score is -1.38 so predicted label is false.
+            Assert.False(pr.PredictedLabel);
+            Assert.True(pr.Score <= 0);
+            var newEngine = newModel.CreatePredictionEngine<TypeTestData, Answer>(mlContext);
+            pr = newEngine.Predict(randomDataPoint);
+            // Score is still -1.38 but since threshold is no longer 0 but -2 predicted label now is true.
+            Assert.True(pr.PredictedLabel);
+            Assert.True(pr.Score <= 0);
+        }
+
     }
 }

@@ -275,7 +275,15 @@ namespace Microsoft.ML
                 Evaluate(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
         }
 
-        public TransformerChain<BinaryPredictionTransformer<TModel>> ChangeModelThreshold<TModel>(TransformerChain<BinaryPredictionTransformer<TModel>> chain, float threshold) where TModel : class
+        /// <summary>
+        /// Change threshold for binary model.
+        /// </summary>
+        /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
+        /// <param name="chain">Chain of transformers.</param>
+        /// <param name="threshold">New threshold.</param>
+        /// <returns></returns>
+        public TransformerChain<BinaryPredictionTransformer<TModel>> ChangeModelThreshold<TModel>(TransformerChain<BinaryPredictionTransformer<TModel>> chain, float threshold)
+            where TModel : class
         {
             if (chain.LastTransformer.Threshold == threshold)
                 return chain;
@@ -287,9 +295,18 @@ namespace Microsoft.ML
                     transformers.Add(transform);
             }
 
-            var a = new BinaryPredictionTransformer<TModel>(Environment, predictionTransformer.Model, predictionTransformer.TrainSchema, predictionTransformer.FeatureColumn, threshold, predictionTransformer.ThresholdColumn);
-            transformers.Add(a);
+            transformers.Add(new BinaryPredictionTransformer<TModel>(Environment, predictionTransformer.Model,
+                predictionTransformer.TrainSchema, predictionTransformer.FeatureColumn,
+                threshold, predictionTransformer.ThresholdColumn));
             return new TransformerChain<BinaryPredictionTransformer<TModel>>(transformers.ToArray());
+        }
+
+        public BinaryPredictionTransformer<TModel> ChangeModelThreshold<TModel>(BinaryPredictionTransformer<TModel> model, float threshold)
+             where TModel : class
+        {
+            if (model.Threshold == threshold)
+                return model;
+            return new BinaryPredictionTransformer<TModel>(Environment, model.Model, model.TrainSchema, model.FeatureColumn, threshold, model.ThresholdColumn);
         }
 
         /// <summary>
