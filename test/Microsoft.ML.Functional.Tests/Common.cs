@@ -9,6 +9,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.ML.Functional.Tests
 {
@@ -266,6 +267,33 @@ namespace Microsoft.ML.Functional.Tests
             AssertMetricStatistics(metrics.MeanSquaredError);
             AssertMetricStatistics(metrics.RSquared);
             AssertMetricStatistics(metrics.LossFunction);
+        }
+
+        /// <summary>
+        /// Assert that two float arrays are not equal.
+        /// </summary>
+        /// <param name="array1">An array of floats.</param>
+        /// <param name="array2">An array of floats.</param>
+        public static void AssertNotEqual(float[] array1, float[] array2)
+        {
+            Assert.NotNull(array1);
+            Assert.NotNull(array2);
+            Assert.Equal(array1.Length, array2.Length);
+
+            bool mismatch = false;
+            for (int i = 0; i < array1.Length; i++)
+                try
+                {
+                    // Use Assert to test for equality rather than
+                    // to roll our own float equality checker.
+                    Assert.Equal(array1[i], array2[i]);
+                }
+                catch(EqualException)
+                {
+                    mismatch = true;
+                    break;
+                }
+            Assert.True(mismatch);
         }
 
         /// <summary>
