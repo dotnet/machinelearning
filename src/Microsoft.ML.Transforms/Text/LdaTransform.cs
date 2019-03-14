@@ -163,7 +163,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Provide details about the topics discovered by <a href="https://arxiv.org/abs/1412.1576">LightLDA.</a>
         /// </summary>
-        public sealed class LdaModelParameters
+        public sealed class ModelParameters
         {
             public struct ItemScore
             {
@@ -194,19 +194,19 @@ namespace Microsoft.ML.Transforms.Text
             // For each topic, provide information about the (item, word, score) tuple.
             public readonly IReadOnlyList<IReadOnlyList<WordItemScore>> WordScoresPerTopic;
 
-            internal LdaModelParameters(IReadOnlyList<IReadOnlyList<ItemScore>> itemScoresPerTopic)
+            internal ModelParameters(IReadOnlyList<IReadOnlyList<ItemScore>> itemScoresPerTopic)
             {
                 ItemScoresPerTopic = itemScoresPerTopic;
             }
 
-            internal LdaModelParameters(IReadOnlyList<IReadOnlyList<WordItemScore>> wordScoresPerTopic)
+            internal ModelParameters(IReadOnlyList<IReadOnlyList<WordItemScore>> wordScoresPerTopic)
             {
                 WordScoresPerTopic = wordScoresPerTopic;
             }
         }
 
         [BestFriend]
-        internal LdaModelParameters GetLdaDetails(int iinfo)
+        internal ModelParameters GetLdaDetails(int iinfo)
         {
             Contracts.Assert(0 <= iinfo && iinfo < _ldas.Length);
 
@@ -325,40 +325,40 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            internal LdaModelParameters GetLdaSummary(VBuffer<ReadOnlyMemory<char>> mapping)
+            internal ModelParameters GetLdaSummary(VBuffer<ReadOnlyMemory<char>> mapping)
             {
                 if (mapping.Length == 0)
                 {
-                    var itemScoresPerTopicBuilder = ImmutableArray.CreateBuilder<List<LdaModelParameters.ItemScore>>();
+                    var itemScoresPerTopicBuilder = ImmutableArray.CreateBuilder<List<ModelParameters.ItemScore>>();
                     for (int i = 0; i < _ldaTrainer.NumTopic; i++)
                     {
                         var scores = _ldaTrainer.GetTopicSummary(i);
-                        var itemScores = new List<LdaModelParameters.ItemScore>();
+                        var itemScores = new List<ModelParameters.ItemScore>();
                         foreach (KeyValuePair<int, float> p in scores)
                         {
-                            itemScores.Add(new LdaModelParameters.ItemScore(p.Key, p.Value));
+                            itemScores.Add(new ModelParameters.ItemScore(p.Key, p.Value));
                         }
 
                         itemScoresPerTopicBuilder.Add(itemScores);
                     }
-                    return new LdaModelParameters(itemScoresPerTopicBuilder.ToImmutable());
+                    return new ModelParameters(itemScoresPerTopicBuilder.ToImmutable());
                 }
                 else
                 {
                     ReadOnlyMemory<char> slotName = default;
-                    var wordScoresPerTopicBuilder = ImmutableArray.CreateBuilder<List<LdaModelParameters.WordItemScore>>();
+                    var wordScoresPerTopicBuilder = ImmutableArray.CreateBuilder<List<ModelParameters.WordItemScore>>();
                     for (int i = 0; i < _ldaTrainer.NumTopic; i++)
                     {
                         var scores = _ldaTrainer.GetTopicSummary(i);
-                        var wordScores = new List<LdaModelParameters.WordItemScore>();
+                        var wordScores = new List<ModelParameters.WordItemScore>();
                         foreach (KeyValuePair<int, float> p in scores)
                         {
                             mapping.GetItemOrDefault(p.Key, ref slotName);
-                            wordScores.Add(new LdaModelParameters.WordItemScore(p.Key, slotName.ToString(), p.Value));
+                            wordScores.Add(new ModelParameters.WordItemScore(p.Key, slotName.ToString(), p.Value));
                         }
                         wordScoresPerTopicBuilder.Add(wordScores);
                     }
-                    return new LdaModelParameters(wordScoresPerTopicBuilder.ToImmutable());
+                    return new ModelParameters(wordScoresPerTopicBuilder.ToImmutable());
                 }
             }
 
