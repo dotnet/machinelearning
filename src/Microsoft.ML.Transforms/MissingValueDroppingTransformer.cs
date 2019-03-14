@@ -30,7 +30,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="NADrop"]'/>
-    public sealed class MissingValueDroppingTransformer : OneToOneTransformerBase
+    internal sealed class MissingValueDroppingTransformer : OneToOneTransformerBase
     {
         internal sealed class Options : TransformInputBase
         {
