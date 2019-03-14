@@ -5291,7 +5291,7 @@
         {
           "Name": "NumberOfQuantileSamples",
           "Type": "Int",
-          "Desc": "Number of labels to be sampled from each leaf to make the distribtuion",
+          "Desc": "Number of labels to be sampled from each leaf to make the distribution",
           "Aliases": [
             "qsc"
           ],
@@ -5903,7 +5903,7 @@
         {
           "Name": "NumberOfQuantileSamples",
           "Type": "Int",
-          "Desc": "Number of labels to be sampled from each leaf to make the distribtuion",
+          "Desc": "Number of labels to be sampled from each leaf to make the distribution",
           "Aliases": [
             "qsc"
           ],
@@ -7426,7 +7426,7 @@
             "Kind": "Array",
             "ItemType": "Float"
           },
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
+          "Desc": "Comma-separated list of gains associated to each relevance label.",
           "Aliases": [
             "gains"
           ],
@@ -7468,7 +7468,7 @@
         {
           "Name": "NdcgTruncationLevel",
           "Type": "Int",
-          "Desc": "max-NDCG truncation to use in the Lambda Mart algorithm",
+          "Desc": "max-NDCG truncation to use in the LambdaMART algorithm",
           "Aliases": [
             "n"
           ],
@@ -26129,7 +26129,7 @@
                 "Kind": "Array",
                 "ItemType": "Float"
               },
-              "Desc": "Comma seperated list of gains associated to each relevance label.",
+              "Desc": "Comma-separated list of gains associated to each relevance label.",
               "Aliases": [
                 "gains"
               ],
@@ -26171,7 +26171,7 @@
             {
               "Name": "NdcgTruncationLevel",
               "Type": "Int",
-              "Desc": "max-NDCG truncation to use in the Lambda Mart algorithm",
+              "Desc": "max-NDCG truncation to use in the LambdaMART algorithm",
               "Aliases": [
                 "n"
               ],

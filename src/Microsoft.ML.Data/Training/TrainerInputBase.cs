@@ -67,7 +67,7 @@ namespace Microsoft.ML.Trainers
 
     // REVIEW: This is a known antipattern, but the solution involves the decorator pattern which can't be used in this case.
     /// <summary>
-    /// The base class for all learner inputs that support a weight column.
+    /// The base class for all trainer inputs that support a weight column.
     /// </summary>
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInputWithWeight))]
     public abstract class TrainerInputBaseWithWeight : TrainerInputBaseWithLabel
@@ -96,6 +96,9 @@ namespace Microsoft.ML.Trainers
         public string ExampleWeightColumnName = null;
     }
 
+    /// <summary>
+    /// The base class for all trainer inputs that support a group column.
+    /// </summary>
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInputWithGroupId))]
     public abstract class TrainerInputBaseWithGroupId : TrainerInputBaseWithWeight
     {

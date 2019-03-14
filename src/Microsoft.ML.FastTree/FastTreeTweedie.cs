@@ -26,10 +26,17 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    // The Tweedie boosting model follows the mathematics established in:
-    // Yang, Quan, and Zou. "Insurance Premium Prediction via Gradient Tree-Boosted Tweedie Compound Poisson Models."
-    // https://arxiv.org/pdf/1508.06378.pdf
-    /// <include file='doc.xml' path='doc/members/member[@name="FastTreeTweedieRegression"]/*' />
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a decision tree regression model using Tweedie loss function.
+    /// This trainer is a generalization of Poisson, compound Poisson, and gamma regression.
+    /// </summary>
+    /// <remarks>
+    /// The Tweedie boosting model follows the mathematics established in <a href="https://arxiv.org/pdf/1508.06378.pdf">
+    /// Insurance Premium Prediction via Gradient Tree-Boosted Tweedie Compound Poisson Models</a> from Yang, Quan, and Zou.
+    /// For an introduction to Gradient Boosting, and more information, see:
+    /// <a href='https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting'> Wikipedia: Gradient boosting(Gradient tree boosting)</a> or
+    /// <a href='https://projecteuclid.org/DPubS?service=UI&amp;version=1.0&amp;verb=Display&amp;handle=euclid.aos/1013203451'> Greedy function approximation: A gradient boosting machine</a>.
+    /// </remarks>
     public sealed partial class FastTreeTweedieTrainer
          : BoostingFastTreeTrainerBase<FastTreeTweedieTrainer.Options, RegressionPredictionTransformer<FastTreeTweedieModelParameters>, FastTreeTweedieModelParameters>
     {
