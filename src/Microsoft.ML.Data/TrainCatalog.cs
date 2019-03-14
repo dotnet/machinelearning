@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrators;
@@ -272,6 +273,23 @@ namespace Microsoft.ML
             var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);
             return result.Select(x => new CrossValidationResult<CalibratedBinaryClassificationMetrics>(x.Model,
                 Evaluate(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
+        }
+
+        public TransformerChain<BinaryPredictionTransformer<TModel>> ChangeModelThreshold<TModel>(TransformerChain<BinaryPredictionTransformer<TModel>> chain, float threshold) where TModel : class
+        {
+            if (chain.LastTransformer.Threshold == threshold)
+                return chain;
+            List<ITransformer> transformers = new List<ITransformer>();
+            var predictionTransformer = chain.LastTransformer;
+            foreach (var transform in chain)
+            {
+                if (transform != predictionTransformer)
+                    transformers.Add(transform);
+            }
+
+            var a = new BinaryPredictionTransformer<TModel>(Environment, predictionTransformer.Model, predictionTransformer.TrainSchema, predictionTransformer.FeatureColumn, threshold, predictionTransformer.ThresholdColumn);
+            transformers.Add(a);
+            return new TransformerChain<BinaryPredictionTransformer<TModel>>(transformers.ToArray());
         }
 
         /// <summary>
