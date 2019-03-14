@@ -29,6 +29,11 @@ namespace Microsoft.ML.Auto
             return columnType is VectorType;
         }
 
+        public static bool IsKey(this DataViewType columnType)
+        {
+            return columnType is KeyType;
+        }
+
         public static bool IsKnownSizeVector(this DataViewType columnType)
         {
             var vector = columnType as VectorType;

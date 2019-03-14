@@ -117,12 +117,12 @@ namespace Microsoft.ML.Auto
 
         internal interface ITransformInferenceExpert
         {
-            IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns);
+            IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task);
         }
 
         public abstract class TransformInferenceExpertBase : ITransformInferenceExpert
         {
-            public abstract IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns);
+            public abstract IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task);
 
             protected readonly MLContext Context;
 
@@ -137,8 +137,8 @@ namespace Microsoft.ML.Auto
             // The expert work independently of each other, the sequence is irrelevant
             // (it only determines the sequence of resulting transforms).
 
-            // For text labels, convert to categories.
-            yield return new Experts.AutoLabel(context);
+            // For multiclass tasks, convert label column to key
+            yield return new Experts.Label(context);
 
             // For boolean columns use convert transform
             yield return new Experts.Boolean(context);
@@ -155,21 +155,26 @@ namespace Microsoft.ML.Auto
 
         internal static class Experts
         {
-            internal sealed class AutoLabel : TransformInferenceExpertBase
+            internal sealed class Label : TransformInferenceExpertBase
             {
-                public AutoLabel(MLContext context) : base(context)
+                public Label(MLContext context) : base(context)
                 {
                 }
 
-                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
+                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task)
                 {
+                    if (task != TaskKind.MulticlassClassification)
+                    {
+                        yield break;
+                    }
+
                     var lastLabelColId = Array.FindLastIndex(columns, x => x.Purpose == ColumnPurpose.Label);
                     if (lastLabelColId < 0)
                         yield break;
 
                     var col = columns[lastLabelColId];
 
-                    if (col.Type.IsText())
+                    if (!col.Type.IsKey())
                     {
                         yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, col.ColumnName, col.ColumnName);
                     }
@@ -182,7 +187,7 @@ namespace Microsoft.ML.Auto
                 {
                 }
 
-                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
+                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task)
                 {
                     bool foundCat = false;
                     bool foundCatHash = false;
@@ -232,7 +237,7 @@ namespace Microsoft.ML.Auto
                 {
                 }
 
-                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
+                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task)
                 {
                     var newColumns = new List<string>();
 
@@ -260,7 +265,7 @@ namespace Microsoft.ML.Auto
                 {
                 }
 
-                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
+                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task)
                 {
                     var featureCols = new List<string>();
 
@@ -286,7 +291,7 @@ namespace Microsoft.ML.Auto
                 {
                 }
 
-                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
+                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, TaskKind task)
                 {
                     var columnsWithMissing = new List<string>();
                     foreach (var column in columns)
@@ -313,7 +318,7 @@ namespace Microsoft.ML.Auto
         /// <summary>
         /// Automatically infer transforms for the data view
         /// </summary>
-        public static SuggestedTransform[] InferTransforms(MLContext context, (string, DataViewType, ColumnPurpose, ColumnDimensions)[] columns)
+        public static SuggestedTransform[] InferTransforms(MLContext context, TaskKind task, (string, DataViewType, ColumnPurpose, ColumnDimensions)[] columns)
         {
             var intermediateCols = columns.Where(c => c.Item3 != ColumnPurpose.Ignore)
                 .Select(c => new IntermediateColumn(c.Item1, c.Item2, c.Item3, c.Item4))
@@ -322,7 +327,7 @@ namespace Microsoft.ML.Auto
             var suggestedTransforms = new List<SuggestedTransform>();
             foreach (var expert in GetExperts(context))
             {
-                SuggestedTransform[] suggestions = expert.Apply(intermediateCols).ToArray();
+                SuggestedTransform[] suggestions = expert.Apply(intermediateCols, task).ToArray();
                 suggestedTransforms.AddRange(suggestions);
             }
 

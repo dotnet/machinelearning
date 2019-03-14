@@ -645,7 +645,7 @@ namespace Microsoft.ML.Auto.Test
         }
 
         [TestMethod]
-        public void TransformInferenceCustomTextLabelCol()
+        public void TransformInferenceCustomTextLabelColMulticlass()
         {
             TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
@@ -663,7 +663,7 @@ namespace Microsoft.ML.Auto.Test
     ],
     ""Properties"": {}
   }
-]");
+]", TaskKind.MulticlassClassification);
         }
 
         [TestMethod]
@@ -727,9 +727,10 @@ namespace Microsoft.ML.Auto.Test
 
         private static void TransformInferenceTestCore(
             (string name, DataViewType type, ColumnPurpose purpose, ColumnDimensions dimensions)[] columns,
-            string expectedJson)
+            string expectedJson,
+            TaskKind task = TaskKind.BinaryClassification)
         {
-            var transforms = TransformInferenceApi.InferTransforms(new MLContext(), columns);
+            var transforms = TransformInferenceApi.InferTransforms(new MLContext(), task, columns);
             TestApplyTransformsToRealDataView(transforms, columns);
             var pipelineNodes = transforms.Select(t => t.PipelineNode);
             Util.AssertObjectMatchesJson(expectedJson, pipelineNodes);

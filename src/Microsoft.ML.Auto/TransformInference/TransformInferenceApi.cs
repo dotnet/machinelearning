@@ -9,9 +9,9 @@ namespace Microsoft.ML.Auto
 {
     internal static class TransformInferenceApi
     {
-        public static IEnumerable<SuggestedTransform> InferTransforms(MLContext context, (string, DataViewType, ColumnPurpose, ColumnDimensions)[] columns)
+        public static IEnumerable<SuggestedTransform> InferTransforms(MLContext context, TaskKind task, (string, DataViewType, ColumnPurpose, ColumnDimensions)[] columns)
         {
-            return TransformInference.InferTransforms(context, columns);
+            return TransformInference.InferTransforms(context, task, columns);
         }
     }
 }

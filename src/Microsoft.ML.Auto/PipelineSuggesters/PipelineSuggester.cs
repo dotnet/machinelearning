@@ -35,8 +35,7 @@ namespace Microsoft.ML.Auto
         {
             var availableTrainers = RecipeInference.AllowedTrainers(context, task, 
                 ColumnInformationUtil.BuildColumnInfo(columns), trainerWhitelist);
-            var transforms = CalculateTransforms(context, columns, task);
-            //var transforms = TransformInferenceApi.InferTransforms(context, columns, task);
+            var transforms = TransformInferenceApi.InferTransforms(context, task, columns);
 
             // if we haven't run all pipelines once
             if (history.Count() < availableTrainers.Count())
@@ -212,22 +211,6 @@ namespace Microsoft.ML.Auto
             trainer.SetHyperparamValues(proposedParamSet);
 
             return true;
-        }
-
-        private static IEnumerable<SuggestedTransform> CalculateTransforms(
-            MLContext context,
-            (string, DataViewType, ColumnPurpose, ColumnDimensions)[] columns,
-            TaskKind task)
-        {
-            var transforms = TransformInferenceApi.InferTransforms(context, columns).ToList();
-            // this is a work-around for ML.NET bug tracked by https://github.com/dotnet/machinelearning/issues/1969
-            if (task == TaskKind.MulticlassClassification)
-            {
-                var labelColumn = columns.First(c => c.Item3 == ColumnPurpose.Label).Item1;
-                var transform = ValueToKeyMappingExtension.CreateSuggestedTransform(context, labelColumn, labelColumn);
-                transforms.Add(transform);
-            }
-            return transforms;
         }
     }
 }
