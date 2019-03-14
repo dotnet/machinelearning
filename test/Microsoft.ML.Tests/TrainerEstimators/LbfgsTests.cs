@@ -69,6 +69,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var stats2 = linearModel.Statistics as LinearModelParameterStatistics;
 
             Assert.Null(stats2);
+
+            Done();
         }
 
 
@@ -113,7 +115,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             validateStats(linearModel);
 
-            var modelPath = GetOutputPath("temp.zip");
+            var modelPath = GetOutputPath("TestLRWithStats.zip");
             // Save model. 
             using (var file = File.Create(modelPath))
                 transformer.SaveTo(ML, file);
@@ -130,6 +132,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             linearModel = model.SubModel as LinearBinaryModelParameters;
 
             validateStats(linearModel);
+
+            Done();
 
         }
 
@@ -152,6 +156,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.Equal(500, stats.TrainingExampleCount);
 
             }
+
+            Done();
         }
 
         [Fact]
@@ -176,6 +182,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestMLRWithStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
+
             var trainer = ML.MulticlassClassification.Trainers.LogisticRegression(new LogisticRegressionMulticlassClassificationTrainer.Options
             {
                 ShowTrainingStatistics = true
@@ -200,7 +207,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             validateStats(model);
 
-            var modelPath = GetOutputPath("temp.zip");
+            var modelPath = GetOutputPath("TestMLRWithStats.zip");
             // Save model. 
             using (var file = File.Create(modelPath))
                 transformer.SaveTo(ML, file);
@@ -234,6 +241,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.Equal(11, stats.ParametersCount);
                 Assert.Equal(150, stats.TrainingExampleCount);
             }
+
+            Done();
         }
     }
 }
