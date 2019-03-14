@@ -192,7 +192,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
-    /// The <see cref="IEstimator{ITransformer}"/> for detecting a signal change on an Independent Identically Distributed time series.
+    /// The <see cref="IEstimator{ITransformer}"/> for detecting a signal change on an
+    /// <a href="https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables"> independent identically distributed (i.i.d.)</a> time series.
     /// Detection is based on adaptive kernel density estimation and martingales.
     /// </summary>
     public sealed class IidChangePointEstimator : TrivialEstimator<IidChangePointDetector>

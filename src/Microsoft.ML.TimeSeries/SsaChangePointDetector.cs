@@ -201,7 +201,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
-    /// The <see cref="IEstimator{ITransformer}"/> for detecting a signal change through <a href="http://arxiv.org/pdf/1206.6910.pdf">Singular Spectrum Analysis.</a> of time series.
+    /// The <see cref="IEstimator{ITransformer}"/> for detecting a signal change through <a href="http://arxiv.org/pdf/1206.6910.pdf">Singular Spectrum Analysis (SSA).</a> of time series.
     /// </summary>
     public sealed class SsaChangePointEstimator : IEstimator<SsaChangePointDetector>
     {

@@ -10,7 +10,8 @@ namespace Microsoft.ML
     public static class TimeSeriesCatalog
     {
         /// <summary>
-        /// Create a new instance of <see cref="IidChangePointEstimator"/> that detects a change of in a independent identically distributed time series.
+        /// Create a new instance of <see cref="IidChangePointEstimator"/> that detects a change of in an
+        /// <a href="https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables"> independent identically distributed (i.i.d.)</a> time series.
         /// Detection is based on adaptive kernel density estimations and martingale scores.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
@@ -33,7 +34,8 @@ namespace Microsoft.ML
             => new IidChangePointEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, confidence, changeHistoryLength, inputColumnName, martingale, eps);
 
         /// <summary>
-        /// Create a new instance of <see cref="IidSpikeEstimator"/> that detects a spike in an independent identically distributed time series.
+        /// Create a new instance of <see cref="IidSpikeEstimator"/> that detects a spike in an
+        /// <a href="https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables">independent identically distributed (i.i.d.)</a> time series.
         /// Detection is based on adaptive kernel density estimations and martingale scores.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
@@ -54,7 +56,8 @@ namespace Microsoft.ML
             => new IidSpikeEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, confidence, pvalueHistoryLength, inputColumnName, side);
 
         /// <summary>
-        /// Create a new instance of <see cref="SsaChangePointEstimator"/> for detecting a change in a time series signal using Singular Spectrum Analysis.
+        /// Create a new instance of <see cref="SsaChangePointEstimator"/> for detecting a change in a time series signal
+        /// using <a href="https://en.wikipedia.org/wiki/Singular_spectrum_analysis">Singular Spectrum Analysis (SSA)</a>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
@@ -74,7 +77,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static SsaChangePointEstimator SsaDetectChangePoint(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
+        public static SsaChangePointEstimator DetectChangePointBySsa(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
             int confidence, int changeHistoryLength, int trainingWindowSize, int seasonalityWindowSize, ErrorFunction errorFunction = ErrorFunction.SignedDifference,
             MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
             => new SsaChangePointEstimator(CatalogUtils.GetEnvironment(catalog), new SsaChangePointDetector.Options
@@ -91,7 +94,8 @@ namespace Microsoft.ML
             });
 
         /// <summary>
-        /// Create a new instance of <see cref="SsaSpikeEstimator"/> for detecting a spike in a time series signal using Singular Spectrum Analysis.
+        /// Create a new instance of <see cref="SsaSpikeEstimator"/> for detecting a spike in a time series signal
+        /// using <a href="https://en.wikipedia.org/wiki/Singular_spectrum_analysis">Singular Spectrum Analysis (SSA)</a>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
@@ -110,7 +114,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static SsaSpikeEstimator SsaDetectSpike(this TransformsCatalog catalog, string outputColumnName, string inputColumnName, int confidence, int pvalueHistoryLength,
+        public static SsaSpikeEstimator DetectSpikeBySsa(this TransformsCatalog catalog, string outputColumnName, string inputColumnName, int confidence, int pvalueHistoryLength,
             int trainingWindowSize, int seasonalityWindowSize, AnomalySide side = AnomalySide.TwoSided, ErrorFunction errorFunction = ErrorFunction.SignedDifference)
             => new SsaSpikeEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, confidence, pvalueHistoryLength, trainingWindowSize, seasonalityWindowSize, inputColumnName, side, errorFunction);
     }
