@@ -143,7 +143,7 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Load(sentimentDataPath);
             var est = ML.Transforms.Text.NormalizeText("text")
-                .Append(ML.Transforms.Text.TokenizeWords("words", "text"))
+                .Append(ML.Transforms.Text.TokenizeIntoWords("words", "text"))
                 .Append(ML.Transforms.Text.RemoveDefaultStopWords("NoDefaultStopwords", "words"))
                 .Append(ML.Transforms.Text.RemoveStopWords("NoStopWords", "words", "xbox", "this", "is", "a", "the", "THAT", "bY"));
 
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Load(sentimentDataPath);
 
             var est = new WordBagEstimator(ML, "bag_of_words", "text").
-                Append(new WordHashBagEstimator(ML, "bag_of_wordshash", "text", invertHash: -1));
+                Append(new WordHashBagEstimator(ML, "bag_of_wordshash", "text", maximumNumberOfInverts: -1));
 
             // The following call fails because of the following issue
             // https://github.com/dotnet/machinelearning/issues/969
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Load(sentimentDataPath);
 
             var est = new WordBagEstimator(env, "bag_of_words", "text").
-                Append(new LatentDirichletAllocationEstimator(env, "topics", "bag_of_words", 10, numIterations: 10,
+                Append(new LatentDirichletAllocationEstimator(env, "topics", "bag_of_words", 10, maximumNumberOfIterations: 10,
                     resetRandomGenerator: true));
 
             // The following call fails because of the following issue

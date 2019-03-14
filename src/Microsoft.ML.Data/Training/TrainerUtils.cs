@@ -135,7 +135,7 @@ namespace Microsoft.ML.Trainers
         /// key type, it must have known cardinality. For other numeric types, this scans the data
         /// to determine the cardinality.
         /// </summary>
-        public static void CheckMultiClassLabel(this RoleMappedData data, out int count)
+        public static void CheckMulticlassLabel(this RoleMappedData data, out int count)
         {
             Contracts.CheckValue(data, nameof(data));
 
@@ -948,7 +948,7 @@ namespace Microsoft.ML.Trainers
     /// enforcing multi-class semantics.
     /// </summary>
     [BestFriend]
-    internal class MultiClassLabelCursor : FeatureFloatVectorCursor
+    internal class MulticlassLabelCursor : FeatureFloatVectorCursor
     {
         private readonly int _classCount;
         private readonly ValueGetter<float> _get;
@@ -959,13 +959,13 @@ namespace Microsoft.ML.Trainers
         private float _raw;
         public int Label;
 
-        public MultiClassLabelCursor(int classCount, RoleMappedData data, CursOpt opt = CursOpt.Label,
+        public MulticlassLabelCursor(int classCount, RoleMappedData data, CursOpt opt = CursOpt.Label,
             Random rand = null, params int[] extraCols)
             : this(classCount, CreateCursor(data, opt, rand, extraCols), data, opt)
         {
         }
 
-        protected MultiClassLabelCursor(int classCount, DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
+        protected MulticlassLabelCursor(int classCount, DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
             : base(input, data, opt, signal)
         {
             Contracts.Assert(classCount >= 0);
@@ -1002,7 +1002,7 @@ namespace Microsoft.ML.Trainers
             return base.Accept();
         }
 
-        public new sealed class Factory : FactoryBase<MultiClassLabelCursor>
+        public new sealed class Factory : FactoryBase<MulticlassLabelCursor>
         {
             private readonly int _classCount;
 
@@ -1014,9 +1014,9 @@ namespace Microsoft.ML.Trainers
                 _classCount = classCount;
             }
 
-            protected override MultiClassLabelCursor CreateCursorCore(DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
+            protected override MulticlassLabelCursor CreateCursorCore(DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
             {
-                return new MultiClassLabelCursor(_classCount, input, data, opt, signal);
+                return new MulticlassLabelCursor(_classCount, input, data, opt, signal);
             }
         }
     }

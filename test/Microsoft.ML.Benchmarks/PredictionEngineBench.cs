@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -57,8 +57,9 @@ namespace Microsoft.ML.Benchmarks
             IDataView data = loader.Load(_irisDataPath);
 
             var pipeline = new ColumnConcatenatingEstimator(env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                .Append(env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
-                    new SdcaMultiClassTrainer.Options {NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, }));
+                .Append(env.Transforms.Conversion.MapValueToKey("Label"))
+                .Append(env.MulticlassClassification.Trainers.Sdca(
+                    new SdcaMulticlassClassificationTrainer.Options { NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, }));
 
             var model = pipeline.Fit(data);
 
@@ -92,8 +93,8 @@ namespace Microsoft.ML.Benchmarks
             IDataView data = loader.Load(_sentimentDataPath);
 
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
-                .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                    new SdcaNonCalibratedBinaryTrainer.Options {NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, }));
+                .Append(mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(
+                    new SdcaNonCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, }));
 
             var model = pipeline.Fit(data);
 
@@ -126,8 +127,8 @@ namespace Microsoft.ML.Benchmarks
 
             IDataView data = loader.Load(_breastCancerDataPath);
 
-            var pipeline = env.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, });
+            var pipeline = env.BinaryClassification.Trainers.SdcaNonCalibrated(
+                new SdcaNonCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, });
 
             var model = pipeline.Fit(data);
 

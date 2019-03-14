@@ -25,67 +25,6 @@ namespace Microsoft.ML
         private protected IHostEnvironment Environment { get; }
 
         /// <summary>
-        /// A pair of datasets, for the train and test set.
-        /// </summary>
-        public struct TrainTestData
-        {
-            /// <summary>
-            /// Training set.
-            /// </summary>
-            public readonly IDataView TrainSet;
-            /// <summary>
-            /// Testing set.
-            /// </summary>
-            public readonly IDataView TestSet;
-            /// <summary>
-            /// Create pair of datasets.
-            /// </summary>
-            /// <param name="trainSet">Training set.</param>
-            /// <param name="testSet">Testing set.</param>
-            internal TrainTestData(IDataView trainSet, IDataView testSet)
-            {
-                TrainSet = trainSet;
-                TestSet = testSet;
-            }
-        }
-
-        /// <summary>
-        /// Split the dataset into the train set and test set according to the given fraction.
-        /// Respects the <paramref name="samplingKeyColumn"/> if provided.
-        /// </summary>
-        /// <param name="data">The dataset to split.</param>
-        /// <param name="testFraction">The fraction of data to go into the test set.</param>
-        /// <param name="samplingKeyColumn">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumn"/>,
-        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
-        /// If <see langword="null"/> no row grouping will be performed.</param>
-        /// <param name="seed">Seed for the random number generator used to select rows for the train-test split.</param>
-        public TrainTestData TrainTestSplit(IDataView data, double testFraction = 0.1, string samplingKeyColumn = null, uint? seed = null)
-        {
-            Environment.CheckValue(data, nameof(data));
-            Environment.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1 exclusive");
-            Environment.CheckValueOrNull(samplingKeyColumn);
-
-            EnsureGroupPreservationColumn(ref data, ref samplingKeyColumn, seed);
-
-            var trainFilter = new RangeFilter(Environment, new RangeFilter.Options()
-            {
-                Column = samplingKeyColumn,
-                Min = 0,
-                Max = testFraction,
-                Complement = true
-            }, data);
-            var testFilter = new RangeFilter(Environment, new RangeFilter.Options()
-            {
-                Column = samplingKeyColumn,
-                Min = 0,
-                Max = testFraction,
-                Complement = false
-            }, data);
-
-            return new TrainTestData(trainFilter, testFilter);
-        }
-
-        /// <summary>
         /// Results for specific cross-validation fold.
         /// </summary>
         [BestFriend]
@@ -149,14 +88,14 @@ namespace Microsoft.ML
         /// </summary>
         [BestFriend]
         private protected CrossValidationResult[] CrossValidateTrain(IDataView data, IEstimator<ITransformer> estimator,
-            int numFolds, string samplingKeyColumn, uint? seed = null)
+            int numFolds, string samplingKeyColumn, int? seed = null)
         {
             Environment.CheckValue(data, nameof(data));
             Environment.CheckValue(estimator, nameof(estimator));
             Environment.CheckParam(numFolds > 1, nameof(numFolds), "Must be more than 1");
             Environment.CheckValueOrNull(samplingKeyColumn);
 
-            EnsureGroupPreservationColumn(ref data, ref samplingKeyColumn, seed);
+            DataOperationsCatalog.EnsureGroupPreservationColumn(Environment, ref data, ref samplingKeyColumn, seed);
 
             Func<int, CrossValidationResult> foldFunction =
                 fold =>
@@ -197,48 +136,6 @@ namespace Microsoft.ML
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonEmpty(registrationName, nameof(registrationName));
             Environment = env;
-        }
-
-        /// <summary>
-        /// Ensures the provided <paramref name="samplingKeyColumn"/> is valid for <see cref="RangeFilter"/>, hashing it if necessary, or creates a new column <paramref name="samplingKeyColumn"/> is null.
-        /// </summary>
-        private void EnsureGroupPreservationColumn(ref IDataView data, ref string samplingKeyColumn, uint? seed = null)
-        {
-            // We need to handle two cases: if samplingKeyColumn is provided, we use hashJoin to
-            // build a single hash of it. If it is not, we generate a random number.
-
-            if (samplingKeyColumn == null)
-            {
-                samplingKeyColumn = data.Schema.GetTempColumnName("SamplingKeyColumn");
-                data = new GenerateNumberTransform(Environment, data, samplingKeyColumn, seed);
-            }
-            else
-            {
-                if (!data.Schema.TryGetColumnIndex(samplingKeyColumn, out int stratCol))
-                    throw Environment.ExceptSchemaMismatch(nameof(samplingKeyColumn), "SamplingKeyColumn", samplingKeyColumn);
-
-                var type = data.Schema[stratCol].Type;
-                if (!RangeFilter.IsValidRangeFilterColumnType(Environment, type))
-                {
-                    // Hash the samplingKeyColumn.
-                    // REVIEW: this could currently crash, since Hash only accepts a limited set
-                    // of column types. It used to be HashJoin, but we should probably extend Hash
-                    // instead of having two hash transformations.
-                    var origStratCol = samplingKeyColumn;
-                    int tmp;
-                    int inc = 0;
-
-                    // Generate a new column with the hashed samplingKeyColumn.
-                    while (data.Schema.TryGetColumnIndex(samplingKeyColumn, out tmp))
-                        samplingKeyColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
-                    HashingEstimator.ColumnOptions columnOptions;
-                    if (seed.HasValue)
-                        columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, seed.Value);
-                    else
-                        columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30);
-                    data = new HashingEstimator(Environment, columnOptions).Fit(data).Transform(data);
-                }
-            }
         }
 
         /// <summary>
@@ -345,7 +242,7 @@ namespace Microsoft.ML
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public CrossValidationResult<BinaryClassificationMetrics>[] CrossValidateNonCalibrated(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
-            string samplingKeyColumn = null, uint? seed = null)
+            string samplingKeyColumn = null, int? seed = null)
         {
             Environment.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);
@@ -369,7 +266,7 @@ namespace Microsoft.ML
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public CrossValidationResult<CalibratedBinaryClassificationMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
-            string samplingKeyColumn = null, uint? seed = null)
+            string samplingKeyColumn = null, int? seed = null)
         {
             Environment.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);
@@ -549,7 +446,7 @@ namespace Microsoft.ML
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         public CrossValidationResult<ClusteringMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = null, string featuresColumn = null,
-            string samplingKeyColumn = null, uint? seed = null)
+            string samplingKeyColumn = null, int? seed = null)
         {
             var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);
             return result.Select(x => new CrossValidationResult<ClusteringMetrics>(x.Model,
@@ -588,11 +485,11 @@ namespace Microsoft.ML
         /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
-        /// <param name="topK">If given a positive value, the <see cref="MultiClassClassifierMetrics.TopKAccuracy"/> will be filled with
+        /// <param name="topK">If given a positive value, the <see cref="MulticlassClassificationMetrics.TopKAccuracy"/> will be filled with
         /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
         /// the top-K values as being stored "correctly."</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public MultiClassClassifierMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
+        public MulticlassClassificationMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
             string predictedLabel = DefaultColumnNames.PredictedLabel, int topK = 0)
         {
             Environment.CheckValue(data, nameof(data));
@@ -600,10 +497,10 @@ namespace Microsoft.ML
             Environment.CheckNonEmpty(score, nameof(score));
             Environment.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
 
-            var args = new MultiClassClassifierEvaluator.Arguments() { };
+            var args = new MulticlassClassificationEvaluator.Arguments() { };
             if (topK > 0)
                 args.OutputTopKAcc = topK;
-            var eval = new MultiClassClassifierEvaluator(Environment, args);
+            var eval = new MulticlassClassificationEvaluator(Environment, args);
             return eval.Evaluate(data, label, score, predictedLabel);
         }
 
@@ -622,13 +519,13 @@ namespace Microsoft.ML
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public CrossValidationResult<MultiClassClassifierMetrics>[] CrossValidate(
+        public CrossValidationResult<MulticlassClassificationMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
-            string samplingKeyColumn = null, uint? seed = null)
+            string samplingKeyColumn = null, int? seed = null)
         {
             Environment.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);
-            return result.Select(x => new CrossValidationResult<MultiClassClassifierMetrics>(x.Model,
+            return result.Select(x => new CrossValidationResult<MulticlassClassificationMetrics>(x.Model,
                 Evaluate(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
         }
     }
@@ -690,7 +587,7 @@ namespace Microsoft.ML
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public CrossValidationResult<RegressionMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
-            string samplingKeyColumn = null, uint? seed = null)
+            string samplingKeyColumn = null, int? seed = null)
         {
             Environment.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);

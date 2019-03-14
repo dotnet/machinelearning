@@ -10,7 +10,7 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers
 {
-    using MklOls = OrdinaryLeastSquaresRegressionTrainer.Mkl;
+    using MklOls = OlsTrainer.Mkl;
 
     public sealed class ComputeLRTrainingStdThroughMkl : ComputeLogisticRegressionStandardDeviation
     {

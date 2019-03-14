@@ -26,7 +26,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // A pipeline to tokenize text as characters and then combine them together into ngrams
             // The pipeline uses the default settings to featurize.
 
-            var charsPipeline = ml.Transforms.Text.TokenizeCharacters("Chars", "SentimentText", useMarkerCharacters: false);
+            var charsPipeline = ml.Transforms.Text.TokenizeIntoCharactersAsKeys("Chars", "SentimentText", useMarkerCharacters: false);
             var ngramOnePipeline = ml.Transforms.Text.ProduceNgrams("CharsUnigrams", "Chars", ngramLength: 1);
             var ngramTwpPipeline = ml.Transforms.Text.ProduceNgrams("CharsTwograms", "Chars");
             var oneCharsPipeline = charsPipeline.Append(ngramOnePipeline);
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // 'e' - 1 '<?>' - 2 'd' - 1 '=' - 4 'R' - 1 'U' - 1 'D' - 2 'E' - 1 'u' - 1 ',' - 1 '2' - 1
             // 'B' - 0 'e' - 6 's' - 3 't' - 6 '<?>' - 9 'g' - 2 'a' - 2 'm' - 2 'I' - 0 ''' - 0 'v' - 0 ...
             // Preview of the CharsTwoGrams column obtained after processing the input.
-            var charsTwoGramColumn = transformedData_twochars.GetColumn<VBuffer<float>>(transformedData_onechars.Schema["CharsUnigrams"]);
+            var charsTwoGramColumn = transformedData_twochars.GetColumn<VBuffer<float>>(transformedData_twochars.Schema["CharsTwograms"]);
             transformedData_twochars.Schema["CharsTwograms"].GetSlotNames(ref slotNames);
             printHelper("CharsTwograms", charsTwoGramColumn, slotNames);
 

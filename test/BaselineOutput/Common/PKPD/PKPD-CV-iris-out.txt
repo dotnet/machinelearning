@@ -1,4 +1,4 @@
-maml.exe CV tr=PKPD{p=AvgPer { lr=0.8 }} threads=- norm=No dout=%Output% data=%Data% seed=1
+maml.exe CV tr=PKPD{p=AvgPer { lr=0.8 }} threads=- norm=No dout=%Output% data=%Data% seed=1 xf=Term{col=Label}
 Not adding a normalizer.
 Training learner (0,0)
 Training calibrator.

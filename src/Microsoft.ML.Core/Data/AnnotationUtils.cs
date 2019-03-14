@@ -87,7 +87,7 @@ namespace Microsoft.ML.Data
             public static class ScoreColumnKind
             {
                 public const string BinaryClassification = "BinaryClassification";
-                public const string MultiClassClassification = "MultiClassClassification";
+                public const string MulticlassClassification = "MulticlassClassification";
                 public const string Regression = "Regression";
                 public const string Ranking = "Ranking";
                 public const string Clustering = "Clustering";
@@ -308,7 +308,7 @@ namespace Microsoft.ML.Data
                 schema.Schema[list[0].Index].Annotations.GetValue(Kinds.SlotNames, ref slotNames);
         }
 
-        public static bool HasKeyValues(this SchemaShape.Column col)
+        public static bool NeedsSlotNames(this SchemaShape.Column col)
         {
             return col.Annotations.TryFindColumn(Kinds.KeyValues, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Vector
@@ -442,7 +442,7 @@ namespace Microsoft.ML.Data
         public static IEnumerable<SchemaShape.Column> AnnotationsForMulticlassScoreColumn(SchemaShape.Column? labelColumn = null)
         {
             var cols = new List<SchemaShape.Column>();
-            if (labelColumn != null && labelColumn.Value.IsKey && HasKeyValues(labelColumn.Value))
+            if (labelColumn != null && labelColumn.Value.IsKey && NeedsSlotNames(labelColumn.Value))
                 cols.Add(new SchemaShape.Column(Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
             cols.AddRange(GetTrainerOutputAnnotation());
             return cols;

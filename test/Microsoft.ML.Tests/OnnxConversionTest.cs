@@ -18,6 +18,7 @@ using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Onnx;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
@@ -59,7 +60,7 @@ namespace Microsoft.ML.Tests
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(new SdcaRegressionTrainer.Options() {
+                .Append(mlContext.Regression.Trainers.Sdca(new SdcaRegressionTrainer.Options() {
                     LabelColumnName = "Target",
                     FeatureColumnName = "FeatureVector",
                     NumberOfThreads = 1
@@ -138,13 +139,13 @@ namespace Microsoft.ML.Tests
                 hasHeader: true);
 
             var pipeline = mlContext.Transforms.Normalize("Features").
-                Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeansPlusPlusTrainer.Options
+                Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeansTrainer.Options
                 {
                     FeatureColumnName = DefaultColumnNames.Features,
                     MaximumNumberOfIterations = 1,
                     NumberOfClusters = 4,
                     NumberOfThreads = 1,
-                    InitializationAlgorithm = Trainers.KMeansPlusPlusTrainer.InitializationAlgorithm.Random
+                    InitializationAlgorithm = Trainers.KMeansTrainer.InitializationAlgorithm.Random
                 }));
 
             var model = pipeline.Fit(data);
@@ -215,7 +216,7 @@ namespace Microsoft.ML.Tests
                 separatorChar: '\t',
                 hasHeader: true);
 
-            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingTransformer.OutputKind.Bag)
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingEstimator.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
             .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfLeaves: 2, numberOfTrees: 1, minimumExampleCountPerLeaf: 2));
@@ -317,7 +318,7 @@ namespace Microsoft.ML.Tests
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(new SdcaRegressionTrainer.Options() {
+                .Append(mlContext.Regression.Trainers.Sdca(new SdcaRegressionTrainer.Options() {
                     LabelColumnName = "Target",
                     FeatureColumnName = "FeatureVector",
                     NumberOfThreads = 1
@@ -385,7 +386,7 @@ namespace Microsoft.ML.Tests
 
             var pipeline = mlContext.Transforms.Normalize("Features").
                 Append(mlContext.Transforms.Conversion.MapValueToKey("Label")).
-                Append(mlContext.MulticlassClassification.Trainers.LogisticRegression(new MulticlassLogisticRegression.Options() { NumberOfThreads = 1 }));
+                Append(mlContext.MulticlassClassification.Trainers.LogisticRegression(new LogisticRegressionMulticlassClassificationTrainer.Options() { NumberOfThreads = 1 }));
 
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
@@ -413,7 +414,7 @@ namespace Microsoft.ML.Tests
                 separatorChar: '\t',
                 hasHeader: true);
 
-            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingTransformer.OutputKind.Bag)
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingEstimator.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
             .Append(mlContext.Transforms.Normalize("Features"))
@@ -463,7 +464,7 @@ namespace Microsoft.ML.Tests
             var embedNetworkPath = GetDataPath(@"shortsentiment.emd");
             var data = mlContext.Data.LoadFromTextFile<SmallSentimentExample>(dataPath, separatorChar: '\t', hasHeader: false);
 
-            var pipeline = mlContext.Transforms.Text.ExtractWordEmbeddings("Embed", embedNetworkPath, "Tokens");
+            var pipeline = mlContext.Transforms.Text.ApplyWordEmbedding("Embed", embedNetworkPath, "Tokens");
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
 

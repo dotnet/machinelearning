@@ -38,7 +38,7 @@ namespace Microsoft.ML.Functional.Tests
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
                 .Append(mlContext.Regression.Trainers.FastForest(
-                    new FastForestRegression.Options { NumberOfLeaves = 5, NumberOfTrees = 3, NumberOfThreads = 1 }));
+                    new FastForestRegressionTrainer.Options { NumberOfLeaves = 5, NumberOfTrees = 3, NumberOfThreads = 1 }));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
@@ -142,8 +142,8 @@ namespace Microsoft.ML.Functional.Tests
 
             // Compose the transformation.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
-                .Append(mlContext.Regression.Trainers.GeneralizedAdditiveModels(
-                    new RegressionGamTrainer.Options { NumberOfIterations = 100, NumberOfThreads = 1 }));
+                .Append(mlContext.Regression.Trainers.Gam(
+                    new GamRegressionTrainer.Options { NumberOfIterations = 100, NumberOfThreads = 1 }));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Define the pipeline.
             var pipeline = mlContext.Transforms.Text.ProduceWordBags("SentimentBag", "SentimentText")
-                .Append(mlContext.Transforms.Text.LatentDirichletAllocation("Features", "SentimentBag", numTopic: numTopics, numIterations: 10));
+                .Append(mlContext.Transforms.Text.LatentDirichletAllocation("Features", "SentimentBag", numberOfTopics: numTopics, maximumNumberOfIterations: 10));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
@@ -216,8 +216,8 @@ namespace Microsoft.ML.Functional.Tests
             // Create a training pipeline.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1 }));
+                .Append(mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(
+                    new SdcaNonCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1 }));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
@@ -264,21 +264,10 @@ namespace Microsoft.ML.Functional.Tests
 
             // Extract the normalizer parameters.
             // TODO #2854: Normalizer parameters are easy to find via intellisense.
-            int i = 0;
-            bool found = false;
-            foreach (var column in normalizer.Columns)
-            {
-                if (column.Name == "Features")
-                {
-                    found = true;
-                    var featuresNormalizer = normalizer.Columns[i].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<float>>;
-                    Assert.NotNull(featuresNormalizer);
-                    Common.AssertFiniteNumbers(featuresNormalizer.Offset);
-                    Common.AssertFiniteNumbers(featuresNormalizer.Scale);
-                }
-                i++;
-            }
-            Assert.True(found);
+            var config = normalizer.GetNormalizerModelParameters(0) as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<float>>;
+            Assert.NotNull(config);
+            Common.AssertFiniteNumbers(config.Offset);
+            Common.AssertFiniteNumbers(config.Scale);
         }
         /// <summary>
         /// Introspective Training: I can inspect a pipeline to determine which transformers were included. 	 
@@ -339,8 +328,8 @@ namespace Microsoft.ML.Functional.Tests
             // Create the learning pipeline.
             var pipeline = mlContext.Transforms.Concatenate("NumericalFeatures", Adult.NumericalFeatures)
                 .Append(mlContext.Transforms.Concatenate("CategoricalFeatures", Adult.CategoricalFeatures))
-                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CategoricalFeatures", hashBits: 8, // get collisions!
-                    invertHash: -1, outputKind: OneHotEncodingTransformer.OutputKind.Bag));
+                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CategoricalFeatures", numberOfBits: 8, // get collisions!
+                    maximumNumberOfInverts: -1, outputKind: OneHotEncodingEstimator.OutputKind.Bag));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
@@ -421,9 +410,9 @@ namespace Microsoft.ML.Functional.Tests
         {
             return mlContext.Transforms.Concatenate("LabelAndFeatures", "Label", "Features")
                 .Append(mlContext.Clustering.Trainers.KMeans(
-                    new KMeansPlusPlusTrainer.Options
+                    new KMeansTrainer.Options
                     {
-                        InitializationAlgorithm = KMeansPlusPlusTrainer.InitializationAlgorithm.Random,
+                        InitializationAlgorithm = KMeansTrainer.InitializationAlgorithm.Random,
                         NumberOfClusters = 4,
                         MaximumNumberOfIterations = 10,
                         NumberOfThreads = 1
@@ -433,8 +422,8 @@ namespace Microsoft.ML.Functional.Tests
         private IEstimator<TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>>> StepTwo(MLContext mlContext)
         {
             return mlContext.Transforms.Conversion.MapValueToKey("Label")
-                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
-                new SdcaMultiClassTrainer.Options {
+                .Append(mlContext.MulticlassClassification.Trainers.Sdca(
+                new SdcaMulticlassClassificationTrainer.Options {
                     MaximumNumberOfIterations = 10,
                     NumberOfThreads = 1 }));
         }

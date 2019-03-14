@@ -28,9 +28,10 @@ namespace Microsoft.ML.Scenarios
 
             var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(mlContext.Transforms.Normalize("Features"))
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
-                    new SdcaMultiClassTrainer.Options { NumberOfThreads = 1 }));
+                .Append(mlContext.MulticlassClassification.Trainers.Sdca(
+                    new SdcaMulticlassClassificationTrainer.Options { NumberOfThreads = 1 }));
 
             // Read training and test data sets
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
@@ -88,7 +89,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(0, prediction.PredictedLabels[2], 2);
         }
 
-        private void CompareMetrics(MultiClassClassifierMetrics metrics)
+        private void CompareMetrics(MulticlassClassificationMetrics metrics)
         {
             Assert.Equal(.98, metrics.MacroAccuracy);
             Assert.Equal(.98, metrics.MicroAccuracy, 2);

@@ -102,7 +102,8 @@ namespace Microsoft.ML.Transforms.Text
         /// Tokenize incoming text in input columns and output the tokens as output columns.
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
+        /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
+        /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
         internal TokenizingByCharactersTransformer(IHostEnvironment env, bool useMarkerCharacters = TokenizingByCharactersEstimator.Defaults.UseMarkerCharacters,
             params (string outputColumnName, string inputColumnName)[] columns) :
@@ -114,7 +115,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// The names of the output and input column pairs on which the transformation is applied.
         /// </summary>
-        public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
+        internal IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
@@ -555,6 +556,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             public const bool UseMarkerCharacters = true;
         }
+
         internal static bool IsColumnTypeValid(DataViewType type) => type.GetItemType() is TextDataViewType;
 
         internal const string ExpectedColumnType = "Text";
@@ -565,7 +567,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="env">The environment.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
+        /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
+        /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
         internal TokenizingByCharactersEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
             bool useMarkerCharacters = Defaults.UseMarkerCharacters)
             : this(env, useMarkerCharacters, new[] { (outputColumnName, inputColumnName ?? outputColumnName) })
@@ -576,7 +579,8 @@ namespace Microsoft.ML.Transforms.Text
         /// Tokenize incoming text in input columns and output the tokens as output columns.
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
+        /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
+        /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
 
         internal TokenizingByCharactersEstimator(IHostEnvironment env, bool useMarkerCharacters = Defaults.UseMarkerCharacters,

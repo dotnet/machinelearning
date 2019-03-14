@@ -1,11 +1,11 @@
-﻿using Microsoft.ML.LightGBM;
-using static Microsoft.ML.LightGBM.Options;
+﻿using Microsoft.ML.Trainers.LightGbm;
+using static Microsoft.ML.Trainers.LightGbm.Options;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
 {
     public class LightGbmWithOptions
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
         public static void Example()
         {
             // Creating the ML.Net IHostEnvironment object, needed for the pipeline.
@@ -16,8 +16,8 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
 
             // Leave out 10% of the dataset for testing. Since this is a ranking problem, we must ensure that the split
             // respects the GroupId column, i.e. rows with the same GroupId are either all in the train split or all in
-            // the test split. The samplingKeyColumn parameter in Ranking.TrainTestSplit is used for this purpose.
-            var split = mlContext.Ranking.TrainTestSplit(dataview, testFraction: 0.1, samplingKeyColumn: "GroupId");
+            // the test split. The samplingKeyColumn parameter in Data.TrainTestSplit is used for this purpose.
+            var split = mlContext.Data.TrainTestSplit(dataview, testFraction: 0.1, samplingKeyColumn: "GroupId");
 
             // Create the Estimator pipeline. For simplicity, we will train a small tree with 4 leaves and 2 boosting iterations.
             var pipeline = mlContext.Ranking.Trainers.LightGbm(

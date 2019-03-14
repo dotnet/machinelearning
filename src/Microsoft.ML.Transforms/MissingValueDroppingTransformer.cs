@@ -30,7 +30,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="NADrop"]'/>
-    public sealed class MissingValueDroppingTransformer : OneToOneTransformerBase
+    internal sealed class MissingValueDroppingTransformer : OneToOneTransformerBase
     {
         internal sealed class Options : TransformInputBase
         {
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// The names of the input columns of the transformation and the corresponding names for the output columns.
         /// </summary>
-        public IReadOnlyList<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
+        internal IReadOnlyList<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
         /// Initializes a new instance of <see cref="MissingValueDroppingTransformer"/>
@@ -337,57 +337,6 @@ namespace Microsoft.ML.Transforms
                     dst = editor.Commit();
                 }
             }
-        }
-    }
-    /// <summary>
-    /// Drops missing values from columns.
-    /// </summary>
-    public sealed class MissingValueDroppingEstimator : TrivialEstimator<MissingValueDroppingTransformer>
-    {
-        /// <summary>
-        /// Drops missing values from columns.
-        /// </summary>
-        /// <param name="env">The environment to use.</param>
-        /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
-        internal MissingValueDroppingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueDroppingEstimator)), new MissingValueDroppingTransformer(env, columns))
-        {
-            Contracts.CheckValue(env, nameof(env));
-        }
-
-        /// <summary>
-        /// Drops missing values from columns.
-        /// </summary>
-        /// <param name="env">The environment to use.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        internal MissingValueDroppingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null)
-            : this(env, (outputColumnName, inputColumnName ?? outputColumnName))
-        {
-        }
-
-        /// <summary>
-        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
-        /// Used for schema propagation and verification in a pipeline.
-        /// </summary>
-        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
-        {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.ToDictionary(x => x.Name);
-            foreach (var colPair in Transformer.Columns)
-            {
-                if (!inputSchema.TryFindColumn(colPair.inputColumnName, out var col) || !Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.inputColumnName);
-                if (!(col.Kind == SchemaShape.Column.VectorKind.Vector || col.Kind == SchemaShape.Column.VectorKind.VariableVector))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.inputColumnName, "known-size vector", col.GetTypeString());
-                var metadata = new List<SchemaShape.Column>();
-                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var keyMeta))
-                    metadata.Add(keyMeta);
-                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.IsNormalized, out var normMeta))
-                    metadata.Add(normMeta);
-                result[colPair.outputColumnName] = new SchemaShape.Column(colPair.outputColumnName, SchemaShape.Column.VectorKind.VariableVector, col.ItemType, false, new SchemaShape(metadata.ToArray()));
-            }
-            return new SchemaShape(result.Values);
         }
     }
 }

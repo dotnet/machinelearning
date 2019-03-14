@@ -335,8 +335,8 @@ namespace Microsoft.ML.Data
             {
                 case PredictionKind.BinaryClassification:
                     return AnnotationUtils.Const.ScoreColumnKind.BinaryClassification;
-                case PredictionKind.MultiClassClassification:
-                    return AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification;
+                case PredictionKind.MulticlassClassification:
+                    return AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification;
                 case PredictionKind.Regression:
                     return AnnotationUtils.Const.ScoreColumnKind.Regression;
                 case PredictionKind.MultiOutputRegression:

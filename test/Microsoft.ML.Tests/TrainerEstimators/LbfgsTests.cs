@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void TestEstimatorMulticlassLogisticRegression()
         {
-            (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
+            (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();
             var trainer = ML.MulticlassClassification.Trainers.LogisticRegression();
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
 
-            pipe = pipe.Append(ML.BinaryClassification.Trainers.LogisticRegression(new LogisticRegression.Options { ShowTrainingStatistics = true }));
+            pipe = pipe.Append(ML.BinaryClassification.Trainers.LogisticRegression(new LogisticRegressionBinaryClassificationTrainer.Options { ShowTrainingStatistics = true }));
             var transformerChain = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>>;
 
             var linearModel = transformerChain.LastTransformer.Model.SubModel as LinearBinaryModelParameters;
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
 
             pipe = pipe.Append(ML.BinaryClassification.Trainers.LogisticRegression(
-                new LogisticRegression.Options
+                new LogisticRegressionBinaryClassificationTrainer.Options
                 {
                     ShowTrainingStatistics = true,
                     ComputeStandardDeviation = new ComputeLRTrainingStdThroughMkl(),

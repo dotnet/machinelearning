@@ -37,7 +37,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Regression.Trainers.OrdinaryLeastSquares());
+                .Append(mlContext.Regression.Trainers.Ols());
 
             // Compute the CV result.
             var cvResult = mlContext.Regression.CrossValidate(data, pipeline, numFolds: 5);
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Functional.Tests
             var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
 
             // Create the train and validation set.
-            var dataSplit = mlContext.Regression.TrainTestSplit(data, testFraction: 0.2);
+            var dataSplit = mlContext.Data.TrainTestSplit(data, testFraction: 0.2);
             var trainData = dataSplit.TrainSet;
             var validData = dataSplit.TestSet;
 

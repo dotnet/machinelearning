@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<doc>
+  <members>
+    <!--  
+    The following text describes the LightGbm algorithm details.
+    It's used for the remarks section of all LightGbm-based trainers (binary, multiclass, regression, ranking)
+    -->
+    <member name="LightGBM_remarks">
+      <remarks>
+        LightGBM is an open source implementation of gradient boosting decision tree. For implementation details, please see 
+        <a href='https://lightgbm.readthedocs.io/en/latest/index.html'>LightGBM's official documentation</a> or
+        <a href='https://papers.nips.cc/paper/6907-lightgbm-a-highly-efficient-gradient-boosting-decision-tree.pdf'>this paper</a>.
+       </remarks>
+    </member>
+  </members>
+</doc>

@@ -43,11 +43,11 @@ namespace Microsoft.ML.Benchmarks
 
             var data = loader.Load(_dataPath_Digits);
 
-            var pipeline = mlContext.Transforms.RandomFourierKernelMap("FeaturesRFF", "Features")
+            var pipeline = mlContext.Transforms.ApproximatedKernelMap("FeaturesRFF", "Features")
             .AppendCacheCheckpoint(mlContext)
             .Append(mlContext.Transforms.Concatenate("Features", "FeaturesRFF"))
             .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
-            .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.AveragedPerceptron(numIterations: 10)));
+            .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.AveragedPerceptron(numberOfIterations: 10)));
 
             var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline, numFolds: 5);
         }

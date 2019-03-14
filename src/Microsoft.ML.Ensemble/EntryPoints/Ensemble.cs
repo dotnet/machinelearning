@@ -27,7 +27,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.EnsembleClassification", Desc = "Train multiclass ensemble.", UserName = EnsembleTrainer.UserNameValue)]
-        public static CommonOutputs.MulticlassClassificationOutput CreateMultiClassEnsemble(IHostEnvironment env, MulticlassDataPartitionEnsembleTrainer.Arguments input)
+        public static CommonOutputs.MulticlassClassificationOutput CreateMulticlassEnsemble(IHostEnvironment env, MulticlassDataPartitionEnsembleTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainMultiClassEnsemble");

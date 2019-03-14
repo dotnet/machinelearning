@@ -1,4 +1,4 @@
-maml.exe TrainTest test=%Data% tr=OVA{p=FastForest{ }} norm=No dout=%Output% data=%Data% out=%Output% seed=1
+maml.exe TrainTest test=%Data% tr=OVA{p=FastForest{ }} norm=No dout=%Output% data=%Data% out=%Output% seed=1 xf=Term{col=Label}
 Not adding a normalizer.
 Training learner 0
 Making per-feature arrays

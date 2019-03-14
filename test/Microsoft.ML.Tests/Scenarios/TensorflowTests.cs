@@ -4,7 +4,7 @@
 
 using System.IO;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -34,12 +34,12 @@ namespace Microsoft.ML.Scenarios
 
             var pipeEstimator = new ImageLoadingEstimator(mlContext, imageFolder, ("ImageReal", "ImagePath"))
                     .Append(new ImageResizingEstimator(mlContext, "ImageCropped", imageHeight, imageWidth, "ImageReal"))
-                    .Append(new ImagePixelExtractingEstimator(mlContext, "Input", "ImageCropped", interleave: true))
+                    .Append(new ImagePixelExtractingEstimator(mlContext, "Input", "ImageCropped", interleavePixelColors: true))
                     .Append(mlContext.Model.LoadTensorFlowModel(model_location).ScoreTensorFlowModel("Output", "Input"))
                     .Append(new ColumnConcatenatingEstimator(mlContext, "Features", "Output"))
                     .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
                     .AppendCacheCheckpoint(mlContext)
-                    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
+                    .Append(mlContext.MulticlassClassification.Trainers.Sdca());
 
 
             var transformer = pipeEstimator.Fit(data);

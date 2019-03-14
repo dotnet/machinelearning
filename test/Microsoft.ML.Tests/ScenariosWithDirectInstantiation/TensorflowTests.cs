@@ -8,10 +8,10 @@ using System.IO;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.Transforms.TensorFlow;
 using Xunit;
 
@@ -347,7 +347,7 @@ namespace Microsoft.ML.Scenarios
             var images = new ImageLoadingTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", 32, 32, "ImageReal").Transform(images);
 
-            var pixels = mlContext.Transforms.ExtractPixels("image_tensor", "ImageCropped", asFloat: false).Fit(cropped).Transform(cropped);
+            var pixels = mlContext.Transforms.ExtractPixels("image_tensor", "ImageCropped", outputAsFloatArray: false).Fit(cropped).Transform(cropped);
             var tf = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(
                 new[] { "detection_boxes", "detection_scores", "num_detections", "detection_classes" }, new[] { "image_tensor" }).Fit(pixels).Transform(pixels);
 
@@ -374,17 +374,32 @@ namespace Microsoft.ML.Scenarios
         [Fact(Skip = "Model files are not available yet")]
         public void TensorFlowTransformInceptionTest()
         {
-            var modelLocation = @"C:\models\TensorFlow\tensorflow_inception_graph.pb";
+            string inputName = "input";
+            string outputName = "softmax2_pre_activation";
+            var modelLocation = @"inception5h\tensorflow_inception_graph.pb";
             var mlContext = new MLContext(seed: 1);
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = mlContext.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+            var reader = mlContext.Data.CreateTextLoader(
+                   columns: new[]
+                   {
+                        new TextLoader.Column("ImagePath", DataKind.String , 0),
+                        new TextLoader.Column("Name", DataKind.String, 1)
+
+                   },
+               hasHeader: false,
+               allowSparse: false
+               );
+
+            var data = reader.Load(new MultiFileSource(dataFile));
             var images = mlContext.Transforms.LoadImages(imageFolder, ("ImageReal", "ImagePath")).Fit(data).Transform(data);
             var cropped = mlContext.Transforms.ResizeImages("ImageCropped", 224, 224, "ImageReal").Fit(images).Transform(images);
-            var pixels = mlContext.Transforms.ExtractPixels("input", "ImageCropped").Fit(cropped).Transform(cropped);
-            var tf = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel("softmax2_pre_activation", "input").Fit(pixels).Transform(pixels);
+            var pixels = mlContext.Transforms.ExtractPixels(inputName, "ImageCropped").Fit(cropped).Transform(cropped);
+            var tf = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(outputName, inputName).Fit(pixels).Transform(pixels);
 
-            using (var curs = tf.GetRowCursor(tf.Schema["input"], tf.Schema["softmax2_pre_activation"]))
+            tf.Schema.TryGetColumnIndex(inputName, out int input);
+            tf.Schema.TryGetColumnIndex(outputName, out int b);
+            using (var curs = tf.GetRowCursor(tf.Schema[inputName], tf.Schema[outputName]))
             {
                 var get = curs.GetGetter<VBuffer<float>>(tf.Schema["softmax2_pre_activation"]);
                 var getInput = curs.GetGetter<VBuffer<float>>(tf.Schema["input"]);
@@ -548,7 +563,7 @@ namespace Microsoft.ML.Scenarios
                         learningRate: 0.001f,
                         batchSize: 20))
                     .Append(mlContext.Transforms.Concatenate("Features", "Prediction"))
-                    .Append(mlContext.Transforms.Conversion.MapValueToKey("KeyLabel", "Label", maxNumKeys: 10))
+                    .Append(mlContext.Transforms.Conversion.MapValueToKey("KeyLabel", "Label", maximumNumberOfKeys: 10))
                     .Append(mlContext.MulticlassClassification.Trainers.LightGbm("KeyLabel", "Features"));
 
                 var trainedModel = pipe.Fit(trainData);
@@ -663,7 +678,7 @@ namespace Microsoft.ML.Scenarios
                         batchSize: 20))
                     .Append(mlContext.Transforms.Concatenate("Features", "Prediction"))
                     .AppendCacheCheckpoint(mlContext)
-                    .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new LightGBM.Options()
+                    .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new Trainers.LightGbm.Options()
                     {
                         LabelColumnName = "Label",
                         FeatureColumnName = "Features",
@@ -843,7 +858,7 @@ namespace Microsoft.ML.Scenarios
 
             var pipeEstimator = new ImageLoadingEstimator(mlContext, imageFolder, ("ImageReal", "ImagePath"))
                 .Append(new ImageResizingEstimator(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal"))
-                .Append(new ImagePixelExtractingEstimator(mlContext, "Input", "ImageCropped", interleave: true));
+                .Append(new ImagePixelExtractingEstimator(mlContext, "Input", "ImageCropped", interleavePixelColors: true));
 
             var pixels = pipeEstimator.Fit(data).Transform(data);
             IDataView trans = tensorFlowModel.ScoreTensorFlowModel("Output", "Input").Fit(pixels).Transform(pixels);
@@ -886,7 +901,7 @@ namespace Microsoft.ML.Scenarios
             );
             var images = mlContext.Transforms.LoadImages(imageFolder, ("ImageReal", "ImagePath")).Fit(data).Transform(data);
             var cropped = mlContext.Transforms.ResizeImages("ImageCropped", imageWidth, imageHeight, "ImageReal").Fit(images).Transform(images);
-            var pixels = mlContext.Transforms.ExtractPixels("Input", "ImageCropped", interleave: true).Fit(cropped).Transform(cropped);
+            var pixels = mlContext.Transforms.ExtractPixels("Input", "ImageCropped", interleavePixelColors: true).Fit(cropped).Transform(cropped);
             IDataView trans = tensorFlowModel.ScoreTensorFlowModel("Output", "Input").Fit(pixels).Transform(pixels);
 
             using (var cursor = trans.GetRowCursorForAllColumns())
@@ -984,8 +999,8 @@ namespace Microsoft.ML.Scenarios
             // The first pipeline 'dataPipe' tokenzies the string into words and maps each word to an integer which is an index in the dictionary.
             // Then this integer vector is retrieved from the pipeline and resized to fixed length.
             // The second pipeline 'tfEnginePipe' takes the resized integer vector and passes it to TensoFlow and gets the classification scores.
-            var estimator = mlContext.Transforms.Text.TokenizeWords("TokenizedWords", "Sentiment_Text")
-                .Append(mlContext.Transforms.Conversion.ValueMap(lookupMap, "Words", "Ids", new ColumnOptions[] { ("Features", "TokenizedWords") }));
+            var estimator = mlContext.Transforms.Text.TokenizeIntoWords("TokenizedWords", "Sentiment_Text")
+                .Append(mlContext.Transforms.Conversion.MapValue(lookupMap, "Words", "Ids", new ColumnOptions[] { ("Features", "TokenizedWords") }));
             var dataPipe = estimator.Fit(dataView)
                 .CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(mlContext);
 

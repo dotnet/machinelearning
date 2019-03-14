@@ -13,7 +13,7 @@ using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.Runtime;
 using OnnxShape = System.Collections.Generic.List<int>;
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.Onnx
 {
     /// <summary>
     /// OnnxModel is a utility class to load ONNX models and retrieve metadata

@@ -73,7 +73,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// This is a utility method used to determine whether <see cref="MultiClassClassifierScorer.LabelNameBindableMapper"/>
+        /// This is a utility method used to determine whether <see cref="MulticlassClassificationScorer.LabelNameBindableMapper"/>
         /// can or should be used to wrap <paramref name="mapper"/>. This will not throw, since the
         /// desired behavior in the event that it cannot be wrapped, is to just back off to the original
         /// "unwrapped" bound mapper.
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Data
         /// <param name="labelNameType">The type of the label names from the metadata (either
         /// originating from the key value metadata of the training label column, or deserialized
         /// from the model of a bindable mapper)</param>
-        /// <returns>Whether we can call <see cref="MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound{T}"/> with
+        /// <returns>Whether we can call <see cref="MulticlassClassificationScorer.LabelNameBindableMapper.CreateBound{T}"/> with
         /// this mapper and expect it to succeed</returns>
         private static bool CanWrap(ISchemaBoundMapper mapper, DataViewType labelNameType)
         {
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Data
             ValueGetter<VBuffer<T>> getter = (ref VBuffer<T> value) =>
                 labelColumn.GetKeyValues(ref value);
 
-            return MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type, getter, AnnotationUtils.Kinds.TrainingLabelValues, CanWrap);
+            return MulticlassClassificationScorer.LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type, getter, AnnotationUtils.Kinds.TrainingLabelValues, CanWrap);
         }
 
         [BestFriend]
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Data
 
         private static DataViewType GetPredColType(DataViewType scoreType, ISchemaBoundRowMapper mapper)
         {
-            var labelNameBindableMapper = mapper.Bindable as MultiClassClassifierScorer.LabelNameBindableMapper;
+            var labelNameBindableMapper = mapper.Bindable as MulticlassClassificationScorer.LabelNameBindableMapper;
             if (labelNameBindableMapper == null)
                 return BooleanDataViewType.Instance;
             return new KeyType(typeof(uint), labelNameBindableMapper.Type.Size);

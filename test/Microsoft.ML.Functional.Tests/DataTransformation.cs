@@ -135,17 +135,16 @@ namespace Microsoft.ML.Functional.Tests
                 separatorChar: TestDatasets.Sentiment.fileSeparator);
 
             // Create a training pipeline.
-            // TODO #2802: Update FeaturizeText to allow specifications of word-grams and char-grams.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features",
                     new TextFeaturizingEstimator.Options
                     {
-                        UseCharExtractor = true,
-                        UseWordExtractor = true,
-                        VectorNormalizer = TextFeaturizingEstimator.NormFunction.L1
+                        CharFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 3, UseAllLengths = false },
+                        WordFeatureExtractor = new WordBagEstimator.Options(),
+                        Norm = TextFeaturizingEstimator.NormFunction.L1
                     }, "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                    new SdcaBinaryTrainer.Options { NumberOfThreads = 1 }));
+                .Append(mlContext.BinaryClassification.Trainers.SdcaCalibrated(
+                    new SdcaCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -38,14 +38,19 @@ namespace Microsoft.ML.Benchmarks
         private TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> _trainedModel;
         private PredictionEngine<IrisData, IrisPrediction> _predictionEngine;
         private IrisData[][] _batches;
-        private MultiClassClassifierMetrics _metrics;
+        private MulticlassClassificationMetrics _metrics;
 
         protected override IEnumerable<Metric> GetMetrics()
         {
             if (_metrics != null)
+            {
                 yield return new Metric(
-                    nameof(MultiClassClassifierMetrics.MacroAccuracy),
+                    nameof(MulticlassClassificationMetrics.MicroAccuracy),
+                    _metrics.MicroAccuracy.ToString("0.##", CultureInfo.InvariantCulture));
+                yield return new Metric(
+                    nameof(MulticlassClassificationMetrics.MacroAccuracy),
                     _metrics.MacroAccuracy.ToString("0.##", CultureInfo.InvariantCulture));
+            }
         }
 
         [Benchmark]
@@ -71,7 +76,8 @@ namespace Microsoft.ML.Benchmarks
             IDataView data = loader.Load(dataPath);
 
             var pipeline = new ColumnConcatenatingEstimator(mlContext, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
+                .Append(mlContext.MulticlassClassification.Trainers.Sdca());
 
             return pipeline.Fit(data);
         }
@@ -97,17 +103,19 @@ namespace Microsoft.ML.Benchmarks
             {
                 OutputTokens = true,
                 KeepPunctuations = false,
-                UseStopRemover = true,
-                VectorNormalizer = TextFeaturizingEstimator.NormFunction.None,
-                UseCharExtractor = false,
-                UseWordExtractor = false,
+                UsePredefinedStopWordRemover = true,
+                Norm = TextFeaturizingEstimator.NormFunction.None,
+                CharFeatureExtractor = null,
+                WordFeatureExtractor = null,
             }, "SentimentText").Fit(loader).Transform(loader);
 
-            var trans = mlContext.Transforms.Text.ExtractWordEmbeddings("Features", "WordEmbeddings_TransformedText", 
-                WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe).Fit(text).Transform(text);
+            var trans = mlContext.Transforms.Text.ApplyWordEmbedding("Features", "WordEmbeddings_TransformedText",
+                WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
+                .Fit(text).Transform(text);
 
             // Train
-            var trainer = mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent();
+            var trainer = mlContext.MulticlassClassification.Trainers.Sdca();
             var predicted = trainer.Fit(trans);
             _consumer.Consume(predicted);
         }
@@ -136,7 +144,7 @@ namespace Microsoft.ML.Benchmarks
 
             IDataView testData = loader.Load(_dataPath);
             IDataView scoredTestData = _trainedModel.Transform(testData);
-            var evaluator = new MultiClassClassifierEvaluator(mlContext, new MultiClassClassifierEvaluator.Arguments());
+            var evaluator = new MulticlassClassificationEvaluator(mlContext, new MulticlassClassificationEvaluator.Arguments());
             _metrics = evaluator.Evaluate(scoredTestData, DefaultColumnNames.Label, DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel);
 
             _batches = new IrisData[_batchSizes.Length][];

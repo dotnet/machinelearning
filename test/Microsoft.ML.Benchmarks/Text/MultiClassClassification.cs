@@ -5,7 +5,7 @@
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Data;
-using Microsoft.ML.LightGBM;
+using Microsoft.ML.Trainers.LightGbm;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
@@ -14,7 +14,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Benchmarks
 {
     [Config(typeof(TrainConfig))]
-    public class MultiClassClassificationTrain
+    public class MulticlassClassificationTrain
     {
         private string _dataPath_Wiki;
 
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Benchmarks
                     " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
                     " tr=LightGBMMulticlass{iter=10}";
 
-            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, LightGbmMulticlassTrainer, OneVersusAllModelParameters>();
+            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, LightGbmMulticlassClassificationTrainer, OneVersusAllModelParameters>();
             cmd.ExecuteMamlCommand(environment);
         }
 
@@ -85,12 +85,12 @@ namespace Microsoft.ML.Benchmarks
                 " xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D}" +
                 " xf=Concat{col=Features:FeaturesWordEmbedding,logged_in,ns}";
 
-            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, SdcaMultiClassTrainer, MulticlassLogisticRegressionModelParameters>();
+            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, SdcaMulticlassClassificationTrainer, MulticlassLogisticRegressionModelParameters>();
             cmd.ExecuteMamlCommand(environment);
         }
     }
 
-    public class MultiClassClassificationTest
+    public class MulticlassClassificationTest
     {
         private string _dataPath_Wiki;
         private string _modelPath_Wiki;
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Benchmarks
             if (!File.Exists(_dataPath_Wiki))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Wiki));
 
-            _modelPath_Wiki = Path.Combine(Path.GetDirectoryName(typeof(MultiClassClassificationTest).Assembly.Location), @"WikiModel.zip");
+            _modelPath_Wiki = Path.Combine(Path.GetDirectoryName(typeof(MulticlassClassificationTest).Assembly.Location), @"WikiModel.zip");
 
             string cmd = @"CV k=5 data=" + _dataPath_Wiki +
                 " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} xf=Convert{col=logged_in type=R4}" +
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Benchmarks
         public void Test_Multiclass_WikiDetox_BigramsAndTrichar_OVAAveragedPerceptron()
         {
             // This benchmark is profiling bulk scoring speed and not training speed. 
-            string modelpath = Path.Combine(Path.GetDirectoryName(typeof(MultiClassClassificationTest).Assembly.Location), @"WikiModel.fold000.zip");
+            string modelpath = Path.Combine(Path.GetDirectoryName(typeof(MulticlassClassificationTest).Assembly.Location), @"WikiModel.fold000.zip");
             string cmd = @"Test data=" + _dataPath_Wiki + " in=" + modelpath;
 
             var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer, LinearBinaryModelParameters>();

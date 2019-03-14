@@ -663,30 +663,30 @@ namespace Microsoft.ML.Trainers.FastTree
 
     internal static class Gam
     {
-        [TlcModule.EntryPoint(Name = "Trainers.GeneralizedAdditiveModelRegressor", Desc = RegressionGamTrainer.Summary, UserName = RegressionGamTrainer.UserNameValue, ShortName = RegressionGamTrainer.ShortName)]
-        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, RegressionGamTrainer.Options input)
+        [TlcModule.EntryPoint(Name = "Trainers.GeneralizedAdditiveModelRegressor", Desc = GamRegressionTrainer.Summary, UserName = GamRegressionTrainer.UserNameValue, ShortName = GamRegressionTrainer.ShortName)]
+        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, GamRegressionTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainGAM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<RegressionGamTrainer.Options, CommonOutputs.RegressionOutput>(host, input,
-                () => new RegressionGamTrainer(host, input),
+            return TrainerEntryPointsUtils.Train<GamRegressionTrainer.Options, CommonOutputs.RegressionOutput>(host, input,
+                () => new GamRegressionTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.GeneralizedAdditiveModelBinaryClassifier", Desc = BinaryClassificationGamTrainer.Summary, UserName = BinaryClassificationGamTrainer.UserNameValue, ShortName = BinaryClassificationGamTrainer.ShortName)]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, BinaryClassificationGamTrainer.Options input)
+        [TlcModule.EntryPoint(Name = "Trainers.GeneralizedAdditiveModelBinaryClassifier", Desc = GamBinaryClassificationTrainer.Summary, UserName = GamBinaryClassificationTrainer.UserNameValue, ShortName = GamBinaryClassificationTrainer.ShortName)]
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, GamBinaryClassificationTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainGAM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<BinaryClassificationGamTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new BinaryClassificationGamTrainer(host, input),
+            return TrainerEntryPointsUtils.Train<GamBinaryClassificationTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
+                () => new GamBinaryClassificationTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }

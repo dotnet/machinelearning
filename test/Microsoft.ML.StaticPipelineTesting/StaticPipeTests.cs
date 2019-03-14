@@ -405,7 +405,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = reader.MakeNewEstimator()
                 .Append(r => (r,
                     ncdf: r.NormalizeByCumulativeDistribution(onFit: (m, s) => mm = m),
-                    n: r.NormalizeByMeanVar(onFit: (s, o) => { ss = s; Assert.Empty(o); }),
+                    n: r.NormalizeMeanVariance(onFit: (s, o) => { ss = s; Assert.Empty(o); }),
                     b: r.NormalizeByBinning(onFit: b => bb = b)));
             var tdata = est.Fit(data).Transform(data);
 
@@ -519,8 +519,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    tokens: r.text.TokenizeText(),
-                    chars: r.text.TokenizeIntoCharacters()));
+                    tokens: r.text.TokenizeIntoWords(),
+                    chars: r.text.TokenizeIntoCharactersAsKeys()));
 
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
@@ -547,7 +547,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (
                     r.label,
                     normalized_text: r.text.NormalizeText(),
-                    words_without_stopwords: r.text.TokenizeText().RemoveStopwords()));
+                    words_without_stopwords: r.text.TokenizeIntoWords().RemoveDefaultStopWords()));
 
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
@@ -575,8 +575,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    bagofword: r.text.ToBagofWords(),
-                    bagofhashedword: r.text.ToBagofHashedWords()));
+                    bagofword: r.text.ProduceWordBags(),
+                    bagofhashedword: r.text.ProduceHashedWordBags()));
 
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
@@ -604,8 +604,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    ngrams: r.text.TokenizeText().ToKey().ToNgrams(),
-                    ngramshash: r.text.TokenizeText().ToKey().ToNgramsHash()));
+                    ngrams: r.text.TokenizeIntoWords().ToKey().ProduceNgrams(),
+                    ngramshash: r.text.TokenizeIntoWords().ToKey().ProduceHashedNgrams()));
 
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
@@ -634,8 +634,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label,
-                              lpnorm: r.features.LpNormalize(),
-                              gcnorm: r.features.GlobalContrastNormalize(),
+                              lpnorm: r.features.NormalizeLpNorm(),
+                              gcnorm: r.features.NormalizeGlobalContrast(),
                               zcawhitened: r.features.ZcaWhitening(),
                               pcswhitened: r.features.PcaWhitening()));
             var tdata = est.Fit(data).Transform(data);
@@ -670,12 +670,12 @@ namespace Microsoft.ML.StaticPipelineTesting
             var data = reader.Load(dataSource);
 
             // This will be populated once we call fit.
-            LdaSummary ldaSummary;
+            ModelParameters ldaSummary;
 
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 3, numSummaryTermPerTopic:5, alphaSum: 10, onFit: m => ldaSummary = m.LdaTopicSummary)));
+                    topics: r.text.ProduceWordBags().LatentDirichletAllocation(numberOfTopics: 3, numberOfSummaryTermsPerTopic:5, alphaSum: 10, onFit: m => ldaSummary = m.LdaTopicSummary)));
 
             var transformer = est.Fit(data);
             var tdata = transformer.Transform(data);
@@ -700,8 +700,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    bag_of_words_count: r.text.ToBagofWords().SelectFeaturesBasedOnCount(10),
-                    bag_of_words_mi: r.text.ToBagofWords().SelectFeaturesBasedOnMutualInformation(r.label)));
+                    bag_of_words_count: r.text.ProduceWordBags().SelectFeaturesBasedOnCount(10),
+                    bag_of_words_mi: r.text.ProduceWordBags().SelectFeaturesBasedOnMutualInformation(r.label)));
 
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
@@ -722,13 +722,11 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new BinaryClassificationCatalog(env);
-
             var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(1, 4)));
             var data = reader.Load(dataSource);
 
-            var (train, test) = ctx.TrainTestSplit(data, 0.5);
+            var (train, test) = env.Data.TrainTestSplit(data, 0.5);
 
             // Just make sure that the train is about the same size as the test set.
             var trainCount = train.GetColumn(r => r.label).Count();
@@ -737,7 +735,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(trainCount * 1.0 / testCount, 0.8, 1.2);
 
             // Now stratify by label. Silly thing to do.
-            (train, test) = ctx.TrainTestSplit(data, 0.5, stratificationColumn: r => r.label);
+            (train, test) = env.Data.TrainTestSplit(data, 0.5, stratificationColumn: r => r.label);
             var trainLabels = train.GetColumn(r => r.label).Distinct();
             var testLabels = test.GetColumn(r => r.label).Distinct();
             Assert.True(trainLabels.Count() > 0);
@@ -759,7 +757,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label,
-                              pca: r.features.ToPrincipalComponents(rank: 5)));
+                              pca: r.features.ProjectToPrincipalComponents(rank: 5)));
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
 
@@ -827,7 +825,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (
                     r.label,
                     norm: r.text.NormalizeText(),
-                    norm_Upper: r.text.NormalizeText(textCase: TextNormalizingEstimator.CaseNormalizationMode.Upper),
+                    norm_Upper: r.text.NormalizeText(caseMode: TextNormalizingEstimator.CaseMode.Upper),
                     norm_KeepDiacritics: r.text.NormalizeText(keepDiacritics: true),
                     norm_NoPuctuations: r.text.NormalizeText(keepPunctuations: false),
                     norm_NoNumbers: r.text.NormalizeText(keepNumbers: false)));
@@ -851,7 +849,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 separator: ';', hasHeader: true);
             var data = reader.Load(dataSource);
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, pca: r.features.ToPrincipalComponents(rank: 5)));
+                .Append(r => (r.label, pca: r.features.ProjectToPrincipalComponents(rank: 5)));
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
 

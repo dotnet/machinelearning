@@ -13,9 +13,7 @@ using Microsoft.ML.Core.Tests.UnitTests;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.LightGBM;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Runtime;
@@ -23,6 +21,7 @@ using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.LightGbm;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.Transforms.TimeSeries;
@@ -134,7 +133,7 @@ namespace Microsoft.ML.RunTests
             var dataView = GetBreastCancerDataviewWithTextColumns();
             dataView = Env.CreateTransform("Term{col=F1}", dataView);
             var trainData = FeatureCombiner.PrepareFeatures(Env, new FeatureCombiner.FeatureCombinerInput() { Data = dataView, Features = new[] { "F1", "F2", "Rest" } });
-            var lrModel = LogisticRegression.TrainBinary(Env, new LogisticRegression.Options { TrainingData = trainData.OutputData }).PredictorModel;
+            var lrModel = LogisticRegressionBinaryClassificationTrainer.TrainBinary(Env, new LogisticRegressionBinaryClassificationTrainer.Options { TrainingData = trainData.OutputData }).PredictorModel;
             var model = ModelOperations.CombineTwoModels(Env, new ModelOperations.SimplePredictorModelInput() { TransformModel = trainData.Model, PredictorModel = lrModel }).PredictorModel;
 
             var scored1 = ScoreModel.Score(Env, new ScoreModel.Input() { Data = dataView, PredictorModel = model }).ScoredData;
@@ -327,7 +326,7 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoadingTransformer).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(SymbolicStochasticGradientDescentClassificationTrainer).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(SymbolicSgdTrainer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
@@ -364,12 +363,12 @@ namespace Microsoft.ML.RunTests
         {
             var catalog = Env.ComponentCatalog;
 
-            InputBuilder ib1 = new InputBuilder(Env, typeof(LogisticRegression.Options), catalog);
+            InputBuilder ib1 = new InputBuilder(Env, typeof(LogisticRegressionBinaryClassificationTrainer.Options), catalog);
             // Ensure that InputBuilder unwraps the Optional<string> correctly.
             var weightType = ib1.GetFieldTypeOrNull("ExampleWeightColumnName");
             Assert.True(weightType.Equals(typeof(string)));
 
-            var instance = ib1.GetInstance() as LogisticRegression.Options;
+            var instance = ib1.GetInstance() as LogisticRegressionBinaryClassificationTrainer.Options;
             Assert.True(instance.ExampleWeightColumnName == null);
 
             ib1.TrySetValue("ExampleWeightColumnName", "OtherWeight");
@@ -422,14 +421,14 @@ namespace Microsoft.ML.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                var lrInput = new LogisticRegression.Options
+                var lrInput = new LogisticRegressionBinaryClassificationTrainer.Options
                 {
                     TrainingData = data,
                     L1Regularization = (Single)0.1 * i,
                     L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.No
                 };
-                predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
+                predictorModels[i] = LogisticRegressionBinaryClassificationTrainer.TrainBinary(Env, lrInput).PredictorModel;
                 individualScores[i] =
                     ScoreModel.Score(Env,
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
@@ -678,7 +677,7 @@ namespace Microsoft.ML.RunTests
 
             var splitOutput = CVSplit.Split(Env, new CVSplit.Input { Data = dataView, NumFolds = 3 });
 
-            var lrModel = LogisticRegression.TrainBinary(Env, new LogisticRegression.Options { TrainingData = splitOutput.TestData[0] }).PredictorModel;
+            var lrModel = LogisticRegressionBinaryClassificationTrainer.TrainBinary(Env, new LogisticRegressionBinaryClassificationTrainer.Options { TrainingData = splitOutput.TestData[0] }).PredictorModel;
             var calibratedLrModel = Calibrate.FixedPlatt(Env,
                 new Calibrate.FixedPlattInput { Data = splitOutput.TestData[1], UncalibratedPredictorModel = lrModel }).PredictorModel;
 
@@ -697,7 +696,7 @@ namespace Microsoft.ML.RunTests
             calibratedLrModel = Calibrate.Pav(Env, input).PredictorModel;
 
             // This tests that the SchemaBindableCalibratedPredictor doesn't get confused if its sub-predictor is already calibrated.
-            var fastForest = new FastForestClassification(Env, "Label", "Features");
+            var fastForest = new FastForestBinaryClassificationTrainer(Env, "Label", "Features");
             var rmd = new RoleMappedData(splitOutput.TrainData[0], "Label", "Features");
             var ffModel = new PredictorModelImpl(Env, rmd, splitOutput.TrainData[0], fastForest.Train(rmd));
             var calibratedFfModel = Calibrate.Platt(Env,
@@ -718,22 +717,22 @@ namespace Microsoft.ML.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RandomFourierKernelMappingEstimator(Env, new[] {
-                    new RandomFourierKernelMappingEstimator.ColumnOptions("Features1", 10, false, "Features"),
-                    new RandomFourierKernelMappingEstimator.ColumnOptions("Features2", 10, false, "Features"),
+                data = new ApproximatedKernelMappingEstimator(Env, new[] {
+                    new ApproximatedKernelMappingEstimator.ColumnOptions("Features1", 10, false, "Features"),
+                    new ApproximatedKernelMappingEstimator.ColumnOptions("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
 
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
-                data = new ValueToKeyMappingEstimator(Env, "Label", "Label", sort: ValueToKeyMappingEstimator.SortOrder.Value).Fit(data).Transform(data);
+                data = new ValueToKeyMappingEstimator(Env, "Label", "Label", keyOrdinality: ValueToKeyMappingEstimator.KeyOrdinality.ByValue).Fit(data).Transform(data);
 
-                var lrInput = new LogisticRegression.Options
+                var lrInput = new LogisticRegressionBinaryClassificationTrainer.Options
                 {
                     TrainingData = data,
                     L1Regularization = (Single)0.1 * i,
                     L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.Yes
                 };
-                predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
+                predictorModels[i] = LogisticRegressionBinaryClassificationTrainer.TrainBinary(Env, lrInput).PredictorModel;
                 var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
                 predictorModels[i] = ModelOperations.CombineTwoModels(Env,
@@ -974,7 +973,7 @@ namespace Microsoft.ML.RunTests
                 {
                     data = new TextFeaturizingEstimator(Env, "Features", new List<string> { "Text" }, 
                         new TextFeaturizingEstimator.Options { 
-                            UseStopRemover = true,
+                            UsePredefinedStopWordRemover = true,
                         }).Fit(data).Transform(data);
                 }
                 else
@@ -987,14 +986,14 @@ namespace Microsoft.ML.RunTests
                         },
                         data);
                 }
-                var lrInput = new LogisticRegression.Options
+                var lrInput = new LogisticRegressionBinaryClassificationTrainer.Options
                 {
                     TrainingData = data,
                     L1Regularization = (Single)0.1 * i,
                     L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.Yes
                 };
-                predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
+                predictorModels[i] = LogisticRegressionBinaryClassificationTrainer.TrainBinary(Env, lrInput).PredictorModel;
                 var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
                 predictorModels[i] = ModelOperations.CombineTwoModels(Env,
@@ -1170,9 +1169,9 @@ namespace Microsoft.ML.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RandomFourierKernelMappingEstimator(Env, new[] {
-                    new RandomFourierKernelMappingEstimator.ColumnOptions("Features1", 10, false, "Features"),
-                    new RandomFourierKernelMappingEstimator.ColumnOptions("Features2", 10, false, "Features"),
+                data = new ApproximatedKernelMappingEstimator(Env, new[] {
+                    new ApproximatedKernelMappingEstimator.ColumnOptions("Features1", 10, false, "Features"),
+                    new ApproximatedKernelMappingEstimator.ColumnOptions("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
 
@@ -1192,7 +1191,7 @@ namespace Microsoft.ML.RunTests
                         .ScoredData;
             }
 
-            var mcEnsembleModel = EnsembleCreator.CreateMultiClassPipelineEnsemble(Env,
+            var mcEnsembleModel = EnsembleCreator.CreateMulticlassPipelineEnsemble(Env,
                 new EnsembleCreator.PipelineClassifierInput()
                 {
                     ModelCombiner = EnsembleCreator.ClassifierCombiner.Average,
@@ -1320,7 +1319,7 @@ namespace Microsoft.ML.RunTests
                 data = new ColumnConcatenatingTransformer(Env, new ColumnConcatenatingTransformer.ColumnOptions("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
                 if (i % 2 == 0)
                 {
-                    var lrInput = new LogisticRegression.Options
+                    var lrInput = new LogisticRegressionBinaryClassificationTrainer.Options
                     {
                         TrainingData = data,
                         NormalizeFeatures = NormalizeOption.Yes,
@@ -1328,7 +1327,7 @@ namespace Microsoft.ML.RunTests
                         ShowTrainingStatistics = true,
                         ComputeStandardDeviation = new ComputeLRTrainingStdThroughMkl()
                     };
-                    predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
+                    predictorModels[i] = LogisticRegressionBinaryClassificationTrainer.TrainBinary(Env, lrInput).PredictorModel;
                     var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
                     predictorModels[i] = ModelOperations.CombineTwoModels(Env,
@@ -1772,7 +1771,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        public void EntryPointEvaluateMultiClass()
+        public void EntryPointEvaluateMulticlass()
         {
             var dataPath = GetDataPath("iris.txt");
             var warningsPath = DeleteOutputPath("warnings.idv");
@@ -1835,7 +1834,7 @@ namespace Microsoft.ML.RunTests
                             ],
                             'Data': '$AllData',
                             'MaxNumTerms': 1000000,
-                            'Sort': 'Occurrence',
+                            'Sort': 'ByOccurrence',
                             'TextKeyValues': false
                         },
                         'Name': 'Transforms.TextToKeyConverter',
@@ -1899,7 +1898,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [LightGBMFact]
-        public void EntryPointLightGbmMultiClass()
+        public void EntryPointLightGbmMulticlass()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
             TestEntryPointRoutine(GetDataPath(@"iris.txt"), "Trainers.LightGbmClassifier");
@@ -1912,7 +1911,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        public void EntryPointSDCAMultiClass()
+        public void EntryPointSDCAMulticlass()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.StochasticDualCoordinateAscentClassifier");
         }
@@ -1924,7 +1923,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        public void EntryPointLogisticRegressionMultiClass()
+        public void EntryPointLogisticRegressionMulticlass()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.LogisticRegressionClassifier");
         }
@@ -2015,13 +2014,23 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void EntryPointBinaryEnsemble()
         {
-            TestEntryPointRoutine("iris.txt", "Trainers.EnsembleBinaryClassifier");
+            TestEntryPointRoutine("iris.txt", "Trainers.EnsembleBinaryClassifier", xfNames:
+                new[] { "Transforms.ColumnTypeConverter" },
+                xfArgs:
+                new[] {
+                    @"'Column': [{'Name': 'Label','Source': 'Label','Type': 'BL'}]"
+                });
         }
 
         [Fact]
         public void EntryPointClassificationEnsemble()
         {
-            TestEntryPointRoutine("iris.txt", "Trainers.EnsembleClassification");
+            TestEntryPointRoutine("iris.txt", "Trainers.EnsembleClassification", xfNames:
+                new[] { "Transforms.TextToKeyConverter" },
+                xfArgs:
+                new[] {
+                    @"'Column': [{'Name': 'Label','Source': 'Label'}]"
+                });
         }
 
         [Fact]
@@ -2031,7 +2040,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        public void EntryPointNaiveBayesMultiClass()
+        public void EntryPointNaiveBayesMulticlass()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.NaiveBayesClassifier");
         }
@@ -2352,10 +2361,29 @@ namespace Microsoft.ML.RunTests
             cmd.Run();
         }
 
-        internal void TestEntryPointRoutine(string dataFile, string trainerName, string loader = null, string trainerArgs = null)
+        internal void TestEntryPointRoutine(string dataFile, string trainerName, string loader = null, string trainerArgs = null, string[] xfNames = null, string[] xfArgs = null)
         {
             var dataPath = GetDataPath(dataFile);
             var outputPath = DeleteOutputPath("model.zip");
+            string xfTemplate =
+               @"'Name': '{0}',
+                    'Inputs': {{
+                      'Data': '$data{1}',
+                      {2},
+                    }},
+                    'Outputs': {{
+                      'OutputData': '$data{3}'
+                    }}";
+            var transforms = "";
+
+            for (int i = 0; i < Utils.Size(xfNames); i++)
+            {
+                transforms =
+                    $@"{transforms}
+                       {{
+                         {string.Format(xfTemplate, xfNames[i], i + 1, xfArgs[i], i + 2)}
+                       }},";
+            }
             string inputGraph = string.Format(@"
                 {{
                   'Nodes': [
@@ -2369,10 +2397,11 @@ namespace Microsoft.ML.RunTests
                         'Data': '$data1'
                       }}
                     }},
+                    {5}
                     {{
                       'Name': '{2}',
                       'Inputs': {{
-                        'TrainingData': '$data1'
+                        'TrainingData': '$data{6}'
                          {4}
                       }},
                       'Outputs': {{
@@ -2387,9 +2416,11 @@ namespace Microsoft.ML.RunTests
                     'model' : '{1}'
                   }}
                 }}", EscapePath(dataPath), EscapePath(outputPath), trainerName,
-                string.IsNullOrWhiteSpace(loader) ? "" : string.Format(",'CustomSchema': 'sparse+ {0}'", loader),
-                string.IsNullOrWhiteSpace(trainerArgs) ? "" : trainerArgs
-                );
+            string.IsNullOrWhiteSpace(loader) ? "" : string.Format(",'CustomSchema': 'sparse+ {0}'", loader),
+            string.IsNullOrWhiteSpace(trainerArgs) ? "" : trainerArgs,
+            transforms,
+            xfNames != null ? xfNames.Length + 1 : 1
+            );
 
             var jsonPath = DeleteOutputPath("graph.json");
             File.WriteAllLines(jsonPath, new[] { inputGraph });
@@ -2412,10 +2443,10 @@ namespace Microsoft.ML.RunTests
                 Columns = new[]
                 {
                     NormalizeTransform.AffineColumn.Parse("A"),
-                    new NormalizeTransform.AffineColumn() { Name = "B", Source = "B", FixZero = false },
+                    new NormalizeTransform.AffineColumn() { Name = "B", Source = "B", EnsureZeroUntouched = false },
                 },
-                FixZero = true, // Same as default, should not appear in the generated JSON.
-                MaxTrainingExamples = 1000
+                EnsureZeroUntouched = true, // Same as default, should not appear in the generated JSON.
+                MaximumExampleCount = 1000
             };
 
             var inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
@@ -2838,34 +2869,34 @@ namespace Microsoft.ML.RunTests
                         }
                     },
                     {
-			        'Name': 'Transforms.ColumnCopier',
+                    'Name': 'Transforms.ColumnCopier',
                     'Inputs': {
                         'Column': [
-					        {
-						        'Name': 'Features2',
-						        'Source': 'Features'
+                            {
+                                'Name': 'Features2',
+                                'Source': 'Features'
 
                             }
-				        ],
-				        'Data': '$data2'
-			        },
-			        'Outputs': {
-				        'OutputData': '$data3',
-				        'Model': '$transform2'
-			            }
-		            },
+                        ],
+                        'Data': '$data2'
+                    },
+                    'Outputs': {
+                        'OutputData': '$data3',
+                        'Model': '$transform2'
+                        }
+                    },
                     {
-			            'Name': 'Transforms.ModelCombiner',
+                        'Name': 'Transforms.ModelCombiner',
                         'Inputs': {
                             'Models': [
-					            '$transform1',
-					            '$transform2'
-				            ]
-			            },
-			            'Outputs': {
-				            'OutputModel': '$CombinedModel'
-			            }
-		            },
+                                '$transform1',
+                                '$transform2'
+                            ]
+                        },
+                        'Outputs': {
+                            'OutputModel': '$CombinedModel'
+                        }
+                    },
                     {
                       'Name': 'Models.TrainTestEvaluator',
                       'Inputs': {
@@ -2952,8 +2983,8 @@ namespace Microsoft.ML.RunTests
 
             var metrics = runner.GetOutput<IDataView>("OverallMetrics");
 
-            Action<IDataView> validateAuc = (metricsIdv) => 
-            { 
+            Action<IDataView> validateAuc = (metricsIdv) =>
+            {
                 Assert.NotNull(metricsIdv);
                 using (var cursor = metricsIdv.GetRowCursorForAllColumns())
                 {
@@ -2999,34 +3030,34 @@ namespace Microsoft.ML.RunTests
                         }
                     },
                     {
-			        'Name': 'Transforms.ColumnCopier',
+                    'Name': 'Transforms.ColumnCopier',
                     'Inputs': {
                         'Column': [
-					        {
-						        'Name': 'Features2',
-						        'Source': 'Features'
+                            {
+                                'Name': 'Features2',
+                                'Source': 'Features'
 
                             }
-				        ],
-				        'Data': '$data2'
-			        },
-			        'Outputs': {
-				        'OutputData': '$data3',
-				        'Model': '$transform2'
-			            }
-		            },
+                        ],
+                        'Data': '$data2'
+                    },
+                    'Outputs': {
+                        'OutputData': '$data3',
+                        'Model': '$transform2'
+                        }
+                    },
                     {
-			            'Name': 'Transforms.ModelCombiner',
+                        'Name': 'Transforms.ModelCombiner',
                         'Inputs': {
                             'Models': [
-					            '$transform1',
-					            '$transform2'
-				            ]
-			            },
-			            'Outputs': {
-				            'OutputModel': '$CombinedModel'
-			            }
-		            },
+                                '$transform1',
+                                '$transform2'
+                            ]
+                        },
+                        'Outputs': {
+                            'OutputModel': '$CombinedModel'
+                        }
+                    },
                     {
                       'Name': 'Models.CrossValidator',
                       'Inputs': {
@@ -3069,22 +3100,22 @@ namespace Microsoft.ML.RunTests
                         'Kind': 'SignatureBinaryClassifierTrainer',
                         'Nodes': [
                             {
-			                    'Name': 'Transforms.ColumnCopier',
+                                'Name': 'Transforms.ColumnCopier',
                                 'Inputs': {
                                     'Column': [
-					                    {
-						                    'Name': 'Features3',
-						                    'Source': 'Features'
+                                        {
+                                            'Name': 'Features3',
+                                            'Source': 'Features'
 
                                         }
-				                    ],
-				                    'Data': '$data4'
-			                    },
-			                    'Outputs': {
-				                    'OutputData': '$data5',
-				                    'Model': '$transform3'
-			                        }
-		                       },
+                                    ],
+                                    'Data': '$data4'
+                                },
+                                'Outputs': {
+                                    'OutputData': '$data5',
+                                    'Model': '$transform3'
+                                    }
+                               },
                               {
                                 'Name': 'Trainers.StochasticDualCoordinateAscentBinaryClassifier',
                                 'Inputs': {
@@ -3096,17 +3127,17 @@ namespace Microsoft.ML.RunTests
                                 }
                               },
                             {
-			                    'Name': 'Transforms.ManyHeterogeneousModelCombiner',
+                                'Name': 'Transforms.ManyHeterogeneousModelCombiner',
                                 'Inputs': {
                                     'TransformModels': [
-					                    '$transform3'
-				                    ],
+                                        '$transform3'
+                                    ],
                                     'PredictorModel': '$predictor'
-			                    },
-			                    'Outputs': {
-				                    'PredictorModel': '$model2'
-			                    }
-		                    }
+                                },
+                                'Outputs': {
+                                    'PredictorModel': '$model2'
+                                }
+                            }
                         ],
                         'Inputs': {
                           'Data': '$data4'
@@ -3143,8 +3174,8 @@ namespace Microsoft.ML.RunTests
 
             var metrics = runner.GetOutput<IDataView>("OverallMetrics");
 
-            Action<IDataView> aucValidate = (metricsIdv) => 
-            { 
+            Action<IDataView> aucValidate = (metricsIdv) =>
+            {
                 Assert.NotNull(metricsIdv);
                 using (var cursor = metrics.GetRowCursorForAllColumns())
                 {
@@ -3317,7 +3348,7 @@ namespace Microsoft.ML.RunTests
                 InputFile = inputFile,
             }).Data;
 
-            var lrInput = new LogisticRegression.Options
+            var lrInput = new LogisticRegressionBinaryClassificationTrainer.Options
             {
                 TrainingData = dataView,
                 NormalizeFeatures = NormalizeOption.Yes,
@@ -3325,16 +3356,16 @@ namespace Microsoft.ML.RunTests
                 ShowTrainingStatistics = true,
                 ComputeStandardDeviation = new ComputeLRTrainingStdThroughMkl()
             };
-            var model = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
+            var model = LogisticRegressionBinaryClassificationTrainer.TrainBinary(Env, lrInput).PredictorModel;
 
-            var mcLrInput = new MulticlassLogisticRegression.Options
+            var mcLrInput = new LogisticRegressionMulticlassClassificationTrainer.Options
             {
                 TrainingData = dataView,
                 NormalizeFeatures = NormalizeOption.Yes,
                 NumberOfThreads = 1,
                 ShowTrainingStatistics = true
             };
-            var mcModel = LogisticRegression.TrainMultiClass(Env, mcLrInput).PredictorModel;
+            var mcModel = LogisticRegressionBinaryClassificationTrainer.TrainMulticlass(Env, mcLrInput).PredictorModel;
 
             var output = SummarizePredictor.Summarize(Env,
                 new SummarizePredictor.Input() { PredictorModel = model });
@@ -3391,11 +3422,11 @@ namespace Microsoft.ML.RunTests
                     InputFile = inputFile,
                 }).Data;
 
-                var pcaInput = new RandomizedPrincipalComponentAnalyzer.Options
+                var pcaInput = new RandomizedPcaTrainer.Options
                 {
                     TrainingData = dataView,
                 };
-                var model = RandomizedPrincipalComponentAnalyzer.TrainPcaAnomaly(Env, pcaInput).PredictorModel;
+                var model = RandomizedPcaTrainer.TrainPcaAnomaly(Env, pcaInput).PredictorModel;
 
                 var output = SummarizePredictor.Summarize(Env,
                     new SummarizePredictor.Input() { PredictorModel = model });
@@ -3603,11 +3634,11 @@ namespace Microsoft.ML.RunTests
                 },
                 InputFile = inputFile,
             }).Data;
-            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsExtractingTransformer.Options()
+            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingTransformer.Options()
             {
                 Data = dataView,
-                Columns = new[] { new WordEmbeddingsExtractingTransformer.Column { Name = "Features", Source = "Text" } },
-                ModelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe
+                Columns = new[] { new WordEmbeddingTransformer.Column { Name = "Features", Source = "Text" } },
+                ModelKind = WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding
             });
             var result = embedding.OutputData;
             using (var cursor = result.GetRowCursorForAllColumns())
@@ -3925,10 +3956,10 @@ namespace Microsoft.ML.RunTests
                                     'Source': 'Categories'
                                 }
                             ],
-                            'OutputKind': 'Ind',
+                            'OutputKind': 'Indicator',
                             'MaxNumTerms': 1000000,
                             'Term': null,
-                            'Sort': 'Occurrence',
+                            'Sort': 'ByOccurrence',
                             'TextKeyValues': true,
                             'Data': '$Var_99eb21288359485f936577da8f2e1061'
                         },
@@ -4276,7 +4307,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        public void TestCrossValidationMacroWithMultiClass()
+        public void TestCrossValidationMacroWithMulticlass()
         {
             var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
             string inputGraph = @"
@@ -4363,7 +4394,7 @@ namespace Microsoft.ML.RunTests
                             },
                             'StratificationColumn': null,
                             'NumFolds': 2,
-                            'Kind': 'SignatureMultiClassClassifierTrainer',
+                            'Kind': 'SignatureMulticlassClassificationTrainer',
                             'LabelColumn': 'Label',
                             'WeightColumn': null,
                             'GroupColumn': null,
@@ -4475,7 +4506,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        public void TestCrossValidationMacroMultiClassWithWarnings()
+        public void TestCrossValidationMacroMulticlassWithWarnings()
         {
             var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
             string inputGraph = @"
@@ -4524,7 +4555,7 @@ namespace Microsoft.ML.RunTests
                             'Column': [{
                                     'MaxNumTerms': null,
                                     'Term': null,
-                                    'Sort': 'Value',
+                                    'Sort': 'ByValue',
                                     'TextKeyValues': null,
                                     'Name': 'Strat',
                                     'Source': 'Label'
@@ -4532,7 +4563,7 @@ namespace Microsoft.ML.RunTests
                             ],
                             'MaxNumTerms': 1000000,
                             'Term': null,
-                            'Sort': 'Occurrence',
+                            'Sort': 'ByOccurrence',
                             'TextKeyValues': false,
                             'Data': '$Var_64f1865a99b84b9d9e0c72292c14c3af'
                         },
@@ -4590,7 +4621,7 @@ namespace Microsoft.ML.RunTests
                             },
                             'StratificationColumn': 'Strat',
                             'NumFolds': 2,
-                            'Kind': 'SignatureMultiClassClassifierTrainer',
+                            'Kind': 'SignatureMulticlassClassificationTrainer',
                             'LabelColumn': 'Label',
                             'WeightColumn': null,
                             'GroupColumn': null,
@@ -4928,7 +4959,7 @@ namespace Microsoft.ML.RunTests
                                     ],
                                     'MaxNumTerms': 1000000,
                                     'Term': null,
-                                    'Sort': 'Occurrence',
+                                    'Sort': 'ByOccurrence',
                                     'TextKeyValues': false,
                                     'Data': '$Var_48d35aae527f439398805f51e5f0cfab'
                                 },
@@ -4942,7 +4973,7 @@ namespace Microsoft.ML.RunTests
                                     'Column': [{
                                             'Join': null,
                                             'CustomSlotMap': null,
-                                            'HashBits': null,
+                                            'NumberOfBits': null,
                                             'Seed': null,
                                             'Ordered': null,
                                             'Name': 'GroupId1',
@@ -4950,7 +4981,7 @@ namespace Microsoft.ML.RunTests
                                         }
                                     ],
                                     'Join': true,
-                                    'HashBits': 31,
+                                    'NumberOfBits': 31,
                                     'Seed': 314489979,
                                     'Ordered': true,
                                     'Data': '$Var_44ac8ba819da483089dacc0f12bae3d6'
@@ -5315,7 +5346,7 @@ namespace Microsoft.ML.RunTests
 
             var data = runner.GetOutput<IDataView>("overallMetrics");
             var schema = data.Schema;
-            var accCol = schema.GetColumnOrNull(MultiClassClassifierEvaluator.AccuracyMacro);
+            var accCol = schema.GetColumnOrNull(MulticlassClassificationEvaluator.AccuracyMacro);
             Assert.True(accCol.HasValue);
             bool b;
             using (var cursor = data.GetRowCursor(accCol.Value))
@@ -5486,7 +5517,7 @@ namespace Microsoft.ML.RunTests
 
             var data = runner.GetOutput<IDataView>("overallMetrics");
             var schema = data.Schema;
-            var accCol = schema.GetColumnOrNull(MultiClassClassifierEvaluator.AccuracyMacro);
+            var accCol = schema.GetColumnOrNull(MulticlassClassificationEvaluator.AccuracyMacro);
             Assert.True(accCol.HasValue);
             bool b;
             using (var cursor = data.GetRowCursor(accCol.Value))

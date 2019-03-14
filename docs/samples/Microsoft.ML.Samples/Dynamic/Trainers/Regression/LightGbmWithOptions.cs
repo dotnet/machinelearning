@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.LightGBM;
-using static Microsoft.ML.LightGBM.Options;
+using Microsoft.ML.Trainers.LightGbm;
+using static Microsoft.ML.Trainers.LightGbm.Options;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 {
     class LightGbmWithOptions
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             // 21.60              0.02731            00.00                7.070               0               0.4690          6.4210              78.90             ...
             // 34.70              0.02729            00.00                7.070               0               0.4690          7.1850              61.10             ...
 
-            var split = mlContext.Regression.TrainTestSplit(dataView, testFraction: 0.1);
+            var split = mlContext.Data.TrainTestSplit(dataView, testFraction: 0.1);
 
             // Create a pipeline with LightGbm estimator with advanced options.
             // Here we only need LightGbm trainer as data is already processed
