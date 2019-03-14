@@ -451,23 +451,12 @@ namespace Microsoft.ML.Functional.Tests
                 separatorChar: TestDatasets.iris.fileSeparator);
 
             // Create a model training an OVA trainer with a binary classifier.
-            var anomalyDetectionTrainer = mlContext.AnomalyDetection.Trainers.RandomizedPca();
-            var anomalyDetectionPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
-                .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
-                .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(anomalyDetectionTrainer))
-                .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
-
-            // Fit the binary classification pipeline.
-            Assert.Throws<InvalidOperationException>(() => anomalyDetectionPipeline.Fit(data));
-
-            // Create a model training an OVA trainer with a binary classifier.
-            var binaryclassificationTrainer = mlContext.BinaryClassification.Trainers.LogisticRegression(
+            var binaryClassificationTrainer = mlContext.BinaryClassification.Trainers.LogisticRegression(
                 new LogisticRegressionBinaryClassificationTrainer.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
             var binaryClassificationPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
-                .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryclassificationTrainer));
+                .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryClassificationTrainer));
 
             // Fit the binary classification pipeline.
             var binaryClassificationModel = binaryClassificationPipeline.Fit(data);
@@ -477,53 +466,6 @@ namespace Microsoft.ML.Functional.Tests
 
             // Evaluate the model.
             var binaryClassificationMetrics = mlContext.MulticlassClassification.Evaluate(binaryClassificationPredictions);
-
-            // Create a model training an OVA trainer with a clustering trainer.
-            var kmeansTrainer = mlContext.Clustering.Trainers.KMeans(
-                new KMeansTrainer.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
-
-            Assert.Throws<ArgumentOutOfRangeException>(() =>
-                mlContext.Transforms.Concatenate("Features", Iris.Features)
-                    .AppendCacheCheckpoint(mlContext)
-                    .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
-                    .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(kmeansTrainer))
-                    .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel")));
-
-            // Create a model training an OVA trainer with a multiclass classification trainer.
-            var multiclassTrainer = mlContext.MulticlassClassification.Trainers.LogisticRegression(
-                new LogisticRegressionMulticlassClassificationTrainer.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
-            Assert.Throws<ArgumentOutOfRangeException>(() => 
-                mlContext.Transforms.Concatenate("Features", Iris.Features)
-                    .AppendCacheCheckpoint(mlContext)
-                    .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
-                    .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(multiclassTrainer))
-                    .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel")));
-
-            // Create a model training an OVA trainer with a ranking trainer.
-            var rankingTrainer = mlContext.Ranking.Trainers.FastTree(
-                new FastTreeRankingTrainer.Options { NumberOfTrees = 2, NumberOfThreads = 1, });
-            // Todo #2920: Make this fail somehow.
-            var rankingPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
-                .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
-                .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(rankingTrainer))
-                .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
-
-            // Fit the invalid pipeline.
-            Assert.Throws<ArgumentOutOfRangeException>(() => rankingPipeline.Fit(data));
-
-            // Create a model training an OVA trainer with a regressor.
-            var regressionTrainer = mlContext.Regression.Trainers.PoissonRegression(
-                new PoissonRegressionTrainer.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
-            // Todo #2920: Make this fail somehow.
-            var regressionPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
-                .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
-                .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(regressionTrainer))
-                .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
-
-            // Fit the invalid pipeline.
-            Assert.Throws<ArgumentOutOfRangeException>(() => regressionPipeline.Fit(data));
         }
     }
 }
