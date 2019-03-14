@@ -5647,7 +5647,6 @@ namespace Microsoft.ML.RunTests
                 {
                     loadedModel = ml.Model.Load(stream, out DataViewSchema inputSchema);
                 }
-
             }
         }
     }

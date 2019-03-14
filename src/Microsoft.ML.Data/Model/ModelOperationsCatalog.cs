@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
@@ -32,23 +33,22 @@ namespace Microsoft.ML
             Explainability = new ExplainabilityTransforms(this);
         }
 
-        private void Save<TSource>(DataViewSchema schema, IDataLoader<TSource> model, Stream stream)
-        {
-            using (var rep = RepositoryWriter.CreateNew(stream))
-            {
-                ModelSaveContext.SaveModel(rep, model, null);
-                SaveInputSchema(schema, rep);
-                rep.Commit();
-            }
-        }
-
         /// <summary>
         /// Save the model to the stream.
         /// </summary>
         /// <param name="model">The trained model to be saved.</param>
         /// <param name="stream">A writeable, seekable stream to save to.</param>
         public void Save<TSource>(IDataLoader<TSource> model, Stream stream)
-            => Save(model.GetOutputSchema(), model, stream);
+        {
+            _env.CheckValue(model, nameof(model));
+            _env.CheckValue(stream, nameof(stream));
+
+            using (var rep = RepositoryWriter.CreateNew(stream))
+            {
+                ModelSaveContext.SaveModel(rep, model, null);
+                rep.Commit();
+            }
+        }
 
         /// <summary>
         /// Save a transformer model and the loader used to create its input data to the stream.
@@ -57,16 +57,20 @@ namespace Microsoft.ML
         /// <param name="model">The trained model to be saved</param>
         /// <param name="stream">A writeable, seekable stream to save to.</param>
         public void Save<TSource>(IDataLoader<TSource> loader, ITransformer model, Stream stream) =>
-            Save(loader.GetOutputSchema(), new CompositeDataLoader<TSource, ITransformer>(loader, new TransformerChain<ITransformer>(model)), stream);
+            Save(new CompositeDataLoader<TSource, ITransformer>(loader, new TransformerChain<ITransformer>(model)), stream);
 
         /// <summary>
         /// Save a transformer model and the schema of the data that was used to train it to the stream.
         /// </summary>
-        /// <param name="inputSchema">The schema of the input to the transformer.</param>
         /// <param name="model">The trained model to be saved.</param>
+        /// <param name="inputSchema">The schema of the input to the transformer. This can be null.</param>
         /// <param name="stream">A writeable, seekable stream to save to.</param>
-        public void Save(DataViewSchema inputSchema, ITransformer model, Stream stream)
+        public void Save(ITransformer model, DataViewSchema inputSchema, Stream stream)
         {
+            _env.CheckValue(model, nameof(model));
+            _env.CheckValueOrNull(inputSchema);
+            _env.CheckValue(stream, nameof(stream));
+
             using (var rep = RepositoryWriter.CreateNew(stream))
             {
                 ModelSaveContext.SaveModel(rep, model, CompositeDataLoader<object, ITransformer>.TransformerDirectory);
@@ -77,6 +81,12 @@ namespace Microsoft.ML
 
         private void SaveInputSchema(DataViewSchema inputSchema, RepositoryWriter rep)
         {
+            _env.AssertValueOrNull(inputSchema);
+            _env.AssertValue(rep);
+
+            if (inputSchema == null)
+                return;
+
             using (var ch = _env.Start("Saving Schema"))
             {
                 var entry = rep.CreateEntry(SchemaEntryName);
@@ -94,6 +104,8 @@ namespace Microsoft.ML
         /// <returns>The loaded model.</returns>
         public ITransformer Load(Stream stream, out DataViewSchema inputSchema)
         {
+            _env.CheckValue(stream, nameof(stream));
+
             using (var rep = RepositoryReader.Open(stream, _env))
             {
                 var entry = rep.OpenEntryOrNull(SchemaEntryName);
@@ -101,23 +113,41 @@ namespace Microsoft.ML
                 {
                     var loader = new BinaryLoader(_env, new BinaryLoader.Arguments(), entry.Stream);
                     inputSchema = loader.Schema;
+                    ModelLoadContext.LoadModel<ITransformer, SignatureLoadModel>(_env, out var transformerChain, rep,
+                        CompositeDataLoader<object, ITransformer>.TransformerDirectory);
+                    return transformerChain;
                 }
-                else
+
+                ModelLoadContext.LoadModelOrNull<IDataLoader<IMultiStreamSource>, SignatureLoadModel>(_env, out var dataLoader, rep, null);
+                if (dataLoader == null)
                 {
+                    // Try to see if the model was saved without a loader or a schema.
+                    if (ModelLoadContext.LoadModelOrNull<ITransformer, SignatureLoadModel>(_env, out var transformerChain, rep,
+                        CompositeDataLoader<object, ITransformer>.TransformerDirectory))
+                    {
+                        inputSchema = null;
+                        return transformerChain;
+                    }
+
                     // Try to load from legacy model format.
                     try
                     {
                         var loader = ModelFileUtils.LoadLoader(_env, rep, new MultiFileSource(null), false);
                         inputSchema = loader.Schema;
+                        return TransformerChain.LoadFromLegacy(_env, stream);
                     }
                     catch (Exception ex)
                     {
-                        if (!ex.IsMarked())
-                            throw;
-                        inputSchema = null;
+                        throw _env.Except(ex, "Could not load legacy format model");
                     }
                 }
-                return TransformerChain.LoadFrom(_env, stream);
+                if (dataLoader is CompositeDataLoader<IMultiStreamSource, ITransformer> composite)
+                {
+                    inputSchema = composite.Loader.GetOutputSchema();
+                    return composite.Transformer;
+                }
+                inputSchema = dataLoader.GetOutputSchema();
+                return new TransformerChain<ITransformer>();
             }
         }
 
@@ -127,12 +157,21 @@ namespace Microsoft.ML
         /// <param name="stream">A readable, seekable stream to load from.</param>
         /// <returns>A model of type <see cref="CompositeDataLoader{IMultiStreamSource, ITransformer}"/> containing the loader
         /// and the transformer chain.</returns>
-        public CompositeDataLoader<IMultiStreamSource, ITransformer> Load(Stream stream)
+        public IDataLoader<IMultiStreamSource> Load(Stream stream)
         {
+            _env.CheckValue(stream, nameof(stream));
+
             using (var rep = RepositoryReader.Open(stream))
             {
-                ModelLoadContext.LoadModel<CompositeDataLoader<IMultiStreamSource, ITransformer>, SignatureLoadModel>(_env, out var model, rep, null);
-                return model;
+                try
+                {
+                    ModelLoadContext.LoadModel<IDataLoader<IMultiStreamSource>, SignatureLoadModel>(_env, out var model, rep, null);
+                    return model;
+                }
+                catch (Exception ex)
+                {
+                    throw _env.Except(ex, "Model does not contain an IDataLoader");
+                }
             }
         }
 
@@ -144,6 +183,8 @@ namespace Microsoft.ML
         /// <returns>The transformer model from the model stream.</returns>
         public ITransformer Load(Stream stream, out IDataLoader<IMultiStreamSource> loader)
         {
+            _env.CheckValue(stream, nameof(stream));
+
             loader = Load(stream);
             if (loader is CompositeDataLoader<IMultiStreamSource, ITransformer> composite)
             {

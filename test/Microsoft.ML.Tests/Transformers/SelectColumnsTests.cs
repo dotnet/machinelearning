@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -180,9 +181,9 @@ namespace Microsoft.ML.Tests.Transformers
             var transformer = est.Fit(dataView);
             using (var ms = new MemoryStream())
             {
-                transformer.SaveTo(Env, ms);
+                ML.Model.Save(transformer, null, ms);
                 ms.Position = 0;
-                var loadedTransformer = TransformerChain.LoadFrom(Env, ms);
+                var loadedTransformer = ML.Model.Load(ms, out DataViewSchema schema);
                 var result = loadedTransformer.Transform(dataView);
                 Assert.Equal(2, result.Schema.Count);
                 Assert.Equal("A", result.Schema[0].Name);
@@ -200,9 +201,9 @@ namespace Microsoft.ML.Tests.Transformers
             var transformer = est.Fit(dataView);
             using (var ms = new MemoryStream())
             {
-                transformer.SaveTo(Env, ms);
+                ML.Model.Save(transformer, null, ms);
                 ms.Position = 0;
-                var loadedTransformer = TransformerChain.LoadFrom(Env, ms);
+                var loadedTransformer = ML.Model.Load(ms, out DataViewSchema schema);
                 var result = loadedTransformer.Transform(dataView);
                 Assert.Equal(2, result.Schema.Count);
                 Assert.Equal("A", result.Schema[0].Name);

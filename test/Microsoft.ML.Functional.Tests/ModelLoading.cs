@@ -11,6 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -18,8 +19,18 @@ namespace Microsoft.ML.Functional.Tests
 {
     public partial class ModelLoadingTests : BaseTestClass
     {
+        private MLContext _ml;
+
         public ModelLoadingTests(ITestOutputHelper output) : base(output)
         {
+        }
+
+        protected override void Initialize()
+        {
+            base.Initialize();
+
+            _ml = new MLContext(42);
+            _ml.AddStandardComponents();
         }
 
         private class InputData
@@ -34,15 +45,14 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void LoadModelAndExtractPredictor()
         {
-            var ml = new MLContext(seed: 1);
             var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
-            var loader = ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
+            var loader = _ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
             var data = loader.Load(file);
 
             // Pipeline.
-            var pipeline = ml.BinaryClassification.Trainers.Gam();
+            var pipeline = _ml.BinaryClassification.Trainers.Gam();
             // Define the same pipeline starting with the loader.
-            var pipeline1 = loader.Append(ml.BinaryClassification.Trainers.Gam());
+            var pipeline1 = loader.Append(_ml.BinaryClassification.Trainers.Gam());
             
             // Train.
             var transformerModel = pipeline.Fit(data);
@@ -51,34 +61,34 @@ namespace Microsoft.ML.Functional.Tests
             // Save and reload.
             string modelAndSchemaPath = GetOutputPath(FullTestName + "-model-schema.zip");
             using (var fs = File.Create(modelAndSchemaPath))
-                ml.Model.Save(data.Schema, transformerModel, fs);
+                _ml.Model.Save(transformerModel, data.Schema, fs);
             string compositeLoaderModelPath = GetOutputPath(FullTestName + "-composite-model.zip");
             using (var fs = File.Create(compositeLoaderModelPath))
-                ml.Model.Save(compositeLoaderModel, fs);
+                _ml.Model.Save(compositeLoaderModel, fs);
             string loaderAndTransformerModelPath = GetOutputPath(FullTestName + "-loader-transformer.zip");
             using (var fs = File.Create(loaderAndTransformerModelPath))
-                ml.Model.Save(loader, transformerModel, fs);
+                _ml.Model.Save(loader, transformerModel, fs);
 
             ITransformer loadedTransformerModel;
             IDataLoader<IMultiStreamSource> loadedCompositeLoader;
             ITransformer loadedTransformerModel1;
             using (var fs = File.OpenRead(modelAndSchemaPath))
-                loadedTransformerModel = ml.Model.Load(fs, out DataViewSchema loadedSchema);
+                loadedTransformerModel = _ml.Model.Load(fs, out DataViewSchema loadedSchema);
             using (var fs = File.OpenRead(compositeLoaderModelPath))
             {
                 // This model can be loaded either as a composite data loader,
                 // a transformer model + an input schema, or a transformer model + a data loader.
-                var t = ml.Model.Load(fs, out IDataLoader<IMultiStreamSource> l);
-                var t1 = ml.Model.Load(fs, out DataViewSchema s);
-                loadedCompositeLoader = ml.Model.Load(fs);
+                var t = _ml.Model.Load(fs, out IDataLoader<IMultiStreamSource> l);
+                var t1 = _ml.Model.Load(fs, out DataViewSchema s);
+                loadedCompositeLoader = _ml.Model.Load(fs);
             }
             using (var fs = File.OpenRead(loaderAndTransformerModelPath))
             {
                 // This model can be loaded either as a composite data loader,
                 // a transformer model + an input schema, or a transformer model + a data loader.
-                var t = ml.Model.Load(fs, out DataViewSchema s);
-                var c = ml.Model.Load(fs);
-                loadedTransformerModel1 = ml.Model.Load(fs, out IDataLoader<IMultiStreamSource> l);
+                var t = _ml.Model.Load(fs, out DataViewSchema s);
+                var c = _ml.Model.Load(fs);
+                loadedTransformerModel1 = _ml.Model.Load(fs, out IDataLoader<IMultiStreamSource> l);
             }
 
             var gam = ((loadedTransformerModel as ISingleFeaturePredictionTransformer<object>).Model
@@ -102,13 +112,12 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void SaveAndLoadModelWithLoader()
         {
-            var ml = new MLContext(seed: 1);
             var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
-            var loader = ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
+            var loader = _ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
             var data = loader.Load(file);
 
             // Pipeline.
-            var pipeline = ml.BinaryClassification.Trainers.Gam();
+            var pipeline = _ml.BinaryClassification.Trainers.Gam();
 
             // Train.
             var model = pipeline.Fit(data);
@@ -116,19 +125,19 @@ namespace Microsoft.ML.Functional.Tests
             // Save and reload.
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
             using (var fs = File.Create(modelPath))
-                ml.Model.Save(loader, model, fs);
+                _ml.Model.Save(loader, model, fs);
 
             IDataLoader<IMultiStreamSource> loadedModel;
             ITransformer loadedModelWithoutLoader;
             DataViewSchema loadedSchema;
             using (var fs = File.OpenRead(modelPath))
             {
-                loadedModel = ml.Model.Load(fs);
-                loadedModelWithoutLoader = ml.Model.Load(fs, out loadedSchema);
+                loadedModel = _ml.Model.Load(fs);
+                loadedModelWithoutLoader = _ml.Model.Load(fs, out loadedSchema);
             }
 
             // Without deserializing the loader from the model we lose the slot names.
-            data = ml.Data.LoadFromEnumerable(new[] { new InputData() });
+            data = _ml.Data.LoadFromEnumerable(new[] { new InputData() });
             data = loadedModelWithoutLoader.Transform(data);
             Assert.True(!data.Schema["Features"].HasSlotNames());
 
@@ -151,13 +160,12 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void LoadSchemaAndCreateNewData()
         {
-            var ml = new MLContext(seed: 1);
             var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
-            var loader = ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
+            var loader = _ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
             var data = loader.Load(file);
 
             // Pipeline.
-            var pipeline = ml.Transforms.Normalize("Features");
+            var pipeline = _ml.Transforms.Normalize("Features");
 
             // Train.
             var model = pipeline.Fit(data);
@@ -165,20 +173,162 @@ namespace Microsoft.ML.Functional.Tests
             // Save and reload.
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
             using (var fs = File.Create(modelPath))
-                ml.Model.Save(loader, model, fs);
+                _ml.Model.Save(loader, model, fs);
 
             ITransformer loadedModel;
             DataViewSchema loadedSchema;
             using (var fs = File.OpenRead(modelPath))
-                loadedModel = ml.Model.Load(fs, out loadedSchema);
+                loadedModel = _ml.Model.Load(fs, out loadedSchema);
 
             // Without using the schema from the model we lose the slot names.
-            data = ml.Data.LoadFromEnumerable(new[] { new InputData() });
+            data = _ml.Data.LoadFromEnumerable(new[] { new InputData() });
             data = loadedModel.Transform(data);
             Assert.True(!data.Schema["Features"].HasSlotNames());
 
-            data = ml.Data.LoadFromEnumerable(new[] { new InputData() }, loadedSchema);
+            data = _ml.Data.LoadFromEnumerable(new[] { new InputData() }, loadedSchema);
             Assert.True(data.Schema["Features"].HasSlotNames());
+        }
+
+        [Fact]
+        public void SaveTextLoaderAndLoad()
+        {
+            var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
+            var loader = _ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
+
+            string modelPath = GetOutputPath(FullTestName + "-model.zip");
+            using (var fs = File.Create(modelPath))
+                _ml.Model.Save(loader, fs);
+
+            Load(modelPath, out var loadedWithSchema, out var loadedSchema, out var loadedLoader,
+                out var loadedWithLoader, out var loadedLoaderWithTransformer);
+            Assert.True(loadedWithSchema is TransformerChain<ITransformer>);
+            Assert.False((loadedWithSchema as TransformerChain<ITransformer>).Any());
+            Assert.True(loadedSchema.Count == 2 &&
+                loadedSchema.GetColumnOrNull("Label") != null
+                && loadedSchema.GetColumnOrNull("Features") != null
+                && loadedSchema["Features"].HasSlotNames());
+            Assert.True(loadedLoader is TextLoader);
+            Assert.True(loadedWithLoader is TransformerChain<ITransformer>);
+            Assert.False((loadedWithLoader as TransformerChain<ITransformer>).Any());
+            Assert.True(loadedLoaderWithTransformer is TextLoader);
+            var schema = loadedLoaderWithTransformer.GetOutputSchema();
+            Assert.True(schema.Count == 2 &&
+                schema.GetColumnOrNull("Label") != null
+                && schema.GetColumnOrNull("Features") != null
+                && schema["Features"].HasSlotNames());
+        }
+
+        [Fact]
+        public void SaveCompositeLoaderAndLoad()
+        {
+            var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
+            var loader = _ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
+            var composite = loader.Append(_ml.Transforms.Normalize("Features"));
+            var model = composite.Fit(file);
+
+            string modelPath = GetOutputPath(FullTestName + "-model.zip");
+            using (var fs = File.Create(modelPath))
+                _ml.Model.Save(model, fs);
+
+            Load(modelPath, out var loadedWithSchema, out var loadedSchema, out var loadedLoader,
+                out var loadedWithLoader, out var loadedLoaderWithTransformer);
+            Assert.True(loadedWithSchema is TransformerChain<ITransformer>);
+            Assert.True((loadedWithSchema as TransformerChain<ITransformer>).Count() == 1);
+            Assert.True(loadedSchema.Count == 2 &&
+                loadedSchema.GetColumnOrNull("Label") != null
+                && loadedSchema.GetColumnOrNull("Features") != null
+                && loadedSchema["Features"].HasSlotNames());
+            Assert.True(loadedLoader is CompositeDataLoader<IMultiStreamSource, ITransformer>);
+            Assert.True(loadedWithLoader is TransformerChain<ITransformer>);
+            Assert.True((loadedWithLoader as TransformerChain<ITransformer>).Count() == 1);
+            Assert.True(loadedLoaderWithTransformer is TextLoader);
+            var schema = loadedLoaderWithTransformer.GetOutputSchema();
+            Assert.True(schema.Count == 2 &&
+                schema.GetColumnOrNull("Label") != null
+                && schema.GetColumnOrNull("Features") != null
+                && schema["Features"].HasSlotNames());
+        }
+
+        [Fact]
+        public void SaveLoaderAndTransformerAndLoad()
+        {
+            var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
+            var loader = _ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
+            var estimator = _ml.Transforms.Normalize("Features");
+            var model = estimator.Fit(loader.Load(file));
+
+            string modelPath = GetOutputPath(FullTestName + "-model.zip");
+            using (var fs = File.Create(modelPath))
+                _ml.Model.Save(loader, model, fs);
+
+            Load(modelPath, out var loadedWithSchema, out var loadedSchema, out var loadedLoader,
+                out var loadedWithLoader, out var loadedLoaderWithTransformer);
+            Assert.True(loadedWithSchema is TransformerChain<ITransformer>);
+            Assert.True((loadedWithSchema as TransformerChain<ITransformer>).Count() == 1);
+            Assert.True(loadedSchema.Count == 2 &&
+                loadedSchema.GetColumnOrNull("Label") != null
+                && loadedSchema.GetColumnOrNull("Features") != null
+                && loadedSchema["Features"].HasSlotNames());
+            Assert.True(loadedLoader is CompositeDataLoader<IMultiStreamSource, ITransformer>);
+            Assert.True(loadedWithLoader is TransformerChain<ITransformer>);
+            Assert.True((loadedWithLoader as TransformerChain<ITransformer>).Count() == 1);
+            Assert.True(loadedLoaderWithTransformer is TextLoader);
+            var schema = loadedLoaderWithTransformer.GetOutputSchema();
+            Assert.True(schema.Count == 2 &&
+                schema.GetColumnOrNull("Label") != null
+                && schema.GetColumnOrNull("Features") != null
+                && schema["Features"].HasSlotNames());
+        }
+
+        [Fact]
+        public void SaveTransformerAndSchemaAndLoad()
+        {
+            var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
+            var loader = _ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
+            var estimator = _ml.Transforms.Normalize("Features");
+            var model = estimator.Fit(loader.Load(file));
+
+            string modelPath = GetOutputPath(FullTestName + "-model.zip");
+            using (var fs = File.Create(modelPath))
+                _ml.Model.Save(model, loader.GetOutputSchema(), fs);
+
+            Load(modelPath, out var loadedWithSchema, out var loadedSchema, out var loadedLoader,
+                out var loadedWithLoader, out var loadedLoaderWithTransformer);
+            Assert.True(loadedWithSchema is NormalizingTransformer);
+            Assert.True(loadedSchema.Count == 2 &&
+                loadedSchema.GetColumnOrNull("Label") != null
+                && loadedSchema.GetColumnOrNull("Features") != null
+                && loadedSchema["Features"].HasSlotNames());
+            Assert.Null(loadedLoader);
+            Assert.Null(loadedWithLoader);
+            Assert.Null(loadedLoaderWithTransformer);
+        }
+
+        private void Load(string filename, out ITransformer loadedWithSchema, out DataViewSchema loadedSchema,
+            out IDataLoader<IMultiStreamSource> loadedLoader, out ITransformer loadedWithLoader,
+            out IDataLoader<IMultiStreamSource> loadedLoaderWithTransformer)
+        {
+            using (var fs = File.OpenRead(filename))
+            {
+                try
+                {
+                    loadedLoader = _ml.Model.Load(fs);
+                }
+                catch (Exception)
+                {
+                    loadedLoader = null;
+                }
+                loadedWithSchema = _ml.Model.Load(fs, out loadedSchema);
+                try
+                {
+                    loadedWithLoader = _ml.Model.Load(fs, out loadedLoaderWithTransformer);
+                }
+                catch (Exception)
+                {
+                    loadedWithLoader = null;
+                    loadedLoaderWithTransformer = null;
+                }
+            }
         }
 
         private int FindIndex(ReadOnlySpan<ReadOnlyMemory<char>> values, string slotName)

@@ -80,8 +80,10 @@ namespace Microsoft.ML.Tests
             using (var file = new SimpleFileHandle(env, tempPath, true, true))
             {
                 using (var fs = file.CreateWriteStream())
-                    model.SaveTo(env, fs);
-                var model2 = TransformerChain.LoadFrom(env, file.OpenReadStream());
+                    ML.Model.Save(model, null, fs);
+                ITransformer model2;
+                using (var fs = file.OpenReadStream())
+                    model2 = ML.Model.Load(fs, out DataViewSchema schema);
 
                 var transformerChain = model2 as TransformerChain<ITransformer>;
                 Assert.NotNull(transformerChain);

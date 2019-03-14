@@ -80,7 +80,7 @@ namespace Microsoft.ML.RunTests
             // Save and reload.
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
             using (var fs = File.Create(modelPath))
-                ML.Model.Save(validFitInput.Schema, transformer, fs);
+                ML.Model.Save(transformer, validFitInput.Schema, fs);
 
             ITransformer loadedTransformer;
             DataViewSchema loadedInputSchema;

@@ -123,7 +123,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             using (var stream = File.Create(modelPath))
             {
                 // Saving and loading happens to 'dynamic' models.
-                mlContext.Model.Save(trainData.Schema, model, stream);
+                mlContext.Model.Save(model, trainData.Schema, stream);
             }
 
             // Potentially, the lines below can be in a different process altogether.
@@ -523,7 +523,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Save the model.
             using (var fs = File.Create(modelPath))
-                mlContext.Model.Save(cachedTrainData.Schema, model, fs);
+                mlContext.Model.Save(model, cachedTrainData.Schema, fs);
 
             // Now pretend we are in a different process.
             var newContext = new MLContext();

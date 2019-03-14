@@ -150,7 +150,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             using (var stream = File.Create(modelPath))
             {
                 // Saving and loading happens to 'dynamic' models, so the static typing is lost in the process.
-                mlContext.Model.Save(trainData.AsDynamic.Schema, model.AsDynamic, stream);
+                mlContext.Model.Save(model.AsDynamic, trainData.AsDynamic.Schema, stream);
             }
 
             // Potentially, the lines below can be in a different process altogether.

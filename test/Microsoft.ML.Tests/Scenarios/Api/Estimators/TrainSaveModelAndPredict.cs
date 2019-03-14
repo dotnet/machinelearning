@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var modelPath = GetOutputPath("temp.zip");
             // Save model. 
             using (var file = File.Create(modelPath))
-                ml.Model.Save(data.Schema, model, file);
+                ml.Model.Save(model, data.Schema, file);
 
             // Load model.
             ITransformer loadedModel;
