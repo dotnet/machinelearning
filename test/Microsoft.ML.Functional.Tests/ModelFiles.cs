@@ -27,8 +27,8 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void DetermineNugetVersionFromModel()
         {
-            var modelFile = GetDataPath(@"backcompat" + Path.DirectorySeparatorChar + @"keep-model.zip");
-            var versionFileName = @"TrainingInfo\Version.txt"; // Can't find this cross plat.
+            var modelFile = GetDataPath($"backcompat{Path.DirectorySeparatorChar}keep-model.zip");
+            var versionFileName = @"TrainingInfo\Version.txt"; // Must use '\' for cross-platform testing.
             using (ZipArchive archive = ZipFile.OpenRead(modelFile))
             {
                 // The version of the entire model is kept in the version file.
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(
+                .Append(mlContext.Regression.Trainers.Sdca(
                     new SdcaRegressionTrainer.Options { NumberOfThreads = 1 }));
 
             // Fit the pipeline.
@@ -106,8 +106,8 @@ namespace Microsoft.ML.Functional.Tests
                 serializedModel = mlContext.Model.Load(file);
 
             // Create prediction engine and test predictions.
-            var originalPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, ScoreColumn>(model);
-            var serializedPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, ScoreColumn>(serializedModel);
+            var originalPredictionEngine = model.CreatePredictionEngine<HousingRegression, ScoreColumn>(mlContext);
+            var serializedPredictionEngine = serializedModel.CreatePredictionEngine<HousingRegression, ScoreColumn>(mlContext);
             
             // Take a handful of examples out of the dataset and compute predictions.
             var dataEnumerator = mlContext.Data.CreateEnumerable<HousingRegression>(mlContext.Data.TakeRows(data, 5), false);
