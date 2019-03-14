@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.Transforms.Image;
 using Xunit;
 namespace Microsoft.ML.RunTests
 {

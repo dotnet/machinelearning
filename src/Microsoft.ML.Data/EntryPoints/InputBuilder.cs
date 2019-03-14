@@ -839,11 +839,11 @@ namespace Microsoft.ML.EntryPoints
         {
             public static new string ToString() => "SupportedMetric";
             public const string Auc = BinaryClassifierEvaluator.Auc;
-            public const string AccuracyMicro = Data.MultiClassClassifierEvaluator.AccuracyMicro;
-            public const string AccuracyMacro = MultiClassClassifierEvaluator.AccuracyMacro;
+            public const string AccuracyMicro = Data.MulticlassClassificationEvaluator.AccuracyMicro;
+            public const string AccuracyMacro = MulticlassClassificationEvaluator.AccuracyMacro;
             public const string F1 = BinaryClassifierEvaluator.F1;
             public const string AuPrc = BinaryClassifierEvaluator.AuPrc;
-            public const string TopKAccuracy = MultiClassClassifierEvaluator.TopKAccuracy;
+            public const string TopKAccuracy = MulticlassClassificationEvaluator.TopKAccuracy;
             public const string L1 = RegressionLossEvaluatorBase<MultiOutputRegressionEvaluator.Aggregator>.L1;
             public const string L2 = RegressionLossEvaluatorBase<MultiOutputRegressionEvaluator.Aggregator>.L2;
             public const string Rms = RegressionLossEvaluatorBase<MultiOutputRegressionEvaluator.Aggregator>.Rms;

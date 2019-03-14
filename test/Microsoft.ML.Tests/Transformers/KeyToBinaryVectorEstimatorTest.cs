@@ -49,7 +49,7 @@ namespace Microsoft.ML.Tests.Transformers
             dataView = new ValueToKeyMappingEstimator(Env, new[]{
                     new ValueToKeyMappingEstimator.ColumnOptions("TermA", "A"),
                     new ValueToKeyMappingEstimator.ColumnOptions("TermB", "B"),
-                    new ValueToKeyMappingEstimator.ColumnOptions("TermC", "C", textKeyValues:true)
+                    new ValueToKeyMappingEstimator.ColumnOptions("TermC", "C", addKeyValueAnnotationsAsText:true)
                 }).Fit(dataView).Transform(dataView);
 
             var pipe = ML.Transforms.Conversion.MapKeyToBinaryVector(("CatA", "TermA"), ("CatC", "TermC"));
@@ -99,8 +99,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ML.Data.LoadFromEnumerable(data);
             var termEst = new ValueToKeyMappingEstimator(Env, new[] {
-                new ValueToKeyMappingEstimator.ColumnOptions("TA", "A", textKeyValues: true),
-                new ValueToKeyMappingEstimator.ColumnOptions("TB", "B", textKeyValues: true),
+                new ValueToKeyMappingEstimator.ColumnOptions("TA", "A", addKeyValueAnnotationsAsText: true),
+                new ValueToKeyMappingEstimator.ColumnOptions("TB", "B", addKeyValueAnnotationsAsText: true),
                 new ValueToKeyMappingEstimator.ColumnOptions("TC", "C"),
                 new ValueToKeyMappingEstimator.ColumnOptions("TD", "D") });
             var termTransformer = termEst.Fit(dataView);
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ML.Data.LoadFromEnumerable(data);
             var est = new ValueToKeyMappingEstimator(Env, new[]{
                     new ValueToKeyMappingEstimator.ColumnOptions("TermA", "A"),
-                    new ValueToKeyMappingEstimator.ColumnOptions("TermB", "B", textKeyValues:true),
+                    new ValueToKeyMappingEstimator.ColumnOptions("TermB", "B", addKeyValueAnnotationsAsText:true),
                     new ValueToKeyMappingEstimator.ColumnOptions("TermC", "C")
             });
             var transformer = est.Fit(dataView);

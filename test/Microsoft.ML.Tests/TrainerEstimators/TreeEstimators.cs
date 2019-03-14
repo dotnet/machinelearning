@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.LightGBM;
+using Microsoft.ML.Trainers.LightGbm;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
@@ -241,9 +241,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// LightGbmMulticlass TrainerEstimator test 
         /// </summary>
         [LightGBMFact]
-        public void LightGbmMultiClassEstimator()
+        public void LightGbmMulticlassEstimator()
         {
-            var (pipeline, dataView) = GetMultiClassPipeline();
+            var (pipeline, dataView) = GetMulticlassPipeline();
             var trainer = ML.MulticlassClassification.Trainers.LightGbm(learningRate: 0.4);
             var pipe = pipeline.Append(trainer)
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
@@ -334,7 +334,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 floatLabels[i] = labels[i];
 
             // Allocate LightGBM data container (called Dataset in LightGBM world).
-            var gbmDataSet = new LightGBM.Dataset(sampleValueGroupedByColumn, sampleIndicesGroupedByColumn, _columnNumber, sampleNonZeroCntPerColumn, _rowNumber, _rowNumber, "", floatLabels);
+            var gbmDataSet = new Trainers.LightGbm.Dataset(sampleValueGroupedByColumn, sampleIndicesGroupedByColumn, _columnNumber, sampleNonZeroCntPerColumn, _rowNumber, _rowNumber, "", floatLabels);
 
             // Push training examples into LightGBM data container.
             gbmDataSet.PushRows(dataMatrix, _rowNumber, _columnNumber, 0);
@@ -373,7 +373,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [LightGBMFact]
-        public void LightGbmMultiClassEstimatorCompareOva()
+        public void LightGbmMulticlassEstimatorCompareOva()
         {
             // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
             LightGbmHelper(useSoftmax: false, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0);
@@ -405,7 +405,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [LightGBMFact]
-        public void LightGbmMultiClassEstimatorCompareSoftMax()
+        public void LightGbmMulticlassEstimatorCompareSoftMax()
         {
             // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
             LightGbmHelper(useSoftmax: true, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0);
@@ -438,7 +438,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var currentCulture = Thread.CurrentThread.CurrentCulture;
             Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("de-DE");
-            var (pipeline, dataView) = GetMultiClassPipeline();
+            var (pipeline, dataView) = GetMulticlassPipeline();
             var trainer = ML.MulticlassClassification.Trainers.LightGbm(learningRate: 0.4);
             var pipe = pipeline.Append(trainer)
                     .Append(ML.Transforms.Conversion.MapKeyToValue("PredictedLabel"));

@@ -264,21 +264,10 @@ namespace Microsoft.ML.Functional.Tests
 
             // Extract the normalizer parameters.
             // TODO #2854: Normalizer parameters are easy to find via intellisense.
-            int i = 0;
-            bool found = false;
-            foreach (var column in normalizer.Columns)
-            {
-                if (column.Name == "Features")
-                {
-                    found = true;
-                    var featuresNormalizer = normalizer.Columns[i].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<float>>;
-                    Assert.NotNull(featuresNormalizer);
-                    Common.AssertFiniteNumbers(featuresNormalizer.Offset);
-                    Common.AssertFiniteNumbers(featuresNormalizer.Scale);
-                }
-                i++;
-            }
-            Assert.True(found);
+            var config = normalizer.GetNormalizerModelParameters(0) as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<float>>;
+            Assert.NotNull(config);
+            Common.AssertFiniteNumbers(config.Offset);
+            Common.AssertFiniteNumbers(config.Scale);
         }
         /// <summary>
         /// Introspective Training: I can inspect a pipeline to determine which transformers were included. 	 
@@ -339,8 +328,8 @@ namespace Microsoft.ML.Functional.Tests
             // Create the learning pipeline.
             var pipeline = mlContext.Transforms.Concatenate("NumericalFeatures", Adult.NumericalFeatures)
                 .Append(mlContext.Transforms.Concatenate("CategoricalFeatures", Adult.CategoricalFeatures))
-                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CategoricalFeatures", hashBits: 8, // get collisions!
-                    invertHash: -1, outputKind: OneHotEncodingTransformer.OutputKind.Bag));
+                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CategoricalFeatures", numberOfBits: 8, // get collisions!
+                    maximumNumberOfInverts: -1, outputKind: OneHotEncodingEstimator.OutputKind.Bag));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);

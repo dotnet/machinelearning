@@ -818,7 +818,7 @@ namespace Microsoft.ML.RunTests
 
         [TestCategory(Cat)]
         [Fact(Skip = "Need CoreTLC specific baseline update")]
-        public void SaveMultiClassLrPredictorAsSummary()
+        public void SaveMulticlassLrPredictorAsSummary()
         {
             // First run a training.
             string pathData = GetDataPath("iris.txt");
@@ -918,7 +918,7 @@ namespace Microsoft.ML.RunTests
 
             string extraArgs = string.Format("{0} {1} {2} {3} k={4}", "prexf=Term{col=Label:Cat} prexf=CategoricalTransform{col=Cat01}",
                                                 "xf=TextTransform{col=Text} xf=Concat{col=Features:Cat01,Text}",
-                                                "threads- tr=MultiClassLogisticRegression{numThreads=1}", "norm=No", numFolds);
+                                                "threads- tr=MulticlassLogisticRegression{numThreads=1}", "norm=No", numFolds);
             const string loaderArgs = "loader=TextLoader{col=Label:R4:0 col=Cat:TX:1 col=Cat01:TX:2 col=Text:TX:3 header=+}";
             TestCore("cv", pathData, loaderArgs, extraArgs);
 
@@ -1166,7 +1166,7 @@ namespace Microsoft.ML.RunTests
             const string loaderCmdline = @"loader=TextLoader{col=Label:TX:0 col=Features:R4:1-4 header=+}";
             string pathTrain = GetDataPath("iris-label-name.txt");
             OutputPath trainModel = ModelPath();
-            const string trainArgs = "tr=MultiClassLogisticRegression{maxiter=100 t=-} xf=Term{col=Label} seed=1";
+            const string trainArgs = "tr=MulticlassLogisticRegression{maxiter=100 t=-} xf=Term{col=Label} seed=1";
             TestCore("train", pathTrain, loaderCmdline, trainArgs);
 
             _step++;
@@ -1448,13 +1448,13 @@ namespace Microsoft.ML.RunTests
 
         [TestCategory(Cat), TestCategory("Multiclass")]
         [Fact(Skip = "Need CoreTLC specific baseline update")]
-        public void CommandTrainScoreEvaluateMultiClass()
+        public void CommandTrainScoreEvaluateMulticlass()
         {
             // First run a training.
             string pathData = GetDataPath("iris-label-name.txt");
             OutputPath trainModel = ModelPath();
             TestCore("train", pathData, "loader=TextLoader{header+ col=Label:TX:0 col=Features:1-4} xf=Term{col=Label}",
-                "lab=Label feat=Features seed=42 tr=MultiClassNeuralNetwork{output=3 accel=sse lr=0.1 iter=70} norm=Warn");
+                "lab=Label feat=Features seed=42 tr=MulticlassNeuralNetwork{output=3 accel=sse lr=0.1 iter=70} norm=Warn");
 
             // Then, run the score.
             _step++;
@@ -1478,7 +1478,7 @@ namespace Microsoft.ML.RunTests
             _step++;
             var outputFile2 = StdoutPath();
             var metricsPath = MetricsPath();
-            const string evalLoaderArgs = "loader=Text{header+ col=Label:TX:0 col=PredictedLabel:5 col=Score:6-8} xf=Term{col=Label} evaluator=MultiClass{score=Score}";
+            const string evalLoaderArgs = "loader=Text{header+ col=Label:TX:0 col=PredictedLabel:5 col=Score:6-8} xf=Term{col=Label} evaluator=Multiclass{score=Score}";
             TestCore("evaluate", scorePathTxt.Path, evalLoaderArgs, null, metricsPath.Arg("dout"));
 
             // Check that the evaluations produced the same result.
@@ -1488,7 +1488,7 @@ namespace Microsoft.ML.RunTests
             //CheckEqualityFromPathsCore(TestContext.TestName, outputFile1.Path, outputFile2.Path);
 
             _step++;
-            const string evalLoaderArgs2 = "loader=Text{header+ col=Label:0 col=PredictedLabel:5 col=Score:6-8} evaluator=MultiClass{score=Score opcs+}";
+            const string evalLoaderArgs2 = "loader=Text{header+ col=Label:0 col=PredictedLabel:5 col=Score:6-8} evaluator=Multiclass{score=Score opcs+}";
             TestCore("evaluate", scorePathTxt.Path, evalLoaderArgs2, null, metricsPath.Arg("dout"));
 
             Done();

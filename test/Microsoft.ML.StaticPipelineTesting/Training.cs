@@ -8,8 +8,8 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.LightGBM;
-using Microsoft.ML.LightGBM.StaticPipe;
+using Microsoft.ML.Trainers.LightGbm;
+using Microsoft.ML.Trainers.LightGbm.StaticPipe;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
@@ -691,7 +691,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
                 .Append(r => (label: r.label.ToKey(), r.features))
-                .Append(r => (r.label, preds: catalog.Trainers.MultiClassLogisticRegression(
+                .Append(r => (r.label, preds: catalog.Trainers.MulticlassLogisticRegression(
                     r.label,
                     r.features,
                     null,
@@ -913,7 +913,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
 
         [LightGBMFact]
-        public void MultiClassLightGBM()
+        public void MulticlassLightGBM()
         {
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
@@ -951,7 +951,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
 
         [Fact]
-        public void MultiClassNaiveBayesTrainer()
+        public void MulticlassNaiveBayesTrainer()
         {
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
@@ -961,12 +961,12 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MultiClassNaiveBayesModelParameters pred = null;
+            MulticlassNaiveBayesModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
                 .Append(r => (label: r.label.ToKey(), r.features))
-                .Append(r => (r.label, preds: catalog.Trainers.MultiClassNaiveBayesTrainer(
+                .Append(r => (r.label, preds: catalog.Trainers.MulticlassNaiveBayesTrainer(
                     r.label,
                     r.features, onFit: p => pred = p)));
 
@@ -1189,7 +1189,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
 
         [LightGBMFact]
-        public void MultiClassLightGbmStaticPipelineWithInMemoryData()
+        public void MulticlassLightGbmStaticPipelineWithInMemoryData()
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.

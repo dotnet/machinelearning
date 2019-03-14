@@ -89,7 +89,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(0, prediction.PredictedLabels[2], 2);
         }
 
-        private void CompareMetrics(MultiClassClassifierMetrics metrics)
+        private void CompareMetrics(MulticlassClassificationMetrics metrics)
         {
             Assert.Equal(.98, metrics.MacroAccuracy);
             Assert.Equal(.98, metrics.MicroAccuracy, 2);

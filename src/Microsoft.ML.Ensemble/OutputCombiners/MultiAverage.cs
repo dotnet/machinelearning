@@ -35,7 +35,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         [TlcModule.Component(Name = LoadName, FriendlyName = Average.UserName)]
         public sealed class Options : OptionsBase, ISupportMulticlassOutputCombinerFactory
         {
-            public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiAverage(env, this);
+            public IMulticlassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiAverage(env, this);
         }
 
         public MultiAverage(IHostEnvironment env, Options options)

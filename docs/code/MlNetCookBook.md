@@ -512,7 +512,7 @@ var pipeline =
     // Convert each categorical feature into one-hot encoding independently.
     mlContext.Transforms.Categorical.OneHotEncoding("CategoricalOneHot", "CategoricalFeatures")
     // Convert all categorical features into indices, and build a 'word bag' of these.
-    .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalBag", "CategoricalFeatures", OneHotEncodingTransformer.OutputKind.Bag))
+    .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalBag", "CategoricalFeatures", OneHotEncodingEstimator.OutputKind.Bag))
     // One-hot encode the workclass column, then drop all the categories that have fewer than 10 instances in the train set.
     .Append(mlContext.Transforms.Categorical.OneHotEncoding("WorkclassOneHot", "Workclass"))
     .Append(mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("WorkclassOneHotTrimmed", "WorkclassOneHot", count: 10));
@@ -595,7 +595,7 @@ As a general rule, *if you use a parametric learner, you need to make sure your 
 
 ML.NET offers several built-in scaling algorithms, or 'normalizers':
 - MinMax normalizer: for each feature, we learn the minimum and maximum value of it, and then linearly rescale it so that the values fit between -1 and 1.
-- MeanVar normalizer: for each feature, compute the mean and variance, and then linearly rescale it to zero-mean, unit-variance.
+- MeanVariance normalizer: for each feature, compute the mean and variance, and then linearly rescale it to zero-mean, unit-variance.
 - CDF normalizer: for each feature, compute the mean and variance, and then replace each value `x` with `Cdf(x)`, where `Cdf` is the cumulative density function of normal distribution with these mean and variance. 
 - Binning normalizer: discretize the feature value into `N` 'buckets', and then replace each value with the index of the bucket, divided by `N-1`.
 
@@ -630,8 +630,8 @@ var trainData = mlContext.Data.LoadFromTextFile<IrisInputAllFeatures>(dataPath,
 var pipeline =
     mlContext.Transforms.Normalize(
         new NormalizingEstimator.MinMaxColumnOptions("MinMaxNormalized", "Features", fixZero: true),
-        new NormalizingEstimator.MeanVarColumnOptions("MeanVarNormalized", "Features", fixZero: true),
-        new NormalizingEstimator.BinningColumnOptions("BinNormalized", "Features", numBins: 256));
+        new NormalizingEstimator.MeanVarianceColumnOptions("MeanVarNormalized", "Features", fixZero: true),
+        new NormalizingEstimator.BinningColumnOptions("BinNormalized", "Features", maximumBinCount: 256));
 
 // Let's train our pipeline of normalizers, and then apply it to the same data.
 var normalizedData = pipeline.Fit(trainData).Transform(trainData);
@@ -772,15 +772,15 @@ var pipeline =
 
     // NLP pipeline 2: bag of bigrams, using hashes instead of dictionary indices.
     .Append(new WordHashBagEstimator(mlContext, "BagOfBigrams","NormalizedMessage", 
-                ngramLength: 2, allLengths: false))
+                ngramLength: 2, useAllLengths: false))
 
     // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
-    .Append(mlContext.Transforms.Text.TokenizeCharacters("MessageChars", "Message"))
+    .Append(mlContext.Transforms.Text.ProduceCharactersAsKeys("MessageChars", "Message"))
     .Append(new NgramExtractingEstimator(mlContext, "BagOfTrichar", "MessageChars", 
                 ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf))
 
     // NLP pipeline 4: word embeddings.
-    .Append(mlContext.Transforms.Text.TokenizeWords("TokenizedMessage", "NormalizedMessage"))
+    .Append(mlContext.Transforms.Text.ProduceWordTokens("TokenizedMessage", "NormalizedMessage"))
     .Append(mlContext.Transforms.Text.ExtractWordEmbeddings("Embeddings", "TokenizedMessage",
                 WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding));
 

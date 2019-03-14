@@ -87,7 +87,7 @@ namespace Microsoft.ML.Data
             public static class ScoreColumnKind
             {
                 public const string BinaryClassification = "BinaryClassification";
-                public const string MultiClassClassification = "MultiClassClassification";
+                public const string MulticlassClassification = "MulticlassClassification";
                 public const string Regression = "Regression";
                 public const string Ranking = "Ranking";
                 public const string Clustering = "Clustering";

@@ -99,8 +99,8 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.Multiple, HelpText = "Use stop remover or not.", ShortName = "remover", SortOrder = 4)]
             public bool UsePredefinedStopWordRemover = false;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Casing text using the rules of the invariant culture.", ShortName = "case", SortOrder = 5)]
-            public CaseMode TextCase = TextNormalizingEstimator.Defaults.Mode;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Casing text using the rules of the invariant culture.", Name="TextCase", ShortName = "case", SortOrder = 5)]
+            public CaseMode CaseMode = TextNormalizingEstimator.Defaults.Mode;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep diacritical marks or remove them.", ShortName = "diac", SortOrder = 6)]
             public bool KeepDiacritics = TextNormalizingEstimator.Defaults.KeepDiacritics;
@@ -127,7 +127,14 @@ namespace Microsoft.ML.Transforms.Text
             private WordBagEstimator.Options _wordFeatureExtractor;
 
             /// <summary>
+            /// Norm of the output vector. It will be normalized to one.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Normalize vectors (rows) individually by rescaling them to unit norm.", Name = "VectorNormalizer", ShortName = "norm", SortOrder = 13)]
+            public NormFunction Norm = NormFunction.L2;
+
+            /// <summary>
             /// Ngram feature extractor to use for words (WordBag/WordHashBag).
+            /// Set to <see langword="null" /> to turn off n-gram generation for words.
             /// </summary>
             public WordBagEstimator.Options WordFeatureExtractor
             {
@@ -141,7 +148,7 @@ namespace Microsoft.ML.Transforms.Text
                         extractor = new NgramExtractorTransform.NgramExtractorArguments();
                         extractor.NgramLength = _wordFeatureExtractor.NgramLength;
                         extractor.SkipLength = _wordFeatureExtractor.SkipLength;
-                        extractor.AllLengths = _wordFeatureExtractor.AllLengths;
+                        extractor.UseAllLengths = _wordFeatureExtractor.UseAllLengths;
                         extractor.MaxNumTerms = _wordFeatureExtractor.MaximumNgramsCount;
                         extractor.Weighting = _wordFeatureExtractor.Weighting;
                     }
@@ -160,6 +167,7 @@ namespace Microsoft.ML.Transforms.Text
 
             /// <summary>
             /// Ngram feature extractor to use for characters (WordBag/WordHashBag).
+            /// Set to <see langword="null" /> to turn off n-gram generation for characters.
             /// </summary>
             public WordBagEstimator.Options CharFeatureExtractor
             {
@@ -173,7 +181,7 @@ namespace Microsoft.ML.Transforms.Text
                         extractor = new NgramExtractorTransform.NgramExtractorArguments();
                         extractor.NgramLength = _charFeatureExtractor.NgramLength;
                         extractor.SkipLength = _charFeatureExtractor.SkipLength;
-                        extractor.AllLengths = _charFeatureExtractor.AllLengths;
+                        extractor.UseAllLengths = _charFeatureExtractor.UseAllLengths;
                         extractor.MaxNumTerms = _charFeatureExtractor.MaximumNgramsCount;
                         extractor.Weighting = _charFeatureExtractor.Weighting;
                     }
@@ -181,19 +189,16 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Normalize vectors (rows) individually by rescaling them to unit norm.", ShortName = "norm", SortOrder = 13)]
-            public NormFunction VectorNormalizer = NormFunction.L2;
-
             public Options()
             {
                 WordFeatureExtractor = new WordBagEstimator.Options();
-                CharFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 3, AllLengths = false };
+                CharFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 3, UseAllLengths = false };
             }
         }
 
         internal readonly string OutputColumn;
         private readonly string[] _inputColumns;
-        internal IReadOnlyCollection<string> InputColumns => _inputColumns.AsReadOnly();
+        private IReadOnlyCollection<string> InputColumns => _inputColumns.AsReadOnly();
         internal Options OptionalSettings { get; }
 
         // These parameters are hardcoded for now.
@@ -213,7 +218,7 @@ namespace Microsoft.ML.Transforms.Text
             public readonly INgramExtractorFactory WordExtractorFactory;
             public readonly INgramExtractorFactory CharExtractorFactory;
 
-            public readonly NormFunction VectorNormalizer;
+            public readonly NormFunction Norm;
             public readonly Language Language;
             public readonly bool UsePredefinedStopWordRemover;
             public readonly CaseMode TextCase;
@@ -226,21 +231,21 @@ namespace Microsoft.ML.Transforms.Text
             public StopWordsRemovingEstimator.Language StopwordsLanguage
                 => (StopWordsRemovingEstimator.Language)Enum.Parse(typeof(StopWordsRemovingEstimator.Language), Language.ToString());
 
-            public LpNormalizingEstimatorBase.NormFunction LpNormalizerKind
+            internal LpNormNormalizingEstimatorBase.NormFunction LpNorm
             {
                 get
                 {
-                    switch (VectorNormalizer)
+                    switch (Norm)
                     {
                         case NormFunction.L1:
-                            return LpNormalizingEstimatorBase.NormFunction.L1;
+                            return LpNormNormalizingEstimatorBase.NormFunction.L1;
                         case NormFunction.L2:
-                            return LpNormalizingEstimatorBase.NormFunction.L2;
+                            return LpNormNormalizingEstimatorBase.NormFunction.L2;
                         case NormFunction.Infinity:
-                            return LpNormalizingEstimatorBase.NormFunction.Infinity;
+                            return LpNormNormalizingEstimatorBase.NormFunction.Infinity;
                         default:
                             Contracts.Assert(false, "Unexpected normalizer type");
-                            return LpNormalizingEstimatorBase.NormFunction.L2;
+                            return LpNormNormalizingEstimatorBase.NormFunction.L2;
                     }
                 }
             }
@@ -288,13 +293,13 @@ namespace Microsoft.ML.Transforms.Text
             {
                 var host = parent._host;
                 host.Check(Enum.IsDefined(typeof(Language), parent.OptionalSettings.Language));
-                host.Check(Enum.IsDefined(typeof(CaseMode), parent.OptionalSettings.TextCase));
+                host.Check(Enum.IsDefined(typeof(CaseMode), parent.OptionalSettings.CaseMode));
                 WordExtractorFactory = parent._wordFeatureExtractor?.CreateComponent(host, parent._dictionary);
                 CharExtractorFactory = parent._charFeatureExtractor?.CreateComponent(host, parent._dictionary);
-                VectorNormalizer = parent.OptionalSettings.VectorNormalizer;
+                Norm = parent.OptionalSettings.Norm;
                 Language = parent.OptionalSettings.Language;
                 UsePredefinedStopWordRemover = parent.OptionalSettings.UsePredefinedStopWordRemover;
-                TextCase = parent.OptionalSettings.TextCase;
+                TextCase = parent.OptionalSettings.CaseMode;
                 KeepDiacritics = parent.OptionalSettings.KeepDiacritics;
                 KeepPunctuations = parent.OptionalSettings.KeepPunctuations;
                 KeepNumbers = parent.OptionalSettings.KeepNumbers;
@@ -463,15 +468,15 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            if (tparams.VectorNormalizer != NormFunction.None)
+            if (tparams.Norm != NormFunction.None)
             {
-                var xfCols = new List<LpNormalizingEstimator.LpNormColumnOptions>(2);
+                var xfCols = new List<LpNormNormalizingEstimator.ColumnOptions>(2);
 
                 if (charFeatureCol != null)
                 {
                     var dstCol = GenerateColumnName(view.Schema, charFeatureCol, "LpCharNorm");
                     tempCols.Add(dstCol);
-                    xfCols.Add(new LpNormalizingEstimator.LpNormColumnOptions(dstCol, charFeatureCol, normKind: tparams.LpNormalizerKind));
+                    xfCols.Add(new LpNormNormalizingEstimator.ColumnOptions(dstCol, charFeatureCol, norm: tparams.LpNorm));
                     charFeatureCol = dstCol;
                 }
 
@@ -479,12 +484,12 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var dstCol = GenerateColumnName(view.Schema, wordFeatureCol, "LpWordNorm");
                     tempCols.Add(dstCol);
-                    xfCols.Add(new LpNormalizingEstimator.LpNormColumnOptions(dstCol, wordFeatureCol, normKind: tparams.LpNormalizerKind));
+                    xfCols.Add(new LpNormNormalizingEstimator.ColumnOptions(dstCol, wordFeatureCol, norm: tparams.LpNorm));
                     wordFeatureCol = dstCol;
                 }
 
                 if (xfCols.Count > 0)
-                    view = new LpNormalizingTransformer(h, xfCols.ToArray()).Transform(view);
+                    view = new LpNormNormalizingTransformer(h, xfCols.ToArray()).Transform(view);
             }
 
             {
@@ -545,7 +550,7 @@ namespace Microsoft.ML.Transforms.Text
 
             var metadata = new List<SchemaShape.Column>(2);
             metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
-            if (OptionalSettings.VectorNormalizer != NormFunction.None)
+            if (OptionalSettings.Norm != NormFunction.None)
                 metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
 
             result[OutputColumn] = new SchemaShape.Column(OutputColumn, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false,
@@ -564,6 +569,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             var estimator = new TextFeaturizingEstimator(env, args.Columns.Name, args.Columns.Source ?? new[] { args.Columns.Name }, args);
             estimator._dictionary = args.Dictionary;
+            // Review: I don't think the following two lines are needed.
             estimator._wordFeatureExtractor = args.WordFeatureExtractorFactory;
             estimator._charFeatureExtractor = args.CharFeatureExtractorFactory;
             return estimator.Fit(data).Transform(data) as IDataTransform;

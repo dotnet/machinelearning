@@ -107,12 +107,12 @@ namespace Microsoft.ML.RunTests
         ///</summary>
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         [TestCategory("Results Processor")]
-        public void RPMultiClassifierTest()
+        public void RPMulticlassifierTest()
         {
             List<string> testFiles = new List<string>();
             for (int i = 0; i < 21; i++)
             {
-                testFiles.Add("MultiClassifier." + i.ToString() + ".out.txt");
+                testFiles.Add("Multiclassifier." + i.ToString() + ".out.txt");
             }
 
             RunTestCore("RPMultiClassifierTest",
