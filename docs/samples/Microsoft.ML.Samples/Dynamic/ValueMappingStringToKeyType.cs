@@ -55,8 +55,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // Generate the ValueMappingEstimator that will output KeyTypes even though our values are strings.
             // The KeyToValueMappingEstimator is added to provide a reverse lookup of the KeyType, converting the KeyType value back
             // to the original value.
-            var pipeline = mlContext.Transforms.Conversion.MapValue<string, string>(educationKeys, educationValues, true, ("EducationKeyType", "Education"))
-                              .Append(mlContext.Transforms.Conversion.MapKeyToValue(("EducationCategory", "EducationKeyType")));
+            var pipeline = mlContext.Transforms.Conversion.MapValue(educationKeys, educationValues, "EducationKeyType", "Education", true)
+                              .Append(mlContext.Transforms.Conversion.MapKeyToValue("EducationCategory", "EducationKeyType"));
 
             // Fits the ValueMappingEstimator and transforms the data adding the EducationKeyType column.
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);
