@@ -10174,18 +10174,6 @@
           "Default": "Auto"
         },
         {
-          "Name": "Normalize",
-          "Type": "Bool",
-          "Desc": "Whether to normalize the input vectors so that the concatenation of all fields' feature vectors is unit-length",
-          "Aliases": [
-            "norm"
-          ],
-          "Required": false,
-          "SortOrder": 6.0,
-          "IsNullable": false,
-          "Default": true
-        },
-        {
           "Name": "Caching",
           "Type": {
             "Kind": "Enum",
