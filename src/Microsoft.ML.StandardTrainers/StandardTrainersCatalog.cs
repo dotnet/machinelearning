@@ -287,7 +287,6 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="loss">The custom <a href="tmpurl_loss">loss</a>. Defaults to <see cref="LogLoss"/> if not specified.</param>
         /// <param name="l2Regularization">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
         /// <param name="l1Threshold">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
@@ -301,6 +300,36 @@ namespace Microsoft.ML
         string labelColumnName = DefaultColumnNames.Label,
                     string featureColumnName = DefaultColumnNames.Features,
                     string exampleWeightColumnName = null,
+                    float? l2Regularization = null,
+                    float? l1Threshold = null,
+                    int? maximumNumberOfIterations = null)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new SdcaMulticlassClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, null, l2Regularization, l1Threshold, maximumNumberOfIterations);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear multiclass classification model trained with <see cref="SdcaMulticlassClassificationTrainer"/>.
+        /// </summary>
+        /// <param name="catalog">The multiclass classification catalog trainer object.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <param name="loss">Loss function to be minimized. Defaults to <see cref="LogLoss"/> if not specified.</param>
+        /// <param name="l2Regularization">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
+        /// <param name="l1Threshold">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/StochasticDualCoordinateAscent.cs)]
+        /// ]]></format>
+        /// </example>
+        public static SdcaNonCalibratedMulticlassClassificationTrainer SdcaNonCalibrated(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        string labelColumnName = DefaultColumnNames.Label,
+                    string featureColumnName = DefaultColumnNames.Features,
+                    string exampleWeightColumnName = null,
                     ISupportSdcaClassificationLoss loss = null,
                     float? l2Regularization = null,
                     float? l1Threshold = null,
@@ -308,7 +337,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaMulticlassClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, maximumNumberOfIterations);
+            return new SdcaNonCalibratedMulticlassClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, maximumNumberOfIterations);
         }
 
         /// <summary>
@@ -330,6 +359,16 @@ namespace Microsoft.ML
 
             var env = CatalogUtils.GetEnvironment(catalog);
             return new SdcaMulticlassClassificationTrainer(env, options);
+        }
+
+        public static SdcaNonCalibratedMulticlassClassificationTrainer SdcaNonCalibrated(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        SdcaNonCalibratedMulticlassClassificationTrainer.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            Contracts.CheckValue(options, nameof(options));
+
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new SdcaNonCalibratedMulticlassClassificationTrainer(env, options);
         }
 
         /// <summary>

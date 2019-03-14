@@ -24,11 +24,8 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers
 {
-    /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> for training a multiclass logistic regression classification model using the stochastic dual coordinate ascent method.
-    /// </summary>
-    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
-    public sealed class SdcaMulticlassClassificationTrainer : SdcaTrainerBase<SdcaMulticlassClassificationTrainer.Options, MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
+    public abstract class SdcaMulticlassClassificationTrainerBase<TModel> : SdcaTrainerBase<SdcaMulticlassClassificationTrainerBase<TModel>.Options, MulticlassPredictionTransformer<TModel>, TModel>
+        where TModel : class
     {
         internal const string LoadNameValue = "SDCAMC";
         internal const string UserNameValue = "Fast Linear Multi-class Classification (SA-SDCA)";
@@ -36,7 +33,7 @@ namespace Microsoft.ML.Trainers
         internal const string Summary = "The SDCA linear multi-class classification trainer.";
 
         /// <summary>
-        /// Options for the <see cref="SdcaMulticlassClassificationTrainer"/>.
+        /// Options for the <see cref="SdcaMulticlassClassificationTrainerBase{TModel}"/>.
         /// </summary>
         public sealed class Options : OptionsBase
         {
@@ -63,7 +60,7 @@ namespace Microsoft.ML.Trainers
         private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SdcaMulticlassClassificationTrainer"/>
+        /// Initializes a new instance of <see cref="SdcaMulticlassClassificationTrainerBase{TModel}"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The label, or dependent variable.</param>
@@ -73,7 +70,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
-        internal SdcaMulticlassClassificationTrainer(IHostEnvironment env,
+        internal SdcaMulticlassClassificationTrainerBase(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
@@ -90,7 +87,7 @@ namespace Microsoft.ML.Trainers
             Loss = _loss;
         }
 
-        internal SdcaMulticlassClassificationTrainer(IHostEnvironment env, Options options,
+        internal SdcaMulticlassClassificationTrainerBase(IHostEnvironment env, Options options,
             string featureColumn, string labelColumn, string weightColumn = null)
             : base(env, options, TrainerUtils.MakeU4ScalarColumn(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
@@ -101,7 +98,7 @@ namespace Microsoft.ML.Trainers
             Loss = _loss;
         }
 
-        internal SdcaMulticlassClassificationTrainer(IHostEnvironment env, Options options)
+        internal SdcaMulticlassClassificationTrainerBase(IHostEnvironment env, Options options)
             : this(env, options, options.FeatureColumnName, options.LabelColumnName)
         {
         }
@@ -412,16 +409,6 @@ namespace Microsoft.ML.Trainers
             return converged;
         }
 
-        private protected override MulticlassLogisticRegressionModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
-        {
-            Host.CheckValue(weights, nameof(weights));
-            Host.CheckValue(bias, nameof(bias));
-            Host.CheckParam(weights.Length > 0, nameof(weights));
-            Host.CheckParam(weights.Length == bias.Length, nameof(weights));
-
-            return new MulticlassLogisticRegressionModelParameters(Host, weights, bias, bias.Length, weights[0].Length, null, stats: null);
-        }
-
         private protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
         {
             examples.CheckMulticlassLabel(out weightSetCount);
@@ -437,9 +424,88 @@ namespace Microsoft.ML.Trainers
         {
             return cursor.Weight;
         }
+    }
 
-        private protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(MulticlassLogisticRegressionModelParameters model, DataViewSchema trainSchema)
-            => new MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+    public sealed class SdcaMulticlassClassificationTrainer : SdcaMulticlassClassificationTrainerBase<MulticlassLogisticRegressionModelParameters>
+    {
+        internal SdcaMulticlassClassificationTrainer(IHostEnvironment env,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            string weights = null,
+            ISupportSdcaClassificationLoss loss = null,
+            float? l2Const = null,
+            float? l1Threshold = null,
+            int? maxIterations = null)
+             : base(env, labelColumn: labelColumn, featureColumn: featureColumn, weights: weights, loss: loss,
+                   l2Const: l2Const, l1Threshold: l1Threshold, maxIterations: maxIterations)
+        {
+        }
+
+        internal SdcaMulticlassClassificationTrainer(IHostEnvironment env, Options options,
+            string featureColumn, string labelColumn, string weightColumn = null)
+            : base(env, options: options, featureColumn: featureColumn, labelColumn: labelColumn, weightColumn: weightColumn)
+        {
+        }
+
+        internal SdcaMulticlassClassificationTrainer(IHostEnvironment env, Options options)
+            : base(env, options)
+        {
+        }
+
+        private protected override MulticlassLogisticRegressionModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        {
+            Host.CheckValue(weights, nameof(weights));
+            Host.CheckValue(bias, nameof(bias));
+            Host.CheckParam(weights.Length > 0, nameof(weights));
+            Host.CheckParam(weights.Length == bias.Length, nameof(weights));
+
+            return new MulticlassLogisticRegressionModelParameters(Host, weights, bias, bias.Length, weights[0].Length, null, stats: null);
+        }
+
+        private protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(
+            MulticlassLogisticRegressionModelParameters model, DataViewSchema trainSchema) =>
+            new MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+    }
+
+    public sealed class SdcaNonCalibratedMulticlassClassificationTrainer : SdcaMulticlassClassificationTrainerBase<MulticlassLinearModelParameters>
+    {
+        internal SdcaNonCalibratedMulticlassClassificationTrainer(IHostEnvironment env,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            string weights = null,
+            ISupportSdcaClassificationLoss loss = null,
+            float? l2Const = null,
+            float? l1Threshold = null,
+            int? maxIterations = null)
+             : base(env, labelColumn: labelColumn, featureColumn: featureColumn, weights: weights, loss: loss,
+                   l2Const: l2Const, l1Threshold: l1Threshold, maxIterations: maxIterations)
+        {
+        }
+
+        internal SdcaNonCalibratedMulticlassClassificationTrainer(IHostEnvironment env, Options options,
+            string featureColumn, string labelColumn, string weightColumn = null)
+            : base(env, options: options, featureColumn: featureColumn, labelColumn: labelColumn, weightColumn: weightColumn)
+        {
+        }
+
+        internal SdcaNonCalibratedMulticlassClassificationTrainer(IHostEnvironment env, Options options)
+            : base(env, options)
+        {
+        }
+
+        private protected override MulticlassLinearModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        {
+            Host.CheckValue(weights, nameof(weights));
+            Host.CheckValue(bias, nameof(bias));
+            Host.CheckParam(weights.Length > 0, nameof(weights));
+            Host.CheckParam(weights.Length == bias.Length, nameof(weights));
+
+            return new MulticlassLinearModelParameters(Host, weights, bias, bias.Length, weights[0].Length, null, stats: null);
+        }
+
+        private protected override MulticlassPredictionTransformer<MulticlassLinearModelParameters> MakeTransformer(
+            MulticlassLinearModelParameters model, DataViewSchema trainSchema) =>
+            new MulticlassPredictionTransformer<MulticlassLinearModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
     }
 
     /// <summary>
