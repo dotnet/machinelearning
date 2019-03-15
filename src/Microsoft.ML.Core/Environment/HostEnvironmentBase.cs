@@ -103,7 +103,7 @@ namespace Microsoft.ML.Runtime
         /// to provide their own host class that derives from this class.
         /// This encapsulates the random number generator and name information.
         /// </summary>
-        public abstract class HostBase : HostEnvironmentBase<TEnv>, IHost, ICancelableEnvironment, ICancelableHost
+        public abstract class HostBase : HostEnvironmentBase<TEnv>, IHost, ICancelableHost
         {
             public override int Depth { get; }
 
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Runtime
                 _children = new List<WeakReference<IHost>>();
             }
 
-            public void StopExecution()
+            public void CancelExecution()
             {
                 lock (_cancelLock)
                 {
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Runtime
                     {
                         if (child.TryGetTarget(out IHost host))
                             if (host is ICancelableHost cancelableHost)
-                                cancelableHost.StopExecution();
+                                cancelableHost.CancelExecution();
                     }
                     _children.Clear();
                 }
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Runtime
                 {
                     Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
                     host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
-                    if (host is ICancelableEnvironment cancelableHost && !cancelableHost.IsCanceled)
+                    if (host is ICancelableHost cancelableHost && !cancelableHost.IsCanceled)
                         _children.Add(new WeakReference<IHost>(host));
                 }
                 return host;

@@ -122,13 +122,13 @@ namespace Microsoft.ML
         IProgressChannel IProgressChannelProvider.StartProgressChannel(string name) => _env.StartProgressChannel(name);
 
         [BestFriend]
-        internal void StopExecution()
+        internal void CancelExecution()
         {
             foreach(var host in _hosts)
                 if (host is ICancelableHost)
-                    ((ICancelableHost)host).StopExecution();
+                    ((ICancelableHost)host).CancelExecution();
 
-            _hosts.RemoveAll(h => true);
+            _hosts.Clear();
         }
     }
 }

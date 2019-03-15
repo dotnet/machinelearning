@@ -744,12 +744,12 @@ namespace Microsoft.ML.Runtime
                 throw ExceptIO(ctx, msg, args);
         }
 #if !CPUMATH_INFRASTRUCTURE
-    /// <summary>
-    /// Check state of the host and throw exception if host marked to stop all exection.
-    /// </summary>
-    public static void CheckAlive(this IHostEnvironment env)
+        /// <summary>
+        /// Check state of the host and throw exception if host marked to stop all exection.
+        /// </summary>
+        public static void CheckAlive(this IHostEnvironment env)
         {
-            if (env is ICancelableEnvironment cancelableEnv && cancelableEnv.IsCanceled)
+            if (env is ICancelableHost cancelableEnv && cancelableEnv.IsCanceled)
                 throw Process(new OperationCanceledException("Operation was cancelled."), env);
         }
 #endif

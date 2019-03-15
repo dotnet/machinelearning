@@ -10,6 +10,6 @@ namespace Microsoft.ML.Experimental
         /// Stop the execution of pipeline in <see cref="MLContext"/>
         /// </summary>
         /// <param name="ctx"><see cref="MLContext"/> reference.</param>
-        public static void StopExecution(this MLContext ctx) => ctx.StopExecution();
+        public static void StopExecution(this MLContext ctx) => ctx.CancelExecution();
     }
 }

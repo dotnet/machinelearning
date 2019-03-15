@@ -50,15 +50,6 @@ namespace Microsoft.ML.Runtime
         }
     }
 
-    [BestFriend]
-    internal interface ICancelableEnvironment
-    {
-        /// <summary>
-        /// Flag which indicate should we stop any code execution in this host.
-        /// </summary>
-        bool IsCanceled { get; }
-    }
-
     /// <summary>
     /// The host environment interface creates hosts for components. Note that the methods of
     /// this interface should be called from the main thread for the environment. To get an environment
@@ -83,7 +74,12 @@ namespace Microsoft.ML.Runtime
         /// <summary>
         /// Signal to stop exection in this host and all its children.
         /// </summary>
-        void StopExecution();
+        void CancelExecution();
+
+        /// <summary>
+        /// Flag which indicate should we stop any code execution in this host.
+        /// </summary>
+        bool IsCanceled { get; }
     }
 
     /// <summary>
