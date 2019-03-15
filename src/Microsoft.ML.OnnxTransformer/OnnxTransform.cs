@@ -14,7 +14,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Onnx;
 using OnnxShape = System.Collections.Generic.List<int>;
 
 [assembly: LoadableClass(OnnxTransformer.Summary, typeof(IDataTransform), typeof(OnnxTransformer),
@@ -31,7 +31,7 @@ using OnnxShape = System.Collections.Generic.List<int>;
 
 [assembly: EntryPointModule(typeof(OnnxTransformer))]
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.Onnx
 {
     /// <summary>
     /// <p>A transform for scoring ONNX models in the ML.NET framework.</p>

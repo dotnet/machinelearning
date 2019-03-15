@@ -670,7 +670,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var data = reader.Load(dataSource);
 
             // This will be populated once we call fit.
-            LdaSummary ldaSummary;
+            ModelParameters ldaSummary;
 
             var est = data.MakeNewEstimator()
                 .Append(r => (

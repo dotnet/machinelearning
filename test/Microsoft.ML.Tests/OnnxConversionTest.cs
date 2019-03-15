@@ -18,6 +18,7 @@ using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Onnx;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
