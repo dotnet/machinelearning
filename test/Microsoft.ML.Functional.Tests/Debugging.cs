@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
@@ -46,17 +47,21 @@ namespace Microsoft.ML.Functional.Tests
                 });
 
             // create a training pipeline.
-            var pipeline = mlContext.Transforms.Text.FeaturizeText(
-                "Features",
-                new TextFeaturizingEstimator.Options
-                {
-                    KeepPunctuations = false,
-                    OutputTokens = true,
-                    CharFeatureExtractor = null, // new WordBagEstimator.Options { NgramLength = 0, SkipLength = -1 },
-                    WordFeatureExtractor = new WordBagEstimator.Options { NgramLength = 1},
-                    Norm = TextFeaturizingEstimator.NormFunction.None
-                },
-                "SentimentText");
+            var pipeline =
+                mlContext.Transforms.Text.TokenizeIntoWords("SentimentTextTokenized", "SentimentText")
+                .Append(mlContext.Transforms.Text.ApplyWordEmbedding("SentimentEmbeddingFeatures", "SentimentTextTokenized", WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding))
+                .Append(mlContext.Transforms.Text.FeaturizeText(
+                    "Features",
+                    new TextFeaturizingEstimator.Options
+                    {
+                        CaseMode = TextNormalizingEstimator.CaseMode.Lower,
+                        KeepPunctuations = false,
+                        OutputTokens = true,
+                        CharFeatureExtractor = null, // new WordBagEstimator.Options { NgramLength = 0, SkipLength = -1 },
+                        WordFeatureExtractor = new WordBagEstimator.Options { NgramLength = 1},
+                        Norm = TextFeaturizingEstimator.NormFunction.None
+                    },
+                    "SentimentTextTokenized"));
 
             // Fit the pipeline to the data.
             var model = pipeline.Fit(data);
@@ -66,10 +71,27 @@ namespace Microsoft.ML.Functional.Tests
 
             var preview = transformedData.Preview();
 
+            // Embedding Features
+            var embeddingColumn = transformedData.GetColumn<float[]>(transformedData.Schema["SentimentEmbeddingFeatures"]);
+            foreach(var embeddinFeatures in embeddingColumn)
+            {
+                Assert.Equal(150, embeddinFeatures.Length);
+            }
+
             // Verify that columns can be inspected.
             // Validate the tokens column.
-            var tokensColumn = transformedData.GetColumn<string[]>(transformedData.Schema["Features_TransformedText"]);
+            var tokensColumn = transformedData.GetColumn<string[]>(transformedData.Schema["SentimentTextTokenized"]);
             var expectedTokens = new string[3][]
+            {
+                new string[] {"I", "love", "ML.NET"},
+                new string[] {"i", "love", "TLC"},
+                new string[] {"i", "dislike", "fika"},
+            };
+
+            // Verify that columns can be inspected.
+            // Validate the tokens column.
+            tokensColumn = transformedData.GetColumn<string[]>(transformedData.Schema["Features_TransformedText"]);
+            expectedTokens = new string[3][]
             {
                 new string[] {"i", "love", "mlnet"},
                 new string[] {"i", "love", "tlc"},
