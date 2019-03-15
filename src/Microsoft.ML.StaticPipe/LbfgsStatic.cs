@@ -236,7 +236,7 @@ namespace Microsoft.ML.StaticPipe
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
             int historySize = Options.Defaults.HistorySize,
             bool enforceNonNegativity = Options.Defaults.EnforceNonNegativity,
-            Action<LogisticRegressionMulticlassModelParameters> onFit = null)
+            Action<MulticlassLogisticRegressionModelParameters> onFit = null)
         {
             LbfgsStaticUtils.ValidateParams(label, features, weights, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity, onFit);
 
@@ -274,7 +274,7 @@ namespace Microsoft.ML.StaticPipe
             Vector<float> features,
             Scalar<float> weights,
             LogisticRegressionMulticlassClassificationTrainer.Options options,
-            Action<LogisticRegressionMulticlassModelParameters> onFit = null)
+            Action<MulticlassLogisticRegressionModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));

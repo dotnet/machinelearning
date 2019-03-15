@@ -29,7 +29,7 @@ namespace Microsoft.ML.Trainers
     /// The <see cref="IEstimator{TTransformer}"/> for training a multiclass logistic regression classification model using the stochastic dual coordinate ascent method.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
-    public sealed class SdcaMulticlassClassificationTrainer : SdcaTrainerBase<SdcaMulticlassClassificationTrainer.Options, MulticlassPredictionTransformer<LogisticRegressionMulticlassModelParameters>, LogisticRegressionMulticlassModelParameters>
+    public sealed class SdcaMulticlassClassificationTrainer : SdcaTrainerBase<SdcaMulticlassClassificationTrainer.Options, MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
     {
         internal const string LoadNameValue = "SDCAMC";
         internal const string UserNameValue = "Fast Linear Multi-class Classification (SA-SDCA)";
@@ -413,14 +413,14 @@ namespace Microsoft.ML.Trainers
             return converged;
         }
 
-        private protected override LogisticRegressionMulticlassModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        private protected override MulticlassLogisticRegressionModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckValue(weights, nameof(weights));
             Host.CheckValue(bias, nameof(bias));
             Host.CheckParam(weights.Length > 0, nameof(weights));
             Host.CheckParam(weights.Length == bias.Length, nameof(weights));
 
-            return new LogisticRegressionMulticlassModelParameters(Host, weights, bias, bias.Length, weights[0].Length, null, stats: null);
+            return new MulticlassLogisticRegressionModelParameters(Host, weights, bias, bias.Length, weights[0].Length, null, stats: null);
         }
 
         private protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
@@ -439,8 +439,8 @@ namespace Microsoft.ML.Trainers
             return cursor.Weight;
         }
 
-        private protected override MulticlassPredictionTransformer<LogisticRegressionMulticlassModelParameters> MakeTransformer(LogisticRegressionMulticlassModelParameters model, DataViewSchema trainSchema)
-            => new MulticlassPredictionTransformer<LogisticRegressionMulticlassModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+        private protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(MulticlassLogisticRegressionModelParameters model, DataViewSchema trainSchema)
+            => new MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
     }
 
     /// <summary>

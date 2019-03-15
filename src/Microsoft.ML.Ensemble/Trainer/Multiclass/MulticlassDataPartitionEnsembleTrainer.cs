@@ -66,7 +66,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                             // estimator, as opposed to a regular trainer.
                             var trainerEstimator = new LogisticRegressionMulticlassClassificationTrainer(env, LabelColumnName, FeatureColumnName);
                             return TrainerUtils.MapTrainerEstimatorToTrainer<LogisticRegressionMulticlassClassificationTrainer,
-                                LogisticRegressionMulticlassModelParameters, LogisticRegressionMulticlassModelParameters>(env, trainerEstimator);
+                                MulticlassLogisticRegressionModelParameters, MulticlassLogisticRegressionModelParameters>(env, trainerEstimator);
                         })
                 };
             }
