@@ -52,7 +52,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
                     .Append(mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(labelColumnName: "Sentiment", featureColumnName: "Features", l2Regularization: 0.001f));
 
             // Step 3: Run Cross-Validation on this pipeline.
-            var cvResults = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumn: "Sentiment");
+            var cvResults = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumnName: "Sentiment");
 
             var accuracies = cvResults.Select(r => r.Metrics.Accuracy);
             Console.WriteLine(accuracies.Average());
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
                                       }));
 
             // Run Cross-Validation on this second pipeline.
-            var cvResults_advancedPipeline = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumn: "Sentiment", numFolds: 3);
+            var cvResults_advancedPipeline = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumnName: "Sentiment", numberOfFolds: 3);
             accuracies = cvResults_advancedPipeline.Select(r => r.Metrics.Accuracy);
             Console.WriteLine(accuracies.Average());
 

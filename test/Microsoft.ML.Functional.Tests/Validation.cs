@@ -39,7 +39,7 @@ namespace Microsoft.ML.Functional.Tests
                 .Append(mlContext.Regression.Trainers.Ols());
 
             // Compute the CV result.
-            var cvResult = mlContext.Regression.CrossValidate(data, pipeline, numFolds: 5);
+            var cvResult = mlContext.Regression.CrossValidate(data, pipeline, numberOfFolds: 5);
 
             // Check that the results are valid
             Assert.IsType<RegressionMetrics>(cvResult[0].Metrics);
