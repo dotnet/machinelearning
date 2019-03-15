@@ -78,6 +78,12 @@ namespace Microsoft.ML.Trainers
             public float LambdaLatent = 0.0001f;
 
             /// <summary>
+            /// Whether to normalize the input vectors so that the concatenation of all fields' feature vectors is unit-length.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to normalize the input vectors so that the concatenation of all fields' feature vectors is unit-length", ShortName = "norm", SortOrder = 6)]
+            public new bool NormalizeFeatures = true;
+
+            /// <summary>
             /// Extra feature column names. The column named <see cref="TrainerInputBase.FeatureColumnName"/> stores features from the first field.
             /// The i-th string in <see cref="ExtraFeatureColumns"/> stores the name of the (i+1)-th field's feature column.
             /// </summary>
@@ -139,7 +145,6 @@ namespace Microsoft.ML.Trainers
         private float _lambdaLatent;
         private float _learningRate;
         private int _numIterations;
-        // whether to normalize input vectors so that the concatenation of all fields' feature vectors is unit-length
         private bool _norm;
         private bool _shuffle;
         private bool _verbose;
@@ -220,7 +225,7 @@ namespace Microsoft.ML.Trainers
             _lambdaLatent = options.LambdaLatent;
             _learningRate = options.LearningRate;
             _numIterations = options.NumberOfIterations;
-            _norm = (options.NormalizeFeatures == NormalizeOption.Yes);
+            _norm = options.NormalizeFeatures;
             _shuffle = options.Shuffle;
             _verbose = options.Verbose;
             _radius = options.Radius;
