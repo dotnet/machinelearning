@@ -17,17 +17,20 @@ namespace Microsoft.ML.Auto
     {
         public readonly IList<SuggestedTransform> Transforms;
         public readonly SuggestedTrainer Trainer;
+        public readonly IList<SuggestedTransform> TransformsPostTrainer;
 
         private readonly MLContext _context;
         private readonly bool? _enableCaching;
 
         public SuggestedPipeline(IEnumerable<SuggestedTransform> transforms,
+            IEnumerable<SuggestedTransform> transformsPostTrainer,
             SuggestedTrainer trainer,
             MLContext context,
             bool? enableCaching,
             bool autoNormalize = true)
         {
             Transforms = transforms.Select(t => t.Clone()).ToList();
+            TransformsPostTrainer = transformsPostTrainer.Select(t => t.Clone()).ToList();
             Trainer = trainer.Clone();
             _context = context;
             _enableCaching = enableCaching;
@@ -38,7 +41,7 @@ namespace Microsoft.ML.Auto
             }
         }
         
-        public override string ToString() => $"{string.Join(" xf=", this.Transforms)} tr={this.Trainer}";
+        public override string ToString() => $"{string.Join(" xf=", this.Transforms)} tr={this.Trainer} {string.Join(" xf=", this.TransformsPostTrainer)}";
 
         public override bool Equals(object obj)
         {
@@ -63,14 +66,20 @@ namespace Microsoft.ML.Auto
                 pipelineElements.Add(transform.PipelineNode);
             }
             pipelineElements.Add(Trainer.ToPipelineNode());
+            foreach (var transform in TransformsPostTrainer)
+            {
+                pipelineElements.Add(transform.PipelineNode);
+            }
             return new Pipeline(pipelineElements.ToArray());
         }
 
         public static SuggestedPipeline FromPipeline(MLContext context, Pipeline pipeline)
         {
             var transforms = new List<SuggestedTransform>();
+            var transformsPostTrainer = new List<SuggestedTransform>();
             SuggestedTrainer trainer = null;
 
+            var trainerEncountered = false;
             foreach(var pipelineNode in pipeline.Nodes)
             {
                 if(pipelineNode.NodeType == PipelineNodeType.Trainer)
@@ -80,6 +89,7 @@ namespace Microsoft.ML.Auto
                     var hyperParamSet = TrainerExtensionUtil.BuildParameterSet(trainerName, pipelineNode.Properties);
                     var columnInfo = TrainerExtensionUtil.BuildColumnInfo(pipelineNode.Properties);
                     trainer = new SuggestedTrainer(context, trainerExtension, columnInfo, hyperParamSet);
+                    trainerEncountered = true;
                 }
                 else if (pipelineNode.NodeType == PipelineNodeType.Transform)
                 {
@@ -87,11 +97,18 @@ namespace Microsoft.ML.Auto
                     var estimatorExtension = EstimatorExtensionCatalog.GetExtension(estimatorName);
                     var estimator = estimatorExtension.CreateInstance(context, pipelineNode);
                     var transform = new SuggestedTransform(pipelineNode, estimator);
-                    transforms.Add(transform);
+                    if (!trainerEncountered)
+                    {
+                        transforms.Add(transform);
+                    }
+                    else
+                    {
+                        transformsPostTrainer.Add(transform);
+                    }
                 }
             }
 
-            return new SuggestedPipeline(transforms, trainer, context, null);
+            return new SuggestedPipeline(transforms, transformsPostTrainer, trainer, context, null);
         }
 
         public IEstimator<ITransformer> ToEstimator()
@@ -117,6 +134,15 @@ namespace Microsoft.ML.Auto
 
             // Append learner to pipeline
             pipeline = pipeline.Append(learner);
+
+            // Append each post-trainer transformer to the pipeline
+            foreach (var transform in TransformsPostTrainer)
+            {
+                if (transform.Estimator != null)
+                {
+                    pipeline = pipeline.Append(transform.Estimator);
+                }
+            }
 
             return pipeline;
         }

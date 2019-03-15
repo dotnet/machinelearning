@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.Data.DataView;
+using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 
@@ -37,11 +39,13 @@ namespace Microsoft.ML.Auto.Test
             var trainData = textLoader.Load(DatasetUtil.TrivialMulticlassDatasetPath);
             var validationData = context.Data.TakeRows(trainData, 20);
             trainData = context.Data.SkipRows(trainData, 20);
-            var result = context.Auto()
+            var results = context.Auto()
                 .CreateMulticlassClassificationExperiment(0)
                 .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = DatasetUtil.TrivialMulticlassDatasetLabel });
-
-            Assert.IsTrue(result.Max(i => i.ValidationMetrics.AccuracyMicro) >= 0.8);
+            var best = results.Best();
+            Assert.IsTrue(best.ValidationMetrics.AccuracyMicro >= 0.8);
+            var scoredData = best.Model.Transform(validationData);
+            Assert.AreEqual(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
         [TestMethod]

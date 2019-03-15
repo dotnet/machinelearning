@@ -11,6 +11,7 @@ namespace Microsoft.ML.Auto
     {
         ColumnConcatenating,
         ColumnCopying,
+        KeyToValueMapping,
         MissingValueIndicating,
         MissingValueReplacing,
         Normalizing,
@@ -28,6 +29,7 @@ namespace Microsoft.ML.Auto
         {
             { EstimatorName.ColumnConcatenating, typeof(ColumnConcatenatingExtension) },
             { EstimatorName.ColumnCopying, typeof(ColumnCopyingExtension) },
+            { EstimatorName.KeyToValueMapping, typeof(KeyToValueMappingExtension) },
             { EstimatorName.MissingValueIndicating, typeof(MissingValueIndicatingExtension) },
             { EstimatorName.MissingValueReplacing, typeof(MissingValueReplacingExtension) },
             { EstimatorName.Normalizing, typeof(NormalizingExtension) },

@@ -36,11 +36,12 @@ namespace Microsoft.ML.Auto
             var availableTrainers = RecipeInference.AllowedTrainers(context, task, 
                 ColumnInformationUtil.BuildColumnInfo(columns), trainerWhitelist);
             var transforms = TransformInferenceApi.InferTransforms(context, task, columns);
+            var transformsPostTrainer = TransformInferenceApi.InferTransformsPostTrainer(context, task, columns);
 
             // if we haven't run all pipelines once
             if (history.Count() < availableTrainers.Count())
             {
-                return GetNextFirstStagePipeline(context, history, availableTrainers, transforms, _enableCaching);
+                return GetNextFirstStagePipeline(context, history, availableTrainers, transforms, transformsPostTrainer, _enableCaching);
             }
 
             // get top trainers from stage 1 runs
@@ -71,7 +72,7 @@ namespace Microsoft.ML.Auto
                         break;
                     }
 
-                    var suggestedPipeline = new SuggestedPipeline(transforms, newTrainer, context, _enableCaching);
+                    var suggestedPipeline = new SuggestedPipeline(transforms, transformsPostTrainer, newTrainer, context, _enableCaching);
 
                     // make sure we have not seen pipeline before
                     if (!visitedPipelines.Contains(suggestedPipeline))
@@ -118,10 +119,11 @@ namespace Microsoft.ML.Auto
             IEnumerable<SuggestedPipelineResult> history,
             IEnumerable<SuggestedTrainer> availableTrainers,
             IEnumerable<SuggestedTransform> transforms,
+            IEnumerable<SuggestedTransform> transformsPostTrainer,
             bool? _enableCaching)
         {
             var trainer = availableTrainers.ElementAt(history.Count());
-            return new SuggestedPipeline(transforms, trainer, context, _enableCaching);
+            return new SuggestedPipeline(transforms, transformsPostTrainer, trainer, context, _enableCaching);
         }
 
         private static IValueGenerator[] ConvertToValueGenerators(IEnumerable<SweepableParam> hps)

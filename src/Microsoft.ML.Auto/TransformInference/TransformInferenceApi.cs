@@ -13,5 +13,10 @@ namespace Microsoft.ML.Auto
         {
             return TransformInference.InferTransforms(context, task, columns);
         }
+
+        public static IEnumerable<SuggestedTransform> InferTransformsPostTrainer(MLContext context, TaskKind task, (string, DataViewType, ColumnPurpose, ColumnDimensions)[] columns)
+        {
+            return TransformPostTrainerInference.InferTransforms(context, task, columns);
+        }
     }
 }

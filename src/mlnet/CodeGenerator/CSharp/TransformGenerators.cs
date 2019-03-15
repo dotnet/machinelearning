@@ -128,6 +128,31 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         }
     }
 
+    internal class KeyToValueMapping : TransformGeneratorBase
+    {
+        public KeyToValueMapping(PipelineNode node) : base(node)
+        {
+        }
+
+        internal override string MethodName => "Conversion.MapKeyToValue";
+
+        internal override string Usings => "using Microsoft.ML.Transforms;\r\n";
+
+        public override string GenerateTransformer()
+        {
+            StringBuilder sb = new StringBuilder();
+            string inputColumn = inputColumns.Count() > 0 ? inputColumns[0] : "\"Features\"";
+            string outputColumn = outputColumns.Count() > 0 ? outputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            sb.Append(MethodName);
+            sb.Append("(");
+            sb.Append(outputColumn);
+            sb.Append(",");
+            sb.Append(inputColumn);
+            sb.Append(")");
+            return sb.ToString();
+        }
+    }
+
     internal class MissingValueIndicator : TransformGeneratorBase
     {
         public MissingValueIndicator(PipelineNode node) : base(node)

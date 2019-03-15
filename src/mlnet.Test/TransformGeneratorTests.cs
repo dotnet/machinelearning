@@ -85,6 +85,21 @@ namespace mlnet.Test
         }
 
         [TestMethod]
+        public void KeyToValueMappingTest()
+        {
+            var context = new MLContext();
+            var elementProperties = new Dictionary<string, object>();
+            PipelineNode node = new PipelineNode("KeyToValueMapping", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
+            var actual = codeGenerator.GenerateTransformsAndUsings();
+            string expectedTransform = "Conversion.MapKeyToValue(\"Label\",\"Label\")";
+            var expectedUsings = "using Microsoft.ML.Transforms;\r\n";
+            Assert.AreEqual(expectedTransform, actual[0].Item1);
+            Assert.AreEqual(expectedUsings, actual[0].Item2);
+        }
+
+        [TestMethod]
         public void MissingValueIndicatingTest()
         {
             var context = new MLContext();

@@ -36,6 +36,9 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     case EstimatorName.ColumnCopying:
                         result = new ColumnCopying(node);
                         break;
+                    case EstimatorName.KeyToValueMapping:
+                        result = new KeyToValueMapping(node);
+                        break;
                     case EstimatorName.MissingValueIndicating:
                         result = new MissingValueIndicator(node);
                         break;
