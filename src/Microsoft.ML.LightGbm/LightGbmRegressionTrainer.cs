@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Runtime;
@@ -89,6 +91,38 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         public sealed class Options : OptionsBase
         {
+            public enum EvaluateMetricType
+            {
+                None,
+                Default,
+                Mae,
+                Rmse,
+            };
+
+            /// <summary>
+            /// Determines what evaluation metric to use.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce,
+                HelpText = "Evaluation metrics.",
+                ShortName = "em")]
+            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Rmse;
+
+            static Options()
+            {
+                NameMapping.Add(nameof(EvaluateMetricType), "metric");
+                NameMapping.Add(nameof(EvaluateMetricType.None), "");
+                NameMapping.Add(nameof(EvaluateMetricType.Mae), "mae");
+                NameMapping.Add(nameof(EvaluateMetricType.Rmse), "rmse");
+            }
+
+            internal override Dictionary<string, object> ToDictionary(IHost host)
+            {
+                var res = base.ToDictionary(host);
+                if (EvaluationMetric != EvaluateMetricType.Default)
+                    res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
+
+                return res;
+            }
         }
 
         /// <summary>
@@ -110,7 +144,16 @@ namespace Microsoft.ML.Trainers.LightGbm
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
             int numberOfIterations = Defaults.NumberOfIterations)
-            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(labelColumnName), featureColumnName, exampleWeightColumnName, null, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations)
+            : this(env, new Options()
+                  {
+                    LabelColumnName = labelColumnName,
+                    FeatureColumnName = featureColumnName,
+                    ExampleWeightColumnName = exampleWeightColumnName,
+                    NumberOfLeaves = numberOfLeaves,
+                    MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
+                    LearningRate = learningRate,
+                    NumberOfIterations = numberOfIterations
+                   })
         {
         }
 
@@ -142,9 +185,6 @@ namespace Microsoft.ML.Trainers.LightGbm
         private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
             GbmOptions["objective"] = "regression";
-            // Add default metric.
-            if (!GbmOptions.ContainsKey("metric"))
-                GbmOptions["metric"] = "l2";
         }
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

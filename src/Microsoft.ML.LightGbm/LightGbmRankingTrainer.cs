@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
@@ -87,23 +88,61 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         public sealed class Options : OptionsBase
         {
+            public enum EvaluateMetricType
+            {
+                None,
+                Default,
+                Map,
+                Ndcg
+            };
+
+            /// <summary>
+            /// Comma-separated list of gains associated with each relevance label.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Comma seperated list of gains associated to each relevance label.", ShortName = "gains")]
             [TGUI(Label = "Ranking Label Gain")]
             public string CustomGains = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
 
+            /// <summary>
+            /// Parameter for the sigmoid function.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function.", ShortName = "sigmoid")]
             [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
             public double Sigmoid = 0.5;
 
-            public Options()
+            /// <summary>
+            /// Determines what evaluation metric to use.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce,
+                HelpText = "Evaluation metrics.",
+                ShortName = "em")]
+            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Ndcg;
+
+            static Options()
             {
-                //NameMapping[nameof(CustomGains)] = "label_gain";
+                NameMapping.Add(nameof(CustomGains), "label_gain");
+                NameMapping.Add(nameof(EvaluateMetricType), "metric");
+                NameMapping.Add(nameof(EvaluateMetricType.None), "");
+                NameMapping.Add(nameof(EvaluateMetricType.Map), "map");
+                NameMapping.Add(nameof(EvaluateMetricType.Ndcg), "ndcg");
+            }
+
+            internal override Dictionary<string, object> ToDictionary(IHost host)
+            {
+                var res = base.ToDictionary(host);
+                res[GetOptionName(nameof(Sigmoid))] = Sigmoid;
+                res[GetOptionName(nameof(CustomGains))] = CustomGains;
+                if(EvaluationMetric != EvaluateMetricType.Default)
+                    res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
+
+                return res;
             }
         }
 
         internal LightGbmRankingTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName))
         {
+            Contracts.CheckUserArg(options.Sigmoid > 0, nameof(Options.Sigmoid), "must be > 0.");
         }
 
         /// <summary>
@@ -191,9 +230,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             Host.AssertValue(ch);
             GbmOptions["objective"] = "lambdarank";
             ch.CheckValue(groups, nameof(groups));
-            // Add default metric.
-            if (!GbmOptions.ContainsKey("metric"))
-                GbmOptions["metric"] = "ndcg";
+
             // Only output one ndcg score.
             GbmOptions["eval_at"] = "5";
         }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
@@ -98,22 +99,49 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         public sealed class Options : OptionsBase
         {
+
             public enum EvaluateMetricType
             {
+                None,
                 Default,
                 Logloss,
                 Error,
                 Auc,
             };
 
+            /// <summary>
+            /// Parameter for the sigmoid function.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function.", ShortName = "sigmoid")]
             [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
             public double Sigmoid = 0.5;
 
+            /// <summary>
+            /// Determines what evaluation metric to use.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Evaluation metrics.",
                 ShortName = "em")]
-            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Default;
+            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Logloss;
+
+            static Options()
+            {
+                NameMapping.Add(nameof(EvaluateMetricType), "metric");
+                NameMapping.Add(nameof(EvaluateMetricType.None), "");
+                NameMapping.Add(nameof(EvaluateMetricType.Logloss), "binary_logloss");
+                NameMapping.Add(nameof(EvaluateMetricType.Error), "binary_error");
+                NameMapping.Add(nameof(EvaluateMetricType.Auc), "auc");
+            }
+
+            internal override Dictionary<string, object> ToDictionary(IHost host)
+            {
+                var res = base.ToDictionary(host);
+                res[GetOptionName(nameof(Sigmoid))] = Sigmoid;
+                if(EvaluationMetric != EvaluateMetricType.Default)
+                    res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
+
+                return res;
+            }
         }
 
         internal LightGbmBinaryClassificationTrainer(IHostEnvironment env, Options options)
@@ -178,9 +206,6 @@ namespace Microsoft.ML.Trainers.LightGbm
         private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
             base.GbmOptions["objective"] = "binary";
-            // Add default metric.
-            if (!base.GbmOptions.ContainsKey("metric"))
-                base.GbmOptions["metric"] = "binary_logloss";
         }
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

@@ -11279,6 +11279,7 @@
           "Type": {
             "Kind": "Enum",
             "Values": [
+              "None",
               "Default",
               "Logloss",
               "Error",
@@ -11292,7 +11293,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "Default"
+          "Default": "Logloss"
         },
         {
           "Name": "MaximumBinCountPerFeature",
@@ -11386,7 +11387,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": false,
+          "Default": true,
           "SweepRange": {
             "RangeType": "Discrete",
             "Values": [
@@ -11764,9 +11765,8 @@
           "Type": {
             "Kind": "Enum",
             "Values": [
+              "None",
               "Default",
-              "Mae",
-              "Rmse",
               "Merror",
               "Mlogloss"
             ]
@@ -11778,7 +11778,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "Default"
+          "Default": "Merror"
         },
         {
           "Name": "MaximumBinCountPerFeature",
@@ -11872,7 +11872,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": false,
+          "Default": true,
           "SweepRange": {
             "RangeType": "Discrete",
             "Values": [
@@ -12242,6 +12242,26 @@
           "Default": 0.5
         },
         {
+          "Name": "EvaluationMetric",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "None",
+              "Default",
+              "Map",
+              "Ndcg"
+            ]
+          },
+          "Desc": "Evaluation metrics.",
+          "Aliases": [
+            "em"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "Ndcg"
+        },
+        {
           "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of bucket bin for features.",
@@ -12333,7 +12353,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": false,
+          "Default": true,
           "SweepRange": {
             "RangeType": "Discrete",
             "Values": [
@@ -12679,6 +12699,26 @@
           "Default": "Auto"
         },
         {
+          "Name": "EvaluationMetric",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "None",
+              "Default",
+              "Mae",
+              "Rmse"
+            ]
+          },
+          "Desc": "Evaluation metrics.",
+          "Aliases": [
+            "em"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "Rmse"
+        },
+        {
           "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of bucket bin for features.",
@@ -12770,7 +12810,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": false,
+          "Default": true,
           "SweepRange": {
             "RangeType": "Discrete",
             "Values": [

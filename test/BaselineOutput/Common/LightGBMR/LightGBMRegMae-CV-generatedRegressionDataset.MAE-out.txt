@@ -35,10 +35,10 @@ Virtual memory usage(MB): %Number%
 [1] 'Loading data for LightGBM' started.
 [1] 'Loading data for LightGBM' finished in %Time%.
 [2] 'Training with LightGBM' started.
-[2] (%Time%)	Iteration: 50	Training-l1: 2.72125878362794
+[2] (%Time%)	Iteration: 50	Training-mae: 2.72125878362794
 [2] 'Training with LightGBM' finished in %Time%.
 [3] 'Loading data for LightGBM #2' started.
 [3] 'Loading data for LightGBM #2' finished in %Time%.
 [4] 'Training with LightGBM #2' started.
-[4] (%Time%)	Iteration: 50	Training-l1: 2.24116204430926
+[4] (%Time%)	Iteration: 50	Training-mae: 2.24116204430926
 [4] 'Training with LightGBM #2' finished in %Time%.

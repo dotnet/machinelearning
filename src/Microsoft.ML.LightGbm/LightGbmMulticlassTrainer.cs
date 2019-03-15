@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
@@ -44,31 +45,57 @@ namespace Microsoft.ML.Trainers.LightGbm
         {
             public enum EvaluateMetricType
             {
+                None,
                 Default,
-                Mae,
-                Rmse,
                 Merror,
                 Mlogloss,
             }
 
+            /// <summary>
+            /// Whether to use softmax loss.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use softmax loss for the multi classification.")]
             [TlcModule.SweepableDiscreteParam("UseSoftmax", new object[] { true, false })]
             public bool? UseSoftmax;
 
+            /// <summary>
+            /// Parameter for the sigmoid function.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function.", ShortName = "sigmoid")]
             [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
             public double Sigmoid = 0.5;
 
+            /// <summary>
+            /// Determines what evaluation metric to use.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Evaluation metrics.",
                 ShortName = "em")]
-            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Default;
+            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Merror;
+
+            static Options()
+            {
+                NameMapping.Add(nameof(EvaluateMetricType), "metric");
+                NameMapping.Add(nameof(EvaluateMetricType.Merror), "multi_error");
+                NameMapping.Add(nameof(EvaluateMetricType.Mlogloss), "multi_logloss");
+            }
+
+            internal override Dictionary<string, object> ToDictionary(IHost host)
+            {
+                var res = base.ToDictionary(host);
+
+                res[GetOptionName(nameof(Sigmoid))] = Sigmoid;
+                if(EvaluationMetric != EvaluateMetricType.Default)
+                    res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
+
+                return res;
+            }
         }
 
         internal LightGbmMulticlassClassificationTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
         {
-
+            Contracts.CheckUserArg(options.Sigmoid > 0, nameof(Options.Sigmoid), "must be > 0.");
             _numClass = -1;
         }
 
@@ -207,18 +234,14 @@ namespace Microsoft.ML.Trainers.LightGbm
             int numberOfLeaves = (int)base.GbmOptions["num_leaves"];
             int minimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow, numberOfLeaves, _numClass);
             base.GbmOptions["min_data_per_leaf"] = minimumExampleCountPerLeaf;
-            LightGbmTrainerOptions.MinimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow,
-                                                                                                                                            LightGbmTrainerOptions.NumberOfLeaves.Value,
-                                                                                                                                            _numClass);
             if (!hiddenMsg)
             {
                 if (!LightGbmTrainerOptions.LearningRate.HasValue)
                     ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.LearningRate) + " = " + GbmOptions["learning_rate"]);
                 if (!LightGbmTrainerOptions.NumberOfLeaves.HasValue)
                     ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.NumberOfLeaves) + " = " + numberOfLeaves);
-
                 if (!LightGbmTrainerOptions.MinimumExampleCountPerLeaf.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.MinimumExampleCountPerLeaf) + " = " + LightGbmTrainerOptions.MinimumExampleCountPerLeaf.Value);
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.MinimumExampleCountPerLeaf) + " = " + minimumExampleCountPerLeaf);
             }
         }
 
@@ -244,10 +267,6 @@ namespace Microsoft.ML.Trainers.LightGbm
                 GbmOptions["objective"] = "multiclass";
             else
                 GbmOptions["objective"] = "multiclassova";
-
-            // Add default metric.
-            if (!GbmOptions.ContainsKey("metric"))
-                GbmOptions["metric"] = "multi_error";
         }
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
