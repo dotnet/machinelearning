@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <doc>
   <members>
-
-    <member name="FastTree">
-      <summary>
-        Trains gradient boosted decision trees to the LambdaRank quasi-gradient. 
-      </summary>
+    <!--  
+    The following text describes the FastTree algorithm details.
+    It's used for the remarks section of all FastTree-based trainers (binary, regression, ranking)
+    -->
+    <member name="FastTree_remarks">
       <remarks>
         <para>
           FastTree is an efficient implementation of the <a href='https://arxiv.org/abs/1505.01866'>MART</a> gradient boosting algorithm.
           Gradient boosting is a machine learning technique for regression problems.
           It builds each regression tree in a step-wise fashion, using a predefined loss function to measure the error for each step and corrects for it in the next.
-          So this prediction model is actually an ensemble of weaker prediction models. In regression problems, boosting builds a series of of such trees in a step-wise fashion and then selects the optimal tree using an arbitrary differentiable loss function.
+          So this prediction model is actually an ensemble of weaker prediction models. In regression problems, boosting builds a series of such trees in a step-wise fashion and then selects the optimal tree using an arbitrary differentiable loss function.
         </para>
         <para>
           MART learns an ensemble of regression trees, which is a decision tree with scalar values in its leaves.
@@ -33,50 +33,14 @@
           <item><description><a href='https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting'>Wikipedia: Gradient boosting (Gradient tree boosting).</a></description></item>
           <item><description><a href='https://projecteuclid.org/DPubS?service=UI&amp;version=1.0&amp;verb=Display&amp;handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine.</a></description></item>
         </list>  
-    </remarks>
+      </remarks>
     </member>
-    <example name='FastTreeRanker'>
-      <example>
-        <code language="csharp">
-          new FastTreeRanker
-          {
-            SortingAlgorithm = "DescendingReverse",
-            OptimizationAlgorithm = BoostedTreeArgsOptimizationAlgorithmType.AcceleratedGradientDescent
-          }
-        </code>
-      </example>
-    </example>
-    <example name='FastTreeRegressor'>
-      <example>
-        <code language="csharp">
-          new FastTreeRegressor
-          {
-            NumTrees = 200,
-            EarlyStoppingRule = new GLEarlyStoppingCriterion(),
-            LearningRates = 0.4f,
-            DropoutRate = 0.05f
-          }
-        </code>
-      </example>
-    </example>
-    <example name='FastTreeBinaryClassifier'>
-      <example>
-        <code language="csharp">
-          new FastTreeBinaryClassifier
-          {
-            NumTrees = 100,
-            EarlyStoppingRule = new PQEarlyStoppingCriterion(),
-            LearningRates = 0.4f,
-            DropoutRate = 0.05f
-          }
-        </code>
-      </example>
-    </example>
-    
-    <member name="FastForest">
-      <summary>
-        Trains a random forest to fit target values using least-squares.
-      </summary>
+
+    <!--  
+    The following text describes the FastForest algorithm details.
+    It's used for the remarks section of all FastForest-based trainers (regression)
+    -->
+    <member name="FastForest_remarks">
       <remarks>
         Decision trees are non-parametric models that perform a sequence of simple tests on inputs.
         This decision procedure maps them to outputs found in the training dataset whose inputs were similar to the instance being processed.
@@ -102,43 +66,29 @@
         </list>
       </remarks>
     </member>
-    <example name='FastForestBinaryClassifier'>
-      <example>
-        <code language="csharp">
-          new FastForestBinaryClassifier
-          {
-            NumTrees = 100,
-            NumLeaves = 50,
-            Calibrator = new FixedPlattCalibratorCalibratorTrainer()
-          }
-        </code>
-      </example>
-    </example>
-    <example name='FastForestRegressor'>
-      <example>
-        <code language="csharp">
-          new FastForestRegressor
-          {
-            NumTrees = 100,
-            NumLeaves = 50,
-            NumThreads = 5,
-            EntropyCoefficient = 0.3
-          }
-        </code>
-      </example>
-    </example>
 
-    <member name="FastTreeTweedieRegression">
-      <summary>
-        Trains gradient boosted decision trees to fit target values using a Tweedie loss function. 
-        This learner is a generalization of Poisson, compound Poisson, and gamma regression.
-      </summary>
+    <!--  
+    The following text describes the GAM algorithm details.
+    It's used for the remarks section of all GAM-based trainers (regression, binary classification)
+    -->
+    <member name="GAM_remarks">
       <remarks>
-        The Tweedie boosting model follows the mathematics established in <a href="https://arxiv.org/pdf/1508.06378.pdf">
-        Insurance Premium Prediction via Gradient Tree-Boosted Tweedie Compound Poisson Models.</a> from Yang, Quan, and Zou. 
-        <para>For an introduction to Gradient Boosting, and more information, see:</para>
-        <para><a href='https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting'>Wikipedia: Gradient boosting (Gradient tree boosting)</a></para>
-        <para><a href='https://projecteuclid.org/DPubS?service=UI&amp;version=1.0&amp;verb=Display&amp;handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine</a></para>
+        <para>
+        Generalized Additive Models, or GAMs, model the data as a set of linearly independent features
+        similar to a linear model. For each feature, the GAM trainer learns a non-linear function,
+        called a "shape function", that computes the response as a function of the feature's value.
+        (In contrast, a linear model fits a linear response (e.g. a line) to each feature.)
+        To score an example, the outputs of all the shape functions are summed and the score is the total value.
+        </para>
+        <para>
+        This GAM trainer is implemented using shallow gradient boosted trees (e.g. tree stumps) to learn nonparametric
+        shape functions, and is based on the method described in Lou, Caruana, and Gehrke.
+        <a href='http://www.cs.cornell.edu/~yinlou/papers/lou-kdd12.pdf'>&quot;Intelligible Models for Classification and Regression.&quot;</a> KDD&apos;12, Beijing, China. 2012.
+        After training, an intercept is added to represent the average prediction over the training set,
+        and the shape functions are normalized to represent the deviation from the average prediction. This results
+        in models that are easily interpreted simply by inspecting the intercept and the shape functions.
+        See the sample below for an example of how to train a GAM model and inspect and interpret the results.
+        </para>
       </remarks>
     </member>
 
