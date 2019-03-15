@@ -300,5 +300,13 @@ namespace Microsoft.ML.Data
                 }
             }
         }
+
+        public static TransformerChain<ITransformer> LoadFromPath(IHostEnvironment env, string modelPath)
+        {
+            using (var stream = File.OpenRead(modelPath))
+            {
+                return LoadFrom(env, stream);
+            }
+        }
     }
 }

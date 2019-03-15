@@ -40,6 +40,8 @@ namespace Microsoft.ML
         /// <returns>The loaded model.</returns>
         public ITransformer Load(Stream stream) => TransformerChain.LoadFrom(_env, stream);
 
+        public ITransformer Load(string modelPath) => TransformerChain.LoadFromPath(_env, modelPath);
+
         /// <summary>
         /// The catalog of model explainability operations.
         /// </summary>
