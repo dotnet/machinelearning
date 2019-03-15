@@ -17,8 +17,8 @@ namespace Microsoft.ML
         /// Note that this functionality is not supported by all the models. See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the suported models.
         /// </summary>
         /// <param name="catalog">The model explainability operations catalog.</param>
-        /// <param name="modelParameters">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
-        /// <param name="featureColumnName">The name of the feature column that will be used as input.</param>
+        /// <param name="predictionTransformer">A <see cref="ISingleFeaturePredictionTransformer{TModel}"/> that supports Feature Contribution Calculation,
+        /// and which will also be used for scoring.</param>
         /// <param name="numberOfPositiveContributions">The number of positive contributions to report, sorted from highest magnitude to lowest magnitude.
         /// Note that if there are fewer features with positive contributions than <paramref name="numberOfPositiveContributions"/>, the rest will be returned as zeros.</param>
         /// <param name="numberOfNegativeContributions">The number of negative contributions to report, sorted from highest magnitude to lowest magnitude.
@@ -32,11 +32,10 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static FeatureContributionCalculatingEstimator CalculateFeatureContribution(this TransformsCatalog catalog,
-            ICalculateFeatureContribution modelParameters,
-            string featureColumnName = DefaultColumnNames.Features,
+            ISingleFeaturePredictionTransformer<ICalculateFeatureContribution> predictionTransformer,
             int numberOfPositiveContributions = FeatureContributionDefaults.NumberOfPositiveContributions,
             int numberOfNegativeContributions = FeatureContributionDefaults.NumberOfNegativeContributions,
             bool normalize = FeatureContributionDefaults.Normalize)
-            => new FeatureContributionCalculatingEstimator(CatalogUtils.GetEnvironment(catalog), modelParameters, featureColumnName, numberOfPositiveContributions, numberOfNegativeContributions, normalize);
+            => new FeatureContributionCalculatingEstimator(CatalogUtils.GetEnvironment(catalog), predictionTransformer, numberOfPositiveContributions, numberOfNegativeContributions, normalize);
     }
 }
