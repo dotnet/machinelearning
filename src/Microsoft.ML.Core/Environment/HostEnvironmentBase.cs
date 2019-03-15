@@ -103,7 +103,7 @@ namespace Microsoft.ML.Runtime
         /// to provide their own host class that derives from this class.
         /// This encapsulates the random number generator and name information.
         /// </summary>
-        public abstract class HostBase : HostEnvironmentBase<TEnv>, IHost, ICancelableHost
+        public abstract class HostBase : HostEnvironmentBase<TEnv>, ICancelableHost
         {
             public override int Depth { get; }
 

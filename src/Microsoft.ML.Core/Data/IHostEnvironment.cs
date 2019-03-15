@@ -69,7 +69,7 @@ namespace Microsoft.ML.Runtime
     }
 
     [BestFriend]
-    internal interface ICancelableHost
+    internal interface ICancelableHost : IHost
     {
         /// <summary>
         /// Signal to stop exection in this host and all its children.
