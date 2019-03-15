@@ -41,17 +41,17 @@ namespace Microsoft.ML.Trainers
         internal NormalizeOption NormalizeFeatures = NormalizeOption.Auto;
 
         /// <summary>
-        /// Whether learner should cache input training data. Used only in entry-points, since the intended API mechanism
+        /// Whether trainer should cache input training data. Used only in entry-points, since the intended API mechanism
         /// is that the user will use the <see cref="DataOperationsCatalog.Cache(IDataView, string[])"/> or other method
         /// like <see cref="EstimatorChain{TLastTransformer}.AppendCacheCheckpoint(IHostEnvironment)"/>.
         /// </summary>
         [BestFriend]
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether learner should cache input training data", ShortName = "cache", SortOrder = 6, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether trainer should cache input training data", ShortName = "cache", SortOrder = 6, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         internal CachingOptions Caching = CachingOptions.Auto;
     }
 
     /// <summary>
-    /// The base class for all learner inputs that support a Label column.
+    /// The base class for all trainer inputs that support a Label column.
     /// </summary>
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInputWithLabel))]
     public abstract class TrainerInputBaseWithLabel : TrainerInputBase
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// The base class for all unsupervised learner inputs that support a weight column.
+    /// The base class for all unsupervised trainer inputs that support a weight column.
     /// </summary>
     [TlcModule.EntryPointKind(typeof(CommonInputs.IUnsupervisedTrainerWithWeight))]
     public abstract class UnsupervisedTrainerInputBaseWithWeight : TrainerInputBase

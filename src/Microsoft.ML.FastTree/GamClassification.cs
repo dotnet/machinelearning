@@ -186,7 +186,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="intercept">The intercept term for the model. Also referred to as the bias or the mean effect.</param>
         /// <param name="inputLength">The number of features passed from the dataset. Used when the number of input features is
         /// different than the number of shape functions. Use default if all features have a shape function.</param>
-        /// <param name="featureToInputMap">A map from the feature shape functions (as described by the binUpperBounds and BinEffects)
+        /// <param name="featureToInputMap">A map from the feature shape functions, as described by <paramref name="binUpperBounds"/> and <paramref name="binEffects"/>.
         /// to the input feature. Used when the number of input features is different than the number of shape functions. Use default if all features have
         /// a shape function.</param>
         internal BinaryClassificationGamModelParameters(IHostEnvironment env,

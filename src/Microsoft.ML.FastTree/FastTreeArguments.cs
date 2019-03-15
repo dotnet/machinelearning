@@ -643,7 +643,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public bool BestStepRankingRegressionTrees = false;
 
         /// <summary>
-        /// Determines whether to we use line search for a step size.
+        /// Determines whether to use line search for a step size.
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Should we use line search for a step size", ShortName = "ls")]
         public bool UseLineSearch;
@@ -661,7 +661,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public Double MinimumStepSize;
 
         /// <summary>
-        /// The type of optimizer algorithm for setting <see cref="OptimizationAlgorithm"/>.
+        /// Types of optimization algorithms.
         /// </summary>
         public enum OptimizationAlgorithmType { GradientDescent, AcceleratedGradientDescent, ConjugateGradientDescent };
 

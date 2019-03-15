@@ -24,7 +24,7 @@
           The output of the ensemble produced by MART on a given instance is the sum of the tree outputs.
         </para>
         <list type='bullet'>
-          <item><description>In of a binary classification problem, the output is converted to a probability by using some form of calibration.</description></item>
+          <item><description>In case of a binary classification problem, the output is converted to a probability by using some form of calibration.</description></item>
           <item><description>In case of a regression problem, the output is the predicted value of the function.</description></item>
           <item><description>In case of a ranking problem, the instances are ordered by the output value of the ensemble.</description></item>
         </list>
@@ -68,8 +68,8 @@
     </member>
 
     <!--  
-    The following text describes the FastForest algorithm details.
-    It's used for the remarks section of all FastForest-based trainers (regression)
+    The following text describes the GAM algorithm details.
+    It's used for the remarks section of all GAM-based trainers (regression, binary classification)
     -->
     <member name="GAM_remarks">
       <remarks>
