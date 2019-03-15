@@ -352,7 +352,7 @@ namespace Microsoft.ML.StaticPipe
             float? l2Regularization = null,
             float? l1Threshold = null,
             int? numberOfIterations = null,
-            Action<MulticlassLogisticRegressionModelParameters> onFit = null)
+            Action<MaximumEntropyModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
@@ -394,7 +394,7 @@ namespace Microsoft.ML.StaticPipe
             Vector<float> features,
             Scalar<float> weights,
             SdcaMulticlassClassificationTrainer.Options options,
-            Action<MulticlassLogisticRegressionModelParameters> onFit = null)
+            Action<MaximumEntropyModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
@@ -443,7 +443,7 @@ namespace Microsoft.ML.StaticPipe
             float? l2Regularization = null,
             float? l1Threshold = null,
             int? numberOfIterations = null,
-            Action<MulticlassLinearModelParameters> onFit = null)
+            Action<LinearMulticlassModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
@@ -486,7 +486,7 @@ namespace Microsoft.ML.StaticPipe
             Vector<float> features,
             Scalar<float> weights,
             SdcaNonCalibratedMulticlassClassificationTrainer.Options options,
-            Action<MulticlassLinearModelParameters> onFit = null)
+            Action<LinearMulticlassModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));

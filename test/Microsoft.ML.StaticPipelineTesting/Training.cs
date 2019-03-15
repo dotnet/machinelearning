@@ -374,7 +374,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MulticlassLogisticRegressionModelParameters pred = null;
+            MaximumEntropyModelParameters pred = null;
 
             var loss = new HingeLoss(1);
 
@@ -424,7 +424,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MulticlassLinearModelParameters pred = null;
+            LinearMulticlassModelParameters pred = null;
 
             var loss = new HingeLoss(1);
 
@@ -736,16 +736,16 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MulticlassLogisticRegressionModelParameters pred = null;
+            MaximumEntropyModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
                 .Append(r => (label: r.label.ToKey(), r.features))
-                .Append(r => (r.label, preds: catalog.Trainers.MulticlassLogisticRegression(
+                .Append(r => (r.label, preds: catalog.Trainers.LbfgsMaximumEntropy(
                     r.label,
                     r.features,
                     null,
-                    new LogisticRegressionMulticlassClassificationTrainer.Options { NumberOfThreads = 1 },
+                    new LbfgsMaximumEntropyTrainer.Options { NumberOfThreads = 1 },
                     onFit: p => pred = p)));
 
             var pipe = reader.Append(est);

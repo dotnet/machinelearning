@@ -432,10 +432,10 @@ namespace Microsoft.ML.Trainers
 
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a maximum entropy classification model using the stochastic dual coordinate ascent method.
-    /// The trained model <see cref="MulticlassLogisticRegressionModelParameters"/> produces probabilities of classes.
+    /// The trained model <see cref="MaximumEntropyModelParameters"/> produces probabilities of classes.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
-    public sealed class SdcaMulticlassClassificationTrainer : SdcaMulticlassClassificationTrainerBase<MulticlassLogisticRegressionModelParameters>
+    public sealed class SdcaMulticlassClassificationTrainer : SdcaMulticlassClassificationTrainerBase<MaximumEntropyModelParameters>
     {
         internal SdcaMulticlassClassificationTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
@@ -461,28 +461,28 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        private protected override MulticlassLogisticRegressionModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        private protected override MaximumEntropyModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckValue(weights, nameof(weights));
             Host.CheckValue(bias, nameof(bias));
             Host.CheckParam(weights.Length > 0, nameof(weights));
             Host.CheckParam(weights.Length == bias.Length, nameof(weights));
 
-            return new MulticlassLogisticRegressionModelParameters(Host, weights, bias, bias.Length, weights[0].Length, null, stats: null);
+            return new MaximumEntropyModelParameters(Host, weights, bias, bias.Length, weights[0].Length, null, stats: null);
         }
 
-        private protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(
-            MulticlassLogisticRegressionModelParameters model, DataViewSchema trainSchema) =>
-            new MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+        private protected override MulticlassPredictionTransformer<MaximumEntropyModelParameters> MakeTransformer(
+            MaximumEntropyModelParameters model, DataViewSchema trainSchema) =>
+            new MulticlassPredictionTransformer<MaximumEntropyModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
     }
 
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a multiclass linear model using the stochastic dual coordinate ascent method.
-    /// The trained model <see cref="MulticlassLinearModelParameters"/> does not produces probabilities of classes, but we can still make decisions
+    /// The trained model <see cref="LinearMulticlassModelParameters"/> does not produces probabilities of classes, but we can still make decisions
     /// by choosing the class associated with the largest score.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
-    public sealed class SdcaNonCalibratedMulticlassClassificationTrainer : SdcaMulticlassClassificationTrainerBase<MulticlassLinearModelParameters>
+    public sealed class SdcaNonCalibratedMulticlassClassificationTrainer : SdcaMulticlassClassificationTrainerBase<LinearMulticlassModelParameters>
     {
         internal SdcaNonCalibratedMulticlassClassificationTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
@@ -508,19 +508,19 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        private protected override MulticlassLinearModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        private protected override LinearMulticlassModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckValue(weights, nameof(weights));
             Host.CheckValue(bias, nameof(bias));
             Host.CheckParam(weights.Length > 0, nameof(weights));
             Host.CheckParam(weights.Length == bias.Length, nameof(weights));
 
-            return new MulticlassLinearModelParameters(Host, weights, bias, bias.Length, weights[0].Length, null, stats: null);
+            return new LinearMulticlassModelParameters(Host, weights, bias, bias.Length, weights[0].Length, null, stats: null);
         }
 
-        private protected override MulticlassPredictionTransformer<MulticlassLinearModelParameters> MakeTransformer(
-            MulticlassLinearModelParameters model, DataViewSchema trainSchema) =>
-            new MulticlassPredictionTransformer<MulticlassLinearModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+        private protected override MulticlassPredictionTransformer<LinearMulticlassModelParameters> MakeTransformer(
+            LinearMulticlassModelParameters model, DataViewSchema trainSchema) =>
+            new MulticlassPredictionTransformer<LinearMulticlassModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
     }
 
     /// <summary>

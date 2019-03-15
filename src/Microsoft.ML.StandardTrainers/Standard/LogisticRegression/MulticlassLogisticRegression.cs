@@ -19,25 +19,26 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
 
-[assembly: LoadableClass(typeof(LogisticRegressionMulticlassClassificationTrainer), typeof(LogisticRegressionMulticlassClassificationTrainer.Options),
+[assembly: LoadableClass(typeof(LbfgsMaximumEntropyTrainer), typeof(LbfgsMaximumEntropyTrainer.Options),
     new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
-    LogisticRegressionMulticlassClassificationTrainer.UserNameValue,
-    LogisticRegressionMulticlassClassificationTrainer.LoadNameValue,
+    LbfgsMaximumEntropyTrainer.UserNameValue,
+    LbfgsMaximumEntropyTrainer.LoadNameValue,
     "MulticlassLogisticRegressionPredictorNew",
-    LogisticRegressionMulticlassClassificationTrainer.ShortName,
+    LbfgsMaximumEntropyTrainer.ShortName,
     "multilr")]
 
-[assembly: LoadableClass(typeof(MulticlassLogisticRegressionModelParameters), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(MaximumEntropyModelParameters), null, typeof(SignatureLoadModel),
     "Multiclass LR Executor",
-    MulticlassLogisticRegressionModelParameters.LoaderSignature)]
+    MaximumEntropyModelParameters.LoaderSignature)]
 
 namespace Microsoft.ML.Trainers
 {
     /// <include file = 'doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file = 'doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
-    public sealed class LogisticRegressionMulticlassClassificationTrainer : LbfgsTrainerBase<LogisticRegressionMulticlassClassificationTrainer.Options,
-        MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
+    public sealed class LbfgsMaximumEntropyTrainer : LbfgsTrainerBase<LbfgsMaximumEntropyTrainer.Options,
+        MulticlassPredictionTransformer<MaximumEntropyModelParameters>, MaximumEntropyModelParameters>
     {
+        internal const string Summary = "Train L-BFGS to maximum entropy model for multiclass classification";
         internal const string LoadNameValue = "MultiClassLogisticRegression";
         internal const string UserNameValue = "Multi-class Logistic Regression";
         internal const string ShortName = "mlr";
@@ -71,7 +72,7 @@ namespace Microsoft.ML.Trainers
         private protected override int ClassCount => _numClasses;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LogisticRegressionMulticlassClassificationTrainer"/>
+        /// Initializes a new instance of <see cref="LbfgsMaximumEntropyTrainer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column.</param>
@@ -82,7 +83,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
         /// <param name="memorySize">Memory size for <see cref="LogisticRegressionBinaryClassificationTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        internal LogisticRegressionMulticlassClassificationTrainer(IHostEnvironment env,
+        internal LbfgsMaximumEntropyTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
@@ -100,9 +101,9 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LogisticRegressionMulticlassClassificationTrainer"/>
+        /// Initializes a new instance of <see cref="LbfgsMaximumEntropyTrainer"/>
         /// </summary>
-        internal LogisticRegressionMulticlassClassificationTrainer(IHostEnvironment env, Options options)
+        internal LbfgsMaximumEntropyTrainer(IHostEnvironment env, Options options)
             : base(env, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
         {
             ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStatistics;
@@ -223,7 +224,7 @@ namespace Microsoft.ML.Trainers
 
         private protected override VBuffer<float> InitializeWeightsFromPredictor(IPredictor srcPredictor)
         {
-            var pred = srcPredictor as MulticlassLogisticRegressionModelParameters;
+            var pred = srcPredictor as MaximumEntropyModelParameters;
             Contracts.AssertValue(pred);
             Contracts.Assert(pred.InputType.GetVectorSize() > 0);
 
@@ -234,7 +235,7 @@ namespace Microsoft.ML.Trainers
             return InitializeWeights(pred.DenseWeightsEnumerable(), pred.GetBiases());
         }
 
-        private protected override MulticlassLogisticRegressionModelParameters CreatePredictor()
+        private protected override MaximumEntropyModelParameters CreatePredictor()
         {
             if (_numClasses < 1)
                 throw Contracts.Except("Cannot create a multiclass predictor with {0} classes", _numClasses);
@@ -246,7 +247,7 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            return new MulticlassLogisticRegressionModelParameters(Host, in CurrentWeights, _numClasses, NumFeatures, _labelNames, _stats);
+            return new MaximumEntropyModelParameters(Host, in CurrentWeights, _numClasses, NumFeatures, _labelNames, _stats);
         }
 
         private protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams)
@@ -324,18 +325,39 @@ namespace Microsoft.ML.Trainers
             };
         }
 
-        private protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(MulticlassLogisticRegressionModelParameters model, DataViewSchema trainSchema)
-            => new MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+        private protected override MulticlassPredictionTransformer<MaximumEntropyModelParameters> MakeTransformer(MaximumEntropyModelParameters model, DataViewSchema trainSchema)
+            => new MulticlassPredictionTransformer<MaximumEntropyModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
         /// <summary>
-        /// Continues the training of a <see cref="LogisticRegressionMulticlassClassificationTrainer"/> using an already trained <paramref name="modelParameters"/> and returns
+        /// Continues the training of a <see cref="LbfgsMaximumEntropyTrainer"/> using an already trained <paramref name="modelParameters"/> and returns
         /// a <see cref="MulticlassPredictionTransformer{MulticlassLogisticRegressionModelParameters}"/>.
         /// </summary>
-        public MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> Fit(IDataView trainData, MulticlassLogisticRegressionModelParameters modelParameters)
+        public MulticlassPredictionTransformer<MaximumEntropyModelParameters> Fit(IDataView trainData, MaximumEntropyModelParameters modelParameters)
             => TrainTransformer(trainData, initPredictor: modelParameters);
+
+        [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionClassifier",
+            Desc = LbfgsMaximumEntropyTrainer.Summary,
+            UserName = LbfgsMaximumEntropyTrainer.UserNameValue,
+            ShortName = LbfgsMaximumEntropyTrainer.ShortName)]
+        internal static CommonOutputs.MulticlassClassificationOutput TrainMulticlass(IHostEnvironment env, LbfgsMaximumEntropyTrainer.Options input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register("TrainLRMultiClass");
+            host.CheckValue(input, nameof(input));
+            EntryPointUtils.CheckInputArgs(host, input);
+
+            return TrainerEntryPointsUtils.Train<LbfgsMaximumEntropyTrainer.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
+                () => new LbfgsMaximumEntropyTrainer(host, input),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
+        }
     }
 
-    public abstract class MulticlassLinearModelParametersBase :
+    /// <summary>
+    /// Common linear model of multiclass classifiers. <see cref="LinearMulticlassModelParameters"/> contains a single
+    /// linear model per class.
+    /// </summary>
+    public abstract class LinearMulticlassModelParametersBase :
         ModelParametersBase<VBuffer<float>>,
         IValueMapper,
         ICanSaveInTextFormat,
@@ -376,7 +398,7 @@ namespace Microsoft.ML.Trainers
         bool ICanSavePfa.CanSavePfa => true;
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
-        internal MulticlassLinearModelParametersBase(IHostEnvironment env, string name, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal LinearMulticlassModelParametersBase(IHostEnvironment env, string name, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, name)
         {
             Contracts.Assert(weights.Length == numClasses + numClasses * numFeatures);
@@ -409,7 +431,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MulticlassLogisticRegressionModelParameters"/> class.
+        /// Initializes a new instance of the <see cref="MaximumEntropyModelParameters"/> class.
         /// This constructor is called by <see cref="SdcaMulticlassClassificationTrainer"/> to create the predictor.
         /// </summary>
         /// <param name="env">The host environment.</param>
@@ -420,7 +442,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="numFeatures">The length of the feature vector.</param>
         /// <param name="labelNames">The optional label names. If specified not null, it should have the same length as <paramref name="numClasses"/>.</param>
         /// <param name="stats">The model statistics.</param>
-        internal MulticlassLinearModelParametersBase(IHostEnvironment env, string name, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal LinearMulticlassModelParametersBase(IHostEnvironment env, string name, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, name)
         {
             Contracts.CheckValue(weights, nameof(weights));
@@ -453,7 +475,7 @@ namespace Microsoft.ML.Trainers
             Statistics = stats;
         }
 
-        private protected MulticlassLinearModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
+        private protected LinearMulticlassModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
             : base(env, name, ctx)
         {
             // *** Binary format ***
@@ -935,7 +957,10 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public sealed class MulticlassLinearModelParameters : MulticlassLinearModelParametersBase
+    /// <summary>
+    /// Linear model of multiclass classifiers. It outputs raw scores of all its linear models, and no probablistic output is provided.
+    /// </summary>
+    public sealed class LinearMulticlassModelParameters : LinearMulticlassModelParametersBase
     {
         internal const string LoaderSignature = "MulticlassLinear";
         internal const string RegistrationName = "MulticlassLinearPredictor";
@@ -949,24 +974,24 @@ namespace Microsoft.ML.Trainers
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(MulticlassLinearModelParameters).Assembly.FullName);
+                loaderAssemblyName: typeof(LinearMulticlassModelParameters).Assembly.FullName);
 
         /// <summary>
         /// Function used to pass <see cref="VersionInfo"/> into parent class. It may be used when saving the model.
         /// </summary>
         private protected override VersionInfo GetVersionInfo() => VersionInfo;
 
-        internal MulticlassLinearModelParameters(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal LinearMulticlassModelParameters(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, RegistrationName, weights, numClasses, numFeatures, labelNames, stats)
         {
         }
 
-        internal MulticlassLinearModelParameters(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal LinearMulticlassModelParameters(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, RegistrationName, weights, bias, numClasses, numFeatures, labelNames, stats)
         {
         }
 
-        private MulticlassLinearModelParameters(IHostEnvironment env, ModelLoadContext ctx)
+        private LinearMulticlassModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
         }
@@ -980,12 +1005,12 @@ namespace Microsoft.ML.Trainers
             return;
         }
 
-        private static MulticlassLinearModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static LinearMulticlassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(VersionInfo);
-            return new MulticlassLinearModelParameters(env, ctx);
+            return new LinearMulticlassModelParameters(env, ctx);
         }
 
         /// <summary>
@@ -1054,7 +1079,7 @@ namespace Microsoft.ML.Trainers
 
         private protected override void SaveAsTextCore(TextWriter writer, RoleMappedSchema schema)
         {
-            writer.WriteLine(nameof(MulticlassLinearModelParameters) + " bias and non-zero weights");
+            writer.WriteLine(nameof(LinearMulticlassModelParameters) + " bias and non-zero weights");
 
             foreach (var namedValues in ((ICanGetSummaryInKeyValuePairs)this).GetSummaryInKeyValuePairs(schema))
             {
@@ -1067,7 +1092,12 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public sealed class MulticlassLogisticRegressionModelParameters : MulticlassLinearModelParametersBase
+    /// <summary>
+    /// Linear maximum entropy model of multiclass classifiers. It outputs classes probabilities.
+    /// This model is also known as multinomial logistic regression.
+    /// Please see https://en.wikipedia.org/wiki/Multinomial_logistic_regression for details.
+    /// </summary>
+    public sealed class MaximumEntropyModelParameters : LinearMulticlassModelParametersBase
     {
         internal const string LoaderSignature = "MultiClassLRExec";
         internal const string RegistrationName = "MulticlassLogisticRegressionPredictor";
@@ -1081,24 +1111,24 @@ namespace Microsoft.ML.Trainers
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(MulticlassLogisticRegressionModelParameters).Assembly.FullName);
+                loaderAssemblyName: typeof(MaximumEntropyModelParameters).Assembly.FullName);
 
         /// <summary>
         /// Function used to pass <see cref="VersionInfo"/> into parent class. It may be used when saving the model.
         /// </summary>
         private protected override VersionInfo GetVersionInfo() => VersionInfo;
 
-        internal MulticlassLogisticRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal MaximumEntropyModelParameters(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, RegistrationName, weights, numClasses, numFeatures, labelNames, stats)
         {
         }
 
-        internal MulticlassLogisticRegressionModelParameters(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal MaximumEntropyModelParameters(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, RegistrationName, weights, bias, numClasses, numFeatures, labelNames, stats)
         {
         }
 
-        private MulticlassLogisticRegressionModelParameters(IHostEnvironment env, ModelLoadContext ctx)
+        private MaximumEntropyModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
         }
@@ -1184,7 +1214,7 @@ namespace Microsoft.ML.Trainers
 
         private protected override void SaveAsTextCore(TextWriter writer, RoleMappedSchema schema)
         {
-            writer.WriteLine(nameof(LogisticRegressionMulticlassClassificationTrainer) + " bias and non-zero weights");
+            writer.WriteLine(nameof(LbfgsMaximumEntropyTrainer) + " bias and non-zero weights");
 
             foreach (var namedValues in ((ICanGetSummaryInKeyValuePairs)this).GetSummaryInKeyValuePairs(schema))
             {
@@ -1196,28 +1226,4 @@ namespace Microsoft.ML.Trainers
                 Statistics.SaveText(writer, null, schema.Feature.Value, 20);
         }
     }
-
-    /// <summary>
-    /// A component to train a logistic regression model.
-    /// </summary>
-    public partial class LogisticRegressionBinaryClassificationTrainer
-    {
-        [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionClassifier",
-            Desc = Summary,
-            UserName = LogisticRegressionMulticlassClassificationTrainer.UserNameValue,
-            ShortName = LogisticRegressionMulticlassClassificationTrainer.ShortName)]
-        internal static CommonOutputs.MulticlassClassificationOutput TrainMulticlass(IHostEnvironment env, LogisticRegressionMulticlassClassificationTrainer.Options input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var host = env.Register("TrainLRMultiClass");
-            host.CheckValue(input, nameof(input));
-            EntryPointUtils.CheckInputArgs(host, input);
-
-            return TrainerEntryPointsUtils.Train<LogisticRegressionMulticlassClassificationTrainer.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
-                () => new LogisticRegressionMulticlassClassificationTrainer(host, input),
-                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
-                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
-        }
-    }
-
 }

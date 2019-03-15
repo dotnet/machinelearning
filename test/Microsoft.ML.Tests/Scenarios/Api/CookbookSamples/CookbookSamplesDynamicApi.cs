@@ -170,7 +170,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var trainedModel = pipeline.Fit(trainData);
 
             // Inspect the model parameters. 
-            var modelParameters = trainedModel.LastTransformer.Model as MulticlassLogisticRegressionModelParameters;
+            var modelParameters = trainedModel.LastTransformer.Model as MaximumEntropyModelParameters;
 
             // Get the weights and the numbers of classes
             VBuffer<float>[] weights = default;
