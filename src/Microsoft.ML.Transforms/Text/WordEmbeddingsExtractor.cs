@@ -93,11 +93,6 @@ namespace Microsoft.ML.Transforms.Text
         private readonly Model _currentVocab;
         private static Dictionary<string, WeakReference<Model>> _vocab = new Dictionary<string, WeakReference<Model>>();
 
-        /// <summary>
-        /// The names of the output and input column pairs on which the transformation is applied.
-        /// </summary>
-        private IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
-
         private sealed class Model
         {
             public readonly BigArray<float> WordVectors;
@@ -335,7 +330,7 @@ namespace Microsoft.ML.Transforms.Text
 
             public void SaveAsOnnx(OnnxContext ctx)
             {
-                foreach (var (outputColumnName, inputColumnName) in _parent.Columns)
+                foreach (var (outputColumnName, inputColumnName) in _parent.ColumnPairs)
                 {
                     var srcVariableName = ctx.GetVariableName(inputColumnName);
                     var schema = _parent.GetOutputSchema(InputSchema);

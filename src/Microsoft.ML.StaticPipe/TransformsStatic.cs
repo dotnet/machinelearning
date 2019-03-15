@@ -60,14 +60,14 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="GcNormalize"]/*'/>
-        /// <param name="input">The column to apply to.</param>
+        /// <param name="input">The column containing the vectors to apply the normalization to.</param>
         /// <param name="ensureZeroMean">If <see langword="true"/>, subtract mean from each value before normalizing and use the raw input otherwise.</param>
         /// <param name="ensureUnitStandardDeviation">If <see langword="true"/>, resulted vector's standard deviation would be one. Otherwise, resulted vector's L2-norm would be one.</param>
         /// <param name="scale">Scale features by this value.</param>
-        public static Vector<float> GlobalContrastNormalize(this Vector<float> input,
-            bool ensureZeroMean = LpNormalizingEstimatorBase.Defaults.GcnEnsureZeroMean,
-            bool ensureUnitStandardDeviation = LpNormalizingEstimatorBase.Defaults.EnsureUnitStdDev,
-            float scale = LpNormalizingEstimatorBase.Defaults.Scale) => new OutPipelineColumn(input, ensureZeroMean, ensureUnitStandardDeviation, scale);
+        public static Vector<float> NormalizeGlobalContrast(this Vector<float> input,
+            bool ensureZeroMean = LpNormNormalizingEstimatorBase.Defaults.GcnEnsureZeroMean,
+            bool ensureUnitStandardDeviation = LpNormNormalizingEstimatorBase.Defaults.EnsureUnitStdDev,
+            float scale = LpNormNormalizingEstimatorBase.Defaults.Scale) => new OutPipelineColumn(input, ensureZeroMean, ensureUnitStandardDeviation, scale);
     }
 
     /// <summary>
@@ -1550,18 +1550,18 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    public static class RffStaticExtenensions
+    public static class ApproximatedKernelMappingStaticExtenensions
     {
         private readonly struct Config
         {
-            public readonly int Dimension;
+            public readonly int Rank;
             public readonly bool UseCosAndSinBases;
             public readonly int? Seed;
             public readonly KernelBase Generator;
 
-            public Config(int dimension, bool useCosAndSinBases, KernelBase generator, int? seed = null)
+            public Config(int rank, bool useCosAndSinBases, KernelBase generator, int? seed = null)
             {
-                Dimension = dimension;
+                Rank = rank;
                 UseCosAndSinBases = useCosAndSinBases;
                 Generator = generator;
                 Seed = seed;
@@ -1591,13 +1591,13 @@ namespace Microsoft.ML.StaticPipe
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
-                var infos = new RandomFourierKernelMappingEstimator.ColumnOptions[toOutput.Length];
+                var infos = new ApproximatedKernelMappingEstimator.ColumnOptions[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IColInput)toOutput[i];
-                    infos[i] = new RandomFourierKernelMappingEstimator.ColumnOptions(outputNames[toOutput[i]], tcol.Config.Dimension, tcol.Config.UseCosAndSinBases, inputNames[tcol.Input], tcol.Config.Generator, tcol.Config.Seed);
+                    infos[i] = new ApproximatedKernelMappingEstimator.ColumnOptions(outputNames[toOutput[i]], tcol.Config.Rank, tcol.Config.UseCosAndSinBases, inputNames[tcol.Input], tcol.Config.Generator, tcol.Config.Seed);
                 }
-                return new RandomFourierKernelMappingEstimator(env, infos);
+                return new ApproximatedKernelMappingEstimator(env, infos);
             }
         }
 
@@ -1607,21 +1607,21 @@ namespace Microsoft.ML.StaticPipe
         /// speciﬁed shift-invariant kernel. With this transform, we are able to use linear methods (which are scalable) to approximate more complex kernel SVM models.
         /// </summary>
         /// <param name="input">The column to apply Random Fourier transfomration.</param>
-        /// <param name="dimension">The number of random Fourier features to create.</param>
+        /// <param name="rank">The number of random Fourier features to create.</param>
         /// <param name="useCosAndSinBases">If <see langword="true"/>, use both of cos and sin basis functions to create two features for every random Fourier frequency.
         /// Otherwise, only cos bases would be used.</param>
         /// <param name="generator">Which kernel to use. (if it is null, <see cref="GaussianKernel"/> is used.)</param>
         /// <param name="seed">The seed of the random number generator for generating the new features. If not specified global random would be used.</param>
-        public static Vector<float> LowerVectorSizeWithRandomFourierTransformation(this Vector<float> input,
-            int dimension = RandomFourierKernelMappingEstimator.Defaults.Rank, bool useCosAndSinBases = RandomFourierKernelMappingEstimator.Defaults.UseCosAndSinBases,
+        public static Vector<float> ApproximatedKernelMap(this Vector<float> input,
+            int rank = ApproximatedKernelMappingEstimator.Defaults.Rank, bool useCosAndSinBases = ApproximatedKernelMappingEstimator.Defaults.UseCosAndSinBases,
             KernelBase generator = null, int? seed = null)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new ImplVector<string>(input, new Config(dimension, useCosAndSinBases, generator, seed));
+            return new ImplVector<string>(input, new Config(rank, useCosAndSinBases, generator, seed));
         }
     }
 
-    public static class PcaEstimatorExtensions
+    public static class PcaStaticExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {
@@ -1673,7 +1673,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="ensureZeroMean">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation</param>
         /// <returns>Vector containing the principal components.</returns>
-        public static Vector<float> ToPrincipalComponents(this Vector<float> input,
+        public static Vector<float> ProjectToPrincipalComponents(this Vector<float> input,
             string weightColumn = PrincipalComponentAnalyzer.Defaults.WeightColumn,
             int rank = PrincipalComponentAnalyzer.Defaults.Rank,
             int overSampling = PrincipalComponentAnalyzer.Defaults.Oversampling,

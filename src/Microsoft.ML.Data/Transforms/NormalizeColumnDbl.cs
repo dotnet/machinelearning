@@ -1430,8 +1430,8 @@ namespace Microsoft.ML.Transforms
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.MinMaxColumnOptions column, IHost host, DataViewType srcType,
                     ValueGetter<TFloat> getter)
                 {
-                    host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
-                    return new MinMaxOneColumnFunctionBuilder(host, column.MaxTrainingExamples, column.FixZero, getter);
+                    host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    return new MinMaxOneColumnFunctionBuilder(host, column.MaximumExampleCount, column.EnsureZeroUntouched, getter);
                 }
 
                 public override IColumnFunction CreateColumnFunction()
@@ -1480,9 +1480,9 @@ namespace Microsoft.ML.Transforms
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.MinMaxColumnOptions column, IHost host, VectorType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
-                    host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
+                    host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
                     var cv = srcType.Size;
-                    return new MinMaxVecColumnFunctionBuilder(host, cv, column.MaxTrainingExamples, column.FixZero, getter);
+                    return new MinMaxVecColumnFunctionBuilder(host, cv, column.MaximumExampleCount, column.EnsureZeroUntouched, getter);
                 }
 
                 public override IColumnFunction CreateColumnFunction()
@@ -1539,18 +1539,18 @@ namespace Microsoft.ML.Transforms
                     _buffer = new VBuffer<TFloat>(1, new TFloat[1]);
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.MeanVarColumnOptions column, IHost host, DataViewType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.MeanVarianceColumnOptions column, IHost host, DataViewType srcType,
                     ValueGetter<TFloat> getter)
                 {
-                    host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
-                    return new MeanVarOneColumnFunctionBuilder(host, column.MaxTrainingExamples, column.FixZero, getter, false, column.UseCdf);
+                    host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    return new MeanVarOneColumnFunctionBuilder(host, column.MaximumExampleCount, column.EnsureZeroUntouched, getter, false, column.UseCdf);
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.LogMeanVarColumnOptions column, IHost host, DataViewType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.LogMeanVarianceColumnOptions column, IHost host, DataViewType srcType,
                     ValueGetter<TFloat> getter)
                 {
-                    var lim = column.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
+                    var lim = column.MaximumExampleCount;
+                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
                     return new MeanVarOneColumnFunctionBuilder(host, lim, false, getter, true, column.UseCdf);
                 }
 
@@ -1613,19 +1613,19 @@ namespace Microsoft.ML.Transforms
                     _useCdf = useCdf;
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.MeanVarColumnOptions column, IHost host, VectorType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.MeanVarianceColumnOptions column, IHost host, VectorType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
-                    host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
+                    host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
                     var cv = srcType.Size;
-                    return new MeanVarVecColumnFunctionBuilder(host, cv, column.MaxTrainingExamples, column.FixZero, getter, false, column.UseCdf);
+                    return new MeanVarVecColumnFunctionBuilder(host, cv, column.MaximumExampleCount, column.EnsureZeroUntouched, getter, false, column.UseCdf);
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.LogMeanVarColumnOptions column, IHost host, VectorType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.LogMeanVarianceColumnOptions column, IHost host, VectorType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
-                    var lim = column.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
+                    var lim = column.MaximumExampleCount;
+                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
                     var cv = srcType.Size;
                     return new MeanVarVecColumnFunctionBuilder(host, cv, lim, false, getter, true, column.UseCdf);
                 }
@@ -1732,11 +1732,11 @@ namespace Microsoft.ML.Transforms
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.BinningColumnOptions column, IHost host, DataViewType srcType,
                     ValueGetter<TFloat> getter)
                 {
-                    var lim = column.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
-                    bool fix = column.FixZero;
-                    var numBins = column.NumBins;
-                    host.CheckUserArg(numBins > 1, nameof(column.NumBins), "Must be greater than 1");
+                    var lim = column.MaximumExampleCount;
+                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    bool fix = column.EnsureZeroUntouched;
+                    var numBins = column.MaximumBinCount;
+                    host.CheckUserArg(numBins > 1, nameof(column.MaximumBinCount), "Must be greater than 1");
                     return new BinOneColumnFunctionBuilder(host, lim, fix, numBins, getter);
                 }
 
@@ -1781,11 +1781,11 @@ namespace Microsoft.ML.Transforms
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.BinningColumnOptions column, IHost host, VectorType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
-                    var lim = column.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
-                    bool fix = column.FixZero;
-                    var numBins = column.NumBins;
-                    host.CheckUserArg(numBins > 1, nameof(column.NumBins), "Must be greater than 1");
+                    var lim = column.MaximumExampleCount;
+                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    bool fix = column.EnsureZeroUntouched;
+                    var numBins = column.MaximumBinCount;
+                    host.CheckUserArg(numBins > 1, nameof(column.MaximumBinCount), "Must be greater than 1");
                     var cv = srcType.Size;
                     return new BinVecColumnFunctionBuilder(host, cv, lim, fix, numBins, getter);
                 }
@@ -1864,13 +1864,13 @@ namespace Microsoft.ML.Transforms
 
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.SupervisedBinningColumOptions column, IHost host, int valueColumnId, int labelColumnId, DataViewRow dataRow)
                 {
-                    var lim = column.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
-                    bool fix = column.FixZero;
-                    var numBins = column.NumBins;
-                    host.CheckUserArg(numBins > 1, nameof(column.NumBins), "Must be greater than 1");
-                    host.CheckUserArg(column.MinBinSize > 0, nameof(column.MinBinSize), "Must be positive");
-                    return new SupervisedBinOneColumnFunctionBuilder(host, lim, fix, numBins, column.MinBinSize, valueColumnId, labelColumnId, dataRow);
+                    var lim = column.MaximumExampleCount;
+                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    bool fix = column.EnsureZeroUntouched;
+                    var numBins = column.MaximumBinCount;
+                    host.CheckUserArg(numBins > 1, nameof(column.MaximumBinCount), "Must be greater than 1");
+                    host.CheckUserArg(column.MininimumBinSize > 0, nameof(column.MininimumBinSize), "Must be positive");
+                    return new SupervisedBinOneColumnFunctionBuilder(host, lim, fix, numBins, column.MininimumBinSize, valueColumnId, labelColumnId, dataRow);
                 }
             }
 
@@ -1904,13 +1904,13 @@ namespace Microsoft.ML.Transforms
 
                 public static IColumnFunctionBuilder Create(NormalizingEstimator.SupervisedBinningColumOptions column, IHost host, int valueColumnId, int labelColumnId, DataViewRow dataRow)
                 {
-                    var lim = column.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
-                    bool fix = column.FixZero;
-                    var numBins = column.NumBins;
-                    host.CheckUserArg(numBins > 1, nameof(column.NumBins), "Must be greater than 1");
-                    host.CheckUserArg(column.MinBinSize > 0, nameof(column.MinBinSize), "Must be positive");
-                    return new SupervisedBinVecColumnFunctionBuilder(host, lim, fix, numBins, column.MinBinSize, valueColumnId, labelColumnId, dataRow);
+                    var lim = column.MaximumExampleCount;
+                    host.CheckUserArg(lim > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
+                    bool fix = column.EnsureZeroUntouched;
+                    var numBins = column.MaximumBinCount;
+                    host.CheckUserArg(numBins > 1, nameof(column.MaximumBinCount), "Must be greater than 1");
+                    host.CheckUserArg(column.MininimumBinSize > 0, nameof(column.MininimumBinSize), "Must be positive");
+                    return new SupervisedBinVecColumnFunctionBuilder(host, lim, fix, numBins, column.MininimumBinSize, valueColumnId, labelColumnId, dataRow);
                 }
             }
         }

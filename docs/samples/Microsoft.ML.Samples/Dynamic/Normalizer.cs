@@ -32,15 +32,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // The transformed (normalized according to Normalizer.NormalizerMode.MinMax) data.
             var transformer = pipeline.Fit(trainData);
 
-            var modelParams = transformer.Columns
-                                         .First(x => x.Name == "Induced")
-                                         .ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<float>;
-
-            Console.WriteLine($"The normalization parameters are: Scale = {modelParams.Scale} and Offset = {modelParams.Offset}");
-            //Preview 
-            //
-            //The normalization parameters are: Scale = 0.5 and Offset = 0"
-
+            // Normalize the data.
             var transformedData = transformer.Transform(trainData);
 
             // Getting the data of the newly created column, so we can preview it.
@@ -94,13 +86,6 @@ namespace Microsoft.ML.Samples.Dynamic
             // 0
             // 0
             // 0.1586974
-            
-            // Inspect the weights of normalizing the columns
-            var multiColModelParams = multiColtransformer.Columns
-                .First(x=> x.Name == "LogInduced")
-                .ModelParameters as NormalizingTransformer.CdfNormalizerModelParameters<float>;
-
-            Console.WriteLine($"The normalization parameters are: Mean = {multiColModelParams.Mean} and Stddev = {multiColModelParams.Stddev}");
         }
     }
 }
