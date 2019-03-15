@@ -24,6 +24,10 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers
 {
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a multiclass linear classification model using the stochastic dual coordinate ascent method.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
     public abstract class SdcaMulticlassClassificationTrainerBase<TModel> : SdcaTrainerBase<SdcaMulticlassClassificationTrainerBase<TModel>.Options, MulticlassPredictionTransformer<TModel>, TModel>
         where TModel : class
     {
@@ -426,6 +430,11 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a maximum entropy classification model using the stochastic dual coordinate ascent method.
+    /// The trained model <see cref="MulticlassLogisticRegressionModelParameters"/> produces probabilities of classes.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
     public sealed class SdcaMulticlassClassificationTrainer : SdcaMulticlassClassificationTrainerBase<MulticlassLogisticRegressionModelParameters>
     {
         internal SdcaMulticlassClassificationTrainer(IHostEnvironment env,
@@ -467,6 +476,12 @@ namespace Microsoft.ML.Trainers
             new MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
     }
 
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a multiclass linear model using the stochastic dual coordinate ascent method.
+    /// The trained model <see cref="MulticlassLinearModelParameters"/> does not produces probabilities of classes, but we can still make decisions
+    /// by choosing the class associated with the largest score.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
     public sealed class SdcaNonCalibratedMulticlassClassificationTrainer : SdcaMulticlassClassificationTrainerBase<MulticlassLinearModelParameters>
     {
         internal SdcaNonCalibratedMulticlassClassificationTrainer(IHostEnvironment env,
