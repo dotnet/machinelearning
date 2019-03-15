@@ -10155,23 +10155,15 @@
         },
         {
           "Name": "NormalizeFeatures",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "No",
-              "Warn",
-              "Auto",
-              "Yes"
-            ]
-          },
-          "Desc": "Normalize option for the feature column",
+          "Type": "Bool",
+          "Desc": "Whether to normalize the input vectors so that the concatenation of all fields' feature vectors is unit-length",
           "Aliases": [
             "norm"
           ],
           "Required": false,
-          "SortOrder": 5.0,
+          "SortOrder": 6.0,
           "IsNullable": false,
-          "Default": "Auto"
+          "Default": true
         },
         {
           "Name": "Caching",
