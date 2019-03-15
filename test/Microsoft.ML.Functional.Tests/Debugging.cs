@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
@@ -54,7 +53,6 @@ namespace Microsoft.ML.Functional.Tests
                     "Features",
                     new TextFeaturizingEstimator.Options
                     {
-                        CaseMode = TextNormalizingEstimator.CaseMode.Lower,
                         KeepPunctuations = false,
                         OutputTokens = true,
                         CharFeatureExtractor = null, // new WordBagEstimator.Options { NgramLength = 0, SkipLength = -1 },
@@ -80,18 +78,21 @@ namespace Microsoft.ML.Functional.Tests
 
             // Verify that columns can be inspected.
             // Validate the tokens column.
-            var tokensColumn = transformedData.GetColumn<string[]>(transformedData.Schema["SentimentTextTokenized"]);
-            var expectedTokens = new string[3][]
+            var tokensColumn1 = transformedData.GetColumn<string[]>(transformedData.Schema["SentimentTextTokenized"]);
+            var expectedTokens1 = new string[3][]
             {
-                new string[] {"I", "love", "ML.NET"},
-                new string[] {"i", "love", "TLC"},
-                new string[] {"i", "dislike", "fika"},
+                new string[] {"I", "love", "ML.NET."},
+                new string[] {"I", "love", "TLC."},
+                new string[] {"I", "dislike", "fika."},
             };
+            int j = 0;
+            foreach (var rowTokens in tokensColumn1)
+                Assert.Equal(expectedTokens1[j++], rowTokens);
 
             // Verify that columns can be inspected.
             // Validate the tokens column.
-            tokensColumn = transformedData.GetColumn<string[]>(transformedData.Schema["Features_TransformedText"]);
-            expectedTokens = new string[3][]
+            var tokensColumn = transformedData.GetColumn<string[]>(transformedData.Schema["Features_TransformedText"]);
+            var expectedTokens = new string[3][]
             {
                 new string[] {"i", "love", "mlnet"},
                 new string[] {"i", "love", "tlc"},
