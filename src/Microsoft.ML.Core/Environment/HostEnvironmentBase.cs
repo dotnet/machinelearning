@@ -98,6 +98,18 @@ namespace Microsoft.ML.Runtime
     {
         public bool IsCanceled { get; protected set; }
 
+        private List<IHost> _hosts;
+
+        [BestFriend]
+        internal void CancelExecutionHosts()
+        {
+            foreach (var host in _hosts)
+                if (host is ICancelableHost)
+                    ((ICancelableHost)host).CancelExecution();
+
+            _hosts.Clear();
+        }
+
         /// <summary>
         /// Base class for hosts. Classes derived from  <see cref="HostEnvironmentBase{THostEnvironmentBase}"/> may choose
         /// to provide their own host class that derives from this class.
@@ -360,6 +372,7 @@ namespace Microsoft.ML.Runtime
             _cancelLock = new object();
             Root = this as TEnv;
             ComponentCatalog = new ComponentCatalog();
+            _hosts = new List<IHost>();
         }
 
         /// <summary>
@@ -373,6 +386,7 @@ namespace Microsoft.ML.Runtime
             Contracts.CheckValueOrNull(rand);
             _rand = rand ?? RandomUtils.Create();
             _cancelLock = new object();
+            _hosts = new List<IHost>();
 
             // This fork shares some stuff with the master.
             Master = source;
@@ -386,7 +400,9 @@ namespace Microsoft.ML.Runtime
         {
             Contracts.CheckNonEmpty(name, nameof(name));
             Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
-            return RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
+            var host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
+            _hosts.Add(host);
+            return host;
         }
 
         protected abstract IHost RegisterCore(HostEnvironmentBase<TEnv> source, string shortName,
