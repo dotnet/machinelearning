@@ -220,7 +220,7 @@ namespace Microsoft.ML.Trainers
             _lambdaLatent = options.LambdaLatent;
             _learningRate = options.LearningRate;
             _numIterations = options.NumberOfIterations;
-            _norm = (options.NormalizeFeatures == NormalizeOption.Yes || options.NormalizeFeatures == NormalizeOption.Auto);
+            _norm = (options.NormalizeFeatures == NormalizeOption.Yes);
             _shuffle = options.Shuffle;
             _verbose = options.Verbose;
             _radius = options.Radius;
