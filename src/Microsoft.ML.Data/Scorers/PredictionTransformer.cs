@@ -427,8 +427,8 @@ namespace Microsoft.ML.Data
         private void SetScorer()
         {
             var schema = new RoleMappedSchema(TrainSchema, _trainLabelColumn, FeatureColumn);
-            var args = new MultiClassClassifierScorer.Arguments();
-            Scorer = new MultiClassClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
+            var args = new MulticlassClassificationScorer.Arguments();
+            Scorer = new MulticlassClassificationScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)

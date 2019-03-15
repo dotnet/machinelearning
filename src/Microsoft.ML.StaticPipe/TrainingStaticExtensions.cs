@@ -130,7 +130,7 @@ namespace Microsoft.ML.StaticPipe
         /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public static (MultiClassClassifierMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
+        public static (MulticlassClassificationMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
             this MulticlassClassificationCatalog catalog,
             DataView<TInShape> data,
             Estimator<TInShape, TOutShape, TTransformer> estimator,

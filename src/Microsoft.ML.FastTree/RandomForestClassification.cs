@@ -30,12 +30,18 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
+    /// <summary>
+    /// Base class for fast forest trainer options.
+    /// </summary>
     public abstract class FastForestOptionsBase : TreeOptions
     {
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Number of labels to be sampled from each leaf to make the distribtuion", ShortName = "qsc")]
+        /// <summary>
+        /// The number of data points to be sampled from each leaf to find the distribution of labels.
+        /// </summary>
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Number of labels to be sampled from each leaf to make the distribution", ShortName = "qsc")]
         public int NumberOfQuantileSamples = 100;
 
-        public FastForestOptionsBase()
+        internal FastForestOptionsBase()
         {
             FeatureFraction = 0.7;
             BaggingSize = 1;
@@ -105,12 +111,21 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="FastForest"]/*' />
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a decision tree binary classification model using Fast Forest.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="FastForest_remarks"]/*' />
     public sealed partial class FastForestBinaryClassificationTrainer :
         RandomForestTrainerBase<FastForestBinaryClassificationTrainer.Options, BinaryPredictionTransformer<FastForestClassificationModelParameters>, FastForestClassificationModelParameters>
     {
+        /// <summary>
+        /// Options for the <see cref="FastForestBinaryClassificationTrainer"/>.
+        /// </summary>
         public sealed class Options : FastForestOptionsBase
         {
+            /// <summary>
+            /// The upper bound on the absolute value of a single tree output.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo")]
             public Double MaximumOutputMagnitudePerTree = 100;
 

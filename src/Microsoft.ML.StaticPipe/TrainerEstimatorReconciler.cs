@@ -396,9 +396,9 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// A reconciler for regression capable of handling the most common cases for regression.
+        /// A reconciler for multiclass classification capable of handling the most common cases for multiclass classification.
         /// </summary>
-        public sealed class MulticlassClassifier<TVal> : TrainerEstimatorReconciler
+        public sealed class MulticlassClassificationReconciler<TVal> : TrainerEstimatorReconciler
         {
             /// <summary>
             /// The delegate to create the multiclass classifier trainer instance.
@@ -430,7 +430,7 @@ namespace Microsoft.ML.StaticPipe
             /// <param name="label">The input label column.</param>
             /// <param name="features">The input features column.</param>
             /// <param name="weights">The input weights column, or <c>null</c> if there are no weights.</param>
-            public MulticlassClassifier(EstimatorFactory estimatorFactory, Key<uint, TVal> label, Vector<float> features, Scalar<float> weights)
+            public MulticlassClassificationReconciler(EstimatorFactory estimatorFactory, Key<uint, TVal> label, Vector<float> features, Scalar<float> weights)
                     : base(MakeInputs(Contracts.CheckRef(label, nameof(label)), Contracts.CheckRef(features, nameof(features)), weights),
                           _fixedOutputNames)
             {
@@ -452,12 +452,12 @@ namespace Microsoft.ML.StaticPipe
 
             private sealed class ImplLabel : Key<uint, TVal>
             {
-                public ImplLabel(MulticlassClassifier<TVal> rec) : base(rec, rec.Inputs) { }
+                public ImplLabel(MulticlassClassificationReconciler<TVal> rec) : base(rec, rec.Inputs) { }
             }
 
             private sealed class ImplScore : Vector<float>
             {
-                public ImplScore(MulticlassClassifier<TVal> rec) : base(rec, rec.Inputs) { }
+                public ImplScore(MulticlassClassificationReconciler<TVal> rec) : base(rec, rec.Inputs) { }
             }
         }
 

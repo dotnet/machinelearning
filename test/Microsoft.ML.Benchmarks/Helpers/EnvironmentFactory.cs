@@ -41,7 +41,7 @@ namespace Microsoft.ML.Benchmarks
             environment.ComponentCatalog.RegisterAssembly(typeof(TTransformer).Assembly);
             environment.ComponentCatalog.RegisterAssembly(typeof(TTrainer).Assembly);
 
-            environment.ComponentCatalog.RegisterAssembly(typeof(MissingValueDroppingTransformer).Assembly);
+            environment.ComponentCatalog.RegisterAssembly(typeof(OneHotEncodingTransformer).Assembly);
 
             return ctx;
         }

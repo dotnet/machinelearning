@@ -20,6 +20,12 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="outputKind">The conversion mode.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Categorical/OneHotEncoding.cs)]
+        /// ]]></format>
+        /// </example>
         public static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 string outputColumnName,
                 string inputColumnName = null,

@@ -195,7 +195,7 @@ namespace Microsoft.ML
         /// </para>
         /// <para>
         /// In this implementation, PFI computes the change in all possible multiclass classification evaluation metrics for each feature, and an
-        /// <code>ImmutableArray</code> of <code>MultiClassClassifierMetrics</code> objects is returned. See the sample below for an
+        /// <code>ImmutableArray</code> of <code>MulticlassClassificationMetrics</code> objects is returned. See the sample below for an
         /// example of working with these results to analyze the feature importance of a model.
         /// </para>
         /// </remarks>
@@ -208,7 +208,7 @@ namespace Microsoft.ML
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
         /// <param name="permutationCount">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
-        public static ImmutableArray<MultiClassClassifierMetricsStatistics>
+        public static ImmutableArray<MulticlassClassificationMetricsStatistics>
             PermutationFeatureImportance<TModel>(
                 this MulticlassClassificationCatalog catalog,
                 IPredictionTransformer<TModel> model,
@@ -219,11 +219,11 @@ namespace Microsoft.ML
                 int? topExamples = null,
                 int permutationCount = 1)
         {
-            return PermutationFeatureImportance<TModel, MultiClassClassifierMetrics, MultiClassClassifierMetricsStatistics>.GetImportanceMetricsMatrix(
+            return PermutationFeatureImportance<TModel, MulticlassClassificationMetrics, MulticlassClassificationMetricsStatistics>.GetImportanceMetricsMatrix(
                             catalog.GetEnvironment(),
                             model,
                             data,
-                            () => new MultiClassClassifierMetricsStatistics(),
+                            () => new MulticlassClassificationMetricsStatistics(),
                             idv => catalog.Evaluate(idv, label),
                             MulticlassClassificationDelta,
                             features,
@@ -232,15 +232,15 @@ namespace Microsoft.ML
                             topExamples);
         }
 
-        private static MultiClassClassifierMetrics MulticlassClassificationDelta(
-            MultiClassClassifierMetrics a, MultiClassClassifierMetrics b)
+        private static MulticlassClassificationMetrics MulticlassClassificationDelta(
+            MulticlassClassificationMetrics a, MulticlassClassificationMetrics b)
         {
             if (a.TopK != b.TopK)
                 Contracts.Assert(a.TopK == b.TopK, "TopK to compare must be the same length.");
 
             var perClassLogLoss = ComputeSequenceDeltas(a.PerClassLogLoss, b.PerClassLogLoss);
 
-            return new MultiClassClassifierMetrics(
+            return new MulticlassClassificationMetrics(
                 accuracyMicro: a.MicroAccuracy - b.MicroAccuracy,
                 accuracyMacro: a.MacroAccuracy - b.MacroAccuracy,
                 logLoss: a.LogLoss - b.LogLoss,

@@ -7,7 +7,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.Onnx
 {
     /// <summary>
     /// This is a helper class that is required to use the <see cref="DnnImageFeaturizerEstimator"/>.

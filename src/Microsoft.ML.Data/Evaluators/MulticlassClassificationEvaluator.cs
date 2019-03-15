@@ -15,20 +15,20 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(typeof(MultiClassClassifierEvaluator), typeof(MultiClassClassifierEvaluator), typeof(MultiClassClassifierEvaluator.Arguments), typeof(SignatureEvaluator),
-    "Multi-Class Classifier Evaluator", MultiClassClassifierEvaluator.LoadName, "MultiClassClassifier", "MultiClass")]
+[assembly: LoadableClass(typeof(MulticlassClassificationEvaluator), typeof(MulticlassClassificationEvaluator), typeof(MulticlassClassificationEvaluator.Arguments), typeof(SignatureEvaluator),
+    "Multi-Class Classifier Evaluator", MulticlassClassificationEvaluator.LoadName, "MultiClassClassifier", "MultiClass")]
 
-[assembly: LoadableClass(typeof(MultiClassMamlEvaluator), typeof(MultiClassMamlEvaluator), typeof(MultiClassMamlEvaluator.Arguments), typeof(SignatureMamlEvaluator),
-    "Multi-Class Classifier Evaluator", MultiClassClassifierEvaluator.LoadName, "MultiClassClassifier", "MultiClass")]
+[assembly: LoadableClass(typeof(MulticlassClassificationMamlEvaluator), typeof(MulticlassClassificationMamlEvaluator), typeof(MulticlassClassificationMamlEvaluator.Arguments), typeof(SignatureMamlEvaluator),
+    "Multi-Class Classifier Evaluator", MulticlassClassificationEvaluator.LoadName, "MultiClassClassifier", "MultiClass")]
 
 // This is for deserialization of the per-instance transform.
-[assembly: LoadableClass(typeof(MultiClassPerInstanceEvaluator), null, typeof(SignatureLoadRowMapper),
-    "", MultiClassPerInstanceEvaluator.LoaderSignature)]
+[assembly: LoadableClass(typeof(MulticlassPerInstanceEvaluator), null, typeof(SignatureLoadRowMapper),
+    "", MulticlassPerInstanceEvaluator.LoaderSignature)]
 
 namespace Microsoft.ML.Data
 {
     [BestFriend]
-    internal sealed class MultiClassClassifierEvaluator : RowToRowEvaluatorBase<MultiClassClassifierEvaluator.Aggregator>
+    internal sealed class MulticlassClassificationEvaluator : RowToRowEvaluatorBase<MulticlassClassificationEvaluator.Aggregator>
     {
         public sealed class Arguments
         {
@@ -48,13 +48,13 @@ namespace Microsoft.ML.Data
 
         public enum Metrics
         {
-            [EnumValueDisplay(MultiClassClassifierEvaluator.AccuracyMicro)]
+            [EnumValueDisplay(MulticlassClassificationEvaluator.AccuracyMicro)]
             AccuracyMicro,
-            [EnumValueDisplay(MultiClassClassifierEvaluator.AccuracyMacro)]
+            [EnumValueDisplay(MulticlassClassificationEvaluator.AccuracyMacro)]
             AccuracyMacro,
-            [EnumValueDisplay(MultiClassClassifierEvaluator.LogLoss)]
+            [EnumValueDisplay(MulticlassClassificationEvaluator.LogLoss)]
             LogLoss,
-            [EnumValueDisplay(MultiClassClassifierEvaluator.LogLossReduction)]
+            [EnumValueDisplay(MulticlassClassificationEvaluator.LogLossReduction)]
             LogLossReduction,
         }
 
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Data
         private readonly int? _outputTopKAcc;
         private readonly bool _names;
 
-        public MultiClassClassifierEvaluator(IHostEnvironment env, Arguments args)
+        public MulticlassClassificationEvaluator(IHostEnvironment env, Arguments args)
             : base(env, LoadName)
         {
             Host.AssertValue(args, "args");
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Data
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Schema must contain a label column");
             var scoreInfo = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             int numClasses = scoreInfo.Type.GetVectorSize();
-            return new MultiClassPerInstanceEvaluator(Host, schema.Schema, scoreInfo, schema.Label.Value.Name);
+            return new MulticlassPerInstanceEvaluator(Host, schema.Schema, scoreInfo, schema.Label.Value.Name);
         }
 
         public override IEnumerable<MetricColumn> GetOverallMetricColumns()
@@ -504,7 +504,7 @@ namespace Microsoft.ML.Data
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these outputs.</returns>
-        public MultiClassClassifierMetrics Evaluate(IDataView data, string label, string score, string predictedLabel)
+        public MulticlassClassificationMetrics Evaluate(IDataView data, string label, string score, string predictedLabel)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -520,12 +520,12 @@ namespace Microsoft.ML.Data
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
-            MultiClassClassifierMetrics result;
+            MulticlassClassificationMetrics result;
             using (var cursor = overall.GetRowCursorForAllColumns())
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new MultiClassClassifierMetrics(Host, cursor, _outputTopKAcc ?? 0);
+                result = new MulticlassClassificationMetrics(Host, cursor, _outputTopKAcc ?? 0);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }
@@ -534,7 +534,7 @@ namespace Microsoft.ML.Data
 
     }
 
-    internal sealed class MultiClassPerInstanceEvaluator : PerInstanceEvaluatorBase
+    internal sealed class MulticlassPerInstanceEvaluator : PerInstanceEvaluatorBase
     {
         public const string LoaderSignature = "MulticlassPerInstance";
         private static VersionInfo GetVersionInfo()
@@ -546,7 +546,7 @@ namespace Microsoft.ML.Data
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(MultiClassPerInstanceEvaluator).Assembly.FullName);
+                loaderAssemblyName: typeof(MulticlassPerInstanceEvaluator).Assembly.FullName);
         }
 
         private const int AssignedCol = 0;
@@ -567,7 +567,7 @@ namespace Microsoft.ML.Data
         private readonly ReadOnlyMemory<char>[] _classNames;
         private readonly DataViewType[] _types;
 
-        public MultiClassPerInstanceEvaluator(IHostEnvironment env, DataViewSchema schema, DataViewSchema.Column scoreColumn, string labelCol)
+        public MulticlassPerInstanceEvaluator(IHostEnvironment env, DataViewSchema schema, DataViewSchema.Column scoreColumn, string labelCol)
             : base(env, schema, scoreColumn.Name, labelCol)
         {
             CheckInputColumnTypes(schema);
@@ -592,7 +592,7 @@ namespace Microsoft.ML.Data
             _types[SortedClassesCol] = new VectorType(key, _numClasses);
         }
 
-        private MultiClassPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema schema)
+        private MulticlassPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema schema)
             : base(env, ctx, schema)
         {
             CheckInputColumnTypes(schema);
@@ -621,13 +621,13 @@ namespace Microsoft.ML.Data
             _types[SortedClassesCol] = new VectorType(key, _numClasses);
         }
 
-        public static MultiClassPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema schema)
+        public static MulticlassPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return new MultiClassPerInstanceEvaluator(env, ctx, schema);
+            return new MulticlassPerInstanceEvaluator(env, ctx, schema);
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -823,7 +823,7 @@ namespace Microsoft.ML.Data
     }
 
     [BestFriend]
-    internal sealed class MultiClassMamlEvaluator : MamlEvaluatorBase
+    internal sealed class MulticlassClassificationMamlEvaluator : MamlEvaluatorBase
     {
         public class Arguments : ArgumentsBase
         {
@@ -846,12 +846,12 @@ namespace Microsoft.ML.Data
         private readonly int _numTopClasses;
         private readonly int _numConfusionTableClasses;
         private readonly int? _outputTopKAcc;
-        private readonly MultiClassClassifierEvaluator _evaluator;
+        private readonly MulticlassClassificationEvaluator _evaluator;
 
         private protected override IEvaluator Evaluator => _evaluator;
 
-        public MultiClassMamlEvaluator(IHostEnvironment env, Arguments args)
-            : base(args, env, AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification, "MultiClassMamlEvaluator")
+        public MulticlassClassificationMamlEvaluator(IHostEnvironment env, Arguments args)
+            : base(args, env, AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification, "MultiClassMamlEvaluator")
         {
             Host.CheckValue(args, nameof(args));
             // REVIEW: why do we need to insist on at least 2?
@@ -865,11 +865,11 @@ namespace Microsoft.ML.Data
             _numConfusionTableClasses = args.NumClassesConfusionMatrix;
             _outputTopKAcc = args.OutputTopKAcc;
 
-            var evalArgs = new MultiClassClassifierEvaluator.Arguments
+            var evalArgs = new MulticlassClassificationEvaluator.Arguments
             {
                 OutputTopKAcc = _outputTopKAcc
             };
-            _evaluator = new MultiClassClassifierEvaluator(Host, evalArgs);
+            _evaluator = new MulticlassClassificationEvaluator(Host, evalArgs);
         }
 
         private protected override void PrintFoldResultsCore(IChannel ch, Dictionary<string, IDataView> metrics)
@@ -918,7 +918,7 @@ namespace Microsoft.ML.Data
 
             if (_outputPerClass)
             {
-                EvaluateUtils.ReconcileSlotNames<double>(Host, views, MultiClassClassifierEvaluator.PerClassLogLoss, NumberDataViewType.Double,
+                EvaluateUtils.ReconcileSlotNames<double>(Host, views, MulticlassClassificationEvaluator.PerClassLogLoss, NumberDataViewType.Double,
                     def: double.NaN);
                 for (int i = 0; i < overallList.Count; i++)
                 {
@@ -928,7 +928,7 @@ namespace Microsoft.ML.Data
                     for (int col = 0; col < idv.Schema.Count; col++)
                     {
                         if (idv.Schema[col].IsHidden &&
-                            idv.Schema[col].Name.Equals(MultiClassClassifierEvaluator.PerClassLogLoss))
+                            idv.Schema[col].Name.Equals(MulticlassClassificationEvaluator.PerClassLogLoss))
                         {
                             idv = new ChooseColumnsByIndexTransform(Host,
                                 new ChooseColumnsByIndexTransform.Options() { Drop = true, Indices = new[] { col } }, idv);
@@ -951,32 +951,32 @@ namespace Microsoft.ML.Data
 
         private IDataView ChangeTopKAccColumnName(IDataView input)
         {
-            input = new ColumnCopyingTransformer(Host, (string.Format(TopKAccuracyFormat, _outputTopKAcc), MultiClassClassifierEvaluator.TopKAccuracy)).Transform(input);
-            return ColumnSelectingTransformer.CreateDrop(Host, input, MultiClassClassifierEvaluator.TopKAccuracy);
+            input = new ColumnCopyingTransformer(Host, (string.Format(TopKAccuracyFormat, _outputTopKAcc), MulticlassClassificationEvaluator.TopKAccuracy)).Transform(input);
+            return ColumnSelectingTransformer.CreateDrop(Host, input, MulticlassClassificationEvaluator.TopKAccuracy);
         }
 
         private IDataView DropPerClassColumn(IDataView input)
         {
-            if (input.Schema.TryGetColumnIndex(MultiClassClassifierEvaluator.PerClassLogLoss, out int perClassCol))
+            if (input.Schema.TryGetColumnIndex(MulticlassClassificationEvaluator.PerClassLogLoss, out int perClassCol))
             {
-                input = ColumnSelectingTransformer.CreateDrop(Host, input, MultiClassClassifierEvaluator.PerClassLogLoss);
+                input = ColumnSelectingTransformer.CreateDrop(Host, input, MulticlassClassificationEvaluator.PerClassLogLoss);
             }
             return input;
         }
 
         public override IEnumerable<MetricColumn> GetOverallMetricColumns()
         {
-            yield return new MetricColumn("AccuracyMicro", MultiClassClassifierEvaluator.AccuracyMicro);
-            yield return new MetricColumn("AccuracyMacro", MultiClassClassifierEvaluator.AccuracyMacro);
+            yield return new MetricColumn("AccuracyMicro", MulticlassClassificationEvaluator.AccuracyMicro);
+            yield return new MetricColumn("AccuracyMacro", MulticlassClassificationEvaluator.AccuracyMacro);
             yield return new MetricColumn("TopKAccuracy", string.Format(TopKAccuracyFormat, _outputTopKAcc));
             if (_outputPerClass)
             {
                 yield return new MetricColumn("LogLoss<class name>",
-                    MultiClassClassifierEvaluator.PerClassLogLoss, MetricColumn.Objective.Minimize, isVector: true,
-                    namePattern: new Regex(string.Format(@"^{0}(?<class>.+)", MultiClassClassifierEvaluator.LogLoss), RegexOptions.IgnoreCase));
+                    MulticlassClassificationEvaluator.PerClassLogLoss, MetricColumn.Objective.Minimize, isVector: true,
+                    namePattern: new Regex(string.Format(@"^{0}(?<class>.+)", MulticlassClassificationEvaluator.LogLoss), RegexOptions.IgnoreCase));
             }
-            yield return new MetricColumn("LogLoss", MultiClassClassifierEvaluator.LogLoss, MetricColumn.Objective.Minimize);
-            yield return new MetricColumn("LogLossReduction", MultiClassClassifierEvaluator.LogLossReduction);
+            yield return new MetricColumn("LogLoss", MulticlassClassificationEvaluator.LogLoss, MetricColumn.Objective.Minimize);
+            yield return new MetricColumn("LogLossReduction", MulticlassClassificationEvaluator.LogLossReduction);
         }
 
         private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
@@ -988,10 +988,10 @@ namespace Microsoft.ML.Data
             yield return schema.Label.Value.Name;
 
             // Return the output columns.
-            yield return MultiClassPerInstanceEvaluator.Assigned;
-            yield return MultiClassPerInstanceEvaluator.LogLoss;
-            yield return MultiClassPerInstanceEvaluator.SortedScores;
-            yield return MultiClassPerInstanceEvaluator.SortedClasses;
+            yield return MulticlassPerInstanceEvaluator.Assigned;
+            yield return MulticlassPerInstanceEvaluator.LogLoss;
+            yield return MulticlassPerInstanceEvaluator.SortedScores;
+            yield return MulticlassPerInstanceEvaluator.SortedClasses;
         }
 
         // Multi-class evaluator adds four per-instance columns: "Assigned", "Top scores", "Top classes" and "Log-loss".
@@ -1012,20 +1012,20 @@ namespace Microsoft.ML.Data
             }
 
             var perInstSchema = perInst.Schema;
-            if (perInstSchema.TryGetColumnIndex(MultiClassPerInstanceEvaluator.SortedClasses, out int sortedClassesIndex))
+            if (perInstSchema.TryGetColumnIndex(MulticlassPerInstanceEvaluator.SortedClasses, out int sortedClassesIndex))
             {
                 var type = perInstSchema[sortedClassesIndex].Type;
                 // Wrap with a DropSlots transform to pick only the first _numTopClasses slots.
                 if (_numTopClasses < type.GetVectorSize())
-                    perInst = new SlotsDroppingTransformer(Host, MultiClassPerInstanceEvaluator.SortedClasses, min: _numTopClasses).Transform(perInst);
+                    perInst = new SlotsDroppingTransformer(Host, MulticlassPerInstanceEvaluator.SortedClasses, min: _numTopClasses).Transform(perInst);
             }
 
             // Wrap with a DropSlots transform to pick only the first _numTopClasses slots.
-            if (perInst.Schema.TryGetColumnIndex(MultiClassPerInstanceEvaluator.SortedScores, out int sortedScoresIndex))
+            if (perInst.Schema.TryGetColumnIndex(MulticlassPerInstanceEvaluator.SortedScores, out int sortedScoresIndex))
             {
                 var type = perInst.Schema[sortedScoresIndex].Type;
                 if (_numTopClasses < type.GetVectorSize())
-                    perInst = new SlotsDroppingTransformer(Host, MultiClassPerInstanceEvaluator.SortedScores, min: _numTopClasses).Transform(perInst);
+                    perInst = new SlotsDroppingTransformer(Host, MulticlassPerInstanceEvaluator.SortedScores, min: _numTopClasses).Transform(perInst);
             }
             return perInst;
         }
@@ -1034,7 +1034,7 @@ namespace Microsoft.ML.Data
     internal static partial class Evaluate
     {
         [TlcModule.EntryPoint(Name = "Models.ClassificationEvaluator", Desc = "Evaluates a multi class classification scored dataset.")]
-        public static CommonOutputs.ClassificationEvaluateOutput MultiClass(IHostEnvironment env, MultiClassMamlEvaluator.Arguments input)
+        public static CommonOutputs.ClassificationEvaluateOutput Multiclass(IHostEnvironment env, MulticlassClassificationMamlEvaluator.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("EvaluateMultiClass");
@@ -1042,7 +1042,7 @@ namespace Microsoft.ML.Data
             EntryPointUtils.CheckInputArgs(host, input);
 
             MatchColumns(host, input, out string label, out string weight, out string name);
-            IMamlEvaluator evaluator = new MultiClassMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new MulticlassClassificationMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, null, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 

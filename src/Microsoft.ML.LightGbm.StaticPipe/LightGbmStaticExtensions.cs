@@ -314,7 +314,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
         {
             CheckUserValues(label, features, weights, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations, onFit);
 
-            var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
+            var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new LightGbmMulticlassClassificationTrainer(env, labelName, featuresName, weightsName, numberOfLeaves,
@@ -352,7 +352,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
         {
             CheckUserValues(label, features, weights, options, onFit);
 
-            var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
+            var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     options.LabelColumnName = labelName;

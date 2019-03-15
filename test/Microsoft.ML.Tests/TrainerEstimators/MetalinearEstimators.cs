@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void OVAWithAllConstructorArgs()
         {
-            var (pipeline, data) = GetMultiClassPipeline();
+            var (pipeline, data) = GetMulticlassPipeline();
             var calibrator = new PlattCalibratorEstimator(Env);
             var averagePerceptron = ML.BinaryClassification.Trainers.AveragedPerceptron(
                 new AveragedPerceptronTrainer.Options { Shuffle = true });
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void OVAUncalibrated()
         {
-            var (pipeline, data) = GetMultiClassPipeline();
+            var (pipeline, data) = GetMulticlassPipeline();
             var sdcaTrainer = ML.BinaryClassification.Trainers.SdcaNonCalibrated(
                 new SdcaNonCalibratedBinaryClassificationTrainer.Options { MaximumNumberOfIterations = 100, Shuffle = true, NumberOfThreads = 1 });
 
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void PairwiseCouplingTrainer()
         {
-            var (pipeline, data) = GetMultiClassPipeline();
+            var (pipeline, data) = GetMulticlassPipeline();
 
             var sdcaTrainer = ML.BinaryClassification.Trainers.SdcaNonCalibrated(
                 new SdcaNonCalibratedBinaryClassificationTrainer.Options { MaximumNumberOfIterations = 100, Shuffle = true, NumberOfThreads = 1 });

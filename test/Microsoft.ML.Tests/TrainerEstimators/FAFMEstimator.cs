@@ -13,6 +13,27 @@ namespace Microsoft.ML.Tests.TrainerEstimators
     public partial class TrainerEstimators : TestDataPipeBase
     {
         [Fact]
+        public void FfmBinaryClassificationWithoutArguments()
+        {
+            var mlContext = new MLContext(seed: 0);
+            var data = DatasetUtils.GenerateFfmSamples(500);
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
+
+            var pipeline = mlContext.Transforms.CopyColumns(DefaultColumnNames.Features, nameof(DatasetUtils.FfmExample.Field0))
+                .Append(mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine());
+
+            var model = pipeline.Fit(dataView);
+            var prediction = model.Transform(dataView);
+
+            var metrics = mlContext.BinaryClassification.Evaluate(prediction);
+
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0.6, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.7, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.65, 1);
+        }
+
+        [Fact]
         public void FfmBinaryClassificationWithAdvancedArguments()
         {
             var mlContext = new MLContext(seed: 0);

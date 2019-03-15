@@ -146,12 +146,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// MultiClassNaiveBayes TrainerEstimator test 
+        /// MulticlassNaiveBayes TrainerEstimator test 
         /// </summary>
         [Fact]
-        public void TestEstimatorMultiClassNaiveBayesTrainer()
+        public void TestEstimatorMulticlassNaiveBayesTrainer()
         {
-            (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
+            (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();
             pipe = pipe.Append(ML.MulticlassClassification.Trainers.NaiveBayes("Label", "Features"));
             TestEstimatorCore(pipe, dataView);
             Done();
@@ -230,7 +230,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             };
         }
 
-        private (IEstimator<ITransformer>, IDataView) GetMultiClassPipeline()
+        private (IEstimator<ITransformer>, IDataView) GetMulticlassPipeline()
         {
             var data = new TextLoader(Env, new TextLoader.Options()
             {

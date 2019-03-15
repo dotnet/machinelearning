@@ -277,7 +277,7 @@ namespace Microsoft.ML.Data
                     if (predictor.PredictionKind == PredictionKind.BinaryClassification)
                         pred = new BinaryPredictionTransformer<IPredictorProducing<float>>(env, predictor as IPredictorProducing<float>, chain.Schema,
                             roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
-                    else if (predictor.PredictionKind == PredictionKind.MultiClassClassification)
+                    else if (predictor.PredictionKind == PredictionKind.MulticlassClassification)
                         pred = new MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>(env,
                             predictor as IPredictorProducing<VBuffer<float>>, chain.Schema,
                             roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value,

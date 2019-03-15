@@ -14,7 +14,7 @@ using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(MulticlassDataPartitionEnsembleTrainer.Summary, typeof(MulticlassDataPartitionEnsembleTrainer),
     typeof(MulticlassDataPartitionEnsembleTrainer.Arguments),
-    new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
+    new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
     MulticlassDataPartitionEnsembleTrainer.UserNameValue,
     MulticlassDataPartitionEnsembleTrainer.LoadNameValue)]
 
@@ -28,8 +28,8 @@ namespace Microsoft.ML.Trainers.Ensemble
     /// A generic ensemble classifier for multi-class classification
     /// </summary>
     internal sealed class MulticlassDataPartitionEnsembleTrainer :
-        EnsembleTrainerBase<VBuffer<Single>, EnsembleMultiClassModelParameters,
-        IMulticlassSubModelSelector, IMultiClassOutputCombiner>,
+        EnsembleTrainerBase<VBuffer<Single>, EnsembleMulticlassModelParameters,
+        IMulticlassSubModelSelector, IMulticlassOutputCombiner>,
         IModelCombiner
     {
         public const string LoadNameValue = "WeightedEnsembleMulticlass";
@@ -40,14 +40,14 @@ namespace Microsoft.ML.Trainers.Ensemble
         {
             [Argument(ArgumentType.Multiple, HelpText = "Algorithm to prune the base learners for selective Ensemble", ShortName = "pt", SortOrder = 4)]
             [TGUI(Label = "Sub-Model Selector(pruning) Type", Description = "Algorithm to prune the base learners for selective Ensemble")]
-            public ISupportMulticlassSubModelSelectorFactory SubModelSelectorType = new AllSelectorMultiClassFactory();
+            public ISupportMulticlassSubModelSelectorFactory SubModelSelectorType = new AllSelectorMulticlassFactory();
 
             [Argument(ArgumentType.Multiple, HelpText = "Output combiner", ShortName = "oc", SortOrder = 5)]
             [TGUI(Label = "Output combiner", Description = "Output combiner type")]
             public ISupportMulticlassOutputCombinerFactory OutputCombiner = new MultiMedian.Options();
 
             // REVIEW: If we make this public again it should be an *estimator* of this type of predictor, rather than the (deprecated) ITrainer.
-            [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureMultiClassClassifierTrainer))]
+            [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureMulticlassClassifierTrainer))]
             internal IComponentFactory<ITrainer<TVectorPredictor>>[] BasePredictors;
 
             internal override IComponentFactory<ITrainer<TVectorPredictor>>[] GetPredictorFactories() => BasePredictors;
@@ -85,14 +85,14 @@ namespace Microsoft.ML.Trainers.Ensemble
         private MulticlassDataPartitionEnsembleTrainer(IHostEnvironment env, Arguments args, PredictionKind predictionKind)
             : this(env, args)
         {
-            Host.CheckParam(predictionKind == PredictionKind.MultiClassClassification, nameof(PredictionKind));
+            Host.CheckParam(predictionKind == PredictionKind.MulticlassClassification, nameof(PredictionKind));
         }
 
-        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
-        private protected override EnsembleMultiClassModelParameters CreatePredictor(List<FeatureSubsetModel<VBuffer<float>>> models)
+        private protected override EnsembleMulticlassModelParameters CreatePredictor(List<FeatureSubsetModel<VBuffer<float>>> models)
         {
-            return new EnsembleMultiClassModelParameters(Host, CreateModels<TVectorPredictor>(models), Combiner as IMultiClassOutputCombiner);
+            return new EnsembleMulticlassModelParameters(Host, CreateModels<TVectorPredictor>(models), Combiner as IMulticlassOutputCombiner);
         }
 
         public IPredictor CombineModels(IEnumerable<IPredictor> models)
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             Host.CheckParam(models.All(m => m is TVectorPredictor), nameof(models));
 
             var combiner = _outputCombiner.CreateComponent(Host);
-            var predictor = new EnsembleMultiClassModelParameters(Host,
+            var predictor = new EnsembleMulticlassModelParameters(Host,
                 models.Select(k => new FeatureSubsetModel<VBuffer<float>>((TVectorPredictor)k)).ToArray(),
                 combiner);
             return predictor;

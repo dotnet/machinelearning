@@ -45,6 +45,6 @@ namespace Microsoft.ML.Trainers.Ensemble
     [TlcModule.Component(Name = MultiVoting.LoadName, FriendlyName = Voting.UserName)]
     internal sealed class MultiVotingFactory : ISupportMulticlassOutputCombinerFactory
     {
-        public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiVoting(env);
+        public IMulticlassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiVoting(env);
     }
 }

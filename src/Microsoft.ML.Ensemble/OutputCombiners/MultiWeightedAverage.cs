@@ -42,7 +42,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
         public sealed class Options : OptionsBase, ISupportMulticlassOutputCombinerFactory
         {
-            IMultiClassOutputCombiner IComponentFactory<IMultiClassOutputCombiner>.CreateComponent(IHostEnvironment env) => new MultiWeightedAverage(env, this);
+            IMulticlassOutputCombiner IComponentFactory<IMulticlassOutputCombiner>.CreateComponent(IHostEnvironment env) => new MultiWeightedAverage(env, this);
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The metric type to be used to find the weights for each model", ShortName = "wn", SortOrder = 50)]
             [TGUI(Label = "Metric Name", Description = "The weights are calculated according to the selected metric")]
@@ -97,9 +97,9 @@ namespace Microsoft.ML.Trainers.Ensemble
     // These values are serialized, so should not be changed.
     internal enum MultiWeightageKind
     {
-        [TGUI(Label = MultiClassClassifierEvaluator.AccuracyMicro)]
+        [TGUI(Label = MulticlassClassificationEvaluator.AccuracyMicro)]
         AccuracyMicroAvg = 0,
-        [TGUI(Label = MultiClassClassifierEvaluator.AccuracyMacro)]
+        [TGUI(Label = MulticlassClassificationEvaluator.AccuracyMacro)]
         AccuracyMacroAvg = 1
     }
 }

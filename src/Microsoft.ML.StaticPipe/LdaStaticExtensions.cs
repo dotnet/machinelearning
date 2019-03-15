@@ -20,8 +20,8 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="result"></param>
         public delegate void OnFit(LatentDirichletAllocationFitResult result);
 
-        public LatentDirichletAllocationTransformer.LdaSummary LdaTopicSummary;
-        public LatentDirichletAllocationFitResult(LatentDirichletAllocationTransformer.LdaSummary ldaTopicSummary)
+        public LatentDirichletAllocationTransformer.ModelParameters LdaTopicSummary;
+        public LatentDirichletAllocationFitResult(LatentDirichletAllocationTransformer.ModelParameters ldaTopicSummary)
         {
             LdaTopicSummary = ldaTopicSummary;
         }
@@ -43,11 +43,11 @@ namespace Microsoft.ML.StaticPipe
             public readonly int NumberOfBurninIterations;
             public readonly bool ResetRandomGenerator;
 
-            public readonly Action<LatentDirichletAllocationTransformer.LdaSummary> OnFit;
+            public readonly Action<LatentDirichletAllocationTransformer.ModelParameters> OnFit;
 
             public Config(int numberOfTopics, Single alphaSum, Single beta, int samplingStepCount, int maximumNumberOfIterations, int likelihoodInterval,
                 int numberOfThreads, int maximumTokenCountPerDocument, int numberOfSummaryTermsPerTopic, int numberOfBurninIterations, bool resetRandomGenerator,
-                Action<LatentDirichletAllocationTransformer.LdaSummary> onFit)
+                Action<LatentDirichletAllocationTransformer.ModelParameters> onFit)
             {
                 NumberOfTopics = numberOfTopics;
                 AlphaSum = alphaSum;
@@ -65,7 +65,7 @@ namespace Microsoft.ML.StaticPipe
             }
         }
 
-        private static Action<LatentDirichletAllocationTransformer.LdaSummary> Wrap(LatentDirichletAllocationFitResult.OnFit onFit)
+        private static Action<LatentDirichletAllocationTransformer.ModelParameters> Wrap(LatentDirichletAllocationFitResult.OnFit onFit)
         {
             if (onFit == null)
                 return null;
