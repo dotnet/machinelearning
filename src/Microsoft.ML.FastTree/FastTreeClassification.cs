@@ -98,7 +98,10 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
     }
 
-    /// <include file = 'doc.xml' path='doc/members/member[@name="FastTree"]/*' />
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a decision tree binary classification model using FastTree.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="FastTree_remarks"]/*' />
     public sealed partial class FastTreeBinaryClassificationTrainer :
         BoostingFastTreeTrainerBase<FastTreeBinaryClassificationTrainer.Options,
         BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>>,

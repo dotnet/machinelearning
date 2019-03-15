@@ -34,8 +34,8 @@ namespace Microsoft.ML.Transforms
     internal delegate void SignatureKernelBase();
 
     /// <summary>
-    /// This class indicates which kernel should be approximated by the <see cref="RandomFourierExpansionTransformer"/>.
-    /// <seealso cref="RandomFourierKernelMappingEstimator"/>.
+    /// This class indicates which kernel should be approximated by the <see cref="ApproximatedKernelTransformer"/>.
+    /// <seealso cref="ApproximatedKernelMappingEstimator"/>.
     /// </summary>
     public abstract class KernelBase
     {

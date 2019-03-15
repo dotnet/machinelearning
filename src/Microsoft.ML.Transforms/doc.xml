@@ -203,9 +203,9 @@
       </example>
     </example>
   
-    <member name="LpNormalize">
+    <member name="LpNormNormalize">
       <summary>
-         The LpNormalizer transforms, normalizes vectors (rows) individually by rescaling them to unit norm (L2, L1 or LInf). 
+         The LpNormNormalizer transforms, normalizes vectors (rows) individually by rescaling them to unit norm (L2, L1 or LInf). 
          <para>Performs the following operation on a vector X:</para> 
          <para>Y = (X - M) / D</para> 
          <para>where M is mean and D is either L2 norm, L1 norm or LInf norm.</para>
@@ -215,14 +215,6 @@
         For more information see: <a href="https://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf"></a>
       </remarks>
       <seealso cref=" Microsoft.ML.Transforms.GlobalContrastNormalizingEstimator"></seealso>
-      <example>
-        <code language="csharp">
-          pipeline.Add(new LpNormalizer(&quot;FeatureCol&quot;)
-          { 
-              NormKind = LpNormNormalizerTransformNormalizerKind.L1Norm
-          });
-        </code>
-      </example>
     </member>
     
   <member name="GcNormalize">
@@ -236,7 +228,7 @@
         For more information see: 
         <a href="https://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf">An Analysis of Single-Layer Networks in Unsupervised Feature Learning</a>
       </remarks>
-      <seealso cref="Microsoft.ML.Transforms.LpNormalizingEstimator"></seealso>
+      <seealso cref="Microsoft.ML.Transforms.LpNormNormalizingEstimator"></seealso>
       <example>
         <code language="csharp">
           pipeline.Add(new GlobalContrastNormalizer(&quot;FeatureCol&quot;)

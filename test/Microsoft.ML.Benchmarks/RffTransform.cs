@@ -43,7 +43,7 @@ namespace Microsoft.ML.Benchmarks
 
             var data = loader.Load(_dataPath_Digits);
 
-            var pipeline = mlContext.Transforms.RandomFourierKernelMap("FeaturesRFF", "Features")
+            var pipeline = mlContext.Transforms.ApproximatedKernelMap("FeaturesRFF", "Features")
             .AppendCacheCheckpoint(mlContext)
             .Append(mlContext.Transforms.Concatenate("Features", "FeaturesRFF"))
             .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))

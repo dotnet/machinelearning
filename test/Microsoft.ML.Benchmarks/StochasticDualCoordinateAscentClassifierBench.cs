@@ -43,9 +43,14 @@ namespace Microsoft.ML.Benchmarks
         protected override IEnumerable<Metric> GetMetrics()
         {
             if (_metrics != null)
+            {
+                yield return new Metric(
+                    nameof(MulticlassClassificationMetrics.MicroAccuracy),
+                    _metrics.MicroAccuracy.ToString("0.##", CultureInfo.InvariantCulture));
                 yield return new Metric(
                     nameof(MulticlassClassificationMetrics.MacroAccuracy),
                     _metrics.MacroAccuracy.ToString("0.##", CultureInfo.InvariantCulture));
+            }
         }
 
         [Benchmark]
