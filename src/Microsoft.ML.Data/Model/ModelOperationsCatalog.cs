@@ -40,6 +40,11 @@ namespace Microsoft.ML
         /// <returns>The loaded model.</returns>
         public ITransformer Load(Stream stream) => TransformerChain.LoadFrom(_env, stream);
 
+        /// <summary>
+        /// Load the model from a filePath of the model.
+        /// </summary>
+        /// <param name="modelPath">The path of the model to load./></param>
+        /// <returns>The loaded model.</returns>
         public ITransformer Load(string modelPath) => TransformerChain.LoadFromPath(_env, modelPath);
 
         /// <summary>
