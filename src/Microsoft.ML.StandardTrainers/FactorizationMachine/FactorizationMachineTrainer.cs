@@ -131,7 +131,7 @@ namespace Microsoft.ML.Trainers
         /// The <see cref="TrainerInfo"/> containing at least the training data for this trainer.
         /// </summary>
         TrainerInfo ITrainer.Info => _info;
-        private static readonly TrainerInfo _info = new TrainerInfo(supportValid: true, supportIncrementalTrain: true);
+        private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, supportValid: true, supportIncrementalTrain: true);
 
         private int _latentDim;
         private int _latentDimAligned;
