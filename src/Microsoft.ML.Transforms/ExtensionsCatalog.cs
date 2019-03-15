@@ -29,6 +29,12 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
         /// If left to <value>null</value> the <paramref name="inputColumnName"/> will get replaced.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/IndicateMissingValues.cs)]
+        /// ]]></format>
+        /// </example>
         public static MissingValueIndicatorEstimator IndicateMissingValues(this TransformsCatalog catalog,
             string outputColumnName,
             string inputColumnName = null)
@@ -46,6 +52,12 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
         /// If not provided, the <paramref name="inputColumnName"/> will be replaced with the results of the transforms.</param>
         /// <param name="replacementMode">The type of replacement to use as specified in <see cref="MissingValueReplacingEstimator.ColumnOptions.ReplacementMode"/></param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ReplaceMissingValues.cs)]
+        /// ]]></format>
+        /// </example>
         public static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog,
             string outputColumnName,
             string inputColumnName = null,
