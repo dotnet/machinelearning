@@ -62,7 +62,6 @@ namespace Microsoft.ML.CLI
                          .UseDefaults()
                          .Build();
 
-
             parser.InvokeAsync(args).Wait();
         }
     }

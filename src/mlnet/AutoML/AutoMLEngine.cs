@@ -24,15 +24,15 @@ namespace Microsoft.ML.CLI.CodeGenerator
             this.enableCaching = Utils.GetCacheSettings(settings.Cache);
         }
 
-        public ColumnInferenceResults InferColumns(MLContext context)
+        public ColumnInferenceResults InferColumns(MLContext context, ColumnInformation columnInformation)
         {
             //Check what overload method of InferColumns needs to be called.
             logger.Log(LogLevel.Info, Strings.InferColumns);
             ColumnInferenceResults columnInference = null;
             var dataset = settings.Dataset.FullName;
-            if (settings.LabelColumnName != null)
+            if (columnInformation.LabelColumn != null)
             {
-                columnInference = context.Auto().InferColumns(dataset, settings.LabelColumnName, groupColumns: false);
+                columnInference = context.Auto().InferColumns(dataset, columnInformation, groupColumns: false);
             }
             else
             {
@@ -42,7 +42,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             return columnInference;
         }
 
-        (Pipeline, ITransformer) IAutoMLEngine.ExploreModels(MLContext context, IDataView trainData, IDataView validationData, string labelName)
+        (Pipeline, ITransformer) IAutoMLEngine.ExploreModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation)
         {
             ITransformer model = null;
 
@@ -58,7 +58,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                         ProgressHandler = progressReporter,
                         EnableCaching = this.enableCaching
                     })
-                    .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = labelName });
+                    .Execute(trainData, validationData, columnInformation);
                 logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
                 var bestIteration = result.Best();
                 pipeline = bestIteration.Pipeline;
@@ -74,7 +74,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                         MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
                         ProgressHandler = progressReporter,
                         EnableCaching = this.enableCaching
-                    }).Execute(trainData, validationData, new ColumnInformation() { LabelColumn = labelName });
+                    }).Execute(trainData, validationData, columnInformation);
                 logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
                 var bestIteration = result.Best();
                 pipeline = bestIteration.Pipeline;
@@ -100,7 +100,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
                 var result = context.Auto()
                 .CreateMulticlassClassificationExperiment(experimentSettings)
-                    .Execute(trainData, validationData, new ColumnInformation() { LabelColumn = labelName });
+                    .Execute(trainData, validationData, columnInformation);
                 logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
                 var bestIteration = result.Best();
                 pipeline = bestIteration.Pipeline;

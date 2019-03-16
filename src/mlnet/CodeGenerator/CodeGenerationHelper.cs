@@ -36,7 +36,13 @@ namespace Microsoft.ML.CLI.CodeGenerator
             ColumnInferenceResults columnInference = null;
             try
             {
-                columnInference = automlEngine.InferColumns(context);
+                var inputColumnInformation = new ColumnInformation();
+                inputColumnInformation.LabelColumn = settings.LabelColumnName;
+                foreach (var value in settings.IgnoreColumns)
+                {
+                    inputColumnInformation.IgnoredColumns.Add(value);
+                }
+                columnInference = automlEngine.InferColumns(context, inputColumnInformation);
             }
             catch (Exception e)
             {
@@ -47,20 +53,22 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 return;
             }
 
-            // Sanitize columns
-            Array.ForEach(columnInference.TextLoaderOptions.Columns, t => t.Name = Utils.Sanitize(t.Name));
+            var textLoaderOptions = columnInference.TextLoaderOptions;
+            var columnInformation = columnInference.ColumnInformation;
 
-            var sanitizedLabelName = Utils.Sanitize(columnInference.ColumnInformation.LabelColumn);
+            // Sanitization of input data.
+            Array.ForEach(textLoaderOptions.Columns, t => t.Name = Utils.Sanitize(t.Name));
+            columnInformation = Utils.GetSanitizedColumnInformation(columnInformation);
 
             // Load data
-            (IDataView trainData, IDataView validationData) = LoadData(context, columnInference.TextLoaderOptions);
+            (IDataView trainData, IDataView validationData) = LoadData(context, textLoaderOptions);
 
             // Explore the models
             (Pipeline, ITransformer) result = default;
             Console.WriteLine($"{Strings.ExplorePipeline}: {settings.MlTask}");
             try
             {
-                result = automlEngine.ExploreModels(context, trainData, validationData, sanitizedLabelName);
+                result = automlEngine.ExploreModels(context, trainData, validationData, columnInformation);
             }
             catch (Exception e)
             {
@@ -82,7 +90,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             Utils.SaveModel(model, modelPath, context);
 
             // Generate the Project
-            GenerateProject(columnInference, pipeline, sanitizedLabelName, modelPath);
+            GenerateProject(columnInference, pipeline, columnInformation.LabelColumn, modelPath);
         }
 
         internal void GenerateProject(ColumnInferenceResults columnInference, Pipeline pipeline, string labelName, FileInfo modelPath)

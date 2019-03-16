@@ -10,9 +10,9 @@ namespace Microsoft.ML.CLI.CodeGenerator
 {
     internal interface IAutoMLEngine
     {
-        ColumnInferenceResults InferColumns(MLContext context);
+        ColumnInferenceResults InferColumns(MLContext context, ColumnInformation columnInformation);
 
-        (Pipeline, ITransformer) ExploreModels(MLContext context, IDataView trainData, IDataView validationData, string labelName);
+        (Pipeline, ITransformer) ExploreModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation);
 
     }
 }

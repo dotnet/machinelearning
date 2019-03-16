@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
 using System.IO;
+using System.Linq;
 using Microsoft.ML.CLI.Commands;
 using Microsoft.ML.CLI.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -30,6 +33,10 @@ namespace mlnet.Test
                         // Parser
                         .AddCommand(CommandDefinitions.New(handler))
                         .UseDefaults()
+                        .UseExceptionHandler((e, ctx) =>
+                        {
+                            Console.WriteLine(e.ToString());
+                        })
                         .Build();
 
             var trainDataset = Path.GetTempFileName();
@@ -58,6 +65,10 @@ namespace mlnet.Test
                         // parser
                         .AddCommand(CommandDefinitions.New(handler))
                         .UseDefaults()
+                        .UseExceptionHandler((e, ctx) =>
+                        {
+                            Console.WriteLine(e.ToString());
+                        })
                         .Build();
 
             // Incorrect mltask test
@@ -96,29 +107,33 @@ namespace mlnet.Test
             var validDataset = Path.GetTempFileName();
             var labelName = "Label";
             var name = "testname";
-            var outputPath = ".";
+            var outputPath = "x:\\mlnet";
             var falseString = "false";
 
             // Create handler outside so that commandline and the handler is decoupled and testable.
             var handler = CommandHandler.Create<NewCommandSettings>(
                 (opt) =>
                 {
-                    parsingSuccessful = true;
                     Assert.AreEqual(opt.MlTask, "binary-classification");
-                    Assert.AreEqual(opt.Dataset, trainDataset);
-                    Assert.AreEqual(opt.TestDataset, testDataset);
-                    Assert.AreEqual(opt.ValidationDataset, validDataset);
+                    Assert.AreEqual(opt.Dataset.FullName, trainDataset);
+                    Assert.AreEqual(opt.TestDataset.FullName, testDataset);
+                    Assert.AreEqual(opt.ValidationDataset.FullName, validDataset);
                     Assert.AreEqual(opt.LabelColumnName, labelName);
-                    Assert.AreEqual(opt.MaxExplorationTime, 5);
+                    Assert.AreEqual(opt.MaxExplorationTime, (uint)5);
                     Assert.AreEqual(opt.Name, name);
-                    Assert.AreEqual(opt.OutputPath, outputPath);
+                    Assert.AreEqual(opt.OutputPath.FullName, outputPath);
                     Assert.AreEqual(opt.HasHeader, bool.Parse(falseString));
+                    parsingSuccessful = true;
                 });
 
             var parser = new CommandLineBuilder()
                         // Parser
                         .AddCommand(CommandDefinitions.New(handler))
                         .UseDefaults()
+                        .UseExceptionHandler((e, ctx) =>
+                        {
+                            Console.WriteLine(e.ToString());
+                        })
                         .Build();
 
             // Incorrect mltask test
@@ -151,6 +166,10 @@ namespace mlnet.Test
                         // Parser
                         .AddCommand(CommandDefinitions.New(handler))
                         .UseDefaults()
+                        .UseExceptionHandler((e, ctx) =>
+                        {
+                            Console.WriteLine(e.ToString());
+                        })
                         .Build();
 
             // Incorrect arguments : specifying dataset and train-dataset
@@ -186,17 +205,21 @@ namespace mlnet.Test
             var handler = CommandHandler.Create<NewCommandSettings>(
                 (opt) =>
                 {
-                    parsingSuccessful = true;
                     Assert.AreEqual(opt.MlTask, "binary-classification");
-                    Assert.AreEqual(opt.Dataset, trainDataset);
+                    Assert.AreEqual(opt.Dataset.FullName, trainDataset);
                     Assert.AreEqual(opt.LabelColumnName, labelName);
                     Assert.AreEqual(opt.Cache, cache);
+                    parsingSuccessful = true;
                 });
 
             var parser = new CommandLineBuilder()
                         // Parser
                         .AddCommand(CommandDefinitions.New(handler))
                         .UseDefaults()
+                        .UseExceptionHandler((e, ctx) =>
+                        {
+                            Console.WriteLine(e.ToString());
+                        })
                         .Build();
 
             // valid cache test
@@ -226,6 +249,44 @@ namespace mlnet.Test
             args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--cache", "blah" };
             parser.InvokeAsync(args).Wait();
             Assert.IsFalse(parsingSuccessful);
+
+            File.Delete(trainDataset);
+            File.Delete(testDataset);
+        }
+
+        [TestMethod]
+        public void IgnoreColumnsArgumentTest()
+        {
+            bool parsingSuccessful = false;
+            var trainDataset = Path.GetTempFileName();
+            var testDataset = Path.GetTempFileName();
+            var labelName = "Label";
+
+            // Create handler outside so that commandline and the handler is decoupled and testable.
+            var handler = CommandHandler.Create<NewCommandSettings>(
+                (opt) =>
+                {
+                    Assert.AreEqual(opt.MlTask, "binary-classification");
+                    Assert.AreEqual(opt.Dataset.FullName, trainDataset);
+                    Assert.AreEqual(opt.LabelColumnName, labelName);
+                    Assert.IsTrue(opt.IgnoreColumns.SequenceEqual(new List<string>() { "a", "b", "c" }));
+                    parsingSuccessful = true;
+                });
+
+            var parser = new CommandLineBuilder()
+                        // Parser
+                        .AddCommand(CommandDefinitions.New(handler))
+                        .UseDefaults()
+                        .UseExceptionHandler((e, ctx) =>
+                        {
+                            Console.WriteLine(e.ToString());
+                        })
+                        .Build();
+
+            // valid cache test
+            string[] args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--ignore-columns", "a", "b", "c" };
+            parser.InvokeAsync(args).Wait();
+            Assert.IsTrue(parsingSuccessful);
 
             File.Delete(trainDataset);
             File.Delete(testDataset);

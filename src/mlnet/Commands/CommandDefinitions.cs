@@ -30,7 +30,8 @@ namespace Microsoft.ML.CLI.Commands
                                 Name(),
                                 OutputPath(),
                                 HasHeader(),
-                                Cache()
+                                Cache(),
+                                IgnoreColumns()
             };
 
             newCommand.Argument.AddValidator((sym) =>
@@ -51,6 +52,11 @@ namespace Microsoft.ML.CLI.Commands
                 {
                     return "The following options are mutually exclusive please provide only one : --label-column-name, --label-column-index";
                 }
+                if (sym.Children["--label-column-index"] != null && sym.Children["--ignore-columns"] != null)
+                {
+                    return "Currently we don't support specifying --ignore-columns in conjunction with --label-column-index";
+                }
+
                 return null;
             });
 
@@ -103,6 +109,10 @@ namespace Microsoft.ML.CLI.Commands
             Option Cache() =>
  new Option(new List<string>() { "--cache" }, "Specify on/off/auto if you want cache to be turned on, off or auto determined.",
 new Argument<string>(defaultValue: "auto").FromAmong(GetCacheSuggestions()));
+
+            Option IgnoreColumns() =>
+new Option(new List<string>() { "--ignore-columns" }, "Specify the columns that needs to be ignored in the given dataset.",
+new Argument<List<string>>());
 
         }
 

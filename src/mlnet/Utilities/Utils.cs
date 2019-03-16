@@ -91,5 +91,41 @@ namespace Microsoft.ML.CLI.Utilities
             }
         }
 
+        internal static ColumnInformation GetSanitizedColumnInformation(ColumnInformation columnInformation)
+        {
+            var result = new ColumnInformation();
+
+            result.LabelColumn = Sanitize(columnInformation.LabelColumn);
+
+            if (!string.IsNullOrEmpty(columnInformation.WeightColumn))
+                result.WeightColumn = Sanitize(columnInformation.WeightColumn);
+
+            if (!string.IsNullOrEmpty(columnInformation.SamplingKeyColumn))
+                result.SamplingKeyColumn = Sanitize(columnInformation.SamplingKeyColumn);
+
+            foreach (var value in columnInformation.CategoricalColumns)
+            {
+                result.CategoricalColumns.Add(Sanitize(value));
+            }
+
+            foreach (var value in columnInformation.IgnoredColumns)
+            {
+                result.IgnoredColumns.Add(Sanitize(value));
+            }
+
+            foreach (var value in columnInformation.NumericColumns)
+            {
+                result.NumericColumns.Add(Sanitize(value));
+            }
+
+            foreach (var value in columnInformation.TextColumns)
+            {
+                result.TextColumns.Add(Sanitize(value));
+            }
+
+
+            return result;
+        }
+
     }
 }
