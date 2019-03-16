@@ -1,7 +1,7 @@
 <Project>
   <!-- Directory.Build.props contains the common build settings for all projects in the repo. -->
 
-  <Import Project="$(RepoRoot)build/BranchInfo.props" />
+  <Import Project="build/BranchInfo.props" />
   <Import Project="build/Dependencies.props" />
 
   <PropertyGroup>
