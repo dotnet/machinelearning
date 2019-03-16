@@ -36,7 +36,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
                         {
                             LabelColumnName = "LabelIndex",
                             FeatureColumnName = "Features",
-                            BoosterParameter = new DartBooster.Options()
+                            Booster = new DartBooster.Options()
                             {
                                 TreeDropFraction = 0.15,
                                 XgboostDartMode = false

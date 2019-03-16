@@ -20,7 +20,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var pipeline = mlContext.BinaryClassification.Trainers.LightGbm(
                                 new LightGbmBinaryClassificationTrainer.Options
                                 {
-                                    BoosterParameter = new GossBooster.Options
+                                    Booster = new GossBooster.Options
                                     {
                                         TopRate = 0.3,
                                         OtherRate = 0.2

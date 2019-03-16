@@ -106,8 +106,26 @@ namespace Microsoft.ML.Trainers.LightGbm
                 Default,
                 Logloss,
                 Error,
-                Auc,
+                AreaUnderCurve,
             };
+
+            /// <summary>
+            /// Whether training data is unbalanced.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Use for binary classification when training data is not balanced.", ShortName = "us")]
+            public bool UnbalancedSets = false;
+
+            /// <summary>
+            /// Controls the balance of positive and negative weights in <see cref="LightGbmBinaryClassificationTrainer"/>.
+            /// </summary>
+            /// <value>
+            /// This is useful for training on unbalanced data. A typical value to consider is sum(negative cases) / sum(positive cases).
+            /// </value>
+            [Argument(ArgumentType.AtMostOnce,
+                HelpText = "Control the balance of positive and negative weights, useful for unbalanced classes." +
+                " A typical value to consider: sum(negative cases) / sum(positive cases).",
+                ShortName = "ScalePosWeight")]
+            public double WeightOfPositiveExamples = 1;
 
             /// <summary>
             /// Parameter for the sigmoid function.
@@ -126,16 +144,19 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             static Options()
             {
-                NameMapping.Add(nameof(EvaluateMetricType), "metric");
-                NameMapping.Add(nameof(EvaluateMetricType.None), "");
-                NameMapping.Add(nameof(EvaluateMetricType.Logloss), "binary_logloss");
-                NameMapping.Add(nameof(EvaluateMetricType.Error), "binary_error");
-                NameMapping.Add(nameof(EvaluateMetricType.Auc), "auc");
+                NameMapping.Add(nameof(EvaluateMetricType),                 "metric");
+                NameMapping.Add(nameof(EvaluateMetricType.None),            "");
+                NameMapping.Add(nameof(EvaluateMetricType.Logloss),         "binary_logloss");
+                NameMapping.Add(nameof(EvaluateMetricType.Error),           "binary_error");
+                NameMapping.Add(nameof(EvaluateMetricType.AreaUnderCurve),  "auc");
+                NameMapping.Add(nameof(WeightOfPositiveExamples),           "scale_pos_weight");
             }
 
             internal override Dictionary<string, object> ToDictionary(IHost host)
             {
                 var res = base.ToDictionary(host);
+                res[GetOptionName(nameof(UnbalancedSets))] = UnbalancedSets;
+                res[GetOptionName(nameof(WeightOfPositiveExamples))] = WeightOfPositiveExamples;
                 res[GetOptionName(nameof(Sigmoid))] = Sigmoid;
                 if(EvaluationMetric != EvaluateMetricType.Default)
                     res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
@@ -148,6 +169,7 @@ namespace Microsoft.ML.Trainers.LightGbm
              : base(env, LoadNameValue, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             Contracts.CheckUserArg(options.Sigmoid > 0, nameof(Options.Sigmoid), "must be > 0.");
+            Contracts.CheckUserArg(options.WeightOfPositiveExamples > 0, nameof(Options.WeightOfPositiveExamples), "must be >= 0.");
         }
 
         /// <summary>

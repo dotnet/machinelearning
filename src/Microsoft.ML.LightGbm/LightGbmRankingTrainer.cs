@@ -92,8 +92,8 @@ namespace Microsoft.ML.Trainers.LightGbm
             {
                 None,
                 Default,
-                Map,
-                Ndcg
+                MeanAveragedPrecision,
+                NormalizedDiscountedCumulativeGain
             };
 
             /// <summary>
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Comma seperated list of gains associated to each relevance label.", ShortName = "gains")]
             [TGUI(Label = "Ranking Label Gain")]
-            public string CustomGains = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
+            public int[] CustomGains = { 0,3,7,15,31,63,127,255,511,1023,2047,4095 };
 
             /// <summary>
             /// Parameter for the sigmoid function.
@@ -116,22 +116,22 @@ namespace Microsoft.ML.Trainers.LightGbm
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Evaluation metrics.",
                 ShortName = "em")]
-            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Ndcg;
+            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.NormalizedDiscountedCumulativeGain;
 
             static Options()
             {
                 NameMapping.Add(nameof(CustomGains), "label_gain");
                 NameMapping.Add(nameof(EvaluateMetricType), "metric");
                 NameMapping.Add(nameof(EvaluateMetricType.None), "");
-                NameMapping.Add(nameof(EvaluateMetricType.Map), "map");
-                NameMapping.Add(nameof(EvaluateMetricType.Ndcg), "ndcg");
+                NameMapping.Add(nameof(EvaluateMetricType.MeanAveragedPrecision), "map");
+                NameMapping.Add(nameof(EvaluateMetricType.NormalizedDiscountedCumulativeGain), "ndcg");
             }
 
             internal override Dictionary<string, object> ToDictionary(IHost host)
             {
                 var res = base.ToDictionary(host);
                 res[GetOptionName(nameof(Sigmoid))] = Sigmoid;
-                res[GetOptionName(nameof(CustomGains))] = CustomGains;
+                res[GetOptionName(nameof(CustomGains))] = string.Join(",",CustomGains);
                 if(EvaluationMetric != EvaluateMetricType.Default)
                     res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
 

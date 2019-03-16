@@ -26,7 +26,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
                     MinimumExampleCountPerGroup = 10,
                     LearningRate = 0.1,
                     NumberOfIterations = 2,
-                    BoosterParameter = new GradientBooster.Options
+                    Booster = new GradientBooster.Options
                     {
                         FeatureFraction = 0.9
                     }

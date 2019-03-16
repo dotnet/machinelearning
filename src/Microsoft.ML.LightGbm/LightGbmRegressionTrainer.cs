@@ -95,8 +95,9 @@ namespace Microsoft.ML.Trainers.LightGbm
             {
                 None,
                 Default,
-                Mae,
-                Rmse,
+                MeanAbsoluteError,
+                RootMeanSquaredError,
+                MeanSquaredError
             };
 
             /// <summary>
@@ -105,14 +106,15 @@ namespace Microsoft.ML.Trainers.LightGbm
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Evaluation metrics.",
                 ShortName = "em")]
-            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Rmse;
+            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.RootMeanSquaredError;
 
             static Options()
             {
                 NameMapping.Add(nameof(EvaluateMetricType), "metric");
                 NameMapping.Add(nameof(EvaluateMetricType.None), "");
-                NameMapping.Add(nameof(EvaluateMetricType.Mae), "mae");
-                NameMapping.Add(nameof(EvaluateMetricType.Rmse), "rmse");
+                NameMapping.Add(nameof(EvaluateMetricType.MeanAbsoluteError), "mae");
+                NameMapping.Add(nameof(EvaluateMetricType.RootMeanSquaredError), "rmse");
+                NameMapping.Add(nameof(EvaluateMetricType.MeanSquaredError), "mse");
             }
 
             internal override Dictionary<string, object> ToDictionary(IHost host)

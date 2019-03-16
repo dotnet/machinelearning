@@ -39,14 +39,12 @@ namespace Microsoft.ML.Trainers.LightGbm
            {nameof(OptionsBase.SubsampleFrequency),             "subsample_freq"},
            {nameof(OptionsBase.L1Regularization),               "reg_alpha"},
            {nameof(OptionsBase.L2Regularization),               "reg_lambda"},
-           {nameof(OptionsBase.WeightOfPositiveExamples),       "scale_pos_weight"}
         };
 
         public abstract class OptionsBase : IBoosterParameterFactory
         {
-            internal BoosterParameterBase GetBooster() { return null; }
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Use for binary classification when training data is not balanced.", ShortName = "us")] public bool UnbalancedSets = false;
+            internal BoosterParameterBase GetBooster() { return null; }
 
             /// <summary>
             /// The minimum loss reduction required to make a further partition on a leaf node of the tree.
@@ -155,18 +153,6 @@ namespace Microsoft.ML.Trainers.LightGbm
             [TlcModule.SweepableDiscreteParam("RegAlpha", new object[] { 0f, 0.5f, 1f })]
             public double L1Regularization = 0;
 
-            /// <summary>
-            /// Controls the balance of positive and negative weights in <see cref="LightGbmBinaryClassificationTrainer"/>.
-            /// </summary>
-            /// <value>
-            /// This is useful for training on unbalanced data. A typical value to consider is sum(negative cases) / sum(positive cases).
-            /// </value>
-            [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Control the balance of positive and negative weights, useful for unbalanced classes." +
-                " A typical value to consider: sum(negative cases) / sum(positive cases).",
-                ShortName = "ScalePosWeight")]
-            public double WeightOfPositiveExamples = 1;
-
             BoosterParameterBase IComponentFactory<BoosterParameterBase>.CreateComponent(IHostEnvironment env)
             {
                 return BuildOptions();
@@ -205,12 +191,20 @@ namespace Microsoft.ML.Trainers.LightGbm
         private protected OptionsBase BoosterOptions;
     }
 
+    /// <summary>
+    /// Gradient boosting decision tree.
+    /// </summary>
+    /// <remarks>
+    /// For details, please see <a href="https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting">gradient tree boosting</a>.
+    /// </remarks>
     public sealed class GradientBooster : BoosterParameterBase
     {
-        //internal const string Name = "gbdt";
-        internal const string FriendlyName = "Tree Booster";
         internal const string Name = "gbdt";
+        internal const string FriendlyName = "Tree Booster";
 
+        /// <summary>
+        /// The options for <see cref="GradientBooster"/>, used for setting <see cref="Booster"/>.
+        /// </summary>
         [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Traditional Gradient Boosting Decision Tree.")]
         public sealed class Options : OptionsBase
         {
@@ -225,7 +219,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             Contracts.CheckUserArg(options.FeatureFraction > 0 && options.FeatureFraction <= 1, nameof(Options.FeatureFraction), "must be in (0,1].");
             Contracts.CheckUserArg(options.L2Regularization >= 0, nameof(Options.L2Regularization), "must be >= 0.");
             Contracts.CheckUserArg(options.L1Regularization >= 0, nameof(Options.L1Regularization), "must be >= 0.");
-            Contracts.CheckUserArg(options.WeightOfPositiveExamples > 0, nameof(Options.WeightOfPositiveExamples), "must be >= 0.");
+
             BoosterOptions = options;
         }
 
@@ -234,11 +228,20 @@ namespace Microsoft.ML.Trainers.LightGbm
         internal override string BoosterName => Name;
     }
 
+    /// <summary>
+    /// DART booster (Dropouts meet Multiple Additive Regression Trees)
+    /// </summary>
+    /// <remarks>
+    /// For details, please see <a href="https://arxiv.org/abs/1505.01866">here</a>.
+    /// </remarks>
     public sealed class DartBooster : BoosterParameterBase
     {
         internal const string Name = "dart";
         internal const string FriendlyName = "Tree Dropout Tree Booster";
 
+        /// <summary>
+        /// The options for <see cref="DartBooster"/>, used for setting <see cref="Booster"/>.
+        /// </summary>
         [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Dropouts meet Multiple Additive Regresion Trees. See https://arxiv.org/abs/1505.01866")]
         public sealed class Options : OptionsBase
         {
@@ -311,6 +314,9 @@ namespace Microsoft.ML.Trainers.LightGbm
         internal const string Name = "goss";
         internal const string FriendlyName = "Gradient-based One-Size Sampling";
 
+        /// <summary>
+        /// The options for <see cref="GossBooster"/>, used for setting <see cref="Booster"/>.
+        /// </summary>
         [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Gradient-based One-Side Sampling.")]
         public sealed class Options : OptionsBase
         {
@@ -334,7 +340,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         internal GossBooster(Options options)
         {
             Contracts.CheckUserArg(options.TopRate > 0 && options.TopRate < 1, nameof(Options.TopRate), "must be in (0,1).");
-            Contracts.CheckUserArg(options.OtherRate >= 0 && options.OtherRate < 1, nameof(Options.TopRate), "must be in [0,1).");
+            Contracts.CheckUserArg(options.OtherRate >= 0 && options.OtherRate < 1, nameof(Options.OtherRate), "must be in [0,1).");
             Contracts.Check(options.TopRate + options.OtherRate <= 1, "Sum of topRate and otherRate cannot be larger than 1.");
             BoosterOptions = options;
         }

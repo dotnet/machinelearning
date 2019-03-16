@@ -121,8 +121,11 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// <value>
             /// Available boosters are <see cref="DartBooster"/>, <see cref="GossBooster"/>, and <see cref="GradientBooster"/>.
             /// </value>
-            [Argument(ArgumentType.Multiple, HelpText = "Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.", SortOrder = 3)]
-            internal IBoosterParameterFactory Booster = new GradientBooster.Options();
+            [Argument(ArgumentType.Multiple,
+                        HelpText = "Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.",
+                        Name="Booster",
+                        SortOrder = 3)]
+            internal IBoosterParameterFactory BoosterFactory = new GradientBooster.Options();
 
             /// <summary>
             /// Determines whether to output progress status during training and evaluation.
@@ -229,14 +232,14 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// <summary>
             /// Booster parameter to use
             /// </summary>
-            public BoosterParameterBase.OptionsBase BoosterParameter
+            public BoosterParameterBase.OptionsBase Booster
             {
                 get => _boosterParameter;
 
                 set
                 {
                     _boosterParameter = value;
-                    Booster = _boosterParameter;
+                    BoosterFactory = _boosterParameter;
                 }
             }
 
@@ -245,7 +248,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 Contracts.CheckValue(host, nameof(host));
                 Dictionary<string, object> res = new Dictionary<string, object>();
 
-                var boosterParams = Booster.CreateComponent(host);
+                var boosterParams = BoosterFactory.CreateComponent(host);
                 boosterParams.UpdateParameters(res);
                 res["boosting_type"] = boosterParams.BoosterName;
 

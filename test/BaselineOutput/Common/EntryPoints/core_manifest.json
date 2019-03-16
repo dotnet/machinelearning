@@ -11263,6 +11263,30 @@
           "Default": "Auto"
         },
         {
+          "Name": "UnbalancedSets",
+          "Type": "Bool",
+          "Desc": "Use for binary classification when training data is not balanced.",
+          "Aliases": [
+            "us"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "WeightOfPositiveExamples",
+          "Type": "Float",
+          "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
+          "Aliases": [
+            "ScalePosWeight"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1.0
+        },
+        {
           "Name": "Sigmoid",
           "Type": "Float",
           "Desc": "Parameter for the sigmoid function.",
@@ -11283,7 +11307,7 @@
               "Default",
               "Logloss",
               "Error",
-              "Auc"
+              "AreaUnderCurve"
             ]
           },
           "Desc": "Evaluation metrics.",
@@ -11767,8 +11791,8 @@
             "Values": [
               "None",
               "Default",
-              "Merror",
-              "Mlogloss"
+              "Error",
+              "LogLoss"
             ]
           },
           "Desc": "Evaluation metrics.",
@@ -11778,7 +11802,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "Merror"
+          "Default": "Error"
         },
         {
           "Name": "MaximumBinCountPerFeature",
@@ -12219,7 +12243,10 @@
         },
         {
           "Name": "CustomGains",
-          "Type": "String",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "Int"
+          },
           "Desc": "Comma seperated list of gains associated to each relevance label.",
           "Aliases": [
             "gains"
@@ -12227,7 +12254,20 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
+          "Default": [
+            0,
+            3,
+            7,
+            15,
+            31,
+            63,
+            127,
+            255,
+            511,
+            1023,
+            2047,
+            4095
+          ]
         },
         {
           "Name": "Sigmoid",
@@ -12248,8 +12288,8 @@
             "Values": [
               "None",
               "Default",
-              "Map",
-              "Ndcg"
+              "MeanAveragedPrecision",
+              "NormalizedDiscountedCumulativeGain"
             ]
           },
           "Desc": "Evaluation metrics.",
@@ -12259,7 +12299,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "Ndcg"
+          "Default": "NormalizedDiscountedCumulativeGain"
         },
         {
           "Name": "MaximumBinCountPerFeature",
@@ -12705,8 +12745,9 @@
             "Values": [
               "None",
               "Default",
-              "Mae",
-              "Rmse"
+              "MeanAbsoluteError",
+              "RootMeanSquaredError",
+              "MeanSquaredError"
             ]
           },
           "Desc": "Evaluation metrics.",
@@ -12716,7 +12757,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "Rmse"
+          "Default": "RootMeanSquaredError"
         },
         {
           "Name": "MaximumBinCountPerFeature",
@@ -23467,18 +23508,6 @@
               "Default": false
             },
             {
-              "Name": "UnbalancedSets",
-              "Type": "Bool",
-              "Desc": "Use for binary classification when training data is not balanced.",
-              "Aliases": [
-                "us"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
               "Name": "MinimumSplitGain",
               "Type": "Float",
               "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
@@ -23602,18 +23631,6 @@
                   1.0
                 ]
               }
-            },
-            {
-              "Name": "WeightOfPositiveExamples",
-              "Type": "Float",
-              "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
-              "Aliases": [
-                "ScalePosWeight"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 1.0
             }
           ]
         },
@@ -23623,18 +23640,6 @@
           "FriendlyName": "Tree Booster",
           "Settings": [
             {
-              "Name": "UnbalancedSets",
-              "Type": "Bool",
-              "Desc": "Use for binary classification when training data is not balanced.",
-              "Aliases": [
-                "us"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
               "Name": "MinimumSplitGain",
               "Type": "Float",
               "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
@@ -23758,18 +23763,6 @@
                   1.0
                 ]
               }
-            },
-            {
-              "Name": "WeightOfPositiveExamples",
-              "Type": "Float",
-              "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
-              "Aliases": [
-                "ScalePosWeight"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 1.0
             }
           ]
         },
@@ -23805,18 +23798,6 @@
               }
             },
             {
-              "Name": "UnbalancedSets",
-              "Type": "Bool",
-              "Desc": "Use for binary classification when training data is not balanced.",
-              "Aliases": [
-                "us"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
               "Name": "MinimumSplitGain",
               "Type": "Float",
               "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
@@ -23940,18 +23921,6 @@
                   1.0
                 ]
               }
-            },
-            {
-              "Name": "WeightOfPositiveExamples",
-              "Type": "Float",
-              "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
-              "Aliases": [
-                "ScalePosWeight"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 1.0
             }
           ]
         }

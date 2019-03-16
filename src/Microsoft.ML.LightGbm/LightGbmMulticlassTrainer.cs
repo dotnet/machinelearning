@@ -47,8 +47,8 @@ namespace Microsoft.ML.Trainers.LightGbm
             {
                 None,
                 Default,
-                Merror,
-                Mlogloss,
+                Error,
+                LogLoss,
             }
 
             /// <summary>
@@ -71,13 +71,13 @@ namespace Microsoft.ML.Trainers.LightGbm
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Evaluation metrics.",
                 ShortName = "em")]
-            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Merror;
+            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Error;
 
             static Options()
             {
                 NameMapping.Add(nameof(EvaluateMetricType), "metric");
-                NameMapping.Add(nameof(EvaluateMetricType.Merror), "multi_error");
-                NameMapping.Add(nameof(EvaluateMetricType.Mlogloss), "multi_logloss");
+                NameMapping.Add(nameof(EvaluateMetricType.Error), "multi_error");
+                NameMapping.Add(nameof(EvaluateMetricType.LogLoss), "multi_logloss");
             }
 
             internal override Dictionary<string, object> ToDictionary(IHost host)

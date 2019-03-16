@@ -41,7 +41,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
                                NumberOfLeaves = 4,
                                MinimumExampleCountPerLeaf = 6,
                                LearningRate = 0.001,
-                               BoosterParameter = new GossBooster.Options()
+                               Booster = new GossBooster.Options()
                                {
                                    TopRate = 0.3,
                                    OtherRate = 0.2
