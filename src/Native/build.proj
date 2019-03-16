@@ -2,6 +2,8 @@
   <PropertyGroup>
     <!-- versioning.targets will import this file, so don't import it again -->
     <DisableImportVersioningProps>true</DisableImportVersioningProps>
+    <!-- Use this flag to ensure native assets take stable version -->
+    <UseStableVersionForNativeAssets>true</UseStableVersionForNativeAssets>
 
     <StripNativeSymbols Condition="'$(StripNativeSymbols)' == '' and '$(Configuration)' == 'Release'">True</StripNativeSymbols>
   </PropertyGroup>

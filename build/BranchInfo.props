@@ -22,7 +22,7 @@
     <PatchVersion>0</PatchVersion>
     <PreReleaseLabel>preview</PreReleaseLabel>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(IsStableProject)' == 'true'">
+  <PropertyGroup Condition="'$(IsStableProject)' == 'true' or '$(UseStableVersionForNativeAssets)' == 'true'">
     <MajorVersion>0</MajorVersion>
     <MinorVersion>12</MinorVersion>
     <PatchVersion>0</PatchVersion>
