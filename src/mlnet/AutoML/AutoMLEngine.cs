@@ -50,13 +50,15 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
             if (taskKind == TaskKind.BinaryClassification)
             {
-                var progressReporter = new ProgressHandlers.BinaryClassificationHandler();
+                var optimizationMetric = new BinaryExperimentSettings().OptimizingMetric;
+                var progressReporter = new ProgressHandlers.BinaryClassificationHandler(optimizationMetric);
                 var result = context.Auto()
                     .CreateBinaryClassificationExperiment(new BinaryExperimentSettings()
                     {
                         MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
                         ProgressHandler = progressReporter,
-                        EnableCaching = this.enableCaching
+                        EnableCaching = this.enableCaching,
+                        OptimizingMetric = optimizationMetric
                     })
                     .Execute(trainData, validationData, columnInformation);
                 logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
@@ -67,12 +69,14 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
             if (taskKind == TaskKind.Regression)
             {
-                var progressReporter = new ProgressHandlers.RegressionHandler();
+                var optimizationMetric = new RegressionExperimentSettings().OptimizingMetric;
+                var progressReporter = new ProgressHandlers.RegressionHandler(optimizationMetric);
                 var result = context.Auto()
                     .CreateRegressionExperiment(new RegressionExperimentSettings()
                     {
                         MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
                         ProgressHandler = progressReporter,
+                        OptimizingMetric = optimizationMetric,
                         EnableCaching = this.enableCaching
                     }).Execute(trainData, validationData, columnInformation);
                 logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
@@ -83,13 +87,15 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
             if (taskKind == TaskKind.MulticlassClassification)
             {
-                var progressReporter = new ProgressHandlers.MulticlassClassificationHandler();
+                var optimizationMetric = new MulticlassExperimentSettings().OptimizingMetric;
+                var progressReporter = new ProgressHandlers.MulticlassClassificationHandler(optimizationMetric);
 
                 var experimentSettings = new MulticlassExperimentSettings()
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
                     ProgressHandler = progressReporter,
-                    EnableCaching = this.enableCaching
+                    EnableCaching = this.enableCaching,
+                    OptimizingMetric = optimizationMetric
                 };
 
                 // Inclusion list for currently supported learners. Need to remove once we have codegen support for all other learners.

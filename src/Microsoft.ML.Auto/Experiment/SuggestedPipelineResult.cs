@@ -38,8 +38,8 @@ namespace Microsoft.ML.Auto
         public ModelContainer ModelContainer { get; set; }
         public Exception Exception { get; set; }
 
-        public int RuntimeInSeconds { get; set; }
-        public int PipelineInferenceTimeInSeconds { get; set; }
+        public double RuntimeInSeconds { get; set; }
+        public double PipelineInferenceTimeInSeconds { get; set; }
 
         public SuggestedPipelineResult(T evaluatedMetrics, IEstimator<ITransformer> estimator,
             ModelContainer modelContainer, SuggestedPipeline pipeline, double score, Exception exception)

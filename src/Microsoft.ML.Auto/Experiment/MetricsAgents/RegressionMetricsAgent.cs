@@ -17,6 +17,11 @@ namespace Microsoft.ML.Auto
 
         public double GetScore(RegressionMetrics metrics)
         {
+            if (metrics == null)
+            {
+                return double.NaN;
+            }
+
             switch (_optimizingMetric)
             {
                 case RegressionMetric.MeanAbsoluteError:

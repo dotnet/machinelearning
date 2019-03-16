@@ -15,11 +15,11 @@ namespace Microsoft.ML.Auto
         public ITransformer Model { get { return _modelContainer.GetModel(); } }
         public Exception Exception { get; private set; }
         public string TrainerName { get; private set; }
-        public int RuntimeInSeconds { get; private set; }
+        public double RuntimeInSeconds { get; private set; }
         public IEstimator<ITransformer> Estimator { get; private set; }
 
         internal Pipeline Pipeline { get; private set; }
-        internal int PipelineInferenceTimeInSeconds { get; private set; }
+        internal double PipelineInferenceTimeInSeconds { get; private set; }
 
         private readonly ModelContainer _modelContainer;
 
@@ -28,8 +28,8 @@ namespace Microsoft.ML.Auto
             IEstimator<ITransformer> estimator,
             Pipeline pipeline,
             Exception exception,
-            int runtimeInSeconds,
-            int pipelineInferenceTimeInSeconds)
+            double runtimeInSeconds,
+            double pipelineInferenceTimeInSeconds)
         {
             _modelContainer = modelContainer;
             ValidationMetrics = metrics;

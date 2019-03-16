@@ -17,6 +17,11 @@ namespace Microsoft.ML.Auto
 
         public double GetScore(MultiClassClassifierMetrics metrics)
         {
+            if (metrics == null)
+            {
+                return double.NaN;
+            }
+
             switch (_optimizingMetric)
             {
                 case MulticlassClassificationMetric.MacroAccuracy:

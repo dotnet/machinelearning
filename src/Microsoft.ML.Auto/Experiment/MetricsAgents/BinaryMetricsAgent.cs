@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
@@ -18,6 +17,11 @@ namespace Microsoft.ML.Auto
 
         public double GetScore(BinaryClassificationMetrics metrics)
         {
+            if (metrics == null)
+            {
+                return double.NaN;
+            }
+
             switch (_optimizingMetric)
             {
                 case BinaryClassificationMetric.Accuracy:

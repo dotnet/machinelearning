@@ -10,49 +10,94 @@ namespace Microsoft.ML.CLI.Utilities
 {
     internal class ProgressHandlers
     {
+        private static int MetricComparator(double a, double b, bool isMaximizing)
+        {
+            return (isMaximizing ? a.CompareTo(b) : -a.CompareTo(b));
+        }
+
         internal class RegressionHandler : IProgress<RunResult<RegressionMetrics>>
         {
-            int iterationIndex;
-            public RegressionHandler()
+            private readonly bool isMaximizing;
+            private readonly Func<RunResult<RegressionMetrics>, double> GetScore;
+            private RunResult<RegressionMetrics> bestResult;
+            private int iterationIndex;
+
+            public RegressionHandler(RegressionMetric optimizationMetric)
             {
+                isMaximizing = new OptimizingMetricInfo(optimizationMetric).IsMaximizing;
+                GetScore = (RunResult<RegressionMetrics> result) => new RegressionMetricsAgent(optimizationMetric).GetScore(result?.ValidationMetrics);
                 ConsolePrinter.PrintRegressionMetricsHeader();
             }
 
             public void Report(RunResult<RegressionMetrics> iterationResult)
             {
                 iterationIndex++;
-                ConsolePrinter.PrintRegressionMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics);
+                UpdateBestResult(iterationResult);
+                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics, GetScore(bestResult), iterationResult.RuntimeInSeconds);
+            }
+
+            private void UpdateBestResult(RunResult<RegressionMetrics> iterationResult)
+            {
+                if (MetricComparator(GetScore(iterationResult), GetScore(bestResult), isMaximizing) > 0)
+                    bestResult = iterationResult;
             }
         }
 
         internal class BinaryClassificationHandler : IProgress<RunResult<BinaryClassificationMetrics>>
         {
-            int iterationIndex;
-            internal BinaryClassificationHandler()
+            private readonly bool isMaximizing;
+            private readonly Func<RunResult<BinaryClassificationMetrics>, double> GetScore;
+            private RunResult<BinaryClassificationMetrics> bestResult;
+            private int iterationIndex;
+
+            public BinaryClassificationHandler(BinaryClassificationMetric optimizationMetric)
             {
+                isMaximizing = new OptimizingMetricInfo(optimizationMetric).IsMaximizing;
+                GetScore = (RunResult<BinaryClassificationMetrics> result) => new BinaryMetricsAgent(optimizationMetric).GetScore(result?.ValidationMetrics);
                 ConsolePrinter.PrintBinaryClassificationMetricsHeader();
             }
 
             public void Report(RunResult<BinaryClassificationMetrics> iterationResult)
             {
                 iterationIndex++;
-                ConsolePrinter.PrintBinaryClassificationMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics);
+                UpdateBestResult(iterationResult);
+                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics, GetScore(bestResult), iterationResult.RuntimeInSeconds);
+            }
+
+            private void UpdateBestResult(RunResult<BinaryClassificationMetrics> iterationResult)
+            {
+                if (MetricComparator(GetScore(iterationResult), GetScore(bestResult), isMaximizing) > 0)
+                    bestResult = iterationResult;
             }
         }
 
         internal class MulticlassClassificationHandler : IProgress<RunResult<MultiClassClassifierMetrics>>
         {
-            int iterationIndex;
-            internal MulticlassClassificationHandler()
+            private readonly bool isMaximizing;
+            private readonly Func<RunResult<MultiClassClassifierMetrics>, double> GetScore;
+            private RunResult<MultiClassClassifierMetrics> bestResult;
+            private int iterationIndex;
+
+            public MulticlassClassificationHandler(MulticlassClassificationMetric optimizationMetric)
             {
+                isMaximizing = new OptimizingMetricInfo(optimizationMetric).IsMaximizing;
+                GetScore = (RunResult<MultiClassClassifierMetrics> result) => new MultiMetricsAgent(optimizationMetric).GetScore(result?.ValidationMetrics);
                 ConsolePrinter.PrintMulticlassClassificationMetricsHeader();
             }
 
             public void Report(RunResult<MultiClassClassifierMetrics> iterationResult)
             {
                 iterationIndex++;
-                ConsolePrinter.PrintMulticlassClassificationMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics);
+                UpdateBestResult(iterationResult);
+                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics, GetScore(bestResult), iterationResult.RuntimeInSeconds);
+            }
+
+            private void UpdateBestResult(RunResult<MultiClassClassifierMetrics> iterationResult)
+            {
+                if (MetricComparator(GetScore(iterationResult), GetScore(bestResult), isMaximizing) > 0)
+                    bestResult = iterationResult;
             }
         }
+
     }
 }

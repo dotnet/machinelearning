@@ -101,8 +101,8 @@ namespace Microsoft.ML.Auto
                     // evaluate pipeline
                     runResult = ProcessPipeline(pipeline);
 
-                    runResult.RuntimeInSeconds = (int)iterationStopwatch.Elapsed.TotalSeconds;
-                    runResult.PipelineInferenceTimeInSeconds = (int)getPiplelineStopwatch.Elapsed.TotalSeconds;
+                    runResult.RuntimeInSeconds = iterationStopwatch.Elapsed.TotalSeconds;
+                    runResult.PipelineInferenceTimeInSeconds = getPiplelineStopwatch.Elapsed.TotalSeconds;
                 }
                 catch (Exception ex)
                 {
