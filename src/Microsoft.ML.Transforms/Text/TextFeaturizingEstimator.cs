@@ -89,31 +89,20 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Defines the different type of stop words remover supported.
         /// </summary>
-        public enum StopWordsRemoverType
-        {
-            /// <summary>
-            /// Use stop words remover that can removes language-specific list of stop words (most common words) already defined in the system.
-            /// </summary>
-            UsePredefinedStopWordsRemover,
-
-            /// <summary>
-            /// Use custom stop words remover that removes stop words based on custom defined list.
-            /// </summary>
-            UseCustomStopWordsRemover
-        }
+        public interface IStopWordsRemoverOptions { }
 
         /// <summary>
-        /// Defines the different type of stop words remover supported.
+        /// Use stop words remover that can removes language-specific list of stop words (most common words) already defined in the system.
         /// </summary>
-        public sealed class StopWordsRemoverOption
+        public sealed class PredefinedStopWordsRemoverOptions : IStopWordsRemoverOptions { }
+
+        /// <summary>
+        /// Use stop words remover that can removes language-specific list of stop words (most common words) already defined in the system.
+        /// </summary>
+        public sealed class CustomStopWordsRemoverOptions : IStopWordsRemoverOptions
         {
             /// <summary>
-            /// Type of stop words remover to use.
-            /// </summary>
-            public StopWordsRemoverType StopWordsRemover;
-
-            /// <summary>
-            /// List of stop words. It is used when <see cref="StopWordsRemover"/> is equal to <see cref="StopWordsRemoverType.UseCustomStopWordsRemover"/>.
+            /// List of stop words to remove.
             /// </summary>
             public string[] StopWords;
         }
@@ -135,15 +124,22 @@ namespace Microsoft.ML.Transforms.Text
             /// <summary>
             /// The underlying state of <see cref="StopWordsRemover"/> and <see cref="StopWordsRemoverOptions"/>.
             /// </summary>
-            private StopWordsRemoverOption _stopWordsRemoverOptions;
+            private IStopWordsRemoverOptions _stopWordsRemoverOptions;
 
             /// <summary>
             /// Option to set type of stop word remover to use.
-            /// A stop word remover removes the language specific list of stop words from the input.
-            /// A custom list of stop words can also be defined instead of using predefined list in the system.
+            /// The following options are available
+            /// <list type="bullet">
+            ///     <item>
+            ///         <description>The <see cref="PredefinedStopWordsRemoverOptions"/> removes the language specific list of stop words from the input.</description>
+            ///     </item>
+            ///     <item>
+            ///        <description>The <see cref="CustomStopWordsRemoverOptions"/> uses user provided list of stop words.</description>
+            ///     </item>
+            /// </list>
             /// Setting this to 'null' does not remove stop words from the input.
             /// </summary>
-            public StopWordsRemoverOption StopWordsRemoverOptions
+            public IStopWordsRemoverOptions StopWordsRemoverOptions
             {
                 get { return _stopWordsRemoverOptions; }
                 set
@@ -152,13 +148,13 @@ namespace Microsoft.ML.Transforms.Text
                     IStopWordsRemoverFactory options = null;
                     if (_stopWordsRemoverOptions != null)
                     {
-                        if (_stopWordsRemoverOptions.StopWordsRemover == StopWordsRemoverType.UsePredefinedStopWordsRemover)
+                        if (_stopWordsRemoverOptions is PredefinedStopWordsRemoverOptions)
                             options = new PredefinedStopWordsRemoverFactory();
-                        else if (_stopWordsRemoverOptions.StopWordsRemover == StopWordsRemoverType.UseCustomStopWordsRemover)
+                        else if (_stopWordsRemoverOptions is CustomStopWordsRemoverOptions)
                         {
                             options = new CustomStopWordsRemovingTransformer.LoaderArguments()
                             {
-                                Stopwords = _stopWordsRemoverOptions.StopWords
+                                Stopwords = (_stopWordsRemoverOptions as CustomStopWordsRemoverOptions).StopWords
                             };
                         }
                     }

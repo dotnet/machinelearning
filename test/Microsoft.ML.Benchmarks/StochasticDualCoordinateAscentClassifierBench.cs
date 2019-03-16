@@ -103,7 +103,7 @@ namespace Microsoft.ML.Benchmarks
             {
                 OutputTokens = true,
                 KeepPunctuations = false,
-                StopWordsRemoverOptions = new TextFeaturizingEstimator.StopWordsRemoverOption() { StopWordsRemover = TextFeaturizingEstimator.StopWordsRemoverType.UsePredefinedStopWordsRemover },
+                StopWordsRemoverOptions = new TextFeaturizingEstimator.PredefinedStopWordsRemoverOptions(),
                 Norm = TextFeaturizingEstimator.NormFunction.None,
                 CharFeatureExtractor = null,
                 WordFeatureExtractor = null,
