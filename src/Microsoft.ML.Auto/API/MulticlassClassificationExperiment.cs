@@ -12,7 +12,7 @@ namespace Microsoft.ML.Auto
 {
     public sealed class MulticlassExperimentSettings : ExperimentSettings
     {
-        public MulticlassClassificationMetric OptimizingMetric { get; set; } = MulticlassClassificationMetric.MacroAccuracy;
+        public MulticlassClassificationMetric OptimizingMetric { get; set; } = MulticlassClassificationMetric.MicroAccuracy;
         public ICollection<MulticlassClassificationTrainer> Trainers { get; } =
             Enum.GetValues(typeof(MulticlassClassificationTrainer)).OfType<MulticlassClassificationTrainer>().ToList();
         public IProgress<RunResult<MultiClassClassifierMetrics>> ProgressHandler { get; set; }
