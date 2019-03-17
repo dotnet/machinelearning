@@ -10,6 +10,57 @@ resources:
 phases:
 
 ################################################################################
+- phase: Linux
+################################################################################
+  variables:
+    BuildConfig: Release
+    OfficialBuildId: $(BUILD.BUILDNUMBER)
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+    DOTNET_MULTILEVEL_LOOKUP: 0
+  queue:
+    name: DotNet-Build
+    demands:
+    - agent.os -equals linux
+    container: LinuxContainer
+  steps:
+  # Only build native assets to avoid conflicts.
+  - script: ./build.sh -buildNative -$(BuildConfig) -skipRIDAgnosticAssets
+    displayName: Build
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Linux package assets
+    inputs:
+      pathToPublish: $(Build.SourcesDirectory)/bin/obj/packages
+      artifactName: PackageAssets
+      artifactType: container
+      
+################################################################################
+- phase: MacOS
+################################################################################
+  variables:
+    BuildConfig: Release
+    OfficialBuildId: $(BUILD.BUILDNUMBER)
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+    DOTNET_MULTILEVEL_LOOKUP: 0
+  queue:
+    name: DotNetCore-Build
+    demands:
+    - agent.os -equals Darwin
+  steps:
+  # Only build native assets to avoid conflicts.
+  - script: ./build.sh -buildNative -$(BuildConfig) -skipRIDAgnosticAssets
+    displayName: Build
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish macOS package assets
+    inputs:
+      pathToPublish: $(Build.SourcesDirectory)/bin/obj/packages
+      artifactName: PackageAssets
+      artifactType: container
+
+################################################################################
 - phase: Windows_x64
 ################################################################################
   variables:
@@ -39,6 +90,8 @@ phases:
 - phase: Package
 ################################################################################
   dependsOn:
+  - Linux
+  - MacOS
   - Windows_x64
   variables:
     BuildConfig: Release

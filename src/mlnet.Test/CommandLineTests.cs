@@ -107,7 +107,7 @@ namespace mlnet.Test
             var validDataset = Path.GetTempFileName();
             var labelName = "Label";
             var name = "testname";
-            var outputPath = "x:\\mlnet";
+            var outputPath = Path.GetTempPath();
             var falseString = "false";
 
             // Create handler outside so that commandline and the handler is decoupled and testable.
