@@ -14,6 +14,7 @@ namespace Microsoft.ML
     /// </summary>
     /// <typeparam name="TModel">The <see cref="IPredictor"/> or <see cref="ICalibrator"/> used for the data transformation.</typeparam>
     public interface IPredictionTransformer<out TModel> : ITransformer
+        where TModel : class
     {
         TModel Model { get; }
     }
@@ -25,6 +26,7 @@ namespace Microsoft.ML
     /// </summary>
     /// <typeparam name="TModel">The <see cref="IPredictor"/> or <see cref="ICalibrator"/> used for the data transformation.</typeparam>
     public interface ISingleFeaturePredictionTransformer<out TModel> : IPredictionTransformer<TModel>
+        where TModel : class
     {
         /// <summary>The name of the feature column.</summary>
         string FeatureColumn { get; }

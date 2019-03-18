@@ -45,7 +45,7 @@ namespace Microsoft.ML.Scenarios
             var trainedModel = pipe.Fit(trainData);
 
             // Make predictions
-            var predictFunction = trainedModel.CreatePredictionEngine<IrisDataWithStringLabel, IrisPredictionWithStringLabel>(mlContext);
+            var predictFunction = mlContext.Model.CreatePredictionEngine<IrisDataWithStringLabel, IrisPredictionWithStringLabel>(trainedModel);
             IrisPredictionWithStringLabel prediction = predictFunction.Predict(new IrisDataWithStringLabel()
             {
                 SepalLength = 5.1f,

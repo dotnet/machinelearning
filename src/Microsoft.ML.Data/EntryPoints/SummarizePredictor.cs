@@ -51,7 +51,7 @@ namespace Microsoft.ML.EntryPoints
             var calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
             while (calibrated != null)
             {
-                predictor = calibrated.WeeklyTypedSubModel;
+                predictor = calibrated.WeaklyTypedSubModel;
                 calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
             }
 

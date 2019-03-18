@@ -63,7 +63,7 @@ namespace Microsoft.ML
                 string features = DefaultColumnNames.Features,
                 bool useFeatureWeightFilter = false,
                 int? topExamples = null,
-                int permutationCount = 1)
+                int permutationCount = 1) where TModel : class
         {
             return PermutationFeatureImportance<TModel, RegressionMetrics, RegressionMetricsStatistics>.GetImportanceMetricsMatrix(
                             catalog.GetEnvironment(),
@@ -141,7 +141,7 @@ namespace Microsoft.ML
                 string features = DefaultColumnNames.Features,
                 bool useFeatureWeightFilter = false,
                 int? topExamples = null,
-                int permutationCount = 1)
+                int permutationCount = 1) where TModel : class
         {
             return PermutationFeatureImportance<TModel, BinaryClassificationMetrics, BinaryClassificationMetricsStatistics>.GetImportanceMetricsMatrix(
                             catalog.GetEnvironment(),
@@ -216,7 +216,7 @@ namespace Microsoft.ML
                 string features = DefaultColumnNames.Features,
                 bool useFeatureWeightFilter = false,
                 int? topExamples = null,
-                int permutationCount = 1)
+                int permutationCount = 1) where TModel : class
         {
             return PermutationFeatureImportance<TModel, MulticlassClassificationMetrics, MulticlassClassificationMetricsStatistics>.GetImportanceMetricsMatrix(
                             catalog.GetEnvironment(),
@@ -298,7 +298,7 @@ namespace Microsoft.ML
                 string features = DefaultColumnNames.Features,
                 bool useFeatureWeightFilter = false,
                 int? topExamples = null,
-                int permutationCount = 1)
+                int permutationCount = 1) where TModel : class
         {
             return PermutationFeatureImportance<TModel, RankingMetrics, RankingMetricsStatistics>.GetImportanceMetricsMatrix(
                             catalog.GetEnvironment(),

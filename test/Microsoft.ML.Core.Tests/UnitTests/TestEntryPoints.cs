@@ -972,7 +972,7 @@ namespace Microsoft.ML.RunTests
                 {
                     data = new TextFeaturizingEstimator(Env, "Features", new List<string> { "Text" }, 
                         new TextFeaturizingEstimator.Options { 
-                            UsePredefinedStopWordRemover = true,
+                            StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options(),
                         }).Fit(data).Transform(data);
                 }
                 else
@@ -5645,9 +5645,8 @@ namespace Microsoft.ML.RunTests
                 ITransformer loadedModel;
                 using (var stream = File.OpenRead(modelPath))
                 {
-                    loadedModel = ml.Model.Load(stream);
+                    loadedModel = ml.Model.Load(stream, out var inputSchema);
                 }
-
             }
         }
     }
