@@ -579,18 +579,18 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predicts a target using a linear multiclass classification model trained with the <see cref="NaiveBayesTrainer"/>.
-        /// The <see cref="NaiveBayesTrainer"/> trains a multiclass Naive Bayes predictor that supports binary feature values.
+        /// Predicts a target using a linear multiclass classification model trained with the <see cref="NaiveBayesMulticlassTrainer"/>.
+        /// The <see cref="NaiveBayesMulticlassTrainer"/> trains a multiclass Naive Bayes predictor that supports binary feature values.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
-        public static NaiveBayesTrainer NaiveBayes(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        public static NaiveBayesMulticlassTrainer NaiveBayes(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
-            return new NaiveBayesTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, featureColumnName);
+            return new NaiveBayesMulticlassTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, featureColumnName);
         }
 
         /// <summary>
