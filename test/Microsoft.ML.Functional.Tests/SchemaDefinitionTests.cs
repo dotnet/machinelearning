@@ -13,11 +13,11 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Functional.Tests
 {
-    public class PredictionEngineScenarios : BaseTestClass
+    public class SchemaDefinitionTests : BaseTestClass
     {
         private MLContext _ml;
 
-        public PredictionEngineScenarios(ITestOutputHelper output) : base(output)
+        public SchemaDefinitionTests(ITestOutputHelper output) : base(output)
         {
         }
 
@@ -26,7 +26,6 @@ namespace Microsoft.ML.Functional.Tests
             base.Initialize();
 
             _ml = new MLContext(42);
-            _ml.AddStandardComponents();
         }
 
         [Fact]
