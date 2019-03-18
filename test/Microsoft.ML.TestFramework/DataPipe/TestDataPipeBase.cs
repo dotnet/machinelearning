@@ -83,8 +83,7 @@ namespace Microsoft.ML.RunTests
                 ML.Model.Save(transformer, fs);
 
             ITransformer loadedTransformer;
-            using (var fs = File.OpenRead(modelPath))
-                loadedTransformer = ML.Model.Load(fs);
+            loadedTransformer = ML.Model.Load(modelPath);
             DeleteOutputPath(modelPath);
 
             // Run on train data.
