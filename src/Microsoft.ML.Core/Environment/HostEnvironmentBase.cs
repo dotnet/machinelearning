@@ -98,16 +98,21 @@ namespace Microsoft.ML.Runtime
     {
         public bool IsCanceled { get; protected set; }
 
-        private List<IHost> _hosts;
+        private readonly List<IHost> _hosts;
+
+        private readonly object _cancelEnvLock;
 
         [BestFriend]
         internal void CancelExecutionHosts()
         {
-            foreach (var host in _hosts)
-                if (host is ICancelableHost)
-                    ((ICancelableHost)host).CancelExecution();
+            lock (_cancelEnvLock)
+            {
+                foreach (var host in _hosts)
+                    if (host is ICancelableHost)
+                        ((ICancelableHost)host).CancelExecution();
 
-            _hosts.Clear();
+                _hosts.Clear();
+            }
         }
 
         /// <summary>
@@ -370,6 +375,7 @@ namespace Microsoft.ML.Runtime
             ListenerDict = new ConcurrentDictionary<Type, Dispatcher>();
             ProgressTracker = new ProgressReporting.ProgressTracker(this);
             _cancelLock = new object();
+            _cancelEnvLock = new object();
             Root = this as TEnv;
             ComponentCatalog = new ComponentCatalog();
             _hosts = new List<IHost>();
@@ -386,6 +392,7 @@ namespace Microsoft.ML.Runtime
             Contracts.CheckValueOrNull(rand);
             _rand = rand ?? RandomUtils.Create();
             _cancelLock = new object();
+            _cancelEnvLock = new object();
             _hosts = new List<IHost>();
 
             // This fork shares some stuff with the master.
