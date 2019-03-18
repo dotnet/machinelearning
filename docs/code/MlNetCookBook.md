@@ -553,7 +553,7 @@ var pipeline =
 var trainedModel = pipeline.Fit(trainData);
 
 // Inspect the model parameters. 
-var modelParameters = trainedModel.LastTransformer.Model as MulticlassLogisticRegressionModelParameters;
+var modelParameters = trainedModel.LastTransformer.Model as MaximumEntropyModelParameters;
 
 // Now we can use 'modelParameters' to look at the weights.
 // 'weights' will be an array of weight vectors, one vector per class.

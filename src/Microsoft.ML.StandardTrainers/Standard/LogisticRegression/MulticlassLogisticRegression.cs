@@ -40,7 +40,7 @@ namespace Microsoft.ML.Trainers
     public sealed class LbfgsMaximumEntropyTrainer : LbfgsTrainerBase<LbfgsMaximumEntropyTrainer.Options,
         MulticlassPredictionTransformer<MaximumEntropyModelParameters>, MaximumEntropyModelParameters>
     {
-        internal const string Summary = "Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can be used as a classification algorithm.The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.";
+        internal const string Summary = "Maximum entrypy classification is a method in statistics used to predict the probabilities of parallel events. The model predicts the probabilities of parallel events by fitting data to a softmax function.";
         internal const string LoadNameValue = "MultiClassLogisticRegression";
         internal const string UserNameValue = "Multi-class Logistic Regression";
         internal const string ShortName = "mlr";
@@ -1139,7 +1139,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="dst">Score vector should be calibrated.</param>
         private protected override void Calibrate(Span<float> dst)
         {
-            Host.Assert(dst.Length >= NumberOfClasses);
+            Host.Assert(dst.Length == NumberOfClasses);
 
             // scores are in log-space; convert and fix underflow/overflow
             // TODO:   re-normalize probabilities to account for underflow/overflow?
