@@ -26,6 +26,12 @@ namespace Microsoft.ML.Transforms.Text
 {
     using CaseMode = TextNormalizingEstimator.CaseMode;
     using StopWordsCol = StopWordsRemovingTransformer.Column;
+
+    /// <summary>
+    /// Defines the different type of stop words remover supported.
+    /// </summary>
+    public interface IStopWordsRemoverOptions { }
+
     // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts
     // of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
     // integer index mapping through hashing) as an option.
@@ -87,27 +93,6 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Defines the different type of stop words remover supported.
-        /// </summary>
-        public interface IStopWordsRemoverOptions { }
-
-        /// <summary>
-        /// Use stop words remover that can removes language-specific list of stop words (most common words) already defined in the system.
-        /// </summary>
-        public sealed class PredefinedStopWordsRemoverOptions : IStopWordsRemoverOptions { }
-
-        /// <summary>
-        /// Use stop words remover that can removes language-specific list of stop words (most common words) already defined in the system.
-        /// </summary>
-        public sealed class CustomStopWordsRemoverOptions : IStopWordsRemoverOptions
-        {
-            /// <summary>
-            /// List of stop words to remove.
-            /// </summary>
-            public string[] StopWords;
-        }
-
-        /// <summary>
         /// Advanced options for the <see cref="TextFeaturizingEstimator"/>.
         /// </summary>
         public sealed class Options : TransformInputBase
@@ -116,7 +101,7 @@ namespace Microsoft.ML.Transforms.Text
             internal Column Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dataset language or 'AutoDetect' to detect language per row.", ShortName = "lang", SortOrder = 3)]
-            public Language Language = DefaultLanguage;
+            internal Language Language = DefaultLanguage;
 
             [Argument(ArgumentType.Multiple, Name = "StopWordsRemover", HelpText = "Stopwords remover.", ShortName = "remover", NullName = "<None>", SortOrder = 4)]
             internal IStopWordsRemoverFactory StopWordsRemover;
@@ -131,10 +116,10 @@ namespace Microsoft.ML.Transforms.Text
             /// The following options are available
             /// <list type="bullet">
             ///     <item>
-            ///         <description>The <see cref="PredefinedStopWordsRemoverOptions"/> removes the language specific list of stop words from the input.</description>
+            ///         <description>The <see cref="StopWordsRemovingEstimator.Options"/> removes the language specific list of stop words from the input.</description>
             ///     </item>
             ///     <item>
-            ///        <description>The <see cref="CustomStopWordsRemoverOptions"/> uses user provided list of stop words.</description>
+            ///        <description>The <see cref="CustomStopWordsRemovingEstimator.Options"/> uses user provided list of stop words.</description>
             ///     </item>
             /// </list>
             /// Setting this to 'null' does not remove stop words from the input.
@@ -148,13 +133,16 @@ namespace Microsoft.ML.Transforms.Text
                     IStopWordsRemoverFactory options = null;
                     if (_stopWordsRemoverOptions != null)
                     {
-                        if (_stopWordsRemoverOptions is PredefinedStopWordsRemoverOptions)
+                        if (_stopWordsRemoverOptions is StopWordsRemovingEstimator.Options)
+                        {
                             options = new PredefinedStopWordsRemoverFactory();
-                        else if (_stopWordsRemoverOptions is CustomStopWordsRemoverOptions)
+                            Language = (_stopWordsRemoverOptions as StopWordsRemovingEstimator.Options).Language;
+                        }
+                        else if (_stopWordsRemoverOptions is CustomStopWordsRemovingEstimator.Options)
                         {
                             options = new CustomStopWordsRemovingTransformer.LoaderArguments()
                             {
-                                Stopwords = (_stopWordsRemoverOptions as CustomStopWordsRemoverOptions).StopWords
+                                Stopwords = (_stopWordsRemoverOptions as CustomStopWordsRemovingEstimator.Options).StopWords
                             };
                         }
                     }
