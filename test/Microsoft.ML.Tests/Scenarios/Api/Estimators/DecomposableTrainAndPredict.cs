@@ -36,7 +36,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 .Append(new KeyToValueMappingEstimator(ml, "PredictedLabel"));
 
             var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
-            var engine = model.CreatePredictionEngine<IrisDataNoLabel, IrisPrediction>(ml);
+            var engine = ml.Model.CreatePredictionEngine<IrisDataNoLabel, IrisPrediction>(model);
 
             var testLoader = ml.Data.LoadFromTextFile(dataPath, TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',', hasHeader: true);
             var testData = ml.Data.CreateEnumerable<IrisData>(testLoader, false);

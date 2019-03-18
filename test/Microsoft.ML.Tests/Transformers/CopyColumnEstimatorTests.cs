@@ -93,9 +93,9 @@ namespace Microsoft.ML.Tests
             var transformer = est.Fit(dataView);
             using (var ms = new MemoryStream())
             {
-                transformer.SaveTo(env, ms);
+                env.Model.Save(transformer, null, ms);
                 ms.Position = 0;
-                var loadedTransformer = TransformerChain.LoadFrom(env, ms);
+                var loadedTransformer = env.Model.Load(ms, out var schema);
                 var result = loadedTransformer.Transform(dataView);
                 ValidateCopyColumnTransformer(result);
             }

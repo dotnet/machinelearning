@@ -123,7 +123,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             using (var stream = File.Create(modelPath))
             {
                 // Saving and loading happens to 'dynamic' models.
-                mlContext.Model.Save(model, stream);
+                mlContext.Model.Save(model, trainData.Schema, stream);
             }
 
             // Potentially, the lines below can be in a different process altogether.
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // When you load the model, it's a 'dynamic' transformer. 
             ITransformer loadedModel;
             using (var stream = File.OpenRead(modelPath))
-                loadedModel = mlContext.Model.Load(stream);
+                loadedModel = mlContext.Model.Load(stream, out var schema);
         }
 
         [Fact]
@@ -208,7 +208,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Make the prediction function object. Note that, on average, this call takes around 200x longer
             // than one prediction, so you might want to cache and reuse the prediction function, instead of
             // creating one per prediction.
-            var predictionFunc = model.CreatePredictionEngine<IrisInput, IrisPrediction>(mlContext);
+            var predictionFunc = mlContext.Model.CreatePredictionEngine<IrisInput, IrisPrediction>(model);
 
             // Obtain the prediction. Remember that 'Predict' is not reentrant. If you want to use multiple threads
             // for simultaneous prediction, make sure each thread is using its own PredictionFunction.
@@ -523,7 +523,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Save the model.
             using (var fs = File.Create(modelPath))
-                mlContext.Model.Save(model, fs);
+                mlContext.Model.Save(model, cachedTrainData.Schema, fs);
 
             // Now pretend we are in a different process.
             var newContext = new MLContext();
@@ -535,7 +535,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Now we can load the model.
             ITransformer loadedModel;
             using (var fs = File.OpenRead(modelPath))
-                loadedModel = newContext.Model.Load(fs);
+                loadedModel = newContext.Model.Load(fs, out var schema);
         }
 
         public static IDataView PrepareData(MLContext mlContext, IDataView data)

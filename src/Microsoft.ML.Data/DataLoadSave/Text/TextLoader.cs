@@ -19,12 +19,15 @@ using Microsoft.ML.Runtime;
 [assembly: LoadableClass(TextLoader.Summary, typeof(ILegacyDataLoader), typeof(TextLoader), null, typeof(SignatureLoadDataLoader),
     "Text Loader", TextLoader.LoaderSignature)]
 
+[assembly: LoadableClass(TextLoader.Summary, typeof(TextLoader), null, typeof(SignatureLoadModel),
+    "Text Loader", TextLoader.LoaderSignature)]
+
 namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Loads a text file into an IDataView. Supports basic mapping from input columns to <see cref="IDataView"/> columns.
     /// </summary>
-    public sealed partial class TextLoader : IDataLoader<IMultiStreamSource>, ICanSaveModel
+    public sealed partial class TextLoader : IDataLoader<IMultiStreamSource>
     {
         /// <summary>
         /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
@@ -1189,31 +1192,31 @@ namespace Microsoft.ML.Data
         {
             switch (sep)
             {
-                case "space":
-                case " ":
-                    return ' ';
-                case "tab":
-                case "\t":
-                    return '\t';
-                case "comma":
-                case ",":
-                    return ',';
-                case "colon":
-                case ":":
-                    _host.CheckUserArg((_flags & OptionFlags.AllowSparse) == 0, nameof(Options.Separator),
-                        "When the separator is colon, turn off allowSparse");
-                    return ':';
-                case "semicolon":
-                case ";":
-                    return ';';
-                case "bar":
-                case "|":
-                    return '|';
-                default:
-                    char ch = sep[0];
-                    if (sep.Length != 1 || ch < ' ' || '0' <= ch && ch <= '9' || ch == '"')
-                        throw _host.ExceptUserArg(nameof(Options.Separator), "Illegal separator: '{0}'", sep);
-                    return sep[0];
+            case "space":
+            case " ":
+                return ' ';
+            case "tab":
+            case "\t":
+                return '\t';
+            case "comma":
+            case ",":
+                return ',';
+            case "colon":
+            case ":":
+                _host.CheckUserArg((_flags & OptionFlags.AllowSparse) == 0, nameof(Options.Separator),
+                    "When the separator is colon, turn off allowSparse");
+                return ':';
+            case "semicolon":
+            case ";":
+                return ';';
+            case "bar":
+            case "|":
+                return '|';
+            default:
+                char ch = sep[0];
+                if (sep.Length != 1 || ch < ' ' || '0' <= ch && ch <= '9' || ch == '"')
+                    throw _host.ExceptUserArg(nameof(Options.Separator), "Illegal separator: '{0}'", sep);
+                return sep[0];
             }
         }
 
@@ -1310,7 +1313,7 @@ namespace Microsoft.ML.Data
                 error = false;
                 options = optionsNew;
 
-            LDone:
+                LDone:
                 return !error;
             }
         }
@@ -1470,20 +1473,20 @@ namespace Microsoft.ML.Data
                 InternalDataKind dk;
                 switch (memberInfo)
                 {
-                    case FieldInfo field:
-                        if (!InternalDataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
-                            throw Contracts.Except($"Field {memberInfo.Name} is of unsupported type.");
+                case FieldInfo field:
+                    if (!InternalDataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
+                        throw Contracts.Except($"Field {memberInfo.Name} is of unsupported type.");
 
-                        break;
+                    break;
 
-                    case PropertyInfo property:
-                        if (!InternalDataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
-                            throw Contracts.Except($"Property {memberInfo.Name} is of unsupported type.");
-                        break;
+                case PropertyInfo property:
+                    if (!InternalDataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
+                        throw Contracts.Except($"Property {memberInfo.Name} is of unsupported type.");
+                    break;
 
-                    default:
-                        Contracts.Assert(false);
-                        throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                default:
+                    Contracts.Assert(false);
+                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
                 }
 
                 column.Type = dk;
