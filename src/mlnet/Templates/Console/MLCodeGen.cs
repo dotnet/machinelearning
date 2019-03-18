@@ -126,6 +126,7 @@ if(!string.IsNullOrEmpty(TestPath)){
                                              { Write(")");
                                              }
                                          }
+if(CacheBeforeTrainer){ Write("\r\n                                      .AppendCacheCheckpoint(mlContext)");} 
             this.Write(";\r\n");
 }
             this.Write("\r\n            // Set the training algorithm, then create and config the modelBuil" +
@@ -207,8 +208,13 @@ if("BinaryClassification".Equals(TaskType)){
         {
             //Load data to test. Could be any test data. For demonstration purpose train data is used here.
             IDataView trainingDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
-                                            path: TrainDataPath,
-                                            hasHeader : ");
+                                            path: ");
+if(!string.IsNullOrEmpty(TestPath)){ 
+            this.Write("TestDataPath");
+}else{
+            this.Write("TrainDataPath");
+}
+            this.Write(",\r\n                                            hasHeader : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
             this.Write(",\r\n                                            separatorChar : \'");
             this.Write(this.ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
@@ -284,6 +290,7 @@ public int Kfolds {get;set;} = 5;
 public string Namespace {get;set;}
 public string LabelName {get;set;}
 public string ModelPath {get;set;}
+public bool CacheBeforeTrainer {get;set;}
 
     }
     #region Base class

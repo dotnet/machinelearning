@@ -68,7 +68,8 @@ namespace MyNamespace
                                             allowSparse: true);
 
             // Common data process configuration with pipeline data transformations
-            var dataProcessPipeline = mlContext.Transforms.Concatenate("Out", new[] { "In" });
+            var dataProcessPipeline = mlContext.Transforms.Concatenate("Out", new[] { "In" })
+                                      .AppendCacheCheckpoint(mlContext);
 
             // Set the training algorithm, then create and config the modelBuilder  
             var trainer = mlContext.BinaryClassification.Trainers.LightGbm(new Options() { NumLeaves = 2, Booster = new Options.TreeBooster.Options() { }, LabelColumn = "Label", FeatureColumn = "Features" });
@@ -100,7 +101,7 @@ namespace MyNamespace
         {
             //Load data to test. Could be any test data. For demonstration purpose train data is used here.
             IDataView trainingDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
-                                            path: TrainDataPath,
+                                            path: TestDataPath,
                                             hasHeader: true,
                                             separatorChar: ',',
                                             allowQuoting: true,

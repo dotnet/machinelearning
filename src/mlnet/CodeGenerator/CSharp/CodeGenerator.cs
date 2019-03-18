@@ -54,7 +54,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             var namespaceValue = Utils.Normalize(settings.OutputName);
 
             // Generate code for training and scoring
-            var trainFileContent = GenerateTrainCode(usings, trainer, transforms, columns, classLabels, namespaceValue);
+            var trainFileContent = GenerateTrainCode(usings, trainer, transforms, columns, classLabels, namespaceValue, pipeline.CacheBeforeTrainer);
             var tree = CSharpSyntaxTree.ParseText(trainFileContent);
             var syntaxNode = tree.GetRoot();
             trainFileContent = Formatter.Format(syntaxNode, new AdhocWorkspace()).ToFullString();
@@ -91,7 +91,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             return projectCodeGen.TransformText();
         }
 
-        internal string GenerateTrainCode(string usings, string trainer, List<string> transforms, IList<string> columns, IList<string> classLabels, string namespaceValue)
+        internal string GenerateTrainCode(string usings, string trainer, List<string> transforms, IList<string> columns, IList<string> classLabels, string namespaceValue, bool cacheBeforeTrainer)
         {
             var trainingAndScoringCodeGen = new MLCodeGen()
             {
@@ -110,7 +110,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 TaskType = settings.MlTask.ToString(),
                 Namespace = namespaceValue,
                 LabelName = settings.LabelName,
-                ModelPath = settings.ModelPath
+                ModelPath = settings.ModelPath,
+                CacheBeforeTrainer = cacheBeforeTrainer
             };
 
             return trainingAndScoringCodeGen.TransformText();

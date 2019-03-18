@@ -88,7 +88,7 @@ namespace <#= Namespace #>
                                              if(i>0)
                                              { Write(")");
                                              }
-                                         }#>;
+                                         }#><#if(CacheBeforeTrainer){ Write("\r\n                                      .AppendCacheCheckpoint(mlContext)");} #>;
 <#}#>
 
             // Set the training algorithm, then create and config the modelBuilder  
@@ -146,7 +146,7 @@ if(string.IsNullOrEmpty(TestPath)){ #>
         {
             //Load data to test. Could be any test data. For demonstration purpose train data is used here.
             IDataView trainingDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
-                                            path: TrainDataPath,
+                                            path: <#if(!string.IsNullOrEmpty(TestPath)){ #>TestDataPath<#}else{#>TrainDataPath<#}#>,
                                             hasHeader : <#= HasHeader.ToString().ToLowerInvariant() #>,
                                             separatorChar : '<#= Regex.Escape(Separator.ToString()) #>',
                                             allowQuoting : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
@@ -219,4 +219,5 @@ public int Kfolds {get;set;} = 5;
 public string Namespace {get;set;}
 public string LabelName {get;set;}
 public string ModelPath {get;set;}
+public bool CacheBeforeTrainer {get;set;}
 #>
