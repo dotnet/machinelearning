@@ -5,8 +5,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.ML.Data;
 
-namespace Microsoft.Data.DataView
+namespace Microsoft.ML
 {
     /// <summary>
     /// The debugger proxy for <see cref="DataViewSchema"/>.

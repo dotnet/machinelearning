@@ -250,12 +250,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{A84717
 		pkg\common\DnnImageFeaturizer.props = pkg\common\DnnImageFeaturizer.props
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Data.DataView", "src\Microsoft.Data.DataView\Microsoft.Data.DataView.csproj", "{85D0CAFD-2FE8-496A-88C7-585D35B94243}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.DataView", "src\Microsoft.ML.DataView\Microsoft.ML.DataView.csproj", "{85D0CAFD-2FE8-496A-88C7-585D35B94243}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.Data.DataView", "Microsoft.Data.DataView", "{31D38B21-102B-41C0-9E0A-2FE0BF68D123}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.DataView", "Microsoft.ML.DataView", "{31D38B21-102B-41C0-9E0A-2FE0BF68D123}"
 	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.Data.DataView\Microsoft.Data.DataView.nupkgproj = pkg\Microsoft.Data.DataView\Microsoft.Data.DataView.nupkgproj
-		pkg\Microsoft.Data.DataView\Microsoft.Data.DataView.symbols.nupkgproj = pkg\Microsoft.Data.DataView\Microsoft.Data.DataView.symbols.nupkgproj
+		pkg\Microsoft.ML.DataView\Microsoft.ML.DataView.nupkgproj = pkg\Microsoft.ML.DataView\Microsoft.ML.DataView.nupkgproj
+		pkg\Microsoft.ML.DataView\Microsoft.ML.DataView.symbols.nupkgproj = pkg\Microsoft.ML.DataView\Microsoft.ML.DataView.symbols.nupkgproj
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemoteExecutorConsoleApp", "test\RemoteExecutorConsoleApp\RemoteExecutorConsoleApp.csproj", "{5E920CAC-5A28-42FB-936E-49C472130953}"
