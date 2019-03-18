@@ -406,9 +406,13 @@ namespace Microsoft.ML.Runtime
         public IHost Register(string name, int? seed = null, bool? verbose = null)
         {
             Contracts.CheckNonEmpty(name, nameof(name));
-            Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
-            var host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
-            _hosts.Add(host);
+            IHost host;
+            lock (_cancelEnvLock)
+            {
+                Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
+                host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
+                _hosts.Add(host);
+            }
             return host;
         }
 
