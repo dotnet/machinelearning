@@ -24,6 +24,13 @@ using Microsoft.ML.Transforms.Text;
 namespace Microsoft.ML.Transforms.Text
 {
     using CaseMode = TextNormalizingEstimator.CaseMode;
+    using StopWordsCol = StopWordsRemovingTransformer.Column;
+
+    /// <summary>
+    /// Defines the different type of stop words remover supported.
+    /// </summary>
+    public interface IStopWordsRemoverOptions { }
+
     // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts
     // of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
     // integer index mapping through hashing) as an option.
@@ -93,10 +100,56 @@ namespace Microsoft.ML.Transforms.Text
             internal Column Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dataset language or 'AutoDetect' to detect language per row.", ShortName = "lang", SortOrder = 3)]
-            public Language Language = DefaultLanguage;
+            internal Language Language = DefaultLanguage;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Use stop remover or not.", ShortName = "remover", SortOrder = 4)]
-            public bool UsePredefinedStopWordRemover = false;
+            [Argument(ArgumentType.Multiple, Name = "StopWordsRemover", HelpText = "Stopwords remover.", ShortName = "remover", NullName = "<None>", SortOrder = 4)]
+            internal IStopWordsRemoverFactory StopWordsRemover;
+
+            /// <summary>
+            /// The underlying state of <see cref="StopWordsRemover"/> and <see cref="StopWordsRemoverOptions"/>.
+            /// </summary>
+            private IStopWordsRemoverOptions _stopWordsRemoverOptions;
+
+            /// <summary>
+            /// Option to set type of stop word remover to use.
+            /// The following options are available
+            /// <list type="bullet">
+            ///     <item>
+            ///         <description>The <see cref="StopWordsRemovingEstimator.Options"/> removes the language specific list of stop words from the input.</description>
+            ///     </item>
+            ///     <item>
+            ///        <description>The <see cref="CustomStopWordsRemovingEstimator.Options"/> uses user provided list of stop words.</description>
+            ///     </item>
+            /// </list>
+            /// Setting this to 'null' does not remove stop words from the input.
+            /// </summary>
+            public IStopWordsRemoverOptions StopWordsRemoverOptions
+            {
+                get { return _stopWordsRemoverOptions; }
+                set
+                {
+                    _stopWordsRemoverOptions = value;
+                    IStopWordsRemoverFactory options = null;
+                    if (_stopWordsRemoverOptions != null)
+                    {
+                        if (_stopWordsRemoverOptions is StopWordsRemovingEstimator.Options)
+                        {
+                            options = new PredefinedStopWordsRemoverFactory();
+                            Language = (_stopWordsRemoverOptions as StopWordsRemovingEstimator.Options).Language;
+                        }
+                        else if (_stopWordsRemoverOptions is CustomStopWordsRemovingEstimator.Options)
+                        {
+                            var stopwords = (_stopWordsRemoverOptions as CustomStopWordsRemovingEstimator.Options).StopWords;
+                            options = new CustomStopWordsRemovingTransformer.LoaderArguments()
+                            {
+                                Stopwords = stopwords,
+                                Stopword = string.Join(",", stopwords)
+                            };
+                        }
+                    }
+                    StopWordsRemover = options;
+                }
+            }
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Casing text using the rules of the invariant culture.", Name="TextCase", ShortName = "case", SortOrder = 5)]
             public CaseMode CaseMode = TextNormalizingEstimator.Defaults.Mode;
@@ -202,6 +255,7 @@ namespace Microsoft.ML.Transforms.Text
 
         // These parameters are hardcoded for now.
         // REVIEW: expose them once sub-transforms are estimators.
+        private IStopWordsRemoverFactory _stopWordsRemover;
         private TermLoaderArguments _dictionary;
         private INgramExtractorFactoryFactory _wordFeatureExtractor;
         private INgramExtractorFactoryFactory _charFeatureExtractor;
@@ -219,7 +273,7 @@ namespace Microsoft.ML.Transforms.Text
 
             public readonly NormFunction Norm;
             public readonly Language Language;
-            public readonly bool UsePredefinedStopWordRemover;
+            public readonly IStopWordsRemoverFactory StopWordsRemover;
             public readonly CaseMode TextCase;
             public readonly bool KeepDiacritics;
             public readonly bool KeepPunctuations;
@@ -251,7 +305,9 @@ namespace Microsoft.ML.Transforms.Text
 
             // These properties encode the logic needed to determine which transforms to apply.
             #region NeededTransforms
-            public bool NeedsWordTokenizationTransform { get { return WordExtractorFactory != null || UsePredefinedStopWordRemover || OutputTextTokens; } }
+            public bool NeedsWordTokenizationTransform { get { return WordExtractorFactory != null || NeedsRemoveStopwordsTransform || OutputTextTokens; } }
+
+            public bool NeedsRemoveStopwordsTransform { get { return StopWordsRemover != null; } }
 
             public bool NeedsNormalizeTransform
             {
@@ -297,7 +353,7 @@ namespace Microsoft.ML.Transforms.Text
                 CharExtractorFactory = parent._charFeatureExtractor?.CreateComponent(host, parent._dictionary);
                 Norm = parent.OptionalSettings.Norm;
                 Language = parent.OptionalSettings.Language;
-                UsePredefinedStopWordRemover = parent.OptionalSettings.UsePredefinedStopWordRemover;
+                StopWordsRemover = parent._stopWordsRemover;
                 TextCase = parent.OptionalSettings.CaseMode;
                 KeepDiacritics = parent.OptionalSettings.KeepDiacritics;
                 KeepPunctuations = parent.OptionalSettings.KeepPunctuations;
@@ -339,6 +395,7 @@ namespace Microsoft.ML.Transforms.Text
             if (options != null)
                 OptionalSettings = options;
 
+            _stopWordsRemover = null;
             _dictionary = null;
             _wordFeatureExtractor = OptionalSettings.WordFeatureExtractorFactory;
             _charFeatureExtractor = OptionalSettings.CharFeatureExtractorFactory;
@@ -401,21 +458,23 @@ namespace Microsoft.ML.Transforms.Text
                 view = new WordTokenizingEstimator(h, xfCols).Fit(view).Transform(view);
             }
 
-            if (tparams.UsePredefinedStopWordRemover)
+            if (tparams.NeedsRemoveStopwordsTransform)
             {
                 Contracts.Assert(wordTokCols != null, "StopWords transform requires that word tokenization has been applied to the input text.");
-                var xfCols = new StopWordsRemovingEstimator.ColumnOptions[wordTokCols.Length];
+                var xfCols = new StopWordsCol[wordTokCols.Length];
                 var dstCols = new string[wordTokCols.Length];
                 for (int i = 0; i < wordTokCols.Length; i++)
                 {
-                    var tempName = GenerateColumnName(view.Schema, wordTokCols[i], "StopWordsRemoverTransform");
-                    var col = new StopWordsRemovingEstimator.ColumnOptions(tempName, wordTokCols[i], tparams.StopwordsLanguage);
-                    dstCols[i] = tempName;
-                    tempCols.Add(tempName);
+                    var col = new StopWordsCol();
+                    col.Source = wordTokCols[i];
+                    col.Name = GenerateColumnName(view.Schema, wordTokCols[i], "StopWordsRemoverTransform");
+                    dstCols[i] = col.Name;
+                    tempCols.Add(col.Name);
+                    col.Language = tparams.StopwordsLanguage;
 
                     xfCols[i] = col;
                 }
-                view = new StopWordsRemovingEstimator(h, xfCols).Fit(view).Transform(view);
+                view = tparams.StopWordsRemover.CreateComponent(h, view, xfCols);
                 wordTokCols = dstCols;
             }
 
@@ -442,7 +501,7 @@ namespace Microsoft.ML.Transforms.Text
             if (tparams.CharExtractorFactory != null)
             {
                 {
-                    var srcCols = tparams.UsePredefinedStopWordRemover ? wordTokCols : textCols;
+                    var srcCols = tparams.NeedsRemoveStopwordsTransform ? wordTokCols : textCols;
                     charTokCols = new string[srcCols.Length];
                     var xfCols = new (string outputColumnName, string inputColumnName)[srcCols.Length];
                     for (int i = 0; i < srcCols.Length; i++)
@@ -567,6 +626,7 @@ namespace Microsoft.ML.Transforms.Text
         internal static IDataTransform Create(IHostEnvironment env, Options args, IDataView data)
         {
             var estimator = new TextFeaturizingEstimator(env, args.Columns.Name, args.Columns.Source ?? new[] { args.Columns.Name }, args);
+            estimator._stopWordsRemover = args.StopWordsRemover;
             estimator._dictionary = args.Dictionary;
             // Review: I don't think the following two lines are needed.
             estimator._wordFeatureExtractor = args.WordFeatureExtractorFactory;
