@@ -9,7 +9,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Google.Protobuf;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.RunTests;

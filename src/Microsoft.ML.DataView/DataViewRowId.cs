@@ -6,7 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace Microsoft.Data.DataView
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// A structure serving as the identifier of a row of <see cref="IDataView"/>.

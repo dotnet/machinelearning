@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 

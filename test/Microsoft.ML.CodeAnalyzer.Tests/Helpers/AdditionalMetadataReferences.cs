@@ -5,7 +5,6 @@
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe;
 
