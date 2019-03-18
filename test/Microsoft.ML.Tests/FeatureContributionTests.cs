@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
@@ -174,7 +175,7 @@ namespace Microsoft.ML.Tests
         }
 
         private void TestFeatureContribution(
-            ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor> trainer,
+            ITrainerEstimator<ISingleFeaturePredictionTransformer<ICalculateFeatureContribution>, ICalculateFeatureContribution> trainer,
             IDataView data,
             string testFile,
             int precision = 6)
@@ -182,28 +183,54 @@ namespace Microsoft.ML.Tests
             // Train the model.
             var model = trainer.Fit(data);
 
-            // Extract the predictor, check that it supports feature contribution.
-            var fccModel = model as ISingleFeaturePredictionTransformer<ICalculateFeatureContribution>;
-            Assert.NotNull(fccModel);
-
             // Calculate feature contributions.
-            var est = ML.Transforms.CalculateFeatureContribution(fccModel, numberOfPositiveContributions: 3, numberOfNegativeContributions: 0)
-                .Append(ML.Transforms.CalculateFeatureContribution(fccModel, numberOfPositiveContributions: 0, numberOfNegativeContributions: 3))
-                .Append(ML.Transforms.CalculateFeatureContribution(fccModel, numberOfPositiveContributions: 1, numberOfNegativeContributions: 1))
-                .Append(ML.Transforms.CalculateFeatureContribution(fccModel, numberOfPositiveContributions: 1, numberOfNegativeContributions: 1, normalize: false));
+            var est = ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 3, numberOfNegativeContributions: 0)
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 0, numberOfNegativeContributions: 3))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 1, numberOfNegativeContributions: 1))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 1, numberOfNegativeContributions: 1, normalize: false));
 
             TestEstimatorCore(est, data);
+
             // Verify output.
+            CheckOutput(est, data, testFile, precision);
+            Done();
+        }
+
+        private void TestFeatureContribution<TModelParameters, TCalibrator>(
+            ITrainerEstimator<ISingleFeaturePredictionTransformer<CalibratedModelParametersBase<TModelParameters, TCalibrator>>, CalibratedModelParametersBase<TModelParameters, TCalibrator>> trainer,
+            IDataView data,
+            string testFile,
+            int precision = 6)
+            where TModelParameters : class, ICalculateFeatureContribution
+            where TCalibrator : class, ICalibrator
+        {
+            // Train the model.
+            var model = trainer.Fit(data);
+
+            // Calculate feature contributions.
+            var est = ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 3, numberOfNegativeContributions: 0)
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 0, numberOfNegativeContributions: 3))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 1, numberOfNegativeContributions: 1))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 1, numberOfNegativeContributions: 1, normalize: false));
+
+            TestEstimatorCore(est, data);
+
+            // Verify output.
+            CheckOutput(est, data, testFile, precision);
+            Done();
+        }
+
+        private void CheckOutput(IEstimator<ITransformer> estimator, IDataView data, string testFile, int precision = 6)
+        {
             var outputPath = GetOutputPath("FeatureContribution", testFile + ".tsv");
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data), 4);
+                var savedData = ML.Data.TakeRows(estimator.Fit(data).Transform(data), 4);
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
             CheckEquality("FeatureContribution", testFile + ".tsv", digitsOfPrecision: precision);
-            Done();
         }
 
         /// <summary>
