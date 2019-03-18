@@ -505,7 +505,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 using (var fs = File.OpenRead(modelPath))
                 {
-                    model = ML.Model.Load(fs, out DataViewSchema schema);
+                    model = ML.Model.Load(fs, out var schema);
                     // This model was saved without the input schema.
                     Assert.Null(schema);
                 }

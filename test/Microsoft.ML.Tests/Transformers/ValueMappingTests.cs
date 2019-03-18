@@ -602,7 +602,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 ML.Model.Save(transformer, null, ms);
                 ms.Position = 0;
-                var loadedTransformer = ML.Model.Load(ms, out DataViewSchema schema);
+                var loadedTransformer = ML.Model.Load(ms, out var schema);
                 var result = loadedTransformer.Transform(dataView);
                 Assert.Equal(5, result.Schema.Count);
                 Assert.True(result.Schema.TryGetColumnIndex("D", out int col));

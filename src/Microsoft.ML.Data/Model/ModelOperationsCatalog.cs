@@ -180,7 +180,7 @@ namespace Microsoft.ML
         /// <param name="stream">A readable, seekable stream to load from.</param>
         /// <param name="loader">The data loader from the model stream.</param>
         /// <returns>The transformer model from the model stream.</returns>
-        public ITransformer Load(Stream stream, out IDataLoader<IMultiStreamSource> loader)
+        public ITransformer LoadWithDataLoader(Stream stream, out IDataLoader<IMultiStreamSource> loader)
         {
             _env.CheckValue(stream, nameof(stream));
 

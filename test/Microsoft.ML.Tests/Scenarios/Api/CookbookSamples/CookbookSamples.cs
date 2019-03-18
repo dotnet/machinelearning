@@ -157,7 +157,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // When you load the model, it's a 'dynamic' transformer. 
             ITransformer loadedModel;
             using (var stream = File.OpenRead(modelPath))
-                loadedModel = mlContext.Model.Load(stream, out DataViewSchema schema);
+                loadedModel = mlContext.Model.Load(stream, out var schema);
         }
 
         [Fact]

@@ -83,7 +83,7 @@ namespace Microsoft.ML.Tests
                     ML.Model.Save(model, null, fs);
                 ITransformer model2;
                 using (var fs = file.OpenReadStream())
-                    model2 = ML.Model.Load(fs, out DataViewSchema schema);
+                    model2 = ML.Model.Load(fs, out var schema);
 
                 var transformerChain = model2 as TransformerChain<ITransformer>;
                 Assert.NotNull(transformerChain);

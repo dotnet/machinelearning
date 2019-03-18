@@ -72,22 +72,22 @@ namespace Microsoft.ML.Functional.Tests
             IDataLoader<IMultiStreamSource> loadedCompositeLoader;
             ITransformer loadedTransformerModel1;
             using (var fs = File.OpenRead(modelAndSchemaPath))
-                loadedTransformerModel = _ml.Model.Load(fs, out DataViewSchema loadedSchema);
+                loadedTransformerModel = _ml.Model.Load(fs, out var loadedSchema);
             using (var fs = File.OpenRead(compositeLoaderModelPath))
             {
                 // This model can be loaded either as a composite data loader,
                 // a transformer model + an input schema, or a transformer model + a data loader.
-                var t = _ml.Model.Load(fs, out IDataLoader<IMultiStreamSource> l);
-                var t1 = _ml.Model.Load(fs, out DataViewSchema s);
+                var t = _ml.Model.LoadWithDataLoader(fs, out IDataLoader<IMultiStreamSource> l);
+                var t1 = _ml.Model.Load(fs, out var s);
                 loadedCompositeLoader = _ml.Model.Load(fs);
             }
             using (var fs = File.OpenRead(loaderAndTransformerModelPath))
             {
                 // This model can be loaded either as a composite data loader,
                 // a transformer model + an input schema, or a transformer model + a data loader.
-                var t = _ml.Model.Load(fs, out DataViewSchema s);
+                var t = _ml.Model.Load(fs, out var s);
                 var c = _ml.Model.Load(fs);
-                loadedTransformerModel1 = _ml.Model.Load(fs, out IDataLoader<IMultiStreamSource> l);
+                loadedTransformerModel1 = _ml.Model.LoadWithDataLoader(fs, out IDataLoader<IMultiStreamSource> l);
             }
 
             var gam = ((loadedTransformerModel as ISingleFeaturePredictionTransformer<object>).Model
@@ -320,7 +320,7 @@ namespace Microsoft.ML.Functional.Tests
                 loadedWithSchema = _ml.Model.Load(fs, out loadedSchema);
                 try
                 {
-                    loadedWithLoader = _ml.Model.Load(fs, out loadedLoaderWithTransformer);
+                    loadedWithLoader = _ml.Model.LoadWithDataLoader(fs, out loadedLoaderWithTransformer);
                 }
                 catch (Exception)
                 {
