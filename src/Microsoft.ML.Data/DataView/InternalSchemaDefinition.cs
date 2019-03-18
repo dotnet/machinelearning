@@ -27,8 +27,7 @@ namespace Microsoft.ML.Data
             public readonly DataViewType ColumnType;
             public readonly bool IsComputed;
             public readonly Delegate Generator;
-            private readonly Dictionary<string, AnnotationInfo> _annotations;
-            public Dictionary<string, AnnotationInfo> Annotations { get { return _annotations; } }
+            public Dictionary<string, AnnotationInfo> Annotations { get; }
             public Type ComputedReturnType { get { return ReturnParameterInfo.ParameterType.GetElementType(); } }
             public Type FieldOrPropertyType => (MemberInfo is FieldInfo) ? (MemberInfo as FieldInfo).FieldType : (MemberInfo as PropertyInfo).PropertyType;
             public Type OutputType => IsComputed ? ComputedReturnType : FieldOrPropertyType;
@@ -74,7 +73,7 @@ namespace Microsoft.ML.Data
                 ColumnType = columnType;
                 IsComputed = generator != null;
                 Generator = generator;
-                _annotations = metadataInfos == null ? new Dictionary<string, AnnotationInfo>()
+                Annotations = metadataInfos == null ? new Dictionary<string, AnnotationInfo>()
                     : metadataInfos.ToDictionary(entry => entry.Key, entry => entry.Value);
 
                 AssertRep();
@@ -218,7 +217,7 @@ namespace Microsoft.ML.Data
                 Type dataItemType;
                 MemberInfo memberInfo = null;
 
-                if (!col.IsComputed)
+                if (col.Generator == null)
                 {
                     memberInfo = userType.GetField(col.MemberName);
 
@@ -277,9 +276,9 @@ namespace Microsoft.ML.Data
                     colType = col.ColumnType;
                 }
 
-                dstCols[i] = col.IsComputed ?
-                    new Column(colName, colType, col.Generator, col.Annotations)
-                    : new Column(colName, colType, memberInfo, col.Annotations);
+                dstCols[i] = col.Generator != null ?
+                    new Column(colName, colType, col.Generator, col.AnnotationInfos)
+                    : new Column(colName, colType, memberInfo, col.AnnotationInfos);
 
             }
             return new InternalSchemaDefinition(dstCols);
