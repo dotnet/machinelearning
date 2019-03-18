@@ -10155,26 +10155,6 @@
         },
         {
           "Name": "NormalizeFeatures",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "No",
-              "Warn",
-              "Auto",
-              "Yes"
-            ]
-          },
-          "Desc": "Normalize option for the feature column",
-          "Aliases": [
-            "norm"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": "Auto"
-        },
-        {
-          "Name": "Normalize",
           "Type": "Bool",
           "Desc": "Whether to normalize the input vectors so that the concatenation of all fields' feature vectors is unit-length",
           "Aliases": [
@@ -22188,6 +22168,15 @@
           "Desc": "Retrain TensorFlow model.",
           "Required": false,
           "SortOrder": 15.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "AddBatchDimensionInputs",
+          "Type": "Bool",
+          "Desc": "Add a batch dimension to the input e.g. input = [224, 224, 3] => [-1, 224, 224, 3].",
+          "Required": false,
+          "SortOrder": 16.0,
           "IsNullable": false,
           "Default": false
         }

@@ -11,8 +11,7 @@ namespace Microsoft.ML.RunTests
 {
     using System.Linq;
     using System.Runtime.InteropServices;
-    using Microsoft.Data.DataView;
-    using Microsoft.ML;
+        using Microsoft.ML;
     using Microsoft.ML.Data;
     using Microsoft.ML.EntryPoints;
     using Microsoft.ML.Internal.Utilities;

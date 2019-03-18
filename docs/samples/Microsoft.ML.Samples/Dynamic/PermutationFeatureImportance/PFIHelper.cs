@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.SamplesUtils;
 
