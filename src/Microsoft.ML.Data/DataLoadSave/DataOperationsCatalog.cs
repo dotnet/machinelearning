@@ -82,6 +82,14 @@ namespace Microsoft.ML
             return DataViewConstructionUtils.CreateFromEnumerable(_env, data, schemaDefinition);
         }
 
+        public IDataView LoadFromEnumerable<TRow>(IEnumerable<TRow> data, DataViewSchema schema)
+            where TRow : class
+        {
+            _env.CheckValue(data, nameof(data));
+            _env.CheckValue(schema, nameof(schema));
+            return DataViewConstructionUtils.CreateFromEnumerable(_env, data, schema);
+        }
+
         /// <summary>
         /// Convert an <see cref="IDataView"/> into a strongly-typed <see cref="IEnumerable{TRow}"/>.
         /// </summary>

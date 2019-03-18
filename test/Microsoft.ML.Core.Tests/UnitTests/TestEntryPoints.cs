@@ -5645,9 +5645,8 @@ namespace Microsoft.ML.RunTests
                 ITransformer loadedModel;
                 using (var stream = File.OpenRead(modelPath))
                 {
-                    loadedModel = ml.Model.Load(stream);
+                    loadedModel = ml.Model.Load(stream, out var inputSchema);
                 }
-
             }
         }
     }
