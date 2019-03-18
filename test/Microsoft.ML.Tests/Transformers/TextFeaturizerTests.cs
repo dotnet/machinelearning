@@ -43,7 +43,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .AsDynamic;
 
             var feat = data.MakeNewEstimator()
-                 .Append(row => row.text.FeaturizeText(options: new TextFeaturizingEstimator.Options { OutputTokens = true, }));
+                 .Append(row => row.text.FeaturizeText(options: new TextFeaturizingEstimator.Options { OutputTokensColumnName = "Data_TransformedText", }));
 
             TestEstimatorCore(feat.AsDynamic, data.AsDynamic, invalidInput: invalidData);
 

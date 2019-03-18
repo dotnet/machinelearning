@@ -111,8 +111,8 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep numbers or remove them.", ShortName = "num", SortOrder = 8)]
             public bool KeepNumbers = TextNormalizingEstimator.Defaults.KeepNumbers;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to output the transformed text tokens as an additional column.", ShortName = "tokens,showtext,showTransformedText", SortOrder = 9)]
-            public bool OutputTokens;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column containing the transformed text tokens.", ShortName = "OutputTokens,tokens,showtext,showTransformedText", SortOrder = 9)]
+            public string OutputTokensColumnName;
 
             [Argument(ArgumentType.Multiple, HelpText = "A dictionary of whitelisted terms.", ShortName = "dict", NullName = "<None>", SortOrder = 10, Hide = true)]
             internal TermLoaderArguments Dictionary;
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Transforms.Text
             public readonly bool KeepDiacritics;
             public readonly bool KeepPunctuations;
             public readonly bool KeepNumbers;
-            public readonly bool OutputTextTokens;
+            public readonly string OutputTextTokensColumnName;
             public readonly TermLoaderArguments Dictionary;
 
             public StopWordsRemovingEstimator.Language StopwordsLanguage
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Transforms.Text
 
             // These properties encode the logic needed to determine which transforms to apply.
             #region NeededTransforms
-            public bool NeedsWordTokenizationTransform { get { return WordExtractorFactory != null || UsePredefinedStopWordRemover || OutputTextTokens; } }
+            public bool NeedsWordTokenizationTransform { get { return WordExtractorFactory != null || UsePredefinedStopWordRemover || !string.IsNullOrEmpty(OutputTextTokensColumnName); } }
 
             public bool NeedsNormalizeTransform
             {
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Transforms.Text
                 KeepDiacritics = parent.OptionalSettings.KeepDiacritics;
                 KeepPunctuations = parent.OptionalSettings.KeepPunctuations;
                 KeepNumbers = parent.OptionalSettings.KeepNumbers;
-                OutputTextTokens = parent.OptionalSettings.OutputTokens;
+                OutputTextTokensColumnName = parent.OptionalSettings.OutputTokensColumnName;
                 Dictionary = parent._dictionary;
             }
         }
@@ -315,8 +315,6 @@ namespace Microsoft.ML.Transforms.Text
         internal const string LoaderSignature = "Text";
 
         internal const Language DefaultLanguage = Language.English;
-
-        private const string TransformedTextColFormat = "{0}_TransformedText";
 
         internal TextFeaturizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null)
             : this(env, outputColumnName, new[] { inputColumnName ?? outputColumnName })
@@ -434,10 +432,10 @@ namespace Microsoft.ML.Transforms.Text
                 wordFeatureCol = dstCol;
             }
 
-            if (tparams.OutputTextTokens)
+            if (!string.IsNullOrEmpty(tparams.OutputTextTokensColumnName))
             {
                 string[] srcCols = wordTokCols ?? textCols;
-                view = new ColumnConcatenatingTransformer(h, string.Format(TransformedTextColFormat, OutputColumn), srcCols).Transform(view);
+                view = new ColumnConcatenatingTransformer(h, tparams.OutputTextTokensColumnName, srcCols).Transform(view);
             }
 
             if (tparams.CharExtractorFactory != null)
@@ -506,7 +504,7 @@ namespace Microsoft.ML.Transforms.Text
                     // Otherwise, simply use the slot names, omitting the original source column names
                     // entirely. For the Concat transform setting the Key == Value of the TaggedColumn
                     // KVP signals this intent.
-                    Contracts.Assert(charFeatureCol != null || wordFeatureCol != null || tparams.OutputTextTokens);
+                    Contracts.Assert(charFeatureCol != null || wordFeatureCol != null || !string.IsNullOrEmpty(tparams.OutputTextTokensColumnName));
                     if (charFeatureCol != null)
                         srcTaggedCols.Add(new KeyValuePair<string, string>(charFeatureCol, charFeatureCol));
                     else if (wordFeatureCol != null)
@@ -555,9 +553,10 @@ namespace Microsoft.ML.Transforms.Text
 
             result[OutputColumn] = new SchemaShape.Column(OutputColumn, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false,
                 new SchemaShape(metadata));
-            if (OptionalSettings.OutputTokens)
+
+            if (!string.IsNullOrEmpty(OptionalSettings.OutputTokensColumnName))
             {
-                string name = string.Format(TransformedTextColFormat, OutputColumn);
+                string name = OptionalSettings.OutputTokensColumnName;
                 result[name] = new SchemaShape.Column(name, SchemaShape.Column.VectorKind.VariableVector, TextDataViewType.Instance, false);
             }
 
