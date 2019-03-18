@@ -3,11 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-<<<<<<< HEAD
-using System.Collections.Generic;
-using Microsoft.Data.DataView;
-=======
->>>>>>> origin/master
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
