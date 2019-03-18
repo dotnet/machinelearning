@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 
@@ -152,7 +151,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <remarks>
         /// <format type="text/markdown"><![CDATA[
-        /// <xref:Microsoft.ML.SelectColumns(Microsoft.ML.TransformsCatalog, string[])> operates on the schema of an input <xref:Microsoft.Data.DataView.IDataView>,
+        /// <xref:Microsoft.ML.SelectColumns(Microsoft.ML.TransformsCatalog, string[])> operates on the schema of an input <xref:Microsoft.ML.IDataView>,
         /// dropping unselected columns from the schema.
         /// ]]></format>
         /// </remarks>

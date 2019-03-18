@@ -55,7 +55,7 @@ namespace Microsoft.ML
             => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
-        /// Takes column filled with a vector of floats and normazlize its <paramref name="norm"/> to one. By setting <paramref name="ensureZeroMean"/> to <see langword="true"/>,
+        /// Takes column filled with a vector of floats and normalize its <paramref name="norm"/> to one. By setting <paramref name="ensureZeroMean"/> to <see langword="true"/>,
         /// a pre-processing step would be applied to make the specified column's mean be a zero vector.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
@@ -75,7 +75,7 @@ namespace Microsoft.ML
             => new LpNormNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, norm, ensureZeroMean);
 
         /// <summary>
-        /// Takes column filled with a vector of floats and normazlize its norm to one. Note that the allowed norm functions are defined in <see cref="LpNormNormalizingEstimatorBase.NormFunction"/>.
+        /// Takes column filled with a vector of floats and normalize its norm to one. Note that the allowed norm functions are defined in <see cref="LpNormNormalizingEstimatorBase.NormFunction"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of the lp-normalization process for each column pair.</param>

@@ -4,7 +4,6 @@
 
 
 using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Functional.Tests.Datasets
