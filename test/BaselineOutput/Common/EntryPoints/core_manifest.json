@@ -13647,7 +13647,7 @@
     },
     {
       "Name": "Trainers.LogisticRegressionClassifier",
-      "Desc": "Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can be used as a classification algorithm. The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.",
+      "Desc": "Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can be used as a classification algorithm.The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.",
       "FriendlyName": "Multi-class Logistic Regression",
       "ShortName": "mlr",
       "Inputs": [

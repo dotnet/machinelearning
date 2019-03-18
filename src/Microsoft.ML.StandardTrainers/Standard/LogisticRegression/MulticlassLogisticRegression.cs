@@ -31,6 +31,8 @@ using Newtonsoft.Json.Linq;
     "Multiclass LR Executor",
     MaximumEntropyModelParameters.LoaderSignature)]
 
+[assembly: LoadableClass(typeof(void), typeof(LbfgsMaximumEntropyTrainer), null, typeof(SignatureEntryPointModule), LbfgsMaximumEntropyTrainer.LoadNameValue)]
+
 namespace Microsoft.ML.Trainers
 {
     /// <include file = 'doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
@@ -38,7 +40,7 @@ namespace Microsoft.ML.Trainers
     public sealed class LbfgsMaximumEntropyTrainer : LbfgsTrainerBase<LbfgsMaximumEntropyTrainer.Options,
         MulticlassPredictionTransformer<MaximumEntropyModelParameters>, MaximumEntropyModelParameters>
     {
-        internal const string Summary = "Train L-BFGS to maximum entropy model for multiclass classification";
+        internal const string Summary = "Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can be used as a classification algorithm.The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.";
         internal const string LoadNameValue = "MultiClassLogisticRegression";
         internal const string UserNameValue = "Multi-class Logistic Regression";
         internal const string ShortName = "mlr";
@@ -968,9 +970,7 @@ namespace Microsoft.ML.Trainers
         private static VersionInfo VersionInfo =>
             new VersionInfo(
                 modelSignature: "MCLINEAR",
-                // verWrittenCur: 0x00010001, // Initial
-                // verWrittenCur: 0x00010002, // Added class names
-                verWrittenCur: 0x00010003, // Added model stats
+                verWrittenCur: 0x00010001,
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
