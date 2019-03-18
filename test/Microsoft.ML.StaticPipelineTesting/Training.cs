@@ -694,7 +694,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                     r.label,
                     r.features,
                     null,
-                    new LogisticRegressionMulticlassTrainer.Options { NumberOfThreads = 1 },
+                    new LogisticRegressionMulticlassClassificationTrainer.Options { NumberOfThreads = 1 },
                     onFit: p => pred = p)));
 
             var pipe = reader.Append(est);

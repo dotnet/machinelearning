@@ -269,7 +269,7 @@ namespace Microsoft.ML.Functional.Tests
                 .AppendCacheCheckpoint(mlContext);
 
             var trainer = mlContext.MulticlassClassification.Trainers.LogisticRegression(
-                new LogisticRegressionMulticlassTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 });
+                new LogisticRegressionMulticlassClassificationTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 });
 
             // Fit the data transformation pipeline.
             var featurization = featurizationPipeline.Fit(data);

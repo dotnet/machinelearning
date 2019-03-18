@@ -209,7 +209,7 @@ namespace Microsoft.ML.StaticPipe
     public static class LbfgsMulticlassExtensions
     {
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Trainers.LogisticRegressionMulticlassTrainer"/> trainer.
+        /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Trainers.LogisticRegressionMulticlassClassificationTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -243,7 +243,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new LogisticRegressionMulticlassTrainer(env, labelName, featuresName, weightsName,
+                    var trainer = new LogisticRegressionMulticlassClassificationTrainer(env, labelName, featuresName, weightsName,
                          l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
 
                     if (onFit != null)
@@ -255,7 +255,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Trainers.LogisticRegressionMulticlassTrainer"/> trainer.
+        /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Trainers.LogisticRegressionMulticlassClassificationTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -273,7 +273,7 @@ namespace Microsoft.ML.StaticPipe
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights,
-            LogisticRegressionMulticlassTrainer.Options options,
+            LogisticRegressionMulticlassClassificationTrainer.Options options,
             Action<MulticlassLogisticRegressionModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -288,7 +288,7 @@ namespace Microsoft.ML.StaticPipe
                     options.FeatureColumnName = featuresName;
                     options.ExampleWeightColumnName = weightsName;
 
-                    var trainer = new LogisticRegressionMulticlassTrainer(env, options);
+                    var trainer = new LogisticRegressionMulticlassClassificationTrainer(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

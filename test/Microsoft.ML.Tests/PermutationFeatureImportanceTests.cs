@@ -269,7 +269,7 @@ namespace Microsoft.ML.Tests
         {
             var data = GetSparseDataset(TaskType.MulticlassClassification);
             var model = ML.MulticlassClassification.Trainers.LogisticRegression(
-                new LogisticRegressionMulticlassTrainer.Options { MaximumNumberOfIterations = 1000 }).Fit(data);
+                new LogisticRegressionMulticlassClassificationTrainer.Options { MaximumNumberOfIterations = 1000 }).Fit(data);
 
             var pfi = ML.MulticlassClassification.PermutationFeatureImportance(model, data);
 

@@ -3357,7 +3357,7 @@ namespace Microsoft.ML.RunTests
             };
             var model = LogisticRegressionBinaryTrainer.TrainBinary(Env, lrInput).PredictorModel;
 
-            var mcLrInput = new LogisticRegressionMulticlassTrainer.Options
+            var mcLrInput = new LogisticRegressionMulticlassClassificationTrainer.Options
             {
                 TrainingData = dataView,
                 NormalizeFeatures = NormalizeOption.Yes,
