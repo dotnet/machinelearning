@@ -9,7 +9,7 @@ namespace Microsoft.ML.CLI.Commands.New
 {
     internal class NewCommand : ICommand
     {
-        private NewCommandSettings settings;
+        private readonly NewCommandSettings settings;
 
         internal NewCommand(NewCommandSettings settings)
         {
