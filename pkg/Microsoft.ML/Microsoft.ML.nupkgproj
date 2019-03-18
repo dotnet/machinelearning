@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Microsoft.Data.DataView/Microsoft.Data.DataView.nupkgproj" />
+    <ProjectReference Include="../Microsoft.ML.DataView/Microsoft.ML.DataView.nupkgproj" />
     <ProjectReference Include="../Microsoft.ML.CpuMath/Microsoft.ML.CpuMath.nupkgproj" />
 
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonPackageVersion)" />
