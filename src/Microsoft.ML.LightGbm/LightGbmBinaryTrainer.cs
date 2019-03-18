@@ -85,7 +85,7 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// The <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree binary classification model using LightGBM.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM_remarks"]/*' />
-    public sealed class LightGbmBinaryClassificationTrainer : LightGbmTrainerBase<LightGbmBinaryClassificationTrainer.Options,float,
+    public sealed class LightGbmBinaryClassificationTrainer : LightGbmTrainerBase<LightGbmBinaryClassificationTrainer.Options, float,
         BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>
     {
@@ -143,12 +143,12 @@ namespace Microsoft.ML.Trainers.LightGbm
 
             static Options()
             {
-                NameMapping.Add(nameof(EvaluateMetricType),                 "metric");
-                NameMapping.Add(nameof(EvaluateMetricType.None),            "");
-                NameMapping.Add(nameof(EvaluateMetricType.Logloss),         "binary_logloss");
-                NameMapping.Add(nameof(EvaluateMetricType.Error),           "binary_error");
-                NameMapping.Add(nameof(EvaluateMetricType.AreaUnderCurve),  "auc");
-                NameMapping.Add(nameof(WeightOfPositiveExamples),           "scale_pos_weight");
+                NameMapping.Add(nameof(EvaluateMetricType), "metric");
+                NameMapping.Add(nameof(EvaluateMetricType.None), "");
+                NameMapping.Add(nameof(EvaluateMetricType.Logloss), "binary_logloss");
+                NameMapping.Add(nameof(EvaluateMetricType.Error), "binary_error");
+                NameMapping.Add(nameof(EvaluateMetricType.AreaUnderCurve), "auc");
+                NameMapping.Add(nameof(WeightOfPositiveExamples), "scale_pos_weight");
             }
 
             internal override Dictionary<string, object> ToDictionary(IHost host)
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 res[GetOptionName(nameof(UnbalancedSets))] = UnbalancedSets;
                 res[GetOptionName(nameof(WeightOfPositiveExamples))] = WeightOfPositiveExamples;
                 res[GetOptionName(nameof(Sigmoid))] = Sigmoid;
-                if(EvaluationMetric != EvaluateMetricType.Default)
+                if (EvaluationMetric != EvaluateMetricType.Default)
                     res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
 
                 return res;
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Trainers.LightGbm
              : base(env, LoadNameValue, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             Contracts.CheckUserArg(options.Sigmoid > 0, nameof(Options.Sigmoid), "must be > 0.");
-            Contracts.CheckUserArg(options.WeightOfPositiveExamples > 0, nameof(Options.WeightOfPositiveExamples), "must be >= 0.");
+            Contracts.CheckUserArg(options.WeightOfPositiveExamples > 0, nameof(Options.WeightOfPositiveExamples), "must be > 0.");
         }
 
         /// <summary>
@@ -191,7 +191,8 @@ namespace Microsoft.ML.Trainers.LightGbm
             double? learningRate = null,
             int numberOfIterations = Defaults.NumberOfIterations)
             : this(env,
-                  new Options() {
+                  new Options()
+                  {
                       LabelColumnName = labelColumnName,
                       FeatureColumnName = featureColumnName,
                       ExampleWeightColumnName = exampleWeightColumnName,
@@ -225,9 +226,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         }
 
         private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
-        {
-            base.GbmOptions["objective"] = "binary";
-        }
+            => GbmOptions["objective"] = "binary";
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {

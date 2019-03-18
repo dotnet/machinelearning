@@ -226,6 +226,11 @@ namespace Microsoft.ML.Trainers.LightGbm
             return string.Join(" ", res);
         }
 
+        /// <summary>
+        /// Helper function used for generating the LightGbm argument name.
+        /// When given a name, this will convert the name to lower-case with underscores.
+        /// The underscore will be placed when an upper-case letter is encountered.
+        /// </summary>
         public static string GetOptionName(string name)
         {
             // Otherwise convert the name to the light gbm argument

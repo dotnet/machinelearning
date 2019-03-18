@@ -40,10 +40,19 @@ namespace Microsoft.ML.Trainers.LightGbm
            {nameof(OptionsBase.L1Regularization),               "reg_alpha"},
            {nameof(OptionsBase.L2Regularization),               "reg_lambda"},
         };
+        public BoosterParameterBase(OptionsBase options)
+        {
+            Contracts.CheckUserArg(options.MinimumSplitGain >= 0, nameof(OptionsBase.MinimumSplitGain), "must be >= 0.");
+            Contracts.CheckUserArg(options.MinimumChildWeight >= 0, nameof(OptionsBase.MinimumChildWeight), "must be >= 0.");
+            Contracts.CheckUserArg(options.SubsampleFraction > 0 && options.SubsampleFraction <= 1, nameof(OptionsBase.SubsampleFraction), "must be in (0,1].");
+            Contracts.CheckUserArg(options.FeatureFraction > 0 && options.FeatureFraction <= 1, nameof(OptionsBase.FeatureFraction), "must be in (0,1].");
+            Contracts.CheckUserArg(options.L2Regularization >= 0, nameof(OptionsBase.L2Regularization), "must be >= 0.");
+            Contracts.CheckUserArg(options.L1Regularization >= 0, nameof(OptionsBase.L1Regularization), "must be >= 0.");
+            BoosterOptions = options;
+        }
 
         public abstract class OptionsBase : IBoosterParameterFactory
         {
-
             internal BoosterParameterBase GetBooster() { return null; }
 
             /// <summary>
@@ -154,17 +163,12 @@ namespace Microsoft.ML.Trainers.LightGbm
             public double L1Regularization = 0;
 
             BoosterParameterBase IComponentFactory<BoosterParameterBase>.CreateComponent(IHostEnvironment env)
-            {
-                return BuildOptions();
-            }
+                => BuildOptions();
 
             BoosterParameterBase IBoosterParameterFactory.CreateComponent(IHostEnvironment env)
-            {
-                return BuildOptions();
-            }
+                => BuildOptions();
 
             internal abstract BoosterParameterBase BuildOptions();
-
         }
 
         internal void UpdateParameters(Dictionary<string, object> res)
@@ -211,16 +215,9 @@ namespace Microsoft.ML.Trainers.LightGbm
             internal override BoosterParameterBase BuildOptions() => new GradientBooster(this);
         }
 
-        public GradientBooster(Options options)
+        internal GradientBooster(Options options)
+            : base(options)
         {
-            Contracts.CheckUserArg(options.MinimumSplitGain >= 0, nameof(Options.MinimumSplitGain), "must be >= 0.");
-            Contracts.CheckUserArg(options.MinimumChildWeight >= 0, nameof(Options.MinimumChildWeight), "must be >= 0.");
-            Contracts.CheckUserArg(options.SubsampleFraction > 0 && options.SubsampleFraction <= 1, nameof(Options.SubsampleFraction), "must be in (0,1].");
-            Contracts.CheckUserArg(options.FeatureFraction > 0 && options.FeatureFraction <= 1, nameof(Options.FeatureFraction), "must be in (0,1].");
-            Contracts.CheckUserArg(options.L2Regularization >= 0, nameof(Options.L2Regularization), "must be >= 0.");
-            Contracts.CheckUserArg(options.L1Regularization >= 0, nameof(Options.L1Regularization), "must be >= 0.");
-
-            BoosterOptions = options;
         }
 
         internal override IBoosterParameterFactory BuildFactory() => BoosterOptions;
@@ -293,6 +290,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         }
 
         internal DartBooster(Options options)
+            :base(options)
         {
             Contracts.CheckUserArg(options.TreeDropFraction > 0 && options.TreeDropFraction < 1, nameof(options.TreeDropFraction), "must be in (0,1).");
             Contracts.CheckUserArg(options.SkipDropFraction >= 0 && options.SkipDropFraction < 1, nameof(options.SkipDropFraction), "must be in [0,1).");
@@ -338,6 +336,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         }
 
         internal GossBooster(Options options)
+            :base(options)
         {
             Contracts.CheckUserArg(options.TopRate > 0 && options.TopRate < 1, nameof(Options.TopRate), "must be in (0,1).");
             Contracts.CheckUserArg(options.OtherRate >= 0 && options.OtherRate < 1, nameof(Options.OtherRate), "must be in [0,1).");
