@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
@@ -35,8 +34,8 @@ namespace Microsoft.ML.Auto
         {
             var availableTrainers = RecipeInference.AllowedTrainers(context, task, 
                 ColumnInformationUtil.BuildColumnInfo(columns), trainerWhitelist);
-            var transforms = TransformInferenceApi.InferTransforms(context, task, columns);
-            var transformsPostTrainer = TransformInferenceApi.InferTransformsPostTrainer(context, task, columns);
+            var transforms = TransformInferenceApi.InferTransforms(context, task, columns).ToList();
+            var transformsPostTrainer = TransformInferenceApi.InferTransformsPostTrainer(context, task, columns).ToList();
 
             // if we haven't run all pipelines once
             if (history.Count() < availableTrainers.Count())
@@ -72,7 +71,7 @@ namespace Microsoft.ML.Auto
                         break;
                     }
 
-                    var suggestedPipeline = new SuggestedPipeline(transforms, transformsPostTrainer, newTrainer, context, _enableCaching);
+                    var suggestedPipeline = SuggestedPipelineBuilder.Build(context, transforms, transformsPostTrainer, newTrainer, _enableCaching);
 
                     // make sure we have not seen pipeline before
                     if (!visitedPipelines.Contains(suggestedPipeline))
@@ -118,12 +117,12 @@ namespace Microsoft.ML.Auto
         private static SuggestedPipeline GetNextFirstStagePipeline(MLContext context,
             IEnumerable<SuggestedPipelineResult> history,
             IEnumerable<SuggestedTrainer> availableTrainers,
-            IEnumerable<SuggestedTransform> transforms,
-            IEnumerable<SuggestedTransform> transformsPostTrainer,
+            ICollection<SuggestedTransform> transforms,
+            ICollection<SuggestedTransform> transformsPostTrainer,
             bool? _enableCaching)
         {
             var trainer = availableTrainers.ElementAt(history.Count());
-            return new SuggestedPipeline(transforms, transformsPostTrainer, trainer, context, _enableCaching);
+            return SuggestedPipelineBuilder.Build(context, transforms, transformsPostTrainer, trainer, _enableCaching);
         }
 
         private static IValueGenerator[] ConvertToValueGenerators(IEnumerable<SweepableParam> hps)

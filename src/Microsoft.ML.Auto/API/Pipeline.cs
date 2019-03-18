@@ -9,10 +9,12 @@ namespace Microsoft.ML.Auto
     internal class Pipeline
     {
         public PipelineNode[] Nodes { get; set; }
+        public bool CacheBeforeTrainer { get; set; }
 
-        public Pipeline(PipelineNode[] nodes)
+        public Pipeline(PipelineNode[] nodes, bool cacheBeforeTrainer = false)
         {
             Nodes = nodes;
+            CacheBeforeTrainer = cacheBeforeTrainer;
         }
 
         // (used by Newtonsoft)

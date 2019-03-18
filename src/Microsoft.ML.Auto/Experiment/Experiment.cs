@@ -182,9 +182,7 @@ namespace Microsoft.ML.Auto
             // run pipeline
             var stopwatch = Stopwatch.StartNew();
 
-            var commandLineStr = $"{string.Join(" xf=", pipeline.Transforms)} tr={pipeline.Trainer}";
-
-            WriteDebugLog(DebugStream.RunResult, $"Processing pipeline {commandLineStr}.");
+            WriteDebugLog(DebugStream.RunResult, $"Processing pipeline {pipeline.ToString()}");
 
             SuggestedPipelineResult<T> runResult;
 
@@ -243,15 +241,7 @@ namespace Microsoft.ML.Auto
             // debug log pipeline result
             if (runResult.RunSucceded)
             {
-                var transformsSb = new StringBuilder();
-                foreach (var transform in pipeline.Transforms)
-                {
-                    transformsSb.Append("xf=");
-                    transformsSb.Append(transform);
-                    transformsSb.Append(" ");
-                }
-                var commandLineStr = $"{transformsSb.ToString()} tr={pipeline.Trainer}";
-                WriteDebugLog(DebugStream.RunResult, $"{_history.Count}\t{runResult.Score}\t{stopwatch.Elapsed}\t{commandLineStr}");
+                WriteDebugLog(DebugStream.RunResult, $"{_history.Count}\t{runResult.Score}\t{stopwatch.Elapsed}\t{pipeline.ToString()}");
             }
         }
 

@@ -20,28 +20,22 @@ namespace Microsoft.ML.Auto
         public readonly IList<SuggestedTransform> TransformsPostTrainer;
 
         private readonly MLContext _context;
-        private readonly bool? _enableCaching;
+        private readonly bool _cacheBeforeTrainer;
 
         public SuggestedPipeline(IEnumerable<SuggestedTransform> transforms,
             IEnumerable<SuggestedTransform> transformsPostTrainer,
             SuggestedTrainer trainer,
             MLContext context,
-            bool? enableCaching,
-            bool autoNormalize = true)
+            bool cacheBeforeTrainer)
         {
             Transforms = transforms.Select(t => t.Clone()).ToList();
             TransformsPostTrainer = transformsPostTrainer.Select(t => t.Clone()).ToList();
             Trainer = trainer.Clone();
             _context = context;
-            _enableCaching = enableCaching;
-
-            if (autoNormalize)
-            {
-                AddNormalizationTransforms();
-            }
+            _cacheBeforeTrainer = cacheBeforeTrainer;
         }
         
-        public override string ToString() => $"{string.Join(" xf=", this.Transforms)} tr={this.Trainer} {string.Join(" xf=", this.TransformsPostTrainer)}";
+        public override string ToString() => $"{string.Join(" ", Transforms.Select(t => $"xf={t}"))} tr={this.Trainer} {string.Join(" ", TransformsPostTrainer.Select(t => $"xf={t}"))} cache={(_cacheBeforeTrainer ? "+" : "-")}";
 
         public override bool Equals(object obj)
         {
@@ -70,7 +64,7 @@ namespace Microsoft.ML.Auto
             {
                 pipelineElements.Add(transform.PipelineNode);
             }
-            return new Pipeline(pipelineElements.ToArray());
+            return new Pipeline(pipelineElements.ToArray(), _cacheBeforeTrainer);
         }
 
         public static SuggestedPipeline FromPipeline(MLContext context, Pipeline pipeline)
@@ -108,7 +102,7 @@ namespace Microsoft.ML.Auto
                 }
             }
 
-            return new SuggestedPipeline(transforms, transformsPostTrainer, trainer, context, null);
+            return new SuggestedPipeline(transforms, transformsPostTrainer, trainer, context, pipeline.CacheBeforeTrainer);
         }
 
         public IEstimator<ITransformer> ToEstimator()
@@ -127,7 +121,7 @@ namespace Microsoft.ML.Auto
             // Get learner
             var learner = Trainer.BuildTrainer();
 
-            if (_enableCaching == true || (_enableCaching == null && learner.Info.WantCaching))
+            if (_cacheBeforeTrainer)
             {
                 pipeline = pipeline.AppendCacheCheckpoint(_context);
             }
@@ -145,21 +139,6 @@ namespace Microsoft.ML.Auto
             }
 
             return pipeline;
-        }
-
-        private void AddNormalizationTransforms()
-        {
-            // get learner
-            var learner = Trainer.BuildTrainer();
-
-            // only add normalization if learner needs it
-            if (!learner.Info.NeedNormalization)
-            {
-                return;
-            }
-
-            var transform = NormalizingExtension.CreateSuggestedTransform(_context, DefaultColumnNames.Features, DefaultColumnNames.Features);
-            Transforms.Add(transform);
         }
     }
 }
