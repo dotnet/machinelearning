@@ -139,9 +139,11 @@ namespace Microsoft.ML.Transforms.Text
                         }
                         else if (_stopWordsRemoverOptions is CustomStopWordsRemovingEstimator.Options)
                         {
+                            var stopwords = (_stopWordsRemoverOptions as CustomStopWordsRemovingEstimator.Options).StopWords;
                             options = new CustomStopWordsRemovingTransformer.LoaderArguments()
                             {
-                                Stopwords = (_stopWordsRemoverOptions as CustomStopWordsRemovingEstimator.Options).StopWords
+                                Stopwords = stopwords,
+                                Stopword = string.Join(",", stopwords)
                             };
                         }
                     }
