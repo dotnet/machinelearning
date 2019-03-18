@@ -5,7 +5,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
@@ -192,17 +191,6 @@ namespace Microsoft.ML
                 return composite.Transformer;
             }
             return new TransformerChain<ITransformer>();
-        }
-
-        /// <summary>
-        /// Load the model from a file path.
-        /// </summary>
-        /// <param name="modelPath">Path to model.</param>
-        /// <returns>The loaded model.</returns>
-        public ITransformer Load(string modelPath)
-        {
-            using (var stream = File.OpenRead(modelPath))
-                return Load(stream);
         }
 
         /// <summary>
