@@ -50,7 +50,18 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Save a transformer model and the loader used to create its input data to the stream.
+        /// Save the model to the file.
+        /// </summary>
+        /// <param name="model">The trained model to be saved.</param>
+        /// <param name="modelPath">Path where model should be saved.</param>
+        public void Save(ITransformer model, string modelPath)
+        {
+            using (var stream = File.Create(modelPath))
+                Save(model, stream);
+        }
+
+        /// <summary>
+        /// Load the model from the stream.
         /// </summary>
         /// <param name="loader">The loader that was used to create data to train the model</param>
         /// <param name="model">The trained model to be saved</param>
