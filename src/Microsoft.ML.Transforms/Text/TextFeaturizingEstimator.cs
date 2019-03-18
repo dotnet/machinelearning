@@ -111,7 +111,7 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep numbers or remove them.", ShortName = "num", SortOrder = 8)]
             public bool KeepNumbers = TextNormalizingEstimator.Defaults.KeepNumbers;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Column containing the transformed text tokens.", ShortName = "OutputTokens,tokens,showtext,showTransformedText", SortOrder = 9)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column containing the transformed text tokens.", ShortName = "tokens,showtext,showTransformedText", SortOrder = 9)]
             public string OutputTokensColumnName;
 
             [Argument(ArgumentType.Multiple, HelpText = "A dictionary of whitelisted terms.", ShortName = "dict", NullName = "<None>", SortOrder = 10, Hide = true)]

@@ -43,7 +43,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .AsDynamic;
 
             var feat = data.MakeNewEstimator()
-                 .Append(row => row.text.FeaturizeText(options: new TextFeaturizingEstimator.Options { OutputTokensColumnName = "Data_TransformedText", }));
+                 .Append(row => row.text.FeaturizeText(options: new TextFeaturizingEstimator.Options { OutputTokensColumnName = "OutputTokens", }));
 
             TestEstimatorCore(feat.AsDynamic, data.AsDynamic, invalidInput: invalidData);
 
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true });
                 var savedData = ML.Data.TakeRows(feat.Fit(data).Transform(data).AsDynamic, 4);
-                savedData = ML.Transforms.SelectColumns("Data", "Data_TransformedText").Fit(savedData).Transform(savedData);
+                savedData = ML.Transforms.SelectColumns("Data", "OutputTokens").Fit(savedData).Transform(savedData);
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);

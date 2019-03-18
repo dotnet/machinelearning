@@ -22440,7 +22440,6 @@
           "Type": "String",
           "Desc": "Column containing the transformed text tokens.",
           "Aliases": [
-            "OutputTokens",
             "tokens",
             "showtext",
             "showTransformedText"
