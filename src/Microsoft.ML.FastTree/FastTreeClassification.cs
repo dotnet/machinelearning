@@ -13,14 +13,14 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
-[assembly: LoadableClass(FastTreeBinaryClassificationTrainer.Summary, typeof(FastTreeBinaryClassificationTrainer), typeof(FastTreeBinaryClassificationTrainer.Options),
+[assembly: LoadableClass(FastTreeBinaryTrainer.Summary, typeof(FastTreeBinaryTrainer), typeof(FastTreeBinaryTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
-    FastTreeBinaryClassificationTrainer.UserNameValue,
-    FastTreeBinaryClassificationTrainer.LoadNameValue,
+    FastTreeBinaryTrainer.UserNameValue,
+    FastTreeBinaryTrainer.LoadNameValue,
     "FastTreeClassification",
     "FastTree",
     "ft",
-    FastTreeBinaryClassificationTrainer.ShortName,
+    FastTreeBinaryTrainer.ShortName,
 
     // FastRank names
     "FastRankBinaryClassification",
@@ -101,8 +101,8 @@ namespace Microsoft.ML.Trainers.FastTree
     /// The <see cref="IEstimator{TTransformer}"/> for training a decision tree binary classification model using FastTree.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="FastTree_remarks"]/*' />
-    public sealed partial class FastTreeBinaryClassificationTrainer :
-        BoostingFastTreeTrainerBase<FastTreeBinaryClassificationTrainer.Options,
+    public sealed partial class FastTreeBinaryTrainer :
+        BoostingFastTreeTrainerBase<FastTreeBinaryTrainer.Options,
         BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>>
     {
@@ -118,7 +118,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private double _sigmoidParameter;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastTreeBinaryClassificationTrainer"/>
+        /// Initializes a new instance of <see cref="FastTreeBinaryTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="minimumExampleCountPerLeaf">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
         /// <param name="numberOfLeaves">The max number of leaves in each regression tree.</param>
         /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
-        internal FastTreeBinaryClassificationTrainer(IHostEnvironment env,
+        internal FastTreeBinaryTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -143,11 +143,11 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastTreeBinaryClassificationTrainer"/> by using the <see cref="Options"/> class.
+        /// Initializes a new instance of <see cref="FastTreeBinaryTrainer"/> by using the <see cref="Options"/> class.
         /// </summary>
         /// <param name="env">The instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="options">Algorithm advanced settings.</param>
-        internal FastTreeBinaryClassificationTrainer(IHostEnvironment env, Options options)
+        internal FastTreeBinaryTrainer(IHostEnvironment env, Options options)
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Trainers.FastTree
             => new BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Trains a <see cref="FastTreeBinaryClassificationTrainer"/> using both training and validation data, returns
+        /// Trains a <see cref="FastTreeBinaryTrainer"/> using both training and validation data, returns
         /// a <see cref="BinaryPredictionTransformer{CalibratedModelParametersBase}"/>.
         /// </summary>
         public BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> Fit(IDataView trainData, IDataView validationData)
@@ -403,18 +403,18 @@ namespace Microsoft.ML.Trainers.FastTree
     internal static partial class FastTree
     {
         [TlcModule.EntryPoint(Name = "Trainers.FastTreeBinaryClassifier",
-            Desc = FastTreeBinaryClassificationTrainer.Summary,
-            UserName = FastTreeBinaryClassificationTrainer.UserNameValue,
-            ShortName = FastTreeBinaryClassificationTrainer.ShortName)]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastTreeBinaryClassificationTrainer.Options input)
+            Desc = FastTreeBinaryTrainer.Summary,
+            UserName = FastTreeBinaryTrainer.UserNameValue,
+            ShortName = FastTreeBinaryTrainer.ShortName)]
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastTreeBinaryTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainFastTree");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<FastTreeBinaryClassificationTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new FastTreeBinaryClassificationTrainer(host, input),
+            return TrainerEntryPointsUtils.Train<FastTreeBinaryTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
+                () => new FastTreeBinaryTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.RowGroupColumnName));

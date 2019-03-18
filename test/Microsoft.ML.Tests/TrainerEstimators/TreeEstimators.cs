@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
             var trainer = ML.BinaryClassification.Trainers.FastTree(
-                new FastTreeBinaryClassificationTrainer.Options
+                new FastTreeBinaryTrainer.Options
                 {
                     NumberOfThreads = 1,
                     NumberOfTrees = 10,
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = new GamBinaryClassificationTrainer(Env, new GamBinaryClassificationTrainer.Options
+            var trainer = new GamBinaryTrainer(Env, new GamBinaryTrainer.Options
             {
                 GainConfidenceLevel = 0,
                 NumberOfIterations = 15,
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
             var trainer = ML.BinaryClassification.Trainers.FastForest(
-                new FastForestBinaryClassificationTrainer.Options
+                new FastForestBinaryTrainer.Options
                 {
                     NumberOfLeaves = 10,
                     NumberOfTrees = 20,

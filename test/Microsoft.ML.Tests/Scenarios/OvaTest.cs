@@ -104,7 +104,7 @@ namespace Microsoft.ML.Scenarios
 
             // Pipeline
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(
-                mlContext.BinaryClassification.Trainers.FastTree(new FastTreeBinaryClassificationTrainer.Options { NumberOfThreads = 1 }),
+                mlContext.BinaryClassification.Trainers.FastTree(new FastTreeBinaryTrainer.Options { NumberOfThreads = 1 }),
                 useProbabilities: false);
 
             var model = pipeline.Fit(data);

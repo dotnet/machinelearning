@@ -13,12 +13,12 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
-[assembly: LoadableClass(GamBinaryClassificationTrainer.Summary,
-    typeof(GamBinaryClassificationTrainer), typeof(GamBinaryClassificationTrainer.Options),
+[assembly: LoadableClass(GamBinaryTrainer.Summary,
+    typeof(GamBinaryTrainer), typeof(GamBinaryTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    GamBinaryClassificationTrainer.UserNameValue,
-    GamBinaryClassificationTrainer.LoadNameValue,
-    GamBinaryClassificationTrainer.ShortName, DocName = "trainer/GAM.md")]
+    GamBinaryTrainer.UserNameValue,
+    GamBinaryTrainer.LoadNameValue,
+    GamBinaryTrainer.ShortName, DocName = "trainer/GAM.md")]
 
 [assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(GamBinaryModelParameters), null, typeof(SignatureLoadModel),
     "GAM Binary Class Predictor",
@@ -30,13 +30,13 @@ namespace Microsoft.ML.Trainers.FastTree
     /// The <see cref="IEstimator{TTransformer}"/> for training a binary classification model with generalized additive models (GAM).
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="GAM_remarks"]/*' />
-    public sealed class GamBinaryClassificationTrainer :
-        GamTrainerBase<GamBinaryClassificationTrainer.Options,
+    public sealed class GamBinaryTrainer :
+        GamTrainerBase<GamBinaryTrainer.Options,
         BinaryPredictionTransformer<CalibratedModelParametersBase<GamBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<GamBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
-        /// Options for the <see cref="GamBinaryClassificationTrainer"/>.
+        /// Options for the <see cref="GamBinaryTrainer"/>.
         /// </summary>
         public sealed class Options : OptionsBase
         {
@@ -57,16 +57,16 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override bool NeedCalibration => true;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="GamBinaryClassificationTrainer"/>
+        /// Initializes a new instance of <see cref="GamBinaryTrainer"/>
         /// </summary>
-        internal GamBinaryClassificationTrainer(IHostEnvironment env, Options options)
+        internal GamBinaryTrainer(IHostEnvironment env, Options options)
              : base(env, options, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             _sigmoidParameter = 1;
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="GamBinaryClassificationTrainer"/>
+        /// Initializes a new instance of <see cref="GamBinaryTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="numberOfIterations">The number of iterations to use in learning the features.</param>
         /// <param name="learningRate">The learning rate. GAMs work best with a small learning rate.</param>
         /// <param name="maximumBinCountPerFeature">The maximum number of bins to use to approximate features</param>
-        internal GamBinaryClassificationTrainer(IHostEnvironment env,
+        internal GamBinaryTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string rowGroupColumnName = null,
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private protected override ObjectiveFunctionBase CreateObjectiveFunction()
         {
-            return new FastTreeBinaryClassificationTrainer.ObjectiveImpl(
+            return new FastTreeBinaryTrainer.ObjectiveImpl(
                 TrainSet,
                 ConvertTargetsToBool(TrainSet.Targets),
                 GamTrainerOptions.LearningRate,
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Trainers.FastTree
             => new BinaryPredictionTransformer<CalibratedModelParametersBase<GamBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Trains a <see cref="GamBinaryClassificationTrainer"/> using both training and validation data, returns
+        /// Trains a <see cref="GamBinaryTrainer"/> using both training and validation data, returns
         /// a <see cref="BinaryPredictionTransformer{CalibratedModelParametersBase}"/>.
         /// </summary>
         public BinaryPredictionTransformer<CalibratedModelParametersBase<GamBinaryModelParameters, PlattCalibrator>> Fit(IDataView trainData, IDataView validationData)
