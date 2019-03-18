@@ -25,6 +25,7 @@ namespace Microsoft.ML.Functional.Tests
             base.Initialize();
 
             _ml = new MLContext(42);
+            _ml.AddStandardComponents();
         }
 
         [Fact]
