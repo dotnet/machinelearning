@@ -41,6 +41,17 @@ namespace Microsoft.ML
         public ITransformer Load(Stream stream) => TransformerChain.LoadFrom(_env, stream);
 
         /// <summary>
+        /// Load the model from a file path.
+        /// </summary>
+        /// <param name="modelPath">Path to model.</param>
+        /// <returns>The loaded model.</returns>
+        public ITransformer Load(string modelPath)
+        {
+            using (var stream = File.OpenRead(modelPath))
+                return Load(stream);
+        }
+
+        /// <summary>
         /// The catalog of model explainability operations.
         /// </summary>
         public sealed class ExplainabilityTransforms : IInternalCatalog

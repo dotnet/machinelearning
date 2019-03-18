@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 

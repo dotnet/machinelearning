@@ -72,7 +72,10 @@
     
     <Copy SourceFiles="$(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
           DestinationFolder="$(NativeAssetsBuiltPath)" />   
-    
+
+    <Copy Condition="'$(OS)' == 'Windows_NT'" SourceFiles="$(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\libiomp5md$(NativeLibExtension)"
+          DestinationFolder="$(NativeAssetsBuiltPath)" />   
+
     <ItemGroup Condition="'$(UseIntrinsics)' != 'true'">
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\native" />

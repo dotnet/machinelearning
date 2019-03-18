@@ -4,7 +4,6 @@
 
 using System;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
