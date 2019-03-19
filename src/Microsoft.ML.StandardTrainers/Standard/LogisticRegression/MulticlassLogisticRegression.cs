@@ -74,7 +74,7 @@ namespace Microsoft.ML.Trainers
         private protected override int ClassCount => _numClasses;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LbfgsMaximumEntropyTrainer"/>
+        /// Initializes a new instance of <see cref="LbfgsMaximumEntropyTrainer"/>.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column.</param>
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LbfgsMaximumEntropyTrainer"/>
+        /// Initializes a new instance of <see cref="LbfgsMaximumEntropyTrainer"/>.
         /// </summary>
         internal LbfgsMaximumEntropyTrainer(IHostEnvironment env, Options options)
             : base(env, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
@@ -1014,7 +1014,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Output the text model to a given writer
+        /// Output the text model to a given writer.
         /// </summary>
         private protected override void SaveAsCodeCore(TextWriter writer, RoleMappedSchema schema)
         {

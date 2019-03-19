@@ -64,7 +64,7 @@ namespace Microsoft.ML.Trainers
         private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SdcaMulticlassClassificationTrainerBase{TModel}"/>
+        /// Initializes a new instance of <see cref="SdcaMulticlassClassificationTrainerBase{TModel}"/>.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The label, or dependent variable.</param>
@@ -437,7 +437,7 @@ namespace Microsoft.ML.Trainers
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
     public sealed class SdcaCalibratedMulticlassTrainer : SdcaMulticlassClassificationTrainerBase<MaximumEntropyModelParameters>
     {
-        public class Options : CommonOptions
+        public sealed class Options : CommonOptions
         {
         }
 
@@ -487,7 +487,7 @@ namespace Microsoft.ML.Trainers
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
     public sealed class SdcaNonCalibratedMulticlassTrainer : SdcaMulticlassClassificationTrainerBase<LinearMulticlassModelParameters>
     {
-        public class Options : CommonOptions
+        public sealed class Options : CommonOptions
         {
             /// <summary>
             /// Loss function minimized by this trainer.
