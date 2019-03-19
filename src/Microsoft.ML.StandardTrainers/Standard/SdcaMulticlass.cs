@@ -28,7 +28,7 @@ namespace Microsoft.ML.Trainers
     /// The <see cref="IEstimator{TTransformer}"/> for training a multiclass linear classification model using the stochastic dual coordinate ascent method.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
-    public abstract class SdcaMulticlassClassificationTrainerBase<TModel> : SdcaTrainerBase<SdcaMulticlassClassificationTrainerBase<TModel>.CommonOptions, MulticlassPredictionTransformer<TModel>, TModel>
+    public abstract class SdcaMulticlassClassificationTrainerBase<TModel> : SdcaTrainerBase<SdcaMulticlassClassificationTrainerBase<TModel>.MulticlassOptions, MulticlassPredictionTransformer<TModel>, TModel>
         where TModel : class
     {
         internal const string LoadNameValue = "SDCAMC";
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Options for the <see cref="SdcaMulticlassClassificationTrainerBase{TModel}"/>.
         /// </summary>
-        public class CommonOptions : OptionsBase
+        public class MulticlassOptions : OptionsBase
         {
             /// <summary>
             /// The custom <a href="tmpurl_loss">loss</a>.
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Trainers
             Loss = _loss;
         }
 
-        internal SdcaMulticlassClassificationTrainerBase(IHostEnvironment env, CommonOptions options,
+        internal SdcaMulticlassClassificationTrainerBase(IHostEnvironment env, MulticlassOptions options,
             string featureColumn, string labelColumn, string weightColumn = null)
             : base(env, options, TrainerUtils.MakeU4ScalarColumn(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Trainers
             Loss = _loss;
         }
 
-        internal SdcaMulticlassClassificationTrainerBase(IHostEnvironment env, CommonOptions options)
+        internal SdcaMulticlassClassificationTrainerBase(IHostEnvironment env, MulticlassOptions options)
             : this(env, options, options.FeatureColumnName, options.LabelColumnName)
         {
         }
@@ -437,7 +437,7 @@ namespace Microsoft.ML.Trainers
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
     public sealed class SdcaCalibratedMulticlassTrainer : SdcaMulticlassClassificationTrainerBase<MaximumEntropyModelParameters>
     {
-        public sealed class Options : CommonOptions
+        public sealed class Options : MulticlassOptions
         {
         }
 
@@ -487,7 +487,7 @@ namespace Microsoft.ML.Trainers
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
     public sealed class SdcaNonCalibratedMulticlassTrainer : SdcaMulticlassClassificationTrainerBase<LinearMulticlassModelParameters>
     {
-        public sealed class Options : CommonOptions
+        public sealed class Options : MulticlassOptions
         {
             /// <summary>
             /// Loss function minimized by this trainer.
