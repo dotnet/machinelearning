@@ -130,13 +130,13 @@ namespace Microsoft.ML.Trainers
             var transformer = trainer.Fit(view);
 
             // the validations in the calibrator check for the feature column, in the RoleMappedData
-            var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumn);
+            var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumnName);
 
             var calibratedModel = transformer.Model as TDistPredictor;
             if (calibratedModel == null)
                 calibratedModel = CalibratorUtils.GetCalibratedPredictor(Host, ch, Calibrator, transformer.Model, trainedData, Args.MaxCalibrationExamples) as TDistPredictor;
 
-            return new BinaryPredictionTransformer<TDistPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumn);
+            return new BinaryPredictionTransformer<TDistPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumnName);
         }
 
         private IDataView MapLabels(RoleMappedData data, int cls1, int cls2)
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Trainers
                         if (i == 0 && j == 0)
                         {
                             var transformer = TrainOne(ch, Trainer, td, i, j);
-                            featureColumn = transformer.FeatureColumn;
+                            featureColumn = transformer.FeatureColumnName;
                         }
 
                         predictors[i][j] = TrainOne(ch, Trainer, td, i, j).Model;

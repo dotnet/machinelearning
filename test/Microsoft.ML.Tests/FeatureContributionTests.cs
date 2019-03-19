@@ -29,11 +29,11 @@ namespace Microsoft.ML.Tests
             var data = GetSparseDataset();
             var model = ML.Regression.Trainers.Ols().Fit(data);
 
-            var estPipe = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn)
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, normalize: false))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, numPositiveContributions: 0))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, numNegativeContributions: 0))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, numPositiveContributions: 0, numNegativeContributions: 0));
+            var estPipe = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumnName)
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumnName, normalize: false))
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumnName, numPositiveContributions: 0))
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumnName, numNegativeContributions: 0))
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumnName, numPositiveContributions: 0, numNegativeContributions: 0));
 
             TestEstimatorCore(estPipe, data);
             Done();
