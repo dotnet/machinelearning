@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
@@ -36,7 +35,7 @@ namespace Microsoft.ML.Trainers
                 var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
                 var initPred = context.InitialPredictor;
                 // Try extract linear model from calibrated predictor.
-                var linInitPred = (initPred as IWeaklyTypedCalibratedModelParameters)?.WeeklyTypedSubModel as LinearModelParameters;
+                var linInitPred = (initPred as IWeaklyTypedCalibratedModelParameters)?.WeaklyTypedSubModel as LinearModelParameters;
                 // If the initial predictor is not calibrated, it should be a linear model.
                 linInitPred = linInitPred ?? initPred as LinearModelParameters;
                 Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),

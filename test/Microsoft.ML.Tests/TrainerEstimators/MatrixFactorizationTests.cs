@@ -504,7 +504,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             using (var ch = Env.Start("load"))
             {
                 using (var fs = File.OpenRead(modelPath))
-                    model = ML.Model.Load(fs);
+                {
+                    model = ML.Model.Load(fs, out var schema);
+                    // This model was saved without the input schema.
+                    Assert.Null(schema);
+                }
             }
 
             // Create data for testing. Note that the 2nd element is not specified in the training data so it should

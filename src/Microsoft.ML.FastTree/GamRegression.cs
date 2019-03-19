@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -24,10 +23,23 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a regression model with generalized additive models (GAM).
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="GAM_remarks"]/*' />
     public sealed class GamRegressionTrainer : GamTrainerBase<GamRegressionTrainer.Options, RegressionPredictionTransformer<RegressionGamModelParameters>, RegressionGamModelParameters>
     {
+        /// <summary>
+        /// Options for the <see cref="GamRegressionTrainer"/>.
+        /// </summary>
         public partial class Options : OptionsBase
         {
+            /// <summary>
+            /// Determines what metric to use for pruning.
+            /// </summary>
+            /// <value>
+            /// 1 means use least absolute deviation; 2 means use least squares. Default is 2.
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2)", ShortName = "pmetric")]
             [TGUI(Description = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2")]
             public int PruningMetrics = 2;

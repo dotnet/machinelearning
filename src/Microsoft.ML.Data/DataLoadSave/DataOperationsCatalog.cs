@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
@@ -81,6 +80,14 @@ namespace Microsoft.ML
             _env.CheckValue(data, nameof(data));
             _env.CheckValueOrNull(schemaDefinition);
             return DataViewConstructionUtils.CreateFromEnumerable(_env, data, schemaDefinition);
+        }
+
+        public IDataView LoadFromEnumerable<TRow>(IEnumerable<TRow> data, DataViewSchema schema)
+            where TRow : class
+        {
+            _env.CheckValue(data, nameof(data));
+            _env.CheckValue(schema, nameof(schema));
+            return DataViewConstructionUtils.CreateFromEnumerable(_env, data, schema);
         }
 
         /// <summary>

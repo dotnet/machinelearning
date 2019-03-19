@@ -7,8 +7,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.ML.Data;
 
-namespace Microsoft.Data.DataView
+namespace Microsoft.ML
 {
     /// <summary>
     /// This class represents the <see cref="DataViewSchema"/> of an object like, for interstance, an <see cref="IDataView"/> or an <see cref="DataViewRow"/>.

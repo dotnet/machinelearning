@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
@@ -73,7 +72,7 @@ namespace Microsoft.ML.Trainers
             {
                 var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
                 var initPred = context.InitialPredictor;
-                var linInitPred = (initPred as IWeaklyTypedCalibratedModelParameters)?.WeeklyTypedSubModel as LinearModelParameters;
+                var linInitPred = (initPred as IWeaklyTypedCalibratedModelParameters)?.WeaklyTypedSubModel as LinearModelParameters;
                 linInitPred = linInitPred ?? initPred as LinearModelParameters;
                 Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");
@@ -1162,7 +1161,7 @@ namespace Microsoft.ML.Trainers
         // This class can also be made to accommodate generic type, as long as the type implements a
         // good 64-bit hash function.
         /// <summary>
-        /// A hash table data structure to store Id of type <see cref="T:Microsoft.Data.DataView.DataViewRowId"/>,
+        /// A hash table data structure to store Id of type <see cref="T:Microsoft.ML.Data.DataViewRowId"/>,
         /// and accommodates size larger than 2 billion. This class is an extension based on BCL.
         /// Two operations are supported: adding and retrieving an id with asymptotically constant complexity.
         /// The bucket size are prime numbers, starting from 3 and grows to the next prime larger than

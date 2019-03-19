@@ -30,6 +30,12 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
         /// If left to <value>null</value> the <paramref name="inputColumnName"/> will get replaced.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/IndicateMissingValues.cs)]
+        /// ]]></format>
+        /// </example>
         public static MissingValueIndicatorEstimator IndicateMissingValues(this TransformsCatalog catalog,
             string outputColumnName,
             string inputColumnName = null)
@@ -50,6 +56,12 @@ namespace Microsoft.ML
         /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
         /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
         /// where imputation is always for the entire column.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ReplaceMissingValues.cs)]
+        /// ]]></format>
+        /// </example>
         public static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog,
             string outputColumnName,
             string inputColumnName = null,

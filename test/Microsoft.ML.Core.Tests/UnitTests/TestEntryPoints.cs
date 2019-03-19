@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Core.Tests.UnitTests;
 using Microsoft.ML.Data;
@@ -973,7 +972,7 @@ namespace Microsoft.ML.RunTests
                 {
                     data = new TextFeaturizingEstimator(Env, "Features", new List<string> { "Text" }, 
                         new TextFeaturizingEstimator.Options { 
-                            UsePredefinedStopWordRemover = true,
+                            StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options(),
                         }).Fit(data).Transform(data);
                 }
                 else
@@ -5646,9 +5645,8 @@ namespace Microsoft.ML.RunTests
                 ITransformer loadedModel;
                 using (var stream = File.OpenRead(modelPath))
                 {
-                    loadedModel = ml.Model.Load(stream);
+                    loadedModel = ml.Model.Load(stream, out var inputSchema);
                 }
-
             }
         }
     }

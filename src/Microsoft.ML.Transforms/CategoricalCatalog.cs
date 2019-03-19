@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 
@@ -25,6 +24,12 @@ namespace Microsoft.ML
         /// If <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         /// <param name="keyData">Specifies an ordering for the encoding. If specified, this should be a single column data view,
         /// and the key-values will be taken from that column. If unspecified, the ordering will be determined from the input data upon fitting.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Categorical/OneHotEncoding.cs)]
+        /// ]]></format>
+        /// </example>
         public static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 string outputColumnName,
                 string inputColumnName = null,

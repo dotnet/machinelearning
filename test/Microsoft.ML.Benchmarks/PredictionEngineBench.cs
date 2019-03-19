@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
@@ -63,7 +62,7 @@ namespace Microsoft.ML.Benchmarks
 
             var model = pipeline.Fit(data);
 
-            _irisModel = model.CreatePredictionEngine<IrisData, IrisPrediction>(env);
+            _irisModel = env.Model.CreatePredictionEngine<IrisData, IrisPrediction>(model);
         }
 
         [GlobalSetup(Target = nameof(MakeSentimentPredictions))]
@@ -98,7 +97,7 @@ namespace Microsoft.ML.Benchmarks
 
             var model = pipeline.Fit(data);
 
-            _sentimentModel = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(mlContext);
+            _sentimentModel = mlContext.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model);
         }
 
         [GlobalSetup(Target = nameof(MakeBreastCancerPredictions))]
@@ -132,7 +131,7 @@ namespace Microsoft.ML.Benchmarks
 
             var model = pipeline.Fit(data);
 
-            _breastCancerModel = model.CreatePredictionEngine<BreastCancerData, BreastCancerPrediction>(env);
+            _breastCancerModel = env.Model.CreatePredictionEngine<BreastCancerData, BreastCancerPrediction>(model);
         }
 
         [Benchmark]

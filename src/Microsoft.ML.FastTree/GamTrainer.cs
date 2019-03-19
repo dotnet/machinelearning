@@ -22,84 +22,103 @@ namespace Microsoft.ML.Trainers.FastTree
     using SplitInfo = LeastSquaresRegressionTreeLearner.SplitInfo;
 
     /// <summary>
-    /// Generalized Additive Model Trainer.
+    /// Base class for GAM trainers.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// Generalized Additive Models, or GAMs, model the data as a set of linearly independent features
-    /// similar to a linear model. For each feature, the GAM trainer learns a non-linear function,
-    /// called a "shape function", that computes the response as a function of the feature's value.
-    /// (In contrast, a linear model fits a linear response (e.g. a line) to each feature.)
-    /// To score an example, the outputs of all the shape functions are summed and the score is the total value.
-    /// </para>
-    /// <para>
-    /// This GAM trainer is implemented using shallow gradient boosted trees (e.g. tree stumps) to learn nonparametric
-    /// shape functions, and is based on the method described in Lou, Caruana, and Gehrke.
-    /// <a href='http://www.cs.cornell.edu/~yinlou/papers/lou-kdd12.pdf'>&quot;Intelligible Models for Classification and Regression.&quot;</a> KDD&apos;12, Beijing, China. 2012.
-    /// After training, an intercept is added to represent the average prediction over the training set,
-    /// and the shape functions are normalized to represent the deviation from the average prediction. This results
-    /// in models that are easily interpreted simply by inspecting the intercept and the shape functions.
-    /// See the sample below for an example of how to train a GAM model and inspect and interpret the results.
-    /// </para>
-    /// </remarks>
-    /// <example>
-    /// <format type="text/markdown">
-    /// <![CDATA[
-    /// [!code-csharp[GAM](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/GeneralizedAdditiveModels.cs)]
-    /// ]]>
-    /// </format>
-    /// </example>
     public abstract partial class GamTrainerBase<TOptions, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
         where TTransformer : ISingleFeaturePredictionTransformer<TPredictor>
         where TOptions : GamTrainerBase<TOptions, TTransformer, TPredictor>.OptionsBase, new()
         where TPredictor : class
     {
+        /// <summary>
+        /// Base class for GAM-based trainer options.
+        /// </summary>
         public abstract class OptionsBase : TrainerInputBaseWithWeight
         {
+            /// <summary>
+            /// The entropy (regularization) coefficient between 0 and 1.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The entropy (regularization) coefficient between 0 and 1", ShortName = "e")]
             public double EntropyCoefficient;
 
-            /// Only consider a gain if its likelihood versus a random choice gain is above a certain value.
-            /// So 0.95 would mean restricting to gains that have less than a 0.05 change of being generated randomly through choice of a random split.
+            /// <summary>
+            /// Tree fitting gain confidence requirement. Only consider a gain if its likelihood versus a random choice gain is above this value.
+            /// </summary>
+            /// <value>
+            /// Value of 0.95 would mean restricting to gains that have less than a 0.05 chance of being generated randomly through choice of a random split.
+            /// Valid range is [0,1).
+            /// </value>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Tree fitting gain confidence requirement (should be in the range [0,1) ).", ShortName = "gainconf")]
             public int GainConfidenceLevel;
 
+            /// <summary>
+            /// Total number of passes over the training data.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Total number of iterations over all features", ShortName = "iter", SortOrder = 1)]
             [TGUI(SuggestedSweeps = "200,1500,9500")]
             [TlcModule.SweepableDiscreteParamAttribute("NumIterations", new object[] { 200, 1500, 9500 })]
             public int NumberOfIterations = GamDefaults.NumberOfIterations;
 
+            /// <summary>
+            /// The number of threads to use.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The number of threads to use", ShortName = "t", NullName = "<Auto>")]
             public int? NumberOfThreads = null;
 
+            /// <summary>
+            /// The learning rate.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The learning rate", ShortName = "lr", SortOrder = 4)]
             [TGUI(SuggestedSweeps = "0.001,0.1;log")]
             [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.001f, 0.1f, isLogScale: true)]
             public double LearningRate = GamDefaults.LearningRate;
 
+            /// <summary>
+            /// Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose", ShortName = "dt")]
             public bool? DiskTranspose;
 
+            /// <summary>
+            /// The maximum number of distinct values (bins) per feature.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum number of distinct values (bins) per feature", ShortName = "mb")]
             public int MaximumBinCountPerFeature = GamDefaults.MaximumBinCountPerFeature;
 
+            /// <summary>
+            /// The upper bound on the absolute value of a single tree output.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single output", ShortName = "mo")]
             public double MaximumTreeOutput = double.PositiveInfinity;
 
+            /// <summary>
+            /// Sample each query 1 in k times in the GetDerivatives function.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Sample each query 1 in k times in the GetDerivatives function", ShortName = "sr")]
             public int GetDerivativesSampleRate = 1;
 
+            /// <summary>
+            /// The seed of the random number generator.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The seed of the random number generator", ShortName = "r1")]
             public int Seed = 123;
 
+            /// <summary>
+            /// The minimal number of data points required to form a new tree leaf.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum number of training instances required to form a partition", ShortName = "mi", SortOrder = 3)]
             [TGUI(SuggestedSweeps = "1,10,50")]
             [TlcModule.SweepableDiscreteParamAttribute("MinDocuments", new object[] { 1, 10, 50 })]
             public int MinimumExampleCountPerLeaf = 10;
 
+            /// <summary>
+            /// Whether to collectivize features during dataset preparation to speed up training.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to collectivize features during dataset preparation to speed up training", ShortName = "flocks", Hide = true)]
             public bool FeatureFlocks = true;
 
+            /// <summary>
+            /// Enable post-training tree pruning to avoid overfitting. It requires a validation set.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Enable post-training pruning to avoid overfitting. (a validation set is required)", ShortName = "pruning")]
             public bool EnablePruning = true;
         }
@@ -132,7 +151,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private ObjectiveFunctionBase _objectiveFunction;
         private bool HasWeights => TrainSet?.SampleWeights != null;
 
-        // Training datastructures
+        // Training data structures
         private SubGraph _subGraph;
 
         //Results of training

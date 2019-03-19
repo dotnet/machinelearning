@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
 namespace Microsoft.ML.Samples.Dynamic
 {
     public static class ValueMappingStringToArray

@@ -9,7 +9,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -490,6 +489,22 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class StopWordsRemovingEstimator : TrivialEstimator<StopWordsRemovingTransformer>
     {
+        /// <summary>
+        /// Use stop words remover that can remove language-specific list of stop words (most common words) already defined in the system.
+        /// </summary>
+        public sealed class Options : IStopWordsRemoverOptions
+        {
+            /// <summary>
+            /// Language of the text dataset. 'English' is default.
+            /// </summary>
+            public TextFeaturizingEstimator.Language Language;
+
+            public Options()
+            {
+                Language = TextFeaturizingEstimator.DefaultLanguage;
+            }
+        }
+
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
@@ -1067,6 +1082,17 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class CustomStopWordsRemovingEstimator : TrivialEstimator<CustomStopWordsRemovingTransformer>
     {
+        /// <summary>
+        /// Use stop words remover that can removes language-specific list of stop words (most common words) already defined in the system.
+        /// </summary>
+        public sealed class Options : IStopWordsRemoverOptions
+        {
+            /// <summary>
+            /// List of stop words to remove.
+            /// </summary>
+            public string[] StopWords;
+        }
+
         internal const string ExpectedColumnType = "vector of Text type";
 
         /// <summary>
