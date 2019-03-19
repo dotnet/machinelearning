@@ -57,9 +57,9 @@ namespace Microsoft.ML.Functional.Tests
                 mlContext.Transforms.CopyColumns("Score", "Score0").Fit(onnxModel.Transform(data)));
 
             // Create prediction engine and test predictions.
-            var originalPredictionEngine = model.CreatePredictionEngine<HousingRegression, ScoreColumn>(mlContext);
+            var originalPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, ScoreColumn>(model);
             // TODO #2982: ONNX produces vector types and not the original output type.
-            var onnxPredictionEngine = onnxWorkaroundPipeline.CreatePredictionEngine<HousingRegression, VectorScoreColumn>(mlContext);
+            var onnxPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, VectorScoreColumn>(onnxWorkaroundPipeline);
 
             // Take a handful of examples out of the dataset and compute predictions.
             var dataEnumerator = mlContext.Data.CreateEnumerable<HousingRegression>(mlContext.Data.TakeRows(data, 5), false);
@@ -109,9 +109,9 @@ namespace Microsoft.ML.Functional.Tests
                 mlContext.Transforms.CopyColumns("Score", "Score0").Fit(onnxModel.Transform(data)));
 
             // Create prediction engine and test predictions.
-            var originalPredictionEngine = model.CreatePredictionEngine<HousingRegression, VectorScoreColumn>(mlContext);
+            var originalPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, VectorScoreColumn>(model);
             // TODO #2982: ONNX produces vector types and not the original output type.
-            var onnxPredictionEngine = onnxWorkaroundPipeline.CreatePredictionEngine<HousingRegression, VectorScoreColumn>(mlContext);
+            var onnxPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, VectorScoreColumn>(onnxWorkaroundPipeline);
 
             // Take a handful of examples out of the dataset and compute predictions.
             var dataEnumerator = mlContext.Data.CreateEnumerable<HousingRegression>(mlContext.Data.TakeRows(data, 5), false);
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Functional.Tests
                 Common.AssertEqual(originalPrediction.Score, onnxPrediction.Score, precision: 4); // Note the low precision!
             }
         }
-
+    
         /// <summary>
         /// ONNX: Models can be serialized to ONNX, deserialized back to ML.NET, and used a pipeline.
         /// </summary>
@@ -161,9 +161,9 @@ namespace Microsoft.ML.Functional.Tests
                 mlContext.Transforms.CopyColumns("Score", "Score0").Fit(onnxModel.Transform(data)));
 
             // Create prediction engine and test predictions.
-            var originalPredictionEngine = model.CreatePredictionEngine<HousingRegression, ScoreColumn>(mlContext);
+            var originalPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, ScoreColumn>(model);
             // TODO #2982: ONNX produces vector types and not the original output type.
-            var onnxPredictionEngine = onnxWorkaroundPipeline.CreatePredictionEngine<HousingRegression, VectorScoreColumn>(mlContext);
+            var onnxPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, VectorScoreColumn>(onnxWorkaroundPipeline);
 
             // Take a handful of examples out of the dataset and compute predictions.
             var dataEnumerator = mlContext.Data.CreateEnumerable<HousingRegression>(mlContext.Data.TakeRows(data, 5), false);
