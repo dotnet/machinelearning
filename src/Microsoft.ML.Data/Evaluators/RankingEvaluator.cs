@@ -966,8 +966,8 @@ namespace Microsoft.ML.Data
             }
         }
 
-        /// <summary>te
-        /// Calculates natural-based max DCG at all truncations from 1 to trunc
+        /// <summary>
+        /// Calculates natural-based max DCG at all truncations from 1 to truncationLevel.
         /// </summary>
         public static void QueryMaxDcg(Double[] labelGains, int truncationLevel,
             List<short> queryLabels, List<Single> queryOutputs, Double[] groupMaxDcgCur)
