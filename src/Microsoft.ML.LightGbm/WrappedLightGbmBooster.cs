@@ -162,10 +162,10 @@ namespace Microsoft.ML.Trainers.LightGbm
             return ret;
         }
 
-        private static bool FindInBitset(UInt32[] bits, int start, int end, int pos)
+        private static bool FindInBitset(UInt32[] bits, int start, int size, int pos)
         {
             int i1 = pos / 32;
-            if (start + i1 >= end)
+            if (i1 >= size)
                 return false;
             int i2 = pos % 32;
             return ((bits[start + i1] >> i2) & 1) > 0;
@@ -174,13 +174,13 @@ namespace Microsoft.ML.Trainers.LightGbm
         private static int[] GetCatThresholds(UInt32[] catThreshold, int lowerBound, int upperBound)
         {
             List<int> cats = new List<int>();
-            for (int j = lowerBound; j < upperBound; ++j)
+            for (int i = lowerBound; i < upperBound; ++i)
             {
                 // 32 bits.
-                for (int k = 0; k < 32; ++k)
+                for (int j = 0; j < 32; ++j)
                 {
-                    int cat = (j - lowerBound) * 32 + k;
-                    if (FindInBitset(catThreshold, lowerBound, upperBound, cat) && cat > 0)
+                    int cat = (i - lowerBound) * 32 + j;
+                    if (FindInBitset(catThreshold, lowerBound, upperBound - lowerBound, cat))
                         cats.Add(cat);
                 }
             }
@@ -240,7 +240,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                                     categoricalSplitFeatures[node] = new int[cats.Length];
                                     // Convert Cat thresholds to feature indices.
                                     for (int j = 0; j < cats.Length; ++j)
-                                        categoricalSplitFeatures[node][j] = splitFeature[node] + cats[j] - 1;
+                                        categoricalSplitFeatures[node][j] = splitFeature[node] + cats[j];
 
                                     splitFeature[node] = -1;
                                     categoricalSplit[node] = true;
