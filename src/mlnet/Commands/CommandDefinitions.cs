@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
 using System.IO;
+using System.Linq;
 
 namespace Microsoft.ML.CLI.Commands
 {
@@ -97,20 +99,47 @@ namespace Microsoft.ML.CLI.Commands
 
             Option OutputPath() =>
                 new Option(new List<string>() { "--output-path" }, "Location folder to place the generated output. The default is the current directory.",
-                new Argument<DirectoryInfo>(defaultValue:new DirectoryInfo(".")));
+                new Argument<DirectoryInfo>(defaultValue: new DirectoryInfo(".")));
 
             Option HasHeader() =>
-                new Option(new List<string>() {"--has-header" }, "Specify true/false depending if the dataset file(s) have a header row.",
+                new Option(new List<string>() { "--has-header" }, "Specify true/false depending if the dataset file(s) have a header row.",
                 new Argument<bool>(defaultValue: true));
 
             Option Cache() =>
                 new Option(new List<string>() { "--cache" }, "Specify on/off/auto if you want cache to be turned on, off or auto determined.",
                 new Argument<string>(defaultValue: "auto").FromAmong(GetCacheSuggestions()));
 
+            // This is a temporary hack to work around having comma separated values for argument. This feature needs to be enabled in the parser itself.
             Option IgnoreColumns() =>
-                new Option(new List<string>() { "--ignore-columns" }, "Specify the columns that needs to be ignored in the given dataset.", 
-                new Argument<List<string>>(defaultValue: new List<string>()));
+                new Option(new List<string>() { "--ignore-columns" }, "Specify the columns that needs to be ignored in the given dataset.",
+                new Argument<List<string>>(symbolResult =>
+                {
+                    try
+                    {
+                        List<string> valuesList = new List<string>();
+                        foreach (var argument in symbolResult.Arguments)
+                        {
+                            if (!string.IsNullOrWhiteSpace(argument))
+                            {
+                                var values = argument.Split(",", StringSplitOptions.RemoveEmptyEntries);
+                                valuesList.AddRange(values);
+                            }
+                        }
+                        if (valuesList.Count > 0)
+                            return ArgumentResult.Success(valuesList);
 
+                    }
+                    catch (Exception)
+                    {
+                        return ArgumentResult.Failure($"Unknown exception occured while parsing argument for --ignore-columns :{string.Join(' ', symbolResult.Arguments.ToArray())}");
+                    }
+
+                    //This shouldn't be hit.
+                    return ArgumentResult.Failure($"Unknown error while parsing argument for --ignore-columns");
+                })
+                {
+                    Arity = ArgumentArity.OneOrMore
+                });
         }
 
         private static string[] GetMlTaskSuggestions()

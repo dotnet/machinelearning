@@ -261,6 +261,7 @@ namespace mlnet.Test
             var trainDataset = Path.GetTempFileName();
             var testDataset = Path.GetTempFileName();
             var labelName = "Label";
+            var ignoreColumns = "a,b,c";
 
             // Create handler outside so that commandline and the handler is decoupled and testable.
             var handler = CommandHandler.Create<NewCommandSettings>(
@@ -284,9 +285,15 @@ namespace mlnet.Test
                         .Build();
 
             // valid cache test
-            string[] args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--ignore-columns", "a", "b", "c" };
+            string[] args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--ignore-columns", ignoreColumns };
             parser.InvokeAsync(args).Wait();
             Assert.IsTrue(parsingSuccessful);
+
+            parsingSuccessful = false;
+
+            args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--ignore-columns", "a b c" };
+            parser.InvokeAsync(args).Wait();
+            Assert.IsFalse(parsingSuccessful);
 
             File.Delete(trainDataset);
             File.Delete(testDataset);
