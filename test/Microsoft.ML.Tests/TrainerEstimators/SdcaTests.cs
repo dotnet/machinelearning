@@ -24,11 +24,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
 
             var binaryTrainer = ML.BinaryClassification.Trainers.SdcaCalibrated(
-                new SdcaCalibratedBinaryClassificationTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+                new SdcaCalibratedBinaryTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
             TestEstimatorCore(binaryTrainer, binaryData);
 
             var nonCalibratedBinaryTrainer = ML.BinaryClassification.Trainers.SdcaNonCalibrated(
-                new SdcaNonCalibratedBinaryClassificationTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+                new SdcaNonCalibratedBinaryTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
             TestEstimatorCore(nonCalibratedBinaryTrainer, binaryData);
 
             var regressionTrainer = ML.Regression.Trainers.Sdca(
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var mcData = ML.Transforms.Conversion.MapValueToKey("Label").Fit(data.AsDynamic).Transform(data.AsDynamic);
 
             var mcTrainer = ML.MulticlassClassification.Trainers.Sdca(
-                new SdcaMulticlassClassificationTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+                new SdcaMulticlassTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
             TestEstimatorCore(mcTrainer, mcData);
 
             Done();

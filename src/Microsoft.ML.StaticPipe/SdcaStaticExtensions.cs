@@ -154,7 +154,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaCalibratedBinaryClassificationTrainer(env, labelName, featuresName, weightsName, l2Regularization, l1Threshold, numberOfIterations);
+                    var trainer = new SdcaCalibratedBinaryTrainer(env, labelName, featuresName, weightsName, l2Regularization, l1Threshold, numberOfIterations);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -192,7 +192,7 @@ namespace Microsoft.ML.StaticPipe
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) Sdca(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
-            SdcaCalibratedBinaryClassificationTrainer.Options options,
+            SdcaCalibratedBinaryTrainer.Options options,
             Action<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -207,7 +207,7 @@ namespace Microsoft.ML.StaticPipe
                     options.LabelColumnName = labelName;
                     options.FeatureColumnName = featuresName;
 
-                    var trainer = new SdcaCalibratedBinaryClassificationTrainer(env, options);
+                    var trainer = new SdcaCalibratedBinaryTrainer(env, options);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -263,7 +263,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaNonCalibratedBinaryClassificationTrainer(env, labelName, featuresName, weightsName, loss, l2Regularization, l1Threshold, numberOfIterations);
+                    var trainer = new SdcaNonCalibratedBinaryTrainer(env, labelName, featuresName, weightsName, loss, l2Regularization, l1Threshold, numberOfIterations);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -299,7 +299,7 @@ namespace Microsoft.ML.StaticPipe
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
             ISupportSdcaClassificationLoss loss,
-            SdcaNonCalibratedBinaryClassificationTrainer.Options options,
+            SdcaNonCalibratedBinaryTrainer.Options options,
             Action<LinearBinaryModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -314,7 +314,7 @@ namespace Microsoft.ML.StaticPipe
                     options.FeatureColumnName = featuresName;
                     options.LabelColumnName = labelName;
 
-                    var trainer = new SdcaNonCalibratedBinaryClassificationTrainer(env, options);
+                    var trainer = new SdcaNonCalibratedBinaryTrainer(env, options);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -368,7 +368,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaMulticlassClassificationTrainer(env, labelName, featuresName, weightsName, loss, l2Regularization, l1Threshold, numberOfIterations);
+                    var trainer = new SdcaMulticlassTrainer(env, labelName, featuresName, weightsName, loss, l2Regularization, l1Threshold, numberOfIterations);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                     return trainer;
@@ -396,7 +396,7 @@ namespace Microsoft.ML.StaticPipe
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights,
-            SdcaMulticlassClassificationTrainer.Options options,
+            SdcaMulticlassTrainer.Options options,
             Action<MulticlassLogisticRegressionModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -411,7 +411,7 @@ namespace Microsoft.ML.StaticPipe
                     options.LabelColumnName = labelName;
                     options.FeatureColumnName = featuresName;
 
-                    var trainer = new SdcaMulticlassClassificationTrainer(env, options);
+                    var trainer = new SdcaMulticlassTrainer(env, options);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                     return trainer;
