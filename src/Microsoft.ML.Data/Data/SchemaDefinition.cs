@@ -229,7 +229,7 @@ namespace Microsoft.ML.Data
 
             internal Type ReturnType => Generator?.GetMethodInfo().GetParameters().LastOrDefault().ParameterType.GetElementType();
 
-            public Column(string memberName, DataViewType columnType,
+            internal Column(string memberName, DataViewType columnType,
                 string columnName = null)
             {
                 Contracts.CheckNonEmpty(memberName, nameof(memberName));
