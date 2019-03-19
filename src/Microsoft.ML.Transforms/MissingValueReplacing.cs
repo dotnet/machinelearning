@@ -285,7 +285,7 @@ namespace Microsoft.ML.Transforms
                 sources[iinfo] = colSrc;
                 var type = input.Schema[colSrc].Type;
                 if (type is VectorType vectorType)
-                    type = new VectorType(vectorType.ItemType, vectorType);
+                    type = new VectorType(vectorType.ItemType, vectorType.Dimensions);
                 Delegate isNa = GetIsNADelegate(type);
                 types[iinfo] = type;
                 var kind = (ReplacementKind)columns[iinfo].Replacement;
@@ -557,7 +557,7 @@ namespace Microsoft.ML.Transforms
                     VectorType vectorType = type as VectorType;
                     if (vectorType != null)
                     {
-                        vectorType = new VectorType(vectorType.ItemType, vectorType);
+                        vectorType = new VectorType(vectorType.ItemType, vectorType.Dimensions);
                         type = vectorType;
                     }
                     var repType = _parent._repIsDefault[i] != null ? _parent._replaceTypes[i] : _parent._replaceTypes[i].GetItemType();
@@ -1010,7 +1010,7 @@ namespace Microsoft.ML.Transforms
                     metadata.Add(normalized);
                 var type = !(col.ItemType is VectorType vectorType) ?
                     col.ItemType :
-                    new VectorType(vectorType.ItemType, vectorType);
+                    new VectorType(vectorType.ItemType, vectorType.Dimensions);
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);

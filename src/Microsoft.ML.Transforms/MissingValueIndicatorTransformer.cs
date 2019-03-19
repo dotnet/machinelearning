@@ -182,7 +182,7 @@ namespace Microsoft.ML.Transforms
                     if (!(inType is VectorType vectorType))
                         outType = BooleanDataViewType.Instance;
                     else
-                        outType = new VectorType(BooleanDataViewType.Instance, vectorType);
+                        outType = new VectorType(BooleanDataViewType.Instance, vectorType.Dimensions);
                     infos[i] = new ColInfo(_parent.ColumnPairs[i].outputColumnName, _parent.ColumnPairs[i].inputColumnName, inType, outType);
                 }
                 return infos;
@@ -469,7 +469,7 @@ namespace Microsoft.ML.Transforms
                 metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
                 DataViewType type = !(col.ItemType is VectorType vectorType) ?
                     (DataViewType)BooleanDataViewType.Instance :
-                    new VectorType(BooleanDataViewType.Instance, vectorType);
+                    new VectorType(BooleanDataViewType.Instance, vectorType.Dimensions);
                 result[colPair.outputColumnName] = new SchemaShape.Column(colPair.outputColumnName, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);

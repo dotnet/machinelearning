@@ -187,7 +187,7 @@ namespace Microsoft.ML.Transforms
                 return null;
             // THe following slot type will be the same for any columns, so we have only one field,
             // as opposed to one for each column.
-            Interlocked.CompareExchange(ref _slotType, new VectorType(NumberDataViewType.Single, srcSlotType), null);
+            Interlocked.CompareExchange(ref _slotType, new VectorType(NumberDataViewType.Single, srcSlotType.Dimensions), null);
             return _slotType;
         }
 

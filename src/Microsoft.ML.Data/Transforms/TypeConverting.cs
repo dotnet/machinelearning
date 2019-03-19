@@ -427,7 +427,7 @@ namespace Microsoft.ML.Transforms
 
                 typeDst = itemType;
                 if (srcType is VectorType vectorType)
-                    typeDst = new VectorType(itemType, vectorType);
+                    typeDst = new VectorType(itemType, vectorType.Dimensions);
 
                 return true;
             }

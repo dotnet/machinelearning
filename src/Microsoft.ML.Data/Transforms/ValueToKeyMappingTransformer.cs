@@ -721,7 +721,7 @@ namespace Microsoft.ML.Transforms
                     KeyDataViewType keyType = _parent._unboundMaps[i].OutputType;
                     DataViewType colType;
                     if (type is VectorType vectorType)
-                        colType = new VectorType(keyType, vectorType);
+                        colType = new VectorType(keyType, vectorType.Dimensions);
                     else
                         colType = keyType;
                     _types[i] = colType;

@@ -237,7 +237,7 @@ namespace Microsoft.ML.Transforms
                     if (!(typeSrc is VectorType vectorType))
                         types[iinfo] = valsItemType;
                     else
-                        types[iinfo] = new VectorType((PrimitiveDataViewType)valsItemType, vectorType);
+                        types[iinfo] = new VectorType((PrimitiveDataViewType)valsItemType, vectorType.Dimensions);
 
                     // MarshalInvoke with two generic params.
                     Func<int, DataViewType, DataViewType, KeyToValueMap> func = GetKeyMetadata<int, int>;

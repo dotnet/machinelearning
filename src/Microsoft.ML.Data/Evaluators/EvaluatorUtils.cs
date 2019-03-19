@@ -731,7 +731,7 @@ namespace Microsoft.ML.Data
                         (ref VBuffer<ReadOnlyMemory<char>> dst) => schema[index].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref dst);
                 }
                 views[i] = LambdaColumnMapper.Create(env, "ReconcileKeyValues", views[i], columnName, columnName,
-                    type, new VectorType(keyType, type as VectorType), mapper, keyValueGetter, slotNamesGetter);
+                    type, new VectorType(keyType, ((VectorType)type).Dimensions), mapper, keyValueGetter, slotNamesGetter);
             }
         }
 

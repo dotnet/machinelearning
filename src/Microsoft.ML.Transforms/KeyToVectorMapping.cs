@@ -241,7 +241,7 @@ namespace Microsoft.ML.Transforms
                             GenerateBitSlotName(iinfo, ref dst);
                         };
 
-                        var slotNamesType = new VectorType(TextDataViewType.Instance, _types[iinfo]);
+                        var slotNamesType = new VectorType(TextDataViewType.Instance, _types[iinfo].Dimensions);
                         builder.AddSlotNames(slotNamesType.Size, getter);
                     }
 
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Transforms
                         {
                             GetSlotNames(iinfo, ref dst);
                         };
-                        var slotNamesType = new VectorType(TextDataViewType.Instance, _types[iinfo]);
+                        var slotNamesType = new VectorType(TextDataViewType.Instance, _types[iinfo].Dimensions);
                         builder.Add(AnnotationUtils.Kinds.SlotNames, slotNamesType, getter);
                     }
                 }

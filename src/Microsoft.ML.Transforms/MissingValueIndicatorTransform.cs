@@ -142,7 +142,7 @@ namespace Microsoft.ML.Transforms
                     types[iinfo] = new VectorType(NumberDataViewType.Single, 2);
                 else
                 {
-                    types[iinfo] = new VectorType(NumberDataViewType.Single, vectorType, 2);
+                    types[iinfo] = new VectorType(NumberDataViewType.Single, vectorType.Dimensions.Add(2));
 
                     // Produce slot names metadata iff the source has (valid) slot names.
                     VectorType typeNames;
